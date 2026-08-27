@@ -6,6 +6,7 @@ import TextInputWithSymbol from '@components/TextInputWithSymbol';
 
 import useLocalize from '@hooks/useLocalize';
 import {useMouseActions} from '@hooks/useMouseContext';
+import useStyleUtils from '@hooks/useStyleUtils';
 
 import mergeRefs from '@libs/mergeRefs';
 
@@ -54,14 +55,18 @@ function NumberComposerSymbolInput({
     onSymbolButtonPress,
     symbolTextStyle,
     negativeSymbolStyle,
+    shouldUseDynamicFontSize = false,
 }: NumberComposerSymbolInputProps) {
     const {numberFormat} = useLocalize();
     const {setMouseDown, setMouseUp} = useMouseActions();
+    const StyleUtils = useStyleUtils();
     const {formattedNumber, isNegative, selection} = useNumberComposerState();
     const {clearSign, handleBlur, handleKeyPress, handleSelectionChange, inputRef, setNumber} = useNumberComposerActions();
     const textInput = useRef<BaseTextInputRef | null>(null);
 
     const inputPosition = position === 'suffix' ? CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX : CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX;
+
+    const dynamicAmountStyle = shouldUseDynamicFontSize ? StyleUtils.getAmountInputFontSize(formattedNumber.length + (hideSymbol ? 0 : symbol.length) + (isNegative ? 1 : 0)) : undefined;
 
     const handleInputKeyPress = (event: NumberInputKeyPressEvent) => {
         const key = event.nativeEvent.key.toLowerCase();
@@ -125,11 +130,11 @@ function NumberComposerSymbolInput({
             shouldAllowFocusInLandscapeMode={shouldAllowFocusInLandscapeMode}
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
             shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
-            style={style}
+            style={[style, dynamicAmountStyle]}
             submitBehavior={submitBehavior}
             symbol={symbol}
             symbolPosition={inputPosition}
-            symbolTextStyle={symbolTextStyle}
+            symbolTextStyle={[symbolTextStyle, dynamicAmountStyle]}
             testID={testID}
             touchableInputWrapperStyle={touchableInputWrapperStyle}
         />
