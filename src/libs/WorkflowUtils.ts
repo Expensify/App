@@ -1440,6 +1440,18 @@ function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflow
 }
 
 /**
+ * Same as `getRulesSubmitterToFirstApprover`, minus the submitters routed to `defaultApprover`.
+ *
+ * The default workflow is the baseline every member of the workspace submits through, so its members are not
+ * "already in a workflow" for the purpose of warning about cross-workflow moves — only members routed to some
+ * other approver are.
+ */
+function getRulesSubmitterToNonDefaultFirstApprover(rules: Record<string, ApprovalWorkflowRule>, employees: PolicyEmployeeList, defaultApprover: string): Record<string, string> {
+    const submitterToFirstApprover = getRulesSubmitterToFirstApprover(rules, employees);
+    return Object.fromEntries(Object.entries(submitterToFirstApprover).filter(([, firstApprover]) => firstApprover !== defaultApprover));
+}
+
+/**
  * Map every submitter found in the rules to a stable identity of the workflow they belong to (a fingerprint
  * of their full approver chain). Unlike `getRulesSubmitterToFirstApprover`, this distinguishes workflows that
  * share a first approver but diverge later, so callers can detect a genuine cross-workflow move rather than
@@ -1626,6 +1638,7 @@ export {
     getApprovalWorkflowRulesForPolicy,
     filterRulesForPolicy,
     getRulesSubmitterToFirstApprover,
+    getRulesSubmitterToNonDefaultFirstApprover,
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,
     getEligibleExistingBusinessBankAccounts,

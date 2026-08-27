@@ -27,7 +27,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {canMemberWrite, getDefaultApprover, getExcludedUsers, getMemberAccountIDsForWorkspace, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {approverChainFingerprint, getApprovalWorkflowRulesForPolicy, getRulesSubmitterToFirstApprover, getRulesSubmitterToWorkflowKey} from '@libs/WorkflowUtils';
+import {approverChainFingerprint, getApprovalWorkflowRulesForPolicy, getRulesSubmitterToNonDefaultFirstApprover, getRulesSubmitterToWorkflowKey} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
@@ -115,16 +115,17 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
 
     const policyRules = isMultipleApproversBetaEnabled ? getApprovalWorkflowRulesForPolicy(rulesCollection, route.params.policyID) : {};
 
-    // Build a map of member emails to their existing workflow's first approver. With the beta on this
-    // is derived from the `ONYXKEYS.COLLECTION.RULE` rules; otherwise it falls back to the legacy
-    // employeeList `submitsTo` (non-default workflows only).
+    // Build a map of member emails to their existing workflow's first approver, covering non-default
+    // workflows only. With the beta on this is derived from the `ONYXKEYS.COLLECTION.RULE` rules;
+    // otherwise it falls back to the legacy employeeList `submitsTo`.
     const membersInExistingWorkflows = (() => {
+        const defaultApprover = getDefaultApprover(policy);
+
         if (isMultipleApproversBetaEnabled) {
-            return new Map(Object.entries(getRulesSubmitterToFirstApprover(policyRules, policy?.employeeList ?? {})));
+            return new Map(Object.entries(getRulesSubmitterToNonDefaultFirstApprover(policyRules, policy?.employeeList ?? {}, defaultApprover)));
         }
 
         const employees = policy?.employeeList ?? {};
-        const defaultApprover = getDefaultApprover(policy);
         const map = new Map<string, string>();
 
         for (const employee of Object.values(employees)) {
