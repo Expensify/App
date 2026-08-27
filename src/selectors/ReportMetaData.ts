@@ -43,9 +43,9 @@ type PendingNewTransactions = {
 };
 
 /**
- * `useOnyx` drops an update when the selector's result shallow-compares equal, so a selector that allocates on every
- * run keeps every subscriber re-rendering. Classification still runs each time, since freshness depends on the clock;
- * only the identity is reused, and it changes as soon as the classification does.
+ * Keyed on the flag record, so an unrelated metadata write reuses the classification instead of re-running it.
+ * Freshness is therefore sampled when the record changes, not on every read. That is the intended bound: the window
+ * exists to drop a flag no consumer ever saw, and must not expire one under a consumer that is deferring it.
  */
 const lastPendingNewTransactions = new WeakMap<Record<string, true | null>, PendingNewTransactions>();
 
