@@ -1,14 +1,6 @@
-import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
+import startsWithVowel from '@libs/StringUtils/startsWithVowel';
 
 import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
-import type {DelegateRole} from '@src/types/onyx/Account';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
-import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
 import type {ValueOf} from 'type-fest';
 
@@ -16,6 +8,22 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type {ExportAgainModalDescriptionParams, ExportIntegrationSelectedParams} from './params';
+import type {
+    AllConnectionName,
+    ConnectionName,
+    Country,
+    DelegateRole,
+    OnboardingTask,
+    OnyxInputOrEntry,
+    OriginalMessageReportPreview,
+    OriginalMessageSettlementAccountLocked,
+    PersonalRulesModifiedFields,
+    PolicyConnectionSyncStage,
+    PolicyRulesModifiedFields,
+    ReportAction,
+    SageIntacctMappingName,
+    ViolationDataType,
+} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 
 type StateValue = {
@@ -993,6 +1001,13 @@ const translations = {
     },
     homePage: {
         forYou: 'For you',
+        conciergePrompt: {
+            goodMorning: ({name}: {name?: string}) => (name ? `Good morning, ${name}.` : 'Good morning.'),
+            goodAfternoon: ({name}: {name?: string}) => (name ? `Good afternoon, ${name}.` : 'Good afternoon.'),
+            goodEvening: ({name}: {name?: string}) => (name ? `Good evening, ${name}.` : 'Good evening.'),
+            inputPlaceholder: 'Ask Concierge to analyze your expenses or get support',
+            inputPlaceholderMobile: 'Ask Concierge anything',
+        },
         timeSensitiveSection: {
             title: 'Time sensitive',
             ctaFix: 'Fix',
@@ -1044,6 +1059,11 @@ const translations = {
                 title: 'Validate your account',
                 subtitle: 'Account',
                 cta: 'Validate',
+            },
+            addHomeAddress: {
+                title: 'Add your home address for distance tracking',
+                subtitle: 'Account',
+                cta: 'Add address',
             },
             fixFailedBilling: {
                 title: "We couldn't bill your card on file",
@@ -1357,6 +1377,14 @@ const translations = {
         createTimeExpense: 'Create time expense',
     },
     iou: {
+        homeAddressRequired: {
+            title: 'Home address is required',
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `Before you track distance, you need to add your home address to your private profile. ${workspaceName} uses this address for commuter deductions.`
+                    : 'Before you track distance, you need to add your home address to your private profile. This workspace uses this address for commuter deductions.',
+            cta: 'Add Home Address',
+        },
         amount: 'Amount',
         percent: 'Percent',
         date: 'Date',
@@ -1615,7 +1643,7 @@ const translations = {
         basedOnAI: 'based on past activity',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `based on <a href="${rulesLink}">workspace rules</a>` : 'based on workspace rule'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `for ${comment}` : 'expense'}`,
-        invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Invoice Report #${linkedReportID}`,
+        invoiceReportName: ({linkedReportID}: OriginalMessageReportPreview) => `Invoice Report #${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         movedFromPersonalSpace: (reportName?: string, workspaceName?: string) => `moved expense from personal space to ${workspaceName ?? `chat with ${reportName}`}`,
         movedToPersonalSpace: 'moved expense to personal space',
@@ -1926,7 +1954,7 @@ const translations = {
             pageTitle: 'Select the details you want to keep:',
             noDifferences: 'No differences found between the transactions',
             pleaseSelectError: ({field}: {field: string}) => {
-                const article = StringUtils.startsWithVowel(field) ? 'an' : 'a';
+                const article = startsWithVowel(field) ? 'an' : 'a';
                 return `Please select ${article} ${field}`;
             },
             pleaseSelectAttendees: 'Please select attendees',
@@ -3715,7 +3743,8 @@ const translations = {
         legalName: 'Legal name',
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
-        address: 'Address',
+        address: 'Home address',
+        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} uses this address for commuter exclusions.`,
         error: {
             dateShouldBeBefore: (dateString: string) => `Date should be before ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `Date should be after ${dateString}`,
@@ -3843,6 +3872,11 @@ const translations = {
         thisBankAccount: 'This bank account will be used for business payments on your workspace',
         accountNumber: 'Account number',
         routingNumber: 'Routing number',
+        internationalBankAccountDetails: 'International bank account details',
+        internationalBankAccountDetailsTitle: 'What are your international account details?',
+        internationalBankAccountDetailsSubtitle: 'One of your workspaces needs international account details to process reimbursements',
+        iban: 'IBAN',
+        swiftBicCode: 'SWIFT/BIC code',
         chooseAnAccountBelow: 'Choose an account below',
         addBankAccount: 'Add bank account',
         chooseAnAccount: 'Choose an account',
@@ -3892,6 +3926,8 @@ const translations = {
             restrictedBusiness: "Please confirm the business isn't on the list of restricted businesses",
             routingNumber: 'Please enter a valid routing number',
             accountNumber: 'Please enter a valid account number',
+            iban: 'Please enter a valid IBAN',
+            swiftCode: 'Please enter a valid SWIFT/BIC code',
             routingAndAccountNumberCannotBeSame: "Routing and account numbers can't match",
             companyType: 'Please select a valid company type',
             tooManyAttempts: 'Due to a high number of login attempts, this option has been disabled for 24 hours. Please try again later or enter details manually instead.',
@@ -4678,6 +4714,9 @@ const translations = {
             workflows: 'Workflows',
             workspace: 'Workspace',
             findWorkspace: 'Find workspace',
+            active: 'Active',
+            archived: 'Archived',
+            workspaceStatus: 'Workspace status',
             findDomain: 'Find domain',
             findRoom: 'Find room',
             edit: 'Edit workspace',
@@ -5999,10 +6038,16 @@ const translations = {
                 other: 'Other',
                 fileImport: 'Import transactions from file',
                 fileImportDescription: "A manual option if your bank can't send a feed.",
-                createFileFeedHelpText: `<muted-text>Please follow this <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">help guide</a> to get your company card expenses imported!</muted-text>`,
+                createFileFeedHelpText: {
+                    instructionStart: "On the next page, you'll upload a CSV of your card transactions. ",
+                    templateLink: 'Download our template',
+                    instructionMiddle: ' or check out our ',
+                    helpGuideLink: 'help guide',
+                    instructionEnd: ' before you upload.',
+                },
                 companyCardLayoutName: 'Company card layout name',
                 cardLayoutNameRequired: 'The Company card layout name is required',
-                useAdvancedFields: 'Use advanced fields (not recommended)',
+                downloadTemplate: 'Download our template',
                 cardProviders: {
                     gl1025: 'American Express Corporate Cards',
                     cdf: 'Mastercard Commercial Cards',
@@ -6077,9 +6122,9 @@ const translations = {
                     currency: 'Currency',
                     ignore: 'Ignore',
                     originalTransactionDate: 'Original transaction date',
-                    originalAmount: 'Original amount',
-                    originalCurrency: 'Original currency',
-                    comment: 'Comment',
+                    originalAmount: 'Purchase amount',
+                    originalCurrency: 'Purchase currency',
+                    comment: 'Description',
                     category: 'Category',
                     tag: 'Tag',
                     uniqueID: 'Unique ID',
@@ -6172,6 +6217,8 @@ const translations = {
             currentBalanceDescription: 'Current balance is the sum of all posted Expensify Card transactions that have occurred since the last settlement date.',
             balanceWillBeSettledOn: (settlementDate: string) => `Balance will be settled on ${settlementDate}`,
             settleBalance: 'Settle balance',
+            settleBalanceConfirmationTitle: 'Settle balance?',
+            settleBalanceConfirmationPrompt: 'This will settle your current balance in the next business day. Once successful, the amount will be added back to your remaining limit.',
             cardLimit: 'Card limit',
             remaining: 'Remaining',
             remainingLimit: 'Remaining limit',
@@ -6405,6 +6452,7 @@ const translations = {
                 disableCardButton: 'Chat with Concierge',
                 feed: {
                     title: 'Get the Expensify Card',
+                    existingFeedTitle: 'Manage your Expensify Cards',
                     subTitle: 'Streamline your business expenses and save up to 50% on your Expensify bill, plus:',
                     features: {
                         cashBack: 'Cash back on every US purchase',
@@ -6412,6 +6460,7 @@ const translations = {
                         spend: 'Spend controls and custom limits',
                     },
                     ctaTitle: 'Issue new card',
+                    viewCards: 'View cards',
                 },
             },
             companyCards: {
@@ -7429,13 +7478,24 @@ const translations = {
                 title: 'Exclude commutes',
                 summaryDisabled: 'No commute exclusion',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Exclude ${distance} ${unit} per claim`,
+                summaryHomeAndOffice: 'Use home and office locations',
                 optionDisabledTitle: 'Do not exclude commutes',
-                optionDisabledHelp: 'No commute exclusion is applied.',
+                optionDisabledHelp: 'No commute is removed from claims.',
                 optionFixedDistanceTitle: 'Exclude a fixed distance per claim',
                 optionFixedDistanceHelp: 'Remove the same commute distance from each claim. Best for members who submit one claim per workday.',
+                optionHomeAndOfficeTitle: 'Calculate by home and office',
+                optionHomeAndOfficeHelp: 'Use member’s home address, work arrangement, and office assignment to calculate commute exclusions.',
                 distanceLabel: 'Distance',
+                workspaceAddressRequired: {
+                    title: 'Not so fast...',
+                    promptStart: 'You can’t enable the calculate by home and office setting until you first add an office location in ',
+                    linkText: 'Overview',
+                    promptEnd: '.',
+                    cta: 'Got it',
+                },
                 errors: {
                     distanceMustBePositive: 'Distance must be a positive whole number.',
+                    invalidAddress: 'Please enter a valid address',
                     distanceTooLarge: 'Distance is too large.',
                 },
             },
@@ -7532,6 +7592,10 @@ const translations = {
             areYouSure: 'Are you sure?',
             workspaceCurrency: 'Workspace currency',
             updateCurrencyPrompt: 'It looks like your workspace is currently set to a different currency than USD. Please click the button below to update your currency to USD now.',
+            updateCurrencyForExpensifyCard: 'The Expensify Card is available to issue in USD. Please update this workspace to USD or use a different workspace.',
+            euUkUpdateCurrencyForExpensifyCard:
+                'The Expensify Card is available to issue in USD, GBP, and EUR. Please update this workspace to a supported currency or use a different workspace.',
+            updateCurrencyForExpensifyCardTitle: 'Get the Expensify Card',
             updateToUSD: 'Update to USD',
             updateWorkspaceCurrency: 'Update workspace currency',
             workspaceCurrencyNotSupported: 'Workspace currency not supported',
@@ -10128,6 +10192,19 @@ const translations = {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return "Can't auto-match receipt due to broken bank connection.";
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
+                if (isPersonalCard) {
+                    if (!connectionLink) {
+                        return "Can't auto-match receipt because your bank connection needs re-authentication.";
+                    }
+                    return isMarkAsCash
+                        ? `Can't auto-match receipt because your bank connection needs re-authentication. Mark as cash to ignore, or <a href="${connectionLink}">reconnect</a> to match the receipt.`
+                        : `Can't auto-match receipt because your bank connection needs re-authentication. <a href="${connectionLink}">Reconnect</a> to match the receipt.`;
+                }
+                return isAdmin
+                    ? `Bank connection needs re-authentication. <a href="${companyCardPageURL}">Reconnect to match receipt</a>`
+                    : 'Bank connection needs re-authentication. Ask an admin to reconnect to match receipt.';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return "Can't auto-match receipt due to broken bank connection.";
@@ -10151,6 +10228,9 @@ const translations = {
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Receipt pending due to broken bank connection. Please resolve in <a href="${workspaceCompanyCardRoute}">Company cards</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Receipt pending due to broken bank connection. Please ask a workspace admin to resolve.',
+        adminReauthConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Receipt pending because your bank connection needs re-authentication. Please resolve in <a href="${workspaceCompanyCardRoute}">Company cards</a>.</muted-text-label>`,
+        memberReauthConnectionError: 'Receipt pending because your bank connection needs re-authentication. Please ask a workspace admin to resolve.',
         markAsCashToIgnore: 'Mark as cash to ignore and request payment.',
         smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
             if (missingFields.length > 0) {

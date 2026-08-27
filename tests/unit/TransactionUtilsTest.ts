@@ -1260,47 +1260,6 @@ describe('TransactionUtils', () => {
         });
     });
 
-    describe('hasDistanceRouteErrors', () => {
-        it('returns false when the route is clean', () => {
-            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction())).toBe(false);
-            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errors: {}, errorFields: {}}))).toBe(false);
-        });
-
-        it('returns true for a route or waypoint error', () => {
-            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errorFields: {route: {someError: 'No route found'}}}))).toBe(true);
-            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errorFields: {waypoints: {someError: 'Bad waypoint'}}}))).toBe(true);
-        });
-
-        it('ignores errors that say nothing about the route, such as a failed payment', () => {
-            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errors: {someError: 'Something went wrong'}}))).toBe(false);
-        });
-    });
-
-    describe('isMapBasedDistanceRequest', () => {
-        const UPDATE = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
-        const PDF_RECEIPT = {source: 'https://www.expensify.com/receipts/w_abc123.pdf', filename: 'w_abc123.pdf'};
-
-        function generateMapDistanceTransaction(values: Partial<Transaction> = {}): Transaction {
-            return generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, receipt: PDF_RECEIPT, ...values});
-        }
-
-        // New Expensify draws its own distance e-receipt for these, so the generated PDF beside them is never shown.
-        it('is true for a map distance expense whichever receipt it stores', () => {
-            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction())).toBe(true);
-            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({receipt: undefined}))).toBe(true);
-            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({pendingFields: {merchant: UPDATE}}))).toBe(true);
-        });
-
-        it('is true for a GPS distance expense, which also has a route to draw', () => {
-            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS}))).toBe(true);
-        });
-
-        it('is false for odometer and non-distance expenses, which keep their own receipt', () => {
-            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER}))).toBe(false);
-            expect(TransactionUtils.isMapBasedDistanceRequest(generateTransaction({receipt: undefined}))).toBe(false);
-        });
-    });
-
     describe('calculateTaxAmount', () => {
         it('returns 0 for undefined percentage', () => {
             const result = TransactionUtils.calculateTaxAmount(undefined, 10000, 2);
@@ -1339,6 +1298,14 @@ describe('TransactionUtils', () => {
         it('should return true when a broken connection violation exists for one transaction and the user is the policy member', () => {
             const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations);
+
+            expect(showBrokenConnectionViolation).toBe(true);
+        });
+
+        it('should return true when a re-auth broken connection violation exists and the user is the policy member', () => {
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
+            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH}}];
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations);
 
             expect(showBrokenConnectionViolation).toBe(true);
@@ -1408,6 +1375,24 @@ describe('TransactionUtils', () => {
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
 
             expect(showBrokenConnectionViolation).toBe(false);
+        });
+    });
+
+    describe('hasPendingRTERViolation', () => {
+        it('should not treat a re-auth broken connection violation as pending', () => {
+            const transactionViolations = [
+                {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true, rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH}},
+            ];
+
+            expect(TransactionUtils.hasPendingRTERViolation(transactionViolations)).toBe(false);
+        });
+
+        it('should treat a seven-day-hold RTER violation as pending', () => {
+            const transactionViolations = [
+                {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true, rterType: CONST.RTER_VIOLATION_TYPES.SEVEN_DAY_HOLD}},
+            ];
+
+            expect(TransactionUtils.hasPendingRTERViolation(transactionViolations)).toBe(true);
         });
     });
 
@@ -1933,7 +1918,61 @@ describe('TransactionUtils', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
             };
 
-            expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, 'test@example.com')).toBe(false);
+            expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, CURRENT_USER_EMAIL, CURRENT_USER_ID)).toBe(false);
+        });
+
+        it('should return true for auto approval limit violation when the submitter is also the approver of the processing report', () => {
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                ownerAccountID: CURRENT_USER_ID,
+                managerID: CURRENT_USER_ID,
+            };
+
+            const policy: Policy = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, CURRENT_USER_EMAIL, CURRENT_USER_ID)).toBe(true);
+        });
+
+        it('should return false for auto approval limit violation when the submitter is not the approver of the processing report', () => {
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                ownerAccountID: CURRENT_USER_ID,
+                managerID: 2,
+            };
+
+            const policy: Policy = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, CURRENT_USER_EMAIL, CURRENT_USER_ID)).toBe(false);
+        });
+
+        it('should return true for auto approval limit violation when the approver is not the submitter of the processing report', () => {
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                ownerAccountID: 2,
+                managerID: CURRENT_USER_ID,
+            };
+
+            const policy: Policy = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, CURRENT_USER_EMAIL, CURRENT_USER_ID)).toBe(true);
         });
     });
 

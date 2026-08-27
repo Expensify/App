@@ -10,14 +10,13 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
+import startsWithVowel from '@libs/StringUtils/startsWithVowel';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
@@ -943,6 +942,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
             },
             validateAccount: {title: '验证您的账户', subtitle: '账户', cta: '验证'},
+            addHomeAddress: {title: '添加您的家庭住址以进行距离跟踪', subtitle: '账户', cta: '添加地址'},
             fixFailedBilling: {title: '我们无法向您档案中的银行卡收费', subtitle: '订阅'},
             unlockBankAccount: {
                 workspaceTitle: '您的企业银行账户已被锁定',
@@ -1078,6 +1078,13 @@ const translations: TranslationDeepObject<typeof en> = {
         seeMore: ({count}: {count: number}) => `再查看 ${count} 个`,
         recentlyAddedSection: {title: '最近添加', viewAll: '查看所有报销费用', emptyStateTitle: '最近没有报销记录', emptyStateMessage: '创建一个或将收据拖到这里'},
         insightsSection: {chartUnavailable: '图表不可用', notEnoughData: '我们目前没有足够的数据来填充此图表'},
+        conciergePrompt: {
+            goodMorning: ({name}: {name?: string}) => (name ? `早上好，${name}。` : '早上好。'),
+            goodAfternoon: ({name}: {name?: string}) => (name ? `下午好，${name}。` : '下午好。'),
+            goodEvening: ({name}: {name?: string}) => (name ? `晚上好，${name}。` : '晚上好。'),
+            inputPlaceholder: '向 Concierge 请求分析你的报销或获取支持',
+            inputPlaceholderMobile: '向 Concierge 提问任何问题',
+        },
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -1230,6 +1237,14 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: '创建工时报销',
     },
     iou: {
+        homeAddressRequired: {
+            title: '需要填写家庭地址',
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `在开始记录出行距离之前，您需要在个人资料中添加家庭住址。${workspaceName} 会使用此地址用于通勤抵扣。`
+                    : '在开始记录里程之前，您需要在个人资料中添加您的家庭住址。此工作区会使用该地址计算通勤扣除。',
+            cta: '添加家庭住址',
+        },
         amount: '金额',
         percent: '百分比',
         date: '日期',
@@ -1479,7 +1494,7 @@ const translations: TranslationDeepObject<typeof en> = {
         basedOnAI: '基于过去的活动',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `基于<a href="${rulesLink}">工作区规则</a>` : '基于工作区规则'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `用于 ${comment}` : '报销'}`,
-        invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `发票报告 #${linkedReportID}`,
+        invoiceReportName: ({linkedReportID}: OriginalMessageReportPreview) => `发票报表 #${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount: string, comment?: string) => `已发送 ${formattedAmount}${comment ? `用于 ${comment}` : ''}`,
         movedFromPersonalSpace: (reportName?: string, workspaceName?: string) => `已将报销从个人空间移动到 ${workspaceName ?? `与 ${reportName} 聊天`}`,
         movedToPersonalSpace: '已将报销移动到个人空间',
@@ -1782,7 +1797,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pageTitle: '选择要保留的详细信息：',
             noDifferences: '在这些交易之间未发现差异',
             pleaseSelectError: ({field}: {field: string}) => {
-                const article = StringUtils.startsWithVowel(field) ? '一个' : 'a';
+                const article = startsWithVowel(field) ? '一个' : '一个';
                 return `请选择${article}${field}`;
             },
             pleaseSelectAttendees: '请选择参会者',
@@ -3488,7 +3503,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         legalName: '法定姓名',
         legalFirstName: '法定名（名）',
         legalLastName: '法定姓氏',
-        address: '地址',
+        address: '家庭住址',
+        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} 使用此地址进行通勤排除。`,
         error: {
             dateShouldBeBefore: (dateString: string) => `日期应早于 ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `日期应晚于 ${dateString}`,
@@ -3605,6 +3621,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         thisBankAccount: '此银行账户将用于您工作区的业务付款',
         accountNumber: '账号编号',
         routingNumber: '路由号码',
+        internationalBankAccountDetails: '国际银行账户信息',
+        internationalBankAccountDetailsTitle: '您的国际账户信息是什么？',
+        internationalBankAccountDetailsSubtitle: '您的其中一个工作区需要国际账户信息来处理报销',
+        iban: 'IBAN',
+        swiftBicCode: 'SWIFT/BIC 代码',
         chooseAnAccountBelow: '在下方选择一个账户',
         addBankAccount: '添加银行账户',
         chooseAnAccount: '选择一个账户',
@@ -3653,6 +3674,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             restrictedBusiness: '请确认该企业不在受限制业务列表中',
             routingNumber: '请输入有效的路由号码',
             accountNumber: '请输入有效的账户号码',
+            iban: '请输入有效的 IBAN',
+            swiftCode: '请输入有效的 SWIFT/BIC 代码',
             routingAndAccountNumberCannotBeSame: '路由号码和账号不能相同',
             companyType: '请选择一个有效的公司类型',
             tooManyAttempts: '由于登录尝试次数过多，此选项已被禁用 24 小时。请稍后重试，或改为手动输入详细信息。',
@@ -4396,6 +4419,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             workflows: '工作流程',
             workspace: '工作区',
             findWorkspace: '查找工作区',
+            active: '活跃',
+            archived: '已归档',
+            workspaceStatus: '工作区状态',
             findRoom: '查找房间',
             edit: '编辑工作区',
             enabled: '已启用',
@@ -5668,10 +5694,16 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             addNewCard: {
                 other: '其他',
                 fileImport: '从文件导入交易',
-                createFileFeedHelpText: `<muted-text>请按照此<a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">帮助指南</a>操作，将您的公司卡费用导入！</muted-text>`,
+                createFileFeedHelpText: {
+                    instructionStart: '在下一页，您将上传卡交易的 CSV 文件。上传前，请先',
+                    templateLink: '下载我们的模板',
+                    instructionMiddle: '，或查看我们的',
+                    helpGuideLink: '帮助指南',
+                    instructionEnd: '。',
+                },
                 companyCardLayoutName: '公司卡片布局名称',
                 cardLayoutNameRequired: '公司卡片布局名称是必填的',
-                useAdvancedFields: '使用高级字段（不推荐）',
+                downloadTemplate: '下载我们的模板',
                 cardProviders: {
                     gl1025: 'American Express 公司卡',
                     cdf: '万事达商业卡',
@@ -5758,9 +5790,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     currency: '货币',
                     ignore: '忽略',
                     originalTransactionDate: '原始交易日期',
-                    originalAmount: '原始金额',
-                    originalCurrency: '原始货币',
-                    comment: '评论',
+                    originalAmount: '购买金额',
+                    originalCurrency: '购买货币',
+                    comment: '描述',
                     category: '类别',
                     tag: '标签',
                     uniqueID: '唯一 ID',
@@ -5848,6 +5880,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             currentBalanceDescription: '当前余额是上次结算日期以来已入账的所有 Expensify 卡交易的总和。',
             balanceWillBeSettledOn: (settlementDate: string) => `余额将于 ${settlementDate} 结清`,
             settleBalance: '结清余额',
+            settleBalanceConfirmationTitle: '结清余额？',
+            settleBalanceConfirmationPrompt: '这将在下一个工作日结清您的当前余额。成功后，该金额将重新计入您的剩余额度。',
             cardLimit: '卡片限额',
             remaining: '剩余',
             remainingLimit: '剩余额度',
@@ -6065,6 +6099,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         spend: '支出管控和自定义限额',
                     },
                     ctaTitle: '发新卡',
+                    existingFeedTitle: '管理你的 Expensify 卡',
+                    viewCards: '查看卡片',
                 },
             },
             companyCards: {
@@ -6947,11 +6983,21 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 summaryDisabled: '不排除通勤',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `每次报销排除 ${distance} ${unit}`,
                 optionDisabledTitle: '不要排除通勤',
-                optionDisabledHelp: '未应用通勤排除规则。',
+                optionDisabledHelp: '未从报销中移除任何通勤费用。',
                 optionFixedDistanceTitle: '为每笔报销排除固定距离',
                 optionFixedDistanceHelp: '从每笔报销中扣除相同的通勤距离。最适合每个工作日提交一笔报销的成员使用。',
                 distanceLabel: '距离',
-                errors: {distanceMustBePositive: '距离必须是一个正整数。', distanceTooLarge: '距离过大。'},
+                summaryHomeAndOffice: '使用家庭和办公地点',
+                optionHomeAndOfficeTitle: '按家庭和办公室计算',
+                optionHomeAndOfficeHelp: '使用成员的家庭住址、工作安排和办公室分配来计算通勤免税额。',
+                workspaceAddressRequired: {
+                    title: '别急……',
+                    promptStart: '在您先添加一个办公地点之前，无法启用按家庭和办公室计算的设置，添加位置于',
+                    linkText: '概览',
+                    promptEnd: '中添加办公地点，才能启用“按家庭和办公室计算”设置。',
+                    cta: '知道了',
+                },
+                errors: {distanceMustBePositive: '距离必须是一个正整数。', invalidAddress: '请输入有效地址', distanceTooLarge: '距离过大。'},
             },
             distance: '距离',
             centrallyManage: '集中管理费率，以英里或公里跟踪，并设置默认类别。',
@@ -7044,6 +7090,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             yourWorkspace: `您的工作区当前使用不受支持的货币。请查看<a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">支持的货币列表</a>。`,
             chooseAnExisting: '选择现有银行账户来支付报销，或添加新账户。',
             changeBankAccount: '更改银行账户',
+            updateCurrencyForExpensifyCard: 'Expensify 卡目前仅支持以美元（USD）发行。请将此工作区的货币更新为美元（USD），或使用其他工作区。',
+            updateCurrencyForExpensifyCardTitle: '获取 Expensify 卡',
+            euUkUpdateCurrencyForExpensifyCard: 'Expensify 卡目前可发行的货币包括 USD、GBP 和 EUR。请将此工作区更新为受支持的货币或使用其他工作区。',
         },
         changeOwner: {
             changeOwnerPageTitle: '转移所有者',
@@ -9573,6 +9622,17 @@ ${reportName}`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return '由于银行连接中断，无法自动匹配收据。';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
+                if (isPersonalCard) {
+                    if (!connectionLink) {
+                        return '由于您的银行连接需要重新验证，无法自动匹配收据。';
+                    }
+                    return isMarkAsCash
+                        ? `由于您的银行连接需要重新验证，无法自动匹配收据。标记为现金以忽略，或<a href="${connectionLink}">重新连接</a>以匹配收据。`
+                        : `由于您的银行连接需要重新验证，无法自动匹配收据。请<a href="${connectionLink}">重新连接</a>以匹配该收据。`;
+                }
+                return isAdmin ? `银行连接需要重新验证。<a href="${companyCardPageURL}">重新连接以匹配收据</a>` : '银行连接需要重新验证。请让管理员重新连接以匹配收据。';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return '由于银行连接中断，无法自动匹配收据。';
@@ -9593,6 +9653,9 @@ ${reportName}`,
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>由于银行连接中断，收据暂时待处理。请前往<a href="${workspaceCompanyCardRoute}">公司卡</a>中解决。</muted-text-label>`,
         memberBrokenConnectionError: '由于银行连接中断，收据处于待处理状态。请联系工作区管理员解决。',
+        adminReauthConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>由于银行连接需要重新验证，收据暂时待处理。请前往<a href="${workspaceCompanyCardRoute}">公司卡</a>中解决。</muted-text-label>`,
+        memberReauthConnectionError: '由于银行连接需要重新验证，收据处于待处理状态。请联系工作区管理员解决。',
         markAsCashToIgnore: '标记为现金以忽略并请求付款。',
         smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
             if (missingFields.length > 0) {

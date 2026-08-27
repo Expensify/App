@@ -13,6 +13,7 @@ import {
     completeTask,
     completeTestDriveTask,
     createTaskAndNavigate,
+    createTaskFromMarkdown,
     deleteTask,
     editTask,
     editTaskAssignee,
@@ -22,6 +23,7 @@ import {
     getShareDestination,
 } from '@libs/actions/Task';
 import * as API from '@libs/API';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -33,6 +35,7 @@ import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
@@ -995,6 +998,138 @@ describe('actions/Task', () => {
                     currentUserAccountID: overrideUserAccountID,
                 }),
             );
+        });
+    });
+
+    describe('createTaskFromMarkdown', () => {
+        const parentReportID = 'markdown_parent_report';
+        const currentUserAccountID = 1;
+        const coworkerAccountID = 2;
+        const currentUserPersonalDetails = {
+            accountID: currentUserAccountID,
+            login: 'user@domain.com',
+            email: 'user@domain.com',
+            displayName: 'User',
+            avatar: 'https://example.com/avatar.png',
+        } as CurrentUserPersonalDetails;
+        const parentReport = {reportID: parentReportID, type: CONST.REPORT.TYPE.CHAT} as Report;
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            writeSpy.mockClear();
+            global.fetch = getGlobalFetchMock();
+
+            mockBuildOptimisticTaskReport.mockImplementation((...args: unknown[]) => ({
+                reportID: 'markdown_task_report',
+                reportName: args.at(3),
+                type: CONST.REPORT.TYPE.TASK,
+                parentReportID,
+            }));
+            mockBuildOptimisticCreatedReportAction.mockReturnValue({
+                reportActionID: 'created_action_1',
+                reportAction: {reportActionID: 'created_action_1', actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, created: DateUtils.getDBTime()},
+            });
+            mockBuildOptimisticTaskCommentReportAction.mockReturnValue({
+                reportAction: {reportActionID: 'comment_action_1', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: DateUtils.getDBTime()},
+            });
+            mockGetTaskAssigneeChatOnyxData.mockReturnValue({optimisticData: [], successData: [], failureData: []});
+            mockIsHiddenForCurrentUser.mockReturnValue(false);
+            mockFormatReportLastMessageText.mockReturnValue('Last message text');
+
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.set(ONYXKEYS.SESSION, {email: currentUserPersonalDetails.login, accountID: currentUserAccountID});
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [currentUserAccountID]: {accountID: currentUserAccountID, login: 'user@domain.com', displayName: 'User'},
+                    [coworkerAccountID]: {accountID: coworkerAccountID, login: 'mat@domain.com', displayName: 'Mat'},
+                } as PersonalDetailsList);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('does not create a task from text that is not the markdown shorthand', () => {
+            expect(createTaskFromMarkdown({text: 'Buy milk', parentReport, currentUserPersonalDetails, quickAction: undefined})).toBe(false);
+            expect(writeSpy).not.toHaveBeenCalled();
+        });
+
+        it('does not create a task when the shorthand has no title', () => {
+            expect(createTaskFromMarkdown({text: '[]', parentReport, currentUserPersonalDetails, quickAction: undefined})).toBe(false);
+            expect(createTaskFromMarkdown({text: '[] ', parentReport, currentUserPersonalDetails, quickAction: undefined})).toBe(false);
+            expect(writeSpy).not.toHaveBeenCalled();
+        });
+
+        it('does not create a task when the title exceeds the title character limit', () => {
+            // Given a shorthand whose title is one character over the limit the composer enforces
+            const overLimitTitle = 'a'.repeat(CONST.TITLE_CHARACTER_LIMIT + 1);
+
+            // Then it is refused, so the caller falls back to sending it as a plain comment
+            expect(createTaskFromMarkdown({text: `[] ${overLimitTitle}`, parentReport, currentUserPersonalDetails, quickAction: undefined})).toBe(false);
+            expect(writeSpy).not.toHaveBeenCalled();
+        });
+
+        it('creates a task from a title that is exactly at the title character limit', () => {
+            // Given a shorthand whose title is exactly at the limit
+            const maxLengthTitle = 'a'.repeat(CONST.TITLE_CHARACTER_LIMIT);
+
+            // Then the task is still created
+            expect(createTaskFromMarkdown({text: `[] ${maxLengthTitle}`, parentReport, currentUserPersonalDetails, quickAction: undefined})).toBe(true);
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_TASK, expect.anything(), expect.anything());
+        });
+
+        it('does not create a task when there is no parent report', () => {
+            expect(createTaskFromMarkdown({text: '[] Buy milk', parentReport: undefined, currentUserPersonalDetails, quickAction: undefined})).toBe(false);
+            expect(writeSpy).not.toHaveBeenCalled();
+        });
+
+        it('creates an unassigned task from the shorthand', () => {
+            // When the shorthand is sent without a mention
+            expect(createTaskFromMarkdown({text: '[] Buy milk', parentReport, currentUserPersonalDetails, quickAction: undefined})).toBe(true);
+
+            // Then the task is created with the remaining text as its title and nobody assigned
+            expect(mockBuildOptimisticTaskReport).toHaveBeenCalledWith(currentUserAccountID, parentReportID, 0, 'Buy milk', '', CONST.POLICY.OWNER_EMAIL_FAKE, expect.anything(), undefined);
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_TASK, expect.objectContaining({assignee: '', assigneeAccountID: 0}), expect.anything());
+        });
+
+        it('assigns the task to the user resolved from a same-private-domain short mention', () => {
+            // When the shorthand mentions a coworker by their short login
+            expect(createTaskFromMarkdown({text: '[] @mat Buy milk', parentReport, currentUserPersonalDetails, quickAction: undefined})).toBe(true);
+
+            // Then the mention is resolved to the full login and dropped from the title
+            expect(mockBuildOptimisticTaskReport).toHaveBeenCalledWith(
+                currentUserAccountID,
+                parentReportID,
+                coworkerAccountID,
+                'Buy milk',
+                '',
+                CONST.POLICY.OWNER_EMAIL_FAKE,
+                expect.anything(),
+                undefined,
+            );
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_TASK, expect.objectContaining({assignee: 'mat@domain.com', assigneeAccountID: coworkerAccountID}), expect.anything());
+        });
+
+        it('keeps an unresolvable mention in the title instead of assigning it', () => {
+            // When the mention cannot be resolved to a known login
+            expect(createTaskFromMarkdown({text: '[] @nobody Buy milk', parentReport, currentUserPersonalDetails, quickAction: undefined})).toBe(true);
+
+            // Then it stays part of the title and the task is left unassigned
+            expect(mockBuildOptimisticTaskReport).toHaveBeenCalledWith(
+                currentUserAccountID,
+                parentReportID,
+                0,
+                '@nobody Buy milk',
+                '',
+                CONST.POLICY.OWNER_EMAIL_FAKE,
+                expect.anything(),
+                undefined,
+            );
+        });
+
+        it('does not navigate, so it is safe to call from outside a modal flow', () => {
+            createTaskFromMarkdown({text: '[] Buy milk', parentReport, currentUserPersonalDetails, quickAction: undefined});
+
+            expect(Navigation.dismissModalWithReport).not.toHaveBeenCalled();
         });
     });
 
