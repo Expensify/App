@@ -122,7 +122,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          VERSION=$(bun scripts/artifacts-utils/resolve-artifacts.ts --platform=ios --hybrid=true --new-dot-root="$GITHUB_WORKSPACE" | jq -r '.version // "source"')
+          VERSION=$(./node_modules/.bin/bun scripts/artifacts-utils/resolve-artifacts.ts --platform=ios --hybrid=true --new-dot-root="$GITHUB_WORKSPACE" | jq -r '.version // "source"')
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Cache react-native artifacts
