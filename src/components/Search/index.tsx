@@ -263,6 +263,8 @@ function Search({
         hasPendingWriteOnMountRef,
         skipDeferralOnFocusRef,
         rearmTracking,
+        policyCategories,
+        policyTags,
     } = useSearchSnapshot({
         queryJSON,
         searchResults,
@@ -1215,6 +1217,8 @@ function Search({
                 {...commonViewProps}
                 isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                policyCategories={policyCategories}
+                policyTags={policyTags}
             />
         );
     } else if (isTransactionListView) {

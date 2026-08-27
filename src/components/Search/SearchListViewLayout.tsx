@@ -1,8 +1,9 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {CardList} from '@src/types/onyx';
+import type {CardList, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -48,6 +49,12 @@ type SearchListViewLayoutProps = {
     /** The viewer's non-personal and workspace cards, so the card column can be sized from the names it renders. */
     nonPersonalAndWorkspaceCards?: CardList;
 
+    /** Every policy's categories, so the category GL code column can be sized from the codes it renders. */
+    policyCategories?: OnyxCollection<PolicyCategories>;
+
+    /** Every policy's tag lists, so the tag GL code column can be sized from the codes it renders. */
+    policyTags?: OnyxCollection<PolicyTagLists>;
+
     /** The list and any header/modal blocks, composed by the view (e.g. SelectionTopBar, BaseSearchList, long-press menu). */
     children: React.ReactNode;
 };
@@ -68,6 +75,8 @@ function SearchListViewLayout({
     containerStyle,
     data,
     nonPersonalAndWorkspaceCards,
+    policyCategories,
+    policyTags,
     children,
 }: SearchListViewLayoutProps) {
     const styles = useThemeStyles();
@@ -83,7 +92,7 @@ function SearchListViewLayout({
         data: data ?? [],
         // A header is only rendered in the table layout; narrow layouts render rows as cards with no columns to size.
         isEnabled: isHeaderVisible && !!data,
-        measurementContext: {nonPersonalAndWorkspaceCards},
+        measurementContext: {nonPersonalAndWorkspaceCards, policyCategories, policyTags},
     });
 
     // The scroller sizes the table from what its columns refuse to shrink below, so it has to know the minimums the

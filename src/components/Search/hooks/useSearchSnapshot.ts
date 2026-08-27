@@ -19,7 +19,10 @@ import {shouldShowAttendees} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
+import type {PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {useMemo} from 'react';
 
@@ -60,6 +63,10 @@ type SearchSnapshotResult = {
     hasLoadedAllTransactions: boolean;
     /** True while the cached optimistic row is being re-injected across a snapshot-replacement gap. */
     hasCachedOptimisticItem: boolean;
+    /** Every policy's categories, already read here for sorting and reused to size the category GL code column. */
+    policyCategories: OnyxCollection<PolicyCategories>;
+    /** Every policy's tag lists, already read here for sorting and reused to size the tag GL code column. */
+    policyTags: OnyxCollection<PolicyTagLists>;
 } & Pick<
     OptimisticTrackingReturn,
     'showPendingExpensePlaceholder' | 'shouldDeferHeavySearchWork' | 'setShouldDeferHeavySearchWork' | 'hasPendingWriteOnMountRef' | 'skipDeferralOnFocusRef' | 'rearmTracking'
@@ -414,6 +421,8 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         hasPendingWriteOnMountRef,
         skipDeferralOnFocusRef,
         rearmTracking,
+        policyCategories,
+        policyTags,
     };
 }
 

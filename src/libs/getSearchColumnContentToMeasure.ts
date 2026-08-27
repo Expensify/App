@@ -6,13 +6,17 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {CardList} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {CardList, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import type {MeasurableFont} from './measureTextWidth/types';
 
 import {getCompanyCardDescription} from './CardUtils';
-import {getDecodedLeafCategoryName, isCategoryMissing} from './CategoryUtils';
+import {getCategoryGLCode, getDecodedLeafCategoryName, isCategoryMissing} from './CategoryUtils';
 import getBase62ReportID from './getBase62ReportID';
+import {getTagGLCode} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
 import {getDecodedTagName} from './TagUtils';
 import {getDescription, getExchangeRate, getMerchantName, getTagForDisplay, getTaxName, isPerDiemRequest, isTimeRequest} from './TransactionUtils';
@@ -26,7 +30,18 @@ import {getDescription, getExchangeRate, getMerchantName, getTagForDisplay, getT
 type SearchColumnMeasurementContext = {
     /** The viewer's non-personal and workspace cards, used to name the card a transaction was made on. */
     nonPersonalAndWorkspaceCards?: CardList;
+
+    /** Every policy's categories, so a transaction's category GL code can be looked up by its policy. */
+    policyCategories?: OnyxCollection<PolicyCategories>;
+
+    /** Every policy's tag lists, so a transaction's tag GL code can be looked up by its policy. */
+    policyTags?: OnyxCollection<PolicyTagLists>;
 };
+
+/** The policy a transaction belongs to, which is where its category and tag GL codes are defined. */
+function getTransactionPolicyID(item: TransactionListItemType): string | undefined {
+    return [item.policyID, item.report?.policyID, item.policy?.id].find((policyID): policyID is string => !!policyID);
+}
 
 /** A run of text rendered in a Search table cell, described well enough to measure how wide it renders. */
 type SearchColumnContent = {
@@ -67,6 +82,8 @@ const DYNAMICALLY_SIZED_SEARCH_COLUMNS = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
     CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
     CONST.SEARCH.TABLE_COLUMNS.CARD,
+    CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
+    CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE,
 ]);
 
 /**
@@ -90,6 +107,8 @@ const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, Tr
     [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: 'iou.taxRate',
     [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: 'common.exchangeRate',
     [CONST.SEARCH.TABLE_COLUMNS.CARD]: 'common.card',
+    [CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE]: 'common.categoryGLCode',
+    [CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE]: 'common.tagGLCode',
 };
 
 /**
@@ -150,6 +169,10 @@ function getSearchColumnContentToMeasure(
             return [{text: isTimeRequest(item) || isPerDiemRequest(item) ? '' : (getTaxName(item.policy, item) ?? item.taxValue ?? '')}];
         case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
             return [{text: getExchangeRate(item, item.report?.currency ?? item.policy?.outputCurrency, true)}];
+        case CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE:
+            return [{text: getCategoryGLCode(context.policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getTransactionPolicyID(item)}`], item.category)}];
+        case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
+            return [{text: getTagGLCode(context.policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getTransactionPolicyID(item)}`], item.tag)}];
         case CONST.SEARCH.TABLE_COLUMNS.CARD:
             return [{text: getCompanyCardDescription(translate, item.cardName, item.cardID, context.nonPersonalAndWorkspaceCards, item.feedCountry)}];
         default:
