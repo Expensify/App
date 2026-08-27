@@ -59,7 +59,12 @@ Expensify offers pre-built export templates, or you can build your own custom ex
 
 **Note** Currently, it's not possible to build custom export templates on New Expensify, they can only be created on Expensify Classic. However, once built they will be available on New Expensify when exporting reports. [Learn how to build a custom export template in Expensify Classic](/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#create-a-custom-export-template).  
 
-**Basic Export** and **Export current view** download immediately when exporting selected reports or using **Select all on this page**. If **Select all** is used to export all matching reports, or if **All Data** or a **custom export template** is selected, Expensify prepares the export in the background. While the export is being prepared, wait for the file to download automatically or select **Send me the file when it's ready** to receive it later. Selecting **Send me the file when it's ready** allows the export window to be closed while the export continues processing. When the export is ready, Expensify delivers it through Concierge and by email. If the export cannot be generated, an error appears in the export window or is delivered through Concierge if **Send me the file when it's ready** was selected.
+When you export, the file either downloads immediately or is prepared in the background:
+
+- **Immediate download** – **Basic export** and **Export current view**, when you export selected reports or use **Select all on this page**.
+- **Prepared in the background** – When you use **Select all** to export all matching reports, or select **All Data - expense level**, **All Data - report level**, or a **Custom template**.
+
+While an export is being prepared, either wait for it to download automatically or select **Send me the file when it's ready** to close the export window and receive the file later. When it's ready, Expensify delivers it through Concierge and by email. If the export can't be generated, an error appears in the export window, or is delivered through Concierge if **Send me the file when it's ready** was selected.
 
 ## How to download a single report as a PDF
 
@@ -98,7 +103,7 @@ You can download every receipt attached to a report in a single ZIP file.
 
 ## Where do I find the exported CSV file?
 
-**Basic Export** and **Export current view** download directly to the device when exporting selected reports or using **Select all on this page**. If **Select all** is used to export all matching reports, or if **All Data** or a **custom export template** is selected, Expensify prepares the export in the background. Once the export is ready, the file downloads automatically or, if **Send me the file when it's ready** was selected, is delivered through Concierge and by email.
+**Basic export** and **Export current view** download directly to your device. Other templates — and any export started with **Select all** — are prepared in the background; the file then downloads automatically, or is delivered through Concierge and by email if you selected **Send me the file when it's ready**.
 
 ## What happens if some reports fail to download as PDFs?
 
