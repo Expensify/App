@@ -2552,7 +2552,6 @@ function createDraftInitialWorkspace({
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: currentUserEmail,
                 ownerAccountID: currentUserAccountID,
-                isPolicyExpenseChatEnabled: true,
                 areCategoriesEnabled: true,
                 approver: currentUserEmail,
                 areCompanyCardsEnabled: true,
@@ -2778,7 +2777,6 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 role: getRoleForCallerOnNewPolicy(isSubmitWorkspace, makeMeAdmin, policyOwnerEmail, currentUserEmailParam),
                 owner: policyOwnerEmail || currentUserEmailParam,
                 ownerAccountID: policyOwnerEmail ? (PersonalDetailsUtils.getPersonalDetailByEmail(policyOwnerEmail)?.accountID ?? currentUserAccountIDParam) : currentUserAccountIDParam,
-                isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 autoReporting: true,
@@ -3315,7 +3313,6 @@ function createDraftWorkspace({
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: currentUserEmail,
                 ownerAccountID: currentUserAccountID,
-                isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 autoReporting: true,
@@ -3403,6 +3400,7 @@ function buildOptimisticDuplicatePolicy(
     sourcePolicy: Policy,
     policyOptions: DuplicatePolicyDataOptions & {distanceCustomUnitID: string; perDiemCustomUnitID: string; customUnitRateID: string},
 ) {
+    const {isPolicyExpenseChatEnabled: _deprecatedExpenseChatFlag, ...sourcePolicyWithoutDeprecatedExpenseChatFlag} = sourcePolicy;
     const {
         policyName: duplicatedPolicyName = '',
         targetPolicyID: duplicatedPolicyID,
@@ -3452,7 +3450,7 @@ function buildOptimisticDuplicatePolicy(
     };
 
     return {
-        ...sourcePolicy,
+        ...sourcePolicyWithoutDeprecatedExpenseChatFlag,
         areCategoriesEnabled: true,
         areTagsEnabled: isTagsFeatureSelected,
         areDistanceRatesEnabled: isDistanceRatesFeatureSelected,
@@ -4368,7 +4366,6 @@ function createWorkspaceFromIOUPayment({
         role: CONST.POLICY.ROLE.ADMIN,
         owner: currentUserEmail,
         ownerAccountID: currentUserAccountID,
-        isPolicyExpenseChatEnabled: true,
 
         // Setting the new workspace currency to the currency of the iouReport
         outputCurrency: iouReport?.currency ?? CONST.CURRENCY.USD,

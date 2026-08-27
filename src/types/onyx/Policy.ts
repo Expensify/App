@@ -2880,8 +2880,8 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The custom units data for this policy */
         customUnits?: Record<string, CustomUnit>;
 
-        /** Whether policy expense chats can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
-        isPolicyExpenseChatEnabled: boolean;
+        /** Deprecated legacy flag for policy expense chat compatibility. */
+        isPolicyExpenseChatEnabled?: boolean;
 
         /** Whether the auto reporting is enabled */
         autoReporting?: boolean;
