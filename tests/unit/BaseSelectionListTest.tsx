@@ -191,6 +191,21 @@ describe('BaseSelectionList', () => {
         });
     });
 
+    it('does not scroll a list revealed at the top, which has no offset to restore', async () => {
+        jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(true);
+        mockGetAbsoluteLastScrollOffset.mockReturnValue(0);
+
+        const {rerender} = render(<ActivitySelectionListRenderer mode="visible" />);
+
+        rerender(<ActivitySelectionListRenderer mode="hidden" />);
+        rerender(<ActivitySelectionListRenderer mode="visible" />);
+
+        await waitFor(() => {
+            expect(screen.getByText('Item 1')).toBeOnTheScreen();
+        });
+        expect(mockScrollToOffset).not.toHaveBeenCalled();
+    });
+
     it('should not trigger item press if screen is not focused', () => {
         jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(false);
         render(<SelectionListRenderer data={mockItems} />);

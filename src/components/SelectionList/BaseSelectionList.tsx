@@ -343,11 +343,16 @@ function BaseSelectionListImpl({
             return;
         }
 
+        // The offset is read here rather than in the frame below, because the scroll the container reports on being
+        // revealed reaches the list first and would leave it reporting the top it was reset to.
+        const listOffset = listRef.current?.getAbsoluteLastScrollOffset();
+        // A list sitting at the top has nothing to restore: its window already describes that offset. Skipping the
+        // scroll keeps revealing such a list - every list nobody scrolled - as cheap as it was before.
+        if (!listOffset) {
+            return;
+        }
+
         const animationFrameID = requestAnimationFrame(() => {
-            const listOffset = listRef.current?.getAbsoluteLastScrollOffset();
-            if (listOffset === undefined) {
-                return;
-            }
             listRef.current?.scrollToOffset({offset: listOffset, animated: false});
         });
 
