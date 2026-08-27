@@ -1793,6 +1793,8 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: 'Nie udało się odrzucić raportu. Spróbuj ponownie.',
         },
         moveExpenses: 'Przenieś do raportu',
+        autoReport: 'Raport automatyczny',
+        autoReportDescription: 'Dodaj do szkiców raportów w imieniu pracownika',
         moveExpensesMaxTransactionsError: `Raporty są ograniczone do ${CONST.REPORT.MAX_TRANSACTIONS} wydatków. Przenieś część z nich do innego raportu.`,
         moveExpensesError: 'Nie możesz przenosić diet do raportów w innych przestrzeniach roboczych, ponieważ stawki diet mogą się różnić między przestrzeniami roboczymi.',
         submitReportTo: {

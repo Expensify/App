@@ -1748,6 +1748,8 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: 'レポートを拒否できませんでした。もう一度お試しください。',
         },
         moveExpenses: 'レポートに移動',
+        autoReport: '自動レポート',
+        autoReportDescription: '従業員に代わって下書きレポートに追加',
         moveExpensesMaxTransactionsError: `レポートは${CONST.REPORT.MAX_TRANSACTIONS}件の経費までに制限されています。一部を別のレポートに移動してください。`,
         moveExpensesError: '日当経費は、ワークスペースごとに日当レートが異なる場合があるため、他のワークスペースのレポートに移動することはできません。',
         submitReportTo: {

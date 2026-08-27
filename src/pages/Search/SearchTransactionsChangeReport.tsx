@@ -13,7 +13,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 
 import {createNewReport} from '@libs/actions/Report';
-import {changeTransactionsReport} from '@libs/actions/Transaction';
+import {autoReportTransactions, changeTransactionsReport} from '@libs/actions/Transaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
@@ -113,6 +113,27 @@ function SearchTransactionsChangeReport() {
         return report?.ownerAccountID;
     }, [selectedTransactions, selectedTransactionsKeys, allReports]);
     const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
+    // Kept separate from `targetOwnerAccountID`, which stops at the first owner it finds; counting needs them all.
+    const hasMultipleSubmitters = useMemo(() => {
+        const ownerAccountIDs = new Set<number>();
+        let hasUnknownOwner = false;
+
+        for (const transactionKey of selectedTransactionsKeys) {
+            const selection = selectedTransactions[transactionKey];
+            const reportID = selection?.reportID;
+            const ownerAccountID =
+                selection?.ownerAccountID ?? getReportOrDraftReport(reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])?.ownerAccountID;
+
+            if (typeof ownerAccountID === 'number') {
+                ownerAccountIDs.add(ownerAccountID);
+            } else {
+                hasUnknownOwner = true;
+            }
+        }
+
+        // An unresolved owner only implies a mix when there is something to mix with, so a lone expense stays single.
+        return ownerAccountIDs.size > 1 || (hasUnknownOwner && (ownerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
+    }, [selectedTransactions, selectedTransactionsKeys, allReports]);
 
     useEffect(() => {
         const snapshotData = currentSearchResults?.data;
@@ -284,6 +305,14 @@ function SearchTransactionsChangeReport() {
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
 
+    const autoReport = () => {
+        if (selectedTransactionsKeys.length === 0) {
+            return;
+        }
+        autoReportTransactions(selectedTransactionsKeys);
+        Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
+    };
+
     const removeFromReport = () => {
         if (selectedTransactionsKeys.length === 0) {
             return;
@@ -325,6 +354,8 @@ function SearchTransactionsChangeReport() {
             transactionPolicyID={selectedReportPolicyID}
             isPerDiemRequest={hasPerDiemTransactions}
             isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
+            hasMultipleSubmitters={hasMultipleSubmitters}
+            autoReport={autoReport}
         />
     );
 }

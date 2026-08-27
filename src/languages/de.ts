@@ -1770,6 +1770,8 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: 'Der Bericht konnte nicht abgelehnt werden. Bitte versuchen Sie es erneut.',
         },
         moveExpenses: 'Zum Bericht verschieben',
+        autoReport: 'Automatischer Bericht',
+        autoReportDescription: 'Im Namen des Mitarbeiters zu Berichtsentwürfen hinzufügen',
         moveExpensesMaxTransactionsError: `Berichte sind auf ${CONST.REPORT.MAX_TRANSACTIONS} Ausgaben begrenzt. Bitte verschiebe einige in einen anderen Bericht.`,
         moveExpensesError: 'Sie können Pauschalspesen nicht in Berichte anderer Arbeitsbereiche verschieben, da die Pauschalsätze je nach Arbeitsbereich unterschiedlich sein können.',
         submitReportTo: {

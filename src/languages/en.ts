@@ -1854,6 +1854,8 @@ const translations = {
             couldNotReject: 'The report could not be rejected. Please try again.',
         },
         moveExpenses: 'Move to report',
+        autoReport: 'Auto report',
+        autoReportDescription: 'Add to draft reports on behalf of the employee',
         moveExpensesError: "You can't move per diem expenses to reports on other workspaces, because the per diem rates may differ between workspaces.",
         moveExpensesMaxTransactionsError: `Reports are limited to ${CONST.REPORT.MAX_TRANSACTIONS} expenses. Please move some to another report.`,
         submitReportTo: {
