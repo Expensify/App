@@ -6132,6 +6132,45 @@ describe('ReportActionsUtils', () => {
             ).toBe(true);
         });
 
+        it('does not move the marker from one self-authored action to a different self-authored action', () => {
+            // The previously marked action was a persisted self-authored message. A different self-authored
+            // action must not steal the "New" marker off it (the Expensify/App#91940 hop), so `isDifferentUnread`
+            // suppresses the marker here even though this action reads as unread.
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-b'});
+            const prevMarkedAction = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-a'});
+            const prevSortedVisibleReportActionsObjects = {
+                [prevMarkedAction.reportActionID]: prevMarkedAction,
+                [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-b'}),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    prevUnreadMarkerReportActionID: 'self-action-a',
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('keeps the marker on the same self-authored action it was previously anchored on', () => {
+            // When the previously marked action is the action being evaluated, `isDifferentUnread` is false, so a
+            // persisted self-authored action that already holds the marker keeps it.
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-a'});
+            const prevSortedVisibleReportActionsObjects = {
+                [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-a'}),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    prevUnreadMarkerReportActionID: 'self-action-a',
+                    isOffline: false,
+                }),
+            ).toBe(true);
+        });
+
         it('returns true when an unread message from another user is new and the list is scrolled over the threshold', () => {
             const message = makeAction({reportActionID: 'other-new-id'});
             expect(

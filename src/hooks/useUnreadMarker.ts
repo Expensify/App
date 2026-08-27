@@ -134,12 +134,12 @@ function useUnreadMarker({
     const [unreadMarkerReportActionID, unreadMarkerReportActionIndex]: [string | null, number] =
         oldestUnreadReportActionMarker && (scanned[0] === null || scanned[0] === oldestUnreadReportActionMarker[0]) ? oldestUnreadReportActionMarker : scanned;
 
-    // `prevUnreadMarkerReportActionID` gates the self-authored-message branch in
-    // `shouldDisplayNewMarkerOnReportAction`, which only runs once no manual mark is active. Don't let the
-    // manual-mark anchor populate it: otherwise, after the manual mark is cleared, a persisted self-authored
-    // action would wrongly keep the "New" marker (the Expensify/App#91940 regression) because this value is
-    // still truthy from the mark. Only track markers set by the timestamp-based scan.
-    if (prevUnreadMarkerReportActionID !== unreadMarkerReportActionID && unreadMarkerReportActionID !== manuallyMarkedUnreadReportActionID) {
+    // `prevUnreadMarkerReportActionID` records the action the marker was last anchored on and gates the
+    // self-authored-message branch in `shouldDisplayNewMarkerOnReportAction`, which only runs once no manual
+    // mark is active. The #91940 regression (a persisted self-authored action wrongly keeping the "New"
+    // marker after the marker moves) is prevented there via the `isDifferentUnread` check, so we simply track
+    // whatever the marker last landed on here.
+    if (prevUnreadMarkerReportActionID !== unreadMarkerReportActionID) {
         setPrevUnreadMarkerReportActionID(unreadMarkerReportActionID);
     }
 

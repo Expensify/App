@@ -104,15 +104,19 @@ const shouldDisplayNewMarkerOnReportAction = ({
     // This branch is only reached when no manual mark-as-unread is active (the check at the top of the
     // function returns early while one is). Ignore unread for a self-authored message that is new or was
     // just optimistic, preserving the #91940 behavior for cold opens.
-    const shouldIgnoreUnreadForCurrentUserMessage = isNewMessage || isPreviouslyOptimistic;
+    const prevMarkedReportAction = prevUnreadMarkerReportActionID ? prevSortedVisibleReportActionsObjects[prevUnreadMarkerReportActionID] : undefined;
+    const isPreviouslyUnreadFromCurrentUser = currentUserAccountID === prevMarkedReportAction?.actorAccountID;
+    // So essentially, the previously unread cannot move from one new self-user-action to another. Once a
+    // self-authored action holds the marker, keep it there rather than letting it hop to a different
+    // self-authored action (e.g. a persisted reimbursable toggle) — the regression from Expensify/App#91940.
+    const isDifferentUnread = isPreviouslyUnreadFromCurrentUser && prevMarkedReportAction?.reportActionID !== message.reportActionID;
+    const shouldIgnoreUnreadForCurrentUserMessage = isNewMessage || isPreviouslyOptimistic || isDifferentUnread;
 
     if (isFromCurrentUser) {
         // For a self-authored action, only move/keep the "New" marker when one already exists in this session
         // (`prevUnreadMarkerReportActionID` is set). The explicit mark-as-unread case is handled earlier by the
         // stable `manuallyMarkedUnreadReportActionID` check, which anchors the marker on first open/re-entry
-        // regardless of this guard. Without this guard, a persisted self-authored action (e.g. a reimbursable
-        // toggle) whose timestamps have drifted past `lastReadTime` would wrongly show the marker on a cold
-        // open/re-entry — the regression from Expensify/App#91940.
+        // regardless of this guard.
         if (prevUnreadMarkerReportActionID) {
             return !shouldIgnoreUnreadForCurrentUserMessage;
         }
