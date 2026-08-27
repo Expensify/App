@@ -1,4 +1,7 @@
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useMerchantRuleSuggestion from '@hooks/useMerchantRuleSuggestion';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setDraftMerchantRule} from '@libs/actions/User';
@@ -10,17 +13,24 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React from 'react';
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 
+import Icon from './Icon';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import {useProductTrainingContext} from './ProductTrainingContext';
+import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 
 type MerchantRuleSuggestionTooltipProps = React.PropsWithChildren<{
-    /** The report hosting the expense detail view: a transaction thread or its parent expense report */
+    /** The report hosting the expense detail view: a transaction thread, its expense report, or the chat it lives in */
     reportID: string | undefined;
 
     /** The workspace the expense belongs to */
     policyID: string | undefined;
+
+    /** The expense being displayed, when the host already knows it */
+    transactionID?: string;
 }>;
 
 /**
@@ -28,13 +38,13 @@ type MerchantRuleSuggestionTooltipProps = React.PropsWithChildren<{
  * to turn the expense edit they just made into a merchant rule. Renders the children untouched when there is no
  * qualifying edit to act on.
  */
-function MerchantRuleSuggestionTooltip({reportID, policyID, children}: MerchantRuleSuggestionTooltipProps) {
+function MerchantRuleSuggestionTooltip({reportID, policyID, transactionID, children}: MerchantRuleSuggestionTooltipProps) {
     const styles = useThemeStyles();
-    const {suggestion, transaction, policy} = useMerchantRuleSuggestion(reportID, policyID);
-    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MERCHANT_RULE_SUGGESTION,
-        !!suggestion,
-    );
+    const theme = useTheme();
+    const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Lightbulb', 'Close']);
+    const {suggestion, transaction, policy} = useMerchantRuleSuggestion(reportID, policyID, transactionID);
+    const {shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MERCHANT_RULE_SUGGESTION, !!suggestion);
 
     const createRule = () => {
         if (!suggestion || !policyID) {
@@ -50,18 +60,74 @@ function MerchantRuleSuggestionTooltip({reportID, policyID, children}: MerchantR
         Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID, undefined, Navigation.getActiveRoute()));
     };
 
+    // The shared product training content renders its copy as a single block of HTML, but this callout needs the
+    // "Create a rule" phrase in link colour, so the content is composed here instead.
+    const renderTooltipContent = useCallback(
+        () => (
+            <View
+                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+                style={[styles.alignItemsCenter, styles.flexRow, styles.gap3, styles.pv2, styles.ph2]}
+            >
+                <Icon
+                    src={icons.Lightbulb}
+                    fill={theme.tooltipHighlightText}
+                    width={variables.iconSizeNormal}
+                    height={variables.iconSizeNormal}
+                />
+                <View style={styles.flexShrink1}>
+                    <Text style={styles.productTrainingTooltipText}>
+                        <Text style={[styles.productTrainingTooltipText, styles.link]}>{translate('workspace.rules.merchantRules.createRuleFromExpenseAction')}</Text>
+                        {` ${translate('workspace.rules.merchantRules.createRuleFromExpensePrompt')}`}
+                    </Text>
+                </View>
+                <PressableWithoutFeedback
+                    sentryLabel={CONST.SENTRY_LABEL.PRODUCT_TRAINING.TOOLTIP}
+                    shouldUseAutoHitSlop
+                    accessibilityLabel={translate('common.close')}
+                    role={CONST.ROLE.BUTTON}
+                    onPress={() => hideProductTrainingTooltip()}
+                >
+                    <Icon
+                        src={icons.Close}
+                        fill={theme.icon}
+                        width={variables.iconSizeSemiSmall}
+                        height={variables.iconSizeSemiSmall}
+                    />
+                </PressableWithoutFeedback>
+            </View>
+        ),
+        [
+            hideProductTrainingTooltip,
+            icons.Close,
+            icons.Lightbulb,
+            styles.alignItemsCenter,
+            styles.flexRow,
+            styles.flexShrink1,
+            styles.gap3,
+            styles.link,
+            styles.ph2,
+            styles.productTrainingTooltipText,
+            styles.pv2,
+            theme.icon,
+            theme.tooltipHighlightText,
+            translate,
+        ],
+    );
+
     return (
         <EducationalTooltip
             shouldRender={shouldShowProductTrainingTooltip}
-            renderTooltipContent={renderProductTrainingTooltip}
+            renderTooltipContent={renderTooltipContent}
             wrapperStyle={styles.productTrainingTooltipWrapper}
             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
-            shiftHorizontal={variables.mileageRateTooltipShiftHorizontal}
             shiftVertical={variables.mileageRateTooltipShiftVertical}
             onTooltipPress={createRule}
+            shouldHidePointer
             shouldHideOnScroll
         >
-            {children}
+            {/* The tooltip measures its anchor by cloning this child with an `onLayout` prop, so it has to be a plain
+                View: the composer and the receipt view don't forward that prop, which would leave it unmeasured. */}
+            <View>{children}</View>
         </EducationalTooltip>
     );
 }

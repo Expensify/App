@@ -43,6 +43,7 @@ function BaseGenericTooltip({
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
     shouldUseOverlay = false,
+    shouldHidePointer = false,
     onHideTooltip = () => {},
     isEducationTooltip = false,
     onTooltipPress,
@@ -165,9 +166,11 @@ function BaseGenericTooltip({
     const wrapperChildren = (
         <>
             {content}
-            <View style={pointerWrapperStyle}>
-                <View style={pointerStyle} />
-            </View>
+            {!shouldHidePointer && (
+                <View style={pointerWrapperStyle}>
+                    <View style={pointerStyle} />
+                </View>
+            )}
         </>
     );
 

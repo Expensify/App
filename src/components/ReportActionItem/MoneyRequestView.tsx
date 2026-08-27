@@ -1168,8 +1168,9 @@ function MoneyRequestView({
     const isInWideRHP = wideRHPRouteKeys.includes(route.key);
 
     // A "Create a rule" offer only makes sense on a live expense the admin just edited, not in a review or merge flow.
-    // On wide layouts the report footer anchors the tooltip above the composer instead.
-    const shouldOfferMerchantRule = shouldUseNarrowLayout && !readonly && !isFromReviewDuplicates && !isFromMergeTransaction;
+    // The tooltip anchors to the receipt only where the receipt renders inline above the fields; on wide layouts and
+    // in a wide RHP (where the receipt moves to its own panel) the report footer anchors it above the composer instead.
+    const shouldOfferMerchantRule = shouldUseNarrowLayout && !isInWideRHP && !readonly && !isFromReviewDuplicates && !isFromMergeTransaction;
 
     // If the view is readonly, we don't need the transactionThread dependency
     if ((!readonly && !transactionThreadReport?.reportID) || !transaction?.transactionID) {
@@ -1185,6 +1186,7 @@ function MoneyRequestView({
                     // report footer anchors it above the composer instead, per design.
                     <MerchantRuleSuggestionTooltip
                         reportID={shouldOfferMerchantRule ? (transactionThreadReport?.reportID ?? parentReport?.reportID) : undefined}
+                        transactionID={shouldOfferMerchantRule ? transaction?.transactionID : undefined}
                         policyID={policyID}
                     >
                         <MoneyRequestReceiptView

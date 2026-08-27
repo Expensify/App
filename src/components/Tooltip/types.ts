@@ -45,6 +45,9 @@ type SharedTooltipProps = {
     /** Should render a fullscreen transparent overlay */
     shouldUseOverlay?: boolean;
 
+    /** Whether to hide the pointer that connects the tooltip to its anchor, leaving the tooltip as a detached card */
+    shouldHidePointer?: boolean;
+
     /** Whether the tooltip should teleport to the modal layer */
     shouldTeleportPortalToModalLayer?: boolean;
 

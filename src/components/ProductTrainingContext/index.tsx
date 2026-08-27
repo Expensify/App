@@ -146,8 +146,14 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
             }
 
             // Mileage rate tooltip is exempt from the general "hide when modal visible" rule so it can show on the confirmation surface.
-            // Hide it when a popover or bottom sheet opens (e.g. inline date picker) since those set modal.isPopover.
-            if (tooltipName === CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED && isModalVisible && modal?.isPopover) {
+            // The merchant rule tooltip is exempt for the same reason: the expense detail view it anchors to is usually the RHP,
+            // which sets the modal flag. Both hide when a popover or bottom sheet opens (e.g. inline date picker),
+            // since those set modal.isPopover.
+            if (
+                (tooltipName === CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED || tooltipName === CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MERCHANT_RULE_SUGGESTION) &&
+                isModalVisible &&
+                modal?.isPopover
+            ) {
                 return false;
             }
 
@@ -157,6 +163,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.HAS_FILTER_NEGATION &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED &&
+                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MERCHANT_RULE_SUGGESTION &&
                 isModalVisible
             ) {
                 return false;

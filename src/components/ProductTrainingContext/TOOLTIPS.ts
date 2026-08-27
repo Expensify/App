@@ -85,7 +85,8 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         shouldShow: () => true,
     },
     [MERCHANT_RULE_SUGGESTION]: {
-        content: 'productTrainingTooltip.merchantRuleSuggestion',
+        // Unused: MerchantRuleSuggestionTooltip renders its own content so the "Create a rule" phrase can be a link.
+        content: 'workspace.rules.merchantRules.createRuleFromExpensePrompt',
         // Unlike the other tooltips this one is dismissed per expense for the session instead of account-wide, so
         // that a later edit on another expense (or on the same one in a new session) can offer the rule again.
         onHideTooltip: () => dismissMerchantRuleSuggestion(),

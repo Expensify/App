@@ -5,6 +5,7 @@ import BlockedReportFooter from '@components/BlockedReportFooter';
 import MerchantRuleSuggestionTooltip from '@components/MerchantRuleSuggestionTooltip';
 import OfflineIndicator from '@components/OfflineIndicator';
 import SwipeableView from '@components/SwipeableView';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
@@ -66,6 +67,10 @@ function ReportFooter() {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
+    // A wide RHP reports a narrow layout but lays the expense out like a wide screen: the receipt moves to its own
+    // panel and the composer sits beside it, so the "Create a rule" tooltip anchors here rather than on the receipt.
+    const {wideRHPRouteKeys} = useWideRHPState();
+    const isInWideRHP = wideRHPRouteKeys.includes(route.key);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
 
@@ -107,9 +112,9 @@ function ReportFooter() {
                 <ReportActionCompose reportID={reportIDFromRoute} />
             </SwipeableView>
         );
-        // On narrow layouts the expense detail view anchors this tooltip under its own header instead, per design
+        // On narrow layouts the expense detail view anchors this tooltip above its receipt instead, per design
         const composerWithMerchantRuleTooltip =
-            shouldUseNarrowLayout || isComposerFullSize ? (
+            (shouldUseNarrowLayout && !isInWideRHP) || isComposerFullSize ? (
                 composer
             ) : (
                 <MerchantRuleSuggestionTooltip

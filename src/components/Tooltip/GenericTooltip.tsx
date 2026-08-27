@@ -42,6 +42,7 @@ function GenericTooltip({
     },
     shouldForceAnimate = false,
     shouldUseOverlay: shouldUseOverlayProp = false,
+    shouldHidePointer = false,
     shouldTeleportPortalToModalLayer,
     shouldRender = true,
     isEducationTooltip = false,
@@ -193,6 +194,7 @@ function GenericTooltip({
                     wrapperStyle={wrapperStyle}
                     anchorAlignment={anchorAlignment}
                     shouldUseOverlay={shouldUseOverlay}
+                    shouldHidePointer={shouldHidePointer}
                     shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
                     onHideTooltip={onPressOverlay}
                     onTooltipPress={onTooltipPress}

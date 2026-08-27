@@ -40,6 +40,7 @@ function BaseGenericTooltip({
     },
     wrapperStyle = {},
     shouldUseOverlay = false,
+    shouldHidePointer = false,
     onHideTooltip = () => {},
     shouldTeleportPortalToModalLayer = false,
     isEducationTooltip = false,
@@ -142,9 +143,11 @@ function BaseGenericTooltip({
     const wrapperChildren = (
         <>
             {content}
-            <View style={pointerWrapperStyle}>
-                <View style={pointerStyle} />
-            </View>
+            {!shouldHidePointer && (
+                <View style={pointerWrapperStyle}>
+                    <View style={pointerStyle} />
+                </View>
+            )}
         </>
     );
 
