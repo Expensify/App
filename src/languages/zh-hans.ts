@@ -8182,9 +8182,9 @@ ${reportName}`,
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue) {
-                return `已将距离费率“${customUnitRateName}”的可退税部分更改为“${newValue}”（之前为“${oldValue}”）`;
+                return `已将距离费率“${customUnitRateName}”的可退税部分更改为“${newValue}%”（之前为“${oldValue}%”）`;
             }
-            return `已将“${newValue}”的可退税部分添加到距离费率“${customUnitRateName}”中`;
+            return `已将“${newValue}%”的可退税部分添加到距离费率“${customUnitRateName}”中`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `已将 ${customUnitName} 费率名称从“${oldValue}”重命名为“${newValue}”`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
