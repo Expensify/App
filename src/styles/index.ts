@@ -4125,7 +4125,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         widgetItemButton: {
-            minWidth: 68,
+            minWidth: variables.widgetItemButtonMinWidth,
         },
 
         gettingStartedRowIconContainer: {
@@ -7217,6 +7217,8 @@ const plainStyles = (theme: ThemeColors) =>
                 lineHeight: variables.widgetHeaderTitleLineHeight,
                 color,
             }) satisfies TextStyle,
+
+        getWidgetContainerBottomPaddingStyle: (shouldUseNarrowLayout: boolean): ViewStyle => (shouldUseNarrowLayout ? spacing.pb2 : spacing.pb5),
 
         getWidgetContainerHeaderStyle: (shouldUseNarrowLayout: boolean) =>
             ({

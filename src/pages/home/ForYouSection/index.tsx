@@ -59,7 +59,6 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
     const isOnboardingStatusKnown = onboarding !== undefined;
     const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO);
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
-    // "Time sensitive" now lives inside this card as a group above the "For you" todos (chat input stays on top).
     const timeSensitiveItems = useTimeSensitiveItems();
 
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptSearch', 'MoneyBag', 'Send', 'ThumbsUp', 'Export']);
@@ -215,8 +214,7 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
 
     const willOnlyShowConciergePromptBox = timeSensitiveItems.length === 0 && hideForYou;
 
-    // The card always renders so the Concierge input stays on the home page. `hideForYou` only gates the "For you"
-    // heading and todos or empty-state below it. When hidden with no time-sensitive content, the card is just the box.
+    // The card always renders so the Concierge input stays on the home page.
     return (
         <WidgetContainer
             containerStyles={willOnlyShowConciergePromptBox ? [styles.pb3] : undefined}

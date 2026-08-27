@@ -18,7 +18,7 @@ import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useRef, useState} from 'react';
+import {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import DiscoverSection from './DiscoverSection';
