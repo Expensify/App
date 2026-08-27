@@ -29,12 +29,12 @@ function MerchantMatchTypeSelector({value, onChange}: MerchantMatchTypeSelectorP
     const items: Array<ListItem<MerchantMatchType>> = [
         {
             keyForList: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
-            text: translate('workspace.rules.merchantRules.matchTypeContains'),
+            text: translate('search.filters.merchant.contains'),
             isSelected: value === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
         },
         {
             keyForList: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-            text: translate('workspace.rules.merchantRules.matchTypeExact'),
+            text: translate('search.filters.merchant.exactMatch'),
             isSelected: value === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
         },
     ];
@@ -42,7 +42,7 @@ function MerchantMatchTypeSelector({value, onChange}: MerchantMatchTypeSelectorP
     return (
         <>
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.textLabelSupporting]}>{translate('workspace.rules.merchantRules.matchType')}</Text>
+                <Text style={[styles.textLabelSupporting]}>{translate('search.filters.merchant.matchType')}</Text>
             </View>
             <SelectionList
                 data={items}

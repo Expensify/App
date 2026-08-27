@@ -9523,6 +9523,7 @@ ${reportName}`,
                 has: {positive: 'έχει', negative: 'δεν έχει'},
                 is: {positive: 'είναι', negative: 'δεν είναι'},
             },
+            merchant: {matchType: 'Τύπος αντιστοίχισης', contains: 'Περιέχει', exactMatch: 'Ακριβής αντιστοιχία'},
         },
         display: {
             label: 'Εμφάνιση',

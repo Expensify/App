@@ -9,7 +9,6 @@
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
-
 import CONST from '@src/CONST';
 import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 
@@ -9174,6 +9173,7 @@ ${reportName}`,
             },
             reportField: (name, value) => `${name} es ${value}`,
             filterType: {label: 'Tipo de filtro', has: {positive: 'tiene', negative: 'no tiene'}, is: {positive: 'es', negative: 'no es'}},
+            merchant: {matchType: 'Tipo de coincidencia', contains: 'Contiene', exactMatch: 'Coincide exactamente'},
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',

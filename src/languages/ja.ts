@@ -9149,6 +9149,7 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'エクスポート',
             },
             filterType: {label: 'フィルタータイプ', has: {positive: '持っています', negative: '持っていません'}, is: {positive: 'は', negative: 'ではありません'}},
+            merchant: {matchType: 'マッチタイプ', contains: '含む', exactMatch: '完全一致'},
         },
         display: {
             label: '表示',

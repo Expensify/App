@@ -5870,10 +5870,7 @@ function getDisplayValue(
             return;
         }
 
-        const matchTypeKey =
-            form[FILTER_KEYS.MERCHANT_OPERATOR] === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS
-                ? 'workspace.rules.merchantRules.matchTypeContains'
-                : 'workspace.rules.merchantRules.matchTypeExact';
+        const matchTypeKey = form[FILTER_KEYS.MERCHANT_OPERATOR] === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS ? 'search.filters.merchant.contains' : 'search.filters.merchant.exactMatch';
         return `${translate(matchTypeKey)} "${merchant}"`;
     }
 
