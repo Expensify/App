@@ -1,5 +1,5 @@
 import intlPolyfill from '@libs/IntlPolyfill';
-import registerReportActionsPagination from '@libs/registerPaginationConfig';
+import registerReportActionsPagination from '@libs/registerReportActionsPagination';
 
 import {setDeviceID} from '@userActions/Device';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
