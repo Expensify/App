@@ -1024,9 +1024,7 @@ describe('actions/IOU', () => {
             );
 
             // And the report-metadata rail stays clean offline too
-            const pendingNewTransactionIDs = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
-            expect(pendingNewTransactionIDs?.['offline-tx-1']).toBeUndefined();
-            expect(pendingNewTransactionIDs?.['offline-tx-2']).toBeUndefined();
+            expect(getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID))).toEqual([]);
 
             spyOnMergeTransactionIdsHighlightOnSearchRoute.mockRestore();
         });
