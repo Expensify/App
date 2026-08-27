@@ -495,6 +495,7 @@ const CONST = {
     },
 
     PARSED_POLICY_RULE: {
+        PROMPT_MAX_LENGTH: 6000,
         STATE: {
             RULE: 'rule',
             UNSUPPORTED: 'unsupported',

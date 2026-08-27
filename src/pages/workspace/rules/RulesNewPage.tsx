@@ -143,6 +143,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const describeRule = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM>) => {
         const prompt = values.prompt.trim();
         clearNewRulePromptError();
+        clearParsedPolicyRule();
         setCanOfferAgentRule(false);
         setSubmittedPrompt(prompt);
         setParseID(parsePolicyRule(policyID, prompt));
