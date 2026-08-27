@@ -1,18 +1,15 @@
 import {getAdminExpensifyCardFeedEntries, partitionExpensifyCardFeedsForSelector} from '@libs/ExpensifyCardFeedSelectorUtils';
 import type {ExpensifyCardFeedEntry, ExpensifyCardFeedProgram} from '@libs/ExpensifyCardFeedSelectorUtils';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 
-/** Regular card feeds live under the US/GB programs. Pass a different program set (e.g. TRAVEL_US) to list travel feeds. */
-const DEFAULT_FEED_PROGRAMS: ExpensifyCardFeedProgram[] = [CONST.COUNTRY.US, CONST.COUNTRY.GB];
-
+/** Pass a program set (e.g. TRAVEL_US) to list travel feeds; defaults to the US/GB card feeds. */
 function useExpensifyCardFeedsForFeedSelector(
     policyID: string | undefined,
-    programs: ExpensifyCardFeedProgram[] = DEFAULT_FEED_PROGRAMS,
+    programs?: ExpensifyCardFeedProgram[],
 ): {
     primaryFeeds: ExpensifyCardFeedEntry[];
     otherFeeds: ExpensifyCardFeedEntry[];

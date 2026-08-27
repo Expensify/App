@@ -27,6 +27,8 @@ type ExpensifyCardFeedEntry = {
 /** Which program blocks of the card settings NVP count as a configured feed. Regular card feeds use US/GB; Travel Billing uses TRAVEL_US. */
 type ExpensifyCardFeedProgram = 'US' | 'CURRENT' | 'GB' | 'TRAVEL_US';
 
+const DEFAULT_CARD_FEED_PROGRAMS: ExpensifyCardFeedProgram[] = [CONST.COUNTRY.US, CONST.COUNTRY.GB];
+
 /** A feed qualifies when a program block has a settlement method: a bank account for cards, or a bank account or pay-by-invoice for travel. */
 function hasConfiguredExpensifyCardFeed(settings: ExpensifyCardSettings | undefined, programs: ExpensifyCardFeedProgram[]): boolean {
     if (!settings) {
@@ -98,7 +100,7 @@ function getAdminExpensifyCardFeedEntries(
     policies: OnyxCollection<Policy>,
     domains: OnyxCollection<Domain>,
     currentUserAccountID: number,
-    programs: ExpensifyCardFeedProgram[],
+    programs: ExpensifyCardFeedProgram[] = DEFAULT_CARD_FEED_PROGRAMS,
 ): ExpensifyCardFeedEntry[] {
     return Object.entries(cardSettingsCollection ?? {}).flatMap(([settingsKey, settings]) => {
         if (!settings) {
