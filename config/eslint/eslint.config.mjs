@@ -337,6 +337,23 @@ const config = defineConfig([
             'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
             'rulesdir/no-raw-typography': 'error',
             'rulesdir/require-locale-for-localized-date-format': 'error',
+            'rulesdir/no-unsafe-onyx-read': [
+                'error',
+                {
+                    readSurface: '@libs/OnyxUtils',
+                    // Mirrors CONST.SEARCH.SNAPSHOT_ONYX_KEYS, which @libs/OnyxUtils refuses at runtime.
+                    // tests/unit/libs/OnyxUtilsTest.ts fails if the two lists drift apart.
+                    forbiddenKeys: [
+                        'ONYXKEYS.COLLECTION.REPORT',
+                        'ONYXKEYS.COLLECTION.POLICY',
+                        'ONYXKEYS.COLLECTION.TRANSACTION',
+                        'ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS',
+                        'ONYXKEYS.COLLECTION.REPORT_ACTIONS',
+                        'ONYXKEYS.PERSONAL_DETAILS_LIST',
+                        'ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS',
+                    ],
+                },
+            ],
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
                 {
@@ -650,6 +667,12 @@ const config = defineConfig([
 
             // This helps disable the `prefer-alias` rule for tests
             '@dword-design/import-alias/prefer-alias': ['off'],
+
+            // Tests read Onyx directly to assert stored state: no SearchScopeProvider exists to redirect
+            // them, and some have to assert on the very keys the wrapper refuses. The position and
+            // ordering checks still apply.
+            // Passing options explicitly: a bare severity would inherit the ones set above.
+            'rulesdir/no-unsafe-onyx-read': ['error', {}],
 
             'testing-library/await-async-queries': 'error',
             'testing-library/await-async-utils': 'error',

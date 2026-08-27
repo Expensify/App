@@ -1,7 +1,8 @@
 import {SearchQueryContext, SearchResultsContext} from '@components/Search/SearchContext';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 
-import CONST from '@src/CONST';
+import {isSnapshotCompatibleKey as isSnapshotCompatibleOnyxKey} from '@libs/OnyxUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
 
@@ -73,7 +74,7 @@ function resolveSnapshotAwareResult<TKey extends OnyxKey, TReturnValue>(
  * Custom hook for accessing and subscribing to Onyx data with search snapshot support
  */
 const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(key: TKey, options?: UseOnyxOptions<TKey, TReturnValue>) => {
-    const isSnapshotCompatibleKey = !key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) && CONST.SEARCH.SNAPSHOT_ONYX_KEYS.some((snapshotKey) => key.startsWith(snapshotKey));
+    const isSnapshotCompatibleKey = isSnapshotCompatibleOnyxKey(key);
     const isOnSearch = useIsOnSearch();
 
     let currentSearchHash: number | undefined;
