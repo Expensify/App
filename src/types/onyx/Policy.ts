@@ -2917,6 +2917,15 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The reimbursement choice for policy */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
 
+        /** Configuration for collecting employee deposit account details for reimbursement outside of Expensify */
+        reimbursement?: {
+            /** Whether reimbursement is enabled for the policy */
+            enabled?: boolean;
+
+            /** Countries (keyed by ISO code) where the company has a withdrawal account it can reimburse from */
+            countries?: Record<string, unknown>;
+        };
+
         /** The set reimburser for the policy */
         reimburser?: string;
 
@@ -3206,7 +3215,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether Expensify automatically copies newly published government distance rates onto this policy */
         shouldAutoUpdateGovernmentDistanceRates?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
+    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | keyof WorkspaceTravelSettings | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
 >;
 
 /** Stages of policy connection sync */
