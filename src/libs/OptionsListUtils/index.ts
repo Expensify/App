@@ -2635,12 +2635,12 @@ function prepareReportOptionsForDisplay(
 
         let isOptionUnread = option.isUnread;
         if (shouldUnreadBeBold) {
-            const chatReport = getReportByID?.(report.chatReportID);
+            const chatReport = getReportByID(report.chatReportID);
             const oneTransactionThreadReportID =
                 report.type === CONST.REPORT.TYPE.IOU || report.type === CONST.REPORT.TYPE.EXPENSE || report.type === CONST.REPORT.TYPE.INVOICE
                     ? getOneTransactionThreadReportID(report, chatReport, sortedActions?.[report.reportID], isOffline)
                     : undefined;
-            const oneTransactionThreadReport = oneTransactionThreadReportID ? getReportByID?.(oneTransactionThreadReportID) : undefined;
+            const oneTransactionThreadReport = oneTransactionThreadReportID ? getReportByID(oneTransactionThreadReportID) : undefined;
 
             isOptionUnread = isUnread(report, oneTransactionThreadReport, option.private_isArchived) && !!report.lastActorAccountID;
         }
@@ -2837,7 +2837,7 @@ function getValidOptions(
             }
 
             const draftComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
-            const chatReport = getValidReportsConfig.getReportByID?.(report.item.chatReportID);
+            const chatReport = getValidReportsConfig.getReportByID(report.item.chatReportID);
 
             return isValidReport(
                 report,
@@ -3102,7 +3102,7 @@ type SearchOptionsConfig = {
     isTrackIntentUser?: boolean;
     translate: LocalizedTranslate;
     /** @see GetValidReportsConfig['getReportByID'] */
-    getReportByID?: GetOptionsConfig['getReportByID'];
+    getReportByID: GetOptionsConfig['getReportByID'];
 };
 
 /**
@@ -3311,12 +3311,12 @@ function formatSectionsFromSearchTerm(
     allPolicies: OnyxCollection<Policy>,
     translate: LocalizedTranslate,
     dateFnsLocale: DateFnsLocale | undefined,
+    // Resolves a single report by ID instead of receiving the whole reports collection, so callers only subscribe to the reports they actually need.
+    getReportByID: (reportID: string | undefined) => OnyxEntry<Report>,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    // Resolves a single report by ID instead of receiving the whole reports collection, so callers only subscribe to the reports they actually need.
-    getReportByID?: (reportID: string | undefined) => OnyxEntry<Report>,
 ): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
@@ -3330,7 +3330,7 @@ function formatSectionsFromSearchTerm(
                     ? selectedOptions.map((participant) => {
                           const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
                           if (isReportPolicyExpenseChat) {
-                              const expenseReport = getReportByID?.(participant.reportID);
+                              const expenseReport = getReportByID(participant.reportID);
                               const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
                               const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
                               return getPolicyExpenseReportOption(
@@ -3371,7 +3371,7 @@ function formatSectionsFromSearchTerm(
                 ? selectedParticipantsWithoutDetails.map((participant) => {
                       const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
                       if (isReportPolicyExpenseChat) {
-                          const expenseReport = getReportByID?.(participant.reportID);
+                          const expenseReport = getReportByID(participant.reportID);
                           const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
                           const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
                           return getPolicyExpenseReportOption(

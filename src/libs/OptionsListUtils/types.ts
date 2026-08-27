@@ -238,7 +238,7 @@ type GetValidReportsConfig = {
      * module-level `Onyx.connect()` cache. Callers pass a resolver backed by the same reports snapshot the option
      * list was built from (see `useFilteredOptions`), which keeps both derived from one consistent snapshot.
      */
-    getReportByID?: (reportID: string | undefined) => OnyxEntry<Report>;
+    getReportByID: (reportID: string | undefined) => OnyxEntry<Report>;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<

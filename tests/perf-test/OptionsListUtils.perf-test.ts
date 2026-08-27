@@ -9,6 +9,7 @@ import type {PersonalDetails, Policy} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
 
 import type * as NativeNavigation from '@react-navigation/native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {rand} from '@ngneat/falso';
 import Onyx from 'react-native-onyx';
@@ -106,8 +107,12 @@ const options = createFilteredOptionList(personalDetails, reports, undefined, EM
     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
 });
 
+// Mirrors the `getReportByID` resolver production code passes in (see `useFilteredOptions`).
+const getReportByID = (reportID: string | undefined): OnyxEntry<Report> => (mockedReportsMap as OnyxCollection<Report>)?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
 const ValidOptionsConfig = {
     dateFnsLocale: undefined,
+    getReportByID,
     betas: mockedBetas,
     includeRecentReports: true,
     includeTasks: true,
@@ -155,6 +160,7 @@ describe('OptionsListUtils', () => {
                 personalDetails,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                getReportByID,
             }),
         );
     });
@@ -209,6 +215,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     dateFnsLocale: undefined,
+                    getReportByID,
                     betas: mockedBetas,
                     includeMultipleParticipantReports: true,
                     showChatPreviewLine: true,
@@ -275,6 +282,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 translateLocal,
                 undefined,
+                getReportByID,
                 mockedPersonalDetails,
                 true,
             ),
@@ -288,7 +296,20 @@ describe('OptionsListUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], {}, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, undefined, mockedPersonalDetails, true),
+            formatSectionsFromSearchTerm(
+                '',
+                Object.values(selectedOptions),
+                [],
+                [],
+                {},
+                MOCK_CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                undefined,
+                getReportByID,
+                mockedPersonalDetails,
+                true,
+            ),
         );
     });
 
@@ -345,6 +366,7 @@ describe('OptionsListUtils', () => {
                 maxResults: 20,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                getReportByID,
             }),
         );
     });

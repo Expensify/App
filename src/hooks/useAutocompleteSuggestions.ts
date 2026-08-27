@@ -57,7 +57,7 @@ type UseAutocompleteSuggestionsParams = {
     allFeeds: Record<string, CardFeeds | undefined> | undefined;
     options: OptionList;
     /** Resolves a report from the same snapshot `options` was built from @see useFilteredOptions */
-    getReportByID?: GetOptionsConfig['getReportByID'];
+    getReportByID: GetOptionsConfig['getReportByID'];
     draftComments: OnyxCollection<string>;
     betas: OnyxEntry<Beta[]>;
     countryCode: OnyxEntry<number>;
