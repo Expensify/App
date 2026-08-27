@@ -8149,6 +8149,18 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 requireFieldsDescription: 'Specifieke onkostenvakken verplicht stellen of afzien van het verplicht stellen ervan.',
                 createAgentRule: 'Agentregel',
                 createAgentRuleDescription: 'Beschrijf flexibele regels die worden uitgevoerd wanneer jij dat nodig hebt.',
+                createRuleHeadline: 'Een nieuwe regel maken',
+                describeRule: 'Beschrijf je regel en Concierge bouwt hem',
+                buildManually: 'Regel handmatig maken',
+                createAgentRuleInstead: 'Maak in plaats daarvan een agentregel',
+                promptErrors: {
+                    unsupported: ({area}) =>
+                        area
+                            ? `${area}-regels worden nog niet ondersteund — we werken eraan. Probeer voorlopig een andere regel.`
+                            : 'Die regel wordt nog niet ondersteund — we werken eraan. Probeer voorlopig een andere regel.',
+                    unintelligible: 'Formuleer je regel bijvoorbeeld zo: als uitgaven hoger zijn dan $100, vraag dan een bon.',
+                    multipleRules: 'Eén regel per keer graag — beschrijf één enkele regel, bijvoorbeeld: cadeaukaarten blokkeren.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',

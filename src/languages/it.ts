@@ -8171,6 +8171,18 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 requireFieldsDescription: 'Richiedi campi specifici per le spese oppure rinuncia a renderli obbligatori.',
                 createAgentRule: 'Regola agente',
                 createAgentRuleDescription: 'Descrivi regole flessibili che vengono eseguite quando ne hai bisogno.',
+                createRuleHeadline: 'Crea una nuova regola',
+                describeRule: 'Descrivi la tua regola e Concierge la creerà',
+                buildManually: 'Crea la regola manualmente',
+                createAgentRuleInstead: 'Crea invece una regola agente',
+                promptErrors: {
+                    unsupported: ({area}) =>
+                        area
+                            ? `Le regole ${area} non sono ancora supportate: ci stiamo lavorando. Per ora prova una regola diversa.`
+                            : 'Questa regola non è ancora supportata: ci stiamo lavorando. Per ora prova una regola diversa.',
+                    unintelligible: 'Prova a formulare la regola così: se le spese superano i 100 $, richiedi una ricevuta.',
+                    multipleRules: 'Una regola alla volta, per favore: prova a descrivere una singola regola, ad esempio bloccare l’acquisto di carte regalo.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Tipo',

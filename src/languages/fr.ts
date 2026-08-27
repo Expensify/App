@@ -8230,6 +8230,18 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 requireFieldsDescription: 'Rendre certains champs de dépense obligatoires ou renoncer à les exiger.',
                 createAgentRule: 'Règle d’agent',
                 createAgentRuleDescription: 'Décrivez des règles flexibles qui s’exécutent quand vous en avez besoin.',
+                createRuleHeadline: 'Créer une nouvelle règle',
+                describeRule: 'Décrivez votre règle et Concierge la créera',
+                buildManually: 'Créer la règle manuellement',
+                createAgentRuleInstead: 'Créer plutôt une règle d’agent',
+                promptErrors: {
+                    unsupported: ({area}) =>
+                        area
+                            ? `Les règles ${area} ne sont pas encore prises en charge — nous y travaillons. Essayez une autre règle pour le moment.`
+                            : 'Cette règle n’est pas encore prise en charge — nous y travaillons. Essayez une autre règle pour le moment.',
+                    unintelligible: 'Essayez de formuler votre règle ainsi : si les dépenses dépassent 100 $, exigez un reçu.',
+                    multipleRules: 'Une règle à la fois, s’il vous plaît — essayez de décrire une seule règle, comme : bloquer les achats de cartes-cadeaux.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',

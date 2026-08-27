@@ -8171,6 +8171,18 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 requireFieldsDescription: 'Wymagaj konkretnych pól wydatku lub zrezygnuj z ich wymagania.',
                 createAgentRule: 'Reguła agenta',
                 createAgentRuleDescription: 'Opisuj elastyczne reguły, które uruchamiają się wtedy, kiedy tego potrzebujesz.',
+                createRuleHeadline: 'Utwórz nową regułę',
+                describeRule: 'Opisz swoją regułę, a Concierge ją utworzy',
+                buildManually: 'Utwórz regułę ręcznie',
+                createAgentRuleInstead: 'Utwórz zamiast tego regułę agenta',
+                promptErrors: {
+                    unsupported: ({area}) =>
+                        area
+                            ? `Reguły „${area}” nie są jeszcze obsługiwane — pracujemy nad tym. Na razie spróbuj innej reguły.`
+                            : 'Ta reguła nie jest jeszcze obsługiwana — pracujemy nad tym. Na razie spróbuj innej reguły.',
+                    unintelligible: 'Spróbuj sformułować regułę tak: jeśli wydatek przekracza 100 $, wymagaj paragonu.',
+                    multipleRules: 'Jedna reguła naraz — opisz pojedynczą regułę, na przykład: zablokuj zakup kart podarunkowych.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Typ',
