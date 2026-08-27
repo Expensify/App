@@ -780,6 +780,29 @@ describe('ReportActionsList (body)', () => {
             },
         ];
 
+        // The session filter keys off the child* fields the backend stamps on a task's parent action.
+        const buildTaskAction = (
+            reportActionID: string,
+            created: string,
+            stateNum: OnyxTypes.ReportAction['childStateNum'],
+            statusNum: OnyxTypes.ReportAction['childStatusNum'],
+        ): OnyxTypes.ReportAction => ({
+            reportActionID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            created,
+            actorAccountID: 456,
+            message: [{type: 'COMMENT', html: 'Take a test drive', text: 'Take a test drive'}],
+            originalMessage: {},
+            childType: CONST.REPORT.TYPE.TASK,
+            childReportID: `task-${reportActionID}`,
+            childStateNum: stateNum,
+            childStatusNum: statusNum,
+            shouldShow: true,
+            person: [{type: 'TEXT', style: 'strong', text: 'Concierge'}],
+            pendingAction: null,
+            errors: {},
+        });
+
         const setupMainDMConciergeMocks = (sessionStartTime: string | null = SESSION_START, showFullHistory = false, hasOnceLoadedReportActions = true, hasOutstandingChildTask = false) => {
             jest.spyOn(ReportActionsUtils, 'shouldReportActionBeVisible').mockReturnValue(true);
             mockUseNetwork.mockReturnValue({isOffline: false});
@@ -855,29 +878,6 @@ describe('ReportActionsList (body)', () => {
         it('should keep a still-open child task visible while the rest of the read history stays hidden', () => {
             setupMainDMConciergeMocks(SESSION_START, false, true, true);
 
-            // The session filter keys off the child* fields the backend stamps on a task's parent action.
-            const buildTaskAction = (
-                reportActionID: string,
-                created: string,
-                stateNum: OnyxTypes.ReportAction['childStateNum'],
-                statusNum: OnyxTypes.ReportAction['childStatusNum'],
-            ): OnyxTypes.ReportAction => ({
-                reportActionID,
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                created,
-                actorAccountID: 456,
-                message: [{type: 'COMMENT', html: 'Take a test drive', text: 'Take a test drive'}],
-                originalMessage: {},
-                childType: CONST.REPORT.TYPE.TASK,
-                childReportID: `task-${reportActionID}`,
-                childStateNum: stateNum,
-                childStatusNum: statusNum,
-                shouldShow: true,
-                person: [{type: 'TEXT', style: 'strong', text: 'Concierge'}],
-                pendingAction: null,
-                errors: {},
-            });
-
             // An in-session message keeps the list out of welcome mode, so the session filter actually runs.
             const newUserMessage: OnyxTypes.ReportAction = {
                 reportActionID: 'new-user-msg',
@@ -910,6 +910,26 @@ describe('ReportActionsList (body)', () => {
             expect(passedActions?.some((a) => a.reportActionID === 'new-user-msg')).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'open-task')).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'completed-task')).toBe(false);
+            expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
+            expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
+        });
+
+        it('should keep a still-open child task visible in the fresh-session welcome view', () => {
+            // Opening the DM without sending anything puts the list in welcome mode, which returns early before the
+            // session filter runs. An open task must still survive that path, or it stays hidden until "Show history".
+            setupMainDMConciergeMocks(SESSION_START, false, true, true);
+
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...oldReportActions, buildTaskAction('open-task', '2023-06-15 10:02:00.000', CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN)],
+                hasOlderActions: false,
+            });
+
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
+
+            expect(mockInvertedFlashList).toHaveBeenCalled();
+            const passedActions = getCapturedVisibleActions();
+            expect(passedActions?.some((a) => a.reportActionID === 'open-task')).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
             expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
         });

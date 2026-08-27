@@ -145,12 +145,16 @@ describe('useConciergeSidePanelReportActions (main DM open-task pinning)', () =>
         });
     }
 
-    function renderMainDM(taskAction: ReportAction) {
+    /**
+     * @param hasSessionActivity when false, nothing has happened in this session yet — the fresh-session welcome
+     * state, where `filterActions` returns early before the session filter runs.
+     */
+    function renderMainDM(taskAction: ReportAction, hasSessionActivity = true) {
         const createdAction = buildAction('10', {actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, created: toDBTime(CLIENT_OPEN_MS - 7_200_000)});
         const preSessionUser = buildAction('11', {created: toDBTime(CLIENT_OPEN_MS - 3_600_000)});
         const preSessionConcierge = buildAction('12', {actorAccountID: CONCIERGE_ACCOUNT_ID, created: toDBTime(CLIENT_OPEN_MS - 3_500_000)});
         const inSessionUser = buildAction('20', {created: toDBTime(CLIENT_OPEN_MS + 1000)});
-        const reportActions = [createdAction, preSessionUser, preSessionConcierge, taskAction, inSessionUser];
+        const reportActions = [createdAction, preSessionUser, preSessionConcierge, taskAction, ...(hasSessionActivity ? [inSessionUser] : [])];
 
         // `hasOutstandingChildTask` no longer reaches this hook as `showFullHistory` — the pin below is what keeps
         // the task reachable, so the rest of the read history can stay collapsed behind "Show history".
@@ -162,7 +166,7 @@ describe('useConciergeSidePanelReportActions (main DM open-task pinning)', () =>
                 reportActions,
                 visibleReportActions: reportActions,
                 isConciergeHiddenHistory: true,
-                hasUserSentMessage: true,
+                hasUserSentMessage: hasSessionActivity,
                 hasOlderActions: false,
                 sessionStartTime: SESSION_START,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -170,7 +174,7 @@ describe('useConciergeSidePanelReportActions (main DM open-task pinning)', () =>
                 loadOlderChats: jest.fn(),
                 isConciergeMainDM: true,
                 showFullHistory: false,
-                hadMessagesAtSessionStart: true,
+                hadMessagesAtSessionStart: hasSessionActivity,
             }),
         );
     }
@@ -189,6 +193,21 @@ describe('useConciergeSidePanelReportActions (main DM open-task pinning)', () =>
         expect(visibleIDs).not.toContain('12');
         expect(result.current.showFullHistory).toBe(false);
         expect(result.current.hasPreviousMessages).toBe(true);
+    });
+
+    it('keeps a still-open child task visible in the fresh-session welcome state', () => {
+        // Given the DM is opened with nothing sent yet — the welcome state, which used to return early with just the
+        // greeting and drop the pinned task
+        const {result} = renderMainDM(buildTaskAction('30', CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN), false);
+
+        // When the main DM filters the session's actions
+        const visibleIDs = result.current.filteredReportActions.map((action) => action.reportActionID);
+
+        // Then the welcome state stands down so the task renders, while the read history stays hidden.
+        expect(result.current.showConciergeSidePanelWelcome).toBe(false);
+        expect(visibleIDs).toContain('30');
+        expect(visibleIDs).not.toContain('11');
+        expect(visibleIDs).not.toContain('12');
     });
 
     it('hides a completed child task along with the rest of the read history', () => {

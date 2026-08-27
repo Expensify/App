@@ -9,6 +9,11 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 
+/** A task posted into the chat is still open when its parent action carries OPEN state/status. */
+function isOpenChildTaskAction(action: OnyxTypes.ReportAction): boolean {
+    return action.childType === CONST.REPORT.TYPE.TASK && action.childStateNum === CONST.REPORT.STATE_NUM.OPEN && action.childStatusNum === CONST.REPORT.STATUS_NUM.OPEN;
+}
+
 type UseConciergeSidePanelReportActionsParams = {
     report: OnyxEntry<OnyxTypes.Report>;
     reportActions: OnyxTypes.ReportAction[];
@@ -109,7 +114,16 @@ function useConciergeSidePanelReportActions({
         return visibleReportActions.some((action) => !isCreatedAction(action) && action.created >= sessionStartTime);
     }, [isConciergeMainDM, isConciergeHiddenHistory, visibleReportActions, sessionStartTime]);
 
-    const showConciergeSidePanelWelcome = isConciergeHiddenHistory && hadUserMessageAtSessionStart && !hasUserSentMessage && !showFullHistory && !hasMessagesInSession;
+    // Main DM only: a still-open task is pinned into the session view, so the welcome state must stand down —
+    // otherwise `filterActions` returns early with just the greeting and the pinned task never renders.
+    const hasOpenChildTask = useMemo(() => {
+        if (!isConciergeMainDM || !isConciergeHiddenHistory) {
+            return false;
+        }
+        return visibleReportActions.some(isOpenChildTaskAction);
+    }, [isConciergeMainDM, isConciergeHiddenHistory, visibleReportActions]);
+
+    const showConciergeSidePanelWelcome = isConciergeHiddenHistory && hadUserMessageAtSessionStart && !hasUserSentMessage && !showFullHistory && !hasMessagesInSession && !hasOpenChildTask;
     const showConciergeGreeting = isConciergeHiddenHistory && hadUserMessageAtSessionStart && !showFullHistory && (!isConciergeMainDM || !hadMessagesAtSessionStart);
 
     const conciergeGreetingAction = useMemo(() => {
@@ -149,9 +163,7 @@ function useConciergeSidePanelReportActions({
                 // the session, so collapsing read history behind "Show history" never buries a task the user still
                 // has to act on. This replaces the blanket `hasOutstandingChildTask` bypass that used to force the
                 // entire history open, which is what suppressed the "Show history" button altogether.
-                const isOpenChildTask =
-                    action.childType === CONST.REPORT.TYPE.TASK && action.childStateNum === CONST.REPORT.STATE_NUM.OPEN && action.childStatusNum === CONST.REPORT.STATUS_NUM.OPEN;
-                return isCreatedAction(action) || isCurrentUserPendingAddAction(action, currentUserAccountID) || isOpenChildTask || action.created >= sessionStartTime;
+                return isCreatedAction(action) || isCurrentUserPendingAddAction(action, currentUserAccountID) || isOpenChildTaskAction(action) || action.created >= sessionStartTime;
             }
             if (!firstUserMessageCreated) {
                 return false;
