@@ -1404,16 +1404,9 @@ async function bulkDuplicateReports({
         transactionsByReportID.set(transaction.reportID, list);
     }
 
-    for (const [index, selectedReport] of selectedReportsParam.entries()) {
-        if (index > 0) {
-            // Duplicate one report per tick. Every expense fires its own API.write, which applies optimistic data
-            // synchronously, so building the whole selection in one pass blocks the thread until the last expense is created.
-            // eslint-disable-next-line no-await-in-loop
-            await new Promise<void>((resolve) => {
-                setTimeout(resolve, 0);
-            });
-        }
+    let hasDuplicatedReport = false;
 
+    for (const selectedReport of selectedReportsParam) {
         const reportID = selectedReport.reportID;
         if (!reportID) {
             continue;
@@ -1427,6 +1420,15 @@ async function bulkDuplicateReports({
 
         if (!snapshotReport && !onyxReport && reportTransactions.length === 0) {
             continue;
+        }
+
+        if (hasDuplicatedReport) {
+            // Duplicate one report per tick. Every expense fires its own API.write, which applies optimistic data
+            // synchronously, so building the whole selection in one pass blocks the thread until the last expense is created.
+            // eslint-disable-next-line no-await-in-loop
+            await new Promise<void>((resolve) => {
+                setTimeout(resolve, 0);
+            });
         }
 
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
@@ -1473,6 +1475,8 @@ async function bulkDuplicateReports({
             participantsPolicyTags,
             conciergeChat,
         });
+
+        hasDuplicatedReport = true;
     }
 
     playSound(SOUNDS.DONE);
