@@ -11,14 +11,14 @@ order: 2
 
 # Compare Collect and Control Plans
 
-Expensify offers two paid workspace plans:
+Expensify offers two workspace plans for organizations:
 
 - **Collect** for organizations that need straightforward expense management and reimbursements.
 - **Control** for organizations that need advanced spend management, automation, integrations, and administrative controls.
 
 This article provides a high-level comparison to help you choose the right workspace plan. For the complete feature comparison and current pricing, visit [Expensify Pricing](https://www.expensify.com/pricing).
 
-Expensify also offers a free **Submit** plan for individual employees who want to code their expenses and submit them to an approver, even if their company hasn't adopted Expensify yet. To learn more, see [Use a Free Submit Workspace](/articles/new-expensify/getting-started/Submit-Workspace).
+Expensify also offers a free **Submit** plan for individual employees who want to code their expenses and submit them to an approver if their company hasn't adopted Expensify yet. To learn more, see [Use a Free Submit Workspace](/articles/new-expensify/getting-started/Submit-Workspace).
 
 ## When to choose the Collect plan
 
@@ -66,10 +66,10 @@ To learn more, see [Learn About Plan and Subscription Management](/articles/new-
 
 ## Does every workspace have a plan?
 
-Yes. Paid workspaces use either the Collect or Control plan. Expensify also offers a free [Submit workspace](/articles/new-expensify/getting-started/Submit-Workspace) that submitters can upgrade to a paid Collect or Control plan.
+Yes. Every workspace has a plan that controls which features are available on the workspace. 
 
-## Does the Expensify Card work with both plans?
+## Does the Expensify Card work with both Collect and Control plans?
 
-Yes. The Expensify Card works with both plans. Certain subscription pricing benefits are only available with eligible Control workspaces.
+Yes. The Expensify Card works with both Collect and Control plans. Certain subscription pricing benefits are only available with eligible Control workspaces.
 
 To learn more, see [Understand Expensify Pricing](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing).
