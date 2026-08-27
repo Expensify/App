@@ -10,14 +10,13 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
+import startsWithVowel from '@libs/StringUtils/startsWithVowel';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
@@ -922,6 +921,13 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: '管理者のみ',
         },
     },
+    supportalSwitcher: {
+        title: '別のアカウントでサポートポータルを開く',
+        emailLabel: 'メールアドレス',
+        reasonLabel: 'サポートログインの理由',
+        reasonHint: 'このアカウントには最近のチケットが見つかりませんでした。',
+        login: 'ログイン',
+    },
     sidebarScreen: {
         buttonFind: '何かを検索…',
         buttonMySettings: '自分の設定',
@@ -961,6 +967,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `${cardName}個人カードの接続を修正` : '個人カードの連携を修正'), subtitle: 'ウォレット'},
             validateAccount: {title: 'アカウントを認証してください', subtitle: 'アカウント', cta: '検証する'},
+            addHomeAddress: {title: '距離の追跡用に自宅住所を追加してください', subtitle: 'アカウント', cta: '住所を追加'},
             fixFailedBilling: {title: '登録されているカードから請求できませんでした', subtitle: 'サブスクリプション'},
             unlockBankAccount: {
                 workspaceTitle: 'ビジネス用銀行口座がロックされました',
@@ -1106,6 +1113,13 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateMessage: '新規作成するか、レシートをここにドラッグしてください',
         },
         insightsSection: {chartUnavailable: 'グラフを表示できません', notEnoughData: 'このチャートを表示するためのデータがまだ十分にありません'},
+        conciergePrompt: {
+            goodMorning: ({name}: {name?: string}) => (name ? `${name}さん、おはようございます。` : 'おはようございます。'),
+            goodAfternoon: ({name}: {name?: string}) => (name ? `${name}さん、こんにちは。` : 'こんにちは。'),
+            goodEvening: ({name}: {name?: string}) => (name ? `${name}さん、こんばんは。` : 'こんばんは。'),
+            inputPlaceholder: 'Concierge に経費の分析を依頼するか、サポートを受けます',
+            inputPlaceholderMobile: 'Concierge に何でも聞いてください',
+        },
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -1260,6 +1274,14 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: '時間経費を作成',
     },
     iou: {
+        homeAddressRequired: {
+            title: '自宅住所は必須です',
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `距離を記録する前に、プライベートプロフィールに自宅住所を追加する必要があります。${workspaceName} は通勤控除のためにこの住所を使用します。`
+                    : '距離を記録する前に、プライベートプロフィールに自宅住所を追加する必要があります。このワークスペースでは、その住所を通勤控除に使用します。',
+            cta: '自宅住所を追加',
+        },
         amount: '金額',
         percent: 'パーセント',
         date: '日付',
@@ -1496,8 +1518,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'カード' : '銀行口座';
             return isCurrentUser
-                ? `。${paymentMethod}で支払われた資金が${creditBankAccount ? `末尾が${creditBankAccount}の銀行口座` : 'アカウント'}に送金されています。通常、営業日4～5日ほどかかります。`
-                : `. ${paymentMethod} で支払いが行われ、${submitterLogin} の${creditBankAccount ? `末尾が${creditBankAccount}の銀行口座` : 'アカウント'} に送金中です。通常 4〜5 営業日かかります。`;
+                ? `. ${paymentMethod}で支払われた資金が、お客様の${creditBankAccount ? `預金口座（末尾番号 ${creditBankAccount}）` : 'アカウント'}に向けて送金中です。通常、営業日で4～5日かかります。`
+                : `. ${submitterLogin} さんの ${creditBankAccount ? `預金口座（末尾番号 ${creditBankAccount}）` : 'アカウント'} へ送金中です（${paymentMethod} で支払われます）。通常、営業日で4～5日かかります。`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             `直接入金（ACH）で${creditBankAccount ? `${creditBankAccount}で終わる銀行口座へ。` : '. '}${expectedDate ? `払戻しは${expectedDate}までに完了する見込みです。` : '通常、営業日で4～5日かかります。'}`,
@@ -1514,7 +1536,7 @@ const translations: TranslationDeepObject<typeof en> = {
         basedOnAI: '過去のアクティビティに基づく',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `<a href="${rulesLink}">ワークスペースルール</a>に基づく` : 'ワークスペースのルールに基づく'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `${comment} 用` : '経費'}`,
-        invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `請求書レポート #${linkedReportID}`,
+        invoiceReportName: ({linkedReportID}: OriginalMessageReportPreview) => `請求書レポート #${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} を送信済み${comment ? `${comment}用` : ''}`,
         movedFromPersonalSpace: (reportName?: string, workspaceName?: string) => `経費を個人スペースから${workspaceName ?? `${reportName}とチャット`}に移動しました`,
         movedToPersonalSpace: '経費を個人スペースに移動しました',
@@ -1577,6 +1599,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'ウォレットを有効にする',
         hold: '保留',
         sendToSomeone: '誰かに送る',
+        submitToEmployer: '勤務先に送信する',
         unhold: '保留を解除',
         holdExpense: () => ({
             one: '経費を保留',
@@ -1833,8 +1856,8 @@ const translations: TranslationDeepObject<typeof en> = {
             pageTitle: '保持したい詳細を選択してください:',
             noDifferences: '取引間に差異は見つかりませんでした',
             pleaseSelectError: ({field}: {field: string}) => {
-                const article = StringUtils.startsWithVowel(field) ? 'ある' : 'a';
-                return `${article} の${field}を選択してください`;
+                const article = startsWithVowel(field) ? '1つの' : 'a';
+                return `${article} ${field} を選択してください`;
             },
             pleaseSelectAttendees: '出席者を選択してください',
             selectAllDetailsError: '続行する前にすべての詳細を選択してください。',
@@ -3569,7 +3592,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         legalName: '法的氏名',
         legalFirstName: '法的な名',
         legalLastName: '法的な姓',
-        address: '住所',
+        address: '自宅住所',
+        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} は通勤手当の除外にこの住所を使用します。`,
         error: {
             dateShouldBeBefore: (dateString: string) => `日付は${dateString}より前である必要があります`,
             dateShouldBeAfter: (dateString: string) => `日付は${dateString}より後の日付にしてください`,
@@ -3688,6 +3712,11 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         thisBankAccount: 'この銀行口座は、ワークスペースでのビジネス支払いに使用されます',
         accountNumber: '口座番号',
         routingNumber: 'ルーティング番号',
+        internationalBankAccountDetails: '海外銀行口座情報',
+        internationalBankAccountDetailsTitle: 'あなたの海外口座情報を教えてください',
+        internationalBankAccountDetailsSubtitle: 'あなたのワークスペースの1つが、払い戻しを処理するために海外口座情報を必要としています',
+        iban: 'IBAN',
+        swiftBicCode: 'SWIFT/BICコード',
         chooseAnAccountBelow: '下のアカウントを選択してください',
         addBankAccount: '銀行口座を追加',
         chooseAnAccount: 'アカウントを選択',
@@ -3737,6 +3766,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             restrictedBusiness: 'ビジネスが制限対象の事業一覧に含まれていないことを確認してください',
             routingNumber: '有効なルーティング番号を入力してください',
             accountNumber: '有効な口座番号を入力してください',
+            iban: '有効なIBANを入力してください',
+            swiftCode: '有効なSWIFT/BICコードを入力してください',
             routingAndAccountNumberCannotBeSame: 'ルーティング番号と口座番号を同じにすることはできません',
             companyType: '有効な会社の種類を選択してください',
             tooManyAttempts: 'ログイン試行回数が多すぎるため、このオプションは24時間無効になっています。時間をおいてから再度お試しいただくか、代わりに詳細情報を手動で入力してください。',
@@ -4500,6 +4531,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             workflows: 'ワークフロー',
             workspace: 'ワークスペース',
             findWorkspace: 'ワークスペースを探す',
+            active: 'アクティブ',
+            archived: 'アーカイブ済み',
+            workspaceStatus: 'ワークスペースのステータス',
             findRoom: 'ルームを探す',
             edit: 'ワークスペースを編集',
             enabled: '有効',
@@ -5800,10 +5834,16 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             addNewCard: {
                 other: 'その他',
                 fileImport: 'ファイルから取引をインポート',
-                createFileFeedHelpText: `<muted-text>会社カードの経費をインポートするには、この<a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">ヘルプガイド</a>に従ってください。</muted-text>`,
+                createFileFeedHelpText: {
+                    instructionStart: '次のページで、カード取引のCSVをアップロードします。アップロードする前に、',
+                    templateLink: 'テンプレートをダウンロード',
+                    instructionMiddle: 'するか、',
+                    helpGuideLink: 'ヘルプガイド',
+                    instructionEnd: 'をご確認ください。',
+                },
                 companyCardLayoutName: '法人カードレイアウト名',
                 cardLayoutNameRequired: '法人カードレイアウト名は必須です',
-                useAdvancedFields: '詳細フィールドを使用（非推奨）',
+                downloadTemplate: 'テンプレートをダウンロード',
                 cardProviders: {
                     gl1025: 'American Express コーポレートカード',
                     cdf: 'Mastercard コマーシャルカード',
@@ -5890,9 +5930,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     currency: '通貨',
                     ignore: '無視',
                     originalTransactionDate: '元の取引日',
-                    originalAmount: '元の金額',
-                    originalCurrency: '元の通貨',
-                    comment: 'コメント',
+                    originalAmount: '購入金額',
+                    originalCurrency: '購入通貨',
+                    comment: '説明',
                     category: 'カテゴリ',
                     tag: 'タグ',
                 },
@@ -5980,6 +6020,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             currentBalanceDescription: '現在残高は、前回の精算日以降に発生し記帳されたすべての Expensify カード取引の合計です。',
             balanceWillBeSettledOn: (settlementDate: string) => `残高は${settlementDate}に精算されます`,
             settleBalance: '残高を清算',
+            settleBalanceConfirmationTitle: '残高を清算しますか？',
+            settleBalanceConfirmationPrompt: '現在の残高が翌営業日に清算されます。清算が完了すると、その金額は残りの利用限度額に戻されます。',
             cardLimit: 'カード上限',
             remaining: '残り',
             remainingLimit: '残りの上限',
@@ -6213,6 +6255,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                         spend: '支出管理とカスタム上限設定',
                     },
                     ctaTitle: '新しいカードを発行',
+                    existingFeedTitle: 'Expensify カードを管理する',
+                    viewCards: 'カードを表示',
                 },
             },
             companyCards: {
@@ -7118,11 +7162,21 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 summaryDisabled: '通勤除外なし',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `申請ごとに ${distance} ${unit} を除外します`,
                 optionDisabledTitle: '通勤を除外しない',
-                optionDisabledHelp: '通勤除外は適用されていません。',
+                optionDisabledHelp: '通勤分は精算申請から除外されていません。',
                 optionFixedDistanceTitle: '申請ごとに一定距離を除外します',
                 optionFixedDistanceHelp: '各申請から同じ通勤距離を差し引きます。1勤務日につき1件の申請を行うメンバーに最適です。',
                 distanceLabel: '距離',
-                errors: {distanceMustBePositive: '距離は正の整数で入力してください。', distanceTooLarge: '距離が大きすぎます。'},
+                summaryHomeAndOffice: '自宅と勤務先の所在地を使用する',
+                optionHomeAndOfficeTitle: '自宅とオフィスで按分計算します',
+                optionHomeAndOfficeHelp: 'メンバーの自宅住所、勤務形態、オフィス配属先を使用して、通勤の除外額を計算します。',
+                workspaceAddressRequired: {
+                    title: 'ちょっとお待ちください…',
+                    promptStart: '自宅とオフィスで計算する設定は、先にオフィスの所在地を追加しないと有効にできません',
+                    linkText: '概要',
+                    promptEnd: 'でオフィスの住所を追加してください。',
+                    cta: '了解です',
+                },
+                errors: {distanceMustBePositive: '距離は正の整数で入力してください。', invalidAddress: '有効な住所を入力してください', distanceTooLarge: '距離が大きすぎます。'},
             },
             distance: '距離',
             centrallyManage: '料金を一元管理し、マイルまたはキロメートルで追跡し、デフォルトのカテゴリを設定できます。',
@@ -7216,6 +7270,9 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             yourWorkspace: `ご利用のワークスペースはサポートされていない通貨に設定されています。<a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">サポートされている通貨の一覧</a>を表示します。`,
             chooseAnExisting: '既存の銀行口座を選択して経費を支払うか、新しい口座を追加してください。',
             changeBankAccount: '銀行口座を変更',
+            updateCurrencyForExpensifyCard: 'Expensify カードは USD でのみ発行できます。このワークスペースを USD に更新するか、別のワークスペースをご利用ください。',
+            updateCurrencyForExpensifyCardTitle: 'Expensify カードを申し込む',
+            euUkUpdateCurrencyForExpensifyCard: 'Expensify カードは USD、GBP、EUR で発行できます。このワークスペースを対応している通貨に更新するか、別のワークスペースを使用してください。',
         },
         changeOwner: {
             changeOwnerPageTitle: '所有者を変更',
@@ -9013,9 +9070,6 @@ ${reportName}`,
             reject: '却下',
             duplicateExpense: () => ({
                 one: '経費を複製',
-                // Japanese has no grammatical plural, so `Intl.PluralRules` selects `other` for every count,
-                // including 1. The single/bulk distinction here is semantic rather than grammatical, so `other`
-                // branches on the count itself to keep 一括 (bulk) on the multi-expense action only.
                 other: (count: number) => (count === 1 ? '経費を複製' : '経費を一括複製'),
             }),
             noOptionsAvailable: '選択した経費グループには利用できるオプションがありません。',
@@ -9823,6 +9877,19 @@ ${reportName}`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return '銀行連携の不具合により、領収書を自動照合できません。';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
+                if (isPersonalCard) {
+                    if (!connectionLink) {
+                        return '銀行連携の再認証が必要なため、領収書を自動照合できません。';
+                    }
+                    return isMarkAsCash
+                        ? `銀行連携の再認証が必要なため、領収書を自動照合できません。無視するには現金としてマークするか、<a href="${connectionLink}">再接続</a>して領収書と照合してください。`
+                        : `銀行連携の再認証が必要なため、領収書を自動照合できません。領収書を照合するには、<a href="${connectionLink}">再接続</a>してください。`;
+                }
+                return isAdmin
+                    ? `銀行連携の再認証が必要です。<a href="${companyCardPageURL}">レシートと照合するために再接続</a>`
+                    : '銀行連携の再認証が必要です。管理者に依頼して再接続し、領収書と照合してください。';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return '銀行連携の不具合により、領収書を自動照合できません。';
@@ -9845,6 +9912,9 @@ ${reportName}`,
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>銀行接続の不具合により領収書が保留されています。<a href="${workspaceCompanyCardRoute}">会社カード</a>で解決してください。</muted-text-label>`,
         memberBrokenConnectionError: '銀行連携の不具合により領収書が保留されています。ワークスペース管理者に対応を依頼してください。',
+        adminReauthConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>銀行連携の再認証が必要なため、領収書が保留されています。<a href="${workspaceCompanyCardRoute}">会社カード</a>で解決してください。</muted-text-label>`,
+        memberReauthConnectionError: '銀行連携の再認証が必要なため、領収書が保留されています。ワークスペース管理者に対応を依頼してください。',
         markAsCashToIgnore: '現金としてマークして無視し、支払いをリクエストします。',
         smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
             if (missingFields.length > 0) {
