@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
@@ -82,14 +82,15 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
         : ({onPress, ref, isExpanded}: ButtonComponentProps) => (
               <Button
                   ref={ref}
-                  small
+                  size={CONST.BUTTON_SIZE.SMALL}
                   accessibilityLabel={translate('search.filtersHeader')}
-                  text={translate('search.filtersHeader')}
-                  icon={expensifyIcons.Filter}
                   onPress={onPress}
                   innerStyles={isExpanded ? styles.buttonDefaultHovered : undefined}
                   sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
-              />
+              >
+                  <Button.Icon src={expensifyIcons.Filter} />
+                  <Button.Text>{translate('search.filtersHeader')}</Button.Text>
+              </Button>
           );
 
     const filtersPopup = () => <SearchAdvancedFiltersPopup queryJSON={queryJSON} />;

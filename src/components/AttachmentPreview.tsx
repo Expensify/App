@@ -22,6 +22,8 @@ import Image from './Image';
 import PDFThumbnail from './PDFThumbnail';
 import {PressableWithFeedback} from './Pressable';
 
+const PDF_FIT_POLICY_FIT_BOTH = 2;
+
 type AttachmentPreviewProps = {
     /** Source for file. */
     source: string;
@@ -126,9 +128,9 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
                 sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_PREVIEW.PDF_THUMBNAIL}
             >
                 <PDFThumbnail
-                    fitPolicy={1}
+                    fitPolicy={PDF_FIT_POLICY_FIT_BOTH}
                     previewSourceURL={source}
-                    style={[styles.br4]}
+                    style={[styles.w100, styles.h100, styles.br4]}
                     onLoadError={onLoadError}
                     onPassword={() => setIsEncryptedPDF(true)}
                 />

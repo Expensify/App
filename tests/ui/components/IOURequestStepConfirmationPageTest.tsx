@@ -46,6 +46,7 @@ jest.mock('@src/languages/IntlStore', () => {
     cache.set('en', flatten(en));
     return {
         getCurrentLocale: jest.fn(() => 'en'),
+        getDateFnsLocale: jest.fn(() => undefined),
         load: jest.fn(() => Promise.resolve()),
         get: jest.fn((key: string, locale?: string) => {
             const translations = cache.get(locale ?? 'en');
@@ -1054,7 +1055,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
             await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
-            const requestMoneyMock = TrackExpense.requestMoney as jest.MockedFunction<typeof TrackExpense.requestMoney>;
+            const requestMoneyMock = jest.mocked(TrackExpense.requestMoney);
             const params = requestMoneyMock.mock.calls.at(0)?.at(0);
             expect(params?.report).toBeUndefined();
         });
@@ -1121,7 +1122,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
             await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
-            const requestMoneyMock = TrackExpense.requestMoney as jest.MockedFunction<typeof TrackExpense.requestMoney>;
+            const requestMoneyMock = jest.mocked(TrackExpense.requestMoney);
             const params = requestMoneyMock.mock.calls.at(0)?.at(0);
             expect(params?.report?.reportID).toBe(routeReportID);
         });
@@ -1197,7 +1198,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
                 await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
-                const requestMoneyMock = TrackExpense.requestMoney as jest.MockedFunction<typeof TrackExpense.requestMoney>;
+                const requestMoneyMock = jest.mocked(TrackExpense.requestMoney);
                 const params = requestMoneyMock.mock.calls.at(0)?.at(0);
                 expect(params?.report?.reportID).toBe(transactionReportID);
             } finally {
@@ -1415,7 +1416,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             fireEvent.press(await screen.findByText(/^Create .*expense/i));
 
             await waitFor(() => expect(Split.createDistanceRequest).toHaveBeenCalled());
-            const createDistanceRequestMock = Split.createDistanceRequest as jest.MockedFunction<typeof Split.createDistanceRequest>;
+            const createDistanceRequestMock = jest.mocked(Split.createDistanceRequest);
             const params = createDistanceRequestMock.mock.calls.at(0)?.at(0);
             expect(params?.personalDetails).toBeDefined();
         });

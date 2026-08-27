@@ -1,3 +1,5 @@
+import ActivityIndicator from '@components/ActivityIndicator';
+import RuleCategoriesDisabledEmptyState from '@components/Rule/RuleCategoriesDisabledEmptyState';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 
 import useNetwork from '@hooks/useNetwork';
@@ -5,7 +7,9 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useThemeStyles from '@hooks/useThemeStyles';
 
+import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {updateDraftFlagForReviewRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
@@ -18,7 +22,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
 
+import {useFocusEffect} from '@react-navigation/native';
 import React from 'react';
+import {View} from 'react-native';
 
 type FlagForReviewRuleCategoryPageBaseProps = {
     policyID: string;
@@ -31,10 +37,29 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const {isOffline} = useNetwork();
+    const styles = useThemeStyles();
 
     const [form] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const areCategoriesEnabled = !!policy?.areCategoriesEnabled;
+
+    const fetchPolicyCategories = () => {
+        if (!areCategoriesEnabled || policyCategories !== undefined) {
+            return;
+        }
+        openPolicyCategoriesPage(policyID);
+    };
+
+    const {isOffline} = useNetwork({onReconnect: fetchPolicyCategories});
+
+    useFocusEffect(() => {
+        fetchPolicyCategories();
+    });
+
+    // Only spin while a fetch can actually resolve. Offline there's nothing to wait for, so fall through to the
+    // picker (empty list + offline indicator) instead of a spinner that never goes away. The reconnect callback
+    // fetches and flips this back on once we're online.
+    const arePolicyCategoriesLoading = areCategoriesEnabled && policyCategories === undefined && !isOffline;
 
     const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
     const selectedCategoryItem = selectedCategoryName ? {name: getDecodedCategoryName(selectedCategoryName), value: selectedCategoryName} : undefined;
@@ -74,6 +99,28 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
         });
     };
 
+    let content: React.ReactNode;
+    if (!areCategoriesEnabled) {
+        content = <RuleCategoriesDisabledEmptyState policyID={policyID} />;
+    } else if (arePolicyCategoriesLoading) {
+        content = (
+            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+            </View>
+        );
+    } else {
+        content = (
+            <RuleSelectionBase.Picker
+                selectedItem={selectedCategoryItem}
+                items={categoryItems}
+                onSave={onSave}
+                backToRoute={backToRoute}
+                allowNoneOption={false}
+                shouldSkipFocusRestoreOnSave
+            />
+        );
+    }
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -85,13 +132,10 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
             <RuleSelectionBase
                 titleKey="common.category"
                 testID="FlagForReviewRuleCategoryPage"
-                selectedItem={selectedCategoryItem}
-                items={categoryItems}
-                onSave={onSave}
                 onBack={() => Navigation.goBack(backToRoute)}
-                backToRoute={backToRoute}
-                shouldSkipFocusRestoreOnSave
-            />
+            >
+                {content}
+            </RuleSelectionBase>
         </AccessOrNotFoundWrapper>
     );
 }

@@ -144,20 +144,20 @@ jest.mock('@hooks/useLifecycleActions', () => ({
 }));
 
 const mockConfirmPayment = jest.fn();
-const mockShouldBlockAction = jest.fn(() => false);
+const mockRunPaymentAction = jest.fn();
 const mockOnSelectionModePaymentSelect = jest.fn();
 const mockSelectionModeKYCSuccess = jest.fn();
+const mockHandleWorkspaceSelected = jest.fn();
 
 jest.mock('@hooks/useSelectionModePayment', () => ({
     __esModule: true,
     default: jest.fn(() => ({
         confirmPayment: mockConfirmPayment,
-        shouldBlockAction: mockShouldBlockAction,
+        runPaymentAction: mockRunPaymentAction,
         onSelectionModePaymentSelect: mockOnSelectionModePaymentSelect,
         selectionModeKYCSuccess: mockSelectionModeKYCSuccess,
         paymentSubMenuItems: [],
-        workspacePolicyOptions: [],
-        handleWorkspaceSelected: jest.fn(),
+        handleWorkspaceSelected: mockHandleWorkspaceSelected,
         hasPayInSelectionMode: false,
         hasActualPaymentOptions: false,
         isAnyTransactionOnHold: false,
@@ -653,10 +653,10 @@ describe('useSelectionModeReportActions', () => {
         });
     });
 
-    describe('shouldBlockAction guards', () => {
-        it('exposes shouldBlockAction from useSelectionModePayment', () => {
+    describe('handleWorkspaceSelected', () => {
+        it('exposes handleWorkspaceSelected from useSelectionModePayment', () => {
             const {result} = renderSelectionModeHook();
-            expect(result.current.shouldBlockAction).toBe(mockShouldBlockAction);
+            expect(result.current.handleWorkspaceSelected).toBe(mockHandleWorkspaceSelected);
         });
     });
 

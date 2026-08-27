@@ -20,6 +20,7 @@ function ListCheckbox<TItem extends ListItem>({
     style,
     containerStyle,
     shouldStopMouseDownPropagation,
+    shouldUseOptimisticSelection,
     testID,
 }: ListSelectionButtonProps<TItem>) {
     return (
@@ -32,6 +33,7 @@ function ListCheckbox<TItem extends ListItem>({
             style={style}
             containerStyle={containerStyle}
             shouldStopMouseDownPropagation={shouldStopMouseDownPropagation}
+            shouldUseOptimisticSelection={shouldUseOptimisticSelection}
             testID={testID}
         />
     );

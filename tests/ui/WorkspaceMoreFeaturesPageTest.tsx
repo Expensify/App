@@ -14,7 +14,7 @@ import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+import {getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
@@ -32,35 +32,17 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import type * as MockReanimatedModalModule from '../utils/mockReanimatedModal';
+
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
-
-// useConfirmModal resolves only after react-native-modal calls onModalHide via the underlying
-// Modal's onDismiss callback, which never fires in tests because animations are disabled. This mock
-// ports the same trick used by WorkspaceCategoriesTest so that showConfirmModal promises resolve.
 jest.mock('@components/Modal/ReanimatedModal', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const {useEffect, useRef}: {useEffect: typeof React.useEffect; useRef: typeof React.useRef} = require('react');
-
-    return function MockReanimatedModal({isVisible, onModalHide, children}: {isVisible: boolean; onModalHide?: () => void; children: React.ReactNode}) {
-        const wasVisible = useRef<boolean>(isVisible);
-
-        useEffect(() => {
-            if (wasVisible.current && !isVisible) {
-                onModalHide?.();
-            }
-            wasVisible.current = isVisible;
-        }, [isVisible, onModalHide]);
-
-        if (!isVisible) {
-            return null;
-        }
-
-        return children as React.ReactElement;
-    };
+    const {default: MockReanimatedModal} = jest.requireActual<typeof MockReanimatedModalModule>('../utils/mockReanimatedModal');
+    return MockReanimatedModal;
 });
 
 jest.mock('@hooks/useIsPolicyConnectedToUberReceiptPartner', () => ({__esModule: true, default: jest.fn(() => false)}));
@@ -142,7 +124,7 @@ const hasAccountingFeatureConnectionMock = jest.mocked(PolicyUtils.hasAccounting
 const useIsUberConnectedMock = jest.mocked(useIsPolicyConnectedToUberReceiptPartner);
 
 const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => undefined);
-const navigateToConciergeChatSpy = jest.spyOn(ReportActions, 'navigateToConciergeChat').mockImplementation(() => undefined);
+const navigateToConciergeChatSpy = jest.spyOn(ReportActions, 'navigateToConciergeChat').mockImplementation(() => Promise.resolve());
 
 function escapeRegExp(value: string): string {
     return value.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -166,10 +148,12 @@ describe('WorkspaceMoreFeaturesPage', () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
         });
-        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
-            isSmallScreenWidth: false,
-            shouldUseNarrowLayout: false,
-        } as ResponsiveLayoutResult);
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+            createMock<ResponsiveLayoutResult>({
+                isSmallScreenWidth: false,
+                shouldUseNarrowLayout: false,
+            }),
+        );
 
         isSmartLimitEnabledMock.mockReturnValue(false);
         getCompanyFeedsMock.mockReturnValue({});
@@ -270,13 +254,13 @@ describe('WorkspaceMoreFeaturesPage', () => {
     describe('Travel toggle (locked when Travel Invoicing is enabled)', () => {
         const workspaceAccountID = LHNTestUtils.getFakePolicy().policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-        const enableTravelInvoicing = () => Onyx.merge(getTravelInvoicingCardSettingsKey(workspaceAccountID), {[CONST.TRAVEL.PROGRAM_TRAVEL_US]: {isEnabled: true}});
+        const enableTravelBilling = () => Onyx.merge(getTravelBillingCardSettingsKey(workspaceAccountID), {[CONST.TRAVEL.PROGRAM_TRAVEL_US]: {isEnabled: true}});
 
         it('locks the Travel switch when Travel Invoicing is enabled', async () => {
             await TestHelper.signInWithTestUser();
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID, isTravelEnabled: true}));
-                await enableTravelInvoicing();
+                await enableTravelBilling();
             });
 
             renderPage({policyID: POLICY_ID});
@@ -301,7 +285,7 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await TestHelper.signInWithTestUser();
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID, isTravelEnabled: true}));
-                await enableTravelInvoicing();
+                await enableTravelBilling();
             });
 
             renderPage({policyID: POLICY_ID});

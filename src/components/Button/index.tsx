@@ -14,7 +14,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import HapticFeedback from '@libs/HapticFeedback';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import type {ButtonSizeValue} from '@styles/utils/types';
 
@@ -323,10 +322,6 @@ function Button({
 
     const iconSize = getIconSize({extraSmall, small, large});
 
-    const buttonLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'Button',
-    };
-
     const renderContent = () => {
         if ('children' in rest) {
             return rest.children;
@@ -555,7 +550,6 @@ function Button({
                         color={loadingIndicatorColor}
                         style={[styles.pAbsolute, styles.l0, styles.r0]}
                         size={extraSmall ? 12 : undefined}
-                        reasonAttributes={buttonLoadingReasonAttributes}
                     />
                 )}
             </PressableWithFeedback>

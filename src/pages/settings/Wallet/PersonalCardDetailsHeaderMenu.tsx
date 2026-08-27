@@ -1,4 +1,5 @@
 import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
@@ -20,7 +21,7 @@ import ROUTES from '@src/ROUTES';
 import type {Card, PersonalDetails} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import {format, parseISO} from 'date-fns';
+import {format, isValid, parseISO} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -56,6 +57,11 @@ function PersonalCardDetailsHeaderMenu({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Table', 'Trashcan']);
+
+    // Guard against an invalid scrapeMinDate, since`format` throws `RangeError: Invalid time value`
+    // when `parseISO` can't parse the value
+    const parsedScrapeMinDate = card?.scrapeMinDate ? parseISO(card.scrapeMinDate) : undefined;
+    const transactionStartDateTitle = parsedScrapeMinDate && isValid(parsedScrapeMinDate) ? format(parsedScrapeMinDate, CONST.DATE.FNS_FORMAT_STRING) : '';
 
     return (
         <>
@@ -107,7 +113,7 @@ function PersonalCardDetailsHeaderMenu({
                 >
                     <MenuItemWithTopDescription
                         description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                        title={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
+                        title={transactionStartDateTitle}
                         shouldShowRightIcon
                         brickRoadIndicator={card?.errorFields?.scrapeMinDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_TRANSACTION_START_DATE.getRoute(cardID))}
@@ -116,16 +122,16 @@ function PersonalCardDetailsHeaderMenu({
             )}
             <View style={styles.mt4}>
                 {isCSVImportedPersonalCard && (
-                    <MenuItem
+                    <MenuItemAction
                         icon={icons.Table}
                         title={translate('spreadsheet.importSpreadsheet')}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(Number(cardID)))}
                     />
                 )}
                 {shouldShowBreakConnection && (
-                    <MenuItem
+                    <MenuItemAction
                         icon={icons.Trashcan}
-                        disabled={isOffline || card?.isLoadingLastUpdated}
+                        isDisabled={isOffline || card?.isLoadingLastUpdated}
                         title="Break connection (Testing)"
                         onPress={onBreakConnection}
                     />

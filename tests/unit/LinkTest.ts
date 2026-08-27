@@ -187,21 +187,21 @@ describe('Link.openLink', () => {
     });
 
     it('opens an expense report link in the expense RHP on wide layout', () => {
-        mockReports['expense-report'] = {isMoneyRequest: true};
+        mockReports['expense-report-rhp'] = {isMoneyRequest: true};
 
-        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/expense-report`, environmentURL);
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/expense-report-rhp`, environmentURL);
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: 'expense-report', backTo: activeRoute}));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: 'expense-report-rhp', backTo: activeRoute}));
     });
 
     it('opens expense report action links in the report RHP so the linked action is preserved', () => {
-        mockReports['expense-report'] = {isMoneyRequest: true};
+        mockReports['expense-report-rhp'] = {isMoneyRequest: true};
 
-        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/expense-report/123456789`, environmentURL);
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/expense-report-rhp/123456789`, environmentURL);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(
             ROUTES.SEARCH_REPORT.getRoute({
-                reportID: 'expense-report',
+                reportID: 'expense-report-rhp',
                 reportActionID: '123456789',
                 backTo: activeRoute,
             }),

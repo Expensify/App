@@ -1,9 +1,11 @@
 import SearchBulkActionsButton from '@components/Search/SearchBulkActionsButton';
+import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import {useSelectionCounts} from '@components/Search/SearchSelectionProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
 import type {SearchResults} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -26,12 +28,13 @@ type SearchActionsBarWideProps = {
 
 function SearchActionsBarWide({queryJSON, searchResults, onSort}: SearchActionsBarWideProps) {
     const styles = useThemeStyles();
+    const {hasSelectedTransactions} = useSearchSelectionContext();
     const {selected} = useSelectionCounts();
-    const hasSelectedItems = selected > 0;
+    const shouldShowBulkActions = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE ? hasSelectedTransactions : selected > 0;
 
     return (
         <View style={[styles.searchActionsBarContainer]}>
-            {hasSelectedItems ? (
+            {shouldShowBulkActions ? (
                 <View style={styles.searchBulkActionsButton}>
                     <SearchBulkActionsButton queryJSON={queryJSON} />
                 </View>

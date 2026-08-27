@@ -15,7 +15,7 @@ import {View} from 'react-native';
 
 import type {ModalProps} from './Modal/Global/ModalContext';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 import FixedFooter from './FixedFooter';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
@@ -118,11 +118,12 @@ function HRSyncResultsModal({result, policyID, closeModal}: HRSyncResultsModalPr
                 </ScrollView>
                 <FixedFooter addBottomSafeAreaPadding>
                     <Button
-                        large
-                        success
-                        text={translate('common.buttonConfirm')}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={hideModal}
-                    />
+                    >
+                        <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </View>
         </Modal>

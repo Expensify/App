@@ -3,7 +3,7 @@ import {useSearchSidebarContentOffsetStyle} from '@components/Navigation/SearchS
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchSelectionContext} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchActionsBarWide from '@components/Search/SearchPageHeader/SearchActionsBarWide';
 import SearchPageHeaderWide from '@components/Search/SearchPageHeader/SearchPageHeaderWide';
@@ -12,7 +12,6 @@ import SearchWithNavigationDeferredMount from '@components/Search/SearchWithNavi
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
-import useNetwork from '@hooks/useNetwork';
 import useSearchLoadingState from '@hooks/useSearchLoadingState';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +19,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -38,7 +36,6 @@ import Animated from 'react-native-reanimated';
 type SearchPageWideProps = {
     queryJSON?: SearchQueryJSON;
     searchResults: OnyxEntry<SearchResults>;
-    searchRequestResponseStatusCode: number | null;
     isMobileSelectionModeEnabled: boolean;
     handleSearchAction: (value: SearchParams | string) => void;
     onSortPressedCallback: () => void;
@@ -52,7 +49,6 @@ type SearchPageWideProps = {
 function SearchPageWide({
     queryJSON,
     searchResults,
-    searchRequestResponseStatusCode,
     isMobileSelectionModeEnabled,
     handleSearchAction,
     onSortPressedCallback,
@@ -62,8 +58,6 @@ function SearchPageWide({
 }: SearchPageWideProps) {
     const shouldShowLoadingSkeleton = useSearchLoadingState(queryJSON, searchResults);
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
-    const {shouldUseLiveData} = useSearchResultsContext();
     const {currentSearchKey} = useSearchQueryContext();
     const {hasSelectedTransactions} = useSearchSelectionContext();
 
@@ -128,18 +122,7 @@ function SearchPageWide({
                             />
                             <View style={styles.flex1}>
                                 {shouldShowLoadingSkeleton ? (
-                                    <SearchLoadingSkeleton
-                                        reasonAttributes={{
-                                            context: 'SearchPage',
-                                            isOffline,
-                                            isDataLoaded: shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON),
-                                            isSearchLoading: !!searchResults?.search?.isLoading,
-                                            hasEmptyData: Array.isArray(searchResults?.data) && searchResults?.data.length === 0,
-                                            hasErrors: Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline,
-                                            hasPendingResponse: searchRequestResponseStatusCode === null,
-                                            shouldUseLiveData,
-                                        }}
-                                    />
+                                    <SearchLoadingSkeleton />
                                 ) : (
                                     <SearchWithNavigationDeferredMount
                                         key={queryJSON.hash}
@@ -149,7 +132,6 @@ function SearchPageWide({
                                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                         onSearchListScroll={scrollHandler}
                                         onSortPressedCallback={onSortPressedCallback}
-                                        searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                                         onDestinationVisible={endSubmitNavigationSpans}
                                         onContentReady={onSearchContentReady}
                                     />

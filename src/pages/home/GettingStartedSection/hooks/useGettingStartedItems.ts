@@ -275,7 +275,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             label: translate('homePage.gettingStartedSection.configureApprovals'),
             subText: translate('homePage.gettingStartedSection.configureApprovalsSubText'),
             isComplete: hasCustomApprovalWorkflow(policy),
-            route: ROUTES.WORKSPACE_WORKFLOWS.getRoute(activePolicyID),
+            route: ROUTES.WORKSPACE_WORKFLOWS.getRoute(activePolicyID, CONST.TAB.WORKFLOWS.APPROVALS),
         });
     }
 

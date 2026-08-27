@@ -13,7 +13,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {formatLastFourPAN} from '@libs/TransactionPreviewUtils';
 
 import variables from '@styles/variables';
@@ -35,7 +34,7 @@ type AuthorizeCardTransactionPreviewProps = {
 function AuthorizeCardTransactionPreview({transactionID, amount, currency, merchant, created, lastFourPAN}: AuthorizeCardTransactionPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['CreditCard', 'ReceiptBody', 'CreditCardExclamation']);
@@ -51,18 +50,13 @@ function AuthorizeCardTransactionPreview({transactionID, amount, currency, merch
     if (shouldShowSkeleton) {
         return (
             <View style={containerStyle}>
-                <TransactionPreviewSkeletonView
-                    transactionPreviewWidth={transactionPreviewWidth}
-                    reasonAttributes={
-                        {context: 'AuthorizeCardTransactionPreview', isCreatedUndefined: !created, isTransactionIDUndefined: !transactionID} satisfies SkeletonSpanReasonAttributes
-                    }
-                />
+                <TransactionPreviewSkeletonView transactionPreviewWidth={transactionPreviewWidth} />
             </View>
         );
     }
 
     const formattedDate = created
-        ? DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT)
+        ? DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT, dateFnsLocale)
         : '';
     const headerText = [formattedDate, translate('common.card')].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);
     let displayAmount = '';

@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
@@ -70,12 +70,13 @@ function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
                 <Button
                     isLoading={isLoading}
                     isDisabled={isLoading || isOffline}
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100]}
                     onPress={onNext}
-                    text={translate('common.confirm')}
-                />
+                >
+                    <Button.Text>{translate('common.confirm')}</Button.Text>
+                </Button>
             </View>
         </ScrollView>
     );

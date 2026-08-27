@@ -19,6 +19,7 @@ import {measureFunction, measureRenders} from 'reassure';
 
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -69,12 +70,14 @@ describe('useFilterFormValues', () => {
             const categories = createCollection<PolicyCategories>(
                 (_, index) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${index}`,
                 () =>
-                    Object.fromEntries(
-                        Array.from({length: 40}, (_unused, i) => [
-                            `Category${i}`,
-                            {name: `Category${i}`, enabled: true, unencodedName: `Category${i}`, areCommentsRequired: false, externalID: `${i}`, origin: 'abc'},
-                        ]),
-                    ) as unknown as PolicyCategories,
+                    createMock<PolicyCategories>(
+                        Object.fromEntries(
+                            Array.from({length: 40}, (_unused, i) => [
+                                `Category${i}`,
+                                {name: `Category${i}`, enabled: true, unencodedName: `Category${i}`, areCommentsRequired: false, externalID: `${i}`, origin: 'abc'},
+                            ]),
+                        ),
+                    ),
                 CATEGORY_COUNT,
             );
 
@@ -85,13 +88,13 @@ describe('useFilterFormValues', () => {
             const tags = createCollection<PolicyTagLists>(
                 (_, index) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${index}`,
                 () =>
-                    ({
+                    createMock<PolicyTagLists>({
                         Department: {
                             name: 'Department',
                             required: true,
                             tags: Object.fromEntries(Array.from({length: 30}, (_unused, i) => [`Tag${i}`, {name: `Tag${i}`, enabled: true}])),
                         },
-                    }) as unknown as PolicyTagLists,
+                    }),
                 TAG_COUNT,
             );
 
@@ -102,18 +105,18 @@ describe('useFilterFormValues', () => {
             const policies = createCollection<Policy>(
                 (_, index) => `${ONYXKEYS.COLLECTION.POLICY}${index}`,
                 (index) =>
-                    ({
+                    createMock<Policy>({
                         ...createRandomPolicy(index),
                         connections: {
                             quickbooksOnline: {
                                 config: {realmId: `realm${index}`, companyName: `Company ${index}`},
-                                lastSync: {isConnected: true, lastSyncDate: new Date().toISOString()},
+                                lastSync: {isConnected: true},
                             },
                         },
                         exportLayouts: Object.fromEntries(Array.from({length: 5}, (_unused, i) => [`template${i}`, {name: `Template ${i}`}])),
                         employeeList: Object.fromEntries(Array.from({length: 100}, (_unused, i) => [`user${i}@test.com`, {email: `user${i}@test.com`, role: 'user'}])),
                         taxRates: {name: 'Tax', defaultExternalID: '', defaultValue: '10%', foreignTaxDefault: '', taxes: {}},
-                    }) as unknown as Policy,
+                    }),
                 POLICY_COUNT,
             );
 
@@ -124,7 +127,7 @@ describe('useFilterFormValues', () => {
             const policies = createCollection<Policy>(
                 (_, index) => `${ONYXKEYS.COLLECTION.POLICY}${index}`,
                 (index) =>
-                    ({
+                    createMock<Policy>({
                         ...createRandomPolicy(index),
                         connections: {
                             quickbooksOnline: {
@@ -135,7 +138,7 @@ describe('useFilterFormValues', () => {
                         taxRates: {name: 'Tax', defaultExternalID: '', defaultValue: '10%', foreignTaxDefault: '', taxes: {}},
                         fieldList: Object.fromEntries(Array.from({length: 10}, (_unused, i) => [`field${i}`, {name: `Field ${i}`, type: 'text'}])),
                         employeeList: Object.fromEntries(Array.from({length: 100}, (_unused, i) => [`user${i}@test.com`, {email: `user${i}@test.com`, role: 'user'}])),
-                    }) as unknown as Policy,
+                    }),
                 POLICY_COUNT,
             );
 
@@ -146,12 +149,12 @@ describe('useFilterFormValues', () => {
             const policies = createCollection<Policy>(
                 (_, index) => `${ONYXKEYS.COLLECTION.POLICY}${index}`,
                 (index) =>
-                    ({
+                    createMock<Policy>({
                         ...createRandomPolicy(index),
                         connections: {
                             quickbooksOnline: {
                                 config: {realmId: `realm${index}`, companyName: `Company ${index}`},
-                                lastSync: {isConnected: true, lastSyncDate: new Date().toISOString()},
+                                lastSync: {isConnected: true},
                             },
                         },
                         exportLayouts: Object.fromEntries(Array.from({length: 5}, (_unused, i) => [`template${i}`, {name: `Template ${i}`}])),
@@ -159,7 +162,7 @@ describe('useFilterFormValues', () => {
                         employeeList: Object.fromEntries(Array.from({length: 100}, (_unused, i) => [`user${i}@test.com`, {email: `user${i}@test.com`, role: 'user'}])),
                         taxRates: {name: 'Tax', defaultExternalID: '', defaultValue: '10%', foreignTaxDefault: '', taxes: {}},
                         fieldList: Object.fromEntries(Array.from({length: 10}, (_unused, i) => [`field${i}`, {name: `Field ${i}`, type: 'text'}])),
-                    }) as unknown as Policy,
+                    }),
                 POLICY_COUNT,
             );
 
@@ -187,24 +190,24 @@ describe('useFilterFormValues', () => {
             );
             const reports = createCollection<Report>(
                 (_, index) => `${ONYXKEYS.COLLECTION.REPORT}${index}`,
-                (index) => ({reportID: `${index}`, reportName: `Report ${index}`}) as unknown as Report,
+                (index) => createMock<Report>({reportID: `${index}`, reportName: `Report ${index}`}),
                 REPORT_COUNT,
             );
             const categories = createCollection<PolicyCategories>(
                 (_, index) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${index}`,
-                () => Object.fromEntries(Array.from({length: 40}, (_unused, i) => [`Category${i}`, {name: `Category${i}`, enabled: true}])) as unknown as PolicyCategories,
+                () => createMock<PolicyCategories>(Object.fromEntries(Array.from({length: 40}, (_unused, i) => [`Category${i}`, {name: `Category${i}`, enabled: true}]))),
                 CATEGORY_COUNT,
             );
             const tags = createCollection<PolicyTagLists>(
                 (_, index) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${index}`,
                 () =>
-                    ({
+                    createMock<PolicyTagLists>({
                         Department: {
                             name: 'Department',
                             required: true,
                             tags: Object.fromEntries(Array.from({length: 30}, (_unused, i) => [`Tag${i}`, {name: `Tag${i}`, enabled: true}])),
                         },
-                    }) as unknown as PolicyTagLists,
+                    }),
                 TAG_COUNT,
             );
             const taxRates = getAllTaxRates(policies);
@@ -237,24 +240,24 @@ describe('useFilterFormValues', () => {
             );
             const categories = createCollection<PolicyCategories>(
                 (_, index) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${index}`,
-                () => Object.fromEntries(Array.from({length: 40}, (_unused, i) => [`Category${i}`, {name: `Category${i}`, enabled: true}])) as unknown as PolicyCategories,
+                () => createMock<PolicyCategories>(Object.fromEntries(Array.from({length: 40}, (_unused, i) => [`Category${i}`, {name: `Category${i}`, enabled: true}]))),
                 CATEGORY_COUNT,
             );
             const tags = createCollection<PolicyTagLists>(
                 (_, index) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${index}`,
                 () =>
-                    ({
+                    createMock<PolicyTagLists>({
                         Department: {
                             name: 'Department',
                             required: true,
                             tags: Object.fromEntries(Array.from({length: 30}, (_unused, i) => [`Tag${i}`, {name: `Tag${i}`, enabled: true}])),
                         },
-                    }) as unknown as PolicyTagLists,
+                    }),
                 TAG_COUNT,
             );
             const reports = createCollection<Report>(
                 (_, index) => `${ONYXKEYS.COLLECTION.REPORT}${index}`,
-                (index) => ({reportID: `${index}`, reportName: `Report ${index}`}) as unknown as Report,
+                (index) => createMock<Report>({reportID: `${index}`, reportName: `Report ${index}`}),
                 REPORT_COUNT,
             );
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policies);
@@ -296,24 +299,24 @@ describe('useFilterFormValues', () => {
             );
             const categories = createCollection<PolicyCategories>(
                 (_, index) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${index}`,
-                () => Object.fromEntries(Array.from({length: 40}, (_unused, i) => [`Category${i}`, {name: `Category${i}`, enabled: true}])) as unknown as PolicyCategories,
+                () => createMock<PolicyCategories>(Object.fromEntries(Array.from({length: 40}, (_unused, i) => [`Category${i}`, {name: `Category${i}`, enabled: true}]))),
                 CATEGORY_COUNT,
             );
             const tags = createCollection<PolicyTagLists>(
                 (_, index) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${index}`,
                 () =>
-                    ({
+                    createMock<PolicyTagLists>({
                         Department: {
                             name: 'Department',
                             required: true,
                             tags: Object.fromEntries(Array.from({length: 30}, (_unused, i) => [`Tag${i}`, {name: `Tag${i}`, enabled: true}])),
                         },
-                    }) as unknown as PolicyTagLists,
+                    }),
                 TAG_COUNT,
             );
             const reports = createCollection<Report>(
                 (_, index) => `${ONYXKEYS.COLLECTION.REPORT}${index}`,
-                (index) => ({reportID: `${index}`, reportName: `Report ${index}`}) as unknown as Report,
+                (index) => createMock<Report>({reportID: `${index}`, reportName: `Report ${index}`}),
                 REPORT_COUNT,
             );
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policies);

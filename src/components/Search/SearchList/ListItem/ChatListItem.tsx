@@ -1,18 +1,15 @@
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
+import {useListItemHighlight} from '@components/SelectionList/ListItemComposed';
 import type {ListItem} from '@components/SelectionList/types';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useOnyx from '@hooks/useOnyx';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
-
-import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getStableReportSelector} from '@src/selectors/Report';
@@ -41,25 +38,11 @@ function ChatListItem<TItem extends ListItem>({
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.childReportID}`);
     const [chatReportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportStable?.chatReportID)}`, {selector: getStableReportSelector});
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {isSelected} = useRowSelection(item.keyForList);
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: variables.componentBorderRadius,
+    const {pressableStyle, pressableWrapperStyle} = useListItemHighlight({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
+        isSelected,
     });
-    const pressableStyle = [
-        styles.selectionListPressableItemWrapper,
-        styles.p0,
-        styles.textAlignLeft,
-        styles.overflowHidden,
-        // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
-        styles.bgTransparent,
-        isSelected && styles.activeComponentBG,
-        styles.mh0,
-        item.cursorStyle,
-    ];
 
     const fsClass = FS.getChatFSClass(reportStable);
 
@@ -68,7 +51,7 @@ function ChatListItem<TItem extends ListItem>({
     return (
         <BaseListItem
             item={item}
-            pressableStyle={pressableStyle}
+            pressableStyle={[pressableStyle, styles.p0, styles.textAlignLeft, styles.overflowHidden, item.cursorStyle]}
             wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.userSelectNone]}
             containerStyle={styles.mb2}
             isFocused={isFocused}
@@ -82,7 +65,7 @@ function ChatListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
+            pressableWrapperStyle={pressableWrapperStyle}
             hoverStyle={isSelected && styles.activeComponentBG}
             forwardedFSClass={fsClass}
         >

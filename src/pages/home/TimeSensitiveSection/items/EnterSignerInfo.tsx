@@ -7,6 +7,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import colors from '@styles/theme/colors';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
@@ -39,7 +40,7 @@ function EnterSignerInfo({policyID, bankAccountID, bankAccountLastFour}: EnterSi
             subtitle={translate('homePage.timeSensitiveSection.enterSignerInfo.subtitle', {bankAccountLastFour})}
             ctaText={translate('homePage.forYouSection.begin')}
             onCtaPress={handleCtaPress}
-            buttonProps={{success: true}}
+            buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />
     );
 }

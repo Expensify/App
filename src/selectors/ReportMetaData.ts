@@ -1,3 +1,5 @@
+import {getPendingDeleteMemberAccountIDs} from '@libs/ReportUtils';
+
 import type {ReportLoadingState, ReportMetadata} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -13,11 +15,13 @@ const reportActionsLoadingStateSelector = (loadingState: OnyxEntry<ReportLoading
 
 const reportActionsListLoadingStateSelector = (
     loadingState: OnyxEntry<ReportLoadingState>,
-): Pick<ReportLoadingState, 'hasOnceLoadedReportActions' | 'isLoadingInitialReportActions'> | undefined =>
+): Pick<ReportLoadingState, 'hasOnceLoadedReportActions' | 'isLoadingInitialReportActions' | 'isLoadingOlderReportActions' | 'hasLoadingOlderReportActionsError'> | undefined =>
     loadingState
         ? {
               hasOnceLoadedReportActions: loadingState.hasOnceLoadedReportActions,
               isLoadingInitialReportActions: loadingState.isLoadingInitialReportActions,
+              isLoadingOlderReportActions: loadingState.isLoadingOlderReportActions,
+              hasLoadingOlderReportActionsError: loadingState.hasLoadingOlderReportActionsError,
           }
         : undefined;
 
@@ -25,6 +29,8 @@ const isLoadingInitialReportActionsSelector = (loadingState: OnyxEntry<ReportLoa
 
 const pendingChatMembersSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>
     reportMetadata ? {pendingChatMembers: reportMetadata.pendingChatMembers} : undefined;
+
+const pendingDeleteMemberAccountIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers);
 
 const pendingNewTransactionIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.pendingNewTransactionIDs;
 
@@ -39,4 +45,5 @@ export {
     isOptimisticReportSelector,
     pendingNewTransactionIDsSelector,
     pendingChatMembersSelector,
+    pendingDeleteMemberAccountIDsSelector,
 };

@@ -139,6 +139,8 @@ function useLoadReportActions({
     return {
         loadOlderChats,
         loadNewerChats,
+        // The exact cursor `loadOlderChats` sends, which is not always the end of the rendered chain.
+        currentReportOldestActionID: currentReportOldestAction?.reportActionID,
     };
 }
 

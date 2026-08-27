@@ -30,7 +30,7 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
     const personalDetail = personalDetails?.[accountID];
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
     const avatarURL = personalDetail?.avatar ?? '';
-    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, translate});
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, translate, formatPhoneNumber});
 
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const isLoading = personalDetailsMetadata?.[accountID]?.isLoading ?? (isLoadingApp && !Object.keys(personalDetail ?? {}).length);
@@ -47,7 +47,6 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
     const source = tempSource || getFullSizeAvatar({avatarSource: avatarURL, accountID, defaultAvatars});
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const originalFileName = tempOriginalFileName || (personalDetail?.originalFileName ?? '');
-    const headerTitle = formatPhoneNumber(displayName);
 
     const shouldShowNotFoundPage = !avatarURL;
 
@@ -57,14 +56,14 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
         () => ({
             source,
             originalFileName,
-            headerTitle,
+            headerTitle: displayName,
             isLoading,
             shouldShowNotFoundPage,
             maybeIcon: true,
             onDownloadAttachment,
             shouldCloseOnSwipeDown: true,
         }),
-        [headerTitle, isLoading, onDownloadAttachment, originalFileName, shouldShowNotFoundPage, source],
+        [displayName, isLoading, onDownloadAttachment, originalFileName, shouldShowNotFoundPage, source],
     );
 
     return (

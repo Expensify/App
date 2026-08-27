@@ -1,4 +1,5 @@
 import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -48,7 +49,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     });
 
     const domainHasOnlyOneAdmin = adminAccountIDs?.length === 1;
-    const displayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: adminPersonalDetails, translate}));
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: adminPersonalDetails, translate, formatPhoneNumber});
     const memberLogin = adminPersonalDetails?.login ?? '';
     const isCurrentUserPrimaryContact = primaryContact === memberLogin;
 
@@ -77,7 +78,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
             accountID={accountID}
         >
             {domainHasOnlyOneAdmin && (
-                <MenuItem
+                <MenuItemAction
                     title={translate('domain.admins.resetDomain')}
                     icon={icons.ClosedSign}
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_RESET_DOMAIN.getRoute(domainAccountID, accountID))}

@@ -162,6 +162,7 @@ function Section({
                         styles.alignItemsCenter,
                         styles.justifyContentCenter,
                         StyleUtils.getBackgroundColorStyle(illustrationBackgroundColor ?? lottieIllustration?.backgroundColor ?? theme.appBG),
+                        styles.cardSectionIllustrationInset,
                         illustrationContainerStyle,
                     ]}
                 >

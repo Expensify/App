@@ -245,7 +245,14 @@ const invoiceSenderSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Invoic
 // --- DistanceMapSection ---
 
 type DistanceMapSlice = Pick<Transaction, 'pendingFields' | 'errors' | 'errorFields' | 'routes'> & {
-    comment: {waypoints: NonNullable<Transaction['comment']>['waypoints']} | undefined;
+    comment:
+        | {
+              waypoints: NonNullable<Transaction['comment']>['waypoints'];
+              selectedRouteKey: NonNullable<Transaction['comment']>['selectedRouteKey'];
+              // `getSelectedRouteKey` falls back to this when the frontend-only `selectedRouteKey` is absent (e.g. on an already-saved expense)
+              customUnit: {routeDistanceMeters: NonNullable<NonNullable<Transaction['comment']>['customUnit']>['routeDistanceMeters']} | undefined;
+          }
+        | undefined;
 };
 
 const distanceMapSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
@@ -257,7 +264,13 @@ const distanceMapSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transact
         errors: t.errors,
         errorFields: t.errorFields,
         routes: t.routes,
-        comment: t.comment ? {waypoints: t.comment.waypoints} : undefined,
+        comment: t.comment
+            ? {
+                  waypoints: t.comment.waypoints,
+                  selectedRouteKey: t.comment.selectedRouteKey,
+                  customUnit: t.comment.customUnit ? {routeDistanceMeters: t.comment.customUnit.routeDistanceMeters} : undefined,
+              }
+            : undefined,
     };
     return slice as Transaction;
 };

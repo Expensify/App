@@ -210,8 +210,8 @@ describe('ImportedMembersPage', () => {
         );
         const importPolicyMembersSpy = jest.spyOn(Member, 'importPolicyMembers').mockResolvedValue({
             titleKey: 'spreadsheet.importSuccessfulTitle',
-            promptKey: 'spreadsheet.importMembersSuccessfulDescription',
-            promptKeyParams: {added: 1, updated: 0},
+            promptKey: 'spreadsheet.importMembersAdded',
+            promptKeyParams: {count: 1},
             pendingMessageKey: 'spreadsheet.importMembersRolePermissionWarning',
         });
 

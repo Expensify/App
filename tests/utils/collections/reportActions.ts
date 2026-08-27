@@ -37,10 +37,7 @@ const deprecatedReportActions: ReportActionName[] = [
 
 export default function createRandomReportAction(index: number): ReportAction {
     return {
-        // We need to assert the type of actionName so that rest of the properties are inferred correctly
-        actionName: rand(
-            flattenActionNamesValues(CONST.REPORT.ACTIONS.TYPE).filter((actionType: ReportActionName) => !deprecatedReportActions.includes(actionType)),
-        ) as typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        actionName: rand(flattenActionNamesValues(CONST.REPORT.ACTIONS.TYPE).filter((actionType: ReportActionName) => !deprecatedReportActions.includes(actionType))),
         reportActionID: index.toString(),
         actorAccountID: index,
         person: [

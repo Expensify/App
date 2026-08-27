@@ -11,6 +11,7 @@ import useSortedActions from '@hooks/useSortedActions';
 import type {GetOptionsConfig, Option, OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
 import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
 import {getPersonalDetailSearchTerms} from '@libs/OptionsListUtils/searchMatchUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import type {OptionData} from '@libs/ReportUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
@@ -21,7 +22,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PermissionStatus} from 'react-native-permissions';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {useState} from 'react';
 
 type SearchSelectorContext = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<
@@ -155,6 +155,11 @@ type UseSearchSelectorReturn = {
 
 const emptyOptionList: OptionList = {reports: [], personalDetails: []};
 
+const CONTEXTS_APPLYING_GET_VALID_OPTIONS_CONFIG: ReadonlySet<SearchSelectorContext> = new Set([
+    CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+    CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES,
+]);
+
 const doOptionsMatch = (option1: OptionData, option2: OptionData) => {
     return (
         (option1.accountID && option1.accountID === option2.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
@@ -189,7 +194,7 @@ function useSearchSelectorBase({
     shouldKeepSelectedInAvailableOptions = false,
     shouldSeparateNonExistingSelectedOptions = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -205,12 +210,18 @@ function useSearchSelectorBase({
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const personalDetails = usePersonalDetails();
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // Searching bypasses the recent-reports pre-filter so a typed query can still match reports outside the top 500 most recently active ones.
     const isSearchingOptions = !!debouncedSearchTerm.trim();
+
+    // Keep option-list contact building aligned with downstream includeP2P filtering.
+    const appliesGetValidOptionsConfig = CONTEXTS_APPLYING_GET_VALID_OPTIONS_CONFIG.has(searchContext);
+    const includeP2P = !appliesGetValidOptionsConfig || (getValidOptionsConfig.includeP2P ?? true);
+    const appliedGetValidOptionsConfig = appliesGetValidOptionsConfig ? getValidOptionsConfig : CONST.EMPTY_OBJECT;
+
     const {
         options: filteredOptions,
         isLoading: isLoadingOptions,
@@ -219,6 +230,7 @@ function useSearchSelectorBase({
     } = useFilteredOptions({
         enabled: shouldInitialize,
         isSearching: isSearchingOptions,
+        includeP2P,
         batchSize: maxResultsPerPage,
     });
     const areOptionsInitialized = !isLoadingOptions;
@@ -228,10 +240,39 @@ function useSearchSelectorBase({
         if (!contactOptions?.length || !areOptionsInitialized) {
             return defaultOptions;
         }
-        const personalDetailsWithContacts = defaultOptions.personalDetails.concat(contactOptions);
+        // Imported contacts get a generated accountID, so one sharing a login with a real Onyx user would show a duplicate
+        // row and be treated as a new invite. Track already-represented logins and drop contacts whose login is present.
+        const existingLogins = new Set<string>();
+
+        // Seed with real personal details only; optimistic ones are filtered out by getValidOptions and mustn't suppress a contact.
+        for (const option of defaultOptions.personalDetails) {
+            if (option.isOptimisticPersonalDetail) {
+                continue;
+            }
+            const login = addSMSDomainIfPhoneNumber(option.login ?? '').toLowerCase();
+            if (login) {
+                existingLogins.add(login);
+            }
+        }
+
+        // Keep a contact only if its login is new, deduping against both the seeded accounts and earlier contacts.
+        const dedupedContactOptions = contactOptions.filter((contact) => {
+            const login = addSMSDomainIfPhoneNumber(contact.login ?? '').toLowerCase();
+            if (!login || existingLogins.has(login)) {
+                return false;
+            }
+            existingLogins.add(login);
+            return true;
+        });
+
+        if (!dedupedContactOptions.length) {
+            return defaultOptions;
+        }
+
         return {
             ...defaultOptions,
-            personalDetails: personalDetailsWithContacts,
+            // Imported contacts are already hydrated.
+            personalDetails: defaultOptions.personalDetails.concat(dedupedContactOptions.map((contact) => ({...contact, isHydrated: true as const}))),
         };
     })();
 
@@ -248,6 +289,7 @@ function useSearchSelectorBase({
                 return getSearchOptions({
                     options: optionsWithContacts,
                     draftComments,
+                    dateFnsLocale,
                     betas: betas ?? [],
                     isUsedInChatFinder: true,
                     includeReadOnly: true,
@@ -276,6 +318,7 @@ function useSearchSelectorBase({
                     currentUserEmail,
                     conciergeReportID,
                     {
+                        dateFnsLocale,
                         betas: betas ?? [],
                         searchString: computedSearchTerm,
                         searchInputValue: trimmedSearchInput,
@@ -296,7 +339,7 @@ function useSearchSelectorBase({
                         allPolicyTags,
                         sortedActions,
                         isTrackIntentUser,
-                        ...getValidOptionsConfig,
+                        ...appliedGetValidOptionsConfig,
                     },
                     translate,
                 );
@@ -310,6 +353,7 @@ function useSearchSelectorBase({
                     currentUserEmail,
                     conciergeReportID,
                     {
+                        dateFnsLocale,
                         betas,
                         selectedOptions,
                         includeMultipleParticipantReports: true,
@@ -332,6 +376,7 @@ function useSearchSelectorBase({
                         allPolicyTags,
                         sortedActions,
                         isTrackIntentUser,
+                        ...appliedGetValidOptionsConfig,
                     },
                     translate,
                 );
@@ -345,6 +390,7 @@ function useSearchSelectorBase({
                     currentUserEmail,
                     conciergeReportID,
                     {
+                        dateFnsLocale,
                         betas: betas ?? [],
                         includeP2P: true,
                         includeSelectedOptions: false,
@@ -365,7 +411,7 @@ function useSearchSelectorBase({
                         allPolicyTags,
                         sortedActions,
                         isTrackIntentUser,
-                        ...getValidOptionsConfig,
+                        ...appliedGetValidOptionsConfig,
                     },
                     translate,
                 );

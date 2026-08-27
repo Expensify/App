@@ -84,6 +84,9 @@ groupBy = "groupBy"i / "group-by"i { return "groupBy"; }
 limit = "limit"i { return "limit"; }
 feed = "feed"i { return "feed"; }
 title = "title"i { return "title"; }
+submitterUserID = "submitterUserID"i / "submitter-user-id"i { return "submitterUserID"; }
+submitterPayrollID = "submitterPayrollID"i / "submitter-payroll-id"i { return "submitterPayrollID"; }
+orderDealNumbers = "orderDealNumbers"i / "order-deal-numbers"i { return "orderDealNumbers"; }
 assignee = "assignee"i { return "assignee"; }
 createdBy = "createdBy"i  / "created-by"i { return "createdBy"; }
 action = "action"i { return "action"; }
@@ -92,6 +95,8 @@ has = "has"i {return "has"; }
 is = "is"i {return "is"; }
 purchaseAmount = "purchaseAmount"i / "purchase-amount"i {return "purchaseAmount"}
 purchaseCurrency = "purchaseCurrency"i / "purchase-currency"i {return "purchaseCurrency"}
+amountDebited = "amountDebited"i / "amount-debited"i {return "amountDebited"}
+amountReimbursed = "amountReimbursed"i / "amount-reimbursed"i {return "amountReimbursed"}
 columns = "columns"i {
   isColumnsContext = true;
   return "columns";
@@ -125,6 +130,10 @@ columnsValues
   / groupBankAccount
   / groupWithdrawn
   / groupWithdrawalId
+  / groupAmountDebited
+  / groupAmountReimbursed
+  / amountDebitedColumn
+  / amountReimbursedColumn
   / groupCategory
   / groupTag
   / groupMerchant
@@ -159,6 +168,10 @@ groupFeed               = "group-feed"i &wordBoundary               { return "gr
 groupBankAccount        = "group-bank-account"i &wordBoundary       { return "groupBankAccount"; }
 groupWithdrawn          = "group-withdrawn"i &wordBoundary          { return "groupWithdrawn"; }
 groupWithdrawalId       = "group-withdrawal-id"i &wordBoundary      { return "groupWithdrawalID"; }
+groupAmountDebited      = "group-amount-debited"i &wordBoundary     { return "groupAmountDebited"; }
+groupAmountReimbursed   = "group-amount-reimbursed"i &wordBoundary  { return "groupAmountReimbursed"; }
+amountDebitedColumn     = "amount-debited"i &wordBoundary           { return "amountDebited"; }
+amountReimbursedColumn  = "amount-reimbursed"i &wordBoundary        { return "amountReimbursed"; }
 groupCategory           = "group-category"i &wordBoundary          { return "groupCategory"; }
 groupTag                = "group-tag"i &wordBoundary               { return "groupTag"; }
 groupMerchant           = "group-merchant"i &wordBoundary          { return "groupMerchant"; }
@@ -185,7 +198,11 @@ filterOperator
       return o;
   }
 
-alphanumeric "word" = chars:[^ ,\t\n\r\xA0]+ { return chars.join("").trim(); } //handle no-breaking space
+// A backslash only escapes the characters the grammar would otherwise consume. Anything else keeps the backslash
+// as a literal, so values already persisted in saved searches and shared URLs still parse the way they used to.
+escapedChar = "\\" c:[,"”“\\] { return c; }
+
+alphanumeric "word" = chars:(escapedChar / [^ ,\t\n\r\xA0])+ { return chars.join("").trim(); } //handle no-breaking space
 
 logicalAnd = _ { 
   isColumnsContext = false;
@@ -200,13 +217,14 @@ quotedString
   / simpleQuotedString
 
 simpleQuotedString "quote"
-  = start:[^ ,"”“\t\n\r\xA0]* ("“" / "\"" / "”") inner:[^"”“\r\n]* ("“" / "\"" / "”") end:[^ ,\t\n\r\xA0]* { //handle no-breaking space
+  = start:[^ ,"”“\t\n\r\xA0]* ("“" / "\"" / "”") inner:(escapedChar / [^"”“\r\n])* ("“" / "\"" / "”") end:[^ ,\t\n\r\xA0]* { //handle no-breaking space
       return [...start, '"', ...inner, '"', ...end].join("");
     }
 
 nestedQuotedString "quote"
   = start:[^ ,"”“\t\n\r\xA0]* ("“" / "\"" / "”")    // Opening quote
-    inner:([^"”“\r\n]
+    inner:(escapedChar
+    / [^"”“\r\n]
     / (!closingQuote "“" {return "“"}) / (!closingQuote "”" {return "”"}) / (!closingQuote "\"" {return "\""} )
     )*                                              // Allow anything inside, but exclude true closing quotes
     end:closingQuote                                // Detect the actual closing quote

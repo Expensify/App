@@ -5,24 +5,28 @@ import Section from '@components/Section';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getBillableExpensesPendingAction, getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
+import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import Navigation from '@libs/Navigation/Navigation';
-import {isAttendeeTrackingEnabled, isCollectPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
+import {getTagListLabel, getTagLists, hasPerTagListRequired, isAttendeeTrackingEnabled, isCollectPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
 import PublicReceiptVisibilityToggle from './PublicReceiptVisibilityToggle';
@@ -47,7 +51,7 @@ type BasicRuleMenuItem = {
     title: string;
     description?: string;
     icon: IconAsset;
-    action: () => void;
+    route: Route;
     pendingAction?: PendingAction;
 };
 
@@ -58,6 +62,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptCheck', 'Task', 'Cash', 'Users', 'Eye']);
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -100,10 +105,12 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const rulesUpgradeAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias;
 
     const handleMenuItemPress = (item: BasicRuleMenuItem) => {
-        if (isCollect && !COLLECT_ALLOWED_RULE_KEYS.has(item.key) && tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, rulesUpgradeBackTo)) {
+        // Return to the row's own page after upgrading rather than the Rules list, so the user lands where they were
+        // headed — same as the GL code upgrade flow in tag settings.
+        if (isCollect && !COLLECT_ALLOWED_RULE_KEYS.has(item.key) && tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, item.route)) {
             return;
         }
-        item.action();
+        Navigation.navigate(item.route);
     };
 
     const navigateToRulesControlUpgrade = () => {
@@ -113,7 +120,31 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
     const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
 
-    const requiredFieldsList = [policy?.requiresCategory && translate('common.category'), policy?.requiresTag && translate('common.tag')].filter(Boolean).join(', ');
+    useEffect(() => {
+        // The subtitle names the required tag lists, and only the Tags pages fetch them, so it would otherwise read
+        // stale until Tags is opened. This section mounts only while the General tab is active.
+        openPolicyTagsPage(policyID);
+    }, [policyID]);
+
+    const tagLists = getTagLists(policyTags);
+
+    // Name the tag lists the way the Require fields page rows do, instead of a generic "Tag".
+    const requiredTagLabels = (() => {
+        const genericTagLabel = translate('common.tag');
+
+        if (hasPerTagListRequired(policy, policyTags)) {
+            return tagLists.filter((tagList) => tagList.required).map((tagList) => getTagListLabel(tagList.name, genericTagLabel));
+        }
+
+        if (!policy?.requiresTag) {
+            return [];
+        }
+
+        // One flag covers every level, so a list name only fits when there is exactly one list.
+        return [tagLists.length === 1 ? getTagListLabel(tagLists.at(0)?.name, genericTagLabel) : genericTagLabel];
+    })();
+
+    const requiredFieldsList = [policy?.requiresCategory && translate('common.category'), ...requiredTagLabels].filter(Boolean).join(', ');
 
     const prohibitedExpensesText = useMemo(() => {
         const prohibitedExpensesList = Object.values(CONST.POLICY.PROHIBITED_EXPENSES)
@@ -133,7 +164,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             title: translate('workspace.rules.generalTab.expensesOlderThan'),
             description: maxExpenseAgeText,
             icon: icons.CalendarSolid,
-            action: () => Navigation.navigate(ROUTES.RULES_MAX_EXPENSE_AGE.getRoute(policyID)),
+            route: ROUTES.RULES_MAX_EXPENSE_AGE.getRoute(policyID),
             pendingAction: policy?.pendingFields?.maxExpenseAge,
         },
         {
@@ -141,7 +172,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             title: translate('workspace.rules.generalTab.expensesAboveAmount'),
             description: maxExpenseAmountText,
             icon: icons.Coins,
-            action: () => Navigation.navigate(ROUTES.RULES_MAX_EXPENSE_AMOUNT.getRoute(policyID)),
+            route: ROUTES.RULES_MAX_EXPENSE_AMOUNT.getRoute(policyID),
             pendingAction: policy?.pendingFields?.maxExpenseAmount,
         },
         {
@@ -149,7 +180,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             title: translate('workspace.rules.generalTab.flagReceiptLineItems'),
             description: prohibitedExpensesText,
             icon: icons.Receipt,
-            action: () => Navigation.navigate(ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID)),
+            route: ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID),
             pendingAction: !isEmptyObject(policy?.prohibitedExpenses?.pendingFields) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined,
         },
         {
@@ -157,7 +188,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             title: translate('workspace.rules.generalTab.receiptRequirements'),
             description: receiptRequirementText,
             icon: icons.ReceiptCheck,
-            action: () => Navigation.navigate(ROUTES.RULES_REQUIRE_RECEIPTS.getRoute(policyID)),
+            route: ROUTES.RULES_REQUIRE_RECEIPTS.getRoute(policyID),
             pendingAction: policy?.pendingFields?.maxExpenseAmountNoReceipt ?? policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt,
         },
         {
@@ -165,7 +196,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             title: translate('workspace.rules.generalTab.requireFieldsForAllExpenses'),
             description: requiredFieldsList,
             icon: icons.Task,
-            action: () => Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS.getRoute(policyID)),
+            route: ROUTES.RULES_REQUIRE_FIELDS.getRoute(policyID),
             pendingAction: policy?.pendingFields?.requiresCategory ?? policy?.pendingFields?.requiresTag,
         },
     ];
@@ -176,7 +207,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             title: translate('workspace.rules.generalTab.cashExpenses'),
             description: reimbursableModeText,
             icon: icons.Cash,
-            action: () => Navigation.navigate(ROUTES.RULES_REIMBURSABLE_DEFAULT.getRoute(policyID)),
+            route: ROUTES.RULES_REIMBURSABLE_DEFAULT.getRoute(policyID),
             pendingAction: policy?.pendingFields?.defaultReimbursable,
         },
         {
@@ -184,7 +215,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             title: translate('workspace.rules.generalTab.billableExpenses'),
             description: billableModeText,
             icon: icons.Cash,
-            action: () => Navigation.navigate(ROUTES.RULES_BILLABLE_DEFAULT.getRoute(policyID)),
+            route: ROUTES.RULES_BILLABLE_DEFAULT.getRoute(policyID),
             pendingAction: getBillableExpensesPendingAction(policy),
         },
     ];

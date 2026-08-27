@@ -1,11 +1,9 @@
-import Avatar from '@components/Avatar';
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
@@ -64,7 +62,7 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
 };
 
 function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovered = false, style}: TaskPreviewProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'DotIndicator', 'FallbackAvatar']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'DotIndicator']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -117,8 +115,6 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const isTaskActionable = canActionTask(taskContextReport, parentReportAction, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
     const hasAssignee = taskAssigneeAccountID > 0;
-    const personalDetails = usePersonalDetails();
-    const avatar = personalDetails?.[taskAssigneeAccountID]?.avatar ?? icons.FallbackAvatar;
     const avatarSize = CONST.AVATAR_SIZE.SMALL;
     const isDeletedParentAction = isCanceledTaskReport(taskReport, action);
     const iconWrapperStyle = StyleUtils.getTaskPreviewIconWrapper(hasAssignee ? avatarSize : undefined);
@@ -139,17 +135,11 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     const taskPreviewContent = (
         <>
             {hasAssignee && (
-                <UserDetailsTooltip accountID={taskAssigneeAccountID}>
-                    <View>
-                        <Avatar
-                            containerStyles={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
-                            source={avatar}
-                            size={avatarSize}
-                            avatarID={taskAssigneeAccountID}
-                            type={CONST.ICON_TYPE_AVATAR}
-                        />
-                    </View>
-                </UserDetailsTooltip>
+                <AccountAvatar
+                    accountID={taskAssigneeAccountID}
+                    size={avatarSize}
+                    containerStyle={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
+                />
             )}
             <View style={[styles.alignSelfCenter, styles.flex1, styles.textAlignLeft]}>
                 <RenderHTML html={getTaskHTML()} />

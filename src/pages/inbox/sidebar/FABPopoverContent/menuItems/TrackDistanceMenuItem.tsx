@@ -1,3 +1,4 @@
+import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -26,6 +27,13 @@ function TrackDistanceMenuItem({reportID}: TrackDistanceMenuItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Location']);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const blockDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        policyID: report?.policyID,
+        isDistanceRequest: true,
+        isManualDistanceRequest: lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+        isOdometerDistanceRequest: lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+    });
 
     return (
         <FABFocusableMenuItem
@@ -35,6 +43,9 @@ function TrackDistanceMenuItem({reportID}: TrackDistanceMenuItemProps) {
             title={translate('iou.trackDistance')}
             onPress={() =>
                 interceptAnonymousUser(() => {
+                    if (blockDistanceRequestIfNeeded()) {
+                        return;
+                    }
                     // Start the flow to start tracking a distance request
                     startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, lastDistanceExpenseType, undefined, undefined, true);
                 })

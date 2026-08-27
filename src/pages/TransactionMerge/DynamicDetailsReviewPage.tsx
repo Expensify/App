@@ -32,7 +32,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -63,6 +62,11 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
     const sourceReportOwnerAsAttendee = useReportOwnerAsAttendee(sourceTransaction);
     const targetReportOwnerAsAttendee = useReportOwnerAsAttendee(targetTransaction);
 
+    // The workspace of the report the merged expense is currently headed to, which is the one whose rules apply to it.
+    // An unreported expense lands in the self-DM, which has no workspace, so nothing resolves here.
+    const [chosenReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(mergeTransaction?.reportID)}`);
+    const [chosenReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(chosenReport?.policyID)}`);
+
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
 
     const conflictFields = useMemo(() => {
@@ -78,6 +82,8 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
             [targetTransactionReport, sourceTransactionReport],
             targetTransactionPolicy,
             sourceTransactionPolicy,
+            targetReportOwnerAsAttendee,
+            sourceReportOwnerAsAttendee,
         );
 
         setMergeTransactionKey(transactionID, mergeableData);
@@ -92,6 +98,8 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
         targetTransactionPolicy,
         sourceTransactionPolicy,
         getCurrencyDecimals,
+        targetReportOwnerAsAttendee,
+        sourceReportOwnerAsAttendee,
     ]);
 
     // Handle selection
@@ -106,6 +114,8 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
                 return newErrors;
             });
 
+            const selectedTransactionPolicy = transaction.transactionID === targetTransaction?.transactionID ? targetTransactionPolicy : sourceTransactionPolicy;
+
             // Update both the field value and track which transaction was selected (persisted in Onyx)
             const currentSelections = mergeTransaction?.selectedTransactionByField ?? {};
             const updatedValues = getMergeFieldUpdatedValues({
@@ -115,7 +125,11 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
                 getCurrencyDecimals,
                 mergeTransaction,
                 searchReports: [targetTransactionReport, sourceTransactionReport],
-                policy: transaction.transactionID === targetTransaction?.transactionID ? targetTransactionPolicy : sourceTransactionPolicy,
+                policy: selectedTransactionPolicy,
+                // Selecting a report is what moves the merged expense to a workspace, so it decides which workspace's
+                // rules apply to it: the workspace of the expense whose report was picked. Any other selection leaves
+                // the expense on the report already chosen, whose workspace is resolved from Onyx above.
+                destinationPolicy: field === 'reportID' ? selectedTransactionPolicy : chosenReportPolicy,
             });
 
             setMergeTransactionKey(transactionID, {
@@ -134,6 +148,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
             targetTransaction?.transactionID,
             targetTransactionPolicy,
             sourceTransactionPolicy,
+            chosenReportPolicy,
             getCurrencyDecimals,
         ],
     );
@@ -196,11 +211,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
     const shouldShowSubmitError = conflictFields.length > 1 && !isEmptyObject(hasErrors);
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'TransactionMerge.DetailsReviewPage',
-            isLoadingMergeTransaction: isLoadingOnyxValue(mergeTransactionMetadata),
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

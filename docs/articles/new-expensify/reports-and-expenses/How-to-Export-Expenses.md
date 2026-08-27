@@ -45,7 +45,7 @@ Use **Export current view** to download a CSV that matches the columns currently
 5. Select **Export**.
 6. Select **Export current view**.
 
-The CSV includes one row per expense using the same columns displayed on the page. **Export current view** is not available when a **Group by** filter is applied.
+The CSV includes one row per expense using the same columns displayed on the page. When a **Group by** filter is applied, the CSV keeps each group as its own section and uses the columns currently shown on the page.
 
 ---
 

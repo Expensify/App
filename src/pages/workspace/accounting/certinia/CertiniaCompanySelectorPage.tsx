@@ -21,7 +21,7 @@ import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 
-import {isCertiniaSRPConnection} from './utils';
+import {getCertiniaSelectedCompanyID, isCertiniaFFAConnection} from './utils';
 
 type CompanyListItem = ListItem & {
     value: string;
@@ -32,7 +32,8 @@ function CertiniaCompanySelectorPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const {config, data} = policy?.connections?.financialforce ?? {};
-    const companyID = config?.credentials?.companyID;
+    const companyID = getCertiniaSelectedCompanyID(config);
+    const companyField = config?.hasPSA ? CONST.CERTINIA_CONFIG.COMPANY_ID : CONST.CERTINIA_CONFIG.COMPANY;
     const companies = data?.companies ?? [];
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
@@ -55,7 +56,7 @@ function CertiniaCompanySelectorPage({policy}: WithPolicyConnectionsProps) {
 
     const selectCompany = (row: CompanyListItem) => {
         if (row.value !== companyID && policyID) {
-            updateFinancialForceCompany(policyID, row.value, companyID ?? null);
+            updateFinancialForceCompany(policyID, row.value, companyID ?? null, !!config?.hasPSA);
         }
         Navigation.goBack(policyID ? ROUTES.POLICY_ACCOUNTING.getRoute(policyID) : undefined);
     };
@@ -66,7 +67,7 @@ function CertiniaCompanySelectorPage({policy}: WithPolicyConnectionsProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="CertiniaCompanySelectorPage"
-            shouldBeBlocked={!isCertiniaSRPConnection(config)}
+            shouldBeBlocked={!isCertiniaFFAConnection(config)}
             data={dataOptions}
             onSelectRow={selectCompany}
             shouldSingleExecuteRowSelect
@@ -75,10 +76,10 @@ function CertiniaCompanySelectorPage({policy}: WithPolicyConnectionsProps) {
             title="workspace.certinia.company"
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.CERTINIA}
-            pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.COMPANY_ID], config?.pendingFields)}
-            errors={getLatestErrorField(config, CONST.CERTINIA_CONFIG.COMPANY_ID)}
+            pendingAction={settingsPendingAction([companyField], config?.pendingFields)}
+            errors={getLatestErrorField(config, companyField)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => clearFinancialForceErrorField(policyID, CONST.CERTINIA_CONFIG.COMPANY_ID)}
+            onClose={() => clearFinancialForceErrorField(policyID, companyField)}
         />
     );
 }

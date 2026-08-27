@@ -51,7 +51,10 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@src/hooks/useRootNavigationState', () => ({
     __esModule: true,
-    default: () => ({contextualReportID: undefined, isSearchRouterScreen: false}),
+    default: () => ({
+        contextualReportID: undefined,
+        isSearchRouterScreen: false,
+    }),
 }));
 
 jest.mock('@hooks/useExportedToFilterOptions', () => ({
@@ -81,6 +84,7 @@ jest.mock('@react-navigation/native', () => {
             isReady: () => jest.fn(),
             getCurrentRoute: () => jest.fn(),
             getState: () => jest.fn(),
+            getRootState: () => undefined,
         }),
         useNavigationState: () => ({
             routes: [],

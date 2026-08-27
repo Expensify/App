@@ -45,6 +45,8 @@ type BoundCallback = (eventData: EventData<PusherEventName>) => void;
 const eventsBoundToChannels = new Map<string, Map<PusherEventName, Set<BoundCallback>>>();
 let channels: Record<string, ValueOf<typeof CONST.PUSHER.CHANNEL_STATUS>> = {};
 
+const resubscribeCallbacks = new Map<string, Array<() => void>>();
+
 /**
  * Trigger each of the socket event callbacks with the event information
  */
@@ -82,7 +84,7 @@ function init(args: Args): Promise<void> {
                 }
                 callSocketEventCallbacks('state_change', {previous: previousState, current: currentState});
             },
-            onError: (message: string) => callSocketEventCallbacks('error', {data: {message}}),
+            onError: (message, code) => callSocketEventCallbacks('error', {type: CONST.ERROR.WEB_SOCKET_ERROR, data: {code: Number(code) || undefined, message}}),
             onAuthorizer: (channelName: string, socketId: string) => authenticatePusher(socketId, channelName) as Promise<PusherAuthorizerResult>,
         });
         socket.connect();
@@ -215,17 +217,26 @@ function bindEventToChannel<EventName extends PusherEventName>(
     return boundCb;
 }
 
+function onChannelResubscribe(channelName: string, callback: () => void) {
+    const callbacks = resubscribeCallbacks.get(channelName) ?? [];
+    resubscribeCallbacks.set(channelName, callbacks);
+    callbacks.push(callback);
+
+    return () => {
+        const index = callbacks.indexOf(callback);
+        if (index === -1) {
+            return;
+        }
+        callbacks.splice(index, 1);
+    };
+}
+
 /**
  * Subscribe to a channel and an event.
  * Returns a PusherSubscription — a Promise (for backward-compatible .catch()/.then())
  * with an .unsubscribe() method that removes only this specific callback.
  */
-function subscribe<EventName extends PusherEventName>(
-    channelName: string,
-    eventName?: EventName,
-    eventCallback: (data: EventData<EventName>) => void = () => {},
-    onResubscribe = () => {},
-): PusherSubscription {
+function subscribe<EventName extends PusherEventName>(channelName: string, eventName?: EventName, eventCallback: (data: EventData<EventName>) => void = () => {}): PusherSubscription {
     let wrappedCb: BoundCallback | undefined;
     let disposed = false;
 
@@ -276,9 +287,10 @@ function subscribe<EventName extends PusherEventName>(
                                     }
                                 },
                                 onSubscriptionSucceeded: () => {
+                                    const wasSubscribed = channels[channelName] === CONST.PUSHER.CHANNEL_STATUS.SUBSCRIBED;
                                     channels[channelName] = CONST.PUSHER.CHANNEL_STATUS.SUBSCRIBED;
                                     if (!disposed) {
-                                        wrappedCb = bindEventToChannel(channelName, eventName, eventCallback);
+                                        wrappedCb ??= bindEventToChannel(channelName, eventName, eventCallback);
                                     } else {
                                         // Handle was disposed mid-handshake — clean up the channel
                                         // if no other subscribers have bound callbacks to it
@@ -290,11 +302,12 @@ function subscribe<EventName extends PusherEventName>(
                                         }
                                     }
                                     resolve();
-                                    // When subscribing for the first time we register a success callback that can be
-                                    // called multiple times when the subscription succeeds again in the future
-                                    // e.g. as a result of Pusher disconnecting and reconnecting. This callback does
-                                    // not fire on the first subscription_succeeded event.
-                                    onResubscribe();
+
+                                    if (wasSubscribed) {
+                                        for (const resubscribeCallback of resubscribeCallbacks.get(channelName) ?? []) {
+                                            resubscribeCallback();
+                                        }
+                                    }
                                 },
                                 onSubscriptionError: (name: string, message: string) => {
                                     delete channels[channelName];
@@ -437,6 +450,7 @@ function disconnect() {
     pusherSocketID = '';
     channels = {};
     eventsBoundToChannels.clear();
+    resubscribeCallbacks.clear();
     initPromise = new Promise((resolve) => {
         resolveInitPromise = resolve;
     });
@@ -471,6 +485,7 @@ const MobilePusher: PusherModule = {
     init,
     subscribe,
     unsubscribe,
+    onChannelResubscribe,
     getChannel,
     isSubscribed,
     isAlreadySubscribing,

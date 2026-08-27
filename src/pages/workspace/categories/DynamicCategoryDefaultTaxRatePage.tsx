@@ -5,6 +5,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import type {ListItem} from '@components/SelectionList/types';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {formatDefaultTaxRateText, getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -28,6 +30,10 @@ import React, {useCallback, useMemo, useState} from 'react';
 
 type DynamicCategoryDefaultTaxRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_DEFAULT_TAX_RATE>;
 
+type TaxRateListItem = ListItem & {
+    value: string;
+};
+
 function DynamicCategoryDefaultTaxRatePage({
     route: {
         params: {policyID, categoryName},
@@ -43,16 +49,18 @@ function DynamicCategoryDefaultTaxRatePage({
     const [draftTaxRate, setDraftTaxRate] = useState<string>();
     const selectedTaxRate = draftTaxRate ?? persistedTaxRate;
     const hasChanges = !!selectedTaxRate && selectedTaxRate !== persistedTaxRate;
+    const initialSelectedTaxRate = useInitialSelection(selectedTaxRate, {isVisible: !!persistedTaxRate, resetOnFocus: true});
 
     const textForDefault = useCallback((taxID: string, taxRate: TaxRate) => formatDefaultTaxRateText(translate, taxID, taxRate, policy?.taxRates), [policy?.taxRates, translate]);
 
-    const taxesList = useMemo<ListItem[]>(() => {
+    const taxesList = useMemo<TaxRateListItem[]>(() => {
         if (!policy) {
             return [];
         }
         return Object.entries(policy.taxRates?.taxes ?? {})
             .map(([key, value]) => ({
                 text: textForDefault(key, value),
+                value: key,
                 keyForList: key,
                 isSelected: key === selectedTaxRate,
                 isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -60,6 +68,7 @@ function DynamicCategoryDefaultTaxRatePage({
             }))
             .sort((a, b) => localeCompare(a.text ?? a.keyForList ?? '', b.text ?? b.keyForList ?? ''));
     }, [policy, selectedTaxRate, textForDefault, localeCompare]);
+    const orderedTaxesList = moveInitialSelectionToTop(taxesList, initialSelectedTaxRate ? [initialSelectedTaxRate] : []);
 
     const saveAndGoBack = () => {
         if (hasChanges) {
@@ -94,7 +103,7 @@ function DynamicCategoryDefaultTaxRatePage({
                     onBackButtonPress={() => Navigation.goBack(categorySettingsBackPath)}
                 />
                 <SelectionList
-                    data={taxesList}
+                    data={orderedTaxesList}
                     ListItem={SingleSelectListItem}
                     onSelectRow={(item) => {
                         if (!item.keyForList) {
@@ -105,7 +114,9 @@ function DynamicCategoryDefaultTaxRatePage({
                     confirmButtonOptions={confirmButtonOptions}
                     shouldSingleExecuteRowSelect
                     addBottomSafeAreaPadding
-                    initiallyFocusedItemKey={persistedTaxRate}
+                    initiallyFocusedItemKey={initialSelectedTaxRate}
+                    shouldScrollToFocusedIndexOnMount={false}
+                    shouldUpdateFocusedIndex
                     style={{containerStyle: styles.pt3}}
                 />
             </ScreenWrapper>

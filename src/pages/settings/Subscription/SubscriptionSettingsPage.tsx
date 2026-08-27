@@ -4,7 +4,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -15,7 +14,6 @@ import {openSubscriptionPage} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -34,7 +32,6 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const subscriptionPlan = useSubscriptionPlan();
-    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew']);
     useDocumentTitle(translate('workspace.common.subscription'));
     useEffect(() => {
         openSubscriptionPage();
@@ -51,8 +48,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     }, [isAppLoading, shouldShowPage]);
 
     if (!shouldShowPage && isAppLoading) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SubscriptionSettingsPage', isAppLoading: !!isAppLoading, shouldShowPage};
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     if (!shouldShowPage) {
@@ -76,7 +72,6 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 shouldDisplayHelpButton
-                icon={illustrations.CreditCardsNew}
                 shouldUseHeadlineHeader
             />
             <ScrollView style={styles.pt3}>

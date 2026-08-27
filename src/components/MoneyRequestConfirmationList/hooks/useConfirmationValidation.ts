@@ -123,6 +123,9 @@ type UseConfirmationValidationParams = {
 
     /** Whether the date field is shown for this flow (mirrors the footer's date visibility) */
     shouldShowDate: boolean;
+
+    /** Whether the inline tax amount field is currently left empty (new manual expense flow) */
+    isTaxAmountEmpty: boolean;
 };
 
 /**
@@ -170,6 +173,7 @@ function useConfirmationValidation({
     isNewManualExpenseFlowEnabled,
     isReadOnly,
     shouldShowDate,
+    isTaxAmountEmpty,
 }: UseConfirmationValidationParams): {validate: (paymentType?: PaymentMethodType) => ValidationResult | null} {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const selectedParticipantsCount = selectedParticipants.length;
@@ -235,7 +239,7 @@ function useConfirmationValidation({
 
         const isCategoryBeingCreated = policyCategories?.[iouCategory]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
-        // The 'Uncategorized'/'none' sentinel means no category, so treat it as missing (not out of policy) here, mirroring
+        // The 'Uncategorized'/'none' placeholder means no category, so treat it as missing (not out of policy) here, mirroring
         // isCategoryMissing/ViolationsUtils. Otherwise it wrongly blocks confirmation when the policy lacks that literal category.
         if (iouCategory && !isCategoryMissing(iouCategory) && policyCategories && !policyCategories[iouCategory]?.enabled && !isCategoryBeingCreated) {
             return {errorKey: 'violations.categoryOutOfPolicy'};
@@ -267,6 +271,10 @@ function useConfirmationValidation({
 
         if (shouldShowTax && !!transaction?.taxCode && !hasTaxRateWithMatchingValue(policy, transaction)) {
             return {errorKey: 'violations.taxOutOfPolicy'};
+        }
+
+        if (isNewManualExpenseFlowEnabled && shouldShowTax && !isDistanceRequest && isTaxAmountEmpty) {
+            return {errorKey: 'iou.error.invalidAmount'};
         }
 
         // In the new manual expense flow the tax amount is edited inline, so the standalone tax amount step's
@@ -314,7 +322,9 @@ function useConfirmationValidation({
                 return {errorKey: 'iou.error.genericSmartscanFailureMessage', shouldSetDidConfirmSplit: true};
             }
 
-            if (isEditingSplitBill && iouAmount === 0) {
+            const isFullyCoveredByCommuterExclusion =
+                isDistanceRequest && (transaction?.comment?.customUnit?.commuterExclusion ?? 0) > 0 && transaction?.comment?.customUnit?.reimbursableDistance === 0;
+            if (isEditingSplitBill && iouAmount === 0 && !isFullyCoveredByCommuterExclusion) {
                 return {errorKey: 'iou.error.invalidAmount'};
             }
 

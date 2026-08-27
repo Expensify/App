@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -84,12 +84,13 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                 <Text>{translate('signerInfoStep.isConnecting', bankAccountLastFour, currency)}</Text>
                 <Button
                     style={[styles.mt2, styles.alignSelfStart]}
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     isDisabled={completed}
-                    text={translate(completed ? 'signerInfoStep.thisStep' : 'signerInfoStep.enterSignerInfo')}
                     onPress={() => handleEnterSignerInfoPress(policyID, bankAccountID, !!completed)}
                     sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_ENTER_SIGNER_INFO}
-                />
+                >
+                    <Button.Text>{translate(completed ? 'signerInfoStep.thisStep' : 'signerInfoStep.enterSignerInfo')}</Button.Text>
+                </Button>
             </View>
         );
     }

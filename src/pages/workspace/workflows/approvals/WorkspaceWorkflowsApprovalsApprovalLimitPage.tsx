@@ -1,6 +1,7 @@
 import AmountForm from '@components/AmountForm';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/ButtonComposed';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -10,7 +11,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import UserPill from '@components/UserPill';
 
-import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -99,7 +99,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
             // screen carries extra seed params, so a strict param match misses it and REPLACE mounts
             // a fresh edit screen that re-derives the workflow from the policy — wiping the unsaved
             // draft (the seeded agent and any in-progress edits). POP_TO returns to the live screen.
-            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApprover), {compareParams: false});
+            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApprover, approvalWorkflow?.memberEmail), {compareParams: false});
             return;
         }
         // Mark that we've completed the initial wizard flow before navigating to the summary page
@@ -181,8 +181,6 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     const navigateToApproverChange = () => {
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER_CHANGE.getRoute(policyID, approverIndex));
     };
-
-    const buttonContainerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mh5, styles.mb5]});
 
     const shouldShowRemoveLimitRow = isEditFlow && (hasAmount || hasApprover);
 
@@ -301,7 +299,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                         </View>
                     </ScrollView>
 
-                    <View style={buttonContainerStyle}>
+                    <FixedFooter addBottomSafeAreaPadding>
                         {!isEditFlow && (
                             <Button
                                 size={CONST.BUTTON_SIZE.LARGE}
@@ -318,7 +316,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                         >
                             <Button.Text>{isEditFlow ? translate('common.save') : translate('workflowsApprovalLimitPage.next')}</Button.Text>
                         </Button>
-                    </View>
+                    </FixedFooter>
                 </FullPageNotFoundView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

@@ -1,13 +1,17 @@
 import {subscribeToUserEvents} from '@libs/actions/User';
+import * as API from '@libs/API';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import Log from '@libs/Log';
 import type * as NetworkStateModule from '@libs/NetworkState';
 import Pusher from '@libs/Pusher';
-import PusherUtils from '@libs/PusherUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
 
 jest.mock('@libs/API');
+const mockAPI = jest.mocked(API);
+
 jest.mock('@libs/PusherUtils');
 jest.mock('@libs/ActiveClientManager', () => ({
     isClientTheLeader: jest.fn(() => true),
@@ -19,12 +23,12 @@ jest.mock('@libs/NetworkState', () => ({
     getIsOffline: () => false,
 }));
 
-// The watchdog checks every 60s; each reconnect skips the following check, so while PONGs stay missing it fires on every second check tick (~2 minutes)
-const CHECK_INTERVAL_MS = 60_000;
+const PING_INTERVAL_MS = 30_000;
+const MISSING_PONG_THRESHOLD_MS = 60_000;
 
-describe('Pusher PINGPONG watchdog', () => {
+describe('Pusher PINGPONG', () => {
     let reconnectSpy: jest.SpyInstance;
-    let pongCallback: Parameters<typeof PusherUtils.subscribeToPrivateUserChannelEvent>[2];
+    let logSpy: jest.SpyInstance;
 
     beforeAll(() => {
         // jest/setupAfterEnv.ts calls jest.useRealTimers() after the globally-enabled fake timers are installed,
@@ -32,50 +36,32 @@ describe('Pusher PINGPONG watchdog', () => {
         jest.useFakeTimers();
         Onyx.init({keys: ONYXKEYS});
         reconnectSpy = jest.spyOn(Pusher, 'reconnect').mockImplementation(() => {});
+        logSpy = jest.spyOn(Log, 'info').mockImplementation(() => {});
+
+        // The automock returns undefined, and pingPusher chains a .catch on the returned promise
+        mockAPI.makeRequestWithSideEffects.mockResolvedValue(undefined);
 
         subscribeToUserEvents(123, 'test@example.com', () => undefined);
-
-        const callback = jest.mocked(PusherUtils.subscribeToPrivateUserChannelEvent).mock.calls.find(([eventName]) => eventName === Pusher.TYPE.PONG)?.[2];
-        if (!callback) {
-            throw new Error('The PONG subscription was not registered');
-        }
-        pongCallback = callback;
     });
 
     afterAll(() => {
         reconnectSpy.mockRestore();
+        logSpy.mockRestore();
         jest.useRealTimers();
     });
 
-    // Both tests share one continuous fake-timer timeline and must run in file order
+    it('logs a missing PONG without reconnecting, leaving recovery to the Pusher SDK', async () => {
+        await jest.advanceTimersByTimeAsync(5 * MISSING_PONG_THRESHOLD_MS);
 
-    it('reconnects once past the threshold and keeps retrying every second check tick while PONGs stay missing', async () => {
-        await jest.advanceTimersByTimeAsync(CHECK_INTERVAL_MS + 1_000);
-        expect(reconnectSpy).toHaveBeenCalledTimes(1);
-
-        // The check tick right after a reconnect is skipped
-        await jest.advanceTimersByTimeAsync(CHECK_INTERVAL_MS);
-        expect(reconnectSpy).toHaveBeenCalledTimes(1);
-
-        await jest.advanceTimersByTimeAsync(CHECK_INTERVAL_MS);
-        expect(reconnectSpy).toHaveBeenCalledTimes(2);
-
-        await jest.advanceTimersByTimeAsync(2 * CHECK_INTERVAL_MS);
-        expect(reconnectSpy).toHaveBeenCalledTimes(3);
+        expect(reconnectSpy).not.toHaveBeenCalled();
+        expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('leaving recovery to the Pusher SDK'));
     });
 
-    it('defers the next reconnect when a PONG arrives', async () => {
-        reconnectSpy.mockClear();
+    it('sends the PING off the durable write queue', async () => {
+        mockAPI.makeRequestWithSideEffects.mockClear();
+        await jest.advanceTimersByTimeAsync(PING_INTERVAL_MS);
 
-        // Let the skipped check tick pass, then deliver a PONG
-        await jest.advanceTimersByTimeAsync(CHECK_INTERVAL_MS);
-        pongCallback({pingID: '1', pingTimestamp: Date.now()});
-
-        // Without the PONG resetting the clock, this next check tick would reconnect
-        await jest.advanceTimersByTimeAsync(CHECK_INTERVAL_MS);
-        expect(reconnectSpy).not.toHaveBeenCalled();
-
-        await jest.advanceTimersByTimeAsync(CHECK_INTERVAL_MS);
-        expect(reconnectSpy).toHaveBeenCalledTimes(1);
+        expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.PUSHER_PING, expect.anything());
+        expect(mockAPI.writeWithNoDuplicatesConflictAction).not.toHaveBeenCalled();
     });
 });

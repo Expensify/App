@@ -3,7 +3,6 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {handleExitToNavigation, signInWithValidateCodeAndNavigate} from '@userActions/Session';
 
@@ -34,7 +33,7 @@ function ValidateLoginPage({
                 }
                 Navigation.goBack();
             } else {
-                signInWithValidateCodeAndNavigate(Number(accountID), validateCode, preferredLocale, '', exitTo);
+                signInWithValidateCodeAndNavigate(Number(accountID), validateCode, preferredLocale, exitTo);
             }
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -50,10 +49,7 @@ function ValidateLoginPage({
         });
     }, [session?.autoAuthState]);
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'ValidateLoginPage',
-    };
-    return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+    return <FullScreenLoadingIndicator />;
 }
 
 export default ValidateLoginPage;

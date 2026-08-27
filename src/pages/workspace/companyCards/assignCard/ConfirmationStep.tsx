@@ -12,6 +12,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
@@ -21,7 +22,6 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -72,7 +72,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
 
     const cardToAssign = assignCard?.cardToAssign;
 
-    const cardholder = getPersonalDetailByEmail(cardToAssign?.email ?? '');
+    const cardholder = usePersonalDetailByLogin(cardToAssign?.email ?? '');
     const cardholderName = Str.removeSMSDomain(cardholder?.displayName ?? '');
 
     const cardholderEmail = Str.removeSMSDomain(cardToAssign?.email ?? '');
@@ -121,7 +121,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             return;
         }
 
-        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, translate, {...cardToAssign, cardholder, bankName}, currentUserAccountID);
+        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, {...cardToAssign, cardholder, bankName}, cardholderAccountID, currentUserAccountID);
     };
 
     const editStep = (step: string) => {
@@ -148,7 +148,10 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     };
 
     const handleBackButtonPress = () => {
-        setAssignCardStepAndData({isEditing: true});
+        // Header back is plain wizard back-navigation, so it must NOT set isEditing. Setting it here would make the
+        // assignee step think the user came to edit the cardholder and route its own back to Confirmation, trapping the
+        // user in a loop between Confirmation and Assignee. Editing the cardholder goes through editStep(ASSIGNEE), which is
+        // the one place that sets isEditing: true.
         Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(feed, cardID), ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
             compareParams: false,
         });
@@ -194,6 +197,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                         icon={cardholder?.avatar ?? getDefaultAvatarURL({accountID: cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID})}
                         iconType={CONST.ICON_TYPE_AVATAR}
                         shouldShowRightIcon
+                        pressableTestID={CONST.ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID}
                         onPress={() => editStep(CONST.COMPANY_CARD.STEP.ASSIGNEE)}
                     />
                     <MenuItemWithTopDescription

@@ -58,7 +58,7 @@ function ScanGlobalCreate({iouType, backToReport, ...innerProps}: ScanGlobalCrea
 
 type ScanGlobalCreateInnerProps = Omit<ScanGlobalCreateProps, 'iouType' | 'backToReport'>;
 
-function ScanGlobalCreateInner({reportID, transactionID, transaction, currentUserPersonalDetails}: ScanGlobalCreateInnerProps) {
+function ScanGlobalCreateInner({reportID, transactionID, transaction}: ScanGlobalCreateInnerProps) {
     const navigateGlobalCreate = useNavigateGlobalCreate();
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: validTransactionDraftIDsSelector,
@@ -76,7 +76,6 @@ function ScanGlobalCreateInner({reportID, transactionID, transaction, currentUse
             getFileSource,
             initialTransaction: transaction,
             initialTransactionID: transactionID,
-            currentUserPersonalDetails,
             reportID,
             shouldAcceptMultipleFiles: true,
             isMultiScanEnabled,
@@ -107,7 +106,7 @@ function ScanGlobalCreateInner({reportID, transactionID, transaction, currentUse
         navigateGlobalCreate(ids, isMultiScanEnabled);
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
+    const {validateFiles, PDFValidationComponent} = useFilesValidation((files: FileObject[]) => {
         processReceipts(files, getPickerCaptureSource());
     });
 
@@ -120,16 +119,16 @@ function ScanGlobalCreateInner({reportID, transactionID, transaction, currentUse
                         processReceipts([file], 'camera');
                         return;
                     }
-                    // Pre-warm the thumbnail cache before navigating so the confirm page
-                    // doesn't flash an un-thumbnail receipt.
-                    precacheReceiptImage(source).then(() => processReceipts([file], 'camera'));
+                    // Seed the receipt-image cache before navigating so the confirm page can resolve
+                    // the receipt synchronously instead of generating a thumbnail asynchronously.
+                    precacheReceiptImage(source);
+                    processReceipts([file], 'camera');
                 }}
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
                 onMultiScanSubmit={submitMultiScan}
                 shouldAcceptMultipleFiles
             />
-            {ErrorModal}
         </>
     );
 }

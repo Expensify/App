@@ -45,8 +45,8 @@ describe('actions/BankAccounts', () => {
     });
 
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = TestHelper.createGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -101,10 +101,17 @@ describe('actions/BankAccounts', () => {
                 // Then we should call the existing API command
                 TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID, 1);
                 const call = TestHelper.getFetchMockCalls(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID).at(0);
-                const body = (call?.at(1) as RequestInit)?.body;
-                const params = body instanceof FormData ? Object.fromEntries(body) : {};
+                if (!call) {
+                    throw new Error('Expected ConnectBankAccountWithPlaid fetch call');
+                }
 
-                expect(params).toEqual(
+                const [, options] = call;
+                const body = options?.body;
+                if (!(body instanceof FormData)) {
+                    throw new Error('Expected ConnectBankAccountWithPlaid request body to be FormData');
+                }
+
+                expect(Object.fromEntries(body)).toEqual(
                     expect.objectContaining({
                         bankAccountID: `${bankAccountID}`,
                         routingNumber: selectedPlaidBankAccount.routingNumber,

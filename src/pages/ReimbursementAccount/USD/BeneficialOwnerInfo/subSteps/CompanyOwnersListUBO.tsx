@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
@@ -117,14 +117,15 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
                     />
                 )}
                 <Button
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={isLoading}
                     isDisabled={isOffline}
                     style={[styles.w100]}
                     onPress={handleUBOsConfirmation}
-                    text={translate('common.confirm')}
-                />
+                >
+                    <Button.Text>{translate('common.confirm')}</Button.Text>
+                </Button>
             </View>
         </ScrollView>
     );

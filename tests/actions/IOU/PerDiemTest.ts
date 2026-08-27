@@ -1,11 +1,20 @@
 import type {PerDiemExpenseTransactionParams} from '@libs/actions/IOU/PerDiem';
-import {addSubrate, clearSubrates, computePerDiemExpenseAmount, getPerDiemExpenseInformation, removeSubrate, submitPerDiemExpense, updateSubrate} from '@libs/actions/IOU/PerDiem';
+import {
+    addSubrate,
+    clearSubrates,
+    computePerDiemExpenseAmount,
+    getPerDiemExpenseInformation,
+    getPerDiemExpensePolicyID,
+    removeSubrate,
+    submitPerDiemExpense,
+    updateSubrate,
+} from '@libs/actions/IOU/PerDiem';
 import type RequestMoneyParticipantParams from '@libs/actions/IOU/types/RequestMoneyParticipantParams';
 
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, RecentlyUsedTags, Report} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyTagLists, RecentlyUsedTags, Report} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
@@ -19,8 +28,9 @@ import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyCategories from '../../utils/collections/policyCategory';
 import createRandomPolicyTags from '../../utils/collections/policyTags';
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {formatPhoneNumber, getGlobalFetchMock} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -57,6 +67,7 @@ describe('PerDiem', () => {
         displayName: RORY_EMAIL,
         avatar: 'https://example.com/avatar.jpg',
     };
+    let allPolicyTags: OnyxCollection<PolicyTagLists>;
 
     beforeAll(() => {
         Onyx.init({
@@ -69,10 +80,12 @@ describe('PerDiem', () => {
         return waitForBatchedUpdates();
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllTimers();
         global.fetch = getGlobalFetchMock();
-        return Onyx.clear().then(waitForBatchedUpdates);
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+        allPolicyTags = await getOnyxValue(ONYXKEYS.COLLECTION.POLICY_TAGS);
     });
 
     describe('computePerDiemExpenseAmount', () => {
@@ -311,13 +324,28 @@ describe('PerDiem', () => {
                     accountID: 123,
                     login: 'payee@example.com',
                 },
-            };
+            } satisfies RequestMoneyParticipantParams;
+
+            const parentChatReport = createMock<OnyxEntry<Report>>({});
+            const participantParams = mockParticipantParams;
+
+            const earlyPolicyID = getPerDiemExpensePolicyID({
+                report: parentChatReport,
+                participantParams,
+                existingIOUReport: undefined,
+                betas: [CONST.BETAS.ALL],
+                currentUserAccountIDParam: 123,
+            });
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
-                parentChatReport: {} as OnyxEntry<Report>,
+                dateFnsLocale: undefined,
+                parentChatReport,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
-                participantParams: mockParticipantParams as unknown as RequestMoneyParticipantParams,
+                participantParams,
                 recentlyUsedParams: {},
+                policyTags,
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'payee@example.com',
@@ -404,13 +432,27 @@ describe('PerDiem', () => {
             };
 
             // When: Call getPerDiemExpenseInformation
+            const parentChatReport = createMock<OnyxEntry<Report>>({});
+
+            const earlyPolicyID = getPerDiemExpensePolicyID({
+                report: parentChatReport,
+                participantParams: mockParticipantParams,
+                existingIOUReport: undefined,
+                betas: [CONST.BETAS.ALL],
+                currentUserAccountIDParam: 123,
+            });
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+
             const result = getPerDiemExpenseInformation({
-                parentChatReport: {} as OnyxEntry<Report>,
+                dateFnsLocale: undefined,
+                parentChatReport,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
                 participantParams: mockParticipantParams,
                 policyParams: mockPolicyParams,
                 recentlyUsedParams: {},
                 moneyRequestReportID: '1',
+                policyTags,
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
@@ -497,11 +539,23 @@ describe('PerDiem', () => {
                 participant: {accountID: 123, login: 'payee@example.com'},
             };
 
+            const earlyPolicyID = getPerDiemExpensePolicyID({
+                report: undefined,
+                participantParams: mockParticipantParams,
+                existingIOUReport: undefined,
+                betas: [CONST.BETAS.ALL],
+                currentUserAccountIDParam: 123,
+            });
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+
             const result = getPerDiemExpenseInformation({
+                dateFnsLocale: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 parentChatReport: undefined,
                 transactionParams: mockTransactionParams,
                 participantParams: mockParticipantParams,
                 recentlyUsedParams: {},
+                policyTags,
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'payee@example.com',
@@ -581,7 +635,7 @@ describe('PerDiem', () => {
                 role: CONST.REPORT.ROLE.MEMBER,
             };
 
-            const mockTransactionParams = {
+            const mockTransactionParams = createMock<PerDiemExpenseTransactionParams>({
                 comment: 'Conference per diem',
                 currency: 'USD',
                 created: '2024-01-20',
@@ -591,20 +645,35 @@ describe('PerDiem', () => {
                 billable: false,
                 attendees: [],
                 reimbursable: true,
-            };
+            });
 
-            const mockParticipantParams = {
+            const mockParticipantParams = createMock<RequestMoneyParticipantParams>({
                 payeeAccountID: 456,
                 payeeEmail: 'payee@example.com',
                 participant: mockParticipant,
-            };
+            });
 
             // When: Call getPerDiemExpenseInformation with existing chat report
+            const parentChatReport = createMock<OnyxEntry<Report>>(existingChatReport);
+            const participantParams = mockParticipantParams;
+
+            const earlyPolicyID = getPerDiemExpensePolicyID({
+                report: parentChatReport,
+                participantParams,
+                existingIOUReport: undefined,
+                betas: [CONST.BETAS.ALL],
+                currentUserAccountIDParam: 123,
+            });
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+
             const result = getPerDiemExpenseInformation({
-                parentChatReport: existingChatReport as OnyxEntry<Report>,
-                transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
-                participantParams: mockParticipantParams as RequestMoneyParticipantParams,
+                dateFnsLocale: undefined,
+                parentChatReport,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                transactionParams: mockTransactionParams,
+                participantParams,
                 recentlyUsedParams: {},
+                policyTags,
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
@@ -667,7 +736,7 @@ describe('PerDiem', () => {
                 quantity: 1,
             };
 
-            const mockTransactionParams = {
+            const mockTransactionParams = createMock<PerDiemExpenseTransactionParams>({
                 comment: 'Policy per diem',
                 currency: 'USD',
                 created: '2024-01-25',
@@ -677,25 +746,40 @@ describe('PerDiem', () => {
                 billable: true,
                 attendees: [],
                 reimbursable: true,
-            };
+            });
 
-            const mockParticipantParams = {
+            const mockParticipantParams = createMock<RequestMoneyParticipantParams>({
                 payeeAccountID: 456,
                 payeeEmail: 'payee@example.com',
                 participant: mockParticipant,
-            };
+            });
 
             const mockPolicyParams = {
                 policy: createRandomPolicy(2),
             };
 
             // When: Call getPerDiemExpenseInformation for policy expense chat
+            const parentChatReport = createMock<OnyxEntry<Report>>({});
+            const participantParams = mockParticipantParams;
+
+            const earlyPolicyID = getPerDiemExpensePolicyID({
+                report: parentChatReport,
+                participantParams,
+                existingIOUReport: undefined,
+                betas: [CONST.BETAS.ALL],
+                currentUserAccountIDParam: 123,
+            });
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+
             const result = getPerDiemExpenseInformation({
-                parentChatReport: {} as OnyxEntry<Report>,
-                transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
-                participantParams: mockParticipantParams as RequestMoneyParticipantParams,
+                dateFnsLocale: undefined,
+                parentChatReport,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                transactionParams: mockTransactionParams,
+                participantParams,
                 policyParams: mockPolicyParams,
                 recentlyUsedParams: {},
+                policyTags,
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
@@ -746,22 +830,38 @@ describe('PerDiem', () => {
                 type: CONST.POLICY.TYPE.TEAM,
             });
             await waitForBatchedUpdates();
+            allPolicyTags = await getOnyxValue(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
             // When submitting a per diem expense
+            const report = {
+                reportID: '1',
+                iouReportID,
+            };
+            const participantParams = {
+                payeeEmail: currentUserPersonalDetails.login,
+                payeeAccountID: currentUserPersonalDetails.accountID,
+                participant: {},
+            };
+            const betas = [CONST.BETAS.ALL];
+
+            const earlyPolicyID = getPerDiemExpensePolicyID({
+                report,
+                participantParams,
+                existingIOUReport: undefined,
+                betas,
+                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+            });
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+
             submitPerDiemExpense({
+                dateFnsLocale: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                participantParams: {
-                    payeeEmail: currentUserPersonalDetails.login,
-                    payeeAccountID: currentUserPersonalDetails.accountID,
-                    participant: {},
-                },
-                report: {
-                    reportID: '1',
-                    iouReportID,
-                },
+                participantParams,
+                report,
                 transactionParams: {
                     created: DateUtils.getDBTime(),
                     currency: CONST.CURRENCY.USD,
@@ -780,8 +880,9 @@ describe('PerDiem', () => {
                     policyRecentlyUsedTags,
                 },
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
+                betas,
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                policyTags,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -820,20 +921,36 @@ describe('PerDiem', () => {
                 type: CONST.POLICY.TYPE.TEAM,
             });
             await waitForBatchedUpdates();
+
+            const report = {
+                reportID: '1',
+                iouReportID,
+            };
+            const participantParams = {
+                payeeEmail: currentUserPersonalDetails.login,
+                payeeAccountID: currentUserPersonalDetails.accountID,
+                participant: {},
+            };
+            const betas = [CONST.BETAS.ALL];
+
+            const earlyPolicyID = getPerDiemExpensePolicyID({
+                report,
+                participantParams,
+                existingIOUReport: undefined,
+                betas,
+                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+            });
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+
             submitPerDiemExpense({
+                dateFnsLocale: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                participantParams: {
-                    payeeEmail: currentUserPersonalDetails.login,
-                    payeeAccountID: currentUserPersonalDetails.accountID,
-                    participant: {},
-                },
-                report: {
-                    reportID: '1',
-                    iouReportID,
-                },
+                participantParams,
+                report,
                 transactionParams: {
                     created: DateUtils.getDBTime(),
                     currency: CONST.CURRENCY.USD,
@@ -850,8 +967,9 @@ describe('PerDiem', () => {
                     policy: {...createRandomPolicy(1)},
                 },
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
+                betas,
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                policyTags,
                 optimisticTransactionID,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
@@ -908,18 +1026,33 @@ describe('PerDiem', () => {
             };
 
             // When calling getPerDiemExpenseInformation with personalDetails
+            const parentChatReport = createMock<OnyxEntry<Report>>({});
+            const participantParams = {
+                payeeAccountID: RORY_ACCOUNT_ID,
+                payeeEmail: RORY_EMAIL,
+                participant: {
+                    accountID: RORY_ACCOUNT_ID,
+                    login: RORY_EMAIL,
+                },
+            } satisfies RequestMoneyParticipantParams;
+
+            const earlyPolicyID = getPerDiemExpensePolicyID({
+                report: parentChatReport,
+                participantParams,
+                existingIOUReport: undefined,
+                betas: [CONST.BETAS.ALL],
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+            });
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+
             const result = getPerDiemExpenseInformation({
-                parentChatReport: {} as OnyxEntry<Report>,
+                dateFnsLocale: undefined,
+                parentChatReport,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
-                participantParams: {
-                    payeeAccountID: RORY_ACCOUNT_ID,
-                    payeeEmail: RORY_EMAIL,
-                    participant: {
-                        accountID: RORY_ACCOUNT_ID,
-                        login: RORY_EMAIL,
-                    },
-                } as unknown as RequestMoneyParticipantParams,
+                participantParams,
                 recentlyUsedParams: {},
+                policyTags,
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
@@ -963,20 +1096,35 @@ describe('PerDiem', () => {
             };
 
             // When submitting a per diem expense with personalDetails
+            const report = {
+                reportID: '1',
+                iouReportID,
+            };
+            const participantParams = {
+                payeeEmail: currentUserPersonalDetails.login,
+                payeeAccountID: currentUserPersonalDetails.accountID,
+                participant: {},
+            };
+            const betas = [CONST.BETAS.ALL];
+
+            const earlyPolicyID = getPerDiemExpensePolicyID({
+                report,
+                participantParams,
+                existingIOUReport: undefined,
+                betas,
+                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+            });
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+
             submitPerDiemExpense({
+                dateFnsLocale: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                participantParams: {
-                    payeeEmail: currentUserPersonalDetails.login,
-                    payeeAccountID: currentUserPersonalDetails.accountID,
-                    participant: {},
-                },
-                report: {
-                    reportID: '1',
-                    iouReportID,
-                },
+                participantParams,
+                report,
                 transactionParams: {
                     created: DateUtils.getDBTime(),
                     currency: CONST.CURRENCY.USD,
@@ -993,8 +1141,9 @@ describe('PerDiem', () => {
                     policy: {...createRandomPolicy(1)},
                 },
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
+                betas,
                 personalDetails: personalDetailsList,
+                policyTags,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,

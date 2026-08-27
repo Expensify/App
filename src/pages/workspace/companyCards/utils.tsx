@@ -5,7 +5,9 @@ import {sortDefaultToTop} from '@libs/ListUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getCurrentConnectionName, getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
+import {getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
+
+import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
 
 import type {ThemeStyles} from '@styles/index';
 
@@ -39,7 +41,7 @@ function getExportMenuItem(
     backTo?: string | undefined,
 ): ExportIntegration | undefined {
     const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
-    const currentConnectionName = getCurrentConnectionName(policy);
+    const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
     const defaultVendor = translate('workspace.accounting.defaultVendor');
     const defaultAccount = translate('workspace.accounting.defaultAccount');
@@ -382,11 +384,11 @@ function getExportMenuItem(
             const rilletData = policy?.connections?.rillet?.data;
             const exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT;
             const exportReimbursable = rilletConfig?.export?.reimbursable ?? CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL;
-            const exportCompanyCard = rilletConfig?.export?.companyCard ?? CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD;
+            const exportNonReimbursable = rilletConfig?.export?.nonReimbursable ?? CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE;
             const shouldShowMenuItem =
                 rilletConfig?.export?.exportToMultipleAccounts &&
                 exportReimbursable === CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL &&
-                exportCompanyCard === CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD;
+                exportNonReimbursable === CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE;
             const creditCardAccountCode = rilletConfig?.export?.creditCardAccountCode;
             const cardProgramsUsingCustomAccounts = rilletConfig?.export?.cardProgramAccounts;
             const cardProgramAccountCode = (companyCard?.bank ? cardProgramsUsingCustomAccounts?.[companyCard.bank] : undefined) ?? creditCardAccountCode;

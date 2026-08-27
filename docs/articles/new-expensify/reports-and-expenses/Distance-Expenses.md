@@ -1,7 +1,7 @@
 ---
 title: Distance Expenses
 description: Learn how to create a Distance expense using GPS tracking, map-based routes, manual entry, or odometer readings, and how the reimbursement rate is determined in New Expensify.
-keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance]
+keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, edit stop, trim trip, edit GPS trip, shorten GPS route, GPS slider, total distance]
 internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, manual entry, and odometer readings, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
 ---
 
@@ -171,6 +171,10 @@ No. GPS tracking runs in the background on your mobile device. A notification co
 ## What does the GPS Distance expense receipt look like?
 
 The GPS receipt shows a map of your actual route driven, along with the total distance and calculated reimbursement amount. It looks similar to a map-based distance receipt, but reflects the path you actually took rather than a suggested route. If you paused and resumed during the trip, the receipt shows each segment separately with its own start and stop waypoints.
+
+## Can I edit a GPS trip after I stop tracking?
+
+Yes. After you tap **Stop**, tap the pencil **Edit** icon next to the distance counter to open the **Edit stop** screen. Drag the slider to move the end point back to an earlier stop along your recorded route — the map route and the **Total distance** value update live as you drag — then tap **Save**. The GPS screen then shows the trimmed distance and updated end address. To restore the full trip, open **Edit stop** again and drag the slider all the way to the right. Tapping **Resume** and **Stop** also resets any trim and shows the full trip again.
 
 ## Can I use GPS tracking on web or desktop?
 

@@ -18,7 +18,6 @@ import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getDo
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -80,12 +79,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     };
 
     if (isLoadingOnyxValue(cardFeedsResult) || isLoadingOnyxValue(lastSelectedFeedResult)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'WorkspaceCompanyCardsSettingsFeedNamePage',
-            isCardFeedsLoading: isLoadingOnyxValue(cardFeedsResult),
-            isLastSelectedFeedLoading: isLoadingOnyxValue(lastSelectedFeedResult),
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

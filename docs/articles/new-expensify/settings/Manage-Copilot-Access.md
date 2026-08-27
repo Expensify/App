@@ -14,6 +14,8 @@ If you've been granted Copilot access and need help switching accounts or workin
 
 If you just need someone to handle approvals while you're away, [learn how to assign a vacation delegate](/articles/new-expensify/settings/Delegate-when-out-of-office).
 
+Agents can also have delegated access. When you create an agent, it's automatically added as a full-access Copilot on your account so it can act on your behalf, and it appears in your **Copilot: Delegated Access** list alongside any members you've added. [Learn how to create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents).
+
 ## Who can add a Copilot
 
 Any Expensify member can grant another member Copilot access to their own Expensify account.
@@ -92,3 +94,7 @@ No. Only the account owner can manage Copilot access.
 ## Can I have multiple Copilots?
 
 Yes. You can add multiple Copilots to your account. You must wait one minute between adding each Copilot.
+
+## Why do I see an agent in my Copilot list?
+
+When you create an agent, it's automatically added as a full-access Copilot on your account so it can use your personal context and manage expenses and reports on your behalf. You don't need to add it by hand. You can review or remove this access at any time in the **Copilot: Delegated Access** section. [Learn how to create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents).

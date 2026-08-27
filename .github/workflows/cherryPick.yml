@@ -221,6 +221,11 @@ jobs:
               echo "😞 PR can't be automerged, there are merge conflicts in the following files:"
               echo "$UNMERGED_FILES"
               git cherry-pick --abort
+              if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" =~ Expensify/Mobile-Expensify* ]]; then
+                echo "::error::❌ This Mobile-Expensify PR has cherry-pick conflicts, and this workflow does not support resolving Mobile-Expensify conflicts automatically."
+                echo "::error::Please manually cherry-pick ${{ inputs.PULL_REQUEST_URL }} to the Mobile-Expensify ${{ inputs.TARGET }} branch instead."
+                exit 1
+              fi
               echo "HAS_CONFLICTS=true" >> "$GITHUB_OUTPUT"
             fi
           fi
@@ -247,7 +252,16 @@ jobs:
             fi
 
             # Push E/App changes
-            git push origin ${{ inputs.TARGET }}
+            if ! git push origin ${{ inputs.TARGET }}; then
+              echo "E/App target branch advanced during the push; reconciling once before retrying."
+              git fetch origin ${{ inputs.TARGET }} --no-recurse-submodules --no-tags
+              if ! git rebase origin/${{ inputs.TARGET }}; then
+                echo "::error::❌ Failed to rebase E/App changes onto the updated ${{ inputs.TARGET }} branch."
+                git rebase --abort || true
+                exit 1
+              fi
+              git push origin ${{ inputs.TARGET }}
+            fi
           fi
 
       - name: Warn that previous deploy was superseded

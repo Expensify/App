@@ -1,5 +1,6 @@
 import {
     appendCountryCode,
+    formatE164PhoneNumber,
     getEmailDomain,
     getPhoneLogin,
     getPhoneNumberWithoutSpecialChars,
@@ -55,6 +56,23 @@ describe('LoginUtils', () => {
             const countryCode = CONST.DEFAULT_COUNTRY_CODE;
             const parsedPhone = appendCountryCode(givenPhone, countryCode);
             expect(parsedPhone).toBe('+12345678901');
+        });
+    });
+    describe('formatE164PhoneNumber', () => {
+        it('Should keep the calling code of a number that already has one', () => {
+            expect(formatE164PhoneNumber('+442071234567', CONST.DEFAULT_COUNTRY_CODE)).toBe('+442071234567');
+        });
+        it('Should prepend the country code to a bare US number', () => {
+            expect(formatE164PhoneNumber('201 867 5309', CONST.DEFAULT_COUNTRY_CODE)).toBe('+12018675309');
+        });
+        it('Should prepend the country code to a bare UK number', () => {
+            expect(formatE164PhoneNumber('20 7123 4567', 44)).toBe('+442071234567');
+        });
+        it('Should keep the calling code when it differs from the country code', () => {
+            expect(formatE164PhoneNumber('+61255501234', CONST.DEFAULT_COUNTRY_CODE)).toBe('+61255501234');
+        });
+        it('Should return undefined for a value that is not a phone number', () => {
+            expect(formatE164PhoneNumber('abcdefg', CONST.DEFAULT_COUNTRY_CODE)).toBeUndefined();
         });
     });
     describe('isEmailPublicDomain', () => {

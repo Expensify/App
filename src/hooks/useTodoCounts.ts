@@ -36,7 +36,7 @@ function useTodoCounts(enabled = true): {counts: TodoCounts; singleReportIDs: To
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [allTransactions, transactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -65,6 +65,7 @@ function useTodoCounts(enabled = true): {counts: TodoCounts; singleReportIDs: To
         bankAccountList,
         currentUserAccountID: userAccountID,
         login,
+        areTransactionsLoaded: transactionsMetadata.status === 'loaded',
     });
 
     const counts: TodoCounts = {

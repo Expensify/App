@@ -4,8 +4,10 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import {buildOptimisticDetachReceipt, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {logReceiptCaptured, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
@@ -16,7 +18,7 @@ import {resolveDetachReceiptConflicts} from '@userActions/RequestConflictUtils';
 import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
@@ -27,7 +29,6 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
-import {getAllReports} from '.';
 import {getReceiptError} from './MoneyRequestBuilder';
 
 type ReplaceReceipt = {
@@ -40,23 +41,22 @@ type ReplaceReceipt = {
     isSameReceipt?: boolean;
     transactionPolicyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
     transactionViolations?: OnyxEntry<OnyxTypes.TransactionViolations>;
+    transactionReport: OnyxEntry<OnyxTypes.Report>;
 };
-type ReplaceReceiptRetryParams = Omit<ReplaceReceipt, 'transaction'> & {transactionID: string};
+type ReplaceReceiptRetryParams = Omit<ReplaceReceipt, 'transaction' | 'transactionReport'> & {transactionID: string};
 
 function detachReceipt(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
     transactionPolicy: OnyxEntry<OnyxTypes.Policy>,
     transactionPolicyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
+    transactionReport: OnyxEntry<OnyxTypes.Report>,
     transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionID = transaction?.transactionID;
     if (!transactionID) {
         return;
     }
-    const allReports = getAllReports();
-
-    const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
     const newTransaction = transaction
         ? {
               ...transaction,
@@ -115,7 +115,7 @@ function detachReceipt(
             policyTagList: transactionPolicyTagList ?? {},
             policyCategories: transactionPolicyCategories ?? {},
             hasDependentTags: hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
-            isInvoiceTransaction: isInvoiceReportReportUtils(expenseReport),
+            isInvoiceTransaction: isInvoiceReportReportUtils(transactionReport),
             ownerLogin: undefined,
         });
         optimisticData.push(violationsOnyxData);
@@ -126,7 +126,7 @@ function detachReceipt(
         });
     }
 
-    const updatedReportAction = buildOptimisticDetachReceipt(expenseReport?.reportID, transactionID, transaction?.merchant);
+    const updatedReportAction = buildOptimisticDetachReceipt(transactionReport?.reportID, transactionID, transaction?.merchant);
 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -147,20 +147,20 @@ function detachReceipt(
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${updatedReportAction?.reportID}`,
         value: {
-            lastVisibleActionCreated: expenseReport?.lastVisibleActionCreated,
-            lastReadTime: expenseReport?.lastReadTime,
+            lastVisibleActionCreated: transactionReport?.lastVisibleActionCreated,
+            lastReadTime: transactionReport?.lastReadTime,
         },
     });
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionReport?.reportID}`,
         value: {
             [updatedReportAction.reportActionID]: {pendingAction: null},
         },
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionReport?.reportID}`,
         value: {
             [updatedReportAction.reportActionID]: {
                 ...(updatedReportAction as OnyxTypes.ReportAction),
@@ -181,7 +181,18 @@ function detachReceipt(
     );
 }
 
-function replaceReceipt({transaction, file, source, state, transactionPolicy, transactionPolicyCategories, isSameReceipt, transactionPolicyTagList, transactionViolations}: ReplaceReceipt) {
+function replaceReceipt({
+    transaction,
+    file,
+    source,
+    state,
+    transactionPolicy,
+    transactionPolicyCategories,
+    isSameReceipt,
+    transactionPolicyTagList,
+    transactionViolations,
+    transactionReport,
+}: ReplaceReceipt) {
     const transactionID = transaction?.transactionID;
 
     if (!file || !transactionID) {
@@ -190,9 +201,7 @@ function replaceReceipt({transaction, file, source, state, transactionPolicy, tr
 
     const receiptTraceId = mintAndStampReceiptTraceId(file);
     logReceiptCaptured({file, captureSource: 'replace', receiptTraceId});
-    const allReports = getAllReports();
 
-    const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
     const oldReceipt = transaction?.receipt ?? {};
     const receiptOptimistic = {
         source,
@@ -262,7 +271,7 @@ function replaceReceipt({transaction, file, source, state, transactionPolicy, tr
             policyTagList: transactionPolicyTagList ?? {},
             policyCategories: transactionPolicyCategories ?? {},
             hasDependentTags: hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
-            isInvoiceTransaction: isInvoiceReportReportUtils(expenseReport),
+            isInvoiceTransaction: isInvoiceReportReportUtils(transactionReport),
             ownerLogin: undefined,
         });
         optimisticData.push(violationsOnyxData);
@@ -350,12 +359,19 @@ function navigateToStartStepIfScanFileCannotBeRead(
                 onFailureCallback();
                 return;
             }
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+            // The base is explicit because the unreadable receipt is discarded from screens that are themselves dynamic
+            // routes (the participant picker), and their query params would clash with the ones this suffix adds.
+            Navigation.navigate(
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID),
+                    ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID),
+                ),
+            );
             return;
         }
         navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
     };
-    readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
+    readFileAsync(ReceiptStorage.resolve(receiptPath) ?? receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
 function checkIfLocalFileIsAccessible(
@@ -370,7 +386,7 @@ function checkIfLocalFileIsAccessible(
         return Promise.resolve();
     }
 
-    return readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
+    return readFileAsync(ReceiptStorage.resolve(receiptPath) ?? receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
 export {checkIfLocalFileIsAccessible, detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt};

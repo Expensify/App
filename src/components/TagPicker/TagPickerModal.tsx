@@ -42,6 +42,9 @@ type TagPickerModalProps = {
     /** Whether the policy has dependent tags */
     hasDependentTags?: boolean;
 
+    /** Optional override for whether to show GL codes under each tag */
+    shouldShowGLCode?: boolean;
+
     /** Called when the user confirms a tag selection */
     onSelected?: (tag: string) => void;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
@@ -54,6 +57,7 @@ function TagPickerModal({
     selectedTag = '',
     transactionTag,
     hasDependentTags,
+    shouldShowGLCode,
     onSelected,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     shouldMeasureAnchorPositionFromTop = false,
@@ -100,7 +104,9 @@ function TagPickerModal({
                     selectedTag={selectedTag}
                     transactionTag={transactionTag}
                     hasDependentTags={hasDependentTags}
+                    shouldShowGLCode={shouldShowGLCode}
                     onSubmit={handleTagSelected}
+                    shouldAutoFocusSearchInput
                 />
             </View>
         </PopoverWithMeasuredContent>

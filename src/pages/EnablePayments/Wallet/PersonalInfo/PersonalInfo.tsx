@@ -91,7 +91,7 @@ function PersonalInfoPage() {
     };
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'EnablePaymentsPersonalInfo', isRedirecting}} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

@@ -53,13 +53,7 @@ function TravelDomainListItem<TItem extends ListItem>({
             <TextWithTooltip
                 shouldShowTooltip={showTooltip}
                 text={item.text ?? ''}
-                style={[
-                    styles.flex1,
-                    styles.optionDisplayName,
-                    isFocusVisible ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                    item.isBold !== false && styles.sidebarLinkTextBold,
-                    styles.pre,
-                ]}
+                style={[styles.flex1, styles.optionDisplayName, styles.sidebarLinkText, item.isBold !== false && styles.sidebarLinkTextBold, styles.pre]}
             />
         </SelectableListItem>
     );

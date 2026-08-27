@@ -28,7 +28,7 @@ function DistanceCounter({unit}: DistanceCounterProps) {
 
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
 
-    const distance = DistanceRequestUtils.convertDistanceUnit(getEffectiveDistance(gpsDraftDetails), unit).toFixed(1);
+    const distance = DistanceRequestUtils.getRoundedDistanceInUnits(getEffectiveDistance(gpsDraftDetails), unit);
 
     return (
         <MenuItemWithTopDescription

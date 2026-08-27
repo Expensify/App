@@ -1,5 +1,5 @@
 import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ScrollView from '@components/ScrollView';
 import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -246,12 +246,13 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, largeButton, styl
             </ScrollView>
             <Button
                 style={[styles.ph5, styles.pb5]}
-                success
-                large={largeButton}
-                text={translate('common.confirm')}
-                pressOnEnter
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={largeButton ? CONST.BUTTON_SIZE.LARGE : undefined}
                 onPress={updateAmountFilter}
-            />
+            >
+                <Button.KeyboardShortcut />
+                <Button.Text>{translate('common.confirm')}</Button.Text>
+            </Button>
         </View>
     );
 }

@@ -83,7 +83,7 @@ describe('useWalletPhoneValidateCode', () => {
         expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('routes to the magic-code screen when a phone number is set for the first time (none saved yet)', async () => {
+    it('routes to the validateCode screen when a phone number is set for the first time (none saved yet)', async () => {
         const {result} = await renderWalletPhoneValidateCode();
 
         act(() => {
@@ -94,7 +94,7 @@ describe('useWalletPhoneValidateCode', () => {
         expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE.getRoute());
     });
 
-    it('routes to the magic-code screen and holds the submission when an existing phone number is changed', async () => {
+    it('routes to the validateCode screen and holds the submission when an existing phone number is changed', async () => {
         await act(async () => {
             await setStoredPhoneNumber(STORED_PHONE_NUMBER_WITH_COUNTRY_CODE);
             await waitForBatchedUpdates();

@@ -25,12 +25,12 @@ jest.mock('@components/OnyxListItemProvider', () => ({
 }));
 jest.mock('@hooks/usePolicy');
 
-const mockUsePolicy = usePolicy as jest.MockedFunction<typeof usePolicy>;
-const mockIsPolicyAdmin = isPolicyAdmin as jest.MockedFunction<typeof isPolicyAdmin>;
-const mockGetOriginalMessage = getOriginalMessage as jest.MockedFunction<typeof getOriginalMessage>;
-const mockIsCardIssuedAction = isCardIssuedAction as jest.MockedFunction<typeof isCardIssuedAction>;
-const mockUseCardList = useCardList as jest.MockedFunction<typeof useCardList>;
-const mockUseWorkspaceCardList = useWorkspaceCardList as jest.MockedFunction<typeof useWorkspaceCardList>;
+const mockUsePolicy = jest.mocked(usePolicy);
+const mockIsPolicyAdmin = jest.mocked(isPolicyAdmin);
+const mockGetOriginalMessage = jest.mocked(getOriginalMessage);
+const mockIsCardIssuedAction = jest.mocked(isCardIssuedAction);
+const mockUseCardList = jest.mocked(useCardList);
+const mockUseWorkspaceCardList = jest.mocked(useWorkspaceCardList);
 
 describe('useGetExpensifyCardFromReportAction', () => {
     const mockCard: Card = {

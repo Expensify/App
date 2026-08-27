@@ -7,18 +7,22 @@ import type {CancelTaskParams, CompleteTaskParams, CreateTaskParams, EditTaskAss
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {isEmailPublicDomain} from '@libs/LoginUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDBTimeWithSkew} from '@libs/NetworkState';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {addDomainToShortMention} from '@libs/ParsingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
+import {getAllPersonalDetailLogins} from '@libs/ShortMentionLogins';
 import playSound, {SOUNDS} from '@libs/Sound';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+import {generateAccountID} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,6 +31,7 @@ import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -35,6 +40,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
+import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import {getMostRecentReportID, navigateToConciergeChatAndDeleteReport, notifyNewAction, optimisticReportLastData} from './Report';
@@ -52,6 +58,7 @@ type EditTaskAssigneeOptions = {
     assigneeAccountID?: number | null;
     assigneeChatReport?: OnyxEntry<OnyxTypes.Report>;
     isOptimisticReport?: boolean;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type OptimisticReport = Pick<OnyxTypes.Report, 'reportName' | 'managerID' | 'pendingFields' | 'participants'>;
@@ -84,6 +91,24 @@ type CreateTaskAndNavigateParams = {
     currentUserDisplayName: string | undefined;
     currentUserAvatar: AvatarSource | undefined;
     taskCreatorAndAssigneeDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+};
+
+type CreateTaskFromMarkdownParams = {
+    /** The already trimmed text the user is sending */
+    text: string;
+    /** The parent report to which the task belongs */
+    parentReport: OnyxEntry<OnyxTypes.Report>;
+    /** The current user's personal details */
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
+    /** The quick action associated with the task */
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    /** The ancestors of the task */
+    ancestors?: ReportUtils.Ancestor[];
+};
+
+type DeleteTaskOptions = {
+    ancestors?: ReportUtils.Ancestor[];
+    shouldNavigateBack?: boolean;
 };
 
 /**
@@ -402,6 +427,77 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
         }
     }
     notifyNewAction(parentReportID, optimisticAddCommentReport.reportAction, true);
+}
+
+/**
+ * Creates a task from the `[] title` markdown shorthand (with an optional `@mention` assignee).
+ *
+ * @returns true when a task was created, so the caller can skip sending the text as a plain comment.
+ */
+function createTaskFromMarkdown({text, parentReport, currentUserPersonalDetails, quickAction, ancestors = []}: CreateTaskFromMarkdownParams): boolean {
+    // A task cannot be created without a parent report, so let the caller fall back to sending the text as a comment.
+    if (!parentReport?.reportID) {
+        return false;
+    }
+
+    const taskMatch = text.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
+    if (!taskMatch) {
+        return false;
+    }
+
+    let taskTitle = taskMatch[3] ? taskMatch[3].trim().replaceAll('\n', ' ') : undefined;
+    if (!taskTitle || taskTitle.length > CONST.TITLE_CHARACTER_LIMIT) {
+        return false;
+    }
+
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
+    const mention = taskMatch[1] ? taskMatch[1].trim() : '';
+    const currentUserPrivateDomain = isEmailPublicDomain(currentUserEmail) ? '' : Str.extractEmailDomain(currentUserEmail);
+    const mentionWithDomain = addDomainToShortMention(mention, getAllPersonalDetailLogins(), currentUserPrivateDomain) ?? mention;
+    const isValidMention = Str.isValidEmail(mentionWithDomain);
+
+    let assignee: OnyxEntry<OnyxTypes.PersonalDetails>;
+    let assigneeChatReport;
+    if (mentionWithDomain) {
+        if (isValidMention) {
+            assignee = PersonalDetailsUtils.getPersonalDetailByEmail(mentionWithDomain);
+            if (!assignee) {
+                const optimisticDataForNewAssignee = setNewOptimisticAssignee(currentUserPersonalDetails.accountID, {
+                    accountID: generateAccountID(mentionWithDomain),
+                    login: mentionWithDomain,
+                });
+                assignee = optimisticDataForNewAssignee.assignee;
+                assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
+            }
+        } else {
+            taskTitle = `@${mentionWithDomain} ${taskTitle}`;
+        }
+    }
+
+    const taskCreatorAndAssigneeDetails = {[currentUserPersonalDetails.accountID]: currentUserPersonalDetails};
+    if (assignee) {
+        taskCreatorAndAssigneeDetails[assignee.accountID] = assignee;
+    }
+
+    createTaskAndNavigate({
+        parentReport,
+        title: taskTitle,
+        description: '',
+        assigneeEmail: assignee?.login ?? '',
+        currentUserAccountID: currentUserPersonalDetails.accountID,
+        currentUserEmail,
+        currentUserDisplayName: currentUserPersonalDetails.displayName,
+        currentUserAvatar: currentUserPersonalDetails.avatar,
+        assigneeAccountID: assignee?.accountID,
+        assigneeChatReport,
+        policyID: parentReport?.policyID,
+        isCreatedUsingMarkdown: true,
+        quickAction,
+        ancestors,
+        taskCreatorAndAssigneeDetails,
+    });
+
+    return true;
 }
 
 function buildTaskData(
@@ -788,9 +884,15 @@ function editTaskAssignee({
     assigneeAccountID = 0,
     assigneeChatReport,
     isOptimisticReport,
+    formatPhoneNumber,
 }: EditTaskAssigneeOptions) {
     // Create the EditedReportAction on the task
-    const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID, delegateEmail);
+    const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(
+        assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID,
+        currentUserAccountID,
+        delegateEmail,
+        formatPhoneNumber,
+    );
     const reportName = report.reportName?.trim();
 
     let assigneeChatReportOnyxData;
@@ -1127,7 +1229,7 @@ function getAssignee(
 
     return {
         icons: ReportUtils.getIconsForParticipants([details.accountID], personalDetails),
-        displayName: formatPhoneNumber(PersonalDetailsUtils.temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
+        displayName: PersonalDetailsUtils.temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
         subtitle: details.login ?? '',
     };
 }
@@ -1144,6 +1246,7 @@ function getShareDestination(
     conciergeReportID: string | undefined,
     translate: LocalizedTranslate,
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
+    pendingDeleteMemberAccountIDs?: string[],
 ): ShareDestination {
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
 
@@ -1169,7 +1272,19 @@ function getShareDestination(
         subtitle = ReportUtils.getChatRoomSubtitle(report, policy, conciergeReportID, translate) ?? '';
     }
     return {
-        icons: ReportUtils.getIcons(report, formatPhoneNumber, translate, personalDetails, FallbackAvatar),
+        icons: ReportUtils.getIcons(
+            report,
+            formatPhoneNumber,
+            translate,
+            personalDetails,
+            FallbackAvatar,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            pendingDeleteMemberAccountIDs,
+        ),
         displayName: deprecatedGetReportName(report, reportAttributes),
         subtitle,
         displayNamesWithTooltips,
@@ -1218,7 +1333,7 @@ function deleteTask(
     conciergeReportID: string | undefined,
     delegateEmail: string | undefined,
     reportActions: OnyxEntry<OnyxTypes.ReportActions>,
-    ancestors: ReportUtils.Ancestor[] = [],
+    {ancestors = [], shouldNavigateBack = true}: DeleteTaskOptions = {},
 ) {
     if (!report) {
         return;
@@ -1343,7 +1458,7 @@ function deleteTask(
     API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
     notifyNewAction(report.reportID, undefined, true);
 
-    const urlToNavigateBack = getNavigationUrlOnTaskDelete(report, conciergeReportID, reportActions);
+    const urlToNavigateBack = shouldNavigateBack ? getNavigationUrlOnTaskDelete(report, conciergeReportID, reportActions) : undefined;
     if (urlToNavigateBack) {
         Navigation.goBack();
         return urlToNavigateBack;
@@ -1529,6 +1644,7 @@ function completeTestDriveTask(
 
 export {
     createTaskAndNavigate,
+    createTaskFromMarkdown,
     editTask,
     editTaskAssignee,
     setTitleValue,
@@ -1549,7 +1665,6 @@ export {
     getTaskAssigneeAccountID,
     clearTaskErrors,
     canModifyTask,
-    setNewOptimisticAssignee,
     getNavigationUrlOnTaskDelete,
     canActionTask,
     getFinishOnboardingTaskOnyxData,

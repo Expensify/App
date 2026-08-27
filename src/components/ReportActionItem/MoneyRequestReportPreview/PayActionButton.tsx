@@ -55,7 +55,7 @@ function PayActionButton() {
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
 
     const {iouReportID, chatReportID, chatReport, transactions} = useReportPreviewData();
     const {isPaidAnimationRunning, isApprovedAnimationRunning} = useReportPreviewAnimationState();
@@ -68,7 +68,7 @@ function PayActionButton() {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const activePolicy = usePolicy(activePolicyID);
     const actionButtonData = useReportPreviewActionButtonData(iouReportID);
-    const {iouReport, policy, userBillingGracePeriodEnds, iouReportNextStep, amountOwed, ownerBillingGracePeriodEnd} = actionButtonData;
+    const {iouReport, policy, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd} = actionButtonData;
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -102,10 +102,10 @@ function PayActionButton() {
             if (isInvoiceReportUtils(iouReport)) {
                 startAnimation();
                 payInvoice({
+                    getCurrencyDecimals,
                     paymentMethodType: type,
                     chatReport: currentChatReport,
                     invoiceReport: iouReport,
-                    invoiceReportCurrentNextStepDeprecated: iouReportNextStep,
                     introSelected,
                     currentUserAccountIDParam: currentUserAccountID,
                     currentUserEmailParam: currentUserEmail,
@@ -125,11 +125,11 @@ function PayActionButton() {
                 });
             } else {
                 payMoneyRequest({
+                    getCurrencyDecimals,
                     paymentType: type,
                     chatReport: currentChatReport,
                     iouReport,
                     introSelected,
-                    iouReportCurrentNextStepDeprecated: iouReportNextStep,
                     currentUserAccountID,
                     currentUserLogin: currentUserDetails.login ?? '',
                     activePolicy,

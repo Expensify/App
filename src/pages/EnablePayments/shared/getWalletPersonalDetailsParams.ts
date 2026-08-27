@@ -6,7 +6,7 @@ import type {PersonalInfoStepProps} from '@src/types/form/WalletAdditionalDetail
 
 /**
  * Builds the wallet personal-details API params from the collected form values. Shared by the personal-info and
- * additional-details flows and by the magic-code confirmation screen so the phone-change check and the
+ * additional-details flows and by the validateCode confirmation screen so the phone-change check and the
  * code submission always build identical params. The phone number is normalized to significant digits to match how
  * the backend stores it.
  */

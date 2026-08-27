@@ -4,12 +4,14 @@ import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import TextInput from '@components/TextInput';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setMoneyRequestDescription} from '@libs/actions/IOU/MoneyRequest';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 
@@ -20,7 +22,7 @@ import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -59,6 +61,7 @@ function DescriptionField({
     const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     // Ref on the field's outer container (the bordered box), so scrolling brings the whole field — including its
     // top border and label — into view rather than just the inner text area.
     const fieldContainerRef = useRef<View>(null);
@@ -103,7 +106,7 @@ function DescriptionField({
         // Trimming is deferred to submission time, not during keystrokes, to avoid
         // silently stripping trailing spaces as the user types.
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {comment: newDescription});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {comment: newDescription}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 
@@ -147,9 +150,7 @@ function DescriptionField({
                                         return;
                                     }
 
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
-                                    );
+                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, reportActionID)));
                                 }}
                                 style={[styles.moneyRequestMenuItem]}
                                 titleStyle={styles.flex1}

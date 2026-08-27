@@ -132,6 +132,18 @@ const duplicatedTransactionViolation = {
     type: CONST.VIOLATION_TYPES.WARNING,
 };
 
+function getTransactionViolationsFromResult(result: ReturnType<typeof ViolationsUtils.getViolationsOnyxData>) {
+    if (result.onyxMethod !== Onyx.METHOD.SET) {
+        throw new Error('Expected a SET transaction violation update with a value');
+    }
+
+    if (result.value === null || result.value === undefined) {
+        throw new Error('Expected a SET transaction violation update with a value');
+    }
+
+    return result.value;
+}
+
 describe('getViolationsOnyxData', () => {
     let transaction: Transaction;
     let transactionViolations: TransactionViolation[];
@@ -150,7 +162,7 @@ describe('getViolationsOnyxData', () => {
             currency: CONST.CURRENCY.USD,
         };
         transactionViolations = [];
-        policy = {requiresTag: false, requiresCategory: false} as Policy;
+        policy = createMock<Policy>({requiresTag: false, requiresCategory: false});
         policyTags = {};
         policyCategories = {};
     });
@@ -904,7 +916,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeDefined();
             expect(itemizedReceiptViolation?.type).toBe(CONST.VIOLATION_TYPES.VIOLATION);
@@ -926,7 +938,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
             const foundReceiptRequiredViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
             expect(foundReceiptRequiredViolation).toBeUndefined();
         });
@@ -947,7 +959,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
             const receiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             // Should have itemized receipt violation but NOT regular receipt violation
@@ -971,7 +983,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeUndefined();
         });
@@ -992,7 +1004,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeUndefined();
         });
@@ -1044,7 +1056,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeDefined();
             expect(itemizedReceiptViolation?.data).toBeUndefined(); // Category-level violations don't have data
@@ -1064,7 +1076,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeUndefined(); // Category "Never" should override policy
         });
@@ -1083,7 +1095,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeDefined(); // Should follow policy threshold
         });
@@ -1108,7 +1120,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
 
             // Then the itemized violation should be removed and replaced with receiptRequired because the policy still requires receipts
             const itemizedViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
@@ -1136,7 +1148,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
 
             // Then the violation should have updated threshold data to reflect the current policy settings
             const itemizedViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
@@ -1165,7 +1177,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
 
             // Then itemized should supersede receipt because itemized is more restrictive
             const receiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
@@ -1194,7 +1206,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
 
             // Then no receipt violations should exist because category overrides take precedence over policy settings
             const itemizedViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
@@ -1292,7 +1304,7 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
         });
 
-        it('should add missingCategory violation when category is the Uncategorized sentinel and categories are required', () => {
+        it('should add missingCategory violation when category is the Uncategorized placeholder and categories are required', () => {
             transaction.category = CONST.SEARCH.CATEGORY_DEFAULT_VALUE;
             const result = ViolationsUtils.getViolationsOnyxData({
                 updatedTransaction: transaction,
@@ -1420,7 +1432,7 @@ describe('getViolationsOnyxData', () => {
             };
             const result = ViolationsUtils.getViolationsOnyxData({
                 ownerLogin: undefined,
-                updatedTransaction: transactionWithModifiedDetails as unknown as Transaction,
+                updatedTransaction: createMock<Transaction>(transactionWithModifiedDetails),
                 transactionViolations,
                 policy,
                 policyTagList: policyTags,
@@ -2002,10 +2014,10 @@ describe('getViolationsOnyxData', () => {
                 },
             };
             transaction.category = 'Meals';
-            iouReport = {
+            iouReport = createMock<Report>({
                 reportID: '1234',
                 ownerAccountID,
-            } as Report;
+            });
         });
 
         it('should add missingAttendees violation when no attendees are present', () => {
@@ -2746,7 +2758,7 @@ describe('getViolationsOnyxData', () => {
         // Pass a `vendors` array to control the synced list, or `null` to simulate the list still
         // hydrating (`data.vendors` absent, so `isMatchingVendorListLoaded` returns false).
         const policyWithQBOVendorFeature = (vendors: Array<{id: string; name: string; currency: string}> | null = [{id: 'v-active', name: 'Acme Co', currency: 'USD'}]) =>
-            ({
+            createMock<Policy>({
                 requiresTag: false,
                 requiresCategory: false,
                 connections: {
@@ -2755,7 +2767,7 @@ describe('getViolationsOnyxData', () => {
                         data: vendors ? {vendors} : {},
                     },
                 },
-            }) as unknown as Policy;
+            });
 
         beforeEach(async () => {
             // Default to beta-enabled so the four branches of the violation logic are reachable.
@@ -2777,7 +2789,7 @@ describe('getViolationsOnyxData', () => {
 
         it('adds the violation when the transaction vendor is not in the policy vendor list', () => {
             policy = policyWithQBOVendorFeature();
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', wasManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
                 ownerLogin: undefined,
                 updatedTransaction: transaction,
@@ -2793,7 +2805,7 @@ describe('getViolationsOnyxData', () => {
 
         it('does not duplicate the violation when one is already present and the vendor is still missing', () => {
             policy = policyWithQBOVendorFeature();
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', wasManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
                 ownerLogin: undefined,
                 updatedTransaction: transaction,
@@ -2804,12 +2816,13 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            expect((result.value as TransactionViolation[]).filter((v) => v.name === CONST.VIOLATIONS.INACTIVE_VENDOR)).toHaveLength(1);
+            const violations = getTransactionViolationsFromResult(result);
+            expect(violations.filter((v) => v.name === CONST.VIOLATIONS.INACTIVE_VENDOR)).toHaveLength(1);
         });
 
         it('removes an existing violation when the vendor is restored in the policy list', () => {
             policy = policyWithQBOVendorFeature();
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', isManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', wasManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
                 ownerLogin: undefined,
                 updatedTransaction: transaction,
@@ -2840,7 +2853,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('removes an existing violation when the vendor feature is disabled (QBO export type changed)', () => {
-            policy = {
+            policy = createMock<Policy>({
                 requiresTag: false,
                 requiresCategory: false,
                 connections: {
@@ -2849,8 +2862,8 @@ describe('getViolationsOnyxData', () => {
                         data: {vendors: [{id: 'v-active', name: 'Acme Co', currency: 'USD'}]},
                     },
                 },
-            } as unknown as Policy;
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', isManuallySet: true}};
+            });
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', wasManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
                 ownerLogin: undefined,
                 updatedTransaction: transaction,
@@ -2865,7 +2878,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('does not add the violation when the feature is inactive (no QBO connection)', () => {
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-anything', isManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-anything', wasManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
                 ownerLogin: undefined,
                 updatedTransaction: transaction,
@@ -2879,10 +2892,10 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(inactiveVendorViolation);
         });
 
-        it('does not add the violation when the vendorMatching beta is disabled, even with QBO configured', () => {
+        it('adds the violation when the vendorMatching beta is disabled but QBO is configured, because QBO (R1) is generally available', () => {
             isBetaEnabledSpy.mockImplementation(() => false);
             policy = policyWithQBOVendorFeature();
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', wasManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
                 ownerLogin: undefined,
                 updatedTransaction: transaction,
@@ -2893,13 +2906,13 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            expect(result.value).not.toContainEqual(inactiveVendorViolation);
+            expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
         });
 
         it('does not add the violation while the QBO vendor list is still hydrating (vendors undefined)', () => {
             // Given a QBO-configured workspace whose vendor list has not yet synced (data.vendors is undefined)
             policy = policyWithQBOVendorFeature(null);
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-anything', isManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-anything', wasManuallySet: true}};
 
             // When violations are recomputed
             const result = ViolationsUtils.getViolationsOnyxData({
@@ -2920,7 +2933,7 @@ describe('getViolationsOnyxData', () => {
         it('preserves an existing violation while the QBO vendor list is still hydrating', () => {
             // Given the vendor list is still hydrating but an inactive-vendor violation already exists from a prior real check
             policy = policyWithQBOVendorFeature(null);
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', isManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', wasManuallySet: true}};
 
             // When violations are recomputed
             const result = ViolationsUtils.getViolationsOnyxData({
@@ -2939,7 +2952,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         describe('Xero (R4)', () => {
-            // Sentinel for "Xero connected, contacts not yet synced". Explicit symbol avoids the
+            // Placeholder for "Xero connected, contacts not yet synced". Explicit symbol avoids the
             // default-parameter trap where `undefined` would fall back to the populated default.
             const XERO_CONTACTS_UNSYNCED = Symbol('XERO_CONTACTS_UNSYNCED');
             const policyWithXeroVendorFeature = (
@@ -2963,7 +2976,7 @@ describe('getViolationsOnyxData', () => {
                 // flag so the render layer uses the "Supplier no longer valid" copy that matches the
                 // rest of the Xero UI (picker, default-supplier row).
                 policy = policyWithXeroVendorFeature();
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', isManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', wasManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     updatedTransaction: transaction,
@@ -2984,7 +2997,7 @@ describe('getViolationsOnyxData', () => {
                 // shows "Supplier". The reconciliation pass must stamp the flag on existing
                 // violations so the copy matches.
                 policy = policyWithXeroVendorFeature();
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', isManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', wasManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     updatedTransaction: transaction,
@@ -3020,7 +3033,7 @@ describe('getViolationsOnyxData', () => {
                         },
                     },
                 });
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', wasManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     updatedTransaction: transaction,
@@ -3037,7 +3050,7 @@ describe('getViolationsOnyxData', () => {
 
             it('removes an existing violation when the Xero supplier is restored in the contacts list', () => {
                 policy = policyWithXeroVendorFeature();
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcActive', isManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcActive', wasManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     updatedTransaction: transaction,
@@ -3057,7 +3070,7 @@ describe('getViolationsOnyxData', () => {
                 // missing. Otherwise every matched transaction would falsely flag inactive between
                 // the beta flip and the first supplier sync.
                 policy = policyWithXeroVendorFeature(XERO_CONTACTS_UNSYNCED);
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcAnything', isManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcAnything', wasManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     updatedTransaction: transaction,
@@ -3076,7 +3089,7 @@ describe('getViolationsOnyxData', () => {
                 // server-fired inactiveVendor violation is already on the transaction, the App
                 // must preserve it rather than wiping it during the sync gap.
                 policy = policyWithXeroVendorFeature(XERO_CONTACTS_UNSYNCED);
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcActive', isManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcActive', wasManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     updatedTransaction: transaction,
@@ -3093,7 +3106,7 @@ describe('getViolationsOnyxData', () => {
             it('does not add the violation when the vendorMatching beta is disabled, even with Xero connected', () => {
                 isBetaEnabledSpy.mockImplementation(() => false);
                 policy = policyWithXeroVendorFeature();
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', isManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', wasManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     updatedTransaction: transaction,
@@ -3127,7 +3140,7 @@ describe('getViolationsOnyxData', () => {
                         },
                     },
                 });
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', wasManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     updatedTransaction: transaction,
@@ -3161,7 +3174,7 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
                 shouldRemoveRejectedExpenseViolation: true,
             });
-            const violations = (result.value ?? []) as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
             expect(violations.some((v) => v.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)).toBe(false);
         });
 
@@ -3176,7 +3189,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = (result.value ?? []) as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
             expect(violations.some((v) => v.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)).toBe(true);
         });
     });
@@ -3408,12 +3421,21 @@ const brokenCardConnection530Violation: TransactionViolation = {
     },
 };
 
+const brokenCardConnectionReauthViolation: TransactionViolation = {
+    name: CONST.VIOLATIONS.RTER,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    data: {
+        isAdmin: true,
+        rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH,
+    },
+};
+
 describe('getViolationTranslation', () => {
     it('should return the correct message for broken card connection violation', () => {
         const testPolicyID = 'test-policy-123';
         const companyCardPageURL = `workspaces/${testPolicyID}/company-cards`;
         const brokenCardConnectionViolationExpected = translateLocal('violations.rter', true, true, false, undefined, CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION, companyCardPageURL);
-        expect(ViolationsUtils.getViolationTranslation({violation: brokenCardConnectionViolation, translate: translateLocal, convertToDisplayString})).toBe(
+        expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnectionViolation, translate: translateLocal, convertToDisplayString})).toBe(
             brokenCardConnectionViolationExpected,
         );
         const brokenCardConnection530ViolationExpected = translateLocal(
@@ -3425,8 +3447,25 @@ describe('getViolationTranslation', () => {
             CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
             companyCardPageURL,
         );
-        expect(ViolationsUtils.getViolationTranslation({violation: brokenCardConnection530Violation, translate: translateLocal, convertToDisplayString})).toBe(
+        expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnection530Violation, translate: translateLocal, convertToDisplayString})).toBe(
             brokenCardConnection530ViolationExpected,
+        );
+    });
+
+    it('should return the correct message for a re-auth broken card connection violation', () => {
+        const testPolicyID = 'test-policy-123';
+        const companyCardPageURL = `workspaces/${testPolicyID}/company-cards`;
+        const brokenCardConnectionReauthViolationExpected = translateLocal(
+            'violations.rter',
+            false,
+            true,
+            false,
+            undefined,
+            CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH,
+            companyCardPageURL,
+        );
+        expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnectionReauthViolation, translate: translateLocal, convertToDisplayString})).toBe(
+            brokenCardConnectionReauthViolationExpected,
         );
     });
 
@@ -3449,6 +3488,7 @@ describe('getViolationTranslation', () => {
 
         it('should return formatted message with route distance in km', () => {
             const result = ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
                 convertToDisplayString,
@@ -3461,6 +3501,7 @@ describe('getViolationTranslation', () => {
 
         it('should return formatted message with route distance in miles', () => {
             const result = ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
                 convertToDisplayString,
@@ -3473,6 +3514,7 @@ describe('getViolationTranslation', () => {
 
         it('should return fallback message when routeDistanceMeters is zero', () => {
             const result = ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
                 convertToDisplayString,
@@ -3485,6 +3527,7 @@ describe('getViolationTranslation', () => {
 
         it('should return fallback message when routeDistanceMeters is undefined', () => {
             const result = ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
                 convertToDisplayString,
@@ -3496,6 +3539,7 @@ describe('getViolationTranslation', () => {
 
         it('should return fallback message when distanceUnit is undefined', () => {
             const result = ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
                 convertToDisplayString,
@@ -3509,6 +3553,7 @@ describe('getViolationTranslation', () => {
     describe('customUnitRateOutOfDateRange violation', () => {
         it('should return the formatted message when both start and end dates are present', () => {
             const result = ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
                 violation: {
                     name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
                     type: CONST.VIOLATION_TYPES.WARNING,
@@ -3526,6 +3571,7 @@ describe('getViolationTranslation', () => {
 
         it('should return the formatted message when only the start date is present', () => {
             const result = ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
                 violation: {
                     name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
                     type: CONST.VIOLATION_TYPES.WARNING,
@@ -3542,6 +3588,7 @@ describe('getViolationTranslation', () => {
 
         it('should return the formatted message when only the end date is present', () => {
             const result = ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
                 violation: {
                     name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
                     type: CONST.VIOLATION_TYPES.WARNING,
@@ -3582,6 +3629,7 @@ describe('getRBRMessages', () => {
     it('should return all violations and missing field error', () => {
         const missingFieldError = 'Missing required field';
         const result = ViolationsUtils.getRBRMessages({
+            dateFnsLocale: undefined,
             transaction: mockTransaction,
             transactionViolations: mockViolations,
             translate: translateLocal,
@@ -3596,6 +3644,7 @@ describe('getRBRMessages', () => {
 
     it('should filter out empty strings', () => {
         const result = ViolationsUtils.getRBRMessages({
+            dateFnsLocale: undefined,
             transaction: mockTransaction,
             transactionViolations: mockViolations,
             translate: translateLocal,
@@ -3614,29 +3663,28 @@ describe('hasVisibleViolationsForUser', () => {
     const testTransactionID = 'test-transaction-123';
     const testPolicyID = 'test-policy-123';
 
-    const mockReport = {
+    const mockReport = createMock<Report>({
         reportID: testReportID,
         ownerAccountID: submitterAccountID,
         policyID: testPolicyID,
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-    } as Report;
+    });
 
-    const mockPolicy = {
+    const mockPolicy = createMock<Policy>({
         id: testPolicyID,
         role: CONST.POLICY.ROLE.ADMIN,
         type: CONST.POLICY.TYPE.TEAM,
-    } as Policy;
+    });
 
-    const mockTransaction = {
+    const mockTransaction = createMock<Transaction>({
         transactionID: testTransactionID,
         reportID: testReportID,
-        accountID: submitterAccountID,
         amount: 1000,
         created: '2023-01-01',
         currency: 'USD',
         merchant: 'Test Merchant',
-    } as Transaction;
+    });
 
     beforeEach(() => {
         Onyx.set(ONYXKEYS.SESSION, {accountID: submitterAccountID});
@@ -3733,15 +3781,14 @@ describe('hasVisibleViolationsForUser', () => {
 
     it('should handle multiple transactions correctly', () => {
         const secondTransactionID = 'test-transaction-456';
-        const secondTransaction = {
+        const secondTransaction = createMock<Transaction>({
             transactionID: secondTransactionID,
             reportID: testReportID,
-            accountID: submitterAccountID,
             amount: 2000,
             created: '2023-01-02',
             currency: 'USD',
             merchant: 'Test Merchant 2',
-        } as Transaction;
+        });
 
         const violations = {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [

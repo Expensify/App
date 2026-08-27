@@ -27,7 +27,7 @@ jest.mock('@libs/actions/Link', () => ({
     openOldDotLink: jest.fn(),
 }));
 
-jest.mock('@components/MoneyReportHeaderActions/ExportDownloadStatusContext', () => ({
+jest.mock('@components/MoneyReportHeaderActions/ExportDownloadStatusProvider', () => ({
     useExportDownloadStatus: () => ({trackExport: mockTrackExport}),
 }));
 

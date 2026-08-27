@@ -8,7 +8,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {navigateToConciergeChat} from '@libs/actions/Report';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {clearAddNewPersonalCardFlow} from '@userActions/PersonalCards';
 
@@ -47,16 +46,7 @@ function AddPersonalNewCardPage() {
     }, []);
 
     if (isAddCardFeedLoading) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'AddNewPersonalCardPage',
-            isAddCardFeedLoading,
-        };
-        return (
-            <FullScreenLoadingIndicator
-                shouldUseGoBackButton
-                reasonAttributes={reasonAttributes}
-            />
-        );
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     let CurrentStep: React.JSX.Element;

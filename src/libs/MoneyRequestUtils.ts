@@ -6,6 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
+import replaceAllDigits from './replaceAllDigits';
 import {isInvoiceReport, isIOUReport} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {doesMoneyRequestDraftHaveUserInput, haveWaypointAddressesChanged, isExpenseUnreported} from './TransactionUtils';
@@ -91,23 +92,6 @@ function validatePercentage(amount: string, allowExceedingHundred = false, allow
     const regexString = allowDecimal ? '^(100([.,]0)?|[0-9]{1,2}([.,]\\d)?)$' : '^(100|[0-9]{1,2})$';
     const percentageRegex = new RegExp(regexString, 'i');
     return amount === '' || percentageRegex.test(amount);
-}
-
-/**
- * Replaces each character by calling `convertFn`. If `convertFn` throws an error, then
- * the original character will be preserved.
- */
-function replaceAllDigits(text: string, convertFn: (char: string) => string): string {
-    return text
-        .split('')
-        .map((char) => {
-            try {
-                return convertFn(char);
-            } catch {
-                return char;
-            }
-        })
-        .join('');
 }
 
 /**

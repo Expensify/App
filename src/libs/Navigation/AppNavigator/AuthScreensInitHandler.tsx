@@ -38,7 +38,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {useEffect, useRef} from 'react';
 
 function initializePusher(
@@ -62,7 +62,7 @@ function initializePusher(
  *
  * Extracted from AuthScreens to isolate useOnyx subscriptions:
  * - SESSION, NVP_INTRO_SELECTED, NVP_ACTIVE_POLICY_ID,
- *   NVP_ONBOARDING (tour selector), ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT (x2),
+ *   NVP_ONBOARDING (guided-setup and tour status selector), ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT (x2),
  *   IS_LOADING_APP
  */
 function AuthScreensInitHandler() {
@@ -78,7 +78,7 @@ function AuthScreensInitHandler() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const lastWorkspaceNumber = useLastWorkspaceNumber(ownerEmail ?? undefined);
@@ -170,7 +170,16 @@ function AuthScreensInitHandler() {
         } else if (SessionUtils.didUserLogInDuringSession()) {
             const reportID = getReportIDFromLink(initialURL ?? null);
             if (reportID && !isAuthenticatedAtStartup) {
-                Report.openReport({reportID, introSelected, betas, hasReportActions: false, currentUserAccountID: session?.accountID});
+                Report.openReport({
+                    reportID,
+                    introSelected,
+                    betas,
+                    conciergeChat,
+                    hasReportActions: false,
+                    currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                });
                 // Don't want to call `openReport` again when logging out and then logging in
                 setIsAuthenticatedAtStartup(true);
             }
@@ -185,7 +194,7 @@ function AuthScreensInitHandler() {
             introSelected,
             currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             activePolicy,
-            isSelfTourViewed,
+            guidedSetupAndTourStatus?.isSelfTourViewed,
             betas,
             hasActiveAdminPolicies,
             lastWorkspaceNumber,

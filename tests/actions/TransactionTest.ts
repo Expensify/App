@@ -11,8 +11,8 @@ import '@libs/actions/IOU/MoneyRequest';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {createNewReport} from '@libs/actions/Report';
 import type * as PolicyUtils from '@libs/PolicyUtils';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {getOriginalMessage, isMoneyRequestAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {buildOptimisticIOUReportAction, getReportOrDraftReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -36,12 +36,12 @@ import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
-import {getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions'
+    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
@@ -52,7 +52,16 @@ type LegacyChangeTransactionsReportProps = Omit<
 
 function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations, personalPolicyOutputCurrency, selfDMReportActions, ...rest}: LegacyChangeTransactionsReportProps) {
     const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
-    changeTransactionsReportAction({transactionIDs, transactions, allTransactionViolation: transactionViolations, personalPolicyOutputCurrency, selfDMReportActions, ...rest});
+    changeTransactionsReportAction({
+        transactionIDs,
+        transactions,
+        allTransactionViolation: transactionViolations,
+        personalPolicyOutputCurrency,
+        selfDMReportActions,
+        delegateAccountID: undefined,
+        getCurrencyDecimals: getCurrencyDecimalsLocal,
+        ...rest,
+    });
 }
 
 const topMostReportID = '23423423';
@@ -206,7 +215,7 @@ describe('actions/Transaction', () => {
 
             await waitForBatchedUpdates();
 
-            createNewReport(creatorPersonalDetails, true, false, mockPolicy, [CONST.BETAS.ALL], false);
+            createNewReport(creatorPersonalDetails, true, false, mockPolicy, [CONST.BETAS.ALL], false, getCurrencyDecimalsLocal);
             // Create a tracked expense
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
@@ -246,6 +255,7 @@ describe('actions/Transaction', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -297,6 +307,14 @@ describe('actions/Transaction', () => {
 
             const policyTagList = (await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${mockPolicy.id}`)) ?? {};
 
+            let reports: OnyxCollection<Report>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                callback: (value) => {
+                    reports = value;
+                },
+            });
+
             changeTransactionsReport({
                 transactionIDs: [transaction?.transactionID],
                 isASAPSubmitBetaEnabled: false,
@@ -306,8 +324,8 @@ describe('actions/Transaction', () => {
                 policy: mockPolicy,
                 allTransactions,
                 policyTagList,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 selfDMReportActions,
                 isTrackIntentUser: false,
             });
@@ -349,6 +367,84 @@ describe('actions/Transaction', () => {
             expect(updatedExpenseReport?.nonReimbursableTotal).toBe(-amount);
             expect(updatedExpenseReport?.total).toBe(-amount);
             expect(updatedExpenseReport?.unheldNonReimbursableTotal).toBe(-amount);
+        });
+
+        it('stops rendering the self-DM report action once its expense moves to a report, even when the action still carries a pending state', async () => {
+            // Given an unreported expense in the self-DM whose IOU action is still marked as pending, which happens when
+            // an earlier optimistic write on that action was never resolved
+            const selfDMReport: Report = {...createRandomReport(77, CONST.REPORT.CHAT_TYPE.SELF_DM), reportID: '77'};
+            const movePolicy: Policy = {...createRandomPolicy(78, CONST.POLICY.TYPE.TEAM, 'Move Workspace'), id: 'policy-for-move'};
+            const workspaceChat: Report = {...createRandomReport(79, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), reportID: '79', policyID: movePolicy.id};
+            const destinationReport: Report = {
+                ...createRandomReport(80),
+                reportID: '80',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: movePolicy.id,
+                chatReportID: workspaceChat.reportID,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+            };
+            const movedTransaction: Transaction = {
+                transactionID: 'transaction-to-move',
+                amount: -5000,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'merchant',
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                comment: {comment: ''},
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+            const trackedExpenseAction: ReportAction = {
+                ...buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                    amount: 5000,
+                    currency: CONST.CURRENCY.USD,
+                    comment: '',
+                    participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+                    transactionID: movedTransaction.transactionID,
+                    isPersonalTrackingExpense: true,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                }),
+                reportID: selfDMReport.reportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            await Onyx.merge(ONYXKEYS.SELF_DM_REPORT_ID, selfDMReport.reportID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${movePolicy.id}`, movePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${destinationReport.reportID}`, destinationReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${movedTransaction.transactionID}`, movedTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, {[trackedExpenseAction.reportActionID]: trackedExpenseAction});
+            await waitForBatchedUpdates();
+
+            let allTransactions: OnyxCollection<Transaction>;
+            let allReports: OnyxCollection<Report>;
+            await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+            await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+
+            // When the expense is moved to a workspace report
+            changeTransactionsReport({
+                transactionIDs: [movedTransaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CARLOS_ACCOUNT_ID,
+                email: CARLOS_EMAIL,
+                newReport: destinationReport,
+                policy: movePolicy,
+                allTransactions,
+                policyTagList: {},
+                transactionViolations: {},
+                reports: allReports,
+                selfDMReportActions: {[trackedExpenseAction.reportActionID]: trackedExpenseAction},
+                isTrackIntentUser: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the action left behind in the self-DM holds no transaction, no pending state, and is not rendered
+            const selfDMActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
+            const retiredAction = selfDMActions?.[trackedExpenseAction.reportActionID];
+            expect(isMoneyRequestAction(retiredAction) ? getOriginalMessage(retiredAction)?.IOUTransactionID : undefined).toBeFalsy();
+            expect(retiredAction?.pendingAction).toBeFalsy();
+            expect(shouldReportActionBeVisible(retiredAction, trackedExpenseAction.reportActionID, true, CARLOS_ACCOUNT_ID)).toBe(false);
         });
 
         it('recomputes a distance expense amount/merchant/currency from the destination workspace rate when moved', async () => {
@@ -427,8 +523,8 @@ describe('actions/Transaction', () => {
                 allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction},
                 policyTagList: undefined,
                 transactionViolations: {},
-                allReports: undefined,
                 personalPolicyOutputCurrency: 'EUR',
+                reports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -504,6 +600,14 @@ describe('actions/Transaction', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
                 await waitForBatchedUpdates();
 
+                let reports: OnyxCollection<Report>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    callback: (value) => {
+                        reports = value;
+                    },
+                });
+
                 changeTransactionsReport({
                     transactionIDs: [TRANSACTION_ID],
                     isASAPSubmitBetaEnabled: false,
@@ -514,7 +618,7 @@ describe('actions/Transaction', () => {
                     allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`]: transaction},
                     policyTagList: undefined,
                     transactionViolations: {},
-                    allReports: undefined,
+                    reports,
                     isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
@@ -623,6 +727,8 @@ describe('actions/Transaction', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -721,7 +827,6 @@ describe('actions/Transaction', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
-                    iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
                     allPolicyTags: {},
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -730,6 +835,9 @@ describe('actions/Transaction', () => {
                     isOffline: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
                 await waitForBatchedUpdates();
 
@@ -802,6 +910,8 @@ describe('actions/Transaction', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -900,7 +1010,6 @@ describe('actions/Transaction', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
-                    iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
                     allPolicyTags: {},
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -909,6 +1018,9 @@ describe('actions/Transaction', () => {
                     isOffline: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
                 await waitForBatchedUpdates();
 
@@ -986,6 +1098,8 @@ describe('actions/Transaction', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 await waitForBatchedUpdates();
 
@@ -1093,7 +1207,6 @@ describe('actions/Transaction', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
-                    iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
                     allPolicyTags: {},
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -1102,6 +1215,9 @@ describe('actions/Transaction', () => {
                     isOffline: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
                 await waitForBatchedUpdates();
 
@@ -1180,6 +1296,8 @@ describe('actions/Transaction', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 await waitForBatchedUpdates();
 
@@ -1206,7 +1324,7 @@ describe('actions/Transaction', () => {
 
                 // Put the expense on hold
                 if (originalTransactionID && transactionThreadReportID) {
-                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, [], false);
+                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, undefined);
                 }
                 await waitForBatchedUpdates();
 
@@ -1260,6 +1378,7 @@ describe('actions/Transaction', () => {
                 let allTransactions: OnyxCollection<Transaction>;
                 let allReports: OnyxCollection<Report>;
                 let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+                let allReportActions: OnyxCollection<ReportActions>;
 
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -1279,6 +1398,12 @@ describe('actions/Transaction', () => {
                         allReportNameValuePairs = value;
                     },
                 });
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    callback: (value) => {
+                        allReportActions = value;
+                    },
+                });
 
                 const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
                 const reports = getTransactionAndExpenseReports(reportID);
@@ -1287,7 +1412,7 @@ describe('actions/Transaction', () => {
                 updateSplitTransactionsFromSplitExpensesFlow({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
-                    allReportActionsList: undefined,
+                    allReportActionsList: allReportActions,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
                         reportID,
@@ -1308,7 +1433,6 @@ describe('actions/Transaction', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
-                    iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
                     allPolicyTags: {},
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -1317,6 +1441,9 @@ describe('actions/Transaction', () => {
                     isOffline: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
 
                 await waitForBatchedUpdates();
