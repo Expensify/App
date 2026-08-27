@@ -446,13 +446,15 @@ const DYNAMIC_ROUTES = {
         queryParams: ['action', 'iouType', 'orderWeight', 'transactionID', 'reportID', 'reportActionID'],
     },
     SPLIT_EXPENSE_EDIT: {
-        path: 'split-expense/edit/:reportID/:splitExpenseTransactionID?',
+        // `editSplitExpenseTransactionID` is deliberately not named `splitExpenseTransactionID` so this path param cannot be
+        // shadowed by the overview route's `splitExpenseTransactionID` query param when this route is nested under it.
+        path: 'split-expense/edit/:reportID/:editSplitExpenseTransactionID?',
         entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE, SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH],
-        getRoute: (reportID: string, splitExpenseTransactionID?: string) => {
-            if (!splitExpenseTransactionID) {
+        getRoute: (reportID: string, editSplitExpenseTransactionID?: string) => {
+            if (!editSplitExpenseTransactionID) {
                 return `split-expense/edit/${reportID}` as const;
             }
-            return `split-expense/edit/${reportID}/${splitExpenseTransactionID}` as const;
+            return `split-expense/edit/${reportID}/${editSplitExpenseTransactionID}` as const;
         },
     },
     MONEY_REQUEST_STEP_MERCHANT: {
@@ -3003,7 +3005,8 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_APPROVALS_EDIT: {
         route: 'workspaces/:policyID/workflows/approvals/:firstApproverEmail/edit',
-        getRoute: (policyID: string, firstApproverEmail: string) => `workspaces/${policyID}/workflows/approvals/${encodeURIComponent(firstApproverEmail)}/edit` as const,
+        getRoute: (policyID: string, firstApproverEmail: string, memberEmail?: string) =>
+            `workspaces/${policyID}/workflows/approvals/${encodeURIComponent(firstApproverEmail)}/edit${memberEmail ? `?memberEmail=${encodeURIComponent(memberEmail)}` : ''}` as const,
     },
     WORKSPACE_WORKFLOWS_APPROVALS_APPROVER: {
         route: 'workspaces/:policyID/workflows/approvals/approver',
