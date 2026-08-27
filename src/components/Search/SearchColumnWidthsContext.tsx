@@ -32,18 +32,31 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
     const StyleUtils = useStyleUtils();
     const columnWidths = useContext(SearchColumnWidthsContext);
 
+    const isSizingColumns = Object.keys(columnWidths).length > 0;
+
     return (columnName, options = {}) => {
         const columnStyles = StyleUtils.getReportTableColumnStyles(columnName, options);
         const sizing = columnWidths[columnName];
 
         if (!sizing) {
+            // A column styled `flex: 1` alongside a width has a zero flex basis, which discards that width: it starts
+            // from nothing and only ever gets a share of the leftover space. That was harmless while every column was
+            // equally shrinkable, but the measured columns now hold a minimum, so a column with no floor of its own
+            // absorbs all of the shortfall and truncates its value. Giving it its declared width as the basis restores
+            // that width as the size it grows from, while leaving it free to grow as it did before.
+            if (isSizingColumns && typeof columnStyles.width === 'number' && columnStyles.flex !== undefined) {
+                return {...columnStyles, flex: undefined, flexGrow: columnStyles.flex, flexShrink: 1, flexBasis: columnStyles.width};
+            }
+
             return columnStyles;
         }
 
         // The measured width is the column's share of the free space rather than a width of its own: growing from a
         // zero basis in proportion to what its content needs is what keeps the columns adding up to the row exactly,
-        // without this having to know what the fixed columns, gaps, and padding around it spend.
-        return {...columnStyles, flexGrow: sizing.flexWeight, flexShrink: 1, flexBasis: 0, minWidth: sizing.minWidth, width: undefined};
+        // without this having to know what the fixed columns, gaps, and padding around it spend. The `flex` shorthand is
+        // cleared because the base style sets it on exactly these columns, and leaving both it and the longhands here
+        // would make which one wins depend on the order they are emitted in.
+        return {...columnStyles, flex: undefined, flexGrow: sizing.flexWeight, flexShrink: 1, flexBasis: 0, minWidth: sizing.minWidth, width: undefined};
     };
 }
 

@@ -1,8 +1,8 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
@@ -66,6 +66,12 @@ function SearchListViewLayout({
 }: SearchListViewLayoutProps) {
     const styles = useThemeStyles();
 
+    const [tableWidth, setTableWidth] = useState(0);
+
+    const handleTableLayout = (event: LayoutChangeEvent) => {
+        setTableWidth(event.nativeEvent.layout.width);
+    };
+
     const columnWidths = useSearchColumnWidths({
         columns,
         data: data ?? [],
@@ -78,18 +84,27 @@ function SearchListViewLayout({
     const measuredColumnMinWidths = Object.fromEntries(Object.entries(columnWidths).map(([column, sizing]) => [column, sizing.minWidth]));
 
     return (
-        <SearchColumnWidthsProvider columnWidths={columnWidths}>
-            <HorizontalTableScroll
-                columns={columns}
-                type={type}
-                isActionColumnWide={isActionColumnWide}
-                isHeaderVisible={isHeaderVisible}
-                dataKey={dataKey}
-                measuredColumnMinWidths={measuredColumnMinWidths}
-            >
-                <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>{children}</View>
-            </HorizontalTableScroll>
-        </SearchColumnWidthsProvider>
+        // Measured outside the scroller so the node reports the width the table has to fit into, not the width its own
+        // content grew to. The window is wider than this, since the page is inset from it, which is why the scroller
+        // can't decide whether the table fits by looking at the window.
+        <View
+            style={styles.flex1}
+            onLayout={handleTableLayout}
+        >
+            <SearchColumnWidthsProvider columnWidths={columnWidths}>
+                <HorizontalTableScroll
+                    columns={columns}
+                    type={type}
+                    isActionColumnWide={isActionColumnWide}
+                    isHeaderVisible={isHeaderVisible}
+                    dataKey={dataKey}
+                    measuredColumnMinWidths={measuredColumnMinWidths}
+                    availableWidth={tableWidth}
+                >
+                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>{children}</View>
+                </HorizontalTableScroll>
+            </SearchColumnWidthsProvider>
+        </View>
     );
 }
 

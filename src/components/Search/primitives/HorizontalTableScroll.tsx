@@ -40,6 +40,13 @@ type HorizontalTableScrollProps = {
      * `getTableMinWidth` uses for them. Left out when dynamic sizing doesn't apply.
      */
     measuredColumnMinWidths?: Partial<Record<SearchColumnType, number>>;
+
+    /**
+     * Measured width of the area the table lays out into. The window is wider than this, since the page is inset from
+     * it, so comparing the table's width against the window would leave the table overflowing its own container without
+     * ever scrolling. Falls back to the window width until the first layout has been measured.
+     */
+    availableWidth?: number;
 };
 
 /**
@@ -47,11 +54,12 @@ type HorizontalTableScrollProps = {
  * the saved horizontal offset across query changes (before paint, to avoid a visible shift). Extracted
  * from SearchList so ExpenseFlatSearchView can reuse it.
  */
-function HorizontalTableScroll({children, columns, type, isActionColumnWide, isHeaderVisible, dataKey, measuredColumnMinWidths}: HorizontalTableScrollProps) {
+function HorizontalTableScroll({children, columns, type, isActionColumnWide, isHeaderVisible, dataKey, measuredColumnMinWidths, availableWidth}: HorizontalTableScrollProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const minTableWidth = getTableMinWidth(columns, type, isActionColumnWide, measuredColumnMinWidths);
-    const shouldScrollHorizontally = isHeaderVisible && minTableWidth > windowWidth;
+    const tableWidth = availableWidth && availableWidth > 0 ? availableWidth : windowWidth;
+    const shouldScrollHorizontally = isHeaderVisible && minTableWidth > tableWidth;
 
     const horizontalScrollViewRef = useRef<RNScrollView>(null);
 
