@@ -10,12 +10,14 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {getAccountingIntegrationDisplayName, getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import {getCardSettings, getConnectionBankAccountsForReconciliation, isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -55,6 +57,18 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     // workspace, so this page follows the same feed as the rest of the Expensify Card pages.
     const effectiveDomainID = useDefaultFundID(policyID);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${effectiveDomainID}`);
+
+    // The resolved feed can be owned by a domain or by another workspace acting as one, in which case toggling
+    // Continuous Reconciliation here also changes it for every other policy on that feed. Only say so when this
+    // workspace has a feed of its own that is being bypassed: a shared feed is the normal setup for a workspace
+    // with no feed of its own, so warning there would flag the common case rather than an ambiguous one.
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const [workspaceCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    // A feed owned by another workspace reports a synthetic expensify-policy<policyID>.exfy domain, so resolve the
+    // owner through getDescriptionForPolicyDomainCard to show that workspace's name instead of the synthetic domain.
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const sharedFeedName = cardSettings?.domainName ? getDescriptionForPolicyDomainCard(cardSettings.domainName, policies) : undefined;
+    const isSharedFeedBypassingOwnFeed = !!sharedFeedName && effectiveDomainID !== workspaceAccountID && isExpensifyCardFullySetUp(policy, workspaceCardSettings);
 
     const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${effectiveDomainID}`, {
         selector: isExpensifyCardContinuousReconciliationEnabledSelector,
@@ -151,6 +165,11 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                                     getAccountingIntegrationDisplayName(policy, connectionName, translate),
                                 )}
                             />
+                        </View>
+                    )}
+                    {isSharedFeedBypassingOwnFeed && (
+                        <View style={[styles.renderHTML, styles.ph5, styles.mt2]}>
+                            <RenderHTML html={translate('workspace.accounting.continuousReconciliationSharedFeed', sharedFeedName)} />
                         </View>
                     )}
                     <OfflineWithFeedback pendingAction={continuousReconciliationPendingAction}>
