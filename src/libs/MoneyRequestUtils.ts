@@ -168,8 +168,11 @@ function isMerchantRequired(report: OnyxEntry<Report>, transaction: OnyxEntry<Tr
     if (transaction && isExpenseUnreported(transaction)) {
         return false;
     }
-    // Don't treat a missing route report as "required" — fall through to the transaction participants so a report-less
-    // global-create P2P flow stays optional unless one of the participants is a policy expense chat.
+    // A reported (or missing) transaction with no parent report defaults to required — we can't prove clearing is
+    // allowed, so err on the side of requiring a merchant.
+    if (!report) {
+        return true;
+    }
     return isExpenseReport(report) || isPolicyExpenseChat(report) || isExpenseRequest(report) || !!transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
 }
 
