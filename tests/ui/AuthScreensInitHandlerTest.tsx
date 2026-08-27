@@ -190,7 +190,7 @@ describe('AuthScreensInitHandler', () => {
         if (!firstCallArgs) {
             throw new Error('Expected subscribeToUserEvents to be called');
         }
-        const getter = firstCallArgs[3];
+        const getter = firstCallArgs[4];
         if (!getter) {
             throw new Error('Expected report attributes getter to be provided');
         }
@@ -209,7 +209,7 @@ describe('AuthScreensInitHandler', () => {
         if (!firstCallArgs) {
             throw new Error('Expected subscribeToUserEvents to be called');
         }
-        const getter = firstCallArgs[3];
+        const getter = firstCallArgs[4];
         if (!getter) {
             throw new Error('Expected report attributes getter to be provided');
         }
