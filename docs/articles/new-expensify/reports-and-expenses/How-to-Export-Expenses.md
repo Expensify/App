@@ -61,6 +61,8 @@ The CSV includes one row per expense using the same columns displayed on the pag
 
 ---
 
+# FAQ
+
 ## What export templates can I choose from? 
 
 Expensify offers pre-built export templates, or you can build your own custom export template. 
