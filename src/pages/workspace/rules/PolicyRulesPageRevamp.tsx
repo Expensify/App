@@ -355,10 +355,20 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             </View>
         </View>
     );
+    const separateLineButtons =
+        shouldDisplayButtonsInSeparateLine && !!headerButtons ? <View style={[styles.flexShrink0, styles.pl5, styles.pr5, styles.pb5, styles.w100]}>{headerButtons}</View> : null;
+    // On the table and agent tabs the selector is the list's own header, so the buttons have to travel with it to land
+    // below the tabs instead of above the whole list.
+    const listHeaderComponent = (
+        <>
+            {rulesTabSelector}
+            {separateLineButtons}
+        </>
+    );
     const sharedTableTabProps = {
         policyID,
         canWriteRules,
-        headerComponent: rulesTabSelector,
+        headerComponent: listHeaderComponent,
     };
 
     return (
@@ -385,7 +395,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             >
                 <View style={[styles.flex1, styles.w100, styles.mnh0]}>
                     {!isTableTab && !isAgentsTab && rulesTabSelector}
-                    {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.flexShrink0, styles.pl5, styles.pr5, styles.pb5, styles.w100]}>{headerButtons}</View>}
+                    {!isTableTab && !isAgentsTab && separateLineButtons}
                     <View
                         style={[
                             styles.flex1,
@@ -443,7 +453,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                     policyID={policyID}
                                     canWriteRules={canWriteRules}
                                     showReadOnlyModal={showReadOnlyModal}
-                                    headerComponent={rulesTabSelector}
+                                    headerComponent={listHeaderComponent}
                                 />
                             </View>
                         )}
