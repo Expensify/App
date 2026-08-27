@@ -10,25 +10,16 @@ import CONST from '@src/CONST';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import type {ValueOf} from 'type-fest';
+
 /** Prefix on every receipt log line so we can filter the logs without parsing free text. */
 const RECEIPT_LOG_PREFIX = '[Receipt]';
 
 /** Points in the app lifecycle where we snapshot the receipts that are still pending. */
 type ReceiptSnapshotTrigger = 'signOut' | 'background' | 'foreground';
 
-type ReceiptClearReason =
-    | 'userSignOut'
-    | 'reauthFailed'
-    | 'reauthHttpError'
-    | 'samlRequired'
-    | 'noCredentials'
-    | 'deviceRevoked'
-    | 'unlinkLogin'
-    | 'supportalLogout'
-    | 'supportalRestore'
-    | 'stashedSessionRestore'
-    | 'hybridAppTransition'
-    | 'unknown';
+/** Which sign-out path tore down the session, so a forced sign-out does not read as a deliberate one. */
+type SignOutReason = ValueOf<typeof CONST.SIGN_OUT_REASON>;
 
 /** How a receipt entered the app. */
 type ReceiptCaptureSource = 'camera' | 'gallery' | 'file' | 'replace' | 'share';
@@ -268,7 +259,7 @@ type PendingReceiptRow = {
  * when nothing is pending, so the normal case makes no noise. Sent right away so it survives a hard app kill from the
  * background.
  */
-function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger, reason?: ReceiptClearReason) {
+function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger, reason?: SignOutReason) {
     const isOffline = getIsOffline();
     const now = Date.now();
     const isClear = trigger === 'signOut';
@@ -366,4 +357,4 @@ export {
     RECEIPT_BEARING_COMMANDS,
     RECEIPT_LOG_PREFIX,
 };
-export type {ReceiptCaptureSource, ReceiptClearReason};
+export type {ReceiptCaptureSource, SignOutReason};

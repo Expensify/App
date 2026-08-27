@@ -31,12 +31,28 @@ function validateFormDataParameter(command: string, key: string, value: unknown)
     };
 
     if (!isValid(value, true)) {
-        Log.alert(`${RECEIPT_LOG_PREFIX} An unsupported value was passed to command '${command}' (parameter: '${key}'). Only Blob and primitive types are allowed.`, {
+        const receiptTraceId = getReceiptTraceId(value);
+
+        // Only the receipt parameter belongs in the [Receipt] namespace. This function runs for every key of every
+        // command, so tagging all of them would make the receipt-loss queries count unrelated failures, and would
+        // forward unrelated lines to Sentry, which allow-lists on the prefix.
+        const isReceiptParameter = key === 'receipt' || receiptTraceId !== undefined;
+        const message = `${isReceiptParameter ? RECEIPT_LOG_PREFIX : '[FormData]'} An unsupported value was passed to command '${command}' (parameter: '${key}'). Only Blob and primitive types are allowed.`;
+        const parameters = {
             event: 'unsupportedParameter',
             command,
             key,
-            receiptTraceId: getReceiptTraceId(value),
-        });
+            receiptTraceId,
+        };
+
+        if (isReceiptParameter) {
+            Log.alert(message, parameters);
+            return;
+        }
+
+        // This path has never been observed in production, because it used to be a console.warn that never left the
+        // device. Log it at a lower severity until we know the rate, so a hot path cannot flood on the first deploy.
+        Log.hmmm(message, parameters);
     }
 }
 

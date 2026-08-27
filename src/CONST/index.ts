@@ -2582,6 +2582,19 @@ const CONST = {
         ALREADY_CREATED_TRANSACTION: 'Transaction already created.',
         ALREADY_PAID: 'The request has already been paid',
     },
+    SIGN_OUT_REASON: {
+        USER_SIGN_OUT: 'userSignOut',
+        REAUTH_FAILED: 'reauthFailed',
+        REAUTH_HTTP_ERROR: 'reauthHttpError',
+        SAML_REQUIRED: 'samlRequired',
+        NO_CREDENTIALS: 'noCredentials',
+        DEVICE_REVOKED: 'deviceRevoked',
+        UNLINK_LOGIN: 'unlinkLogin',
+        SUPPORTAL_LOGOUT: 'supportalLogout',
+        SUPPORTAL_RESTORE: 'supportalRestore',
+        STASHED_SESSION_RESTORE: 'stashedSessionRestore',
+        HYBRID_APP_TRANSITION: 'hybridAppTransition',
+    },
     NETWORK: {
         METHOD: {
             POST: 'post',

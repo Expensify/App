@@ -443,7 +443,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
             if (response?.hasOldDotAuthCookies) {
                 Log.info('Redirecting to OldDot sign out');
                 asyncOpenURL(
-                    redirectToSignIn(undefined, undefined, 'userSignOut').then(() => {
+                    redirectToSignIn(CONST.SIGN_OUT_REASON.USER_SIGN_OUT).then(() => {
                         Onyx.multiSet(onyxSetParams);
                     }),
                     `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`,
@@ -455,7 +455,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                 // and then redirect to the oldDot supportal page to restore the stashed session
                 // Clear the Onyx DB of stale data that might be present from a previous session
                 // of the customer account
-                logReceiptQueueSnapshot('signOut', 'supportalRestore');
+                logReceiptQueueSnapshot('signOut', CONST.SIGN_OUT_REASON.SUPPORTAL_RESTORE);
                 Onyx.clear(KEYS_TO_PRESERVE_SUPPORTAL).then(() => {
                     Onyx.multiSet(onyxSetParams).then(() => {
                         buildOldDotURL(CONST.OLDDOT_URLS.SUPPORTAL_RESTORE_STASHED_LOGIN).then((oldDotURL) => {
@@ -467,7 +467,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
             } else if (isPerformingSupportalLogout && !hasStashedSession(stashedSession, stashedCredentials)) {
                 // If the supportal agent was not logged in, we call `redirectToSignIn` to clear the Onyx DB
                 // and then redirect to supportal and restore the stashed session
-                redirectToSignIn(undefined, undefined, 'supportalLogout').then(() => {
+                redirectToSignIn(CONST.SIGN_OUT_REASON.SUPPORTAL_LOGOUT).then(() => {
                     Onyx.multiSet(onyxSetParams).then(() => {
                         buildOldDotURL(CONST.OLDDOT_URLS.SUPPORTAL_RESTORE_STASHED_LOGIN).then((oldDotURL) => {
                             // Open the oldDot URL to restore the stashed session and go back to OD supportal page
@@ -479,7 +479,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                 // Preserve SESSION during clear to avoid a login page flash, then restore the stashed session.
                 // Seed LAST_FULL_RECONNECT_TIME so subscribeToFullReconnect doesn't fire a duplicate
                 // ReconnectApp once the openApp() below lands NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE.
-                logReceiptQueueSnapshot('signOut', 'stashedSessionRestore');
+                logReceiptQueueSnapshot('signOut', CONST.SIGN_OUT_REASON.STASHED_SESSION_RESTORE);
                 clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE_SUPPORTAL).then(() => {
                     Onyx.multiSet(onyxSetParams).then(() => {
                         Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
@@ -498,7 +498,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                     });
                 });
             } else {
-                redirectToSignIn(undefined, undefined, 'userSignOut').then(() => {
+                redirectToSignIn(CONST.SIGN_OUT_REASON.USER_SIGN_OUT).then(() => {
                     Onyx.multiSet(onyxSetParams);
 
                     if (hasSwitchedAccountInHybridMode) {
@@ -695,7 +695,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
         }
 
         Log.info(`[HybridApp] Clearing onyx after transition from OldDot. useNewDotSignInPage set to ${hybridApp.useNewDotSignInPage}`);
-        return redirectToSignIn(undefined, undefined, 'hybridAppTransition');
+        return redirectToSignIn(CONST.SIGN_OUT_REASON.HYBRID_APP_TRANSITION);
     };
 
     const resetDidUserLoginDuringSessionIfNeeded = () => {
