@@ -64,10 +64,10 @@ type UseParticipantSubmissionParams = {
     participants: Participant[] | undefined;
     iouType: IOUType;
     action: IOUAction;
-    backTo: string | undefined;
     isSplitRequest: boolean;
     isMovingTransactionFromTrackExpense: boolean;
     isFocused: boolean;
+    isWorkspacesOnly: boolean;
 };
 
 function useParticipantSubmission({
@@ -77,10 +77,10 @@ function useParticipantSubmission({
     participants,
     iouType,
     action,
-    backTo,
     isSplitRequest,
     isMovingTransactionFromTrackExpense,
     isFocused,
+    isWorkspacesOnly,
 }: UseParticipantSubmissionParams) {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {translate} = useLocalize();
@@ -105,7 +105,8 @@ function useParticipantSubmission({
     // explicit useMemo is needed here.
     const transactionIDs = draftTransactions?.map((transaction) => transaction.transactionID);
     const [transactions] = useTransactionsByID(transactionIDs);
-    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        isDistanceRequest: isDistanceRequest(initialTransaction),
         isManualDistanceRequest: isManualDistanceRequest(initialTransaction),
         isOdometerDistanceRequest: isOdometerDistanceRequest(initialTransaction),
     });
@@ -209,16 +210,8 @@ function useParticipantSubmission({
         }
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, initialTransactionID, dmReportID);
         KeyboardUtils.dismissKeyboardAndExecute(() => {
-            // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
             Navigation.setNavigationActionToMicrotaskQueue(() => {
-                if (backTo) {
-                    // We don't want to compare params because we just changed the participants.
-                    Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
-                } else {
-                    // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously, which resets the amount to 0.
-                    // More information can be found here: https://github.com/Expensify/App/issues/73728
-                    Navigation.navigate(iouConfirmationPageRoute);
-                }
+                Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
             });
         });
     };
@@ -246,7 +239,7 @@ function useParticipantSubmission({
 
         // Block selecting a workspace with commuter exclusions before participants/workspace are committed.
         const selectedPolicyID = firstParticipant?.policyID ?? (firstParticipant?.reportID ? getReportOrDraftReport(firstParticipant.reportID)?.policyID : undefined);
-        if (blockManualOrOdometerDistanceRequestIfNeeded(selectedPolicyID)) {
+        if (blockDistanceRequestIfNeeded(selectedPolicyID)) {
             return;
         }
 
@@ -414,6 +407,36 @@ function useParticipantSubmission({
             return;
         }
 
+        // Moving a tracked expense via "Send to someone"/"Submit it to someone" (SUBMIT) or "Share with accountant" (SHARE)
+        // replaces the picker in the RHP stack, so the confirmation page needs an explicit backTo to return to it. Without it,
+        // back falls through to navigateToStartMoneyRequestStep, which dismisses the whole RHP to the report. CATEGORIZE is
+        // excluded because it routes through the category step, which carries its own back path. See #99145.
+        const shouldReturnToParticipantPicker = isMovingTransactionFromTrackExpense && !isCategorizing;
+
+        // For SUBMIT we reconstruct the backTo rather than snapshotting Navigation.getActiveRoute(): pinning the picker's
+        // writable-report guard (its reportID param) to the persistent self DM keeps back writable after goToNextStep moves the
+        // draft off the source report, and carrying isWorkspacesOnly keeps the "Submit to my employer" picker workspaces-only on
+        // back (a positive transaction cannot re-infer that). The base path stays the report the user was viewing (reportID) so
+        // back does not swap the visible report. If the self DM is unresolved (cold start) we fall back to the active route. See
+        // #99371. SHARE always uses the active route because it routes back through the accountant step, not the picker.
+        let participantPickerBackTo: string | undefined;
+        if (shouldReturnToParticipantPicker) {
+            if (isShareAction || !currentSelfDMReportID) {
+                participantPickerBackTo = Navigation.getActiveRoute();
+            } else {
+                participantPickerBackTo = createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({
+                        action,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID: initialTransactionID,
+                        reportID: currentSelfDMReportID,
+                        isWorkspacesOnly,
+                    }),
+                    ROUTES.REPORT_WITH_ID.getRoute(reportID),
+                );
+            }
+        }
+
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
             action,
             iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.SUBMIT : iouType,
@@ -421,7 +444,7 @@ function useParticipantSubmission({
             newReportID,
             undefined,
             undefined,
-            action === CONST.IOU.ACTION.SHARE ? Navigation.getActiveRoute() : undefined,
+            participantPickerBackTo,
         );
 
         const route = isCategorizing
@@ -432,16 +455,10 @@ function useParticipantSubmission({
             : iouConfirmationPageRoute;
 
         KeyboardUtils.dismissKeyboardAndExecute(() => {
-            // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
             // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously, which resets the amount to 0.
             // More information can be found here: https://github.com/Expensify/App/issues/73728
             Navigation.setNavigationActionToMicrotaskQueue(() => {
-                if (backTo) {
-                    // We don't want to compare params because we just changed the participants.
-                    Navigation.goBack(route, {compareParams: false});
-                } else {
-                    Navigation.navigate(route);
-                }
+                Navigation.goBack(route, {compareParams: false});
             });
         });
     };
@@ -450,3 +467,4 @@ function useParticipantSubmission({
 }
 
 export default useParticipantSubmission;
+export type {UseParticipantSubmissionParams};

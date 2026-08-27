@@ -1328,6 +1328,18 @@ function setNameValuePair<TKey extends OnyxKey>(name: TKey, value: SetNameValueP
     });
 }
 
+function dismissMarketingWindow(updateKey: string) {
+    const optimisticData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW,
+            value: updateKey,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.DISMISS_MARKETING_WINDOW, {updateKey}, {optimisticData});
+}
+
 /**
  * Dismiss the Auto-Submit explanation modal
  * @param shouldDismiss Whether the user selected "Don't show again"
@@ -2030,6 +2042,7 @@ export {
     clearDraftMerchantTypeRule,
     openTroubleshootSettingsPage,
     openMultifactorAuthenticationRevokePage,
+    dismissMarketingWindow,
 };
 
 export {type LockAccountOnyxKey};

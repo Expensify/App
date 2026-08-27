@@ -38,7 +38,7 @@ function WalletValidateCodePrompt({onConfirm, onClose}: WalletValidateCodePrompt
             descriptionPrimary={translate('contacts.enterSecurityCode', primaryLogin ?? '')}
             sendValidateCode={() => requestValidateCodeAction()}
             validateError={getLatestErrorMessageField(walletAdditionalDetails)}
-            clearError={clearWalletAdditionalDetailsErrors}
+            clearError={() => clearWalletAdditionalDetailsErrors(walletAdditionalDetails?.errorCode)}
             onClose={onClose}
         />
     );

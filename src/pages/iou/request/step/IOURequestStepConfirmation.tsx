@@ -50,6 +50,7 @@ import {
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     isParticipantP2P,
     isSelfDMSoleDestination,
+    isLookingAroundSearchRoutingActive,
     navigateToStartMoneyRequestStep,
     pickReportForPolicy,
     resolveOptimisticChatReportID,
@@ -267,14 +268,17 @@ function IOURequestStepConfirmation({
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isManualRequest = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
-    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockDistanceRequestIfNeeded = useCommuterExclusionGuard({
         policyID: policy?.id,
+        isDistanceRequest,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
     });
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const isLookingAroundUser = isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const receiptFilename = transaction?.receipt?.filename;
@@ -397,7 +401,7 @@ function IOURequestStepConfirmation({
             }
             const selectedParticipant = participantsList.at(0);
             const selectedPolicyID = selectedParticipant?.policyID ?? (selectedParticipant?.reportID ? getReportOrDraftReport(selectedParticipant.reportID)?.policyID : undefined);
-            if (blockManualOrOdometerDistanceRequestIfNeeded(selectedPolicyID)) {
+            if (blockDistanceRequestIfNeeded(selectedPolicyID)) {
                 return;
             }
             // P2P chats don't support negative amounts. When a negative amount was entered before a participant
@@ -496,7 +500,7 @@ function IOURequestStepConfirmation({
             lastSelectedDistanceRates,
             transaction,
             personalPolicy?.outputCurrency,
-            blockManualOrOdometerDistanceRequestIfNeeded,
+            blockDistanceRequestIfNeeded,
             mappedPolicies,
             getCurrencyDecimals,
             policyID,
@@ -640,6 +644,7 @@ function IOURequestStepConfirmation({
                 iouType,
                 isCreatingTrackExpense,
                 isSelfDMDestination,
+                isLookingAroundUser,
                 isMovingTransactionFromTrackExpense,
             }),
         [
@@ -651,6 +656,7 @@ function IOURequestStepConfirmation({
             iouType,
             isCreatingTrackExpense,
             isSelfDMDestination,
+            isLookingAroundUser,
             isMovingTransactionFromTrackExpense,
         ],
     );
@@ -755,12 +761,16 @@ function IOURequestStepConfirmation({
         }
 
         if (transaction?.isFromGlobalCreate && !transaction.receipt?.isTestReceipt) {
-            // If the participants weren't automatically added to the transaction, then we should go back to the IOURequestStepParticipants.
+            // If the participants weren't automatically added to the transaction, then we should go back to the participants step.
             if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, initialTransactionID, transaction?.reportID || reportID, undefined, action), {
-                    compareParams: false,
-                });
+                Navigation.goBack(
+                    createDynamicRoute(
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({action, iouType, transactionID: initialTransactionID, reportID: transaction?.reportID || reportID}),
+                        ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, initialTransactionID, reportID, backToReport),
+                    ),
+                    {compareParams: false},
+                );
                 return;
             }
 
@@ -996,6 +1006,7 @@ function IOURequestStepConfirmation({
                             isFromGlobalCreate={isFromGlobalCreate}
                             iouType={iouType}
                             isSelfDMDestination={isSelfDMDestination}
+                            isLookingAroundUser={isLookingAroundUser}
                             requestType={requestType}
                             canDismissFromSearch={canDismissFromSearch}
                             gpsRequired={!!gpsRequired}
@@ -1069,7 +1080,7 @@ function IOURequestStepConfirmation({
                                 // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
                                 // matching standard RHP behavior, not just close the stacked participant picker.
                                 onBackdropPress={() => Navigation.dismissModal()}
-                                shouldBlockParticipantSelection={blockManualOrOdometerDistanceRequestIfNeeded}
+                                shouldBlockParticipantSelection={blockDistanceRequestIfNeeded}
                             />
                         )}
                     </View>
