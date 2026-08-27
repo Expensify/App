@@ -36,8 +36,8 @@ import useScrollToEndOnNewMessageReceived from './useScrollToEndOnNewMessageRece
 import useWindowDimensions from './useWindowDimensions';
 
 type UseReportActionsScrollParams = {
-    // Make conciergeChat required once all ReportActionsList surfaces pass it. Refactor issue: https://github.com/Expensify/App/issues/66411
-    conciergeChat?: OnyxEntry<OnyxTypes.Report>;
+    /** The Concierge chat report, used to build onboarding data in openReport (https://github.com/Expensify/App/issues/66411) */
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     /** The ID of the report currently being looked at */
     reportID: string;
 

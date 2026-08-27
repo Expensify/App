@@ -77,8 +77,8 @@ type ReportActionsListContentProps = {
     /** The ID of the report to display actions for */
     reportID: string;
 
-    // Make conciergeChat required once all ReportActionsList surfaces pass it. Refactor issue: https://github.com/Expensify/App/issues/66411
-    conciergeChat?: OnyxEntry<OnyxTypes.Report>;
+    /** The Concierge chat report, used to build onboarding data in openReport (https://github.com/Expensify/App/issues/66411) */
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
 
     /** Callback executed on list layout */
     onLayout?: (event: LayoutChangeEvent) => void;
