@@ -65,20 +65,6 @@ const pages = [
     {pageName: CONST.CORPAY_FIELDS.PAGE_NAME.SUCCESS, component: Success},
 ];
 
-function getSkippedPages(skipAccountTypeStep: boolean, skipAccountHolderInformationStep: boolean, skipInternationalBankAccountDetailsStep: boolean) {
-    const skippedSteps = [];
-    if (skipInternationalBankAccountDetailsStep) {
-        skippedSteps.push(CONST.CORPAY_FIELDS.PAGE_NAME.INTERNATIONAL_BANK_ACCOUNT_DETAILS);
-    }
-    if (skipAccountTypeStep) {
-        skippedSteps.push(CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE);
-    }
-    if (skipAccountHolderInformationStep) {
-        skippedSteps.push(CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS);
-    }
-    return skippedSteps;
-}
-
 function InternationalDepositAccountContent({
     privatePersonalDetails,
     corpayFields,
@@ -108,7 +94,16 @@ function InternationalDepositAccountContent({
 
     const startFrom = getInitialSubstep(values, fieldsMap, skipInternationalBankAccountDetailsStep);
 
-    const skippedPages = getSkippedPages(skipAccountTypeStep, skipAccountHolderInformationStep, skipInternationalBankAccountDetailsStep);
+    const skippedPages = [];
+    if (skipInternationalBankAccountDetailsStep) {
+        skippedPages.push(CONST.CORPAY_FIELDS.PAGE_NAME.INTERNATIONAL_BANK_ACCOUNT_DETAILS);
+    }
+    if (skipAccountTypeStep) {
+        skippedPages.push(CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE);
+    }
+    if (skipAccountHolderInformationStep) {
+        skippedPages.push(CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS);
+    }
 
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.ADD_BANK_ACCOUNT>>();
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((r) => isFullScreenName(r.name)));
