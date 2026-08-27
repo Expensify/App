@@ -139,6 +139,7 @@ function ExpenseFlatSearchView({
             isHeaderVisible={!!searchTableHeader}
             dataKey={data}
             data={data}
+            nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
             isKeyboardShown={isKeyboardShown}
             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
             containerStyle={containerStyle}

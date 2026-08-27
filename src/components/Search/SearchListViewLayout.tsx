@@ -1,5 +1,7 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {CardList} from '@src/types/onyx';
+
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useState} from 'react';
@@ -43,6 +45,9 @@ type SearchListViewLayoutProps = {
      */
     data?: SearchListItem[];
 
+    /** The viewer's non-personal and workspace cards, so the card column can be sized from the names it renders. */
+    nonPersonalAndWorkspaceCards?: CardList;
+
     /** The list and any header/modal blocks, composed by the view (e.g. SelectionTopBar, BaseSearchList, long-press menu). */
     children: React.ReactNode;
 };
@@ -62,6 +67,7 @@ function SearchListViewLayout({
     safeAreaPaddingBottomStyle,
     containerStyle,
     data,
+    nonPersonalAndWorkspaceCards,
     children,
 }: SearchListViewLayoutProps) {
     const styles = useThemeStyles();
@@ -77,6 +83,7 @@ function SearchListViewLayout({
         data: data ?? [],
         // A header is only rendered in the table layout; narrow layouts render rows as cards with no columns to size.
         isEnabled: isHeaderVisible && !!data,
+        measurementContext: {nonPersonalAndWorkspaceCards},
     });
 
     // The scroller sizes the table from what its columns refuse to shrink below, so it has to know the minimums the

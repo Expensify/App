@@ -1,3 +1,4 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType} from '@components/Search/types';
 
@@ -5,14 +6,27 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {CardList} from '@src/types/onyx';
 
 import type {MeasurableFont} from './measureTextWidth/types';
 
+import {getCompanyCardDescription} from './CardUtils';
 import {getDecodedLeafCategoryName, isCategoryMissing} from './CategoryUtils';
 import getBase62ReportID from './getBase62ReportID';
 import {getReportName} from './ReportNameUtils';
 import {getDecodedTagName} from './TagUtils';
-import {getDescription, getMerchantName, getTagForDisplay} from './TransactionUtils';
+import {getDescription, getExchangeRate, getMerchantName, getTagForDisplay, getTaxName, isPerDiemRequest, isTimeRequest} from './TransactionUtils';
+
+/**
+ * The data a column needs to resolve its text that doesn't travel on the transaction itself.
+ *
+ * These are read once at the list level and passed down, rather than subscribed to per row, which is the same shape the
+ * rows themselves use for this data.
+ */
+type SearchColumnMeasurementContext = {
+    /** The viewer's non-personal and workspace cards, used to name the card a transaction was made on. */
+    nonPersonalAndWorkspaceCards?: CardList;
+};
 
 /** A run of text rendered in a Search table cell, described well enough to measure how wide it renders. */
 type SearchColumnContent = {
@@ -49,6 +63,10 @@ const DYNAMICALLY_SIZED_SEARCH_COLUMNS = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
     CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
     CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
+    CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME,
+    CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
+    CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
+    CONST.SEARCH.TABLE_COLUMNS.CARD,
 ]);
 
 /**
@@ -68,6 +86,10 @@ const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, Tr
     [CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID]: 'workspace.common.customField1',
     [CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID]: 'workspace.common.customField2',
     [CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS]: 'common.internationalReimbursementIDs',
+    [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: 'workspace.common.workspace',
+    [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: 'iou.taxRate',
+    [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: 'common.exchangeRate',
+    [CONST.SEARCH.TABLE_COLUMNS.CARD]: 'common.card',
 };
 
 /**
@@ -89,7 +111,12 @@ function getSearchColumnExtraWidth(column: SearchColumnType): number {
  * This mirrors what the row's cell renders rather than the raw field, since the two differ: a scanning expense shows a
  * status string in place of its merchant, and a tag is shown with its parent levels stripped.
  */
-function getSearchColumnContentToMeasure(column: SearchColumnType, item: TransactionListItemType, translate: (key: TranslationPaths) => string): SearchColumnContent[] {
+function getSearchColumnContentToMeasure(
+    column: SearchColumnType,
+    item: TransactionListItemType,
+    translate: LocalizedTranslate,
+    context: SearchColumnMeasurementContext = {},
+): SearchColumnContent[] {
     switch (column) {
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return [{text: getMerchantName(item, translate)}];
@@ -117,6 +144,14 @@ function getSearchColumnContentToMeasure(column: SearchColumnType, item: Transac
             return [{text: item.report?.submitterPayrollID}];
         case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
             return [{text: item.report?.orderDealNumbers}];
+        case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
+            return [{text: item.policy?.name}];
+        case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
+            return [{text: isTimeRequest(item) || isPerDiemRequest(item) ? '' : (getTaxName(item.policy, item) ?? item.taxValue ?? '')}];
+        case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
+            return [{text: getExchangeRate(item, item.report?.currency ?? item.policy?.outputCurrency, true)}];
+        case CONST.SEARCH.TABLE_COLUMNS.CARD:
+            return [{text: getCompanyCardDescription(translate, item.cardName, item.cardID, context.nonPersonalAndWorkspaceCards, item.feedCountry)}];
         default:
             return [];
     }
@@ -124,3 +159,4 @@ function getSearchColumnContentToMeasure(column: SearchColumnType, item: Transac
 
 export default getSearchColumnContentToMeasure;
 export {DYNAMICALLY_SIZED_SEARCH_COLUMNS, SEARCH_COLUMN_HEADER_TRANSLATION_KEYS, getSearchColumnExtraWidth};
+export type {SearchColumnMeasurementContext};

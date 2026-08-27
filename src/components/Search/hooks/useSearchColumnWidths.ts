@@ -5,6 +5,7 @@ import type {SearchColumnType} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {SearchColumnMeasurementContext} from '@libs/getSearchColumnContentToMeasure';
 import getSearchColumnContentToMeasure, {DYNAMICALLY_SIZED_SEARCH_COLUMNS, getSearchColumnExtraWidth, SEARCH_COLUMN_HEADER_TRANSLATION_KEYS} from '@libs/getSearchColumnContentToMeasure';
 import measureTextWidth, {canMeasureText} from '@libs/measureTextWidth';
 import createWidestTextMeasurer from '@libs/measureTextWidth/widestTextMeasurer';
@@ -66,6 +67,9 @@ type UseSearchColumnWidthsParams = {
 
     /** Whether dynamic sizing should run. Callers pass `false` on narrow layouts, where rows render as cards. */
     isEnabled: boolean;
+
+    /** Data some columns need to resolve their text, read once at the list level rather than per row. */
+    measurementContext?: SearchColumnMeasurementContext;
 };
 
 /**
@@ -82,7 +86,7 @@ type UseSearchColumnWidthsParams = {
  * Returns an empty map when the columns should keep their current flex behavior: sizing is off, or text can't be
  * measured (native).
  */
-function useSearchColumnWidths({columns, data, isEnabled}: UseSearchColumnWidthsParams): Partial<Record<SearchColumnType, SearchColumnSizing>> {
+function useSearchColumnWidths({columns, data, isEnabled, measurementContext}: UseSearchColumnWidthsParams): Partial<Record<SearchColumnType, SearchColumnSizing>> {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -111,7 +115,7 @@ function useSearchColumnWidths({columns, data, isEnabled}: UseSearchColumnWidths
                     continue;
                 }
 
-                for (const content of getSearchColumnContentToMeasure(column, item, translate)) {
+                for (const content of getSearchColumnContentToMeasure(column, item, translate, measurementContext)) {
                     measurer.add(content.text, content.font);
                 }
             }
@@ -161,7 +165,7 @@ function useSearchColumnWidths({columns, data, isEnabled}: UseSearchColumnWidths
         }
 
         return columnSizing;
-    }, [columns, data, isEnabled, translate, styles.gap1.gap]);
+    }, [columns, data, isEnabled, translate, measurementContext, styles.gap1.gap]);
 }
 
 export default useSearchColumnWidths;
