@@ -1,20 +1,20 @@
 import {addMiddleware} from '@libs/Request';
 
-import FraudMonitoring from './FraudMonitoring';
 import {
     FailureTracking,
+    FraudMonitoring,
     handleDeletedAccount,
     HandleUnusedOptimisticID,
+    LoadPostDataForOpenOrReconnect,
     LoadTest,
     Logging,
     Pagination,
     Reauthentication,
     RecordFullReconnectTime,
     SaveResponseInOnyx,
+    SentryServerTiming,
     SupportalPermission,
 } from './index';
-import LoadPostDataForOpenOrReconnect from './LoadPostDataForOpenOrReconnect';
-import SentryServerTiming from './SentryServerTiming';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
 // Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Save the Response in Onyx. Errors thrown in one middleware will bubble to the next.

@@ -1,5 +1,3 @@
-// This suite renders SearchPage without TestHelper, so it never loads @src/setup, where the app registers
-// the API middlewares. The rendered page processes a search request, and the pipeline needs them registered.
 import '@libs/Middleware/register';
 import {act, render, screen} from '@testing-library/react-native';
 
