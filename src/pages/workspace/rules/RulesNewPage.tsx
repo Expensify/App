@@ -75,26 +75,33 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const [isBuildingRule] = useOnyx(ONYXKEYS.IS_LOADING_PARSED_POLICY_RULE);
 
     const seedDraftAndNavigate = (rule: ParsedPolicyRule) => {
-        switch (rule.ruleType) {
-            case CONST.PARSED_POLICY_RULE.RULE_TYPE.REQUIRE_FIELDS:
-                setDraftRequireFieldsRule(rule.rule ?? {});
-                Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID, undefined, true));
-                return;
-            case CONST.PARSED_POLICY_RULE.RULE_TYPE.FLAG_FOR_REVIEW:
-                setDraftFlagForReviewRule(rule.rule ?? {});
-                Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID, undefined, true));
-                return;
-            case CONST.PARSED_POLICY_RULE.RULE_TYPE.RESTRICT_CARD_SPEND:
-                setDraftSpendRule(rule.rule ?? {});
-                Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
-                return;
-            case CONST.PARSED_POLICY_RULE.RULE_TYPE.EXPENSE_DEFAULTS:
-                setDraftMerchantRule(rule.rule ?? {});
-                Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
-                return;
-            default:
-                setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unintelligible'));
+        const draft = rule.rule ?? {};
+
+        if (rule.ruleType === CONST.PARSED_POLICY_RULE.RULE_TYPE.REQUIRE_FIELDS) {
+            setDraftRequireFieldsRule(draft);
+            Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID, undefined, true));
+            return;
         }
+
+        if (rule.ruleType === CONST.PARSED_POLICY_RULE.RULE_TYPE.FLAG_FOR_REVIEW) {
+            setDraftFlagForReviewRule(draft);
+            Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID, undefined, true));
+            return;
+        }
+
+        if (rule.ruleType === CONST.PARSED_POLICY_RULE.RULE_TYPE.RESTRICT_CARD_SPEND) {
+            setDraftSpendRule(draft);
+            Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
+            return;
+        }
+
+        if (rule.ruleType === CONST.PARSED_POLICY_RULE.RULE_TYPE.EXPENSE_DEFAULTS) {
+            setDraftMerchantRule(draft);
+            Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
+            return;
+        }
+
+        setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unintelligible'));
     };
 
     const applyParsedRule = (rule: ParsedPolicyRule) => {
@@ -105,23 +112,28 @@ function RulesNewPage({route}: RulesNewPageProps) {
         setParseID(undefined);
         clearParsedPolicyRule();
 
-        switch (rule.state) {
-            case CONST.PARSED_POLICY_RULE.STATE.RULE:
-                seedDraftAndNavigate(rule);
-                return;
-            case CONST.PARSED_POLICY_RULE.STATE.UNSUPPORTED:
-                setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unsupported', {area: rule.unsupportedArea ?? ''}));
-                setCanOfferAgentRule(true);
-                return;
-            case CONST.PARSED_POLICY_RULE.STATE.MULTIPLE_RULES:
-                setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.multipleRules'));
-                return;
-            case CONST.PARSED_POLICY_RULE.STATE.UNINTELLIGIBLE:
-                setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unintelligible'));
-                return;
-            default:
-                setNewRulePromptError(translate('common.genericErrorMessage'));
+        if (rule.state === CONST.PARSED_POLICY_RULE.STATE.RULE) {
+            seedDraftAndNavigate(rule);
+            return;
         }
+
+        if (rule.state === CONST.PARSED_POLICY_RULE.STATE.UNSUPPORTED) {
+            setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unsupported', {area: rule.unsupportedArea ?? ''}));
+            setCanOfferAgentRule(true);
+            return;
+        }
+
+        if (rule.state === CONST.PARSED_POLICY_RULE.STATE.MULTIPLE_RULES) {
+            setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.multipleRules'));
+            return;
+        }
+
+        if (rule.state === CONST.PARSED_POLICY_RULE.STATE.UNINTELLIGIBLE) {
+            setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unintelligible'));
+            return;
+        }
+
+        setNewRulePromptError(translate('common.genericErrorMessage'));
     };
 
     useEffect(() => {
