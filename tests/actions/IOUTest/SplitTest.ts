@@ -10311,7 +10311,7 @@ describe('startSplitBill delegateAccountID forwarding', () => {
  * `splitExpenses` mean "collapse an existing split back into one expense" (a reverse split) rather than "split
  * this expense into one".
  */
-const buildSplitFlowParams = async ({withExistingSplitChildren = false} = {}) => {
+const buildSplitFlowParams = async ({withExistingSplitChildren = false, asSelfDMThread = false} = {}) => {
     const expenseReport: Report = {
         ...createRandomReport(9001, undefined),
         type: CONST.REPORT.TYPE.EXPENSE,
@@ -10324,7 +10324,13 @@ const buildSplitFlowParams = async ({withExistingSplitChildren = false} = {}) =>
         created: DateUtils.getDBTime(),
         merchant: 'test',
     };
-    const transactionThread: Report = {...createRandomReport(9002, undefined)};
+    // `asSelfDMThread` makes the thread a selfDM child of the expense report, which is the only shape that
+    // reaches the navigate-first branch in `updateSplitTransactionsFromSplitExpensesFlow`.
+    const transactionThread: Report = {
+        ...createRandomReport(9002, undefined),
+        type: CONST.REPORT.TYPE.CHAT,
+        ...(asSelfDMThread ? {chatType: CONST.REPORT.CHAT_TYPE.SELF_DM, parentReportID: expenseReport.reportID} : {}),
+    };
     const iouAction: ReportAction = {
         ...buildOptimisticIOUReportAction({
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -10370,7 +10376,7 @@ const buildSplitFlowParams = async ({withExistingSplitChildren = false} = {}) =>
         },
     });
 
-    const reports = getTransactionAndExpenseReports(expenseReport.reportID);
+    const reports = getTransactionAndExpenseReports(asSelfDMThread ? transactionThread.reportID : expenseReport.reportID);
     const params: UpdateSplitTransactionsParams = {
         allTransactionsList: allTransactions,
         allReportsList: allReports,
@@ -10432,17 +10438,35 @@ describe('split save deferred write', () => {
         expect(writeWhenReady).toHaveBeenCalledWith(WRITE_COMMANDS.SPLIT_TRANSACTION, expect.anything(), expect.anything(), expect.any(Function));
     });
 
-    it('defers the write the same way when saving from the Search page', async () => {
-        // Given the Search page is the topmost full screen route
+    it('navigates back to the selfDM before deferring the write when Search is not topmost', async () => {
+        const Navigation = jest.requireMock('@src/libs/Navigation/Navigation');
+
+        // Given a split whose transaction thread is a selfDM, the one shape that reaches the navigate-first branch
+        const {params} = await buildSplitFlowParams({asSelfDMThread: true});
+
+        // When it is saved while Search is not the topmost full screen route
+        updateSplitTransactionsFromSplitExpensesFlow(params);
+        await waitForBatchedUpdates();
+
+        // Then the flow navigates back to the selfDM first, so the transaction thread is off screen before the
+        // data changes under it. The write is still deferred, it just happens after that navigation.
+        expect(Navigation.dismissModal).toHaveBeenCalled();
+        expect(writeWhenReady).toHaveBeenCalledWith(WRITE_COMMANDS.SPLIT_TRANSACTION, expect.anything(), expect.anything(), expect.any(Function));
+    });
+
+    it('defers the write for the same selfDM split when the Search page is topmost', async () => {
+        const Navigation = jest.requireMock('@src/libs/Navigation/Navigation');
+
+        // Given the identical selfDM fixture, changed only by Search being the topmost full screen route
         jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
-        const {params} = await buildSplitFlowParams();
+        const {params} = await buildSplitFlowParams({asSelfDMThread: true});
 
         // When the split is saved
         updateSplitTransactionsFromSplitExpensesFlow(params);
         await waitForBatchedUpdates();
 
-        // Then the same barrier-gated path is used - the barrier is route agnostic, so the Search
-        // branch needs no special casing
+        // Then the navigate-first branch is skipped and the write goes through the barrier instead
+        expect(Navigation.dismissModal).not.toHaveBeenCalled();
         expect(createTransitionBarrier).toHaveBeenCalledWith('navigation');
         expect(writeWhenReady).toHaveBeenCalledWith(WRITE_COMMANDS.SPLIT_TRANSACTION, expect.anything(), expect.anything(), expect.any(Function));
     });
