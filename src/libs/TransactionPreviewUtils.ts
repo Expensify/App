@@ -48,6 +48,7 @@ import {
     isOnHold,
     isPending,
     isScanning,
+    shouldShowViolation,
 } from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
 import {filterReceiptViolations, isHardViolationOrRateDateWarning} from './Violations/ViolationsUtils';
@@ -365,6 +366,26 @@ function getTransactionPreviewTextAndTranslationPaths({
     };
 }
 
+/**
+ * The over-auto-approval-limit notice ships without `showInReview`, so the notice-type check that gates the preview RBR
+ * skips it, even though it is worth an RBR for whoever has to approve the report. `shouldShowViolation` is the single
+ * rule for who that is, and it is applied here rather than trusting the array because some callers pass raw Onyx
+ * violations instead of the visible ones.
+ */
+function hasVisibleOverAutoApprovalLimitViolation(
+    transaction: OnyxEntry<OnyxTypes.Transaction> | undefined,
+    violations: OnyxTypes.TransactionViolations,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+): boolean {
+    return !!violations?.some(
+        (violation) =>
+            violation.name === CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT && shouldShowViolation(iouReport, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction),
+    );
+}
+
 function createTransactionPreviewConditionals({
     iouReport,
     iouReportOwnerLogin,
@@ -426,6 +447,7 @@ function createTransactionPreviewConditionals({
         !!hasViolationsOfTypeNotice ||
         hasWarningTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, iouReportOwnerLogin, policy) ||
         hasViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, iouReportOwnerLogin, policy, true) ||
+        hasVisibleOverAutoApprovalLimitViolation(transaction, violations, iouReport ?? undefined, policy, currentUserEmail ?? '', currentUserAccountID) ||
         (isDistanceRequest(transaction) &&
             violations?.some(
                 (violation) => violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && (violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.type === CONST.VIOLATION_TYPES.NOTICE),
@@ -495,6 +517,11 @@ function transactionHasRBR(
 
     // Check for notice-type violations (only on group policies)
     if (hasNoticeTypeViolation(transaction, violations, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy, true) && isGroupPolicyUtil(policy)) {
+        return true;
+    }
+
+    // Check for the over-auto-approval-limit notice, which reaches the approver without showInReview
+    if (hasVisibleOverAutoApprovalLimitViolation(transaction, violations, iouReport, policy, currentUserEmail, currentUserAccountID)) {
         return true;
     }
 
