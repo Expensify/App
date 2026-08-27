@@ -6924,8 +6924,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) => `请确保此账户与您的合并差旅账单结算账户（以 ${lastFourPAN} 结尾）一致，以便连续对账功能正常运行。`,
             },
             syncTravelInvoicingSettlements: '同步合并差旅结算',
-            syncTravelInvoicingSettlementsNoAccountTooltip: '为导出设置一个科目以解锁。',
-            syncTravelInvoicingSettlementsNoAutoSyncTooltip: '启用自动同步以解锁。',
+            syncTravelInvoicingSettlementsNoAccountTooltip: '要解锁，请为导出设置一个账户。',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: '若要解锁，请启用自动同步。',
         },
         export: {
             notReadyHeading: '尚未准备好导出',

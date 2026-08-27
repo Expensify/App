@@ -7350,8 +7350,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             reconciliationAccount: 'Λογαριασμός συμφιλίωσης',
             continuousReconciliation: 'Συνεχής συμφωνία',
             syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών ενοποιημένης χρέωσης ταξιδιών',
-            syncTravelInvoicingSettlementsNoAccountTooltip: 'Ορίστε έναν λογαριασμό για τις εξαγωγές σας για να το ξεκλειδώσετε.',
-            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Ενεργοποιήστε τον αυτόματο συγχρονισμό για να το ξεκλειδώσετε.',
             saveHoursOnReconciliation:
                 'Εξοικονομήστε ώρες σε κάθε λογιστική περίοδο στην συμφωνία λογαριασμών, αφήνοντας το Expensify να συμφωνίζει συνεχώς για εσάς τις καταστάσεις και τους διακανονισμούς της Κάρτας Expensify.',
             enableContinuousReconciliation: (accountingAdvancedSettingsLink: string, connectionName: string) =>
@@ -7369,6 +7367,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     ? `Οι δαπάνες που δεν αντιστοιχίζονται αυτόματα θα αντιστοιχίζονται από προεπιλογή σε αυτόν τον προμηθευτή.`
                     : `Τα έξοδα που δεν αντιστοιχίζονται αυτόματα θα αντιστοιχίζονται από προεπιλογή σε αυτόν τον προμηθευτή. Διαφορετικά, θα εξαχθούν ως Credit Card Misc.`,
             defaultVendorSelectHeader: (connectionName) => `Επιλέξτε έναν προεπιλεγμένο προμηθευτή ${connectionName} για δαπάνες που δεν αντιστοιχίζονται αυτόματα.`,
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'Για να το ενεργοποιήσετε, ορίστε έναν λογαριασμό για τις εξαγωγές σας.',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Για να το ξεκλειδώσετε, ενεργοποιήστε τον αυτόματο συγχρονισμό.',
         },
         hr: {
             title: 'HR',
