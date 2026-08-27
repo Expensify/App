@@ -128,7 +128,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
                 name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
                 op: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
-                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native'},
+                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE},
             });
         }
 
@@ -158,7 +158,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             op: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
             attributes: {
-                [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native',
+                [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE,
                 [CONST.TELEMETRY.ATTRIBUTE_CAPTURE_METHOD]: shouldTakePhoto({flash, hasFlash, isInLandscapeMode})
                     ? CONST.TELEMETRY.CAPTURE_METHOD.PHOTO
                     : CONST.TELEMETRY.CAPTURE_METHOD.SNAPSHOT,
@@ -178,7 +178,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                     [CONST.TELEMETRY.ATTRIBUTE_PHOTO_HEIGHT]: photo.height,
                 });
                 if (!isMultiScanEnabled) {
-                    startReceiptPrepareSpan();
+                    startReceiptPrepareSpan(CONST.TELEMETRY.SPAN_PLATFORM.NATIVE);
                 }
                 return ReceiptStorage.adopt(photo.path);
             })

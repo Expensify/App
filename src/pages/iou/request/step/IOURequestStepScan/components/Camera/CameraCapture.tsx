@@ -92,14 +92,14 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
             startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
                 name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
                 op: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
-                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'web'},
+                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.WEB},
             });
         }
         startSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
             name: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
             op: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
-            attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'web'},
+            attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.WEB},
         });
 
         const imageBase64 = cameraRef.current.getScreenshot();
@@ -131,7 +131,7 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
         cropImageToAspectRatio(imageObject, viewfinderLayoutRef.current?.width, viewfinderLayoutRef.current?.height, shouldAlignTop).then(({file, source}) => {
             endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
             if (!isMultiScanEnabled) {
-                startReceiptPrepareSpan();
+                startReceiptPrepareSpan(CONST.TELEMETRY.SPAN_PLATFORM.WEB);
             }
             onCapture(file, source);
         });

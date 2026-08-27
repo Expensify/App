@@ -2335,6 +2335,10 @@ const CONST = {
             PHOTO: 'photo',
             SNAPSHOT: 'snapshot',
         },
+        SPAN_PLATFORM: {
+            NATIVE: 'native',
+            WEB: 'web',
+        },
         /** Which report-actions skeleton cancelled a send-message span (value of the canceled_by_skeleton attribute). */
         CANCELED_BY_SKELETON: {
             REPORT_ACTIONS_REPORT_DATA_LOADING: 'report_actions_report_data_loading',
