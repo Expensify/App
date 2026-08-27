@@ -44,7 +44,22 @@ type ForwardedLogPrefix = TupleToUnion<typeof FORWARDED_LOG_PREFIXES>;
 const PREFIX_SCOPED_PARAMETERS_WHITELIST = new Map<ForwardedLogPrefix, ReadonlyArray<string | RegExp>>([
     [
         '[Receipt]',
-        ['receiptTraceId', 'transactionID', 'event', 'captureSource', 'statErrorCode', 'errorMessage', 'errorName', 'key', 'trigger', 'reason', 'platform', 'snapshotID', 'hasDurableFile'],
+        [
+            'receiptTraceId',
+            'transactionID',
+            'event',
+            'captureSource',
+            'statErrorCode',
+            'code',
+            'errorMessage',
+            'errorName',
+            'key',
+            'trigger',
+            'reason',
+            'platform',
+            'snapshotID',
+            'hasDurableFile',
+        ],
     ],
     ['[PDFStall]', ['reportID']],
     ['[OpenReportStall]', ['reportID']],

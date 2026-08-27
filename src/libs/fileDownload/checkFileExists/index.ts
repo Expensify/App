@@ -1,4 +1,5 @@
 import fileURIToPath from '@libs/fileURIToPath';
+import {logReceiptStatFailed} from '@libs/telemetry/ReceiptObservability';
 
 import RNFS from 'react-native-fs';
 
@@ -51,7 +52,15 @@ function checkFileExistsWithReason(path: string | undefined): Promise<FileCheckR
  * @returns Promise that resolves to true if file exists, false otherwise
  */
 function checkFileExists(path: string | undefined): Promise<boolean> {
-    return checkFileExistsWithReason(path).then((result) => result.exists);
+    return checkFileExistsWithReason(path).then(({exists, error}) => {
+        // Callers of this boolean form discard the reason, so report it here. The upload path uses
+        // checkFileExistsWithReason and puts the same errno on its own dropped line, so logging inside the shared
+        // helper instead would count every failed receipt stat twice.
+        if (error) {
+            logReceiptStatFailed(error.code);
+        }
+        return exists;
+    });
 }
 
 export default checkFileExists;

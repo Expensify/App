@@ -36,14 +36,14 @@ import {removeBackupTransaction} from '@libs/actions/TransactionEdit';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import {isLookingAroundSearchRoutingActive, isSelfDMSoleDestination, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import {getWaypointsHasUnsavedChanges} from '@libs/MoneyRequestUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
-import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
+import {isPolicyExpenseChat as isPolicyExpenseChatUtil, isSelfDM} from '@libs/ReportUtils';
 import {getDistanceInMeters, getRateID, getRequestType, getSelectedRouteKey, hasManualDistanceOverride, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -124,6 +124,8 @@ function DynamicIOURequestStepDistance({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
@@ -322,7 +324,19 @@ function DynamicIOURequestStepDistance({
         return iouType !== CONST.IOU.TYPE.SPLIT && !isArchived && !(isPolicyExpenseChatUtil(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
     }, [report, skipConfirmation, policy?.requiresCategory, policy?.requiresTag, isArchived, iouType]);
 
-    const skipConfirmationPreMountRoute = getSkipConfirmationPreMountDestinationRoute(shouldSkipConfirmation, report?.reportID);
+    // The LOOKING_AROUND + self-DM flags are computed inline rather than hoisted into named consts on purpose: this
+    // component is already at React Compiler's memoization-preservation limit, and adding another top-level reactive
+    // value tips it over so it can no longer preserve the manual memos below. Keep these inline.
+    const skipConfirmationPreMountRoute = getSkipConfirmationPreMountDestinationRoute(
+        shouldSkipConfirmation,
+        report?.reportID,
+        isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline),
+        // Same self-DM predicate as the navigate half (handleMoneyRequestStepDistanceNavigation) so the guard suppresses in
+        // exactly the cases navigation forces Search. Kept inline to stay under this component's React Compiler memo limit.
+        // Both self-DM signals are ORed: on a quick-action flow participants are not populated yet when this runs, so the
+        // participants check alone misses and the self-DM gets pre-inserted, which navigateAfterExpenseCreate then reveals.
+        isSelfDM(report) || isSelfDMSoleDestination(transaction?.participants ?? [], iouType, currentUserPersonalDetails.accountID),
+    );
     usePreMountDestination(skipConfirmationPreMountRoute);
 
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
@@ -372,6 +386,7 @@ function DynamicIOURequestStepDistance({
         isDraft: shouldUseTransactionDraft(action),
         introSelected,
         betas,
+        conciergeChat,
         transactionWasSavedRef: transactionWasSaved,
     });
 
