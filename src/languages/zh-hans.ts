@@ -10,14 +10,13 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
+import startsWithVowel from '@libs/StringUtils/startsWithVowel';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
@@ -36,6 +35,18 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        durationDays: ({count}: {count: number}) => ({
+            one: `1 天`,
+            other: `${count} 天`,
+        }),
+        durationHours: ({count}: {count: number}) => ({
+            one: `1 小时`,
+            other: `${count} 小时`,
+        }),
+        durationMinutes: ({count}: {count: number}) => ({
+            one: `1 分钟`,
+            other: `${count} 分钟`,
+        }),
         count: '数量',
         cancel: '取消',
         dismiss: '关闭',
@@ -483,6 +494,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '上一年',
         nextYear: '明年',
         avatar: '头像',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `第 ${current} 项（共 ${total} 项）`,
         editor: '编辑',
         restrictions: '限制',
         tryAgain: '重试',
@@ -665,10 +677,13 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmationPromptAll: '您确定吗？在任何设备上的下次验证中，您都需要输入安全验证码。',
             ctaAll: '全部撤销',
             thisDevice: '此设备',
-            otherDevices: (otherDeviceCount?: number) => {
+            otherDevices: ({count}: {count: number}) => {
                 const numberWords = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
-                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
-                return `${displayCount} 个其他 ${otherDeviceCount === 1 ? '设备' : '设备'}`;
+                const displayCount = count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
+                return {
+                    one: `${displayCount} 个其他设备`,
+                    other: `${displayCount} 个其他设备`,
+                };
             },
             confirmationPromptThisDevice: '你确定吗？你将在此设备上的下一次验证中需要输入安全码。',
             confirmationPromptMultiple: '您确定吗？下次在这些设备上进行验证时，您需要输入安全代码。',
@@ -888,6 +903,7 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: '仅限管理员',
         },
     },
+    supportalSwitcher: {title: '切换 Supportal 到其他账户', emailLabel: '电子邮箱地址', reasonLabel: '支持登录原因', reasonHint: '未找到此账户的近期工单。', login: '登录'},
     sidebarScreen: {
         buttonFind: '查找内容…',
         buttonMySettings: '我的设置',
@@ -944,10 +960,22 @@ const translations: TranslationDeepObject<typeof en> = {
             menuItemDescription: '了解 Expensify 的强大功能，只需 2 分钟',
         },
         forYouSection: {
-            submit: ({count}: {count: number}) => `提交 ${count} ${count === 1 ? '报表' : '报表'}`,
-            approve: ({count}: {count: number}) => `批准 ${count} ${count === 1 ? '报表' : '报表'}`,
-            pay: ({count}: {count: number}) => `支付 ${count} ${count === 1 ? '报表' : '报表'}`,
-            export: ({count}: {count: number}) => `导出 ${count} 个 ${count === 1 ? '报表' : '报表'}`,
+            submit: ({count}: {count: number}) => ({
+                one: `提交 ${count} 份报表`,
+                other: `提交 ${count} 份报表`,
+            }),
+            approve: ({count}: {count: number}) => ({
+                one: `批准 ${count} 份报表`,
+                other: `批准 ${count} 份报表`,
+            }),
+            pay: ({count}: {count: number}) => ({
+                one: `支付 ${count} 份报表`,
+                other: `支付 ${count} 份报表`,
+            }),
+            export: ({count}: {count: number}) => ({
+                one: `导出 ${count} 份报表`,
+                other: `导出 ${count} 份报表`,
+            }),
             begin: '开始',
             emptyStateMessages: {
                 thumbsUpStarsTitle: '你已完成！',
@@ -981,7 +1009,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 f1FlagsTitle: '全部完成',
                 f1FlagsDescription: '你已完成所有未完成的待办事项。',
             },
-            reviewExpenses: ({count}: {count: number}) => `审核 ${count} ${count === 1 ? '费用' : '费用'}`,
+            reviewExpenses: ({count}: {count: number}) => ({
+                one: `审核 ${count} 笔费用`,
+                other: `审核 ${count} 笔费用`,
+            }),
         },
         upcomingTravel: '即将出行',
         upcomingTravelSection: {
@@ -994,7 +1025,10 @@ const translations: TranslationDeepObject<typeof en> = {
             today: '今天',
         },
         freeTrialSection: {
-            title: ({days}: {days: number}) => `免费试用：剩余 ${days} ${days === 1 ? '天' : '天'} 天！`,
+            title: ({count}: {count: number}) => ({
+                one: `免费试用：剩余 1 天 天！`,
+                other: `免费试用：剩余 ${count} 天 天！`,
+            }),
             offer50Body: '首年可享受五折优惠',
             offer25Body: '首年可享 75 折优惠',
             addCardBody: '添加付款卡',
@@ -1044,6 +1078,13 @@ const translations: TranslationDeepObject<typeof en> = {
         seeMore: ({count}: {count: number}) => `再查看 ${count} 个`,
         recentlyAddedSection: {title: '最近添加', viewAll: '查看所有报销费用', emptyStateTitle: '最近没有报销记录', emptyStateMessage: '创建一个或将收据拖到这里'},
         insightsSection: {chartUnavailable: '图表不可用', notEnoughData: '我们目前没有足够的数据来填充此图表'},
+        conciergePrompt: {
+            goodMorning: ({name}: {name?: string}) => (name ? `早上好，${name}。` : '早上好。'),
+            goodAfternoon: ({name}: {name?: string}) => (name ? `下午好，${name}。` : '下午好。'),
+            goodEvening: ({name}: {name?: string}) => (name ? `晚上好，${name}。` : '晚上好。'),
+            inputPlaceholder: '向 Concierge 请求分析你的报销或获取支持',
+            inputPlaceholderMobile: '向 Concierge 提问任何问题',
+        },
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -1072,42 +1113,58 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `哎呀！你已将单个字段（“${fieldName}”）映射到多个列。请检查后重试。`,
         emptyMappedField: (fieldName: string) => `哎呀！字段（“${fieldName}”）包含一个或多个空值。请检查后重试。`,
         importSuccessfulTitle: '导入成功',
-        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
-            if (!added && !updated) {
-                return '尚未添加或更新任何类别。';
-            }
-            if (added && updated) {
-                return `已添加 ${added} 个，${added === 1 ? '类别' : '类别'} 新增；已更新 ${updated} 个，${updated === 1 ? '类别' : '类别'} 更新。`;
-            }
-            if (added) {
-                return added === 1 ? '已添加 1 个类别。' : `已添加 ${added} 个类别。`;
-            }
-            return updated === 1 ? '1 个类别已更新。' : `已更新 ${updated} 个类别。`;
-        },
-        importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) => (transactions > 1 ? `已添加 ${transactions} 笔交易。` : '已添加 1 笔交易。'),
-        importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
-            if (!added && !updated) {
-                return '尚未添加或更新任何成员。';
-            }
-            if (added && updated) {
-                return `已添加 ${added} 名成员${added > 1 ? '秒' : ''}，已更新 ${updated} 名成员${updated > 1 ? '秒' : ''}。`;
-            }
-            if (updated) {
-                return updated > 1 ? `已更新 ${updated} 位成员。` : '已更新 1 名成员。';
-            }
-            return added > 1 ? `已添加 ${added} 位成员。` : '已添加 1 名成员。';
-        },
-        importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `已添加 ${tags} 个标签。` : '已添加 1 个标签。'),
+        importCategoriesNoneAddedOrUpdated: '尚未添加或更新任何类别。',
+        importCategoriesAdded: ({count}: {count: number}) => ({
+            one: '已添加 1 个类别。',
+            other: `已添加 ${count} 个类别。`,
+        }),
+        importCategoriesUpdated: ({count}: {count: number}) => ({
+            one: '1 个类别已更新。',
+            other: `已更新 ${count} 个类别。`,
+        }),
+        importCategoriesAddedAndUpdated: ({added, updated}: {added: number; updated: number}) =>
+            `已添加 ${added} 个，${added === 1 ? '类别' : '类别'} 新增；已更新 ${updated} 个，${updated === 1 ? '类别' : '类别'} 更新。`,
+        importCompanyCardTransactionsSuccessfulDescription: ({count}: {count: number}) => ({
+            one: `已添加 ${count} 笔交易。`,
+            other: `已添加 ${count} 笔交易。`,
+        }),
+        importMembersNoneAddedOrUpdated: '尚未添加或更新任何成员。',
+        importMembersAdded: ({count}: {count: number}) => ({
+            one: '已添加 1 名成员。',
+            other: `已添加 ${count} 位成员。`,
+        }),
+        importMembersUpdated: ({count}: {count: number}) => ({
+            one: '已更新 1 名成员。',
+            other: `已更新 ${count} 位成员。`,
+        }),
+        importMembersAddedAndUpdated: ({added, updated}: {added: number; updated: number}) => `已添加 ${added} 名成员，已更新 ${updated} 名成员。`,
+        importTagsSuccessfulDescription: ({count}: {count: number}) => ({
+            one: `已添加 ${count} 个标签。`,
+            other: `已添加 ${count} 个标签。`,
+        }),
         importMultiLevelTagsSuccessfulDescription: '已添加多级标签。',
-        importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `已添加 ${rates} 个每日补贴标准。` : '已添加 1 条日津贴费率。'),
-        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
-            if (rules === 0) {
+        importPerDiemRatesSuccessfulDescription: ({count}: {count: number}) => ({
+            one: `已添加 ${count} 条每日补贴标准。`,
+            other: `已添加 ${count} 条每日补贴标准。`,
+        }),
+        importMerchantRulesSuccessfulDescription: ({count}: {count: number}) => {
+            if (count === 0) {
                 return '未添加任何商户规则，因为它们均已存在。';
             }
-            return rules > 1 ? `已添加 ${rules} 条商户规则。` : '已添加 1 条商户规则。';
+            return {
+                one: '已添加 1 条商户规则。',
+                other: `已添加 ${count} 条商户规则。`,
+            };
         },
+        importMerchantRulesSkippedCategories: ({count}: {count: number}) => ({
+            one: `已跳过 ${count} 个类别，因为它们在此工作区中不存在。`,
+            other: `已跳过 ${count} 个类别，因为它们在此工作区中不存在。`,
+        }),
         importMerchantRulesRequiredColumns: '哎呀！您必须至少映射一列“商户为”或“商户包含”，并且至少映射一个要更新的字段。请检查后重试。',
-        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) => (transactions > 1 ? `已导入 ${transactions} 笔交易。` : '已导入 1 笔交易。'),
+        importTransactionsSuccessfulDescription: ({count}: {count: number}) => ({
+            one: `已导入 ${count} 笔交易。`,
+            other: `已导入 ${count} 笔交易。`,
+        }),
         importFailedTitle: '导入失败',
         importFailedDescription: '请确保所有字段均已正确填写，然后重试。如果问题仍然存在，请联系 Concierge。',
         importDescription: '通过点击下方每个导入列旁边的下拉菜单，选择要从电子表格中映射的字段。',
@@ -1411,8 +1468,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? '卡' : '银行账户';
             return isCurrentUser
-                ? `. 款项正在汇往您的${creditBankAccount ? `尾号为 ${creditBankAccount} 的银行账户` : '账户'}（通过 ${paymentMethod} 支付）。这可能需要最多 10 个工作日。`
-                : `. 资金正在汇往 ${submitterLogin} 的 ${creditBankAccount ? `尾号为 ${creditBankAccount} 的银行账户` : '账户'}（通过 ${paymentMethod} 支付）。这可能需要最多 10 个工作日。`;
+                ? `. 款项正在汇往您的${creditBankAccount ? `尾号为 ${creditBankAccount} 的银行账户` : '账户'}（通过 ${paymentMethod} 支付）。这通常需要 4–5 个工作日。`
+                : `. 资金正在汇往 ${submitterLogin} 的 ${creditBankAccount ? `尾号为 ${creditBankAccount} 的银行账户` : '账户'}（通过 ${paymentMethod} 支付）。这通常需要 4–5 个工作日。`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             `使用直接存款（ACH）${creditBankAccount ? `至尾号为 ${creditBankAccount} 的银行账户。` : '. '}${expectedDate ? `预计将在 ${expectedDate} 前完成报销。` : '这通常需要 4–5 个工作日。'}`,
@@ -1429,7 +1486,7 @@ const translations: TranslationDeepObject<typeof en> = {
         basedOnAI: '基于过去的活动',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `基于<a href="${rulesLink}">工作区规则</a>` : '基于工作区规则'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `用于 ${comment}` : '报销'}`,
-        invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `发票报告 #${linkedReportID}`,
+        invoiceReportName: ({linkedReportID}: OriginalMessageReportPreview) => `发票报表 #${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount: string, comment?: string) => `已发送 ${formattedAmount}${comment ? `用于 ${comment}` : ''}`,
         movedFromPersonalSpace: (reportName?: string, workspaceName?: string) => `已将报销从个人空间移动到 ${workspaceName ?? `与 ${reportName} 聊天`}`,
         movedToPersonalSpace: '已将报销移动到个人空间',
@@ -1491,6 +1548,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: '启用钱包',
         hold: '暂挂',
         sendToSomeone: '发送给某人',
+        submitToEmployer: '提交给我的雇主',
         unhold: '解除保留',
         holdExpense: () => ({
             one: '暂挂报销',
@@ -1640,8 +1698,9 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesMaxTransactionsError: `每个报告最多可包含 ${CONST.REPORT.MAX_TRANSACTIONS} 笔支出。请将部分支出移动到其他报告。`,
         moveExpensesError: '您无法将每日津贴报销移动到其他工作区的报表中，因为不同工作区的每日津贴标准可能不同。',
         submitReportTo: {
-            sendExpense: '将你的报销发送给任何人',
+            sendExpense: '提交给任何人',
             sendExpenseSubtitle: '使用电子邮箱地址或电话号码邀请任何人加入 Expensify。',
+            selectRecipientError: '请选择或输入收件人以继续。',
         },
         changeApprover: {
             title: '更改审批人',
@@ -1674,7 +1733,10 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseWorkspace: '选择工作区',
         routedDueToDEW: (to: string, reason?: string) => `报销单已转交给 ${to}${reason ? ` 因为 ${reason}` : ''}`,
         timeTracking: {
-            hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? '小时' : '小时'}，按 ${rate} / 小时`,
+            hoursAt: ({count, rate}: {count: number; rate: string}) => ({
+                one: `${count} 小时，按 ${rate} / 小时`,
+                other: `${count} 小时，按 ${rate} / 小时`,
+            }),
             hrs: '小时',
             hours: '小时',
             ratePreview: (rate: string) => `${rate} / 小时`,
@@ -1727,7 +1789,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pageTitle: '选择要保留的详细信息：',
             noDifferences: '在这些交易之间未发现差异',
             pleaseSelectError: ({field}: {field: string}) => {
-                const article = StringUtils.startsWithVowel(field) ? '一个' : 'a';
+                const article = startsWithVowel(field) ? '一个' : '一个';
                 return `请选择${article}${field}`;
             },
             pleaseSelectAttendees: '请选择参会者',
@@ -2151,13 +2213,18 @@ const translations: TranslationDeepObject<typeof en> = {
         signOutConfirmationText: '如果你退出登录，所有离线更改都会丢失。',
         saveReceiptsConfirmation: {
             title: '保存你的收据？',
-            prompt: ({count}: {count: number}) => `还有 ${count} 张收据正在上传。如果你现在退出登录，我们会将其保存到你的照片中，以便你稍后将其添加到新的支出中。`,
+            prompt: ({count}: {count: number}) => ({
+                one: `还有 ${count} 张收据正在上传。如果你现在退出登录，我们会将其保存到你的照片中，以便你稍后将其添加到新的支出中。`,
+                other: `还有 ${count} 张收据正在上传。如果你现在退出登录，我们会将其保存到你的照片中，以便你稍后将其添加到新的支出中。`,
+            }),
             confirm: '保存并退出登录',
         },
         saveReceiptsAndSignOutConfirmation: {
             title: '保存你的收据？',
-            prompt: ({count}: {count: number}) =>
-                `还有 ${count} 张收据正在上传。如果你现在退出登录，我们会将其保存到你的照片中，以便你稍后将其添加到新的支出中。你的所有其他离线更改都会丢失。`,
+            prompt: ({count}: {count: number}) => ({
+                one: `还有 ${count} 张收据正在上传。如果你现在退出登录，我们会将其保存到你的照片中，以便你稍后将其添加到新的支出中。你的所有其他离线更改都会丢失。`,
+                other: `还有 ${count} 张收据正在上传。如果你现在退出登录，我们会将其保存到你的照片中，以便你稍后将其添加到新的支出中。你的所有其他离线更改都会丢失。`,
+            }),
             confirm: '保存并退出登录',
         },
         versionLetter: 'v',
@@ -2958,7 +3025,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         title: '欢迎使用 #focus 模式！',
         prompt: (priorityModePageUrl: string) => `通过只查看未读聊天或需要你关注的聊天，随时掌握最新进展。别担心，你可以随时在<a href="${priorityModePageUrl}">设置</a>中更改此项。`,
     },
-    inboxTabs: {all: '全部', todo: '待办事项', unread: '未读'},
+    inboxTabs: {all: '全部', todo: '待办事项', unread: '未读', markAllAsRead: '全部标记为已读', markAllAsReadConfirmationPrompt: '确定要将所有聊天标记为已读吗？'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `在 ${policyName} 中`,
         generatingPDF: '生成 PDF',
@@ -3011,7 +3078,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         requiredWhen2FAEnabled: '启用双重验证时必填',
         requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `在<a>${timeRemaining}</a>后请求新代码`,
         requestNewCodeAfterErrorOccurred: '请求新验证码',
-        timeRemainingAnnouncement: ({timeRemaining}) => `剩余时间：${timeRemaining}秒`,
+        timeRemainingAnnouncement: ({count}) => ({
+            one: `剩余时间：${count} 秒`,
+            other: `剩余时间：${count} 秒`,
+        }),
         timeExpiredAnnouncement: '时间已到期',
         error: {pleaseFillSecurityCode: '请输入您的安全码', incorrectSecurityCode: '安全码不正确或无效。请重试或请求新代码。', pleaseFillTwoFactorAuth: '请输入您的双重身份验证代码'},
     },
@@ -3056,7 +3126,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         joinAWorkspace: '加入工作区',
         listOfWorkspaces: '以下是你可以加入的工作区列表。',
         skipForNow: '暂时跳过',
-        workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} 位成员${employeeCount > 1 ? '秒' : ''} • ${policyOwner}`,
+        workspaceMemberList: ({count, policyOwner}: {count: number; policyOwner: string}) => ({
+            one: `${count} 位成员 • ${policyOwner}`,
+            other: `${count} 位成员 • ${policyOwner}`,
+        }),
         whereYouWork: '你在哪里工作？',
         errorSelection: '选择一个选项以继续',
         purpose: {
@@ -3459,38 +3532,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) => `我们暂时无法向 ${login} 发送短信，因此已暂时停用该号码。请尝试验证您的号码：`,
         validationSuccess: '您的号码已验证！点击下方发送新的安全登录验证码。',
-        validationFailed: ({
-            timeData,
-        }: {
-            timeData?: {
-                days?: number;
-                hours?: number;
-                minutes?: number;
-            } | null;
-        }) => {
-            if (!timeData) {
-                return '请稍等片刻再重试。';
-            }
-            const timeParts = [];
-            if (timeData.days) {
-                timeParts.push(`${timeData.days} ${timeData.days === 1 ? '天' : '天'}`);
-            }
-            if (timeData.hours) {
-                timeParts.push(`${timeData.hours} ${timeData.hours === 1 ? '小时' : '小时'}`);
-            }
-            if (timeData.minutes) {
-                timeParts.push(`${timeData.minutes} ${timeData.minutes === 1 ? '分钟' : '分钟'}`);
-            }
-            let timeText = '';
-            if (timeParts.length === 1) {
-                timeText = timeParts.at(0) ?? '';
-            } else if (timeParts.length === 2) {
-                timeText = `${timeParts.at(0)} and ${timeParts.at(1)}`;
-            } else if (timeParts.length === 3) {
-                timeText = `${timeParts.at(0)}, ${timeParts.at(1)}, and ${timeParts.at(2)}`;
-            }
-            return `请稍等！在再次尝试验证您的号码之前，您需要等待 ${timeText}。`;
-        },
+        validationFailed: ({timeText}: {timeText: string}) => (timeText ? `请稍等！在再次尝试验证您的号码之前，您需要等待 ${timeText}。` : '请稍等片刻再重试。'),
     },
     welcomeSignUpForm: {
         join: '加入',
@@ -4361,6 +4403,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             workflows: '工作流程',
             workspace: '工作区',
             findWorkspace: '查找工作区',
+            active: '活跃',
+            archived: '已归档',
+            workspaceStatus: '工作区状态',
             findRoom: '查找房间',
             edit: '编辑工作区',
             enabled: '已启用',
@@ -4678,6 +4723,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         },
         qbo: {
             connectedTo: '已连接到',
+            entity: '实体',
+            entitySelectDescription: '选择要与此工作区同步的实体。',
+            connectNewEntity: '连接新实体',
             importDescription: (integrationName = 'QuickBooks Online') => `选择要从 ${integrationName} 导入到 Expensify 的编码配置。`,
             classes: '类别',
             locations: '位置',
@@ -5630,10 +5678,16 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             addNewCard: {
                 other: '其他',
                 fileImport: '从文件导入交易',
-                createFileFeedHelpText: `<muted-text>请按照此<a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">帮助指南</a>操作，将您的公司卡费用导入！</muted-text>`,
+                createFileFeedHelpText: {
+                    instructionStart: '在下一页，您将上传卡交易的 CSV 文件。上传前，请先',
+                    templateLink: '下载我们的模板',
+                    instructionMiddle: '，或查看我们的',
+                    helpGuideLink: '帮助指南',
+                    instructionEnd: '。',
+                },
                 companyCardLayoutName: '公司卡片布局名称',
                 cardLayoutNameRequired: '公司卡片布局名称是必填的',
-                useAdvancedFields: '使用高级字段（不推荐）',
+                downloadTemplate: '下载我们的模板',
                 cardProviders: {
                     gl1025: 'American Express 公司卡',
                     cdf: '万事达商业卡',
@@ -5720,9 +5774,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     currency: '货币',
                     ignore: '忽略',
                     originalTransactionDate: '原始交易日期',
-                    originalAmount: '原始金额',
-                    originalCurrency: '原始货币',
-                    comment: '评论',
+                    originalAmount: '购买金额',
+                    originalCurrency: '购买货币',
+                    comment: '描述',
                     category: '类别',
                     tag: '标签',
                 },
@@ -5809,6 +5863,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             currentBalanceDescription: '当前余额是上次结算日期以来已入账的所有 Expensify 卡交易的总和。',
             balanceWillBeSettledOn: (settlementDate: string) => `余额将于 ${settlementDate} 结清`,
             settleBalance: '结清余额',
+            settleBalanceConfirmationTitle: '结清余额？',
+            settleBalanceConfirmationPrompt: '这将在下一个工作日结清您的当前余额。成功后，该金额将重新计入您的剩余额度。',
             cardLimit: '卡片限额',
             remaining: '剩余',
             remainingLimit: '剩余额度',
@@ -5965,7 +6021,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     ctaText: '请求已发送',
                 },
                 bookOrManageYourTrip: {title: '差旅预订', subtitle: '恭喜！您现在可以在此工作区预订和管理差旅了。', ctaText: '管理差旅'},
-                settings: {autoAddTripName: {title: '将行程名称添加到报销单', subtitle: '为在 Expensify 中预订的行程，自动将行程名称添加到报销事由描述中。'}},
+                settings: {
+                    autoAddTripName: {title: '将行程名称添加到报销单', subtitle: '为在 Expensify 中预订的行程，自动将行程名称添加到报销事由描述中。'},
+                    codingSync: {title: '将编码同步到 Expensify Travel', subtitle: '将此工作区的类别、标签和报表字段推送到 Expensify Travel，以便出行人能在预订时填写。'},
+                },
                 travelInvoicing: {
                     travelBookingSection: {
                         title: '差旅预订',
@@ -6023,6 +6082,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         spend: '支出管控和自定义限额',
                     },
                     ctaTitle: '发新卡',
+                    existingFeedTitle: '管理你的 Expensify 卡',
+                    viewCards: '查看卡片',
                 },
             },
             companyCards: {
@@ -6524,8 +6585,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 chooseLimitType: '选择限额类型',
                 smartLimit: '智能限额',
                 smartLimitDescription: '在需要审批前可支出至指定金额上限',
-                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text-label>在需要审批前可支出至指定金额上限。<a href="${workspaceWorkflowsLink}">启用审批</a>后即可选择此选项。</muted-text-label>`,
+                smartLimitDisabledDescription: (workspaceWorkflowsLink?: string) =>
+                    `<muted-text-label>在需要审批前可支出至指定金额上限。${workspaceWorkflowsLink ? `<a href="${workspaceWorkflowsLink}">启用审批</a>` : '启用审批'}后即可选择此选项。</muted-text-label>`,
                 monthly: '每月',
                 monthlyDescription: '每月消费上限为特定金额',
                 fixedAmount: '固定金额',
@@ -7002,6 +7063,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             yourWorkspace: `您的工作区当前使用不受支持的货币。请查看<a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">支持的货币列表</a>。`,
             chooseAnExisting: '选择现有银行账户来支付报销，或添加新账户。',
             changeBankAccount: '更改银行账户',
+            updateCurrencyForExpensifyCard: 'Expensify 卡目前仅支持以美元（USD）发行。请将此工作区的货币更新为美元（USD），或使用其他工作区。',
+            updateCurrencyForExpensifyCardTitle: '获取 Expensify 卡',
+            euUkUpdateCurrencyForExpensifyCard: 'Expensify 卡目前可发行的货币包括 USD、GBP 和 EUR。请将此工作区更新为受支持的货币或使用其他工作区。',
         },
         changeOwner: {
             changeOwnerPageTitle: '转移所有者',
@@ -8733,10 +8797,16 @@ ${reportName}`,
             hold: '暂挂',
             unhold: '解除保留',
             reject: '拒绝',
-            duplicateExpense: ({count}: {count: number}) => `复制${count === 1 ? '报销' : '报销费用'}`,
+            duplicateExpense: () => ({
+                one: '复制报销',
+                other: '复制报销',
+            }),
             noOptionsAvailable: '所选报销的费用组没有可用选项。',
             undelete: '取消删除',
-            duplicateReport: ({count}: {count: number}) => `重复 ${count === 1 ? '报表' : '报表'}`,
+            duplicateReport: () => ({
+                one: '复制报表',
+                other: '复制报表',
+            }),
         },
         expensifyCardStatementPDF: {
             title: '下载对账单',
@@ -9071,7 +9141,10 @@ ${reportName}`,
         },
     },
     chronos: {
-        oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary}，共计 ${dayCount} ${dayCount === 1 ? '天' : '天'}，截至 ${date}`,
+        oooEventSummaryFullDay: ({summary, count, date}: {summary: string; count: number; date: string}) => ({
+            one: `${summary}，共计 ${count} 天，截至 ${date}`,
+            other: `${summary}，共计 ${count} 天，截至 ${date}`,
+        }),
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary}，时间范围：${timePeriod}，日期：${date}`,
         startTimer: '开始计时',
         stopTimer: (duration: string) => `停止计时器 (${duration})`,
@@ -9522,6 +9595,17 @@ ${reportName}`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return '由于银行连接中断，无法自动匹配收据。';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
+                if (isPersonalCard) {
+                    if (!connectionLink) {
+                        return '由于您的银行连接需要重新验证，无法自动匹配收据。';
+                    }
+                    return isMarkAsCash
+                        ? `由于您的银行连接需要重新验证，无法自动匹配收据。标记为现金以忽略，或<a href="${connectionLink}">重新连接</a>以匹配收据。`
+                        : `由于您的银行连接需要重新验证，无法自动匹配收据。请<a href="${connectionLink}">重新连接</a>以匹配该收据。`;
+                }
+                return isAdmin ? `银行连接需要重新验证。<a href="${companyCardPageURL}">重新连接以匹配收据</a>` : '银行连接需要重新验证。请让管理员重新连接以匹配收据。';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return '由于银行连接中断，无法自动匹配收据。';
@@ -9542,6 +9626,9 @@ ${reportName}`,
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>由于银行连接中断，收据暂时待处理。请前往<a href="${workspaceCompanyCardRoute}">公司卡</a>中解决。</muted-text-label>`,
         memberBrokenConnectionError: '由于银行连接中断，收据处于待处理状态。请联系工作区管理员解决。',
+        adminReauthConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>由于银行连接需要重新验证，收据暂时待处理。请前往<a href="${workspaceCompanyCardRoute}">公司卡</a>中解决。</muted-text-label>`,
+        memberReauthConnectionError: '由于银行连接需要重新验证，收据处于待处理状态。请联系工作区管理员解决。',
         markAsCashToIgnore: '标记为现金以忽略并请求付款。',
         smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
             if (missingFields.length > 0) {
@@ -9651,7 +9738,10 @@ ${reportName}`,
         authenticatePaymentCard: '验证支付卡',
         mobileReducedFunctionalityMessage: '您无法在移动应用中更改订阅。',
         badge: {
-            freeTrial: (numOfDays: number) => `免费试用：剩余 ${numOfDays} ${numOfDays === 1 ? '天' : '天'}`,
+            freeTrial: ({count}: {count: number}) => ({
+                one: `免费试用：剩余 ${count} 天`,
+                other: `免费试用：剩余 ${count} 天`,
+            }),
         },
         billingBanner: {
             policyOwnerAmountOwed: {
@@ -9707,7 +9797,10 @@ ${reportName}`,
                 subtitle: '下一步，请<a href="#">完成设置清单</a>，以便您的团队可以开始报销费用。',
             },
             trialStarted: {
-                title: (numOfDays: number) => `试用期：剩余 ${numOfDays} ${numOfDays === 1 ? '天' : '天'} 天！`,
+                title: ({count}: {count: number}) => ({
+                    one: `试用期：剩余 ${count} 天！`,
+                    other: `试用期：剩余 ${count} 天！`,
+                }),
                 subtitle: '添加一张付款卡片以继续使用您所有喜爱的功能。',
             },
             trialEnded: {
@@ -9727,6 +9820,8 @@ ${reportName}`,
             title: '付款',
             subtitle: '添加一张银行卡来支付你的 Expensify 订阅费用。',
             addCardButton: '添加付款卡',
+            addPaymentCardTitle: '添加支付卡',
+            addCard: '添加卡片',
             cardInfo: (name: string, expiration: string, currency: string) => `名称：${name}，到期日：${expiration}，货币：${currency}`,
             cardNextPayment: (nextPaymentDate: string) => `您的下一个付款日期是 ${nextPaymentDate}。`,
             cardEnding: (cardNumber: string) => `尾号为 ${cardNumber} 的卡片`,
@@ -10296,7 +10391,10 @@ ${reportName}`,
             reportSuspiciousActivityConfirmationPrompt: '我们会审核账户以确认解锁是否安全，如有任何问题将通过 Concierge 与您联系。',
             emptyMembers: {title: '此群组中没有成员', subtitle: '添加成员或尝试更改上方的筛选条件。'},
             moveToGroup: '移至群组',
-            chooseWhereToMove: ({count}: {count: number}) => `选择将 ${count} 个 ${count === 1 ? '成员' : '成员'} 移动到哪里。`,
+            chooseWhereToMove: ({count}: {count: number}) => ({
+                one: `选择将 ${count} 位成员移动到哪里。`,
+                other: `选择将 ${count} 位成员移动到哪里。`,
+            }),
             domainGroup: '域名组',
             chooseWhereToMoveName: ({name}: {name: string}) => `选择将 ${name} 移动到哪里。`,
             membersFeatureList: {

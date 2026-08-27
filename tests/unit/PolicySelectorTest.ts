@@ -6,6 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {
     createAdminPoliciesSelector,
     createCopySettingsEligibleTargetsSelector,
+    createIOURequestStartPoliciesSelector,
     createWorkspaceListPoliciesSelector,
     isAdminForPolicyByIDSelector,
     lastWorkspaceNumberSelector,
@@ -289,6 +290,7 @@ describe('createWorkspaceListPoliciesSelector', () => {
             'pendingAction',
             'errors',
             'isPendingDelete',
+            'isArchived',
             'isJoinRequestPending',
             'nonMemberDetails',
         ]);
@@ -384,5 +386,236 @@ describe('createWorkspaceListPoliciesSelector', () => {
         const policy = makePolicy({role: CONST.POLICY.ROLE.ADMIN});
         const result = createWorkspaceListPoliciesSelector(undefined)({[`${P}p1`]: policy});
         expect(result).toHaveLength(1);
+    });
+});
+
+describe('createIOURequestStartPoliciesSelector', () => {
+    const P = ONYXKEYS.COLLECTION.POLICY;
+    const userLogin = 'user@example.com';
+
+    const makePolicy = (overrides: Partial<Policy>): Policy =>
+        createMock<Policy>({
+            id: 'p1',
+            name: 'Test Workspace',
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            pendingAction: undefined,
+            ...overrides,
+        });
+
+    const makePerDiemPolicy = (id: string, overrides: Partial<Policy> = {}): Policy => makePolicy({id, arePerDiemRatesEnabled: true, ...overrides});
+
+    const makeTimePolicy = (id: string, overrides: Partial<Policy> = {}): Policy => makePolicy({id, units: {time: {enabled: true}}, ...overrides});
+
+    const emptyResult = {
+        hasPerDiemPolicy: false,
+        hasMultiplePerDiemPolicies: false,
+        firstPerDiemPolicyID: undefined,
+        hasTimePolicy: false,
+        hasMultipleTimePolicies: false,
+        firstTimePolicyID: undefined,
+        canSendInvoiceFromAnyWorkspace: false,
+    };
+
+    it('returns the empty shape when policies is undefined', () => {
+        expect(createIOURequestStartPoliciesSelector(userLogin, false)(undefined)).toEqual(emptyResult);
+    });
+
+    it('returns the empty shape when the collection has no policies', () => {
+        expect(createIOURequestStartPoliciesSelector(userLogin, false)({})).toEqual(emptyResult);
+    });
+
+    it('flags a single per diem policy and returns its ID', () => {
+        const result = createIOURequestStartPoliciesSelector(userLogin, false)({[`${P}p1`]: makePerDiemPolicy('p1')});
+        expect(result.hasPerDiemPolicy).toBe(true);
+        expect(result.hasMultiplePerDiemPolicies).toBe(false);
+        expect(result.firstPerDiemPolicyID).toBe('p1');
+    });
+
+    it('flags multiple per diem policies and returns the first one in iteration order', () => {
+        const result = createIOURequestStartPoliciesSelector(
+            userLogin,
+            false,
+        )({
+            [`${P}p1`]: makePerDiemPolicy('p1'),
+            [`${P}p2`]: makePerDiemPolicy('p2'),
+        });
+        expect(result.hasPerDiemPolicy).toBe(true);
+        expect(result.hasMultiplePerDiemPolicies).toBe(true);
+        expect(result.firstPerDiemPolicyID).toBe('p1');
+    });
+
+    it('does not count a collect policy with per diem enabled, because per diem is control-only', () => {
+        const result = createIOURequestStartPoliciesSelector(
+            userLogin,
+            false,
+        )({
+            [`${P}p1`]: makePerDiemPolicy('p1', {type: CONST.POLICY.TYPE.TEAM}),
+        });
+        expect(result.hasPerDiemPolicy).toBe(false);
+        expect(result.firstPerDiemPolicyID).toBeUndefined();
+    });
+
+    it('does not count a control policy with per diem explicitly disabled', () => {
+        const result = createIOURequestStartPoliciesSelector(
+            userLogin,
+            false,
+        )({
+            [`${P}p1`]: makePolicy({id: 'p1', arePerDiemRatesEnabled: false}),
+        });
+        expect(result.hasPerDiemPolicy).toBe(false);
+    });
+
+    it('flags a single time tracking policy and returns its ID', () => {
+        const result = createIOURequestStartPoliciesSelector(userLogin, false)({[`${P}p1`]: makeTimePolicy('p1')});
+        expect(result.hasTimePolicy).toBe(true);
+        expect(result.hasMultipleTimePolicies).toBe(false);
+        expect(result.firstTimePolicyID).toBe('p1');
+    });
+
+    it('flags multiple time tracking policies and returns the first one in iteration order', () => {
+        const result = createIOURequestStartPoliciesSelector(
+            userLogin,
+            false,
+        )({
+            [`${P}p1`]: makeTimePolicy('p1'),
+            [`${P}p2`]: makeTimePolicy('p2'),
+        });
+        expect(result.hasTimePolicy).toBe(true);
+        expect(result.hasMultipleTimePolicies).toBe(true);
+        expect(result.firstTimePolicyID).toBe('p1');
+    });
+
+    it('does not count a policy whose time unit is disabled', () => {
+        const result = createIOURequestStartPoliciesSelector(
+            userLogin,
+            false,
+        )({
+            [`${P}p1`]: makePolicy({id: 'p1', units: {time: {enabled: false}}}),
+        });
+        expect(result.hasTimePolicy).toBe(false);
+        expect(result.firstTimePolicyID).toBeUndefined();
+    });
+
+    it('counts per diem and time independently on the same collection', () => {
+        const result = createIOURequestStartPoliciesSelector(
+            userLogin,
+            false,
+        )({
+            [`${P}p1`]: makePerDiemPolicy('p1'),
+            [`${P}p2`]: makeTimePolicy('p2'),
+        });
+        expect(result.firstPerDiemPolicyID).toBe('p1');
+        expect(result.hasMultiplePerDiemPolicies).toBe(false);
+        expect(result.firstTimePolicyID).toBe('p2');
+        expect(result.hasMultipleTimePolicies).toBe(false);
+    });
+
+    it('still finds a time policy that comes after per diem already hit its count cap', () => {
+        const result = createIOURequestStartPoliciesSelector(
+            userLogin,
+            false,
+        )({
+            [`${P}p1`]: makePerDiemPolicy('p1'),
+            [`${P}p2`]: makePerDiemPolicy('p2'),
+            [`${P}p3`]: makePerDiemPolicy('p3'),
+            [`${P}p4`]: makeTimePolicy('p4'),
+        });
+        expect(result.hasMultiplePerDiemPolicies).toBe(true);
+        expect(result.firstPerDiemPolicyID).toBe('p1');
+        expect(result.hasTimePolicy).toBe(true);
+        expect(result.firstTimePolicyID).toBe('p4');
+    });
+
+    it('ignores policies pending deletion', () => {
+        const result = createIOURequestStartPoliciesSelector(
+            userLogin,
+            false,
+        )({
+            [`${P}p1`]: makePerDiemPolicy('p1', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+        });
+        expect(result.hasPerDiemPolicy).toBe(false);
+    });
+
+    it('ignores archived policies', () => {
+        const result = createIOURequestStartPoliciesSelector(
+            userLogin,
+            false,
+        )({
+            [`${P}p1`]: makePerDiemPolicy('p1', {archivedDate: '2024-01-01'}),
+        });
+        expect(result.hasPerDiemPolicy).toBe(false);
+    });
+
+    it('ignores policies the user has no role on', () => {
+        const result = createIOURequestStartPoliciesSelector(
+            userLogin,
+            false,
+        )({
+            [`${P}p1`]: makePerDiemPolicy('p1', {role: undefined, employeeList: {}}),
+        });
+        expect(result.hasPerDiemPolicy).toBe(false);
+    });
+
+    it('ignores personal policies', () => {
+        const result = createIOURequestStartPoliciesSelector(
+            userLogin,
+            false,
+        )({
+            [`${P}p1`]: makePerDiemPolicy('p1', {type: CONST.POLICY.TYPE.PERSONAL}),
+            [`${P}p2`]: makeTimePolicy('p2', {type: CONST.POLICY.TYPE.PERSONAL}),
+        });
+        expect(result.hasPerDiemPolicy).toBe(false);
+        expect(result.hasTimePolicy).toBe(false);
+    });
+
+    it('filters out null entries in the policy collection', () => {
+        const policies: Record<string, Policy | null> = {
+            [`${P}p1`]: null,
+            [`${P}p2`]: makePerDiemPolicy('p2'),
+        };
+        // @ts-expect-error -- intentionally passes a malformed null entry to exercise the selector's runtime guard.
+        const result = createIOURequestStartPoliciesSelector(userLogin, false)(policies);
+        expect(result.firstPerDiemPolicyID).toBe('p2');
+    });
+
+    it('reports canSendInvoiceFromAnyWorkspace=true when the invoice flow asked for it and an admin workspace has invoices enabled', () => {
+        const result = createIOURequestStartPoliciesSelector(
+            userLogin,
+            true,
+        )({
+            [`${P}p1`]: makePolicy({id: 'p1', role: CONST.POLICY.ROLE.ADMIN, areInvoicesEnabled: true}),
+        });
+        expect(result.canSendInvoiceFromAnyWorkspace).toBe(true);
+    });
+
+    it('reports canSendInvoiceFromAnyWorkspace=false when the invoice flow did not ask for it, even if an eligible workspace exists', () => {
+        const result = createIOURequestStartPoliciesSelector(
+            userLogin,
+            false,
+        )({
+            [`${P}p1`]: makePolicy({id: 'p1', role: CONST.POLICY.ROLE.ADMIN, areInvoicesEnabled: true}),
+        });
+        expect(result.canSendInvoiceFromAnyWorkspace).toBe(false);
+    });
+
+    it('reports canSendInvoiceFromAnyWorkspace=false when the user is not an admin of the workspace with invoices enabled', () => {
+        const result = createIOURequestStartPoliciesSelector(
+            userLogin,
+            true,
+        )({
+            [`${P}p1`]: makePolicy({id: 'p1', role: CONST.POLICY.ROLE.USER, areInvoicesEnabled: true}),
+        });
+        expect(result.canSendInvoiceFromAnyWorkspace).toBe(false);
+    });
+
+    it('reports canSendInvoiceFromAnyWorkspace=false when no workspace has invoices enabled', () => {
+        const result = createIOURequestStartPoliciesSelector(
+            userLogin,
+            true,
+        )({
+            [`${P}p1`]: makePolicy({id: 'p1', role: CONST.POLICY.ROLE.ADMIN, areInvoicesEnabled: false}),
+        });
+        expect(result.canSendInvoiceFromAnyWorkspace).toBe(false);
     });
 });
