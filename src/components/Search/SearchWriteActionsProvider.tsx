@@ -399,6 +399,7 @@ function SearchWriteActionsProvider({
     const searchResultsData = searchResults?.data;
     const currentUserEmail = email ?? '';
     const currentUserLogin = login ?? '';
+    const shouldPreserveAllMatchingSelection = type === CONST.SEARCH.DATA_TYPES.EXPENSE || isExpenseReportType;
 
     const toggle: SearchRowSelectionActionsValue['toggle'] = (item, itemTransactions) => {
         if (isReportActionListItemType(item) || isTaskListItemType(item)) {
@@ -448,7 +449,7 @@ function SearchWriteActionsProvider({
                 },
                 {
                     totalSelectableItemsCount,
-                    shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    shouldPreserveAllMatchingSelection,
                     shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
                 },
             );
@@ -523,7 +524,7 @@ function SearchWriteActionsProvider({
             },
             {
                 totalSelectableItemsCount,
-                shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE,
+                shouldPreserveAllMatchingSelection,
                 shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
             },
         );

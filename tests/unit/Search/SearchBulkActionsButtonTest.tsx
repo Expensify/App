@@ -19,6 +19,8 @@ let mockExcludedTransactions: SelectedTransactions = {};
 let mockSearchCount: number | undefined;
 let mockSearchIsLoading = false;
 let mockIsOffline = false;
+let mockAreAllMatchingItemsSelected = true;
+let mockSelectedTransactions: SelectedTransactions = {tx1: makeTransaction()};
 
 jest.mock('@components/ButtonWithDropdownMenu', () => ({
     __esModule: true,
@@ -72,10 +74,10 @@ jest.mock('@hooks/useSearchBulkActions', () => ({
 }));
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
-        selectedTransactions: {tx1: {isSelected: true}},
+        selectedTransactions: mockSelectedTransactions,
         excludedTransactions: mockExcludedTransactions,
         selectedReports: [],
-        areAllMatchingItemsSelected: true,
+        areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected,
     }),
     useSearchResultsContext: () => ({
         currentSearchResults: {search: {count: mockSearchCount, isLoading: mockSearchIsLoading}},
@@ -96,7 +98,7 @@ if (!queryJSON || !reportQueryJSON) {
     throw new Error('Expected the search queries to be valid');
 }
 
-function makeTransaction(): SelectedTransactions[string] {
+function makeTransaction(reportID = 'report1'): SelectedTransactions[string] {
     return {
         isSelected: true,
         canReject: false,
@@ -108,7 +110,7 @@ function makeTransaction(): SelectedTransactions[string] {
         canUnhold: false,
         isFromOneTransactionReport: false,
         action: CONST.SEARCH.ACTION_TYPES.VIEW,
-        reportID: 'report1',
+        reportID,
         policyID: 'policy1',
         amount: 100,
         currency: 'USD',
@@ -130,22 +132,24 @@ describe('SearchBulkActionsButton all-matching label', () => {
         mockSearchCount = undefined;
         mockSearchIsLoading = false;
         mockIsOffline = false;
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedTransactions = {tx1: makeTransaction()};
     });
 
-    it('falls back to the selected count and keeps loading while the server count is missing', () => {
+    it('shows the all-matching label and keeps loading while the server count is missing', () => {
         mockSearchIsLoading = true;
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: true});
+        expect(getButtonProps()).toEqual({customText: 'search.exportAll.allMatchingItemsSelected', isLoading: true});
     });
 
-    it('shows the server count when it arrives and there are no exclusions', () => {
+    it('keeps the all-matching label when the server count arrives and there are no exclusions', () => {
         mockSearchCount = 172;
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:172', isLoading: false});
+        expect(getButtonProps()).toEqual({customText: 'search.exportAll.allMatchingItemsSelected', isLoading: false});
     });
 
     it('shows the exact count after an item is excluded', () => {
@@ -166,6 +170,14 @@ describe('SearchBulkActionsButton all-matching label', () => {
         expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: true});
     });
 
+    it('keeps the numeric label for page-only selection', () => {
+        mockAreAllMatchingItemsSelected = false;
+
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: false});
+    });
+
     it('shows the loaded selected count when an expense is excluded offline before the server count is available', () => {
         mockIsOffline = true;
         mockExcludedTransactions = {tx2: makeTransaction()};
@@ -175,20 +187,21 @@ describe('SearchBulkActionsButton all-matching label', () => {
         expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: false});
     });
 
-    it('retains the expense-report loading behavior while the server count is missing', () => {
+    it('shows the all-matching label for expense reports without waiting for the transaction count', () => {
         mockSearchIsLoading = true;
 
         render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:0', isLoading: true});
+        expect(getButtonProps()).toEqual({customText: 'search.exportAll.allMatchingItemsSelected', isLoading: false});
     });
 
-    it('uses the unmodified server count for expense reports', () => {
+    it('uses the selected report-row count after an expense report is excluded', () => {
         mockSearchCount = 320;
-        mockExcludedTransactions = {tx2: makeTransaction()};
+        mockSelectedTransactions = {tx1: makeTransaction('report1'), tx2: makeTransaction('report2')};
+        mockExcludedTransactions = {tx3: makeTransaction('report3')};
 
         render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:320', isLoading: false});
+        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:2', isLoading: false});
     });
 });

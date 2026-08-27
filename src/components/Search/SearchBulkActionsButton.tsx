@@ -171,18 +171,24 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const hasSearchErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0;
     // The server count is the only source for how many items "select all" covers, so keep the button loading until it
     // arrives. Offline or on error it never will, so fall back to the count of the items we do have selected.
-    const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof allMatchingItemsCount !== 'number' && !isOffline && !hasSearchErrors;
-    // Excluded items only map onto the server count for expenses. For expense reports an excluded transaction doesn't
-    // necessarily drop its whole report from the results, so the server count is used as-is there.
+    // Reports use report rows rather than the server's transaction count, so their exact count is client-derived once
+    // the final page is loaded and does not wait on this metadata.
+    const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && !isExpenseReportType && typeof allMatchingItemsCount !== 'number' && !isOffline && !hasSearchErrors;
     let selectedAllMatchingItemsCount: number;
-    if (typeof allMatchingItemsCount !== 'number') {
+    if (isExpenseReportType || typeof allMatchingItemsCount !== 'number') {
         selectedAllMatchingItemsCount = selectedItemsCount;
     } else {
         selectedAllMatchingItemsCount = isExpenseType ? Math.max(allMatchingItemsCount - excludedItemsCount, 0) : allMatchingItemsCount;
     }
-    const selectionButtonText = translate('workspace.common.selected', {
-        count: areAllMatchingItemsSelected ? selectedAllMatchingItemsCount : selectedItemsCount,
-    });
+    const hasExclusions = Object.keys(excludedTransactions).length > 0;
+    const shouldShowAllMatchingItemsSelected = (isExpenseType || isExpenseReportType) && areAllMatchingItemsSelected && !hasExclusions;
+    const selectionButtonText = shouldShowAllMatchingItemsSelected
+        ? translate('search.exportAll.allMatchingItemsSelected')
+        : translate('workspace.common.selected', {
+              // Reports cannot know the exact all-matching count until the final page is loaded. Until then this is
+              // the selected loaded-report count; it becomes authoritative as soon as the final page is loaded.
+              count: areAllMatchingItemsSelected ? selectedAllMatchingItemsCount : selectedItemsCount,
+          });
 
     return (
         <>
