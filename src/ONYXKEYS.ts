@@ -468,6 +468,13 @@ const ONYXKEYS = {
     /** Set when we are loading the bulk change approver page */
     IS_LOADING_BULK_CHANGE_APPROVER_PAGE: 'isLoadingBulkChangeApproverPage',
 
+    /**
+     * Set when we are loading the reimbursement countries used to decide whether to collect international deposit
+     * details. RAM-only so an interrupted request never persists a stuck `true` and leaves the deposit account flow
+     * showing a loading state on the next launch.
+     */
+    RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP: 'isLoadingDepositAccountSetup',
+
     /** Is report data loading? */
     IS_LOADING_APP: 'isLoadingApp',
 
@@ -732,6 +739,9 @@ const ONYXKEYS = {
 
     /** The user's Concierge reportID */
     CONCIERGE_REPORT_ID: 'conciergeReportID',
+
+    /** Draft message typed into the Concierge prompt box on the home page */
+    CONCIERGE_PROMPT_DRAFT: 'conciergePromptDraft',
 
     /** The user's Self DM reportID */
     SELF_DM_REPORT_ID: 'selfDMReportID',
@@ -1691,6 +1701,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: boolean;
     [ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS]: boolean;
     [ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE]: boolean;
+    [ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP]: boolean;
     [ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW]: boolean;
     [ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS]: boolean;
     [ONYXKEYS.IS_LOADING_AGENT_TEMPLATES]: boolean;
@@ -1794,6 +1805,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
     [ONYXKEYS.CONCIERGE_THINKING_KICKOFF]: boolean;
     [ONYXKEYS.CONCIERGE_REPORT_ID]: string;
+    [ONYXKEYS.CONCIERGE_PROMPT_DRAFT]: string;
     [ONYXKEYS.SELF_DM_REPORT_ID]: string;
     [ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS]: Participant;
     [ONYXKEYS.SHARE_TEMP_FILE]: OnyxTypes.ShareTempFile;
