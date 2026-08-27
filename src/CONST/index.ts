@@ -6807,6 +6807,7 @@ const CONST = {
     RESERVATION_TYPE: {
         CAR: 'car',
         HOTEL: 'hotel',
+        HOTEL_BLOCK: 'hotelBlock',
         FLIGHT: 'flight',
         TRAIN: 'train',
     },

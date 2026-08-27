@@ -4803,6 +4803,8 @@ function getTravelNudgeMessage(translate: LocalizedTranslate, reportAction: Repo
             return translate(isCardCreated ? 'travel.nudge.airfareCard' : 'travel.nudge.airfareManual');
         case CONST.RESERVATION_TYPE.HOTEL:
             return translate(isCardCreated ? 'travel.nudge.hotelCard' : 'travel.nudge.hotelManual');
+        case CONST.RESERVATION_TYPE.HOTEL_BLOCK:
+            return translate(isCardCreated ? 'travel.nudge.hotelBlockCard' : 'travel.nudge.hotelBlockManual');
         case CONST.RESERVATION_TYPE.CAR:
             return translate(isCardCreated ? 'travel.nudge.carCard' : 'travel.nudge.carManual');
         case CONST.RESERVATION_TYPE.TRAIN:
