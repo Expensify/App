@@ -40,7 +40,7 @@ function checkFileExistsWithReason(path: string | undefined): Promise<FileCheckR
         if (decodedPath === rawPath) {
             return {exists: false, error: toFileCheckError(decodedError)};
         }
-        return statIsFile(rawPath).catch((rawError: unknown) => ({exists: false, error: toFileCheckError(rawError)}));
+        return statIsFile(rawPath).catch((): FileCheckResult => ({exists: false, error: toFileCheckError(decodedError)}));
     });
 }
 
