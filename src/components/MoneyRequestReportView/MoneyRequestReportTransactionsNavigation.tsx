@@ -251,6 +251,12 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             return;
         }
 
+        // Until the report's actions load there is no parent action to hang a thread off, so a press here
+        // would mint one with no parent. Do nothing and let the in-flight fetch settle instead.
+        if (!nextParentReportAction) {
+            return;
+        }
+
         const nextThreadReportID = nextParentReportAction?.childReportID;
         const navigationParams = {reportID: nextThreadReportID, reportActionID: undefined, anchorTransactionID: nextTransactionID, backTo};
 
@@ -310,6 +316,12 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             });
             markReportRHPWidth(prevReportID, 'wide');
             requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: prevReportID, reportActionID: undefined, anchorTransactionID: prevTransactionID, backTo})));
+            return;
+        }
+
+        // Until the report's actions load there is no parent action to hang a thread off, so a press here
+        // would mint one with no parent. Do nothing and let the in-flight fetch settle instead.
+        if (!prevParentReportAction) {
             return;
         }
 

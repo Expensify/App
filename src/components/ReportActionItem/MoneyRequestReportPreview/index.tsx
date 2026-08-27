@@ -75,6 +75,8 @@ function MoneyRequestReportPreview({
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
     const invoiceReceiverPersonalDetail = chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? personalDetailsList?.[chatReport.invoiceReceiver.accountID] : null;
@@ -203,6 +205,7 @@ function MoneyRequestReportPreview({
                 if (transactionID) {
                     childReportID = createTransactionThreadReport({
                         introSelected,
+                        conciergeChat,
                         currentUserLogin: currentUserEmail ?? '',
                         currentUserAccountID,
                         betas,
@@ -214,7 +217,7 @@ function MoneyRequestReportPreview({
             }
             return childReportID;
         },
-        [betas, currentUserAccountID, currentUserEmail, introSelected, iouReport, personalDetailsList, policyID],
+        [betas, conciergeChat, currentUserAccountID, currentUserEmail, introSelected, iouReport, personalDetailsList, policyID],
     );
 
     const navigateToExpense = useCallback(

@@ -13,6 +13,7 @@ import type {Transaction} from '@src/types/onyx';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@components/WideRHPContextProvider', () => ({
@@ -32,8 +33,8 @@ const IOU_REPORT_ID = 'iou1';
 const FIRST_TRANSACTION_ID = 't1';
 const SECOND_TRANSACTION_ID = 't2';
 
-function buildTransaction(transactionID: string): Transaction {
-    return {transactionID, reportID: IOU_REPORT_ID, amount: 100, created: '2026-08-01', currency: 'USD'} as Transaction;
+function buildTransaction(transactionID: string, index: number): Transaction {
+    return {...createRandomTransaction(index), transactionID, reportID: IOU_REPORT_ID};
 }
 
 describe('MoneyRequestReportTransactionsNavigation', () => {
@@ -46,11 +47,9 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
         await Onyx.clear();
         // The report's own actions are deliberately absent: this is the cache-cleared shape, where the
         // seeded sibling IDs are known but the IOU actions that resolve them have not been fetched yet.
-        await Onyx.multiSet({
-            [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS]: [FIRST_TRANSACTION_ID, SECOND_TRANSACTION_ID],
-            [`${ONYXKEYS.COLLECTION.TRANSACTION}${FIRST_TRANSACTION_ID}`]: buildTransaction(FIRST_TRANSACTION_ID),
-            [`${ONYXKEYS.COLLECTION.TRANSACTION}${SECOND_TRANSACTION_ID}`]: buildTransaction(SECOND_TRANSACTION_ID),
-        });
+        await Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, [FIRST_TRANSACTION_ID, SECOND_TRANSACTION_ID]);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${FIRST_TRANSACTION_ID}`, buildTransaction(FIRST_TRANSACTION_ID, 0));
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${SECOND_TRANSACTION_ID}`, buildTransaction(SECOND_TRANSACTION_ID, 1));
         await waitForBatchedUpdates();
     });
 
@@ -64,7 +63,11 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
         // Both arrows render with the generic button role; the second one is next.
         const buttons = screen.getAllByLabelText(CONST.ROLE.BUTTON);
         expect(buttons).toHaveLength(2);
-        fireEvent.press(buttons.at(1));
+        const nextButton = buttons.at(1);
+        if (!nextButton) {
+            throw new Error('next arrow did not render');
+        }
+        fireEvent.press(nextButton);
 
         await waitFor(() => {
             expect(createThreadSpy).not.toHaveBeenCalled();
