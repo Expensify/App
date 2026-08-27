@@ -55,6 +55,7 @@ type EditTaskAssigneeOptions = {
     currentUserAccountID: number;
     hasOutstandingChildTask: boolean;
     delegateEmail: string | undefined;
+    delegateAccountID: number | undefined;
     assigneeAccountID?: number | null;
     assigneeChatReport?: OnyxEntry<OnyxTypes.Report>;
     isOptimisticReport?: boolean;
@@ -82,6 +83,7 @@ type CreateTaskAndNavigateParams = {
     assigneeEmail: string;
     currentUserAccountID: number;
     currentUserEmail: string;
+    delegateAccountID: number | undefined;
     assigneeAccountID?: number;
     assigneeChatReport?: OnyxEntry<OnyxTypes.Report>;
     policyID?: string;
@@ -102,6 +104,8 @@ type CreateTaskFromMarkdownParams = {
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     /** The quick action associated with the task */
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    /** AccountID of the delegate acting on behalf of the current user */
+    delegateAccountID: number | undefined;
     /** The ancestors of the task */
     ancestors?: ReportUtils.Ancestor[];
 };
@@ -147,6 +151,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
         currentUserEmail,
         currentUserDisplayName,
         currentUserAvatar,
+        delegateAccountID,
         assigneeAccountID = 0,
         assigneeChatReport,
         policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
@@ -183,7 +188,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
         currentUserEmail,
         currentUserAvatar,
     });
-    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeAccountID, `task for ${title}`, parentReportID);
+    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeAccountID, `task for ${title}`, parentReportID, delegateAccountID);
     optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
 
     const currentTime = getDBTimeWithSkew();
@@ -277,8 +282,8 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     > = [];
 
     if (assigneeChatReport && assigneeChatReportID) {
-        assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
-            currentUserAccountID,
+        assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData({
+            accountID: currentUserAccountID,
             assigneeAccountID,
             taskReportID,
             assigneeChatReportID,
@@ -287,7 +292,8 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
             assigneeChatReport,
             currentUserEmail,
             currentUserAccountID,
-        );
+            delegateAccountID,
+        });
 
         optimisticData.push(...assigneeChatReportOnyxData.optimisticData);
         successData.push(...assigneeChatReportOnyxData.successData);
@@ -434,7 +440,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
  *
  * @returns true when a task was created, so the caller can skip sending the text as a plain comment.
  */
-function createTaskFromMarkdown({text, parentReport, currentUserPersonalDetails, quickAction, ancestors = []}: CreateTaskFromMarkdownParams): boolean {
+function createTaskFromMarkdown({text, parentReport, currentUserPersonalDetails, quickAction, delegateAccountID, ancestors = []}: CreateTaskFromMarkdownParams): boolean {
     // A task cannot be created without a parent report, so let the caller fall back to sending the text as a comment.
     if (!parentReport?.reportID) {
         return false;
@@ -488,6 +494,7 @@ function createTaskFromMarkdown({text, parentReport, currentUserPersonalDetails,
         currentUserEmail,
         currentUserDisplayName: currentUserPersonalDetails.displayName,
         currentUserAvatar: currentUserPersonalDetails.avatar,
+        delegateAccountID,
         assigneeAccountID: assignee?.accountID,
         assigneeChatReport,
         policyID: parentReport?.policyID,
@@ -881,6 +888,7 @@ function editTaskAssignee({
     currentUserAccountID,
     hasOutstandingChildTask,
     delegateEmail,
+    delegateAccountID,
     assigneeAccountID = 0,
     assigneeChatReport,
     isOptimisticReport,
@@ -997,18 +1005,19 @@ function editTaskAssignee({
             },
         };
 
-        assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
-            currentUserAccountID,
+        assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData({
+            accountID: currentUserAccountID,
             assigneeAccountID,
-            report.reportID,
+            taskReportID: report.reportID,
             assigneeChatReportID,
-            report.parentReportID,
-            reportName ?? '',
+            parentReportID: report.parentReportID,
+            title: reportName ?? '',
             assigneeChatReport,
             currentUserEmail,
             currentUserAccountID,
-            isOptimisticReport,
-        );
+            delegateAccountID,
+            isOptimisticAssigneeChatReport: isOptimisticReport,
+        });
 
         if (assigneeChatReportMetadata?.isOptimisticReport && assigneeChatReport.pendingFields?.createChat !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             // BE will send a different participant. We clear the optimistic one to avoid duplicated entries
