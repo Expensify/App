@@ -171,6 +171,7 @@ function getAccountDetailsFieldsMap(accountDetailsFields: CorpayFieldsMap | unde
         return fields;
     }
 
+    // When we need to collect international bank account details, we'll check the initial set of bank account fields and mark the international fields as required. This minimizes the need to ask for more details in the next page.
     const nextFields: CorpayFieldsMap = {};
     for (const [fieldName, field] of Object.entries(fields)) {
         nextFields[fieldName] = isInternationalBankAccountFieldLabel(field.label)
