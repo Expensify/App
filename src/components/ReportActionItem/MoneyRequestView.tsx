@@ -1177,26 +1177,34 @@ function MoneyRequestView({
         return <ReportActionsSkeletonView />;
     }
 
+    const receipt = (
+        <MoneyRequestReceiptView
+            report={transactionThreadReport ?? parentReport}
+            readonly={readonly}
+            updatedTransaction={updatedTransaction}
+            mergeTransactionID={mergeTransactionID}
+        />
+    );
+
+    // The "Create a rule" tooltip anchors above the receipt on narrow layouts; on wide layouts the report footer
+    // anchors it above the composer instead, per design.
+    const receiptView = shouldOfferMerchantRule ? (
+        <MerchantRuleSuggestionTooltip
+            reportID={transactionThreadReport?.reportID ?? parentReport?.reportID}
+            transactionID={transaction.transactionID}
+            policyID={policyID}
+        >
+            {receipt}
+        </MerchantRuleSuggestionTooltip>
+    ) : (
+        receipt
+    );
+
     return (
         <View style={[styles.moneyRequestView]}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <>
-                {(!isInWideRHP || isSmallScreenWidth || isFromReviewDuplicates || isFromMergeTransaction) && (
-                    // The "Create a rule" tooltip anchors above the receipt on narrow layouts; on wide layouts the
-                    // report footer anchors it above the composer instead, per design.
-                    <MerchantRuleSuggestionTooltip
-                        reportID={shouldOfferMerchantRule ? (transactionThreadReport?.reportID ?? parentReport?.reportID) : undefined}
-                        transactionID={shouldOfferMerchantRule ? transaction?.transactionID : undefined}
-                        policyID={policyID}
-                    >
-                        <MoneyRequestReceiptView
-                            report={transactionThreadReport ?? parentReport}
-                            readonly={readonly}
-                            updatedTransaction={updatedTransaction}
-                            mergeTransactionID={mergeTransactionID}
-                        />
-                    </MerchantRuleSuggestionTooltip>
-                )}
+                {(!isInWideRHP || isSmallScreenWidth || isFromReviewDuplicates || isFromMergeTransaction) && receiptView}
                 {isCustomUnitOutOfPolicy && isPerDiemRequest && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mh4, styles.mb2]}>
                         <Icon

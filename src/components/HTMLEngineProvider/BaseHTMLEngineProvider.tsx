@@ -154,6 +154,12 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             mixedUAStyles: {whiteSpace: 'pre', ...styles.productTrainingTooltipText},
             contentModel: HTMLContentModel.block,
         }),
+        // Highlights a phrase inside a product training tooltip, whose background is dark in both themes
+        'tooltip-highlight': HTMLElementModel.fromCustomModel({
+            tagName: 'tooltip-highlight',
+            mixedUAStyles: {...styles.productTrainingTooltipHighlightText},
+            contentModel: HTMLContentModel.textual,
+        }),
         success: HTMLElementModel.fromCustomModel({
             tagName: 'success',
             mixedUAStyles: {...styles.textSuccess},

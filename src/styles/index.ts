@@ -4408,6 +4408,10 @@ const staticStyles = (theme: ThemeColors) =>
             flexShrink: 1,
         },
 
+        productTrainingTooltipHighlightText: {
+            color: theme.tooltipHighlightText,
+        },
+
         quickReactionsContainer: {
             gap: 12,
             flexDirection: 'row',
