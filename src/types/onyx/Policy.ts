@@ -2298,6 +2298,7 @@ type GustoConnectionConfig = HRConnectionConfigBase & {
     approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
 };
 
+/** Shared config for the Merge-backed integrations (Merge HR, Merge ATS), parameterized by the union of provider slugs that integration supports */
 type MergeConnectionConfigBase<Integration> = HRConnectionConfigBase &
     OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Integration provider slug identifying which HR/ATS system is linked */
