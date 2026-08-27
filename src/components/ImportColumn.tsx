@@ -347,4 +347,5 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
 }
 
 export type {ColumnRole};
+export {findColumnName};
 export default ImportColumn;
