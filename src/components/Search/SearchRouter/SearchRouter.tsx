@@ -42,7 +42,7 @@ import Navigation from '@navigation/Navigation';
 
 import variables from '@styles/variables';
 
-import {navigateToAndOpenReport, searchInServer} from '@userActions/Report';
+import {navigateToAndOpenReport, searchInServer, searchUserInServer} from '@userActions/Report';
 import {setSearchContext} from '@userActions/Search';
 
 import CONST from '@src/CONST';
@@ -77,6 +77,11 @@ type SearchRouterProps = {
     isSearchRouterDisplayed?: boolean;
     ref?: React.Ref<View>;
 };
+
+function searchForReportsAndUsersInServer(searchInput: string) {
+    searchInServer(searchInput);
+    searchUserInServer(searchInput);
+}
 
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
@@ -527,7 +532,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             </View>
             <DeferredAutocompleteList
                 autocompleteQueryValue={autocompleteQueryValue || textInputValue}
-                handleSearch={searchInServer}
+                handleSearch={searchForReportsAndUsersInServer}
                 searchQueryItems={searchQueryItems}
                 getAdditionalSections={getAdditionalSections}
                 onListItemPress={onListItemPress}
