@@ -1,5 +1,6 @@
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFooter/ConfirmationFieldList';
+import PerDiemDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/TransactionDetailsFields/PerDiemDetailsFields';
 import PerDiemSection from '@components/MoneyRequestConfirmationListFooter/sections/PerDiemSection';
 import type {MoneyRequestConfirmationListFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
 
@@ -12,17 +13,9 @@ import {View} from 'react-native';
 
 type PerDiemFooterProps = Omit<
     MoneyRequestConfirmationListFooterProps,
-    'receiptStitchError' | 'receiptOptions' | 'isScanRequest' | 'compactControls' | 'isEditingSplitBill' | 'expenseMode' | 'distanceFlags'
+    'receiptStitchError' | 'receiptOptions' | 'isScanRequest' | 'compactControls' | 'isEditingSplitBill' | 'expenseMode' | 'distanceFlags' | 'distanceData'
 >;
 
-const noopSetShowMoreFields = () => {};
-
-/**
- * Footer for per-diem expenses: the per-diem subrate fields plus the shared field list, and nothing else.
- *
- * The dispatcher keeps `action === SUBMIT` off this variant, so the subrate fields need no gate of their own.
- * Every expense-type flag the provider defaults to `false` is left unset rather than passed explicitly.
- */
 function PerDiemFooter({
     action,
     iouType,
@@ -36,18 +29,24 @@ function PerDiemFooter({
     isReadOnly,
     didConfirm,
     isPolicyExpenseChat,
-    distanceData,
     amountDisplay,
     requiredFlags,
     visibilityFlags,
     errorState,
-    toggleHandlers,
+    toggleHandlers = {},
     scrollFocusedInputIntoView,
     onSubmitForm,
     onTaxAmountEmptyChange,
 }: PerDiemFooterProps) {
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
+
+    const renderTransactionDetailsFields = () => (
+        <PerDiemDetailsFields
+            policy={policy}
+            isDescriptionRequired={requiredFlags.isDescriptionRequired}
+        />
+    );
 
     return (
         <ConfirmationFieldsProvider
@@ -72,18 +71,16 @@ function PerDiemFooter({
                     shouldDisplayFieldError={errorState.shouldDisplayFieldError}
                     formError={errorState.formError}
                 />
-                {/* TODO: Clean up from unused by per diem fields */}
                 <ConfirmationFieldList
                     policy={policy}
                     policyTags={policyTags}
                     selectedParticipants={selectedParticipants}
-                    distanceData={distanceData}
                     amountDisplay={amountDisplay}
                     requiredFlags={requiredFlags}
                     visibilityFlags={visibilityFlags}
                     errorState={errorState}
-                    toggleHandlers={toggleHandlers ?? {}}
-                    compactState={{isCompactMode: false, setShowMoreFields: noopSetShowMoreFields}}
+                    toggleHandlers={toggleHandlers}
+                    renderTransactionDetailsFields={renderTransactionDetailsFields}
                 />
             </View>
         </ConfirmationFieldsProvider>

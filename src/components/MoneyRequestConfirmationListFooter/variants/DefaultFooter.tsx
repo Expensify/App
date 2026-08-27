@@ -1,9 +1,9 @@
 import FormHelpMessage from '@components/FormHelpMessage';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFooter/ConfirmationFieldList';
+import TransactionDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/TransactionDetailsFields';
 import DistanceMapSection from '@components/MoneyRequestConfirmationListFooter/sections/DistanceMapSection';
 import InvoiceSenderSection from '@components/MoneyRequestConfirmationListFooter/sections/InvoiceSenderSection';
-import PerDiemSection from '@components/MoneyRequestConfirmationListFooter/sections/PerDiemSection';
 import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/sections/ReceiptSection';
 import type {MoneyRequestConfirmationListFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
 
@@ -113,13 +113,23 @@ function DefaultFooter({
                     policy={policy}
                     policyTags={policyTags}
                     selectedParticipants={selectedParticipants}
-                    distanceData={distanceData}
                     amountDisplay={amountDisplay}
                     requiredFlags={requiredFlags}
                     visibilityFlags={visibilityFlags}
                     errorState={errorState}
                     toggleHandlers={toggleHandlers ?? {}}
                     compactState={{isCompactMode, setShowMoreFields}}
+                    renderTransactionDetailsFields={(props) => (
+                        <TransactionDetailsFields
+                            {...props}
+                            policy={policy}
+                            amountDisplay={amountDisplay}
+                            distanceData={distanceData}
+                            requiredFlags={requiredFlags}
+                            errorState={errorState}
+                            isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
+                        />
+                    )}
                 />
             </View>
         </ConfirmationFieldsProvider>

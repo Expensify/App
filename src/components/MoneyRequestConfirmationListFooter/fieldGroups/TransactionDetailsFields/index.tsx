@@ -5,7 +5,7 @@ import DistanceField from '@components/MoneyRequestConfirmationList/sections/Dis
 import MerchantField from '@components/MoneyRequestConfirmationList/sections/MerchantField';
 import RateField from '@components/MoneyRequestConfirmationList/sections/RateField';
 import TimeFields from '@components/MoneyRequestConfirmationList/sections/TimeFields';
-import type {AmountDisplay, DistanceData, ErrorState, RequiredFlags} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
+import type {AmountDisplay, DetailsFieldsProps, DistanceData, ErrorState, RequiredFlags} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 
@@ -15,9 +15,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
-import type {FieldVisibility} from './fieldVisibility';
-
-type TransactionDetailsFieldsProps = {
+type TransactionDetailsFieldsProps = DetailsFieldsProps & {
     /** Active policy (read by Amount/Description/Rate/Merchant) */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -33,25 +31,14 @@ type TransactionDetailsFieldsProps = {
     /** Error state surfaced into Amount/Merchant */
     errorState: ErrorState;
 
-    /** Whether navigating to upgrade is required to proceed past blocked workspaces */
-    shouldNavigateToUpgradePath: boolean;
-
-    /** Whether the user must select a policy before submitting */
-    shouldSelectPolicy: boolean;
-
-    /** ISO currency code for the transaction */
-    iouCurrencyCode: string;
-
-    /** When true, suppresses the below-show-more entries (Amount, Rate, Merchant, Time) */
-    isCompactMode: boolean;
-
-    /** Per-field visibility decisions resolved by `computeFieldVisibility` */
-    fieldVisibility: Pick<FieldVisibility, 'amount' | 'distance' | 'rate' | 'merchant' | 'time'>;
-
     /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
     isParticipantPickerVisible: boolean;
 };
 
+/**
+ * The expense-type-driven half of the confirmation fields, for every type that has not migrated to a
+ * footer variant of its own.
+ */
 function TransactionDetailsFields({
     policy,
     amountDisplay,

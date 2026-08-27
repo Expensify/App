@@ -21,12 +21,11 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {AmountDisplay, CompactState, DistanceData, ErrorState, RequiredFlags, ToggleHandlers, VisibilityFlags} from './fieldGroupTypes';
+import type {AmountDisplay, CompactState, DetailsFieldsProps, ErrorState, RequiredFlags, ToggleHandlers, VisibilityFlags} from './fieldGroupTypes';
 
 import ClassificationFields from './fieldGroups/ClassificationFields';
 import computeFieldVisibility, {hasBelowShowMore} from './fieldGroups/fieldVisibility';
 import SettingsFields from './fieldGroups/SettingsFields';
-import TransactionDetailsFields from './fieldGroups/TransactionDetailsFields';
 import useFooterDerivedFlags from './hooks/useFooterDerivedFlags';
 import useFooterTagVisibility from './hooks/useFooterTagVisibility';
 
@@ -40,14 +39,14 @@ type ConfirmationFieldListProps = {
     /** Selected participants (drives ReportField presentation) */
     selectedParticipants: Participant[];
 
-    /** Distance-rate metadata */
-    distanceData: DistanceData;
-
     /** Pre-formatted amount values */
     amountDisplay: AmountDisplay;
 
     /** Per-field "required" flags */
     requiredFlags: RequiredFlags;
+
+    /** Renders the expense-type-driven fields. */
+    renderTransactionDetailsFields: (props: DetailsFieldsProps) => React.ReactNode;
 
     /** Caller-supplied visibility decisions */
     visibilityFlags: VisibilityFlags;
@@ -59,20 +58,20 @@ type ConfirmationFieldListProps = {
     toggleHandlers: ToggleHandlers;
 
     /** Compact-mode bookkeeping */
-    compactState: CompactState;
+    compactState?: CompactState;
 };
 
 function ConfirmationFieldList({
     policy,
     policyTags,
     selectedParticipants,
-    distanceData,
     amountDisplay,
     requiredFlags,
+    renderTransactionDetailsFields,
     visibilityFlags,
     errorState,
     toggleHandlers,
-    compactState,
+    compactState = {isCompactMode: false, setShowMoreFields: () => {}},
 }: ConfirmationFieldListProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -136,19 +135,13 @@ function ConfirmationFieldList({
                 </View>
             )}
 
-            <TransactionDetailsFields
-                policy={policy}
-                amountDisplay={amountDisplay}
-                distanceData={distanceData}
-                requiredFlags={requiredFlags}
-                errorState={errorState}
-                shouldNavigateToUpgradePath={flags.shouldNavigateToUpgradePath}
-                shouldSelectPolicy={flags.shouldSelectPolicy}
-                iouCurrencyCode={flags.iouCurrencyCode}
-                isCompactMode={compactState.isCompactMode}
-                fieldVisibility={fieldVisibility}
-                isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
-            />
+            {renderTransactionDetailsFields({
+                fieldVisibility,
+                isCompactMode: compactState.isCompactMode,
+                iouCurrencyCode: flags.iouCurrencyCode,
+                shouldNavigateToUpgradePath: flags.shouldNavigateToUpgradePath,
+                shouldSelectPolicy: flags.shouldSelectPolicy,
+            })}
 
             <ClassificationFields
                 policy={policy}
