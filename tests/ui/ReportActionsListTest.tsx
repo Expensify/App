@@ -878,12 +878,27 @@ describe('ReportActionsList (body)', () => {
                 errors: {},
             });
 
+            // An in-session message keeps the list out of welcome mode, so the session filter actually runs.
+            const newUserMessage: OnyxTypes.ReportAction = {
+                reportActionID: 'new-user-msg',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2024-06-01 12:05:00.000',
+                actorAccountID: CURRENT_USER_ACCOUNT_ID,
+                message: [{type: 'COMMENT', html: 'Hello', text: 'Hello'}],
+                originalMessage: {},
+                shouldShow: true,
+                person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
+                pendingAction: null,
+                errors: {},
+            };
+
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
                 reportActions: [
                     ...oldReportActions,
                     buildTaskAction('open-task', '2023-06-15 10:02:00.000', CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN),
                     buildTaskAction('completed-task', '2023-06-15 10:03:00.000', CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED),
+                    newUserMessage,
                 ],
                 hasOlderActions: false,
             });
@@ -892,6 +907,7 @@ describe('ReportActionsList (body)', () => {
 
             expect(mockInvertedFlashList).toHaveBeenCalled();
             const passedActions = getCapturedVisibleActions();
+            expect(passedActions?.some((a) => a.reportActionID === 'new-user-msg')).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'open-task')).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'completed-task')).toBe(false);
             expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
