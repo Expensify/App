@@ -188,6 +188,10 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             }
             // The transaction thread doesn't exist yet, so we should create it
             if (!nextThreadReportID) {
+                // Without the parent action we would mint a thread with no parent, so wait for it to load instead.
+                if (!nextParentReportAction) {
+                    return;
+                }
                 const transactionThreadReport = createTransactionThreadReport({
                     introSelected,
                     currentUserLogin: currentUserEmail ?? '',
@@ -257,6 +261,10 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             }
             // The transaction thread doesn't exist yet, so we should create it
             if (!prevThreadReportID) {
+                // Without the parent action we would mint a thread with no parent, so wait for it to load instead.
+                if (!prevParentReportAction) {
+                    return;
+                }
                 const transactionThreadReport = createTransactionThreadReport({
                     introSelected,
                     currentUserLogin: currentUserEmail ?? '',
