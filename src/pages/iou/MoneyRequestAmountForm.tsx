@@ -129,7 +129,7 @@ function MoneyRequestAmountForm({
     const moneyRequestAmountInputRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const [isNegative, setIsNegative] = useState(false);
-    const hasUserChangedSignRef = useRef(false);
+    const isUserSignOverrideRef = useRef(false);
     const initialIsNegativeRef = useRef(false);
 
     useImperativeHandle(amountFormRef, () => ({
@@ -163,7 +163,7 @@ function MoneyRequestAmountForm({
 
     const toggleNegative = useCallback(() => {
         const nextIsNegative = !isNegative;
-        hasUserChangedSignRef.current = true;
+        isUserSignOverrideRef.current = true;
         setIsNegative(nextIsNegative);
         onSignDirtyChange?.(nextIsNegative !== initialIsNegativeRef.current);
         // The sign flip bypasses the input's change handler, so report the newly signed value like a keystroke would
@@ -172,19 +172,19 @@ function MoneyRequestAmountForm({
     }, [isNegative, onAmountChange, onSignDirtyChange]);
 
     const clearNegative = useCallback(() => {
-        hasUserChangedSignRef.current = true;
+        isUserSignOverrideRef.current = true;
         setIsNegative(false);
         onSignDirtyChange?.(initialIsNegativeRef.current);
     }, [onSignDirtyChange]);
 
     const initializeIsNegative = useCallback((currentAmount: number, shouldResetUserSign = false) => {
         // A tab switch is the only place we deliberately discard a user's manual sign flip. A plain `amount` update
-        // (e.g. an async transaction load) must preserve it, so it leaves hasUserChangedSignRef untouched.
+        // (e.g. an async transaction load) must preserve it, so it leaves isUserSignOverrideRef untouched.
         if (shouldResetUserSign) {
-            hasUserChangedSignRef.current = false;
+            isUserSignOverrideRef.current = false;
         }
 
-        if (hasUserChangedSignRef.current) {
+        if (isUserSignOverrideRef.current) {
             return;
         }
 
