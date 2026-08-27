@@ -95,7 +95,7 @@ const processAssetWithFallbacks = (asset: Asset): Asset => {
 /**
  * Return imagePickerOptions based on the type
  */
-const getImagePickerOptions = (type: string, fileLimit: number): CameraOptions | ImageLibraryOptions => {
+const getImagePickerOptions = (type: string, fileLimit: number, shouldDownscaleImages: boolean): CameraOptions | ImageLibraryOptions => {
     // mediaType property is one of the ImagePicker configuration to restrict types'
     const mediaType = type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? 'photo' : 'mixed';
 
@@ -110,6 +110,19 @@ const getImagePickerOptions = (type: string, fileLimit: number): CameraOptions |
         includeExtra: false,
         assetRepresentationMode: 'current',
         selectionLimit: fileLimit,
+
+        // Receipt flows only. Without these the picker hands back the asset at its native resolution, so
+        // a 12MP+ photo is decoded and copied at full size inside our process before anything downstream
+        // gets a chance to bound it — a leading cause of the iOS watchdog kills in Sentry APP-4X. The
+        // picker applies this natively, so the full-resolution bitmap never reaches us at all.
+        // Deliberately not applied to chat attachments or avatars, where users expect the original.
+        ...(shouldDownscaleImages
+            ? {
+                  maxWidth: CONST.MAX_IMAGE_DIMENSION,
+                  maxHeight: CONST.MAX_IMAGE_DIMENSION,
+                  quality: CONST.RECEIPT_CAMERA.DOWNSCALED_QUALITY,
+              }
+            : {}),
     };
 };
 
@@ -166,6 +179,7 @@ function AttachmentPicker({
     fileLimit = 1,
     onOpenPicker,
     shouldSkipAttachmentTypeModal = false,
+    shouldDownscaleImages = false,
 }: AttachmentPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Camera', 'Gallery', 'Paperclip']);
     const styles = useThemeStyles();
@@ -200,7 +214,7 @@ function AttachmentPicker({
     const showImagePicker = useCallback(
         (imagePickerFunc: (options: CameraOptions, callback: Callback) => Promise<ImagePickerResponse>): Promise<Asset[] | void> =>
             new Promise((resolve, reject) => {
-                imagePickerFunc(getImagePickerOptions(type, fileLimit), (response: ImagePickerResponse) => {
+                imagePickerFunc(getImagePickerOptions(type, fileLimit, shouldDownscaleImages), (response: ImagePickerResponse) => {
                     if (response.didCancel) {
                         // When the user cancelled resolve with no attachment
                         return resolve();
@@ -287,7 +301,7 @@ function AttachmentPicker({
                     }
                 });
             }),
-        [fileLimit, showGeneralAlert, translate, type],
+        [fileLimit, shouldDownscaleImages, showGeneralAlert, translate, type],
     );
     /**
      * Launch the DocumentPicker. Results are in the same format as ImagePicker

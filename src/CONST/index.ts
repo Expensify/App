@@ -347,6 +347,11 @@ const CONST = {
         PHOTO_WIDTH: 2880,
         PHOTO_HEIGHT: 2160,
         PHOTO_ASPECT_RATIO: 4 / 3,
+
+        // JPEG quality used when a captured or picked receipt is downscaled to MAX_IMAGE_DIMENSION.
+        // High enough to leave SmartScan/OCR accuracy untouched, low enough to keep the encoded file
+        // well under a megabyte instead of the 11-19MB a full-resolution sensor capture produces.
+        DOWNSCALED_QUALITY: 0.8,
     },
 
     API_ATTACHMENT_VALIDATIONS: {

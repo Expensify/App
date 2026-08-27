@@ -14,6 +14,7 @@ import ReceiptStorage from '@libs/ReceiptStorage';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import captureReceipt from '@pages/iou/request/step/IOURequestStepScan/captureReceipt';
+import downscaleCapturedReceipt from '@pages/iou/request/step/IOURequestStepScan/captureReceipt/downscaleCapturedReceipt';
 import CameraPermissionPrompt from '@pages/iou/request/step/IOURequestStepScan/components/CameraPermissionPrompt';
 import CameraViewport from '@pages/iou/request/step/IOURequestStepScan/components/CameraViewport';
 import {useMultiScanActions, useMultiScanState} from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext';
@@ -165,7 +166,12 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode})
             .then((photo: PhotoFile) => {
                 endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
-                return ReceiptStorage.adopt(photo.path);
+
+                // Cap the capture at MAX_IMAGE_DIMENSION before it reaches durable storage, so the preview,
+                // the multi-scan list and the upload all work against a bounded file instead of a
+                // full-resolution sensor frame. Falls back to the original path if the downscale fails.
+                const capturedName = photo.path.split('/').pop();
+                return downscaleCapturedReceipt(photo.path).then((downscaledPath) => ReceiptStorage.adopt(downscaledPath, capturedName));
             })
             .then((durableName) => {
                 if (isMultiScanEnabled) {
