@@ -23,9 +23,16 @@ function AddTaxPage({route}: AddTaxPageProps) {
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
+    // A category tax default is deleted by writing the workspace default tax rate, so offering that rate here would
+    // silently remove the rule instead of saving one. Hide it, unless a rule already points at it and we'd otherwise
+    // have nothing to show as selected.
+    const isCategoryRule = !!categoryName || !!form?.categoriesToMatch?.length;
+    const defaultExternalID = policy?.taxRates?.defaultExternalID;
+    const shouldHideTax = (taxKey: string) => isCategoryRule && taxKey === defaultExternalID && form?.tax !== taxKey;
+
     const taxes = policy?.taxRates?.taxes ?? {};
     const taxItems = Object.entries(taxes)
-        .filter(([, tax]) => !tax.isDisabled && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        .filter(([taxKey, tax]) => !tax.isDisabled && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !shouldHideTax(taxKey))
         .map(([taxKey, tax]) => ({
             name: `${tax.name} (${tax.value})`,
             value: taxKey,
