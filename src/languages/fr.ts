@@ -10,14 +10,13 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
+import startsWithVowel from '@libs/StringUtils/startsWithVowel';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
@@ -503,6 +502,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Année précédente',
         nextYear: 'L’an prochain',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} sur ${total}`,
         editor: 'Éditeur',
         restrictions: 'Restrictions',
         tryAgain: 'Réessayer',
@@ -937,6 +937,13 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: 'Administrateurs uniquement',
         },
     },
+    supportalSwitcher: {
+        title: 'Portail d’assistance vers un autre compte',
+        emailLabel: 'Adresse e-mail',
+        reasonLabel: 'Raison de connexion à l’assistance',
+        reasonHint: 'Aucun ticket récent trouvé pour ce compte.',
+        login: 'Se connecter',
+    },
     sidebarScreen: {
         buttonFind: 'Trouver quelque chose...',
         buttonMySettings: 'Mes paramètres',
@@ -979,6 +986,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Portefeuille',
             },
             validateAccount: {title: 'Validez votre compte', subtitle: 'Compte', cta: 'Valider'},
+            addHomeAddress: {title: 'Ajoutez votre adresse personnelle pour le suivi des distances', subtitle: 'Compte', cta: 'Ajouter une adresse'},
             fixFailedBilling: {title: 'Nous n’avons pas pu débiter votre carte enregistrée', subtitle: 'Abonnement'},
             unlockBankAccount: {
                 workspaceTitle: 'Votre compte bancaire professionnel a été verrouillé',
@@ -1128,6 +1136,13 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateMessage: 'Créez-en un ou faites glisser un reçu ici',
         },
         insightsSection: {chartUnavailable: 'Graphique indisponible', notEnoughData: 'Nous n’avons pas encore suffisamment de données pour remplir ce graphique'},
+        conciergePrompt: {
+            goodMorning: ({name}: {name?: string}) => (name ? `Bonjour, ${name}.` : 'Bonjour.'),
+            goodAfternoon: ({name}: {name?: string}) => (name ? `Bonjour, ${name}.` : 'Bon après-midi.'),
+            goodEvening: ({name}: {name?: string}) => (name ? `Bonsoir, ${name}.` : 'Bonsoir.'),
+            inputPlaceholder: 'Demander à Concierge d’analyser vos dépenses ou d’obtenir de l’aide',
+            inputPlaceholderMobile: 'Demander n’importe quoi à Concierge',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1286,6 +1301,14 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Créer une dépense de temps',
     },
     iou: {
+        homeAddressRequired: {
+            title: 'L’adresse du domicile est obligatoire',
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `Avant de suivre une distance, vous devez ajouter votre adresse personnelle à votre profil privé. ${workspaceName} utilise cette adresse pour les déductions de navette.`
+                    : 'Avant de suivre une distance, vous devez ajouter votre adresse personnelle à votre profil privé. Cet espace de travail utilise cette adresse pour les déductions liées aux trajets domicile-travail.',
+            cta: 'Ajouter une adresse domicile',
+        },
         amount: 'Montant',
         percent: 'Pourcentage',
         date: 'Date',
@@ -1523,8 +1546,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'carte' : 'compte bancaire';
             return isCurrentUser
-                ? `. L’argent est en route vers votre${creditBankAccount ? `compte bancaire se terminant par ${creditBankAccount}` : 'compte'} (payé via ${paymentMethod}). Cela prend généralement 4 à 5 jours ouvrables.`
-                : `. L’argent est en route vers le/la ${submitterLogin}${creditBankAccount ? `compte bancaire se terminant par ${creditBankAccount}` : 'compte'} (payé via ${paymentMethod}). Cela prend généralement 4 à 5 jours ouvrables.`;
+                ? `. L’argent est en route vers votre ${creditBankAccount ? `compte bancaire se terminant par ${creditBankAccount}` : 'compte'} (payé via ${paymentMethod}). Cela prend généralement 4 à 5 jours ouvrables.`
+                : `. L’argent est en route vers le compte bancaire de ${submitterLogin}${creditBankAccount ? ` se terminant par ${creditBankAccount}` : ''} (payé via ${paymentMethod}). Cela prend généralement 4 à 5 jours ouvrables.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` par dépôt direct (ACH)${creditBankAccount ? ` vers le compte bancaire se terminant par ${creditBankAccount}.` : '. '}${expectedDate ? `Le remboursement devrait être terminé d'ici le ${expectedDate}.` : 'Cela prend généralement 4 à 5 jours ouvrables.'}`,
@@ -1542,7 +1565,7 @@ const translations: TranslationDeepObject<typeof en> = {
         basedOnMCC: ({rulesLink}: {rulesLink: string}) =>
             rulesLink ? `en fonction des <a href="${rulesLink}">règles de l’espace de travail</a>` : 'en fonction de la règle de l’espace de travail',
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `pour ${comment}` : 'dépense'}`,
-        invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Note de frais de facture n° ${linkedReportID}`,
+        invoiceReportName: ({linkedReportID}: OriginalMessageReportPreview) => `Note de frais de facture n° ${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} envoyé${comment ? `pour ${comment}` : ''}`,
         movedFromPersonalSpace: (reportName?: string, workspaceName?: string) => `a déplacé la dépense de l’espace personnel vers ${workspaceName ?? `discuter avec ${reportName}`}`,
         movedToPersonalSpace: 'a déplacé la dépense vers l’espace personnel',
@@ -1608,6 +1631,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Activer le portefeuille',
         hold: 'En attente',
         sendToSomeone: 'Envoyer à quelqu’un',
+        submitToEmployer: 'Soumettre à mon employeur',
         unhold: 'Supprimer la mise en attente',
         holdExpense: () => ({
             one: 'Mettre la dépense en attente',
@@ -1867,7 +1891,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pageTitle: 'Sélectionnez les détails que vous souhaitez conserver :',
             noDifferences: 'Aucune différence trouvée entre les transactions',
             pleaseSelectError: ({field}: {field: string}) => {
-                const article = StringUtils.startsWithVowel(field) ? 'un' : 'un';
+                const article = startsWithVowel(field) ? 'un' : 'un';
                 return `Veuillez sélectionner ${article} ${field}`;
             },
             pleaseSelectAttendees: 'Veuillez sélectionner les participants',
@@ -3628,7 +3652,8 @@ ${amount} pour ${merchant} - ${date}`,
         legalName: 'Nom légal',
         legalFirstName: 'Prénom légal',
         legalLastName: 'Nom de famille légal',
-        address: 'Adresse',
+        address: 'Adresse du domicile',
+        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} utilise cette adresse pour les exclusions de déplacements domicile-travail.`,
         error: {
             dateShouldBeBefore: (dateString: string) => `La date doit être antérieure au ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `La date doit être postérieure au ${dateString}`,
@@ -4581,6 +4606,9 @@ ${amount} pour ${merchant} - ${date}`,
             workflows: 'Workflows',
             workspace: 'Espace de travail',
             findWorkspace: 'Trouver un espace de travail',
+            active: 'Actif',
+            archived: 'Archivé',
+            workspaceStatus: "Statut de l'espace de travail",
             findRoom: 'Trouver un salon',
             edit: 'Modifier l’espace de travail',
             enabled: 'Activé',
@@ -5915,10 +5943,16 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             addNewCard: {
                 other: 'Autre',
                 fileImport: 'Importer des transactions depuis un fichier',
-                createFileFeedHelpText: `<muted-text>Veuillez suivre ce <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">guide d’aide</a> pour importer les dépenses de votre carte d’entreprise !</muted-text>`,
+                createFileFeedHelpText: {
+                    instructionStart: 'Sur la page suivante, vous téléchargerez un CSV de vos transactions par carte. ',
+                    templateLink: 'Télécharger notre modèle',
+                    instructionMiddle: ' ou consultez notre ',
+                    helpGuideLink: 'guide d’aide',
+                    instructionEnd: ' avant de l’importer.',
+                },
                 companyCardLayoutName: 'Nom de la disposition de carte entreprise',
                 cardLayoutNameRequired: 'Le nom du layout de la carte entreprise est requis',
-                useAdvancedFields: 'Utiliser les champs avancés (non recommandé)',
+                downloadTemplate: 'Télécharger notre modèle',
                 cardProviders: {
                     gl1025: 'Cartes American Express Corporate',
                     cdf: 'Cartes commerciales Mastercard',
@@ -6008,9 +6042,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     currency: 'Devise',
                     ignore: 'Ignorer',
                     originalTransactionDate: 'Date de transaction d’origine',
-                    originalAmount: 'Montant d’origine',
-                    originalCurrency: 'Devise d’origine',
-                    comment: 'Commentaire',
+                    originalAmount: 'Montant de l’achat',
+                    originalCurrency: 'Devise de l’achat',
+                    comment: 'Description',
                     category: 'Catégorie',
                     tag: 'Étiquette',
                 },
@@ -6100,6 +6134,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             currentBalanceDescription: 'Le solde actuel est la somme de toutes les transactions Carte Expensify comptabilisées depuis la dernière date de règlement.',
             balanceWillBeSettledOn: (settlementDate: string) => `Le solde sera réglé le ${settlementDate}`,
             settleBalance: 'Régler le solde',
+            settleBalanceConfirmationTitle: 'Régler le solde ?',
+            settleBalanceConfirmationPrompt:
+                'Cela réglera votre solde actuel le prochain jour ouvrable. Une fois l’opération réussie, le montant sera de nouveau ajouté à votre limite restante.',
             cardLimit: 'Plafond de carte',
             remaining: 'Restant',
             remainingLimit: 'Plafond restant',
@@ -6350,6 +6387,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         spend: 'Contrôles de dépenses et limites personnalisées',
                     },
                     ctaTitle: 'Émettre une nouvelle carte',
+                    existingFeedTitle: 'Gérer vos Cartes Expensify',
+                    viewCards: 'Voir les cartes',
                 },
             },
             companyCards: {
@@ -7266,11 +7305,25 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 summaryDisabled: 'Pas d’exclusion du trajet domicile-travail',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Exclure ${distance} ${unit} par demande`,
                 optionDisabledTitle: 'Ne pas exclure les trajets domicile-travail',
-                optionDisabledHelp: 'Aucune exclusion de trajet domicile-travail n’est appliquée.',
+                optionDisabledHelp: 'Aucun trajet domicile-travail n’est retiré des demandes.',
                 optionFixedDistanceTitle: 'Exclure une distance fixe par demande',
                 optionFixedDistanceHelp: 'Soustraire la même distance de trajet domicile-travail de chaque demande. Idéal pour les membres qui soumettent une demande par jour de travail.',
                 distanceLabel: 'Distance',
-                errors: {distanceMustBePositive: 'La distance doit être un nombre entier positif.', distanceTooLarge: 'La distance est trop grande.'},
+                summaryHomeAndOffice: 'Utiliser les emplacements domicile et bureau',
+                optionHomeAndOfficeTitle: 'Calculer par domicile et bureau',
+                optionHomeAndOfficeHelp: 'Utiliser l’adresse personnelle du membre, son mode de travail et son affectation de bureau pour calculer les exclusions de trajet.',
+                workspaceAddressRequired: {
+                    title: 'Pas si vite...',
+                    promptStart: 'Vous ne pouvez pas activer le paramètre de calcul par domicile et bureau avant d’ajouter d’abord un lieu de travail dans',
+                    linkText: 'Aperçu',
+                    promptEnd: '.',
+                    cta: 'Compris',
+                },
+                errors: {
+                    distanceMustBePositive: 'La distance doit être un nombre entier positif.',
+                    invalidAddress: 'Veuillez saisir une adresse valide',
+                    distanceTooLarge: 'La distance est trop grande.',
+                },
             },
             distance: 'Distance',
             centrallyManage: 'Gérez les taux de manière centralisée, suivez en miles ou en kilomètres et définissez une catégorie par défaut.',
@@ -7367,6 +7420,11 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             yourWorkspace: `Votre espace de travail est défini sur une devise non prise en charge. Consultez la <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">liste des devises prises en charge</a>.`,
             chooseAnExisting: 'Choisissez un compte bancaire existant pour payer les dépenses ou ajoutez-en un nouveau.',
             changeBankAccount: 'Changer de compte bancaire',
+            updateCurrencyForExpensifyCard:
+                "La Carte Expensify est disponible à l'émission en USD. Veuillez mettre à jour cet espace de travail en USD ou utiliser un autre espace de travail.",
+            updateCurrencyForExpensifyCardTitle: 'Obtenir la Carte Expensify',
+            euUkUpdateCurrencyForExpensifyCard:
+                'La Carte Expensify peut être émise en USD, GBP et EUR. Veuillez mettre à jour cet espace de travail vers une devise prise en charge ou utiliser un autre espace de travail.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transférer le responsable',
@@ -10024,6 +10082,19 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Impossible d’apparier automatiquement le reçu en raison d’une connexion bancaire rompue.';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
+                if (isPersonalCard) {
+                    if (!connectionLink) {
+                        return 'Impossible d’apparier automatiquement le reçu car votre connexion bancaire doit être ré-authentifiée.';
+                    }
+                    return isMarkAsCash
+                        ? `Impossible d’apparier automatiquement le reçu car votre connexion bancaire doit être ré-authentifiée. Marquez-le comme paiement en espèces pour l’ignorer, ou <a href="${connectionLink}">reconnectez-vous</a> pour associer le reçu.`
+                        : `Impossible d’apparier automatiquement le reçu car votre connexion bancaire doit être ré-authentifiée. <a href="${connectionLink}">Reconnectez-vous</a> pour associer le reçu.`;
+                }
+                return isAdmin
+                    ? `La connexion bancaire doit être ré-authentifiée. <a href="${companyCardPageURL}">Reconnectez-vous pour faire correspondre le reçu</a>`
+                    : 'La connexion bancaire doit être ré-authentifiée. Demandez à un administrateur de la reconnecter pour faire correspondre le reçu.';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return 'Impossible d’apparier automatiquement le reçu en raison d’une connexion bancaire rompue.';
@@ -10046,6 +10117,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Reçu en attente en raison d’une connexion bancaire rompue. Veuillez résoudre le problème dans les <a href="${workspaceCompanyCardRoute}">Cartes d’entreprise</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Reçu en attente en raison d’une connexion bancaire rompue. Veuillez demander à un administrateur de l’espace de travail de résoudre le problème.',
+        adminReauthConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Reçu en attente car la connexion bancaire doit être ré-authentifiée. Veuillez résoudre le problème dans les <a href="${workspaceCompanyCardRoute}">Cartes d’entreprise</a>.</muted-text-label>`,
+        memberReauthConnectionError:
+            'Reçu en attente car la connexion bancaire doit être ré-authentifiée. Veuillez demander à un administrateur de l’espace de travail de résoudre le problème.',
         markAsCashToIgnore: 'Marquer comme paiement en espèces pour l’ignorer et demander un paiement.',
         smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
             if (missingFields.length > 0) {

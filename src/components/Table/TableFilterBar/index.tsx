@@ -1,4 +1,5 @@
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
+import SearchFiltersClearButton from '@components/Search/SearchPageHeader/SearchFiltersClearButton';
 import {useTableContext} from '@components/Table/TableContext';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,11 +20,14 @@ type TableFilterBarProps = PropsWithChildren<{
 
     /** When provided (e.g. rows are selected), replaces the entire bar with this bulk-actions button, matching the Search pages */
     selectionButton?: React.ReactNode;
+
+    /** Whether to show a "Clear" button that resets all active filters. */
+    shouldShowClearFiltersButton?: boolean;
 }>;
 
-export default function TableFilterBar({label, children, selectionButton}: TableFilterBarProps) {
+export default function TableFilterBar({label, children, selectionButton, shouldShowClearFiltersButton}: TableFilterBarProps) {
     const styles = useThemeStyles();
-    const {filterConfig, tableMethods, activeFilters, columns, narrowLayoutSortColumn, originalDataLength, shouldUseNarrowTableLayout} = useTableContext();
+    const {filterConfig, tableMethods, activeFilters, onSearchStringChange, columns, narrowLayoutSortColumn, originalDataLength, shouldUseNarrowTableLayout} = useTableContext();
 
     const hasFiltersAvailable = Object.keys(filterConfig ?? {}).length > 0;
     const showsDisplaySettingsTrigger = shouldShowTableDisplaySettingsTrigger({columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn});
@@ -47,8 +51,17 @@ export default function TableFilterBar({label, children, selectionButton}: Table
             };
         });
 
+    const clearAllFilters = () => {
+        for (const filter of appliedFilters) {
+            tableMethods.updateFilter({key: filter.key, value: []});
+        }
+        // Also clear the search input so the Clear button resets both the filters and the search text.
+        tableMethods.updateSearchString('');
+        onSearchStringChange?.('');
+    };
+
     const ActiveFilterChipsComponent = !!appliedFilters.length && (
-        <View style={[styles.flexRow, styles.gap2, styles.flexWrap]}>
+        <View style={[styles.flexRow, styles.gap2, styles.flexWrap, styles.alignItemsCenter]}>
             {appliedFilters.map((filter) => (
                 <DropdownButton
                     key={filter.key}
@@ -59,6 +72,7 @@ export default function TableFilterBar({label, children, selectionButton}: Table
                     onClosePress={filter.onClosePress}
                 />
             ))}
+            {!!shouldShowClearFiltersButton && <SearchFiltersClearButton onPress={clearAllFilters} />}
         </View>
     );
 
