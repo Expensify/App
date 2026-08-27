@@ -468,6 +468,13 @@ const ONYXKEYS = {
     /** Set when we are loading the bulk change approver page */
     IS_LOADING_BULK_CHANGE_APPROVER_PAGE: 'isLoadingBulkChangeApproverPage',
 
+    /**
+     * Set when we are loading the reimbursement countries used to decide whether to collect international deposit
+     * details. RAM-only so an interrupted request never persists a stuck `true` and leaves the deposit account flow
+     * showing a loading state on the next launch.
+     */
+    RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP: 'isLoadingDepositAccountSetup',
+
     /** Is report data loading? */
     IS_LOADING_APP: 'isLoadingApp',
 
@@ -733,6 +740,9 @@ const ONYXKEYS = {
     /** The user's Concierge reportID */
     CONCIERGE_REPORT_ID: 'conciergeReportID',
 
+    /** Draft message typed into the Concierge prompt box on the home page */
+    CONCIERGE_PROMPT_DRAFT: 'conciergePromptDraft',
+
     /** The user's Self DM reportID */
     SELF_DM_REPORT_ID: 'selfDMReportID',
 
@@ -885,6 +895,7 @@ const ONYXKEYS = {
         POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED: 'policyHasConnectionsDataBeenFetched_',
         POLICY_CONNECTION_SYNC_PROGRESS: 'policyConnectionSyncProgress_',
         POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN: 'policyMergeHRInitialSyncModalShown_',
+        RULE: 'rules_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
         WORKSPACE_INVITE_ROLE_DRAFT: 'workspaceInviteRoleDraft_',
@@ -904,6 +915,9 @@ const ONYXKEYS = {
         /** Session-scoped loading flags for company cards page and feeds.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_COMPANY_CARDS_LOADING_STATE: 'companyCardsLoadingState_',
+        /** Session-scoped loading flags for the Expensify Card page, keyed by policyID.
+         *  Registered as RAM-only in `setup/index.ts`. */
+        RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE: 'expensifyCardLoadingState_',
         /** Pagination cursors for a report's action list. */
         REPORT_PAGINATION_STATE: 'reportPaginationState_',
         REPORT_ACTIONS: 'reportActions_',
@@ -1469,6 +1483,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD]: OnyxTypes.ExportDownload;
     [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_DRAFTS]: OnyxTypes.Policy;
+    [ONYXKEYS.COLLECTION.RULE]: OnyxTypes.Rule;
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: OnyxTypes.PolicyCategories;
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT]: OnyxTypes.PolicyCategories;
     [ONYXKEYS.COLLECTION.POLICY_TAGS]: OnyxTypes.PolicyTagLists;
@@ -1486,6 +1501,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
     [ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE]: OnyxTypes.ReportLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE]: OnyxTypes.CompanyCardsLoadingState;
+    [ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE]: OnyxTypes.ExpensifyCardLoadingState;
     [ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE]: OnyxTypes.ReportPaginationState;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportActions;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: OnyxTypes.ReportActionsDrafts;
@@ -1681,6 +1697,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: boolean;
     [ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS]: boolean;
     [ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE]: boolean;
+    [ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP]: boolean;
     [ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW]: boolean;
     [ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS]: boolean;
     [ONYXKEYS.IS_LOADING_AGENT_TEMPLATES]: boolean;
@@ -1784,6 +1801,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
     [ONYXKEYS.CONCIERGE_THINKING_KICKOFF]: boolean;
     [ONYXKEYS.CONCIERGE_REPORT_ID]: string;
+    [ONYXKEYS.CONCIERGE_PROMPT_DRAFT]: string;
     [ONYXKEYS.SELF_DM_REPORT_ID]: string;
     [ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS]: Participant;
     [ONYXKEYS.SHARE_TEMP_FILE]: OnyxTypes.ShareTempFile;

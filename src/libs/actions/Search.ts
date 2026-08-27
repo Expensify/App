@@ -1169,8 +1169,8 @@ function search({
         if (needsTotalsUpgrade || needsSaveRecentSearchUpgrade) {
             // Accumulate desired flags so a later upgrade for one dimension can't drop an earlier
             // upgrade for the other. Only a single pending re-fire is kept.
-            inFlightRequest.pendingShouldCalculateTotals = (inFlightRequest.pendingShouldCalculateTotals ?? false) || shouldCalculateTotals;
-            inFlightRequest.pendingShouldSaveRecentSearch = (inFlightRequest.pendingShouldSaveRecentSearch ?? false) || shouldSaveRecentSearch;
+            inFlightRequest.pendingShouldCalculateTotals = (inFlightRequest.pendingShouldCalculateTotals ?? inFlightRequest.shouldCalculateTotals) || shouldCalculateTotals;
+            inFlightRequest.pendingShouldSaveRecentSearch = (inFlightRequest.pendingShouldSaveRecentSearch ?? inFlightRequest.shouldSaveRecentSearch) || shouldSaveRecentSearch;
             inFlightRequest.pendingUpgradeRequest = () =>
                 search({
                     queryJSON,
