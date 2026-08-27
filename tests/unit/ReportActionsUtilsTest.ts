@@ -4599,6 +4599,23 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe('changed the tax reclaimable portion on the distance rate "Default Rate" to "12.34%" (previously "7.5%")');
         });
 
+        it('should round a repeating tax reclaimable fraction to two decimal places', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    oldValue: 1 / 3,
+                    newValue: 0.123456,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('changed the tax reclaimable portion on the distance rate "Default Rate" to "12.35%" (previously "33.33%")');
+        });
+
         it('should treat a previous tax reclaimable portion of zero as a change', () => {
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
                 reportActionID: '1',
