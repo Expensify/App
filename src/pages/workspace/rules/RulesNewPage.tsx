@@ -152,8 +152,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
         setParseID(parsePolicyRule(policyID, prompt));
     };
 
-    // An agent enforces in natural language what the deterministic rule types cannot express, so the prompt
-    // carries over instead of the admin retyping it.
+    // The prompt carries over so the admin does not retype it.
     const createAgentRuleFromPrompt = (prompt: string) => {
         setDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM, {[AGENT_RULE_INPUT_IDS.PROMPT]: prompt});
         Navigation.navigate(ROUTES.RULES_AGENT_NEW.getRoute(policyID));

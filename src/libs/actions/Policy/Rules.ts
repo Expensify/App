@@ -457,8 +457,7 @@ function parsePolicyRule(policyID: string, prompt: string): string {
 
     const parameters: ParsePolicyRuleParams = {policyID, parseID, prompt};
 
-    // No successData clears the loading flag: queueing the job is not the same as having the rule, so Auth
-    // clears it when it answers and the job clears it if it dies first.
+    // Queueing the job is not the same as having the rule, so nothing here clears the loading flag.
     API.write(WRITE_COMMANDS.PARSE_POLICY_RULE, parameters, {optimisticData, failureData});
 
     return parseID;
