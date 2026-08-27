@@ -8091,7 +8091,8 @@ describe('actions/Report', () => {
 
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
-            // When navigateToAndOpenReport is called with the participant that has an existing chat
+            // When navigateToAndOpenReport is called with the participant that has an existing chat and onboarding is
+            // already complete (so no onboarding OpenReport needs to be enqueued)
             Report.navigateToAndOpenReport({
                 userLogins: [PARTICIPANT_LOGIN],
                 conciergeChat: undefined,
@@ -8099,15 +8100,70 @@ describe('actions/Report', () => {
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 introSelected: testIntroSelected,
                 isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: undefined,
+                hasCompletedGuidedSetupFlow: true,
                 betas: undefined,
             });
             await waitForBatchedUpdates();
 
-            // Then verify OpenReport API was NOT called since the chat already exists
+            // Then verify OpenReport API was NOT called since the chat already exists and onboarding is complete
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 0);
 
             // Then verify navigation was called to the existing report
+            expect(Navigation.navigate).toHaveBeenCalled();
+        });
+
+        it('should enqueue an onboarding OpenReport on the existing chat when onboarding is still pending', async () => {
+            // Given a test user with initial data
+            const TEST_USER_ACCOUNT_ID = 1;
+            const TEST_USER_LOGIN = 'test@user.com';
+            const PARTICIPANT_LOGIN = 'participant@test.com';
+            const PARTICIPANT_ACCOUNT_ID = 2;
+            const EXISTING_REPORT_ID = '123';
+
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [PARTICIPANT_ACCOUNT_ID]: {
+                    accountID: PARTICIPANT_ACCOUNT_ID,
+                    login: PARTICIPANT_LOGIN,
+                    displayName: 'Participant',
+                },
+            });
+
+            // When there is an existing chat report with the participant
+            const existingReport: OnyxTypes.Report = {
+                reportID: EXISTING_REPORT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [TEST_USER_ACCOUNT_ID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    [PARTICIPANT_ACCOUNT_ID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXISTING_REPORT_ID}`, existingReport);
+
+            const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
+
+            // When navigateToAndOpenReport is called with onboarding still pending (guided setup not yet completed)
+            Report.navigateToAndOpenReport({
+                userLogins: [PARTICIPANT_LOGIN],
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
+                betas: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then OpenReport is enqueued once on the existing chat so the pending onboarding OpenReport lands (the create
+            // path's assumption holds even though the DM already exists)
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+
+            // Then verify navigation was still called to the existing report
             expect(Navigation.navigate).toHaveBeenCalled();
         });
 
