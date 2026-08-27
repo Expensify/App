@@ -47,7 +47,7 @@ function UserInfoCell({avatar, accountID, displayName, avatarSize, containerStyl
             </View>
             <Text
                 numberOfLines={1}
-                style={[isLargeScreenWidth ? styles.themeTextColor : styles.textMicroSupporting, styles.flexShrink1, textStyle, styles.userSelectText]}
+                style={[isLargeScreenWidth ? styles.themeTextColor : styles.textMicroSupporting, styles.flexShrink1, textStyle]}
                 selectable
                 dataSet={COPYABLE_TEXT_DATA_SET}
             >

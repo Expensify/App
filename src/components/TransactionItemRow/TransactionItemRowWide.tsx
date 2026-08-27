@@ -321,7 +321,6 @@ function TransactionItemRowWide({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)]}
                     >
                         <Text
-                            style={styles.userSelectText}
                             selectable
                             dataSet={COPYABLE_TEXT_DATA_SET}
                         >
@@ -336,7 +335,6 @@ function TransactionItemRowWide({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BILLABLE)]}
                     >
                         <Text
-                            style={styles.userSelectText}
                             selectable
                             dataSet={COPYABLE_TEXT_DATA_SET}
                         >

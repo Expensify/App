@@ -690,7 +690,6 @@ function MenuItem({
             isDeleted ? styles.offlineFeedbackDeleted : {},
             shouldBreakWord ? styles.breakWord : {},
             styles.mw100,
-            isTitleSelectable ? styles.userSelectText : {},
         ],
         (titleStyle ?? {}) as TextStyle,
     );

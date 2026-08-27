@@ -69,7 +69,7 @@ function DisplayNamesWithToolTip({
         // Tokenization of string only support prop numberOfLines on Web
         <Text
             accessibilityLabel={accessibilityLabel}
-            style={[textStyles, styles.pRelative, isCopyable && styles.userSelectText]}
+            style={[textStyles, styles.pRelative]}
             numberOfLines={numberOfLines || undefined}
             ref={containerRef}
             testID="DisplayNamesWithToolTip"

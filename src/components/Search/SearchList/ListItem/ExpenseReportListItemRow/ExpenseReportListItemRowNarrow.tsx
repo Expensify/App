@@ -40,14 +40,14 @@ function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSe
                 <View style={[styles.flexRow, styles.gap2]}>
                     <Text
                         numberOfLines={2}
-                        style={[styles.lh20, styles.flex1, styles.userSelectText]}
+                        style={[styles.lh20, styles.flex1]}
                         selectable
                         dataSet={COPYABLE_TEXT_DATA_SET}
                     >
                         {item.reportName ?? ''}
                     </Text>
                     <Text
-                        style={[styles.lh20, styles.flexShrink0, styles.textAlignRight, styles.userSelectText]}
+                        style={[styles.lh20, styles.flexShrink0, styles.textAlignRight]}
                         selectable
                         dataSet={COPYABLE_TEXT_DATA_SET}
                     >
@@ -56,14 +56,14 @@ function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSe
                 </View>
                 <View style={[styles.flexRow, styles.gap2]}>
                     <Text
-                        style={[styles.mutedNormalTextLabel, styles.flex1, styles.userSelectText]}
+                        style={[styles.mutedNormalTextLabel, styles.flex1]}
                         selectable
                         dataSet={COPYABLE_TEXT_DATA_SET}
                     >
                         {formattedDate}
                     </Text>
                     <Text
-                        style={[styles.mutedNormalTextLabel, styles.flexShrink0, styles.textAlignRight, styles.userSelectText]}
+                        style={[styles.mutedNormalTextLabel, styles.flexShrink0, styles.textAlignRight]}
                         selectable
                         dataSet={COPYABLE_TEXT_DATA_SET}
                     >
