@@ -9029,6 +9029,33 @@ const translations = {
             previousForwardsTo
                 ? `changed the approval workflow for ${approver} to stop forwarding approved reports (previously forwarded to ${previousForwardsTo})`
                 : `changed the approval workflow for ${approver} to stop forwarding approved reports`,
+        changedOverLimitForwardsTo: ({
+            member,
+            approver,
+            limit,
+            previousApprover,
+            previousLimit,
+        }: {
+            member: string;
+            approver: string;
+            limit: string;
+            previousApprover?: string;
+            previousLimit?: string;
+        }) => {
+            let text = `changed the approval workflow for ${member} to forward reports over ${limit} to ${approver}`;
+            if (previousApprover && previousLimit) {
+                text += ` (previously forwarded reports over ${previousLimit} to ${previousApprover})`;
+            } else if (previousApprover) {
+                text += ` (previously forwarded to ${previousApprover})`;
+            }
+            return text;
+        },
+        removedOverLimitForwardsTo: ({member, previousApprover, previousLimit}: {member: string; previousApprover?: string; previousLimit: string}) =>
+            previousApprover
+                ? `changed the approval workflow for ${member} to stop forwarding reports over the ${previousLimit} limit (previously forwarded to ${previousApprover})`
+                : `changed the approval workflow for ${member} to stop forwarding reports over the ${previousLimit} limit`,
+        changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
+            `changed the approval workflow for ${member} to forward reports over ${limit} (previously ${previousLimit})`,
         changedInvoiceCompanyName: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
             oldValue ? `changed the invoice company name to "${newValue}" (previously "${oldValue}")` : `set the invoice company name to "${newValue}"`,
         changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
