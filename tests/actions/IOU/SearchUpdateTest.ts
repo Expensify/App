@@ -10,7 +10,6 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import {buildCannedSearchQuery} from '@src/libs/SearchQueryUtils';
-import {getSuggestedSearches} from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 
@@ -111,11 +110,6 @@ jest.mock('@libs/PolicyUtils', () => ({
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 
-const suggestedSearches = getSuggestedSearches(RORY_ACCOUNT_ID);
-const submitSimilarSearchHash = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT].similarSearchHash;
-const approveSimilarSearchHash = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE].similarSearchHash;
-const unapprovedCashRuntimeSimilarSearchHash = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH].similarSearchHash;
-
 OnyxUpdateManager();
 describe('actions/IOU', () => {
     beforeAll(() => {
@@ -189,7 +183,7 @@ describe('actions/IOU', () => {
                 ],
                 hash: 939629734,
                 recentSearchHash: 1023339253,
-                similarSearchHash: submitSimilarSearchHash,
+                similarSearchHash: 1855682507,
             });
             const iouReport: Report = {
                 ...createRandomReport(2, undefined),
@@ -251,7 +245,7 @@ describe('actions/IOU', () => {
                 hash: 1685631874,
                 inputQuery: 'sortBy:date sortOrder:desc type:expense-report action:approve to:20671314',
                 recentSearchHash: 244251677,
-                similarSearchHash: approveSimilarSearchHash,
+                similarSearchHash: 1539858783,
             });
             const iouReport: Report = {
                 ...createRandomReport(2, undefined),
@@ -319,7 +313,7 @@ describe('actions/IOU', () => {
                 hash: 1967417738,
                 inputQuery: 'sortBy:date sortOrder:desc type:expense groupBy:from status:drafts,outstanding reimbursable:yes',
                 recentSearchHash: 1043581824,
-                similarSearchHash: unapprovedCashRuntimeSimilarSearchHash,
+                similarSearchHash: 1832274510,
             });
 
             const iouReport: Report = {
