@@ -318,7 +318,7 @@ const translations: TranslationDeepObject<typeof en> = {
         recent: 'Πρόσφατα',
         all: 'Όλα',
         am: 'π.μ.',
-        pm: 'μμ.',
+        pm: 'μ.μ.',
         tbd: 'Θα καθοριστεί',
         selectCurrency: 'Επιλέξτε νόμισμα',
         selectSymbolOrCurrency: 'Επιλέξτε ένα σύμβολο ή νόμισμα',
