@@ -20,7 +20,7 @@ const CSV_DATE_FORMATS = [
     'yyyyMMdd', // Compact: 20251102
 ];
 
-// A bare `yyyy-MM-dd` string is parsed by `new Date()` as UTC midnight; formatting that instant
+// A bare `yyyy-MM-dd` string is parsed by `new Date()` as UTC midnight. Formatting that instant
 // in a timezone behind UTC rolls it back to the previous day, so these must skip straight to the
 // `CSV_DATE_FORMATS` loop below, which parses `yyyy-MM-dd` as local time instead.
 const ISO_DATE_ONLY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
