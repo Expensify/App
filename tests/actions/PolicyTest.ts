@@ -4343,6 +4343,98 @@ describe('actions/Policy', () => {
             expect(activePolicyID).toBe(mostRecentlyCreatedGroupPolicy.id);
         });
 
+        it('should clear reimbursement account errors when only a personal policy remains after deleting a workspace', async () => {
+            const reimbursementAccountError = {};
+            const policyToDelete = createRandomPolicy(0, CONST.POLICY.TYPE.TEAM);
+            policyToDelete.pendingAction = null;
+            policyToDelete.role = CONST.POLICY.ROLE.ADMIN;
+
+            const personalPolicy = createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL);
+            personalPolicy.pendingAction = null;
+            personalPolicy.role = CONST.POLICY.ROLE.ADMIN;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyToDelete.id}`, policyToDelete);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`, personalPolicy);
+            await Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors: reimbursementAccountError});
+            await waitForBatchedUpdates();
+
+            mockFetch.pause();
+
+            Policy.deleteWorkspace({
+                policies: {
+                    [`${ONYXKEYS.COLLECTION.POLICY}${policyToDelete.id}`]: policyToDelete,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`]: personalPolicy,
+                },
+                policyID: policyToDelete.id,
+                personalPolicyID: personalPolicy.id,
+                activePolicyID: undefined,
+                policyName: policyToDelete.name,
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
+                reportsToArchive: [],
+                transactionViolations: undefined,
+                reimbursementAccountError,
+                lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                accountIDToLogin: {},
+            });
+            await waitForBatchedUpdates();
+
+            const reimbursementAccount = await getOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+            expect(reimbursementAccount?.errors).toBeUndefined();
+
+            await mockFetch.resume?.();
+        });
+
+        it('should keep reimbursement account errors when another admin group workspace remains after deleting a workspace', async () => {
+            const reimbursementAccountError = {};
+            const policyToDelete = createRandomPolicy(0, CONST.POLICY.TYPE.TEAM);
+            policyToDelete.pendingAction = null;
+            policyToDelete.role = CONST.POLICY.ROLE.ADMIN;
+
+            const remainingGroupPolicy = createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT);
+            remainingGroupPolicy.pendingAction = null;
+            remainingGroupPolicy.role = CONST.POLICY.ROLE.ADMIN;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyToDelete.id}`, policyToDelete);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${remainingGroupPolicy.id}`, remainingGroupPolicy);
+            await Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors: reimbursementAccountError});
+            await waitForBatchedUpdates();
+
+            mockFetch.pause();
+
+            Policy.deleteWorkspace({
+                policies: {
+                    [`${ONYXKEYS.COLLECTION.POLICY}${policyToDelete.id}`]: policyToDelete,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${remainingGroupPolicy.id}`]: remainingGroupPolicy,
+                },
+                policyID: policyToDelete.id,
+                personalPolicyID: undefined,
+                activePolicyID: undefined,
+                policyName: policyToDelete.name,
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
+                reportsToArchive: [],
+                transactionViolations: undefined,
+                reimbursementAccountError,
+                lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                accountIDToLogin: {},
+            });
+            await waitForBatchedUpdates();
+
+            const reimbursementAccount = await getOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+            expect(reimbursementAccount?.errors).toEqual(reimbursementAccountError);
+
+            await mockFetch.resume?.();
+        });
+
         it('should reset lastAccessedWorkspacePolicyID when deleting the last accessed workspace', async () => {
             const policyToDelete = createRandomPolicy(0, CONST.POLICY.TYPE.TEAM);
             const lastAccessedWorkspacePolicyID = policyToDelete.id;
