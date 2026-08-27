@@ -453,6 +453,9 @@ function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: st
 
 const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
 
+/** The policy fields a workspace avatar renders from. */
+const policyAvatarFieldsSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'avatarURL' | 'name'> | undefined => (policy ? {avatarURL: policy.avatarURL, name: policy.name} : undefined);
+
 const policyTypeSelector = (policy: OnyxEntry<Policy>) => policy?.type;
 
 const policyRoleSelector = (policy: OnyxEntry<Policy>) => policy?.role;
@@ -514,6 +517,7 @@ export {
     hasReusablePoliciesConnectedToSelector,
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,
+    policyAvatarFieldsSelector,
     policyNameSelector,
     policyRoleSelector,
     policyTypeSelector,
