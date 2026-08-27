@@ -9,7 +9,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {convertAttendeesToArray, normalizeAttendees} from '@libs/AttendeeUtils';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
-import {convertToBackendAmount} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, getCurrencySymbol} from '@libs/CurrencyUtils';
 import type {MachineDateFormat} from '@libs/DateUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -199,6 +199,81 @@ function isOdometerDistanceRequest(transaction: OnyxEntry<Transaction>): boolean
 
 function hasAppliedCommuterExclusion(transaction: OnyxEntry<Transaction>): boolean {
     return isDistanceRequest(transaction) && (transaction?.comment?.customUnit?.commuterExclusion ?? 0) > 0;
+}
+
+function shouldUseCommuterExclusionForDisplay(transaction: OnyxEntry<Transaction>, isPolicyExpenseChat: boolean): boolean {
+    return hasAppliedCommuterExclusion(transaction) && isPolicyExpenseChat;
+}
+
+function getDistanceRateForDisplay({customUnitRateID, policy, policies}: {customUnitRateID: string | undefined; policy?: OnyxEntry<Policy>; policies?: OnyxCollection<Policy>}) {
+    if (!customUnitRateID) {
+        return;
+    }
+
+    const policyRate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID, policy});
+    if (policyRate) {
+        return policyRate;
+    }
+
+    for (const currentPolicy of Object.values(policies ?? {})) {
+        const rate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID, policy: currentPolicy});
+        if (rate) {
+            return rate;
+        }
+    }
+}
+
+function getDisplayTransactionWithoutInvalidCommuterExclusion<TTransaction extends OnyxInputOrEntry<Transaction>>({
+    transaction,
+    isPolicyExpenseChat,
+    policy,
+    policies,
+}: {
+    transaction: TTransaction;
+    isPolicyExpenseChat: boolean;
+    policy?: OnyxEntry<Policy>;
+    policies?: OnyxCollection<Policy>;
+}): TTransaction {
+    if (!transaction || shouldUseCommuterExclusionForDisplay(transaction, isPolicyExpenseChat)) {
+        return transaction;
+    }
+
+    const customUnit = transaction.comment?.customUnit;
+    const fullDistance = customUnit?.quantity;
+    const distanceUnit = customUnit?.distanceUnit;
+    const mileageRate = getDistanceRateForDisplay({customUnitRateID: customUnit?.customUnitRateID, policy, policies});
+    const rate = mileageRate?.rate;
+    const unit = distanceUnit ?? mileageRate?.unit;
+    if (!hasAppliedCommuterExclusion(transaction) || typeof fullDistance !== 'number' || !unit || !rate) {
+        return transaction;
+    }
+
+    const fullDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(fullDistance, unit);
+    const fullDistanceAmount = DistanceRequestUtils.getDistanceRequestAmount(fullDistanceInMeters, unit, rate);
+    const storedAmount = hasValidModifiedAmount(transaction) ? Number(transaction.modifiedAmount) : (transaction.amount ?? 0);
+    const normalizedAmount = storedAmount < 0 ? -fullDistanceAmount : fullDistanceAmount;
+    const currency = mileageRate?.currency ?? getCurrency(transaction);
+    const normalizedMerchant = DistanceRequestUtils.getDistanceMerchant(
+        true,
+        fullDistanceInMeters,
+        unit,
+        rate,
+        currency,
+        translateLocal,
+        (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+        getCurrencySymbol,
+        isManualDistanceRequest(transaction),
+    );
+
+    return {
+        ...transaction,
+        amount: normalizedAmount,
+        convertedAmount: undefined,
+        modifiedAmount: undefined,
+        merchant: normalizedMerchant,
+        modifiedMerchant: undefined,
+        currency,
+    } as TTransaction;
 }
 
 /**
@@ -3600,6 +3675,8 @@ export {
     isManualDistanceRequest,
     isOdometerDistanceRequest,
     hasAppliedCommuterExclusion,
+    shouldUseCommuterExclusionForDisplay,
+    getDisplayTransactionWithoutInvalidCommuterExclusion,
     isDistanceExpenseType,
     isFetchingWaypointsFromServer,
     hasLocallyKnownDistance,

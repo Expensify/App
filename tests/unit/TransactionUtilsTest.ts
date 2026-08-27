@@ -1260,6 +1260,113 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('getDisplayTransactionWithoutInvalidCommuterExclusion', () => {
+        const policyWithDistanceRate: Policy = {
+            ...createRandomPolicy(0),
+            customUnits: {
+                distance: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitID: 'distance',
+                    rates: {
+                        rate1: {
+                            customUnitRateID: 'rate1',
+                            currency: CONST.CURRENCY.USD,
+                            rate: 76,
+                        },
+                    },
+                    attributes: {
+                        unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            },
+        };
+
+        it('rebuilds full-route amount and merchant for personal distance expenses with commuter metadata', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 415,
+                convertedAmount: 415,
+                modifiedAmount: 415,
+                merchant: '5.46 mi @ $0.76 / mi',
+                modifiedMerchant: '5.46 mi @ $0.76 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+
+            const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction,
+                isPolicyExpenseChat: false,
+                policy: policyWithDistanceRate,
+            });
+
+            expect(displayTransaction.amount).toBe(491);
+            expect(displayTransaction.convertedAmount).toBeUndefined();
+            expect(displayTransaction.modifiedAmount).toBeUndefined();
+            expect(displayTransaction.merchant).toContain('6.46 mi');
+            expect(displayTransaction.merchant).not.toContain('5.46 mi');
+            expect(displayTransaction.modifiedMerchant).toBeUndefined();
+        });
+
+        it('keeps commuter-excluded values for policy expense chats', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: -415,
+                modifiedAmount: -415,
+                merchant: '5.46 mi @ $0.76 / mi',
+                modifiedMerchant: '5.46 mi @ $0.76 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+
+            expect(
+                TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                    transaction,
+                    isPolicyExpenseChat: true,
+                    policy: policyWithDistanceRate,
+                }),
+            ).toBe(transaction);
+        });
+
+        it('falls back to stored values when the distance rate cannot be resolved', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 415,
+                merchant: '5.46 mi @ $0.76 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'missingRate',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+
+            expect(
+                TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                    transaction,
+                    isPolicyExpenseChat: false,
+                    policy: policyWithDistanceRate,
+                }),
+            ).toBe(transaction);
+        });
+    });
+
     describe('calculateTaxAmount', () => {
         it('returns 0 for undefined percentage', () => {
             const result = TransactionUtils.calculateTaxAmount(undefined, 10000, 2);
