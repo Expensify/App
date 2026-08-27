@@ -96,6 +96,20 @@ describe('useResolvedAgentAccountID', () => {
         expect(createdAtValue).toBeLessThanOrEqual(after);
     });
 
+    it('resolves and reports loaded from the raw mapping even when the derived entries value has not caught up yet', async () => {
+        // Simulates the derived engine's compute lagging behind the raw key on a cold cache (see the comment on
+        // the hook) — resolution must not depend on OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_ENTRIES being current.
+        await Onyx.set(ONYXKEYS.DERIVED.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_ENTRIES, {});
+        await Onyx.set(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[OPTIMISTIC_ACCOUNT_ID]: REAL_ACCOUNT_ID});
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useResolvedAgentAccountID(OPTIMISTIC_ACCOUNT_ID));
+
+        await waitFor(() => {
+            expect(result.current).toEqual([REAL_ACCOUNT_ID, true]);
+        });
+    });
+
     it('does not overwrite an existing createdAt timestamp', async () => {
         const originalCreatedAt = Date.now() - 24 * 60 * 60 * 1000;
         await Onyx.multiSet({

@@ -24,11 +24,18 @@ import Onyx from 'react-native-onyx';
 const OPTIMISTIC_ACCOUNT_ID_MAPPING_MAX_AGE_IN_DAYS = 30;
 const OPTIMISTIC_ACCOUNT_ID_MAPPING_MAX_AGE_MS = OPTIMISTIC_ACCOUNT_ID_MAPPING_MAX_AGE_IN_DAYS * 24 * 60 * 60 * 1000;
 
-// Called from both createAgent() and openAgentsPage() (the two points that have this data on hand) instead of a
-// boot-time sweep, to avoid adding a new Onyx.connectWithoutView subscription.
-function getStaleOptimisticAccountIDMappingUpdates(existingOptimisticAccountIDMappingCreatedAt: OnyxEntry<OptimisticAgentAccountIDMappingCreatedAt>): AnyOnyxUpdate[] {
+// Non-React file, so it reads its own data here instead of via useOnyx + a param (same pattern as HandleUnusedOptimisticID.ts).
+let optimisticAccountIDMappingCreatedAt: OnyxEntry<OptimisticAgentAccountIDMappingCreatedAt>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT,
+    callback: (value) => {
+        optimisticAccountIDMappingCreatedAt = value;
+    },
+});
+
+function getStaleOptimisticAccountIDMappingUpdates(): AnyOnyxUpdate[] {
     const now = Date.now();
-    const staleOptimisticAccountIDs = Object.entries(existingOptimisticAccountIDMappingCreatedAt ?? {})
+    const staleOptimisticAccountIDs = Object.entries(optimisticAccountIDMappingCreatedAt ?? {})
         .filter(([, createdAt]) => now - createdAt > OPTIMISTIC_ACCOUNT_ID_MAPPING_MAX_AGE_MS)
         .map(([staleOptimisticAccountID]) => staleOptimisticAccountID);
 
@@ -43,7 +50,7 @@ function getStaleOptimisticAccountIDMappingUpdates(existingOptimisticAccountIDMa
     ];
 }
 
-function openAgentsPage(existingOptimisticAccountIDMappingCreatedAt?: OnyxEntry<OptimisticAgentAccountIDMappingCreatedAt>) {
+function openAgentsPage() {
     const finallyData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -52,7 +59,7 @@ function openAgentsPage(existingOptimisticAccountIDMappingCreatedAt?: OnyxEntry<
         },
     ];
 
-    const optimisticData = getStaleOptimisticAccountIDMappingUpdates(existingOptimisticAccountIDMappingCreatedAt);
+    const optimisticData = getStaleOptimisticAccountIDMappingUpdates();
 
     read(READ_COMMANDS.OPEN_AGENTS_PAGE, null, {optimisticData, finallyData});
 }
@@ -70,7 +77,6 @@ function createAgent(
     file?: File | CustomRNImageManipulatorResult,
     optimisticAvatarURI?: string,
     policyID?: string,
-    existingOptimisticAccountIDMappingCreatedAt?: OnyxEntry<OptimisticAgentAccountIDMappingCreatedAt>,
 ) {
     const optimisticAccountID = Number(generateReportID());
 
@@ -131,7 +137,7 @@ function createAgent(
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReportID}`,
             value: {isOptimisticReport: true},
         },
-        ...getStaleOptimisticAccountIDMappingUpdates(existingOptimisticAccountIDMappingCreatedAt),
+        ...getStaleOptimisticAccountIDMappingUpdates(),
     ];
 
     const successData: AnyOnyxUpdate[] = [
