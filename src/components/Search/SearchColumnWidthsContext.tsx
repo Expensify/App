@@ -41,8 +41,8 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
             // `flex: 1` expands to a zero basis, which discards any width declared beside it: the column starts from
             // nothing and shares the leftover space, ending up neither its declared width nor what its content needs.
             // That declared width is what it was sized to fit, so pin it there exactly. Not narrower, since a truncated
-            // amount reads as a different amount rather than as a truncation; not wider, since the spare room belongs
-            // to the free-text columns. Same reasoning as the existing `shouldRemoveTotalColumnFlex`.
+            // amount reads as a different amount rather than as a truncation. Not wider either, since the spare room
+            // belongs to the free-text columns. Same reasoning as the existing `shouldRemoveTotalColumnFlex`.
             if (isSizingColumns && typeof columnStyles.width === 'number' && columnStyles.flex !== undefined) {
                 return {...columnStyles, flex: undefined, flexGrow: 0, flexShrink: 0, flexBasis: columnStyles.width, minWidth: columnStyles.width};
             }

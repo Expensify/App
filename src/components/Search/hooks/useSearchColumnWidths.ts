@@ -59,7 +59,7 @@ type UseSearchColumnWidthsParams = {
 
 /**
  * Sizes the Search table's free-text columns from their content, instead of every one taking an equal share of what the
- * fixed columns leave over — which is what has a column of empty descriptions holding the same room as one of long
+ * fixed columns leave over. Today that leaves a column of empty descriptions holding the same room as one of long
  * merchant names.
  *
  * Measured widths are applied as flex weights, not pixels. The fixed columns, gaps, and padding are spread across
