@@ -80,7 +80,7 @@ function MoneyRequestReportGroupHeader({
     const formattedAmount = convertToDisplayString(group.subTotalAmount, currency);
     const shouldShowCheckbox = isSelectionModeEnabled || !shouldUseNarrowLayout;
 
-    const textStyle = shouldUseNarrowLayout ? {fontSize: variables.fontSizeLabel, lineHeight: 16} : [styles.labelStrong];
+    const textStyle = shouldUseNarrowLayout ? {fontSize: variables.fontSizeLabel, lineHeight: variables.lineHeightNormal} : [styles.labelStrong];
 
     const handleToggleSelection = () => {
         onToggleSelection?.(groupKey);
