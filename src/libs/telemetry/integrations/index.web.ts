@@ -2,6 +2,7 @@ import SENTRY_APPLICATION_KEY from '@libs/telemetry/sentryApplicationKey';
 
 import * as SentryReact from '@sentry/react';
 
+import classCallCheckNoiseFilterIntegration from './classCallCheckNoiseFilter';
 import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, shouldCreateSpanForRequest} from './common';
 
 /**
@@ -45,4 +46,13 @@ const thirdPartyErrorFilterIntegration = isApplicationKeyStamped()
       })
     : undefined;
 
-export {navigationIntegration, tracingIntegration, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration, reportingObserverIntegration, thirdPartyErrorFilterIntegration};
+export {
+    navigationIntegration,
+    tracingIntegration,
+    browserProfilingIntegration,
+    breadcrumbsIntegration,
+    consoleIntegration,
+    reportingObserverIntegration,
+    thirdPartyErrorFilterIntegration,
+    classCallCheckNoiseFilterIntegration,
+};
