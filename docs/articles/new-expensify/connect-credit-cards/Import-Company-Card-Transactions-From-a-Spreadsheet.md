@@ -25,18 +25,19 @@ Only **Workspace Admins** can import transactions for company cards.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to the **Workspaces** and select your workspace.
 2. Click **Company Cards**.
-3. Click on **Add card**.
- - If you already have a company card feed set up, click the feed name to see **Add Card**.
-5. Choose **Import transactions from file**.
-6. Choose the CSV, TXT, XLS, or XLSX file you want to upload. 
-7. Enter a name for the card feed.
+3. Click on **Add cards**.
+ - If you already have a company card feed set up, click the feed name to see **Add cards**.
+4. Choose **Import transactions from file**.
+5. Enter a name for the card feed. To see an example of the recommended column structure and formatting, click **Download our template**.
+6. Click **Next**.
+7. Choose the CSV, TXT, XLS, or XLSX file you want to upload.
 8. Set your field mappings, mapping either a **Card number** or a **Card name**, along with **Date**, **Merchant**, **Amount**, and **Currency**.
 9. Assign cards to users based on the transactions in the file.
 10. Click **Import**.
 
 You must map at least one card-identity column — a **Card number** or a **Card name** — so each transaction can be grouped under a card.
 
-**Note:** Download the [CSV template](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1594908368712-Best+Example+CSV+for+Domains.csv) for an example of the recommended column structure and formatting for company card transaction imports.
+**Note:** On the **Import transactions from file** step, click **Download our template** to download an example CSV showing the recommended column structure and formatting for company card transaction imports.
 
 ---
 
@@ -78,7 +79,7 @@ You must map at least one card-identity column — a **Card number** or a **Card
 
 ## What should I do if my file upload fails or results in an error?
 
-Ensure the file includes the required fields and matches the formatting guidelines. Use Expensify’s [CSV template](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1594908368712-Best+Example+CSV+for+Domains.csv) for reference.
+Ensure the file includes the required fields and matches the formatting guidelines. Click **Download our template** on the **Import transactions from file** step for an example of the recommended structure and formatting.
 
 ## What file formats are supported for company card imports?
 
