@@ -3660,6 +3660,37 @@ describe('actions/Duplicate', () => {
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(3);
         });
 
+        it('should stop duplicating the remaining reports when the account changes mid-flight', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const reportIDs = ['rpt1', 'rpt2', 'rpt3'];
+            const allReports: Record<string, Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
+            };
+            for (const reportID of reportIDs) {
+                allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {
+                    reportID,
+                    policyID: SOURCE_POLICY_ID,
+                    ownerAccountID: RORY_ACCOUNT_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    reportName: `Report ${reportID}`,
+                    chatReportID: ACTIVE_PEC_REPORT_ID,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx-${reportID}`, createCashTransaction(`1${reportID.slice(-1)}`, reportID));
+            }
+
+            const duplicating = bulkDuplicateReports(getDefaultBulkParams(reportIDs, {allReports}));
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID + 1});
+            await waitForBatchedUpdates();
+            await duplicating;
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
+        });
+
         it('should use source policy when accessible, and fall back to default policy when not', async () => {
             const chatForSource: Report = {
                 reportID: 'chatSource',
