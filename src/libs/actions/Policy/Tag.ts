@@ -113,7 +113,7 @@ function getImportTagsFinalModal(tagsLength: number): ImportFinalModal {
         titleKey: 'spreadsheet.importSuccessfulTitle',
         promptKey: 'spreadsheet.importTagsSuccessfulDescription',
         promptKeyParams: {
-            tags: tagsLength,
+            count: tagsLength,
         },
     };
 }

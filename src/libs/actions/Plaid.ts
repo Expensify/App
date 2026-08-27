@@ -2,6 +2,7 @@ import * as API from '@libs/API';
 import type {AddPersonalPlaidCardParams, ImportPlaidAccountsParams, OpenPlaidBankAccountSelectorParams, OpenPlaidBankLoginParams} from '@libs/API/parameters';
 import type OpenPlaidCompanyCardLoginParams from '@libs/API/parameters/OpenPlaidCompanyCardLoginParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getCardFeedWithoutDomainID} from '@libs/CardUtils';
 import getPlaidLinkTokenParameters from '@libs/getPlaidLinkTokenParameters';
 
 import CONST from '@src/CONST';
@@ -9,11 +10,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeedWithNumber, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
 
 import Onyx from 'react-native-onyx';
-
-function getFeedWithoutDomainID(feed: string) {
-    const [feedWithoutDomainID] = feed.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
-    return feedWithoutDomainID;
-}
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
@@ -74,7 +70,7 @@ function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: Card
         country,
         domain,
         isPersonal,
-        feed: feed ? getFeedWithoutDomainID(feed) : undefined,
+        feed: feed ? getCardFeedWithoutDomainID(feed) : undefined,
         cardID,
     };
 
@@ -158,7 +154,7 @@ function importPlaidAccounts(
 ) {
     const parameters: ImportPlaidAccountsParams = {
         publicToken,
-        feed: getFeedWithoutDomainID(feed),
+        feed: getCardFeedWithoutDomainID(feed),
         feedName,
         country,
         domainName,
