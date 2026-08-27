@@ -24,6 +24,7 @@ import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys} from '@libs/ComposerUtils';
 import DateUtils from '@libs/DateUtils';
 import getButtonState from '@libs/getButtonState';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 
 import SubmitDraftButton from '@pages/inbox/report/ReportActionCompose/SubmitDraftButton';
 import useDebouncedCommentMaxLengthValidation from '@pages/inbox/report/ReportActionCompose/useDebouncedCommentMaxLengthValidation';
@@ -136,8 +137,10 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
         if (!canSubmit || debouncedCommentMaxLengthValidation.flush() === false) {
             return;
         }
-        askConcierge(value);
-        clearInput();
+        interceptAnonymousUser(() => {
+            askConcierge(value);
+            clearInput();
+        });
     };
 
     const handleKeyPress = (event: TextInputKeyPressEvent) => {
@@ -190,7 +193,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                                                         onPress={(e) => {
                                                             e?.preventDefault();
                                                             actionButtonRef.current?.blur();
-                                                            setIsMenuVisible((prev) => !prev);
+                                                            interceptAnonymousUser(() => setIsMenuVisible((prev) => !prev));
                                                         }}
                                                         style={({hovered, pressed}) => [
                                                             styles.composerSizeButton,
