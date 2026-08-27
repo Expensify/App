@@ -6,6 +6,7 @@ import type {MoneyRequestConfirmationListFooterProps} from './types';
 
 import DefaultFooter from './variants/DefaultFooter';
 import PerDiemFooter from './variants/PerDiemFooter';
+import TimeFooter from './variants/TimeFooter';
 
 /**
  * Selects the footer variant for the expense type being confirmed. Until
@@ -15,6 +16,10 @@ import PerDiemFooter from './variants/PerDiemFooter';
 function MoneyRequestConfirmationListFooter(props: MoneyRequestConfirmationListFooterProps) {
     if (props.expenseMode.isPerDiem && props.action !== CONST.IOU.ACTION.SUBMIT) {
         return <PerDiemFooter {...props} />;
+    }
+
+    if (props.expenseMode.isTime && props.action === CONST.IOU.ACTION.CREATE) {
+        return <TimeFooter {...props} />;
     }
 
     return <DefaultFooter {...props} />;

@@ -1,8 +1,9 @@
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFooter/ConfirmationFieldList';
-import PerDiemDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/TransactionDetailsFields/PerDiemDetailsFields';
-import PerDiemSection from '@components/MoneyRequestConfirmationListFooter/sections/PerDiemSection';
-import type {PerDiemFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
+import TimeDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/TransactionDetailsFields/TimeDetailsFields';
+import type {DetailsFieldsProps} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
+import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/sections/ReceiptSection';
+import type {TimeFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
 
 import usePermissions from '@hooks/usePermissions';
 
@@ -11,7 +12,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-function PerDiemFooter({
+function TimeFooter({
     action,
     iouType,
     transactionID,
@@ -28,18 +29,23 @@ function PerDiemFooter({
     requiredFlags,
     visibilityFlags,
     errorState,
-    toggleHandlers = {},
+    toggleHandlers,
+    receiptOptions,
     scrollFocusedInputIntoView,
     onSubmitForm,
     onTaxAmountEmptyChange,
-}: PerDiemFooterProps) {
+}: TimeFooterProps) {
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
 
-    const renderTransactionDetailsFields = () => (
-        <PerDiemDetailsFields
+    const renderTransactionDetailsFields = (detailsProps: DetailsFieldsProps) => (
+        <TimeDetailsFields
+            {...detailsProps}
             policy={policy}
+            amountDisplay={amountDisplay}
             isDescriptionRequired={requiredFlags.isDescriptionRequired}
+            errorState={errorState}
+            isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
         />
     );
 
@@ -55,16 +61,15 @@ function PerDiemFooter({
             didConfirm={didConfirm}
             isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
             isPolicyExpenseChat={isPolicyExpenseChat}
-            isPerDiemRequest
+            isTimeRequest
             scrollFocusedInputIntoView={scrollFocusedInputIntoView}
             onSubmitForm={onSubmitForm}
             onTaxAmountEmptyChange={onTaxAmountEmptyChange}
         >
             <View>
-                <PerDiemSection
+                <ReceiptSection
                     policy={policy}
-                    shouldDisplayFieldError={errorState.shouldDisplayFieldError}
-                    formError={errorState.formError}
+                    {...receiptOptions}
                 />
                 <ConfirmationFieldList
                     policy={policy}
@@ -74,7 +79,7 @@ function PerDiemFooter({
                     requiredFlags={requiredFlags}
                     visibilityFlags={visibilityFlags}
                     errorState={errorState}
-                    toggleHandlers={toggleHandlers}
+                    toggleHandlers={toggleHandlers ?? {}}
                     renderTransactionDetailsFields={renderTransactionDetailsFields}
                 />
             </View>
@@ -82,4 +87,4 @@ function PerDiemFooter({
     );
 }
 
-export default PerDiemFooter;
+export default TimeFooter;

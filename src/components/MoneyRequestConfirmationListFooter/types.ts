@@ -99,5 +99,14 @@ type MoneyRequestConfirmationListFooterProps = {
     onTaxAmountEmptyChange?: (isEmpty: boolean) => void;
 };
 
-// eslint-disable-next-line import/prefer-default-export
-export type {MoneyRequestConfirmationListFooterProps};
+type TimeFooterProps = Omit<
+    MoneyRequestConfirmationListFooterProps,
+    'receiptStitchError' | 'isScanRequest' | 'compactControls' | 'isEditingSplitBill' | 'expenseMode' | 'distanceFlags' | 'distanceData'
+>;
+
+type PerDiemFooterProps = Omit<
+    MoneyRequestConfirmationListFooterProps,
+    'receiptStitchError' | 'receiptOptions' | 'isScanRequest' | 'compactControls' | 'isEditingSplitBill' | 'expenseMode' | 'distanceFlags' | 'distanceData'
+>;
+
+export type {MoneyRequestConfirmationListFooterProps, TimeFooterProps, PerDiemFooterProps};

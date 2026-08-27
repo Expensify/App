@@ -39,7 +39,7 @@ type AmountFieldProps = {
     action: IOUAction;
     amount: number;
     formattedAmount: string;
-    distanceRateCurrency: string;
+    distanceRateCurrency?: string;
     iouCurrencyCode: string | undefined;
     isDistanceRequest: boolean;
     isNewManualExpenseFlowEnabled: boolean;
@@ -63,7 +63,7 @@ function AmountField({
     action,
     amount,
     formattedAmount,
-    distanceRateCurrency,
+    distanceRateCurrency = CONST.CURRENCY.USD,
     iouCurrencyCode,
     isDistanceRequest,
     isNewManualExpenseFlowEnabled,
