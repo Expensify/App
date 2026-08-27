@@ -307,7 +307,7 @@ function getShapeFromIconType(type?: string): AvatarShape {
 }
 
 /**
- * Return the border radius for an avatar
+ * Return the border radius for an avatar of the given shape
  */
 function getAvatarBorderRadius(size: AvatarSizeName, shape: AvatarShape): ViewStyle {
     if (shape === CONST.AVATAR_SHAPE.ROUNDED_SQUARE) {

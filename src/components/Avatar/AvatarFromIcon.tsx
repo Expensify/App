@@ -18,18 +18,14 @@ type AvatarFromIconProps = Omit<AvatarCommonProps, 'source'> & {
 /** Renders a user or workspace avatar from an Onyx `Icon` entry.
  * Prefer `UserAvatar` and `WorkspaceAvatar` directly when the avatar kind is known at the call site.
  */
-function AvatarFromIcon({icon, imageStyles, iconAdditionalStyles, containerStyles, size, testID}: AvatarFromIconProps) {
+function AvatarFromIcon({icon, ...rest}: AvatarFromIconProps) {
     if (icon.type === CONST.ICON_TYPE_WORKSPACE) {
         return (
             <WorkspaceAvatar
                 name={icon.name ?? ''}
                 avatarID={icon.id ?? CONST.DEFAULT_NUMBER_ID}
                 source={icon.source}
-                imageStyles={imageStyles}
-                iconAdditionalStyles={iconAdditionalStyles}
-                containerStyles={containerStyles}
-                size={size}
-                testID={testID}
+                {...rest}
             />
         );
     }
@@ -39,11 +35,7 @@ function AvatarFromIcon({icon, imageStyles, iconAdditionalStyles, containerStyle
             accountID={getAccountIDFromAvatarID(icon.id)}
             fallbackIcon={icon.fallbackIcon}
             source={icon.source}
-            imageStyles={imageStyles}
-            iconAdditionalStyles={iconAdditionalStyles}
-            containerStyles={containerStyles}
-            size={size}
-            testID={testID}
+            {...rest}
         />
     );
 }
