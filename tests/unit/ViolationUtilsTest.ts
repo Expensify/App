@@ -254,7 +254,7 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(customUnitOutOfPolicyViolation);
         });
 
-        it('should keep the customUnitOutOfPolicy violation if the rate exists but is disabled', () => {
+        it('should clear the customUnitOutOfPolicy violation if the rate exists but is disabled', () => {
             const customUnitRateID = 'rate_id';
             policy.customUnits = {
                 unitId: {
@@ -270,6 +270,41 @@ describe('getViolationsOnyxData', () => {
                             enabled: false,
                             name: 'Default Rate',
                             rate: 65.5,
+                        },
+                    },
+                },
+            };
+            const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should keep the customUnitOutOfPolicy violation if the rate is pending deletion', () => {
+            const customUnitRateID = 'rate_id';
+            policy.customUnits = {
+                unitId: {
+                    attributes: {unit: 'mi'},
+                    customUnitID: 'unitId',
+                    defaultCategory: 'Car',
+                    enabled: true,
+                    name: 'Distance',
+                    rates: {
+                        [customUnitRateID]: {
+                            currency: 'USD',
+                            customUnitRateID,
+                            enabled: false,
+                            name: 'Default Rate',
+                            rate: 65.5,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                         },
                     },
                 },
@@ -446,6 +481,7 @@ describe('getViolationsOnyxData', () => {
                             currency: 'USD',
                             customUnitRateID,
                             enabled: false,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                             name: '2025 mileage',
                             rate: 65.5,
                             startDate: '2025-01-01',

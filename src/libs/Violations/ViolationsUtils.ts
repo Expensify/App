@@ -664,7 +664,8 @@ const ViolationsUtils = {
                 }
 
                 const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policyForCustomUnitRate, customUnitRateID);
-                if (customRate && customRate.enabled !== false) {
+                const isRatePendingDeletion = customRate?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                if (customRate && !isRatePendingDeletion) {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
                     newTransactionViolations = syncCustomUnitRateOutOfDateRangeViolation(newTransactionViolations, updatedTransaction, policyForCustomUnitRate);
                 } else if (isSelfDM && isDistanceRequestForCustomUnit) {
