@@ -212,8 +212,7 @@ function ActionContentRouter({
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
         return (
             <MoneyRequestReportPreview
-                // The new-transaction diff baseline lives in this component's state, so the instance must not be reused
-                // for a different report action — otherwise the next report's rows all read as newly added.
+                // Keyed so a recycled instance cannot carry another report's diff baseline in useNewTransactions.
                 key={action.reportActionID}
                 iouReportID={getIOUReportIDFromReportActionPreview(action)}
                 iouReport={iouReport}

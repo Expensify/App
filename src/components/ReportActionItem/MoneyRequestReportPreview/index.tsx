@@ -142,14 +142,11 @@ function MoneyRequestReportPreview({
         selector: pendingNewTransactionIDsSelector,
     });
     const isFocused = useIsFocused();
-    // The transactions arrive in steps, and `useNewTransactions` reads every step as newly added expenses. Withhold the
-    // list until it is complete so the first full delivery becomes the baseline. Counted against the unfiltered set,
-    // since `transactionCount` includes rows `transactions` hides while a delete is pending.
+    // Transactions arrive in steps and each step reads as newly added, so withhold the list until it is complete.
     const expectedTransactionCount = iouReport?.transactionCount ?? 0;
     const isDeliveryComplete = allReportTransactions.length >= expectedTransactionCount;
-    // Latched, because a real addition bumps `transactionCount` before the transaction itself lands. Re-closing the
-    // gate there would withhold the list again and wipe the baseline, so the addition would never be highlighted.
-    // Safe to hold per instance: the preview is keyed by report action, so it only ever serves one report.
+    // Latched: a real addition can bump `transactionCount` before the transaction lands, and re-closing the gate there
+    // would wipe the baseline.
     const [hasCompletedDelivery, setHasCompletedDelivery] = useState(false);
     if (isDeliveryComplete && !hasCompletedDelivery) {
         setHasCompletedDelivery(true);
