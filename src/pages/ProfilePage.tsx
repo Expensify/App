@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import AutoUpdateTime from '@components/AutoUpdateTime';
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
@@ -236,10 +236,9 @@ function ProfilePage({route}: ProfilePageProps) {
                                 sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.AVATAR}
                             >
                                 <OfflineWithFeedback pendingAction={details?.pendingFields?.avatar}>
-                                    <Avatar
+                                    <UserAvatar
                                         source={details?.avatar}
-                                        avatarID={accountID}
-                                        type={CONST.ICON_TYPE_AVATAR}
+                                        accountID={accountID}
                                         size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                         fallbackIcon={fallbackIcon}
                                     />

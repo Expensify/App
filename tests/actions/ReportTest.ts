@@ -3295,7 +3295,7 @@ describe('actions/Report', () => {
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollections);
 
             // When mark all reports as read
-            markAllMessagesAsRead({});
+            markAllMessagesAsRead(undefined);
 
             await waitForBatchedUpdates();
 
@@ -8759,6 +8759,7 @@ describe('actions/Report', () => {
         it('should return undefined when no valid report is provided', () => {
             const result = Report.createTransactionThreadReport({
                 introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
@@ -8771,6 +8772,7 @@ describe('actions/Report', () => {
             const reportWithoutID = createMock<OnyxTypes.Report>({});
             const result = Report.createTransactionThreadReport({
                 introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
@@ -8798,6 +8800,7 @@ describe('actions/Report', () => {
 
             const result = Report.createTransactionThreadReport({
                 introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
@@ -8835,6 +8838,7 @@ describe('actions/Report', () => {
             // Should not throw when called with introSelected and return a valid thread report
             const result = Report.createTransactionThreadReport({
                 introSelected,
+                conciergeChat: undefined,
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
@@ -8866,6 +8870,7 @@ describe('actions/Report', () => {
             // Should work fine with undefined introSelected - it's OnyxEntry<IntroSelected> which allows undefined
             const result = Report.createTransactionThreadReport({
                 introSelected: undefined,
+                conciergeChat: undefined,
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
@@ -8903,6 +8908,7 @@ describe('actions/Report', () => {
 
             const result = Report.createTransactionThreadReport({
                 introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
@@ -8936,6 +8942,7 @@ describe('actions/Report', () => {
             const testBetas = [CONST.BETAS.ALL];
             Report.createTransactionThreadReport({
                 introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: testBetas,
@@ -8946,6 +8953,40 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+        });
+
+        it('threads the conciergeChat report into the guided setup data sent with OpenReport', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            const conciergeChat: OnyxTypes.Report = {...createRandomReport(777, undefined), reportID: 'concierge-thread-1'};
+            const parentReport: OnyxTypes.Report = {
+                ...createRandomReport(502, undefined),
+                reportID: '502',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await waitForBatchedUpdates();
+
+            const reportAction: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(7),
+                reportActionID: 'action-7',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            };
+
+            Report.createTransactionThreadReport({
+                introSelected: TEST_INTRO_SELECTED,
+                conciergeChat,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                betas: undefined,
+                personalDetails: undefined,
+                iouReport: parentReport,
+                iouReportAction: reportAction,
+            });
+            await waitForBatchedUpdates();
+
+            // The optimistic onboarding messages must land in the threaded Concierge chat, not the deprecated module-level lookup.
+            const conciergeActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChat.reportID}`);
+            expect(Object.keys(conciergeActions ?? {}).length).toBeGreaterThan(0);
         });
 
         it('should resolve participant logins from the passed personalDetails rather than the Onyx personal details list', async () => {
@@ -8973,6 +9014,7 @@ describe('actions/Report', () => {
             // When creating the thread with personal details that carry a different login for that actor
             const result = Report.createTransactionThreadReport({
                 introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
