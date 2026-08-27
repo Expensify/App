@@ -154,8 +154,12 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
         // on success we need to move to bank connection screen with token, bank name = plaid
         Log.info('[PlaidLink] Success!');
 
-        const plaidConnectedFeed = (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.id;
-        const plaidConnectedFeedName = (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.name ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.name;
+        const institution = metadata.institution;
+        let plaidConnectedFeed: string | undefined;
+        if (institution) {
+            plaidConnectedFeed = 'institution_id' in institution ? institution.institution_id : institution.id;
+        }
+        const plaidConnectedFeedName = institution?.name;
 
         setAddNewPersonalCardStepAndData({
             step: CONST.PERSONAL_CARDS.STEP.BANK_CONNECTION,
