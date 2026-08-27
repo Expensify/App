@@ -4409,7 +4409,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         productTrainingTooltipHighlightText: {
-            color: theme.tooltipHighlightText,
+            color: theme.tooltipLinkText,
+            fontWeight: FontUtils.fontWeight.bold,
         },
 
         quickReactionsContainer: {
