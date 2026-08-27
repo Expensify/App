@@ -42,10 +42,12 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
             // A column styled `flex: 1` alongside a width has a zero flex basis, which discards that width: it starts
             // from nothing and only ever gets a share of the leftover space. That was harmless while every column was
             // equally shrinkable, but the measured columns now hold a minimum, so a column with no floor of its own
-            // absorbs all of the shortfall and truncates its value. Giving it its declared width as the basis restores
-            // that width as the size it grows from, while leaving it free to grow as it did before.
+            // absorbs all of the shortfall and truncates its value. Its declared width becomes both the size it grows
+            // from and the size it will not shrink past, since that width is what the column was sized to fit: the
+            // amount column, for one, is already widened separately when its values are long, and an amount that has
+            // been cut short reads as a different number rather than as a truncation.
             if (isSizingColumns && typeof columnStyles.width === 'number' && columnStyles.flex !== undefined) {
-                return {...columnStyles, flex: undefined, flexGrow: columnStyles.flex, flexShrink: 1, flexBasis: columnStyles.width};
+                return {...columnStyles, flex: undefined, flexGrow: columnStyles.flex, flexShrink: 1, flexBasis: columnStyles.width, minWidth: columnStyles.width};
             }
 
             return columnStyles;

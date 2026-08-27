@@ -58,6 +58,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 
 import type {ThemeColors} from '@styles/theme/types';
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -6735,12 +6736,26 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
 /** The gap the table renders between two adjacent columns, matching the row's `gap3` styling. */
 const SEARCH_TABLE_COLUMN_GAP = 12;
 
+/**
+ * Width of the arrow at the end of each row, plus the gap before it. The arrow is rendered as a row child rather than as
+ * one of the columns, so it is counted here on its own: leave it out and the row needs more width than the table gives
+ * it, and the arrow is pushed past the edge instead of the table scrolling to reach it.
+ */
+const SEARCH_TABLE_ROW_ARROW_WIDTH = variables.iconSizeNormal + SEARCH_TABLE_COLUMN_GAP;
+
+/**
+ * The margin and padding each row sits inside (`mh5` on the row's wrapper and `ph3` on the row itself), on both sides.
+ * The columns are laid out inside this, so it is width the table needs on top of them.
+ */
+const SEARCH_TABLE_ROW_CHROME_WIDTH = (20 + 12) * 2;
+
 function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes, isActionColumnWide?: boolean, measuredColumnMinWidths?: Partial<Record<SearchColumnType, number>>) {
     // Starts at 24px to account for the checkbox width
     let minWidth = 24;
 
-    // The columns are laid out in a row with a gap between each pair, so the gaps are part of the width the table needs.
-    minWidth += Math.max(columns.length - 1, 0) * SEARCH_TABLE_COLUMN_GAP;
+    // The columns are laid out in a row with a gap between each pair, so the gaps are part of the width the table needs,
+    // as is the arrow each row ends with.
+    minWidth += Math.max(columns.length - 1, 0) * SEARCH_TABLE_COLUMN_GAP + SEARCH_TABLE_ROW_ARROW_WIDTH + SEARCH_TABLE_ROW_CHROME_WIDTH;
 
     for (const column of columns) {
         // A dynamically sized column knows its own minimum, measured from its content and its header, so that is used in
