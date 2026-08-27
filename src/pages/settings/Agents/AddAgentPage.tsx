@@ -130,27 +130,29 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
         // Pure optimistic flow: `createAgent` writes the agent and the owner<->agent DM to Onyx under a
         // reportID it generates client-side, and CreateAgent creates the DM under that exact ID (see
         // CreateAgent.cpp), so we can navigate to the DM immediately, online or offline, without waiting.
-        const {optimisticReportID} = uploadedAvatar?.uri
+        const {optimisticReportID, optimisticPersonalDetailPromise} = uploadedAvatar?.uri
             ? createAgent(firstName, prompt, ownerAccountID, ownerLogin, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri, policyID)
             : createAgent(firstName, prompt, ownerAccountID, ownerLogin, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined, policyID);
 
         clearNewAgentTemplate();
         clearNewAgentAvatarDraft();
 
-        // Not useResponsiveLayout: this page itself lives inside the RHP modal stack, so
-        // shouldUseNarrowLayout/isSmallScreenWidth from that hook would always read as "narrow"
-        // regardless of window size. getIsNarrowLayout() reflects the actual window width.
-        if (getIsNarrowLayout()) {
-            // Reveal the DM under the modal before dismissing so we navigate directly to it in one animation,
-            // instead of dismissing to the agents list first and navigating to the DM afterward.
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID)));
-            return;
-        }
+        void optimisticPersonalDetailPromise.then(() => {
+            // Not useResponsiveLayout: this page itself lives inside the RHP modal stack, so
+            // shouldUseNarrowLayout/isSmallScreenWidth from that hook would always read as "narrow"
+            // regardless of window size. getIsNarrowLayout() reflects the actual window width.
+            if (getIsNarrowLayout()) {
+                // Reveal the DM under the modal before dismissing so we navigate directly to it in one animation,
+                // instead of dismissing to the agents list first and navigating to the DM afterward.
+                Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID));
+                return;
+            }
 
-        // On wide layouts, open the DM in a dedicated RHP screen instead of the fullscreen report split.
-        // forceReplace swaps this screen out for the DM instead of pushing on top of it, so the
-        // already-submitted form can't be reached again via the close/back button.
-        Navigation.navigate(ROUTES.AGENT_REPORT.getRoute(optimisticReportID), {forceReplace: true});
+            // On wide layouts, open the DM in a dedicated RHP screen instead of the fullscreen report split.
+            // forceReplace swaps this screen out for the DM instead of pushing on top of it, so the
+            // already-submitted form can't be reached again via the close/back button.
+            Navigation.navigate(ROUTES.AGENT_REPORT.getRoute(optimisticReportID), {forceReplace: true});
+        });
     };
 
     const agentAvatar = avatarSource ? (

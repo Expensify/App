@@ -25,10 +25,14 @@ const OWNER_LOGIN = 'owner@test.com';
 const OPTIMISTIC_REPORT_ID = '4567890123456789';
 
 const mockTranslate = jest.fn().mockImplementation((key: string, param?: string) => (param !== undefined ? `${key}(${param})` : key));
-const mockCreateAgent = jest.fn<{optimisticAccountID: number; avatarURI: string | undefined; optimisticReportID: string}, unknown[]>(() => ({
+let resolveOptimisticPersonalDetail: (() => void) | undefined;
+const mockCreateAgent = jest.fn<{optimisticAccountID: number; avatarURI: string | undefined; optimisticReportID: string; optimisticPersonalDetailPromise: Promise<void>}, unknown[]>(() => ({
     optimisticAccountID: -123456,
     avatarURI: undefined,
     optimisticReportID: OPTIMISTIC_REPORT_ID,
+    optimisticPersonalDetailPromise: new Promise((resolve) => {
+        resolveOptimisticPersonalDetail = resolve;
+    }),
 }));
 const mockSetNewAgentAvatarPreset = jest.fn<void, unknown[]>();
 const mockClearNewAgentAvatarDraft = jest.fn<void, unknown[]>();
@@ -37,7 +41,6 @@ let mockAvatarDraft: {customExpensifyAvatarID?: string; uploadedAvatar?: {uri: s
 let mockAvatarDraftStatus: 'loading' | 'loaded' = 'loaded';
 let mockIsNarrowLayout = true;
 let mockTemplate: {name: string; prompt: string; avatarID: string} | undefined;
-let mockNavigationAction: (() => void) | undefined;
 
 jest.mock('@userActions/Agent', () => ({
     createAgent: (...args: unknown[]) => mockCreateAgent(...args),
@@ -101,9 +104,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
     navigate: jest.fn(),
     revealRouteBeforeDismissingModal: jest.fn(),
-    setNavigationActionToMicrotaskQueue: jest.fn((navigationAction: () => void) => {
-        mockNavigationAction = navigationAction;
-    }),
 }));
 
 const mockAddListener = jest.fn<() => void, [string, (...args: unknown[]) => void]>(() => jest.fn());
@@ -176,7 +176,6 @@ jest.mock('@components/AvatarButtonWithIcon', () => {
 
 const mockNavigate = jest.mocked(Navigation.navigate);
 const mockRevealRouteBeforeDismissingModal = jest.mocked(Navigation.revealRouteBeforeDismissingModal);
-const mockSetNavigationActionToMicrotaskQueue = jest.mocked(Navigation.setNavigationActionToMicrotaskQueue);
 const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 const mockUseOnyx = jest.mocked(useOnyx);
 
@@ -204,7 +203,7 @@ describe('AddAgentPage', () => {
         mockTemplate = undefined;
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: OWNER_ACCOUNT_ID, login: OWNER_LOGIN});
         mockAvatarOnPress = undefined;
-        mockNavigationAction = undefined;
+        resolveOptimisticPersonalDetail = undefined;
     });
 
     it('renders page title', () => {
@@ -328,7 +327,7 @@ describe('AddAgentPage', () => {
             mockAvatarDraft = {customExpensifyAvatarID: 'bot-avatar--blue'};
         });
 
-        it('creates the agent with the owner accountID and login, then navigates to the optimistic DM report', () => {
+        it('creates the agent with the owner accountID and login, then navigates to the optimistic DM report after the personal detail is written', async () => {
             renderAddAgentPage({});
 
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
@@ -336,29 +335,33 @@ describe('AddAgentPage', () => {
             expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', OWNER_ACCOUNT_ID, OWNER_LOGIN, 'bot-avatar--blue', undefined, undefined, undefined);
             expect(mockClearNewAgentTemplate).toHaveBeenCalledTimes(1);
             expect(mockClearNewAgentAvatarDraft).toHaveBeenCalledTimes(1);
-            expect(mockSetNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
             expect(mockRevealRouteBeforeDismissingModal).not.toHaveBeenCalled();
-            mockNavigationAction?.();
+            resolveOptimisticPersonalDetail?.();
+            await Promise.resolve();
             expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(OPTIMISTIC_REPORT_ID));
         });
 
-        it('forwards policyID from route params to createAgent', () => {
+        it('forwards policyID from route params to createAgent', async () => {
             renderAddAgentPage({policyID: 'POL_42'});
 
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
             expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', OWNER_ACCOUNT_ID, OWNER_LOGIN, 'bot-avatar--blue', undefined, undefined, 'POL_42');
-            mockNavigationAction?.();
+            resolveOptimisticPersonalDetail?.();
+            await Promise.resolve();
             expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(OPTIMISTIC_REPORT_ID));
         });
 
-        it('opens the DM in the RHP on wide layouts instead of the fullscreen report', () => {
+        it('opens the DM in the RHP on wide layouts instead of the fullscreen report', async () => {
             mockIsNarrowLayout = false;
             renderAddAgentPage({});
 
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
             expect(mockRevealRouteBeforeDismissingModal).not.toHaveBeenCalled();
+            expect(mockNavigate).not.toHaveBeenCalled();
+            resolveOptimisticPersonalDetail?.();
+            await Promise.resolve();
             expect(mockNavigate).toHaveBeenCalledWith(ROUTES.AGENT_REPORT.getRoute(OPTIMISTIC_REPORT_ID), {forceReplace: true});
         });
 

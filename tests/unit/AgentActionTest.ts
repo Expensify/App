@@ -31,6 +31,7 @@ jest.mock('@expensify/react-native-hybrid-app', () => ({
 
 const mockWrite = jest.mocked(write);
 const mockGoBack = jest.mocked(Navigation.goBack);
+const mockMerge = jest.spyOn(Onyx, 'merge');
 
 type CapturedUpdate = Omit<AnyOnyxUpdate<OnyxKey>, 'value'> & {value?: unknown};
 type WriteOptions = {optimisticData: CapturedUpdate[]; successData: CapturedUpdate[]; failureData: CapturedUpdate[]};
@@ -82,8 +83,17 @@ function getPersonalDetailEntry(updates: CapturedUpdate[], accountID: number): R
     return requireRecord(getPersonalDetailValue(updates, accountID), `No personal detail entry for ${accountID}`);
 }
 
-function getOptimisticAccountID(optimisticData: CapturedUpdate[]): number {
-    return Number(Object.keys(getUpdateRecord(optimisticData, ONYXKEYS.PERSONAL_DETAILS_LIST)).at(0));
+function getOptimisticPersonalDetails(): Record<string, unknown> {
+    const personalDetailMerge = mockMerge.mock.calls.find(([key]) => key === ONYXKEYS.PERSONAL_DETAILS_LIST);
+    return requireRecord(personalDetailMerge?.[1], 'No optimistic personal detail merge');
+}
+
+function getOptimisticAccountID(): number {
+    return Number(Object.keys(getOptimisticPersonalDetails()).at(0));
+}
+
+function getOptimisticPersonalDetailEntry(accountID: number): Record<string, unknown> {
+    return requireRecord(getOptimisticPersonalDetails()[accountID], `No optimistic personal detail entry for ${accountID}`);
 }
 
 const OWNER_ACCOUNT_ID = 999;
@@ -92,6 +102,7 @@ const OWNER_LOGIN = 'owner@test.com';
 describe('createAgent', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockMerge.mockResolvedValue(undefined);
     });
 
     it('calls write with CREATE_AGENT command and provided params', () => {
@@ -109,8 +120,7 @@ describe('createAgent', () => {
     it('optimistic personal detail entry has a positive account ID from generateReportID', () => {
         createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
-        const {optimisticData} = getWriteOptions();
-        const accountID = getOptimisticAccountID(optimisticData);
+        const accountID = getOptimisticAccountID();
 
         expect(Number(accountID)).toBeGreaterThan(0);
     });
@@ -118,10 +128,9 @@ describe('createAgent', () => {
     it('optimistic personal detail entry stores displayName and marks entry as optimistic', () => {
         createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
-        const {optimisticData} = getWriteOptions();
-        const accountID = getOptimisticAccountID(optimisticData);
+        const accountID = getOptimisticAccountID();
 
-        expect(getPersonalDetailEntry(optimisticData, accountID)).toMatchObject({
+        expect(getOptimisticPersonalDetailEntry(accountID)).toMatchObject({
             displayName: 'Bot',
             isOptimisticPersonalDetail: true,
         });
@@ -130,10 +139,9 @@ describe('createAgent', () => {
     it('optimistic personal detail entry stores undefined displayName when firstName is undefined', () => {
         createAgent(undefined, 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
-        const {optimisticData} = getWriteOptions();
-        const accountID = getOptimisticAccountID(optimisticData);
+        const accountID = getOptimisticAccountID();
 
-        expect(getPersonalDetailEntry(optimisticData, accountID)).toMatchObject({
+        expect(getOptimisticPersonalDetailEntry(accountID)).toMatchObject({
             displayName: undefined,
             isOptimisticPersonalDetail: true,
         });
@@ -143,7 +151,7 @@ describe('createAgent', () => {
         createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
         const {optimisticData} = getWriteOptions();
-        const accountID = getOptimisticAccountID(optimisticData);
+        const accountID = getOptimisticAccountID();
         const promptUpdate = findUpdate(optimisticData, `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
 
         expect(promptUpdate?.value).toEqual({
@@ -180,10 +188,10 @@ describe('createAgent', () => {
     it('includes resolved avatar URI in optimistic and failure personal detail data for a preset ID', () => {
         createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN, 'bot-avatar--blue');
 
-        const {optimisticData, failureData} = getWriteOptions();
-        const accountID = getOptimisticAccountID(optimisticData);
+        const {failureData} = getWriteOptions();
+        const accountID = getOptimisticAccountID();
 
-        const optimisticEntry = getPersonalDetailEntry(optimisticData, accountID);
+        const optimisticEntry = getOptimisticPersonalDetailEntry(accountID);
         expect(optimisticEntry.avatar).toBeTruthy();
         expect(optimisticEntry.avatarThumbnail).toBeTruthy();
 
@@ -196,10 +204,10 @@ describe('createAgent', () => {
         const fileURI = 'file://local-photo.jpg';
         createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN, undefined, undefined, fileURI);
 
-        const {optimisticData, failureData} = getWriteOptions();
-        const accountID = getOptimisticAccountID(optimisticData);
+        const {failureData} = getWriteOptions();
+        const accountID = getOptimisticAccountID();
 
-        const optimisticEntry = getPersonalDetailEntry(optimisticData, accountID);
+        const optimisticEntry = getOptimisticPersonalDetailEntry(accountID);
         expect(optimisticEntry.avatar).toBe(fileURI);
         expect(optimisticEntry.avatarThumbnail).toBe(fileURI);
 
@@ -211,10 +219,9 @@ describe('createAgent', () => {
     it('does not include avatar fields in optimistic data when no avatar args are given', () => {
         createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
-        const {optimisticData} = getWriteOptions();
-        const accountID = getOptimisticAccountID(optimisticData);
+        const accountID = getOptimisticAccountID();
 
-        const entry = getPersonalDetailEntry(optimisticData, accountID);
+        const entry = getOptimisticPersonalDetailEntry(accountID);
         expect(entry.avatar).toBeUndefined();
         expect(entry.avatarThumbnail).toBeUndefined();
     });
@@ -264,7 +271,7 @@ describe('createAgent', () => {
         const result = createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
         const {optimisticData} = getWriteOptions();
-        const accountID = getOptimisticAccountID(optimisticData);
+        const accountID = getOptimisticAccountID();
         const reportUpdate = optimisticData.find((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT}${result.optimisticReportID}`);
 
         expect(reportUpdate?.onyxMethod).toBe('set');
@@ -321,9 +328,8 @@ describe('createAgent', () => {
     it('omits login on the optimistic personal detail entry — the real email is server-assigned', () => {
         createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN, undefined, undefined, undefined, 'POLICY_42');
 
-        const {optimisticData} = getWriteOptions();
-        const accountID = getOptimisticAccountID(optimisticData);
-        const entry = getPersonalDetailEntry(optimisticData, accountID);
+        const accountID = getOptimisticAccountID();
+        const entry = getOptimisticPersonalDetailEntry(accountID);
 
         expect(entry.login).toBeUndefined();
     });
@@ -341,8 +347,8 @@ describe('createAgent', () => {
     it('success data clears only the optimistic flag on the personal detail (keeping the avatar) and nulls the prompt entry', () => {
         createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
-        const {optimisticData, successData} = getWriteOptions();
-        const accountID = getOptimisticAccountID(optimisticData);
+        const {successData} = getWriteOptions();
+        const accountID = getOptimisticAccountID();
 
         const promptRollback = findUpdate(successData, `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
 
@@ -359,8 +365,8 @@ describe('createAgent', () => {
     it('failure data preserves optimistic personal detail and merges errors onto the prompt entry', () => {
         createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
-        const {optimisticData, failureData} = getWriteOptions();
-        const accountID = getOptimisticAccountID(optimisticData);
+        const {failureData} = getWriteOptions();
+        const accountID = getOptimisticAccountID();
 
         expect(getPersonalDetailEntry(failureData, accountID)).toMatchObject({
             accountID,
