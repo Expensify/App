@@ -12,19 +12,18 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 
-import {selectFilteredReportActions} from '@libs/ReportUtils';
 import {isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
-import {getColumnsToShow, getSections, getSortedSections, getValidGroupBy, isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {getColumnsToShow, getSections, getSortedSections, getSortedTransactionData, getValidGroupBy, isSearchDataLoaded} from '@libs/SearchUIUtils';
 import {shouldShowAttendees} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
-import type {ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
 import {useMemo} from 'react';
 
+import useLiveFilteredReportActions from './useLiveFilteredReportActions';
 import useOptimisticSearchTracking from './useOptimisticSearchTracking';
 import useStableOptimisticSortedData from './useStableOptimisticSortedData';
 
@@ -98,7 +97,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     const {type, sortBy, sortOrder, hash, groupBy} = queryJSON;
 
     const {isOffline} = useNetwork();
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {convertToDisplayString} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
@@ -108,9 +107,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     const {policyForMovingExpensesID, policyForMovingExpenses} = usePolicyForMovingExpenses();
     const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
 
-    const [exportReportActions] = useOnyx<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction[]> | undefined>(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
-        selector: selectFilteredReportActions,
-    });
+    const exportReportActions = useLiveFilteredReportActions();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [onyxPersonalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
@@ -188,6 +185,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         }
 
         const [filtered, allLength, hasDeletedTransactionFromSections] = getSections({
+            dateFnsLocale,
             type,
             data: searchDataWithOptimisticTransaction,
             currentAccountID: accountID,
@@ -245,6 +243,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         convertToDisplayString,
         reportAttributesForSections,
         optimisticTransactionID,
+        dateFnsLocale,
     ]);
 
     // Stage 2: for grouped views, fetch each group's sub-snapshot and enrich it with its transactions.
@@ -268,6 +267,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
                 return item;
             }
             const [groupTransactions] = getSections({
+                dateFnsLocale,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 data: subSnapshot.data,
                 currentAccountID: accountID,
@@ -279,12 +279,14 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
                 cardFeeds,
                 conciergeReportID,
                 convertToDisplayString,
+                reportActions: exportReportActions,
                 reportAttributesDerivedValue: undefined,
             });
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group children are flat transactions
+            const typedGroupTransactions = groupTransactions as TransactionListItemType[];
             return {
                 ...item,
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group children are flat transactions
-                transactions: groupTransactions as TransactionListItemType[],
+                transactions: getSortedTransactionData(typedGroupTransactions, localeCompare, translate, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC),
             };
         });
     }, [
@@ -297,11 +299,14 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         email,
         bankAccountList,
         translate,
+        localeCompare,
         formatPhoneNumber,
         isActionLoadingSet,
         cardFeeds,
         conciergeReportID,
         convertToDisplayString,
+        dateFnsLocale,
+        exportReportActions,
     ]);
 
     // Stage 3: sort the (enriched) data, then stamp the post-create highlight on each row. getSortedSections

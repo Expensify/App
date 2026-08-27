@@ -22,8 +22,8 @@ jest.mock('@libs/SubscriptionUtils', () => ({
     shouldShowTrialEndedUI: jest.fn(() => false),
 }));
 
-const mockedUseHasTeam2025Pricing = useHasTeam2025Pricing as jest.Mock;
-const mockedShouldShowTrialEndedUI = shouldShowTrialEndedUI as jest.Mock;
+const mockedUseHasTeam2025Pricing = jest.mocked(useHasTeam2025Pricing);
+const mockedShouldShowTrialEndedUI = jest.mocked(shouldShowTrialEndedUI);
 
 describe('useTimeSensitiveAddPaymentCard', () => {
     beforeAll(() => {

@@ -1,11 +1,10 @@
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Icon from '@components/Icon';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -35,7 +34,6 @@ type DomainMembersTableRowProps = {
 export default function DomainMembersTableRow({item, rowIndex, shouldUseNarrowTableLayout, shouldShowGroupColumn}: DomainMembersTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const styleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
@@ -47,11 +45,6 @@ export default function DomainMembersTableRow({item, rowIndex, shouldUseNarrowTa
         memberSubtitle = `${item.groupName} • ${item.email}`;
     }
     const accessibilityLabel = [item.name, shouldShowGroupColumn ? item.groupName : null, item.email].filter(Boolean).join(', ');
-
-    const getSecondaryAvatarContainerStyle = (hovered: boolean) => [
-        styleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-        hovered ? styleUtils.getBackgroundAndBorderStyle(styles.sidebarLinkHover?.backgroundColor ?? theme.sidebar) : undefined,
-    ];
 
     return (
         <Table.Row
@@ -73,12 +66,10 @@ export default function DomainMembersTableRow({item, rowIndex, shouldUseNarrowTa
                         style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
-                        <ReportActionAvatars
+                        <AccountAvatar
                             size={avatarSize}
-                            accountIDs={[item.accountID]}
+                            accountID={item.accountID}
                             fallbackDisplayName={item.name}
-                            shouldShowTooltip
-                            secondaryAvatarContainerStyle={getSecondaryAvatarContainerStyle(!!hovered)}
                         />
                         <View style={[shouldUseNarrowTableLayout && styles.gap1, styles.flex1]}>
                             <TextWithTooltip

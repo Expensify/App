@@ -1,5 +1,4 @@
-import Icon from '@components/Icon';
-import Text from '@components/Text';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import WidgetContainer from '@components/WidgetContainer';
 
@@ -9,12 +8,9 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
-import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
@@ -22,30 +18,23 @@ import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtil
 
 import WidgetHeaderMenu from '@pages/home/common/WidgetHeaderMenu/WidgetHeaderMenu';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import {useIsFocused} from '@react-navigation/native';
 import React from 'react';
-import {View} from 'react-native';
 
 import type {RecentlyAddedExpense} from './useRecentlyAddedData';
 
-import EmptyState from './EmptyState';
-import RecentlyAddedRow, {DATE_COLUMN_WIDTH, DATE_COLUMN_WIDTH_WIDE} from './RecentlyAddedRow';
+import RecentlyAddedPlaceholder from './RecentlyAddedPlaceholder';
+import RecentlyAddedRow from './RecentlyAddedRow';
 import {useRecentlyAddedData} from './useRecentlyAddedData';
 
-const HEADER_RECEIPT_ICON_SIZE = 16;
-
 function RecentlyAddedSection() {
-    const {transactions} = useRecentlyAddedData();
+    const {transactions, isAwaitingFirstResult} = useRecentlyAddedData();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     // The hovered receipt preview is a portal on document.body, so it isn't dismissed by navigation alone.
     // Once the screen blurs (e.g. after opening an expense), we hide the preview instead of leaving it floating over the RHP.
@@ -53,23 +42,22 @@ function RecentlyAddedSection() {
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
     const {markReportRHPWidth} = useWideRHPActions();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     const hasExpenses = transactions.length > 0;
-
-    // Mirror the Spend table: when any visible expense's date includes the year (a past-year date), widen the
-    // shared date column so "Jun 7, 2025" isn't truncated. The header and every row use the same width to stay aligned.
-    const shouldShowYear = transactions.some((expense) => DateUtils.doesDateBelongToAPastYear(expense.created));
-    const dateColumnWidth = shouldShowYear ? DATE_COLUMN_WIDTH_WIDE : DATE_COLUMN_WIDTH;
+    const listBottomPadding = shouldUseNarrowLayout ? styles.pb2 : styles.pb5;
 
     const openExpense = (expense: RecentlyAddedExpense) => {
         // Resolve only the tapped expense now. getReportIDToOpenForExpense may create a transaction thread, so
         // resolving every sibling up front would create a thread for each multi-expense sibling on a single tap.
         // Instead, seed the cheap snapshot-derived descriptors and let the carousel resolve each sibling lazily,
         // one at a time, only when the user actually navigates to it.
-        const resolveContext = {introSelected, betas, currentUserEmail, currentUserAccountID};
+        const resolveContext = {introSelected, betas, conciergeChat, currentUserEmail, currentUserAccountID, personalDetails};
         const reportID = getReportIDToOpenForExpense(expense, resolveContext);
 
         const siblingTransactionIDs = transactions.map((sibling) => sibling.transactionID);
@@ -87,7 +75,7 @@ function RecentlyAddedSection() {
         // Each row opens a single-expense view that always lands in (Wide) RHP on both layouts so the carousel
         // arrows are available. Marking the report as an expense lets the RHP open wide immediately, before its
         // data loads, instead of flickering from narrow to wide.
-        setActiveTransactionIDs(siblingTransactionIDs, siblingDescriptorsByTransactionID).then(() => {
+        setActiveTransactionIDs(siblingTransactionIDs, undefined, siblingDescriptorsByTransactionID).then(() => {
             markReportRHPWidth(reportID, 'wide');
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: ROUTES.HOME}));
         });
@@ -126,46 +114,23 @@ function RecentlyAddedSection() {
         <WidgetContainer
             title={translate('homePage.recentlyAddedSection.title')}
             titleRightContent={overflowMenu}
+            // The skeleton stands in for the rows, so it needs their bottom padding to avoid a jump when they land.
+            // The empty state never had it, so it keeps its existing spacing.
+            containerStyles={hasExpenses || isAwaitingFirstResult ? listBottomPadding : undefined}
         >
             {hasExpenses ? (
-                // The rounded, clipped table wraps the header + rows so a hovered first/last row gets its corners
-                // clipped to the table's radius, while the hover background still spans the full row width.
-                <View style={[shouldUseNarrowLayout ? [styles.mh5, styles.mb2] : [styles.mh8, styles.mb5], styles.br2, styles.overflowHidden]}>
-                    {/* The column header only applies to the wide table layout; narrow rows use a stacked layout. */}
-                    {!shouldUseNarrowLayout && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv2, styles.ph3, styles.borderBottom]}>
-                            <View style={[StyleUtils.getWidthStyle(variables.w28), styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                <Icon
-                                    src={icons.Receipt}
-                                    fill={theme.icon}
-                                    width={HEADER_RECEIPT_ICON_SIZE}
-                                    height={HEADER_RECEIPT_ICON_SIZE}
-                                />
-                            </View>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)}>
-                                <Text style={styles.textMicroSupporting}>{translate('common.type')}</Text>
-                            </View>
-                            <View style={StyleUtils.getWidthStyle(dateColumnWidth)}>
-                                <Text style={styles.textMicroSupporting}>{translate('common.date')}</Text>
-                            </View>
-                            <Text style={[styles.flex1, styles.textMicroSupporting]}>{translate('common.merchant')}</Text>
-                            <Text style={styles.textMicroSupporting}>{translate('iou.amount')}</Text>
-                            <View style={StyleUtils.getWidthStyle(variables.iconSizeNormal)} />
-                        </View>
-                    )}
-                    {transactions.map((expense, index) => (
-                        <RecentlyAddedRow
-                            key={expense.transactionID}
-                            expense={expense}
-                            onPress={() => openExpense(expense)}
-                            shouldShowSeparator={index < transactions.length - 1}
-                            shouldShowReceiptPreview={isFocused}
-                            dateColumnWidth={dateColumnWidth}
-                        />
-                    ))}
-                </View>
+                transactions.map((expense, index) => (
+                    <RecentlyAddedRow
+                        key={expense.transactionID}
+                        expense={expense}
+                        onPress={() => openExpense(expense)}
+                        shouldShowSeparator={index < transactions.length - 1}
+                        shouldShowReceiptPreview={isFocused}
+                        rowStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                    />
+                ))
             ) : (
-                <EmptyState />
+                <RecentlyAddedPlaceholder shouldShowSkeleton={isAwaitingFirstResult} />
             )}
         </WidgetContainer>
     );

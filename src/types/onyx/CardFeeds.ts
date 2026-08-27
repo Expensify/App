@@ -222,8 +222,8 @@ type CardFeedsStatusByDomainID = Record<number, CardFeedsStatus>;
  */
 type WorkspaceCardFeedsStatus = Record<CardFeedWithNumber, CardFeedsStatus>;
 
-/** A single travel invoicing provisioning error for a workspace member */
-type TravelInvoicingProvisioningError = {
+/** A single travel billing provisioning error for a workspace member */
+type TravelBillingProvisioningError = {
     /** Account ID of the member whose card provisioning failed */
     accountID: number;
 
@@ -234,8 +234,8 @@ type TravelInvoicingProvisioningError = {
     retried?: boolean;
 };
 
-/** Travel invoicing provisioning errors keyed by the failed member's account ID */
-type TravelInvoicingProvisioningErrors = Record<string, TravelInvoicingProvisioningError>;
+/** Travel billing provisioning errors keyed by the failed member's account ID */
+type TravelBillingProvisioningErrors = Record<string, TravelBillingProvisioningError>;
 
 /** Card feeds model, including domain settings */
 type CardFeeds = {
@@ -268,10 +268,10 @@ type CardFeeds = {
         /** List of member emails exempt from the domain's 2FA requirement */
         twoFactorAuthExemptEmails?: string[];
 
-        /** Travel invoicing provisioning data */
+        /** Travel billing provisioning data. The key keeps the legacy spelling because the backend sends it. */
         travelInvoicing?: {
             /** Provisioning errors keyed by the failed member's account ID */
-            errors?: TravelInvoicingProvisioningErrors;
+            errors?: TravelBillingProvisioningErrors;
         };
     };
 } & CardFeedsStatus &
@@ -317,9 +317,6 @@ type AddNewCardFeedData = {
 
     /** Identifier for the CSV layout template */
     layoutType?: string;
-
-    /** Whether to use advanced fields in the CSV layout */
-    useAdvancedFields?: boolean;
 
     /** Existing instance ID when editing a CSV feed */
     existingInstanceID?: string;
@@ -393,5 +390,5 @@ export type {
     DomainSettings,
     CombinedCardFeed,
     CombinedCardFeeds,
-    TravelInvoicingProvisioningErrors,
+    TravelBillingProvisioningErrors,
 };

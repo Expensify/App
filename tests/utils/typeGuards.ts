@@ -1,7 +1,40 @@
 import type {GuidedSetupTask} from '@libs/actions/Report';
 import {isRecord} from '@libs/ObjectUtils';
 
+import CONST from '@src/CONST';
+import type ONYXKEYS from '@src/ONYXKEYS';
+
+import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
 type UnknownRecord = Record<string, unknown>;
+type ReportMergeUpdate = Extract<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>, {onyxMethod: typeof Onyx.METHOD.MERGE}>;
+type ReportObjectMergeUpdate = Omit<ReportMergeUpdate, 'value'> & {value: Record<string, unknown>};
+type ReportStateMergeValue = Required<Pick<NonNullable<ReportMergeUpdate['value']>, 'stateNum' | 'statusNum'>>;
+type ReportStateMergeUpdate = Omit<ReportMergeUpdate, 'value'> & {value: ReportStateMergeValue};
+
+function isReportStateNum(value: unknown): value is ValueOf<typeof CONST.REPORT.STATE_NUM> {
+    return typeof value === 'number' && Object.values(CONST.REPORT.STATE_NUM).some((stateNum) => stateNum === value);
+}
+
+function isReportStatusNum(value: unknown): value is ValueOf<typeof CONST.REPORT.STATUS_NUM> {
+    return typeof value === 'number' && Object.values(CONST.REPORT.STATUS_NUM).some((statusNum) => statusNum === value);
+}
+
+function isReportMergeUpdate(value: unknown, reportKey: ReportMergeUpdate['key']): value is ReportObjectMergeUpdate {
+    return isRecord(value) && value.key === reportKey && value.onyxMethod === Onyx.METHOD.MERGE && isRecord(value.value);
+}
+
+function isReportStateMergeUpdate(value: unknown, reportKey: ReportMergeUpdate['key']): value is ReportStateMergeUpdate {
+    if (!isReportMergeUpdate(value, reportKey)) {
+        return false;
+    }
+
+    const {stateNum, statusNum} = value.value;
+    return isReportStateNum(stateNum) && isReportStatusNum(statusNum);
+}
 
 function isObject(value: unknown): value is Record<PropertyKey, unknown> {
     return value !== null && typeof value === 'object';
@@ -87,6 +120,8 @@ export {
     hasDefinedProperty,
     isGuidedSetupTask,
     isObject,
+    isReportMergeUpdate,
+    isReportStateMergeUpdate,
     parseJSONArray,
     parseJSONRecord,
     readProperty,
@@ -94,3 +129,5 @@ export {
     requireRecordArrayProperty,
     requireStringProperty,
 };
+
+export type {ReportMergeUpdate};

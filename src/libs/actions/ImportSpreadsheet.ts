@@ -39,7 +39,7 @@ function setSpreadsheetData(
     const numColumns = firstRow.length;
 
     // Transpose data from row-major to column-major format
-    const transposedData: string[][] = firstRow.map((_, colIndex) => data.map((row) => String(row.at(colIndex) ?? '')));
+    const transposedData: string[][] = Array.from({length: numColumns}, (_, colIndex) => data.map((row) => String(row.at(colIndex) ?? '')));
 
     const columnNames: Record<number, string> = {};
     for (let colIndex = 0; colIndex < numColumns; colIndex++) {

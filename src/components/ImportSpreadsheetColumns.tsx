@@ -5,6 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setContainsHeader} from '@libs/actions/ImportSpreadsheet';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
@@ -13,7 +14,7 @@ import {View} from 'react-native';
 
 import type {ColumnRole} from './ImportColumn';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 import FixedFooter from './FixedFooter';
 import ImportColumn from './ImportColumn';
 import OfflineWithFeedback from './OfflineWithFeedback';
@@ -55,6 +56,9 @@ type ImportSpreadsheetColumnsProps = {
     shouldAutoDetectColumns?: boolean;
 
     customHeaderText?: string;
+
+    /** An optional boolean indicating whether the import button should be disabled while offline. Defaults to true. */
+    shouldDisableButtonWhenOffline?: boolean;
 };
 
 function ImportSpreadsheetColumns({
@@ -69,6 +73,7 @@ function ImportSpreadsheetColumns({
     shouldShowDropdownMenu = true,
     shouldAutoDetectColumns = true,
     customHeaderText,
+    shouldDisableButtonWhenOffline = true,
 }: ImportSpreadsheetColumnsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -127,14 +132,15 @@ function ImportSpreadsheetColumns({
                     errorRowStyles={styles.mv2}
                 >
                     <Button
-                        text={translate('common.import')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={importFunction}
                         isLoading={isButtonLoading}
-                        isDisabled={isOffline}
-                        pressOnEnter
-                        success
-                        large
-                    />
+                        isDisabled={shouldDisableButtonWhenOffline && isOffline}
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate('common.import')}</Button.Text>
+                    </Button>
                 </OfflineWithFeedback>
             </FixedFooter>
         </>

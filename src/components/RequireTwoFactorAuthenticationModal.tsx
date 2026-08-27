@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 import ImageSVG from './ImageSVG';
 import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
@@ -79,12 +79,13 @@ function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, 
                         <Text style={styles.textSupporting}>{description}</Text>
                     </View>
                     <Button
-                        large
-                        success
-                        pressOnEnter
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={onSubmit}
-                        text={translate('twoFactorAuth.enableTwoFactorAuth')}
-                    />
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate('twoFactorAuth.enableTwoFactorAuth')}</Button.Text>
+                    </Button>
                 </View>
             </View>
         </Modal>
