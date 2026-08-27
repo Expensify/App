@@ -155,7 +155,7 @@ function IOURequestStepAmount({
                 isCreateEntry: isAmountCreateEntry,
                 selectedCurrency,
                 originalCurrency,
-                hasSignChanged: isSignDirty,
+                isSignChanged: isSignDirty,
             }),
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);

@@ -338,7 +338,7 @@ describe('getAmountHasUnsavedChanges', () => {
                 typedAmount: '',
                 committedAmount: 0,
                 isCreateEntry: true,
-                hasSignChanged: true,
+                isSignChanged: true,
             }),
         ).toBe(true);
     });
@@ -350,7 +350,7 @@ describe('getAmountHasUnsavedChanges', () => {
                 typedAmount: '',
                 committedAmount: 0,
                 isCreateEntry: true,
-                hasSignChanged: false,
+                isSignChanged: false,
             }),
         ).toBe(false);
     });

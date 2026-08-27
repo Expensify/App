@@ -199,7 +199,7 @@ type AmountHasUnsavedChangesParams = {
     isCreateEntry: boolean;
     selectedCurrency: string;
     originalCurrency: string;
-    hasSignChanged?: boolean;
+    isSignChanged?: boolean;
 };
 
 /**
@@ -207,8 +207,8 @@ type AmountHasUnsavedChangesParams = {
  * the raw string (so a typed "0" counts) and the change in backend units (so "5" vs "5.00" isn't a false positive);
  * a currency change counts on its own.
  */
-function getAmountHasUnsavedChanges({typedAmount, committedAmount, isCreateEntry, selectedCurrency, originalCurrency, hasSignChanged = false}: AmountHasUnsavedChangesParams): boolean {
-    if (hasSignChanged) {
+function getAmountHasUnsavedChanges({typedAmount, committedAmount, isCreateEntry, selectedCurrency, originalCurrency, isSignChanged = false}: AmountHasUnsavedChangesParams): boolean {
+    if (isSignChanged) {
         return true;
     }
 
