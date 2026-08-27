@@ -11,9 +11,9 @@ import type {BaseTextInputProps} from './types';
 import BaseTextInputImplementation from './implementation';
 
 /**
- * Web/desktop variant of `autoGrowSingleLine`: grows the input up to `variables.textInputAutoGrowMaxHeight` then
- * scrolls internally, and the return key (incl. Shift+Enter) submits instead of inserting a line break. The native
- * counterpart (`index.native.tsx`) has no keypress wiring — it submits via `submitBehavior`/`returnKeyType`.
+ * `autoGrowSingleLine` grows the input up to `variables.textInputAutoGrowMaxHeight` then scrolls internally, while the
+ * return key (incl. Shift+Enter) submits instead of inserting a line break. Only web passes a keyboard event to the
+ * keypress handler, so on native the wiring is a no-op and submitting is driven by `submitBehavior`/`returnKeyType`.
  * Pass `useAutoFocusInput(true)` when auto-focusing so the caret lands after an existing value.
  */
 function BaseTextInput({ref, autoGrowSingleLine = false, ...props}: BaseTextInputProps) {
