@@ -125,7 +125,7 @@ Ensure your workspace is connected to a supported accounting platform. [Click he
 
 ## How do I receive my export?
 
-**Basic Export** and **Export current view** download directly to the device when exporting selected reports or using **Select all on this page**. If **Select all** is used to export all matching reports, or if **All Data** or a **custom export template** is selected, Expensify prepares the export in the background. Once the export is ready, the file downloads automatically or, if **Send me the file when it's ready** was selected, is delivered through Concierge and by email.
+**Basic Export** and **Current view** download directly to the device when exporting selected reports or using **Select all on this page**. Choosing **All Data**, a custom export template, or using **Select all** to match every report instead prepares the export in the background. Once ready, the file downloads automatically, or, if you selected **Send me the file when it's ready**, it's delivered through Concierge and by email instead.
 
 ## Can I export expenses or reports in bulk?
 
