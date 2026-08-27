@@ -2539,6 +2539,8 @@ type NavigateToAndOpenReportParams = {
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
     betas: OnyxEntry<Beta[]>;
+    /** The Concierge chat report, threaded so prepareOnboardingOnyxData no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
+    conciergeChat: OnyxEntry<Report>;
     shouldDismissModal?: boolean;
     shouldRevalidateExistingChat?: boolean;
     hasReportActions?: boolean;
@@ -2556,6 +2558,7 @@ function navigateToAndOpenReport({
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
     betas,
+    conciergeChat,
     shouldDismissModal = true,
     shouldRevalidateExistingChat = false,
     hasReportActions,
@@ -2586,6 +2589,7 @@ function navigateToAndOpenReport({
             hasReportActions: false,
             betas,
             currentUserAccountID,
+            conciergeChat,
         });
 
         navigateToReport(fallbackChat.reportID, {shouldDismissModal, ...linkToOptions});
@@ -2622,7 +2626,7 @@ function navigateToAndOpenReport({
     });
 
     // Re-open existing chats to re-validate server-side access and refresh stale local state.
-    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, betas, hasReportActions, currentUserAccountID});
+    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, betas, hasReportActions, currentUserAccountID, conciergeChat});
     navigateToReport(chat.reportID, {shouldDismissModal, ...linkToOptions});
 }
 
@@ -2690,6 +2694,8 @@ function navigateToAndOpenReportWithAccountIDs(
     hasCompletedGuidedSetupFlow: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
+    /** The Concierge chat report, threaded so prepareOnboardingOnyxData no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
+    conciergeChat: OnyxEntry<Report>,
     shouldRevalidateExistingChat = false,
     hasReportActions?: boolean,
 ) {
@@ -2722,6 +2728,7 @@ function navigateToAndOpenReportWithAccountIDs(
             personalDetails,
             betas,
             currentUserAccountID,
+            conciergeChat,
         });
 
         navigateToReport(fallbackChat.reportID, {shouldDismissModal: false});
@@ -2758,7 +2765,7 @@ function navigateToAndOpenReportWithAccountIDs(
     });
 
     // Re-open existing chats to re-validate server-side access and refresh stale local state.
-    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions, currentUserAccountID});
+    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions, currentUserAccountID, conciergeChat});
     navigateToReport(chat.reportID, {shouldDismissModal: false});
 }
 
@@ -4265,6 +4272,8 @@ function navigateToConciergeChat(
                 personalDetails,
                 currentUserAccountID,
                 introSelected,
+                // The Concierge chat does not exist yet on this path (it is being created here), so there is no report to thread.
+                conciergeChat: undefined,
                 isSelfTourViewed,
                 // TODO: Pass the correct hasCompletedGuidedSetupFlow from Onyx data in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
                 hasCompletedGuidedSetupFlow: undefined,

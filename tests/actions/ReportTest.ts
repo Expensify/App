@@ -8039,6 +8039,7 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with a participant that doesn't have an existing chat
             Report.navigateToAndOpenReport({
                 userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 introSelected: testIntroSelected,
@@ -8093,6 +8094,7 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with the participant that has an existing chat
             Report.navigateToAndOpenReport({
                 userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 introSelected: testIntroSelected,
@@ -8139,6 +8141,7 @@ describe('actions/Report', () => {
 
             Report.navigateToAndOpenReport({
                 userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 introSelected: testIntroSelected,
@@ -8176,6 +8179,7 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with introSelected
             Report.navigateToAndOpenReport({
                 userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 introSelected: testIntroSelected,
@@ -8190,6 +8194,35 @@ describe('actions/Report', () => {
 
             // Then verify navigation was called
             expect(Navigation.navigate).toHaveBeenCalled();
+        });
+
+        it('threads the conciergeChat report into the guided setup data sent with OpenReport', async () => {
+            // Given a signed-in user with a pending invite onboarding and an existing Concierge chat
+            const TEST_USER_ACCOUNT_ID = 1;
+            const TEST_USER_LOGIN = 'test@user.com';
+            const PARTICIPANT_LOGIN = 'participant@test.com';
+
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            const conciergeChat: OnyxTypes.Report = {...createRandomReport(777, undefined), reportID: 'concierge-navigate-open-1'};
+            await waitForBatchedUpdates();
+
+            // When navigateToAndOpenReport creates a new chat with introSelected and the conciergeChat threaded through
+            Report.navigateToAndOpenReport({
+                userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat,
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false},
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
+                betas: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the optimistic onboarding actions target the threaded Concierge chat, not the deprecated module-level lookup
+            const conciergeReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChat.reportID}`);
+            expect(Object.keys(conciergeReportActions ?? {}).length).toBeGreaterThan(0);
         });
 
         it('should respect shouldDismissModal parameter', async () => {
@@ -8214,6 +8247,7 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with shouldDismissModal=false
             Report.navigateToAndOpenReport({
                 userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 introSelected: testIntroSelected,
@@ -8249,6 +8283,7 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with isSelfTourViewed=true
             Report.navigateToAndOpenReport({
                 userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 introSelected: testIntroSelected,
@@ -8286,6 +8321,7 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with isSelfTourViewed=undefined
             Report.navigateToAndOpenReport({
                 userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 introSelected: testIntroSelected,
@@ -8323,6 +8359,7 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with isSelfTourViewed=true and shouldDismissModal=false
             Report.navigateToAndOpenReport({
                 userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 introSelected: testIntroSelected,
@@ -8361,6 +8398,7 @@ describe('actions/Report', () => {
 
             Report.navigateToAndOpenReport({
                 userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 introSelected: testIntroSelected,
@@ -8409,7 +8447,7 @@ describe('actions/Report', () => {
 
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
-            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, isSelfTourViewed, undefined, undefined, undefined);
+            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, isSelfTourViewed, undefined, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -8436,7 +8474,7 @@ describe('actions/Report', () => {
 
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
-            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined, undefined);
+            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 0);
@@ -8463,7 +8501,7 @@ describe('actions/Report', () => {
 
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
-            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined, {}, true);
+            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined, {}, undefined, true);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -8496,7 +8534,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
-            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined, {}, true);
+            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined, {}, undefined, true);
             await waitForBatchedUpdates();
 
             const openReportCalls = mockFetch.mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${WRITE_COMMANDS.OPEN_REPORT}?`);

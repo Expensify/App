@@ -36,6 +36,9 @@ import useScrollToEndOnNewMessageReceived from './useScrollToEndOnNewMessageRece
 import useWindowDimensions from './useWindowDimensions';
 
 type UseReportActionsScrollParams = {
+    /** The Concierge chat report, threaded so prepareOnboardingOnyxData no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
+    // TODO: Make conciergeChat required once all ReportActionsList surfaces pass it. Refactor issue: https://github.com/Expensify/App/issues/66411
+    conciergeChat?: OnyxEntry<OnyxTypes.Report>;
     /** The ID of the report currently being looked at */
     reportID: string;
 
@@ -135,6 +138,7 @@ type UseReportActionsScrollResult = {
 };
 
 function useReportActionsScroll({
+    conciergeChat,
     reportID,
     report,
     transactionThreadReport,
@@ -221,6 +225,7 @@ function useReportActionsScroll({
         });
 
     const {isScrollToBottomEnabled, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom} = useReportActionsNewActionLiveTail({
+        conciergeChat,
         reportID,
         introSelected,
         betas,
@@ -347,7 +352,7 @@ function useReportActionsScroll({
             if (!Navigation.getReportRHPActiveRoute()) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, backTo));
             }
-            openReport({reportID, introSelected, betas, hasReportActions: true, currentUserAccountID});
+            openReport({reportID, introSelected, conciergeChat, betas, hasReportActions: true, currentUserAccountID});
             reportScrollManager.scrollToBottom();
             return;
         }
