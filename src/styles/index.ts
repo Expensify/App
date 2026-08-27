@@ -3784,6 +3784,18 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 20,
         },
 
+        digitalWalletConfirmIllustration: {
+            width: variables.w102,
+            height: variables.w102,
+            marginBottom: 12,
+        },
+
+        digitalWalletResultIllustration: {
+            width: variables.iconSection,
+            height: variables.iconSection,
+            marginBottom: 12,
+        },
+
         googleSearchSeparator: {
             height: 1,
             backgroundColor: theme.border,

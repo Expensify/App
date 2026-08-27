@@ -109,6 +109,7 @@ function AddCardToDigitalWalletPage({
                     heading={translate(isSuccess ? 'addCardToDigitalWallet.successHeading' : 'addCardToDigitalWallet.deniedHeading')}
                     description={translate(isSuccess ? 'addCardToDigitalWallet.successDescription' : 'addCardToDigitalWallet.deniedDescription', {walletName})}
                     illustration={isSuccess ? illustrations.ThumbsUpStars : illustrations.CardDenied}
+                    illustrationStyle={styles.digitalWalletResultIllustration}
                     descriptionStyle={styles.textSupporting}
                     shouldShowButton
                     buttonText={translate('common.buttonConfirm')}
@@ -131,6 +132,7 @@ function AddCardToDigitalWalletPage({
                 heading={translate('addCardToDigitalWallet.confirmHeading')}
                 description={translate('addCardToDigitalWallet.confirmDescription', {walletName, lastFourDigits})}
                 illustration={illustrations.CardIntoWallet}
+                illustrationStyle={styles.digitalWalletConfirmIllustration}
                 descriptionStyle={styles.textSupporting}
             />
             {!!latestErrorMessage && (
