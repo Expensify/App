@@ -8123,12 +8123,12 @@ const translations = {
                 restrictCardSpendDescription: 'Block or limit spend at the point of sale',
                 flagForReview: 'Flag for review',
                 flagForReviewDescription: 'Notify approvers when expenses exceed category limits',
-                requireFields: 'Field requirements',
+                requireFields: 'Set field requirements',
                 requireFieldsDescription: 'Require specific expense fields or waive requiring them.',
                 applyExpenseDefaults: 'Apply expense defaults',
                 applyExpenseDefaultsDescription: 'Update fields without submitter doing anything',
-                createAgentRule: 'Agent rule',
-                createAgentRuleDescription: 'Describe flexible rules that run when you need.',
+                createAgentRule: 'Describe agent rule',
+                createAgentRuleDescription: 'Create flexible rules that run when you need.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
@@ -8148,6 +8148,7 @@ const translations = {
             },
             requireFieldsTable: {
                 tableColumnType: 'Type',
+                typeLabel: 'Require',
                 tableColumnCondition: 'Condition',
                 tableColumnRule: 'Rule',
                 findRule: 'Find rule',

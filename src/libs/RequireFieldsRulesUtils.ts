@@ -661,7 +661,7 @@ function createRequireFieldsTableItem({
     const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const decodedCategoryName = getDecodedCategoryName(categoryName);
     const conditionText = translate('workspace.rules.requireFieldsTable.conditionCategoryIs', decodedCategoryName);
-    const typeLabel = translate('workspace.rules.requireFieldsRule.title');
+    const typeLabel = translate('workspace.rules.requireFieldsTable.typeLabel');
     const ruleDescriptions = getRequireFieldsRuleDescriptionsForCategory(category, translate, convertToDisplayString, policyCurrency, isPendingDelete);
     const ruleDescription = formatRequireFieldsRuleDescriptions(ruleDescriptions);
 
