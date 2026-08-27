@@ -121,7 +121,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         .sort((a, b) => b.employeeCount - a.employeeCount)
         .map((policyInfo) => ({
             text: policyInfo.policyName,
-            alternateText: translate('onboarding.workspaceMemberList', policyInfo.employeeCount, policyInfo.policyOwner),
+            alternateText: translate('onboarding.workspaceMemberList', {count: policyInfo.employeeCount, policyOwner: policyInfo.policyOwner}),
             // The user is not a member of these workspaces yet, so they are absent from Onyx and the avatar falls back
             // to the default one seeded from `text` - the same icon this list used to build by hand.
             policyID: policyInfo.policyID,
