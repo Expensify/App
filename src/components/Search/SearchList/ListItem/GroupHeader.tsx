@@ -1,5 +1,5 @@
 import {getButtonRole} from '@components/Button/utils';
-import {COPYABLE_ROW_DATA_SET, isMouseDownOnCopyableText, shouldSuppressCopyableTextPressOnMouseDown, useCopyableTextRowPress} from '@components/CopyableText/selection';
+import {COPYABLE_ROW_DATA_SET, useCopyableTextRowPress} from '@components/CopyableText/selection';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -325,7 +325,7 @@ function GroupHeader({
 
     const isLastItemCollapsed = isLastItem && !isExpanded && !isSubHeaderRendered;
     const pressableRef = useRef<View>(null);
-    const {handleCopyableTextRowPress, markMouseDownOnCopyableText} = useCopyableTextRowPress();
+    const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
@@ -342,14 +342,16 @@ function GroupHeader({
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
 
     const handlePress = (event?: ModifiedMouseEvent) => {
-        handleCopyableTextRowPress(() => {
-            if (isExpenseReportType) {
-                onSelectRow(withOriginalKey(item), transactionPreviewData, event);
-            }
-            if (!isExpenseReportType) {
-                onToggle();
-            }
-        }, true);
+        if (shouldSuppressCopyableTextRowPress()) {
+            return;
+        }
+
+        if (isExpenseReportType) {
+            onSelectRow(withOriginalKey(item), transactionPreviewData, event);
+        }
+        if (!isExpenseReportType) {
+            onToggle();
+        }
     };
 
     const handleLongPress = () => {
@@ -371,10 +373,7 @@ function GroupHeader({
                 hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
                 dataSet={{...COPYABLE_ROW_DATA_SET, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 onMouseDown={(e) => {
-                    // Fresh double-click selection can press before selected text exists, so suppress grouped-header toggles that start on copyable text.
-                    const isCopyableTextMouseDown = isMouseDownOnCopyableText(e);
-                    const shouldSuppressTextPress = isCopyableTextMouseDown && shouldSuppressCopyableTextPressOnMouseDown(e);
-                    const isCopyableTarget = markMouseDownOnCopyableText(e?.target, isCopyableTextMouseDown, shouldSuppressTextPress);
+                    const isCopyableTarget = markMouseDownOnCopyableText(e?.target);
                     if (isCopyableTarget) {
                         return;
                     }
