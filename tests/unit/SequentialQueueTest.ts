@@ -693,8 +693,7 @@ describe('SequentialQueue - a sent message stops being pending even if the app d
         finallyData: [{onyxMethod: Onyx.METHOD.MERGE, key: REPORT_ACTIONS_KEY, value: {[reportActionID]: {isLoading: false}}}],
     });
 
-    // A force kill cannot be expressed in Jest, so we read what a relaunch would find at the one moment that
-    // matters: the request is gone from disk, and whatever is not on disk with it is lost for good.
+    // Jest cannot kill the process, so the spy stands in for the kill point.
     function stateWhenTheAppCouldBeKilled() {
         const states: Array<ReportActions | undefined> = [];
         const removeFromQueue = PersistedRequestsModule.endRequestAndRemoveFromQueue;
@@ -789,7 +788,6 @@ describe('SequentialQueue - a sent message stops being pending even if the app d
             }
         }
 
-        // And all three end up with the greyed-out state cleared
         for (const id of ids) {
             expect(liveReportActions?.[id]?.pendingAction).toBeUndefined();
         }
