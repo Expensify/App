@@ -167,7 +167,6 @@ describe('no-unsafe-onyx-read', () => {
             'const Onyx = {merge: () => {}, get: () => undefined}; function submit() { Onyx.merge(key, value); return Onyx.get(key); }',
         ],
         invalid: [
-
             {code: `${WRAPPER_IMPORT} async function f(key) { const report = await OnyxUtils.get(key); report.name = 'x'; return report; }`, errors: MUTATION_ERRORS},
             {code: `${WRAPPER_IMPORT} async function f(key) { const report = await OnyxUtils.get(key); report.name ??= 'x'; return report; }`, errors: MUTATION_ERRORS},
             {code: `${WRAPPER_IMPORT} async function f(key) { const report = await OnyxUtils.get(key); delete report.name; return report; }`, errors: MUTATION_ERRORS},
