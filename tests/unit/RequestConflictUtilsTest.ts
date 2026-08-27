@@ -162,6 +162,37 @@ describe('RequestConflictUtils', () => {
         });
     });
 
+    it('resolveEditCommentWithNewAddCommentRequest should rename the queued attachment when the edit renamed it', () => {
+        const reportActionID = '2';
+        const persistedRequests = [{command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local', name: 'data.csv'}, attachmentID: '5'}}, {command: 'OpenReport'}];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, false, 'renamed.csv');
+        expect(result).toEqual({
+            conflictAction: {
+                type: 'replace',
+                index: 0,
+                request: {
+                    command: 'AddTextAndAttachment',
+                    data: {reportID: '1', reportActionID, reportComment: 'text edited', file: {uri: 'blob:local', name: 'renamed.csv'}, attachmentID: '5'},
+                },
+            },
+        });
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should rebuild a renamed File, whose name cannot be reassigned', () => {
+        const reportActionID = '2';
+        const file = new File(['id,total\n1,2'], 'data.csv', {type: 'text/csv'});
+        const queuedRequest = {command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file, attachmentID: '5'}};
+        const persistedRequests = [queuedRequest, {command: 'OpenReport'}];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
+        resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, false, 'renamed.csv');
+        const renamedFile = queuedRequest.data.file;
+
+        expect(renamedFile).toBeInstanceOf(File);
+        expect(renamedFile.name).toBe('renamed.csv');
+        expect(renamedFile.type).toBe('text/csv');
+    });
+
     it('resolveEditCommentWithNewAddCommentRequest should keep the queued attachment when the edit kept it', () => {
         const reportActionID = '2';
         const persistedRequests = [{command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local'}, attachmentID: '5'}}, {command: 'OpenReport'}];

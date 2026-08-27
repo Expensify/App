@@ -38,7 +38,11 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const {environmentURL} = useEnvironment();
     const {hovered, bind} = useHover();
     // An auth token is needed to download Expensify chat attachments
-    const isAttachment = !!htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
+    // Editing a comment round-trips its HTML through the server, which returns anchors stripped of these attributes.
+    const isAttachment =
+        !!htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] ||
+        !!htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE] ||
+        new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i').test(htmlAttribs.href ?? '');
     const tNodeChild = tnode?.domNode?.children?.at(0);
     const displayName = tNodeChild && 'data' in tNodeChild && typeof tNodeChild.data === 'string' ? tNodeChild.data : '';
     const attrHref = htmlAttribs.href || htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || '';

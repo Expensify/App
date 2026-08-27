@@ -272,12 +272,28 @@ function resolveCommentDeletionConflicts<TKey extends OnyxKey>(persistedRequests
     };
 }
 
+/**
+ * A copy of the queued file under a new name. The server builds the stored attachment markup from the uploaded
+ * file, so an edit that renames the attachment only survives the sync if the queued file carries the new name.
+ * `File.name` is readonly on web, hence the rebuild; native picker results are plain objects.
+ */
+function renameQueuedAttachment(file: unknown, name: string): unknown {
+    if (typeof File !== 'undefined' && file instanceof File) {
+        return new File([file], name, {type: file.type, lastModified: file.lastModified});
+    }
+    if (typeof file !== 'object' || file === null) {
+        return file;
+    }
+    return {...file, name};
+}
+
 function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
     persistedRequests: Array<OnyxRequest<TKey>>,
     parameters: UpdateCommentParams,
     reportActionID: string,
     addCommentIndex: number,
     shouldRemoveQueuedAttachment = false,
+    renamedAttachmentLabel?: string,
 ): ConflictActionData {
     const indicesToDelete: number[] = [];
     for (const [index, request] of persistedRequests.entries()) {
@@ -297,6 +313,8 @@ function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
             delete currentAddComment.data.file;
             delete currentAddComment.data.attachmentID;
             currentAddComment.command = WRITE_COMMANDS.ADD_COMMENT;
+        } else if (renamedAttachmentLabel && currentAddComment.data?.file) {
+            currentAddComment.data.file = renameQueuedAttachment(currentAddComment.data.file, renamedAttachmentLabel);
         }
 
         nextAction = {
