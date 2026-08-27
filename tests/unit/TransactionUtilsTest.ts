@@ -1261,6 +1261,7 @@ describe('TransactionUtils', () => {
     });
 
     describe('getDisplayTransactionWithoutInvalidCommuterExclusion', () => {
+        const translate: LocaleContextProps['translate'] = (path, ...parameters) => translateWithLocale(CONST.LOCALES.EN, path, ...parameters);
         const policyWithDistanceRate: Policy = {
             ...createRandomPolicy(0),
             customUnits: {
@@ -1304,6 +1305,7 @@ describe('TransactionUtils', () => {
                 transaction,
                 isPolicyExpenseChat: false,
                 policy: policyWithDistanceRate,
+                translate,
             });
 
             expect(displayTransaction.amount).toBe(491);
@@ -1337,6 +1339,7 @@ describe('TransactionUtils', () => {
                     transaction,
                     isPolicyExpenseChat: true,
                     policy: policyWithDistanceRate,
+                    translate,
                 }),
             ).toBe(transaction);
         });
@@ -1362,6 +1365,7 @@ describe('TransactionUtils', () => {
                     transaction,
                     isPolicyExpenseChat: false,
                     policy: policyWithDistanceRate,
+                    translate,
                 }),
             ).toBe(transaction);
         });

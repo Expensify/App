@@ -9,7 +9,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {convertAttendeesToArray, normalizeAttendees} from '@libs/AttendeeUtils';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
-import {convertToBackendAmount, getCurrencySymbol} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, getCurrencySymbol as getCurrencySymbolFromCurrencyUtils} from '@libs/CurrencyUtils';
 import type {MachineDateFormat} from '@libs/DateUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -228,11 +228,13 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion<TTransaction exten
     isPolicyExpenseChat,
     policy,
     policies,
+    translate,
 }: {
     transaction: TTransaction;
     isPolicyExpenseChat: boolean;
     policy?: OnyxEntry<Policy>;
     policies?: OnyxCollection<Policy>;
+    translate: LocaleContextProps['translate'];
 }): TTransaction {
     if (!transaction || shouldUseCommuterExclusionForDisplay(transaction, isPolicyExpenseChat)) {
         return transaction;
@@ -259,9 +261,9 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion<TTransaction exten
         unit,
         rate,
         currency,
-        translateLocal,
+        translate,
         (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
-        getCurrencySymbol,
+        getCurrencySymbolFromCurrencyUtils,
         isManualDistanceRequest(transaction),
     );
 

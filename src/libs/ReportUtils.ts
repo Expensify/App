@@ -5813,19 +5813,19 @@ function getTransactionReportName({
         return translate('violations.noRoute');
     }
 
-    const isPolicyExpenseChat = !isEmptyObject(report) && isExpenseReport(report);
+    const isFromExpenseReport = !isEmptyObject(report) && isExpenseReport(report);
     const displayTransaction = getDisplayTransactionWithoutInvalidCommuterExclusion({
         transaction: linkedTransaction,
-        isPolicyExpenseChat,
-        policy: getPolicy(report?.policyID),
+        isPolicyExpenseChat: isFromExpenseReport,
         policies: allPolicies,
+        translate,
     });
 
     if (isSentMoneyReportAction(reportAction)) {
         return getIOUReportActionDisplayMessage(translate, reportAction as ReportAction, convertToDisplayString, undefined, displayTransaction);
     }
 
-    const amount = getTransactionAmount(displayTransaction, isPolicyExpenseChat, displayTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
+    const amount = getTransactionAmount(displayTransaction, isFromExpenseReport, displayTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
     const formattedAmount = convertToDisplayString(amount, getCurrency(displayTransaction)) ?? '';
     const comment = getMerchantOrDescription(displayTransaction);
     return translate('iou.threadExpenseReportName', formattedAmount, Parser.htmlToText(comment));
