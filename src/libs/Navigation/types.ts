@@ -1650,6 +1650,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_NEW]: {
         policyID: string;
         categoryName?: string;
+        /** When 'true', the draft is already seeded and must not be reset on mount. */
+        isPrefilled?: string;
     };
     [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_EDIT]: {
         policyID: string;
@@ -1667,6 +1669,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_NEW]: {
         policyID: string;
         categoryName?: string;
+        /** When 'true', the draft is already seeded and must not be reset on mount. */
+        isPrefilled?: string;
     };
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EDIT]: {
         policyID: string;
