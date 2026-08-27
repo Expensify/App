@@ -120,6 +120,7 @@ function useNewTransactions(
             return;
         }
 
+        // Deliberately uncancelled: a row recycled out of the list has still had its highlight shown, and clearing the timer would strand the flag forever.
         setTimeout(() => {
             // Released before deleting, so a merge that never lands stays claimable.
             for (const flagKey of claimedKeys) {

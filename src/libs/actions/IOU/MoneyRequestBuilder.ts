@@ -695,7 +695,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const reportTransactionsFromCache = iou.report?.reportID ? getReportTransactions(iou.report.reportID) : [];
     const isTransactionAlreadyOnReport = reportTransactionsFromCache.some((reportTransaction) => reportTransaction.transactionID === transaction.transactionID);
     const existingReportTransactions = reportTransactionsFromCache.filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID);
-    // Only a cache holding every transaction the server counted can be trusted to subtract pending deletes; a partial one would count too few and drop the flag.
+    // Only a cache holding every transaction the server counted can be trusted to subtract pending deletes. A partial one would count too few and drop the flag.
     const serverTransactionCountBeforeAdd = (iou.report?.transactionCount ?? 0) - 1;
     const transactionCountAfterAdd =
         existingReportTransactions.length >= serverTransactionCountBeforeAdd

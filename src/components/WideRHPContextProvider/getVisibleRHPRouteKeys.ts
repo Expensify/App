@@ -25,8 +25,7 @@ function getVisibleRHPKeys(state: NavigationState | undefined, allWideRHPKeys: s
         return emptyRHPKeysState;
     }
 
-    // Undefined once a fullscreen navigator covers the RHP, which is what makes clearing the keys by hand unnecessary.
-    // A covered RHP needs no guard of its own: its screens are still in the state below, so the displayed check rejects them.
+    // A covered RHP needs no hand-clearing: this returns undefined for it, and its keys are still in the state below, so the displayed check rejects them too.
     const lastVisibleRHPRouteKey = getLastVisibleRHPRouteKey(state);
     const lastRHPRoute = state.routes.find((route) => route.key === lastVisibleRHPRouteKey);
 
