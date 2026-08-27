@@ -21,27 +21,20 @@ const {MIN_FREE_TEXT_COLUMN_WIDTH, MAX_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DY
 
 /** How a dynamically sized column shares the table's free space. */
 type SearchColumnSizing = {
-    /**
-     * The column's share of the free space, relative to the other dynamic columns. This is the width its content wants,
-     * used as a ratio rather than an absolute width, so the columns always add up to exactly the space available.
-     */
+    /** The width the column's content wants, as a ratio against the other dynamic columns rather than a pixel width. */
     flexWeight: number;
 
     /** Width the column is never squeezed below, so its header stays readable however narrow the table gets. */
     minWidth: number;
 
-    /**
-     * Width the column never grows past. Without it a table with room to spare would stretch these columns well beyond
-     * anything they hold, since they are the only ones left that can take the slack.
-     */
+    /** Width the column never grows past, so spare space doesn't stretch it beyond anything it holds. */
     maxWidth: number;
 };
 
 /**
  * Measures how wide a column's header renders, or `null` when the platform can't measure text.
  *
- * Measured in the bold weight the header takes while its column is sorted, and with room for the sort arrow reserved
- * whether or not the column is currently sorted, so sorting a column never truncates its own heading.
+ * Uses the bold weight and reserves the sort arrow even when unsorted, so sorting a column never truncates its heading.
  */
 function measureHeaderLabelWidth(column: SearchColumnType, translate: LocalizedTranslate, sortIconWidth: number): number | null {
     const translationKey = SEARCH_COLUMN_HEADER_TRANSLATION_KEYS[column];
@@ -59,10 +52,7 @@ type UseSearchColumnWidthsParams = {
     /** Every column the table renders, in order. */
     columns: SearchColumnType[];
 
-    /**
-     * The table's rows. Sizing uses all of them, so the widths don't shift as rows scroll into view. Rows that aren't
-     * transactions (group headers and the like) are skipped, since their cells don't line up with these columns.
-     */
+    /** The table's rows, all of them, so widths don't shift as rows scroll in. Non-transaction rows are skipped. */
     data: SearchListItem[];
 
     /** Whether dynamic sizing should run. Callers pass `false` on narrow layouts, where rows render as cards. */
@@ -73,18 +63,15 @@ type UseSearchColumnWidthsParams = {
 };
 
 /**
- * Sizes the Search table's free-text columns from their content instead of letting each take an equal share of whatever
- * the fixed columns leave over, which is what has a column of empty descriptions holding the same room as a column of
- * long merchant names.
+ * Sizes the Search table's free-text columns from their content, instead of every one taking an equal share of what the
+ * fixed columns leave over — which is what has a column of empty descriptions holding the same room as one of long
+ * merchant names.
  *
- * The measured widths are applied as flex weights rather than absolute widths. The table is a flex row whose fixed
- * columns, gaps, and padding are spread across several files, so anything that computed "the space left for the dynamic
- * columns" here would be a second copy of those numbers, and would overflow the row as soon as the two drifted apart.
- * As weights, the columns divide the space that is actually free in the proportions their content needs, and the row
- * adds up by construction.
+ * Measured widths are applied as flex weights, not pixels. The fixed columns, gaps, and padding are spread across
+ * several files, so computing "the space left over" here would duplicate those numbers and overflow the row the moment
+ * the two drifted. As weights, the columns divide whatever is actually free and the row adds up by construction.
  *
- * Returns an empty map when the columns should keep their current flex behavior: sizing is off, or text can't be
- * measured (native).
+ * Returns an empty map to leave the columns as they are: sizing is off, or text can't be measured (native).
  */
 function useSearchColumnWidths({columns, data, isEnabled, measurementContext}: UseSearchColumnWidthsParams): Partial<Record<SearchColumnType, SearchColumnSizing>> {
     const {translate} = useLocalize();
@@ -129,22 +116,18 @@ function useSearchColumnWidths({columns, data, isEnabled, measurementContext}: U
 
             const extraWidth = getSearchColumnExtraWidth(column);
 
-            // A column has to fit its header as well as its cells, so the header is part of what its content needs. A
-            // column whose rows are all empty is then sized by its header alone rather than collapsing to nothing.
-            //
-            // The width its content asks for is capped, because a column is sized by its single widest value: one
-            // unusually long merchant name across a hundred rows would otherwise set the column's width for all of them
-            // and take the room the other columns need. Past the cap the column truncates, which costs the tail of one
-            // outlying value rather than the width of every other column.
+            // The header counts as content, so a column of empty cells is sized by its heading instead of collapsing.
+            // The result is capped because a column is sized by its single widest value: one long merchant name would
+            // otherwise set the width for every row. Past the cap that one value truncates, which is cheaper than
+            // taking the room every other column needs.
             const contentWidth = Math.min(Math.max(Math.ceil(widestContentWidth + extraWidth), headerLabelWidth), Math.max(MAX_FREE_TEXT_COLUMN_WIDTH + extraWidth, headerLabelWidth));
 
             contentWidths.push({column, contentWidth, headerLabelWidth});
         }
 
-        // The weights are normalized to average 1, which keeps the dynamic columns' total flex grow at one unit each,
-        // exactly what `flex: 1` gave them before. Columns outside this set (the amount column, say) also grow from a
-        // zero basis, so raw pixel weights here would be hundreds of units against their 1 and would collapse them to
-        // nothing. Normalizing changes only how these columns divide their share, and leaves every other column's.
+        // Normalized to average 1, so each dynamic column still grows by one unit overall, exactly as `flex: 1` did.
+        // Other flexible columns grow by 1, so raw pixel weights here would be hundreds of units against their 1 and
+        // would collapse them. Normalizing only changes how these columns split their own share.
         const averageContentWidth = contentWidths.reduce((total, {contentWidth}) => total + contentWidth, 0) / contentWidths.length;
 
         if (averageContentWidth <= 0) {
@@ -156,9 +139,8 @@ function useSearchColumnWidths({columns, data, isEnabled, measurementContext}: U
         for (const {column, contentWidth, headerLabelWidth} of contentWidths) {
             columnSizing[column] = {
                 flexWeight: contentWidth / averageContentWidth,
-                // Squeezed no further than a readable width, or its content when that is narrower, and never below its
-                // header: a truncated heading leaves the column unidentifiable. Once these minimums no longer fit, the
-                // table scrolls rather than squeezing further, which is what `getSearchTableMinWidth` below drives.
+                // Squeezed no further than a readable width, its own content if that is narrower, and never below the
+                // header, which would leave the column unidentifiable. Once these no longer fit, the table scrolls.
                 minWidth: Math.max(Math.min(contentWidth, MIN_FREE_TEXT_COLUMN_WIDTH + getSearchColumnExtraWidth(column)), headerLabelWidth),
                 maxWidth: contentWidth,
             };

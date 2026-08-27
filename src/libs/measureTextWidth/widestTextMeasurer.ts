@@ -16,13 +16,12 @@ type FontCandidates = {
 /**
  * Collects the text rendered in a column and reports how wide its widest string renders.
  *
- * Text is grouped by font, because the same string renders wider in a larger or bolder font, so the longest string
- * overall isn't necessarily the widest one. Only the longest few strings per font are kept, since character count is a
- * good (if imperfect) proxy for rendered width, and measuring every row of a large table would be wasteful.
+ * Grouped by font, since the same string renders wider in a larger or bolder one, so the longest string overall isn't
+ * necessarily the widest. Only the longest few per font are kept: character count approximates rendered width well
+ * enough to pick candidates, and measuring every row of a large table would be wasteful.
  *
- * Candidates are kept in a small sorted array rather than by sorting everything at the end, so adding a row costs the
- * same no matter how many rows the table has. That matters on tables with tens of thousands of rows, where collecting
- * and sorting every string would dominate the cost of sizing the columns.
+ * They are kept in a small sorted array instead of sorting everything at the end, so adding a row costs the same at any
+ * table size. On tables with tens of thousands of rows, that sort would otherwise dominate.
  */
 type WidestTextMeasurer = {
     /** Records a string rendered in this column. Empty strings are ignored. */

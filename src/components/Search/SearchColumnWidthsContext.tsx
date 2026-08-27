@@ -24,9 +24,8 @@ function SearchColumnWidthsProvider({columnWidths, children}: React.PropsWithChi
 /**
  * Returns the Search table's column style function, with any measured width applied on top.
  *
- * The header and every row resolve their columns through this, so they stay aligned: a column is either measured in
- * both or in neither. When a column has a measured width it is pinned to it, replacing the flex that would otherwise
- * have it share the table's leftover space equally with the other free-text columns.
+ * The header and every row resolve their columns through this, so a column is measured in both or in neither and the
+ * two stay aligned.
  */
 function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetReportTableColumnStylesParams) => ViewStyle {
     const StyleUtils = useStyleUtils();
@@ -39,14 +38,11 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
         const sizing = columnWidths[columnName];
 
         if (!sizing) {
-            // A column styled `flex: 1` alongside a width has a zero flex basis, which discards that width: it starts
-            // from nothing, shares the leftover space with every other flexible column, and so ends up neither the width
-            // it declared nor the width its content needs. Its declared width is what it was sized to fit, so it is
-            // pinned to exactly that: it is not squeezed below it, which would truncate values that read as different
-            // ones rather than as truncations (an amount, above all), and it does not grow past it either, since the
-            // spare room belongs to the columns holding free text. That is the same reasoning as the existing
-            // `shouldRemoveTotalColumnFlex`, which drops the total column's flex whenever another column can take the
-            // space instead.
+            // `flex: 1` expands to a zero basis, which discards any width declared beside it: the column starts from
+            // nothing and shares the leftover space, ending up neither its declared width nor what its content needs.
+            // That declared width is what it was sized to fit, so pin it there exactly. Not narrower, since a truncated
+            // amount reads as a different amount rather than as a truncation; not wider, since the spare room belongs
+            // to the free-text columns. Same reasoning as the existing `shouldRemoveTotalColumnFlex`.
             if (isSizingColumns && typeof columnStyles.width === 'number' && columnStyles.flex !== undefined) {
                 return {...columnStyles, flex: undefined, flexGrow: 0, flexShrink: 0, flexBasis: columnStyles.width, minWidth: columnStyles.width};
             }
@@ -54,11 +50,10 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
             return columnStyles;
         }
 
-        // The measured width is the column's share of the free space rather than a width of its own: growing from a
-        // zero basis in proportion to what its content needs is what keeps the columns adding up to the row exactly,
-        // without this having to know what the fixed columns, gaps, and padding around it spend. The `flex` shorthand is
-        // cleared because the base style sets it on exactly these columns, and leaving both it and the individual properties here
-        // would make which one wins depend on the order they are emitted in.
+        // The measured width is a share of the free space, not a width of its own: growing from a zero basis in
+        // proportion to what the content needs is what makes the columns add up to the row without this knowing what
+        // the fixed columns, gaps, and padding spend. `flex` is cleared because the base style sets it on exactly these
+        // columns, and leaving both it and the properties below would make which one wins depend on emission order.
         return {...columnStyles, flex: undefined, flexGrow: sizing.flexWeight, flexShrink: 1, flexBasis: 0, minWidth: sizing.minWidth, maxWidth: sizing.maxWidth, width: undefined};
     };
 }

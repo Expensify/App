@@ -35,16 +35,13 @@ type HorizontalTableScrollProps = {
     /** Re-restores the saved horizontal offset whenever this value changes (typically the list data). */
     dataKey: unknown;
 
-    /**
-     * Measured minimum widths for the dynamically sized columns, which take the place of the estimates
-     * `getTableMinWidth` uses for them. Left out when dynamic sizing doesn't apply.
-     */
+    /** Measured minimums for the dynamically sized columns, replacing the estimates `getTableMinWidth` uses for them. */
     measuredColumnMinWidths?: Partial<Record<SearchColumnType, number>>;
 
     /**
-     * Measured width of the area the table lays out into. The window is wider than this, since the page is inset from
-     * it, so comparing the table's width against the window would leave the table overflowing its own container without
-     * ever scrolling. Falls back to the window width until the first layout has been measured.
+     * Measured width of the area the table lays out into. The page is inset from the window, so the window is wider and
+     * comparing against it would leave the table overflowing its container without ever scrolling. Falls back to the
+     * window width until the first layout.
      */
     availableWidth?: number;
 };

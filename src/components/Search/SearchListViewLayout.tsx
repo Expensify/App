@@ -40,10 +40,7 @@ type SearchListViewLayoutProps = {
     /** Outer container style for the list wrapper. */
     containerStyle: StyleProp<ViewStyle>;
 
-    /**
-     * The transactions the table renders. Passed by the expense views to size the free-text columns from their content;
-     * views that leave it out keep the columns' fixed and flex widths.
-     */
+    /** The rendered transactions, so the free-text columns can be sized from them. Left out, columns keep their widths. */
     data?: SearchListItem[];
 
     /** The viewer's non-personal and workspace cards, so the card column can be sized from the names it renders. */
@@ -95,14 +92,13 @@ function SearchListViewLayout({
         measurementContext: {nonPersonalAndWorkspaceCards, policyCategories, policyTags},
     });
 
-    // The scroller sizes the table from what its columns refuse to shrink below, so it has to know the minimums the
-    // dynamic columns measured for themselves rather than the estimates it would otherwise assume for them.
+    // The scroller sizes the table from what its columns refuse to shrink below, so it needs the minimums these columns
+    // measured for themselves rather than the estimates it assumes otherwise.
     const measuredColumnMinWidths = Object.fromEntries(Object.entries(columnWidths).map(([column, sizing]) => [column, sizing.minWidth]));
 
     return (
-        // Measured outside the scroller so the node reports the width the table has to fit into, not the width its own
-        // content grew to. The window is wider than this, since the page is inset from it, which is why the scroller
-        // can't decide whether the table fits by looking at the window.
+        // Measured outside the scroller, so this reports the width the table has to fit into rather than the width its
+        // content grew to. The page is inset from the window, so the window is wider and can't answer this.
         <View
             style={styles.flex1}
             onLayout={handleTableLayout}

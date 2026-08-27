@@ -22,10 +22,8 @@ import {getDecodedTagName} from './TagUtils';
 import {getDescription, getExchangeRate, getMerchantName, getTagForDisplay, getTaxName, isPerDiemRequest, isTimeRequest} from './TransactionUtils';
 
 /**
- * The data a column needs to resolve its text that doesn't travel on the transaction itself.
- *
- * These are read once at the list level and passed down, rather than subscribed to per row, which is the same shape the
- * rows themselves use for this data.
+ * The data a column needs to resolve its text that doesn't travel on the transaction itself. Read once at the list
+ * level and passed down rather than subscribed to per row.
  */
 type SearchColumnMeasurementContext = {
     /** The viewer's non-personal and workspace cards, used to name the card a transaction was made on. */
@@ -52,17 +50,15 @@ type SearchColumnContent = {
     font?: MeasurableFont;
 };
 
-/**
- * Width a `UserInfoCell` spends on its avatar before any text: the avatar itself plus its trailing padding.
- */
+/** Width a `UserInfoCell` spends before any text: the avatar plus its trailing padding. */
 const USER_INFO_CELL_AVATAR_WIDTH = variables.avatarSizeXxxSmall + variables.spacing2;
 
 /**
- * The Search columns that are sized from their content. These are the free-text columns that share the table's leftover
- * space today, so they are the ones that truncate while a short column beside them keeps space it doesn't need.
+ * The Search columns sized from their content: the free-text ones that share the table's leftover space today, and so
+ * the ones that truncate while a short column beside them keeps room it doesn't need.
  *
- * Columns left out keep their existing fixed widths: they hold values of a known size (a date, an amount, a status
- * badge, an icon), so measuring them would cost work without changing the layout.
+ * Columns left out hold values of a known size (a date, an amount, a status badge, an icon) and keep their fixed
+ * widths, so measuring them would cost work without changing the layout.
  */
 const DYNAMICALLY_SIZED_SEARCH_COLUMNS = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
@@ -86,9 +82,7 @@ const DYNAMICALLY_SIZED_SEARCH_COLUMNS = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE,
 ]);
 
-/**
- * The header label each dynamically sized column carries, so a column can be kept wide enough to show its own heading.
- */
+/** Each dynamically sized column's header label, so a column can be kept wide enough to show its own heading. */
 const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, TranslationPaths>> = {
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'common.merchant',
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'common.description',
@@ -111,9 +105,7 @@ const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, Tr
     [CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE]: 'common.tagGLCode',
 };
 
-/**
- * Width a column needs on top of its text, for the non-text content its cell renders.
- */
+/** Width a column needs on top of its text, for the non-text content its cell renders. */
 function getSearchColumnExtraWidth(column: SearchColumnType): number {
     switch (column) {
         case CONST.SEARCH.TABLE_COLUMNS.FROM:
@@ -127,8 +119,8 @@ function getSearchColumnExtraWidth(column: SearchColumnType): number {
 /**
  * Returns the text a column renders for one transaction, so the column can be sized from its widest value.
  *
- * This mirrors what the row's cell renders rather than the raw field, since the two differ: a scanning expense shows a
- * status string in place of its merchant, and a tag is shown with its parent levels stripped.
+ * Mirrors the cell rather than the raw field, since the two differ: a scanning expense shows a status string in place
+ * of its merchant, and a tag is shown with its parent levels stripped.
  */
 function getSearchColumnContentToMeasure(
     column: SearchColumnType,
