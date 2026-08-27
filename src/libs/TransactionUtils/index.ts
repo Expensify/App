@@ -2391,10 +2391,8 @@ function hasDuplicateTransactions(
     ownerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     allTransactionViolations: OnyxCollection<TransactionViolation[]>,
+    reportTransactions: Transaction[],
 ): boolean {
-    const transactionsByIouReportID = getReportTransactions(iouReport?.reportID);
-    const reportTransactions = transactionsByIouReportID;
-
     return (
         reportTransactions.length > 0 &&
         reportTransactions.some((transaction) =>
