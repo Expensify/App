@@ -113,9 +113,6 @@ type LazyHydrationContext = {
     conciergeReportID: string | undefined;
     currentUserAccountID: number;
 
-    /** Account IDs pending removal, keyed by reportID. Only holds reports that actually have a member pending removal. */
-    pendingDeleteMemberAccountIDsByReportID?: Record<string, string[]>;
-
     /** Date-fns locale used when the option list was built. */
     dateFnsLocale: DateFnsLocale | undefined;
 

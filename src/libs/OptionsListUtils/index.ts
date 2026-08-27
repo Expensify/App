@@ -1456,7 +1456,6 @@ function getPolicyExpenseReportOption(
         .filter(([, reportParticipant]) => reportParticipant && !isHiddenForCurrentUser(reportParticipant.notificationPreference))
         .map(([accountID]) => Number(accountID));
 
-    // pendingDeleteMemberAccountIDs is not needed here: the report is always a policy expense chat, never a group chat.
     const option = createOption({
         dateFnsLocale,
         accountIDs: visibleParticipantAccountIDs,
@@ -1466,6 +1465,8 @@ function getPolicyExpenseReportOption(
         privateIsArchived,
         // Passing conciergeReportID as undefined is intentional, a policy expense chat is never the Concierge chat.
         conciergeReportID: undefined,
+        // Passing pendingDeleteMemberAccountIDs as undefined is intentional, a policy expense chat is never a group chat.
+        pendingDeleteMemberAccountIDs: undefined,
         config: {
             showChatPreviewLine: false,
             forcePolicyNamePreview: false,
@@ -1723,7 +1724,6 @@ function buildFullOption(accountID: number, item: PersonalDetails | null, report
         currentUserAccountID,
         dateFnsLocale,
         translate,
-        pendingDeleteMemberAccountIDsByReportID,
     } = context;
     const privateIsArchived = report ? privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`] : undefined;
     const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -1745,7 +1745,8 @@ function buildFullOption(accountID: number, item: PersonalDetails | null, report
             visibleReportActionsData,
             currentUserAccountID,
             translate,
-            pendingDeleteMemberAccountIDs: report ? pendingDeleteMemberAccountIDsByReportID?.[report.reportID] : undefined,
+            // Not needed here: reportMapForAccountIDs only ever holds 1:1 DMs, so `report` is never a group chat.
+            pendingDeleteMemberAccountIDs: undefined,
         }),
         isHydrated: true,
     };
@@ -1977,7 +1978,6 @@ function createFilteredOptionList(
               currentUserAccountID,
               dateFnsLocale: options.dateFnsLocale,
               translate: translateInActiveLocale,
-              pendingDeleteMemberAccountIDsByReportID,
           })
         : [];
 
@@ -2401,7 +2401,6 @@ function getUserToInviteOption({
             login: searchValue,
         },
     };
-    // pendingDeleteMemberAccountIDs is not needed here: there is no report to build a group chat name from.
     const userToInvite = createOption({
         dateFnsLocale,
         accountIDs: [optimisticAccountID],
@@ -2410,6 +2409,8 @@ function getUserToInviteOption({
         privateIsArchived: undefined,
         // Passing conciergeReportID as undefined is intentional, the invite option is built without a report, so it can never be the Concierge chat.
         conciergeReportID: undefined,
+        // Passing pendingDeleteMemberAccountIDs as undefined is intentional, there is no report to build a group chat name from.
+        pendingDeleteMemberAccountIDs: undefined,
         config: {showChatPreviewLine},
         visibleReportActionsData,
     });
