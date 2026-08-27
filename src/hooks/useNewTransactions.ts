@@ -64,9 +64,11 @@ function useNewTransactions(
         if (baselineSourceIDs !== undefined && trackedTransactionIDs !== undefined && trackedTransactionIDs.length > baselineSourceIDs.length) {
             // A longer list sharing nothing with a non-empty baseline replaced it, so re-baseline instead of calling it all new.
             const hasReplacedBaseline = baselineSourceIDs.length > 0 && !trackedTransactionIDs.some((transactionID) => baselineIDs.has(transactionID));
+            // "Shares nothing" says nothing against an empty baseline, so the count decides: a user adds one row at a time, several at once is the report loading.
+            const isHydratingFromEmpty = baselineSourceIDs.length === 0 && trackedTransactionIDs.length > 1;
             if (!hasSettledAfterInitialLoad) {
                 setHasSettledAfterInitialLoad(true);
-            } else if (!hasReplacedBaseline) {
+            } else if (!hasReplacedBaseline && !isHydratingFromEmpty) {
                 addedIDs = trackedTransactionIDs.filter((transactionID) => !baselineIDs.has(transactionID));
             }
         } else if (diffState.addedIDs.length && trackedTransactionIDs !== undefined) {

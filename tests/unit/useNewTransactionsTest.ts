@@ -1316,6 +1316,20 @@ describe('useNewTransactions across report switches', () => {
         expect(result.current).toEqual([thirdTransaction]);
     });
 
+    it('treats an already-loaded report whose list hydrates from empty as hydration, not a whole-report add', () => {
+        const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; reportID: string}>(
+            // The incoming report has been visited before, so it is loaded from the first render onwards.
+            (props) => useNewTransactions(true, props.transactions, undefined, props.reportID, true),
+            {initialProps: {transactions: reportATransactions, reportID: 'reportA'}},
+        );
+
+        // The carousel swaps reportID on the mounted screen, and the collection reads empty for a render while it hydrates.
+        rerender({transactions: [], reportID: 'reportB'});
+        rerender({transactions: reportBTransactions, reportID: 'reportB'});
+
+        expect(result.current).toEqual([]);
+    });
+
     it('highlights a transaction again when it is removed and later re-added while the consumer stays mounted', () => {
         jest.useFakeTimers();
         try {
