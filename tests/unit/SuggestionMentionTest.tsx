@@ -13,6 +13,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 
+import {searchUserInServer} from '@libs/actions/Report';
+
 import SuggestionMention from '@pages/inbox/report/ReportActionCompose/SuggestionMention';
 
 import CONST from '@src/CONST';
@@ -89,6 +91,10 @@ jest.mock('@hooks/useLazyAsset', () => ({
 }));
 jest.mock('@hooks/useLocalize', () => jest.fn());
 jest.mock('@hooks/usePolicy', () => jest.fn());
+jest.mock('@libs/actions/Report', () => ({
+    searchInServer: jest.fn(),
+    searchUserInServer: jest.fn(),
+}));
 
 const mockUsePersonalDetails = jest.mocked(usePersonalDetails);
 const mockUseArrowKeyFocusManager = jest.mocked(useArrowKeyFocusManager);
@@ -98,11 +104,11 @@ const mockUseDebounce = jest.mocked(useDebounce);
 const mockUseMemoizedLazyExpensifyIcons = jest.mocked(useMemoizedLazyExpensifyIcons);
 const mockUseLocalize = jest.mocked(useLocalize);
 const mockUsePolicy = jest.mocked(usePolicy);
+const mockSearchUserInServer = jest.mocked(searchUserInServer);
 
 function renderSuggestionMention(value: string, updateComment = jest.fn(), selection: TextSelection = {start: value.length, end: value.length}) {
     const setSelection = jest.fn();
-
-    render(
+    const suggestionMention = (
         <SuggestionMention
             value={value}
             selection={selection}
@@ -113,10 +119,11 @@ function renderSuggestionMention(value: string, updateComment = jest.fn(), selec
             isComposerFocused
             isGroupPolicyReport={false}
             policyID="policyID"
-        />,
+        />
     );
+    const {rerender} = render(suggestionMention);
 
-    return {setSelection, updateComment};
+    return {setSelection, updateComment, rerender: () => rerender(React.cloneElement(suggestionMention))};
 }
 
 function getLastMentionSuggestionsProps(): MentionSuggestionsProps {
@@ -132,6 +139,7 @@ describe('SuggestionMention', () => {
     beforeEach(() => {
         mockMentionSuggestionsSpy.mockClear();
         mockSetHighlightedMentionIndex.mockClear();
+        mockSearchUserInServer.mockClear();
         mockPersonalDetails = {};
 
         mockUsePersonalDetails.mockImplementation(() => mockPersonalDetails);
@@ -154,6 +162,41 @@ describe('SuggestionMention', () => {
         });
     });
 
+    it('searches for uncached users while typing an @ mention', async () => {
+        renderSuggestionMention('@alice');
+
+        await waitFor(() => expect(mockSearchUserInServer).toHaveBeenCalledWith('alice'));
+    });
+
+    it('does not search for the same user again when server results hydrate', async () => {
+        const {rerender} = renderSuggestionMention('@alice');
+        await waitFor(() => expect(mockSearchUserInServer).toHaveBeenCalledTimes(1));
+
+        mockPersonalDetails[2] = {
+            accountID: 2,
+            login: 'alice@example.com',
+            firstName: 'Alice',
+            lastName: 'Tester',
+        };
+        rerender();
+
+        const calculateMentionSuggestions = mockUseDebounce.mock.calls.at(-1)?.[0];
+        if (!calculateMentionSuggestions) {
+            throw new Error('Expected the mention calculation callback to be available');
+        }
+        act(() => calculateMentionSuggestions('@alice', 6, 6));
+
+        await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+        expect(getLastMentionSuggestionsProps().mentions).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    handle: 'alice@example.com',
+                }),
+            ]),
+        );
+        expect(mockSearchUserInServer).toHaveBeenCalledTimes(1);
+    });
+
     it('shows user mention suggestions when prefix has a trailing dot', async () => {
         mockPersonalDetails = {};
         mockPersonalDetails[2] = {
@@ -169,6 +212,7 @@ describe('SuggestionMention', () => {
         const {prefix, mentions} = getLastMentionSuggestionsProps();
 
         expect(prefix).toBe('a.');
+        expect(mockSearchUserInServer).toHaveBeenCalledWith('a');
         expect(mentions).toEqual(
             expect.arrayContaining([
                 expect.objectContaining({
