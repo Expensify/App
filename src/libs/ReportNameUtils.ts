@@ -346,6 +346,7 @@ function getInvoicesChatName({
     policy,
     currentUserAccountID,
     translate,
+    formatPhoneNumber,
 }: {
     report: OnyxEntry<Report>;
     receiverPolicy: OnyxEntry<Policy>;
@@ -353,6 +354,7 @@ function getInvoicesChatName({
     policy: OnyxEntry<Policy>;
     currentUserAccountID?: number;
     translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }): string {
     const invoiceReceiver = report?.invoiceReceiver;
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
@@ -367,7 +369,7 @@ function getInvoicesChatName({
         return temporaryGetDisplayNameOrDefault({
             passedPersonalDetails: personalDetails?.[invoiceReceiverAccountID],
             translate,
-            formatPhoneNumber: formatPhoneNumberPhoneUtils,
+            formatPhoneNumber,
         });
     }
 
@@ -402,6 +404,7 @@ function getInvoiceReportName(
 function getInvoicePayerName(
     report: OnyxEntry<Report>,
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails> | null,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
 ): string {
@@ -409,7 +412,7 @@ function getInvoicePayerName(
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
 
     if (isIndividual) {
-        return temporaryGetDisplayNameOrDefault({passedPersonalDetails: invoiceReceiverPersonalDetail ?? undefined, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+        return temporaryGetDisplayNameOrDefault({passedPersonalDetails: invoiceReceiverPersonalDetail ?? undefined, translate, formatPhoneNumber});
     }
 
     return getPolicyName({report, policy: invoiceReceiverPolicy, unavailableTranslation: translate('workspace.common.unavailable')});
@@ -454,7 +457,7 @@ function getMoneyRequestReportName({
     } else if (isInvoiceReport(report)) {
         const chatReport = getReportOrDraftReport(report?.chatReportID);
         const invoiceReceiverPersonalDetail = getInvoiceReceiverPersonalDetail(chatReport, personalDetailsList);
-        payerOrApproverName = getInvoicePayerName(chatReport, translate, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
+        payerOrApproverName = getInvoicePayerName(chatReport, translate, formatPhoneNumberPhoneUtils, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
     } else {
         payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '';
     }
@@ -1192,7 +1195,15 @@ function computeReportName({
             receiverPolicyID = (receiver as {policyID: string}).policyID;
         }
         const invoiceReceiverPolicy = receiverPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${receiverPolicyID}`] : undefined;
-        formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails: personalDetailsList, currentUserAccountID, policy, translate});
+        formattedName = getInvoicesChatName({
+            report,
+            receiverPolicy: invoiceReceiverPolicy,
+            personalDetails: personalDetailsList,
+            currentUserAccountID,
+            policy,
+            translate,
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
+        });
     }
 
     if (isSelfDM(report)) {
