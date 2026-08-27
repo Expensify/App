@@ -18,6 +18,9 @@ import useSettlementButtonPaymentMethods from '@libs/SettlementButtonUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {areInvoicesEnabledSelector} from '@selectors/Policy';
 import truncate from 'lodash/truncate';
@@ -33,6 +36,10 @@ import useThemeStyles from './useThemeStyles';
 type UseBulkPayOptionProps = {
     selectedPolicyID: string | undefined;
     selectedReportID: string | undefined;
+    /** Report data from the Search snapshot, used as a fallback while the live Onyx report hasn't loaded yet */
+    selectedReport?: OnyxEntry<Report>;
+    /** Chat report data from the Search snapshot, used as a fallback while the live Onyx chat report hasn't loaded yet */
+    selectedChatReport?: OnyxEntry<Report>;
     lastPaymentMethod?: string | undefined;
     isCurrencySupportedWallet?: boolean;
     currency: string | undefined;
@@ -52,6 +59,8 @@ type UseBulkPayOptionReturnType = {
 function useBulkPayOptions({
     selectedPolicyID,
     selectedReportID,
+    selectedReport,
+    selectedChatReport,
     isCurrencySupportedWallet,
     currency,
     formattedAmount,
@@ -66,16 +75,19 @@ function useBulkPayOptions({
     const paymentMethods = useSettlementButtonPaymentMethods(hasActivatedWallet, translate);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
+    const [liveIouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
+    // SearchBulkActionsButton is rendered outside SearchScopeProvider, so the useOnyx read above doesn't fall back to the Search snapshot.
+    const iouReport = liveIouReport ?? selectedReport;
+    const [liveChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
+    const chatReport = liveChatReport ?? selectedChatReport;
     const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(chatReport);
     const [areInvoicesEnabled] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {selector: areInvoicesEnabledSelector});
     const {isBetaEnabled} = usePermissions();
     const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
     const activeAdminPolicies = useActiveAdminPolicies();
-    const isIOUReport = isIOUReportUtil(selectedReportID);
-    const isExpenseReport = isExpenseReportUtil(selectedReportID);
-    const isInvoiceReport = isInvoiceReportUtil(selectedReportID);
+    const isIOUReport = isIOUReportUtil(iouReport);
+    const isExpenseReport = isExpenseReportUtil(iouReport);
+    const isInvoiceReport = isInvoiceReportUtil(iouReport);
     const shouldShowPayElsewhereOption = !isInvoiceReport;
     const canUseBusinessBankAccount = isExpenseReport || (isIOUReport && selectedReportID && !hasRequestFromCurrentAccount(iouReport, accountID ?? CONST.DEFAULT_NUMBER_ID));
     const canUsePersonalBankAccount = isIOUReport;
