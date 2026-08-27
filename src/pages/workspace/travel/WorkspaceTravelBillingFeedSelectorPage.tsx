@@ -4,15 +4,16 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useTravelBillingFeedsForFeedSelector from '@hooks/useTravelBillingFeedsForFeedSelector';
 
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import type {ExpensifyCardFeedEntry} from '@libs/ExpensifyCardFeedSelectorUtils';
 import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type {TravelBillingFeedEntry} from '@libs/TravelBillingFeedSelectorUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -38,7 +39,8 @@ type WorkspaceTravelBillingFeedSelectorPageProps = PlatformStackScreenProps<Sett
 function WorkspaceTravelBillingFeedSelectorPage({route}: WorkspaceTravelBillingFeedSelectorPageProps) {
     const {policyID} = route.params;
     const {translate} = useLocalize();
-    const {allFeeds} = useTravelBillingFeedsForFeedSelector(policyID);
+    const {isOffline} = useNetwork();
+    const {allFeeds} = useExpensifyCardFeedsForFeedSelector(policyID, [CONST.TRAVEL.PROGRAM_TRAVEL_US]);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -48,10 +50,11 @@ function WorkspaceTravelBillingFeedSelectorPage({route}: WorkspaceTravelBillingF
 
     const onDismissError = () => setFeedWithError(undefined);
 
-    const toListItem = (entry: TravelBillingFeedEntry): TravelBillingFeedListItem => ({
+    const toListItem = (entry: ExpensifyCardFeedEntry): TravelBillingFeedListItem => ({
         value: entry.fundID,
         text: getExpensifyCardFeedDescription(entry.settings, policies, domains, entry.fundID, cardList),
         keyForList: entry.fundID.toString(),
+        isDisabled: isOffline,
         errors: feedWithError?.fundID === entry.fundID ? feedWithError.error : undefined,
     });
 
@@ -65,6 +68,8 @@ function WorkspaceTravelBillingFeedSelectorPage({route}: WorkspaceTravelBillingF
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ScreenWrapper
                 testID="WorkspaceTravelBillingFeedSelectorPage"

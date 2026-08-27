@@ -10,13 +10,13 @@ import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTravelBillingFeedsForFeedSelector from '@hooks/useTravelBillingFeedsForFeedSelector';
 
 import {
     clearTravelBillingErrors,
@@ -80,7 +80,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const defaultFundID = useDefaultFundID(policyID);
-    const {allFeeds: accessibleTravelFeeds} = useTravelBillingFeedsForFeedSelector(policyID);
+    const {allFeeds: accessibleTravelFeeds} = useExpensifyCardFeedsForFeedSelector(policyID, [CONST.TRAVEL.PROGRAM_TRAVEL_US]);
 
     const {showConfirmModal, closeModal} = useConfirmModal();
     const [isDisableConfirmModalVisible, setIsDisableConfirmModalVisible] = useState(false);
