@@ -8,6 +8,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -110,6 +111,7 @@ function IOURequestEditReportCommon({
     const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, isTimeRequest, transactionPolicyID, isUnreportedManagedCardTransaction);
 
     const [perDiemWarningModalVisible, setPerDiemWarningModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
         isManualDistanceRequest,
         isOdometerDistanceRequest,
@@ -266,6 +268,25 @@ function IOURequestEditReportCommon({
             shouldRestrictUserBillableActions(itemPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)
         ) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID));
+            return;
+        }
+
+        // Reports can only hold up to CONST.REPORT.MAX_TRANSACTIONS transactions. The backend rejects a move that would push
+        // the destination past the limit, so prevent it up front with an explanatory warning instead of failing silently.
+        // Only count expenses that will actually be added to the destination: the move action skips transactions that are
+        // already in the destination report (see changeTransactionsReport in Transaction.ts), so a bulk selection that
+        // includes expenses already in that report must not inflate the projected count (e.g. moving 5 new expenses into a
+        // report that already holds 490 lands at 495, even if 15 of the selected expenses are already there).
+        const destinationReport = outstandingReports.find((report) => report?.reportID === item.value);
+        const numberOfTransactionsToMove =
+            transactionIDs?.filter((transactionID) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID !== item.value).length ?? 1;
+        if ((destinationReport?.transactionCount ?? 0) + numberOfTransactionsToMove > CONST.REPORT.MAX_TRANSACTIONS) {
+            showConfirmModal({
+                title: translate('iou.moveExpenses'),
+                prompt: translate('iou.moveExpensesMaxTransactionsError'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
             return;
         }
 

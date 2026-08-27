@@ -146,22 +146,6 @@
 - E/App issue: [#69005](https://github.com/Expensify/App/issues/69005)
 - PR introducing patch: [#69004](https://github.com/Expensify/App/pull/69004)
 
-### [react-native+0.86.0+020+restore-interaction-manager.patch](react-native+0.86.0+020+restore-interaction-manager.patch)
-
-- Reason:
-
-    ```
-    This patch restores the old InteractionManager behavior. React Native 0.80 deprecated InteractionManager and modified
-    it to behave like `setImmediate`, more info here - https://github.com/facebook/react-native/blob/d9262c60f4c02d66417008970dc9c34b742aaa75/CHANGELOG.md?plain=1#L597
-  
-    We need to restore the previous behavior to avoid introducing any bugs in the app.
-    Bug example - https://github.com/Expensify/App/pull/69535#issuecomment-3443059319
-    ```
-
-- Upstream PR/issue: There won't be any upstream changes. We need to get rid of InteractionManager
-- E/App issue: https://github.com/Expensify/App/issues/71913
-- PR introducing patch: https://github.com/Expensify/App/pull/69535
-
 ### [react-native+0.86.0+021+perf-increase-initial-heap-size.patch](react-native+0.86.0+021+perf-increase-initial-heap-size.patch)
 
 - Reason: This patch increases the initial heap size of the Hermes runtime. This allows us to disable Hermes Young-Gen Garbage Collection (GC) in a separate patch, which improves initial TTI and app startup time.
@@ -322,3 +306,29 @@
 - E/App issue: 🛑 — backport of an upstream fix, no separate E/App issue was filed.
 - PR introducing patch: https://github.com/Expensify/App/pull/98507
 - 0.86.0 migration note: **drop this patch with the RN 0.87 upgrade** — upstream commit `45904c8` is absent from every 0.86.x release but ships in `v0.87.0`, and the patch will not apply against it. Two deviations from the upstream commit: the `scripts/cxx-api/api-snapshots/*.api` hunks are omitted (those files are not shipped in the npm package), and `fontSizeMultiplier` is declared *last* in `LayoutMetrics` rather than after `pointScaleFactor`, because `@rnmapbox/maps` initializes that struct positionally and inserting a field mid-struct breaks its iOS build.
+
+### [react-native+0.86.0+038+log-soft-exception-if-viewState-not-found.patch](react-native+0.86.0+038+log-soft-exception-if-viewState-not-found.patch)
+
+- Reason: Guards Android Fabric's `updateOverflowInset`, `updatePadding`, and `updateState` batch-mount paths against a view tag that was already unmounted. These methods otherwise resolve the tag through the throwing `getViewState`, so a stale batch instruction throws `RetryableMountingLayerException` from inside `IntBufferBatchMountItem.execute`. `MountItemDispatcher.dispatchMountItems` only retries `DispatchCommandMountItem`s, and `IntBufferBatchMountItem` is not retryable, so the exception propagates and crashes the app. The patch uses `getNullableViewState`, soft-logs the missing state, and returns, matching upstream's established handling for stale batch work. The `updateOverflowInset` hunk restores protection dropped during the RN 0.86 upgrade; the `updatePadding` and `updateState` hunks backport upstream commit `0e86a043` after production release `9.4.46-10` confirmed a fatal `getViewState -> updateState -> IntBufferBatchMountItem` recurrence.
+- Upstream PR/issue: [#49077](https://github.com/facebook/react-native/issues/49077) [#56762](https://github.com/facebook/react-native/pull/56762) [#57181](https://github.com/facebook/react-native/pull/57181) [#7493](https://github.com/software-mansion/react-native-reanimated/issues/7493)
+- E/App issues: [#82611](https://github.com/Expensify/App/issues/82611) [#93833](https://github.com/Expensify/App/issues/93833)
+- PR introducing patch: [#84303](https://github.com/Expensify/App/pull/84303) (original 0.85.3 patch) and [#98604](https://github.com/Expensify/App/pull/98604) (restored `updateOverflowInset` on 0.86.0)
+- 0.86.0 migration note: RN 0.86.0 upstreamed the `getNullableViewState` + soft-log guard for `addViewAt`, `updateProps`, `updateLayout`, and `removeViewAt`, which is why the 0.85.3 patch was dropped during the upgrade, but it did not include the corresponding `updateOverflowInset`, `updatePadding`, or `updateState` guards. All three are patched here. Re-check these methods during the RN 0.87 upgrade and drop this patch once the adopted React Native release contains them upstream.
+
+### [react-native+0.86.0+039+persist-change-bundle-location.patch](react-native+0.86.0+039+persist-change-bundle-location.patch)
+
+- Reason: Backports React Native's Android fix for persisting the host selected through `Change Bundle Location`. The setting is written to the existing `debug_http_host` preference, restored after process restarts, and removed when the host is reset. This replaces the HybridApp-specific lifecycle workaround and can be removed after upgrading to React Native 0.88 or later.
+- Upstream PR/issue: [facebook/react-native#57425](https://github.com/facebook/react-native/pull/57425) / [d2ac1904118](https://github.com/facebook/react-native/commit/d2ac190411877e7a1bc94ffac346c5fd35b65a7c)
+- E/App issue: N/A
+- PR introducing patch: https://github.com/Expensify/Mobile-Expensify/pull/14058
+
+### [react-native+0.86.0+040+fix-android15-text-clipping.patch](react-native+0.86.0+040+fix-android15-text-clipping.patch)
+
+- Reason: Backports upstream's fix for Android 15+ text clipping. `TextLayoutManager` sized text layouts from `ceil(Layout.getDesiredWidth(...))`, which sums glyph *advances* only; on Android 15+ a line's visual glyph bounds can exceed that, so the layout ends up a fraction of a pixel too narrow. Line breaking is a step function, so that shortfall moves a whole trailing word onto a second line inside a view whose height was computed for one line, and that line is clipped: the word disappears with no ellipsis and no change in row height. The patch adds a `getDesiredWidth` helper that, on API 35+, builds a probe `StaticLayout` with `setUseBoundsForWidth(true)` and returns `max(advanceWidth, ceil(visualBoundsWidth))`, so the desired width can never shrink below the previous value. Only the `AT_MOST` and `UNDEFINED` measure modes are affected; `EXACTLY` still uses the width Yoga supplies, and the final layout keeps the existing advance-based bounds mode — which is what got the earlier blanket `setUseBoundsForWidth` attempt reverted in [5964a197](https://github.com/facebook/react-native/commit/5964a197) after multiline and wrapping regressions.
+- Why this rather than reverting `LINEAR_TEXT_FLAG`: RN 0.86 made `Paint.LINEAR_TEXT_FLAG` unconditional ([#56409](https://github.com/facebook/react-native/pull/56409)) — the `enableAndroidLinearText` flag it deleted defaulted to `false` in OSS, so 0.85.3 never set it. Disabling hinting shifts glyph advance widths by a fraction of a pixel, widening the advance-vs-visual-bounds gap and pushing borderline strings over the wrapping threshold; that is why the bug presents as a 0.85.3 → 0.86.0 regression. Reverting the flag was verified to fix the reported cases too, but it only removes the amplifier — the advance-based measurement stays wrong and borderline strings can still wrap. This patch fixes the measurement itself, keeps 0.86's intended text rendering, and is not a deviation from upstream.
+- Upstream PR/issue: [facebook/react-native#57117](https://github.com/facebook/react-native/pull/57117) (fixes [#56402](https://github.com/facebook/react-native/issues/56402))
+- E/App issue: [#98499](https://github.com/Expensify/App/issues/98499) [#98690](https://github.com/Expensify/App/issues/98690)
+- PR introducing patch: https://github.com/Expensify/App/pull/99069
+- Reproduction: Android 16, custom font, non-default font scale *and* non-default display density — e.g. `wm size 1080x2340`, `wm density 420` (physical 450), `settings put system font_scale 0.8`, matching the Galaxy S25 FE the bug was reported on. The layout must be re-mounted (navigate forward, then back) before the clipping appears. Devices at their physical density are far less likely to hit it: at 450 dpi a 1080 px screen is exactly 384 dp, while the 420 dpi override makes it 411.428571… dp, so every derived width carries a fractional residue for `ceil`/`floor` to disagree on.
+- Upstream history: this is upstream's *third* attempt at the same bug. [#54721](https://github.com/facebook/react-native/pull/54721) (commit [8347cc4b5](https://github.com/facebook/react-native/commit/8347cc4b50ca9229b638d0823d3148fed50b9a61)) closed [#53286](https://github.com/facebook/react-native/issues/53286) in December 2025 by calling `setUseBoundsForWidth(true)` on the final `StaticLayout`, but it was gated behind `fixTextClippingAndroid15useBoundsForWidth`, which **defaulted to `false` in OSS** — so 0.85.3 never ran it. RN 0.86.0 removed the flag and both call sites after multiline and wrapping regressions, leaving only the now-unused `setUseBoundsForWidthMethod` reflection handle in `TextLayoutManager` (which this patch reuses). The bug was refiled as [#56402](https://github.com/facebook/react-native/issues/56402) and is still open. #57117 is the narrower retry: the visual-bounds layout is only a measurement probe, so the final layout keeps advance-based bounds. **Because the two earlier attempts were reverted for wrapping regressions specifically, wrapping is the thing to regression-test on Android 15+.**
+- 0.86.0 migration note: **upstream #57117 is still open and has not been reviewed by Meta.** Re-evaluate on the RN 0.87 upgrade and drop this patch once the fix lands upstream. Two things to weigh before shipping: the probe layout costs one extra `StaticLayout` build per text measure on API 35+ for `AT_MOST`/`UNDEFINED`, on a hot path; and widening measured text can change wrapping app-wide on Android 15+. The upstream diff's `TextLayoutManagerAbsoluteLayoutWithFractionalPixelTest.kt` hunks are omitted because the npm package does not ship `ReactAndroid/src/test`.

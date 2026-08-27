@@ -13,6 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 
 import type * as CoreNavigation from '@react-navigation/core';
@@ -21,6 +22,7 @@ import * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -34,11 +36,14 @@ jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
     useNavigationState: () => true,
     usePreventRemove: jest.fn(),
-    useRoute: () => ({
-        key: 'test-key',
-        name: 'Report' as never,
-        params: {reportID: FAKE_REPORT_ID},
-    }),
+    useRoute: () => {
+        const SCREENS_MOCK = jest.requireActual<{default: typeof SCREENS}>('@src/SCREENS').default;
+        return {
+            key: 'test-key',
+            name: SCREENS_MOCK.REPORT,
+            params: {reportID: FAKE_REPORT_ID},
+        };
+    },
 }));
 
 jest.mock('@react-navigation/core', () => ({
@@ -203,7 +208,7 @@ const mockTransaction: Transaction = {
     status: CONST.TRANSACTION.STATUS.POSTED,
 } as Transaction;
 
-const mockReportAction: ReportAction = {
+const mockReportAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
     reportActionID: 'ACTION_001',
     reportID: FAKE_REPORT_ID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -217,7 +222,7 @@ const mockReportAction: ReportAction = {
         currency: CONST.CURRENCY.USD,
     },
     childReportID: 'CHILD_001',
-} as unknown as ReportAction;
+});
 
 const renderComponent = () => {
     return render(

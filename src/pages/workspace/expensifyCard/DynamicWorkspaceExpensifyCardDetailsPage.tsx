@@ -6,6 +6,7 @@ import FrozenCardHeader from '@components/FrozenCardHeader';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -106,6 +107,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
         'CreditCardLock',
         'XeroSquare',
         'QBOSquare',
+        'IntuitSquare',
         'NetSuiteSquare',
         'IntacctSquare',
         'QBDSquare',
@@ -441,7 +443,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                     </OfflineWithFeedback>
                     <View style={styles.mt6}>
                         {canEditSpendRules && (
-                            <MenuItem
+                            <MenuItemAction
                                 icon={expensifyIcons.CreditCardLock}
                                 title={translate('cardPage.editSpendRules')}
                                 onPress={navigateToSpendRules}
@@ -476,7 +478,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                                     description={exportMenuItem.shouldHideMenuItemDescription ? undefined : exportMenuItem.description}
                                     title={exportMenuItem.title}
                                     numberOfLinesTitle={2}
-                                    icon={exportMenuItem.shouldShowMenuItemIcon ? getIntegrationIcon(connectedIntegration, expensifyIcons) : undefined}
+                                    icon={exportMenuItem.shouldShowMenuItemIcon ? getIntegrationIcon(connectedIntegration, expensifyIcons, policy) : undefined}
                                     iconType={CONST.ICON_TYPE_AVATAR}
                                     avatarSize={CONST.AVATAR_SIZE.X_SMALL}
                                     shouldShowRightIcon={canWriteExpensifyCard}

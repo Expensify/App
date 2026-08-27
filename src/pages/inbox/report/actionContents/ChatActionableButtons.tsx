@@ -8,7 +8,6 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -192,8 +191,6 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const personalDetail = useCurrentUserPersonalDetails();
     const activePolicy = useActivePolicy();
-    const {isBetaEnabled} = usePermissions();
-    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
 
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
@@ -206,7 +203,7 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
     const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createFilteredPoliciesInfoSelector(personalDetail.email)});
     const [trackExpenseTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(getOriginalMessage(action)?.transactionID)}`);
     const [actionOwnerReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(actionOwnerReportID)}`);
-    const [hasWorkspaceToSubmitTo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createHasWorkspaceToSubmitToSelector(personalDetail.login, isSubmit2026BetaEnabled)});
+    const [hasWorkspaceToSubmitTo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createHasWorkspaceToSubmitToSelector(personalDetail.login)});
 
     const baseDraftTransactionParams = {
         reportID: actionOwnerReportID,
@@ -241,8 +238,8 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
 
     return (
         <ActionableItemButtons layout="vertical">
-            {/* On the Submit (submit2026) plan, the single "Submit it to someone" button splits into one button per destination. */}
-            {shouldShowSubmitButtons && isSubmit2026BetaEnabled && (
+            {/* "Submit it to someone" is one button per destination. */}
+            {shouldShowSubmitButtons && (
                 <>
                     {!isSplitExpense && (
                         <Button onPress={() => submit(CONST.IOU.SUBMIT_DESTINATION.FRIEND)}>
@@ -253,12 +250,6 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
                         <Button.Text>{translate('actionableMentionTrackExpense.submitToEmployer')}</Button.Text>
                     </Button>
                 </>
-            )}
-
-            {shouldShowSubmitButtons && !isSubmit2026BetaEnabled && (
-                <Button onPress={() => submit()}>
-                    <Button.Text>{translate('actionableMentionTrackExpense.submit')}</Button.Text>
-                </Button>
             )}
 
             {Permissions.canUseTrackFlows() && (

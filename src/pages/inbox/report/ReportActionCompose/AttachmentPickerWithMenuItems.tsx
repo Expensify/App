@@ -4,12 +4,11 @@ import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -20,14 +19,23 @@ import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldShowEmptyReportConfirmation from '@hooks/useShouldShowEmptyReportConfirmation';
-import useTheme from '@hooks/useTheme';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isSafari} from '@libs/Browser';
+import getButtonState from '@libs/getButtonState';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicyByType} from '@libs/PolicyUtils';
-import {canCreateTaskInReport, getPayeeName, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat, isReportOwner, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
+import {
+    canCreateTaskInReport,
+    getPayeeName,
+    hasViolations as hasViolationsReportUtils,
+    isPolicyExpenseChat,
+    isReportOwner,
+    isTeachersUniteReport,
+    temporary_getMoneyRequestOptions,
+} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU/MoneyRequest';
@@ -156,7 +164,7 @@ function AttachmentPickerWithMenuItems({
         'Transfer',
     ]);
     const isFocused = useIsFocused();
-    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -169,7 +177,6 @@ function AttachmentPickerWithMenuItems({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const {isProduction} = useEnvironment();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -230,8 +237,7 @@ function AttachmentPickerWithMenuItems({
         }
     };
 
-    const teacherUnitePolicyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
-    const isTeachersUniteReport = report?.policyID === teacherUnitePolicyID;
+    const isReportTeachersUnite = isTeachersUniteReport(report);
 
     /**
      * Returns the list of IOU Options
@@ -270,7 +276,7 @@ function AttachmentPickerWithMenuItems({
             [CONST.IOU.TYPE.PAY]: [
                 {
                     icon: getIconForAction(CONST.IOU.TYPE.SEND, icons),
-                    text: translate('iou.paySomeone', getPayeeName(report, translate)),
+                    text: translate('iou.paySomeone', getPayeeName(report, translate, accountID)),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_PAY_SOMEONE,
                     onSelected: () => {
@@ -321,6 +327,7 @@ function AttachmentPickerWithMenuItems({
 
         return moneyRequestOptionsList.flat().filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
     }, [
+        accountID,
         isDelegateAccessRestricted,
         isReportArchived,
         isRestrictedToPreferredPolicy,
@@ -410,21 +417,11 @@ function AttachmentPickerWithMenuItems({
     }, [isMenuVisible, calculatePopoverPosition, actionButtonRef]);
 
     // 1. Limit the container width to a single column.
-    const outerContainerStyles = [{flexBasis: styles.composerSizeButton.width + styles.composerSizeButton.marginHorizontal * 2}, styles.flexGrow0, styles.flexShrink0];
+    const outerContainerStyles = styles.composerButtonColumn;
 
-    // 2. If there isn't enough height for two buttons, the Expand/Collapse button wraps to the next column so that it's intentionally hidden,
-    //    and the Create button is centered vertically.
-    const innerContainerStyles = [
-        styles.dFlex,
-        styles.flexColumnReverse,
-        styles.flexWrap,
-        styles.justifyContentCenter,
-        styles.pAbsolute,
-        styles.h100,
-        styles.w100,
-        styles.overflowHidden,
-        {paddingVertical: styles.composerSizeButton.marginHorizontal},
-    ];
+    // 2. If there isn't enough height for two buttons, the Expand/Collapse button wraps to the next column so that it's intentionally hidden.
+    //    The Create button stays anchored to the bottom (flex-start in a reversed column) to match the Emoji and Send buttons.
+    const innerContainerStyles = styles.composerButtonStack;
 
     // 3. If there is enough height for two buttons, the Expand/Collapse button is at the top.
     const expandCollapseButtonContainerStyles = [styles.flexGrow1, styles.flexShrink0];
@@ -453,7 +450,7 @@ function AttachmentPickerWithMenuItems({
                 };
                 const menuItems = [
                     ...moneyRequestOptions,
-                    ...(!isTeachersUniteReport ? createReportOption : []),
+                    ...(!isReportTeachersUnite ? createReportOption : []),
                     ...taskOption,
                     {
                         icon: icons.Paperclip,
@@ -471,7 +468,7 @@ function AttachmentPickerWithMenuItems({
                             <View style={innerContainerStyles}>
                                 <View style={createButtonContainerStyles}>
                                     <Tooltip text={translate('common.create')}>
-                                        <PressableWithFeedback
+                                        <PressableWithoutFeedback
                                             ref={actionButtonRef}
                                             onPress={(e) => {
                                                 e?.preventDefault();
@@ -484,17 +481,22 @@ function AttachmentPickerWithMenuItems({
                                                 actionButtonRef.current?.blur();
                                                 setMenuVisibility(!isMenuVisible);
                                             }}
-                                            style={styles.composerSizeButton}
+                                            style={({hovered, pressed}) => [
+                                                styles.composerSizeButton,
+                                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered && !disabled, pressed && !disabled)),
+                                            ]}
                                             disabled={disabled}
                                             role={CONST.ROLE.BUTTON}
                                             accessibilityLabel={translate('accessibilityHints.openActionsMenu')}
                                             sentryLabel={CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_CREATE_BUTTON}
                                         >
-                                            <Icon
-                                                fill={theme.icon}
-                                                src={icons.Plus}
-                                            />
-                                        </PressableWithFeedback>
+                                            {({hovered, pressed}) => (
+                                                <Icon
+                                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered && !disabled, pressed && !disabled))}
+                                                    src={icons.Plus}
+                                                />
+                                            )}
+                                        </PressableWithoutFeedback>
                                     </Tooltip>
                                 </View>
                                 <ExpandCollapseButton

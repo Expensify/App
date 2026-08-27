@@ -2016,15 +2016,19 @@ function getOneTransactionThreadReportAction(
 }
 
 /**
+ * Resolves the transaction thread reportID from the IOU action the thread is derived from.
+ * Since we don't always create the transaction thread optimistically, we fall back to CONST.FAKE_REPORT_ID.
+ */
+function getTransactionThreadReportIDFromAction(reportAction: ReportAction<'IOU'> | undefined): string | undefined {
+    return reportAction ? (reportAction.childReportID ?? CONST.FAKE_REPORT_ID) : undefined;
+}
+
+/**
  * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
  * Returns a reportID if there is exactly one transaction thread for the report, and undefined otherwise.
  */
 function getOneTransactionThreadReportID(...args: Parameters<typeof getOneTransactionThreadReportAction>): string | undefined {
-    const reportAction = getOneTransactionThreadReportAction(...args);
-    if (reportAction) {
-        // Since we don't always create transaction thread optimistically, we return CONST.FAKE_REPORT_ID
-        return reportAction.childReportID ?? CONST.FAKE_REPORT_ID;
-    }
+    return getTransactionThreadReportIDFromAction(getOneTransactionThreadReportAction(...args));
 }
 
 /**
@@ -2224,6 +2228,7 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
         case CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE: {
             const {result, label} = originalMessage;
             const errorMessage = result?.messages?.join(', ') ?? '';
+            const integrationName = label;
 
             // Reconciled results are informational (the payment already exists in the integration), so show the message without the "failed to export" framing
             if (result?.reconciled) {
@@ -2234,9 +2239,9 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
             if (errorMessage.includes(CONST.ERROR.INTEGRATION_MESSAGE_INVALID_CREDENTIALS)) {
                 const translateErrorMessage = translate('report.actions.error.invalidCredentials');
                 const translateLinkText = translate('report.connectionSettings');
-                return translate('report.actions.type.integrationsMessage', translateErrorMessage, label, translateLinkText, linkURL);
+                return translate('report.actions.type.integrationsMessage', translateErrorMessage, integrationName, translateLinkText, linkURL);
             }
-            return translate('report.actions.type.integrationsMessage', errorMessage, label, linkText, linkURL);
+            return translate('report.actions.type.integrationsMessage', errorMessage, integrationName, linkText, linkURL);
         }
         case CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT:
             return translate('report.actions.type.managerAttachReceipt');
@@ -2737,18 +2742,18 @@ function isActionableWhisperRequiringWritePermission(reportAction: OnyxEntry<Rep
     );
 }
 
-function getExportIntegrationLastMessageText(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
-    const fragments = getExportIntegrationActionFragments(translate, reportAction);
+function getExportIntegrationLastMessageText(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, integrationName?: string): string {
+    const fragments = getExportIntegrationActionFragments(translate, reportAction, integrationName);
     return fragments.reduce((acc, fragment) => `${acc} ${fragment.text}`, '');
 }
 
-function getExportIntegrationMessageHTML(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
-    const fragments = getExportIntegrationActionFragments(translate, reportAction);
+function getExportIntegrationMessageHTML(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, integrationName?: string): string {
+    const fragments = getExportIntegrationActionFragments(translate, reportAction, integrationName);
     const htmlFragments = fragments.map((fragment) => (fragment.url ? `<a href="${fragment.url}">${fragment.text}</a>` : fragment.text));
     return htmlFragments.join(' ');
 }
 
-function getExportIntegrationActionFragments(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): Array<{text: string; url: string}> {
+function getExportIntegrationActionFragments(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, integrationName?: string): Array<{text: string; url: string}> {
     if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
         throw Error(`received wrong action type. actionName: ${reportAction?.actionName}`);
     }
@@ -2756,9 +2761,10 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
     const isPending = reportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
     const originalMessage = (getOriginalMessage(reportAction) ?? {}) as OriginalMessageExportIntegration;
     const {label, markedManually, automaticAction} = originalMessage;
+    const displayLabel = integrationName ?? label;
     const reimbursableUrls = originalMessage.reimbursableUrls ?? [];
     const nonReimbursableUrls = originalMessage.nonReimbursableUrls ?? [];
-    const travelInvoicingUrls = originalMessage.travelInvoicingUrls ?? [];
+    const travelBillingUrls = originalMessage.travelInvoicingUrls ?? [];
     const reportID = reportAction?.reportID;
     const wasExportedAfterBase62 = (reportAction?.created ?? '') > '2022-11-14';
     const base62ReportID = getBase62ReportID(Number(reportID));
@@ -2766,17 +2772,17 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
     const result: Array<{text: string; url: string}> = [];
     if (isPending) {
         result.push({
-            text: translate('report.actions.type.exportedToIntegration.pending', label),
+            text: translate('report.actions.type.exportedToIntegration.pending', displayLabel),
             url: '',
         });
     } else if (markedManually) {
         result.push({
-            text: translate('report.actions.type.exportedToIntegration.manual', label),
+            text: translate('report.actions.type.exportedToIntegration.manual', displayLabel),
             url: '',
         });
     } else if (automaticAction) {
         result.push({
-            text: translate('report.actions.type.exportedToIntegration.automaticActionOne', label),
+            text: translate('report.actions.type.exportedToIntegration.automaticActionOne', displayLabel),
             url: '',
         });
         const url = CONST.HELP_DOC_LINKS[label as keyof typeof CONST.HELP_DOC_LINKS];
@@ -2786,11 +2792,11 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
         });
     } else {
         result.push({
-            text: translate('report.actions.type.exportedToIntegration.automatic', label),
+            text: translate('report.actions.type.exportedToIntegration.automatic', displayLabel),
             url: '',
         });
     }
-    if (reimbursableUrls.length || nonReimbursableUrls.length || travelInvoicingUrls.length) {
+    if (reimbursableUrls.length || nonReimbursableUrls.length || travelBillingUrls.length) {
         result.push({
             text: translate('report.actions.type.exportedToIntegration.automaticActionThree'),
             url: '',
@@ -2799,8 +2805,8 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
 
     const hasReimbursable = reimbursableUrls.length > 0;
     const hasNonReimbursable = nonReimbursableUrls.length > 0;
-    const hasTravelInvoicing = travelInvoicingUrls.length > 0;
-    const linkItemCount = (hasReimbursable ? 1 : 0) + (hasNonReimbursable ? 1 : 0) + (hasTravelInvoicing ? 1 : 0);
+    const hasTravelBilling = travelBillingUrls.length > 0;
+    const linkItemCount = (hasReimbursable ? 1 : 0) + (hasNonReimbursable ? 1 : 0) + (hasTravelBilling ? 1 : 0);
 
     if (reimbursableUrls.length === 1) {
         const reimbursableUrl = reimbursableUrls.at(0) ?? '';
@@ -2815,7 +2821,7 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
             url: reimbursableUrl.startsWith('https://') ? reimbursableUrl : '',
         });
     }
-    if (hasReimbursable && (hasNonReimbursable || hasTravelInvoicing) && linkItemCount === 2) {
+    if (hasReimbursable && (hasNonReimbursable || hasTravelBilling) && linkItemCount === 2) {
         result.push({
             text: translate('common.and'),
             url: '',
@@ -2864,19 +2870,19 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
         result.push({text, url});
     }
 
-    if (nonReimbursableUrls.length && travelInvoicingUrls.length) {
+    if (nonReimbursableUrls.length && travelBillingUrls.length) {
         result.push({
             text: translate('common.and'),
             url: '',
         });
     }
-    if (travelInvoicingUrls.length) {
+    if (travelBillingUrls.length) {
         const text = translate('report.actions.type.exportedToIntegration.travelCardLink');
         let url = '';
 
-        if (travelInvoicingUrls.length === 1) {
-            const travelInvoicingUrl = travelInvoicingUrls.at(0) ?? '';
-            url = travelInvoicingUrl.startsWith('https://') ? travelInvoicingUrl : '';
+        if (travelBillingUrls.length === 1) {
+            const travelBillingUrl = travelBillingUrls.at(0) ?? '';
+            url = travelBillingUrl.startsWith('https://') ? travelBillingUrl : '';
         } else if (label === CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite) {
             url = NETSUITE_NON_REIMBURSABLE_EXPENSES_URL_PREFIX;
             url += wasExportedAfterBase62 ? base62ReportID : reportID;
@@ -3333,13 +3339,38 @@ function getCustomUnitRateDateRangeForMessage(translate: LocalizedTranslate, dat
 }
 
 function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, action: ReportAction): string {
-    const {customUnitName, customUnitRateName, updatedField, oldValue, newValue, newTaxPercentage, oldTaxPercentage, newStartDate, newEndDate, oldStartDate, oldEndDate} =
-        getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE>) ?? {};
+    const {
+        customUnitName,
+        customUnitRateName,
+        updatedField,
+        oldValue,
+        newValue,
+        oldRate,
+        newRate,
+        currency,
+        newTaxPercentage,
+        oldTaxPercentage,
+        newStartDate,
+        newEndDate,
+        oldStartDate,
+        oldEndDate,
+    } = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE>) ?? {};
 
     const {RATE_CHANGELOG_UPDATED_FIELD} = CONST.CUSTOM_UNITS;
 
     if (customUnitName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.NAME && typeof oldValue === 'string' && typeof newValue === 'string') {
         return translate('workspaceActions.updatedCustomUnitRateName', customUnitName, oldValue, newValue);
+    }
+
+    if (customUnitName && customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.RATE && typeof oldRate === 'number' && typeof newRate === 'number' && currency) {
+        return translate(
+            'workspaceActions.updatedCustomUnitRate',
+            customUnitName,
+            customUnitRateName,
+            updatedField,
+            convertAmountToDisplayString(newRate, currency),
+            convertAmountToDisplayString(oldRate, currency),
+        );
     }
 
     if (customUnitName && customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.RATE && typeof oldValue === 'string' && typeof newValue === 'string') {
@@ -3607,6 +3638,17 @@ function getRequireCompanyCardsEnabledMessage(translate: LocalizedTranslate, act
     const {enabled} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED>) ?? {};
 
     return translate('workspaceActions.updatedRequireCompanyCards', {enabled: !!enabled});
+}
+
+function getCurrencyConversionFeeMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    const preference = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE) ? getOriginalMessage(action)?.preference : undefined;
+
+    // The employee pays until a company opts in, so an action without a preference means the employee pays.
+    const preferenceLabel = translate(
+        preference === CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY ? 'workflowsCurrencyConversionFeesPage.companyPays' : 'workflowsCurrencyConversionFeesPage.employeePays',
+    );
+
+    return translate('workspaceActions.updatedCurrencyConversionFee', {preferenceLabel});
 }
 
 function getAutoPayApprovedReportsEnabledMessage(translate: LocalizedTranslate, action: ReportAction): string {
@@ -4550,6 +4592,41 @@ function getChangedApproverActionMessage(translate: LocalizedTranslate, reportAc
     return translate('iou.changeApprover.changedApproverMessage', actorAccountID);
 }
 
+function getDelegateSubmitMessage(
+    translate: LocalizedTranslate,
+    reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT>>,
+    currentUserEmail: string | undefined,
+): string {
+    const originalMessage = getOriginalMessage(reportAction);
+    const {originalManager, delegate, isOnPolicy = true} = originalMessage ?? {};
+
+    if (!originalManager || !delegate) {
+        Log.warn('ACTION_DELEGATE_SUBMIT action missing originalManager or delegate');
+        return '';
+    }
+
+    const isWingman = currentUserEmail === delegate;
+    const isOriginalManager = currentUserEmail === originalManager;
+
+    if (!isOnPolicy) {
+        if (isWingman) {
+            return translate('iou.changeApprover.delegateSubmitNotOnPolicyForWingman', originalManager);
+        }
+        if (isOriginalManager) {
+            return translate('iou.changeApprover.delegateSubmitNotOnPolicyAsOriginalManager', originalManager, delegate);
+        }
+        return translate('iou.changeApprover.delegateSubmitNotOnPolicy', originalManager, delegate);
+    }
+
+    if (isWingman) {
+        return translate('iou.changeApprover.delegateSubmitCannotApproveOwnReportForWingman', originalManager);
+    }
+    if (isOriginalManager) {
+        return translate('iou.changeApprover.delegateSubmitCannotApproveOwnReportAsOriginalManager', delegate);
+    }
+    return translate('iou.changeApprover.delegateSubmitCannotApproveOwnReport', originalManager, delegate);
+}
+
 function getHarvestCreatedExpenseReportMessage(reportID: string | undefined, reportName: string, translate: LocalizedTranslate) {
     const reportUrl = getReportURLForCurrentContext(reportID);
     const resolvedName = reportName || (reportID ? `#${reportID}` : '');
@@ -4927,6 +5004,7 @@ export {
     getNumberOfMoneyRequests,
     getOneTransactionThreadReportAction,
     getOneTransactionThreadReportID,
+    getTransactionThreadReportIDFromAction,
     getOriginalMessage,
     getAddedApprovalRuleMessage,
     getDeletedApprovalRuleMessage,
@@ -5025,6 +5103,7 @@ export {
     shouldHideNewMarker,
     shouldReportActionBeVisible,
     isReportActionVisible,
+    isReportActionVisibleAsLastAction,
     wasActionTakenByCurrentUser,
     isInviteOrRemovedAction,
     isActionableAddPaymentCard,
@@ -5058,6 +5137,7 @@ export {
     getRequireCompanyCardsEnabledMessage,
     getRequiresCategoryMessage,
     getRequiresTagMessage,
+    getCurrencyConversionFeeMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCategoryTaxRateMessage,
@@ -5134,6 +5214,7 @@ export {
     getVacationer,
     getSubmittedTo,
     getChangedApproverActionMessage,
+    getDelegateSubmitMessage,
     getUpdatedOwnershipMessage,
     getUpdatedDefaultTitleMessage,
     getUpdatedAutoHarvestingMessage,
