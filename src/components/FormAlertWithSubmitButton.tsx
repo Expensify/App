@@ -12,7 +12,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 import FormAlertWrapper from './FormAlertWrapper';
 
 type FormAlertWithSubmitButtonProps = WithSentryLabel & {
@@ -157,35 +157,32 @@ function FormAlertWithSubmitButton({
                     {shouldRenderFooterAboveSubmit && footerContent}
                     {isOffline && !enabledWhenOffline ? (
                         <Button
-                            success
-                            shouldBlendOpacity={shouldBlendOpacity}
+                            variant={isSubmitActionDangerous ? CONST.BUTTON_VARIANT.DANGER : CONST.BUTTON_VARIANT.SUCCESS}
+                            blendOpacity={shouldBlendOpacity}
                             isDisabled
-                            text={buttonText}
+                            size={useSmallerSubmitButtonSize ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
                             style={style}
-                            danger={isSubmitActionDangerous}
-                            medium={useSmallerSubmitButtonSize}
-                            large={!useSmallerSubmitButtonSize}
                             onMouseDown={shouldPreventDefaultFocusOnPress ? (e) => e.preventDefault() : undefined}
                             sentryLabel={sentryLabel}
-                        />
+                        >
+                            <Button.Text>{buttonText}</Button.Text>
+                        </Button>
                     ) : (
                         <Button
                             ref={buttonRef}
-                            success
-                            shouldBlendOpacity={shouldBlendOpacity}
-                            pressOnEnter={pressOnEnter}
-                            enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-                            text={buttonText}
+                            variant={isSubmitActionDangerous ? CONST.BUTTON_VARIANT.DANGER : CONST.BUTTON_VARIANT.SUCCESS}
+                            blendOpacity={shouldBlendOpacity}
+                            size={useSmallerSubmitButtonSize ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
                             style={style}
                             onPress={submit}
                             isDisabled={isDisabled}
                             isLoading={isLoading}
-                            danger={isSubmitActionDangerous}
-                            medium={useSmallerSubmitButtonSize}
-                            large={!useSmallerSubmitButtonSize}
                             onMouseDown={shouldPreventDefaultFocusOnPress ? (e) => e.preventDefault() : undefined}
                             sentryLabel={sentryLabel}
-                        />
+                        >
+                            {pressOnEnter && <Button.KeyboardShortcut enterKeyEventListenerPriority={enterKeyEventListenerPriority} />}
+                            <Button.Text>{buttonText}</Button.Text>
+                        </Button>
                     )}
                     {!shouldRenderFooterAboveSubmit && footerContent}
                 </View>
