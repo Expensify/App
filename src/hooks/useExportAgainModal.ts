@@ -1,10 +1,10 @@
-import {ModalActions} from '@components/Modal/Global/ModalContext';
+import { ModalActions } from '@components/Modal/Global/ModalContext';
 
-import {getAccountingIntegrationDisplayName} from '@libs/AccountingUtils';
-import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
-import {getConnectedIntegration, getValidConnectedIntegration} from '@libs/PolicyUtils';
+import { getAccountingIntegrationDisplayName } from '@libs/AccountingUtils';
+import { exportToIntegration, markAsManuallyExported } from '@libs/actions/Report';
+import { getConnectedIntegration, getValidConnectedIntegration } from '@libs/PolicyUtils';
 
-import type {ExportType} from '@pages/inbox/report/DynamicReportDetailsExportPage';
+import type { ExportType } from '@pages/inbox/report/DynamicReportDetailsExportPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,8 +15,8 @@ import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
 
 function useExportAgainModal(reportID: string | undefined, policyID: string | undefined) {
-    const {translate} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
+    const { translate } = useLocalize();
+    const { showConfirmModal } = useConfirmModal();
     const policy = usePolicy(policyID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
@@ -24,7 +24,7 @@ function useExportAgainModal(reportID: string | undefined, policyID: string | un
     const connectedIntegrationFallback = getConnectedIntegration(policy);
     const reportName = report?.reportName ?? '';
 
-    const triggerExportOrConfirm = (exportType: ExportType) => {
+    const triggerExportOrConfirm = (exportType: ExportType, onExportFailed?: () => void) => {
         const integrationForExport = exportType === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED ? connectedIntegrationFallback : connectedIntegration;
 
         if (!integrationForExport) {
@@ -46,14 +46,14 @@ function useExportAgainModal(reportID: string | undefined, policyID: string | un
                 return;
             }
             if (exportType === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-                exportToIntegration(reportID, integrationForExport, policy);
+                exportToIntegration(reportID, integrationForExport, policy, onExportFailed);
             } else if (exportType === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-                markAsManuallyExported([reportID], integrationForExport, policy);
+                markAsManuallyExported([reportID], integrationForExport, policy, onExportFailed);
             }
         });
     };
 
-    return {triggerExportOrConfirm};
+    return { triggerExportOrConfirm };
 }
 
 export default useExportAgainModal;

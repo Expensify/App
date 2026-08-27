@@ -10826,6 +10826,7 @@ const translations = {
         csvFailedBody: 'Your export could not be completed. Please try again later.',
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         receiptsFailedBody: 'Your receipts could not be downloaded. Please try again later.',
+        exportFailed: 'Export failed, please try again.',
         noReceiptsTitle: 'No receipts to download',
         noReceiptsBody: 'None of the expenses on this report have downloadable receipts.',
         receiptsPartialBody: ({count, total}: {count: number; total: number}) =>

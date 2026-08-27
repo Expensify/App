@@ -10871,6 +10871,7 @@ ${reportName}`,
         csvFailedBody: 'No se pudo completar la exportación. Inténtalo de nuevo más tarde.',
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         receiptsFailedBody: 'No se pudieron descargar los recibos. Inténtalo de nuevo más tarde.',
+        exportFailed: 'Exportación fallida, por favor inténtalo de nuevo.',
         noReceiptsTitle: 'No hay recibos para descargar',
         noReceiptsBody: 'Ninguno de los gastos en este informe tiene recibos descargables.',
         receiptsPartialBody: ({count, total}: {count: number; total: number}) =>
