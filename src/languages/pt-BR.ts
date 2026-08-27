@@ -10,14 +10,13 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
+import startsWithVowel from '@libs/StringUtils/startsWithVowel';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
@@ -498,6 +497,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Ano anterior',
         nextYear: 'Ano que vem',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} de ${total}`,
         editor: 'Editor',
         restrictions: 'Restrições',
         tryAgain: 'Tentar novamente',
@@ -1544,7 +1544,7 @@ const translations: TranslationDeepObject<typeof en> = {
         basedOnAI: 'com base na atividade anterior',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `com base nas <a href="${rulesLink}">regras do workspace</a>` : 'com base na regra do workspace'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `para ${comment}` : 'despesa'}`,
-        invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Relatório de fatura nº ${linkedReportID}`,
+        invoiceReportName: ({linkedReportID}: OriginalMessageReportPreview) => `Relatório de fatura nº ${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} enviado${comment ? `para ${comment}` : ''}`,
         movedFromPersonalSpace: (reportName?: string, workspaceName?: string) => `moveu a despesa do espaço pessoal para ${workspaceName ?? `conversar com ${reportName}`}`,
         movedToPersonalSpace: 'moveu a despesa para o espaço pessoal',
@@ -1860,7 +1860,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pageTitle: 'Selecione os detalhes que você quer manter:',
             noDifferences: 'Nenhuma diferença encontrada entre as transações',
             pleaseSelectError: ({field}: {field: string}) => {
-                const article = StringUtils.startsWithVowel(field) ? 'um' : 'a';
+                const article = startsWithVowel(field) ? 'um' : 'um';
                 return `Selecione ${article} ${field}`;
             },
             pleaseSelectAttendees: 'Selecione participantes',
