@@ -305,6 +305,17 @@ type ConfirmButtonOptions<TItem extends ListItem> = {
      * Defaults to large for backwards compatibility.
      */
     confirmButtonSize?: 'large' | 'medium' | 'small';
+
+    /**
+     * For a custom `footerContent` confirm control: whether that footer confirm button actually reacts to a plain
+     * Enter key on the current platform. The list reads this to decide whether to surrender its Enter shortcut to the
+     * footer (so Enter opens/confirms instead of toggling the focused row). Defaults to `true` — footers built with an
+     * unconditional `<Button.KeyboardShortcut />` are Enter-capable everywhere. Footers built on
+     * `FormAlertWithSubmitButton` must pass `false` on Android Native, where its `pressOnEnter` is force-disabled
+     * (Samsung keyboard workaround); otherwise the list would hand Enter to a footer that can't receive it and a
+     * hardware Enter would be dead.
+     */
+    isFooterConfirmEnterKeyEnabled?: boolean;
 };
 
 type SelectionListHandle<TItem extends ListItem> = {

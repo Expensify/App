@@ -20,8 +20,6 @@ import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import getPlatform from '@libs/getPlatform';
-
 import CONST from '@src/CONST';
 
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
@@ -211,15 +209,15 @@ function BaseSelectionListWithSectionsImpl({
     // their footer button's disabled state (e.g. ParticipantSearchResults' split-bill error) pass it through
     // `confirmButtonOptions.isDisabled` so a disabled footer button surrenders Enter back to the list.
     //
-    // Custom footers are additionally gated to non-Android-Native platforms: these invite footers are built on
-    // `FormAlertWithSubmitButton`, whose `pressOnEnter` is force-disabled on Android Native (Samsung keyboard workaround,
-    // see FormAlertWithSubmitButton.tsx), so the footer never listens for Enter there. Surrendering the list's Enter to a
-    // footer that can't receive it would leave a hardware Enter dead (neither the row nor the confirm reacts), so on
-    // Android Native we keep row Enter active. The built-in `showButton` path uses `ButtonKeyboardShortcut`, which is NOT
-    // platform-gated, so it stays Enter-capable everywhere.
-    const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
+    // A custom footer confirm counts only when it actually reacts to Enter on the current platform: owners whose footer
+    // is Enter-disabled there (e.g. `FormAlertWithSubmitButton`, whose `pressOnEnter` is force-disabled on Android
+    // Native — Samsung keyboard workaround) pass `isFooterConfirmEnterKeyEnabled: false` so the list keeps row Enter
+    // instead of handing it to a footer that can't receive it (which would leave a hardware Enter dead). Footers using an
+    // unconditional `<Button.KeyboardShortcut />` (e.g. NewChatPage's `createGroup`) are Enter-capable everywhere and
+    // need not pass it (defaults to enabled). The built-in `showButton` path always uses `ButtonKeyboardShortcut`, so it
+    // is Enter-capable on every platform.
     const hasSelectedItems = selectedItems.length > 0;
-    const isCustomFooterConfirmEnabled = !isAndroidNative && hasSelectedItems && confirmButtonOptions?.isDisabled !== true;
+    const isCustomFooterConfirmEnabled = hasSelectedItems && confirmButtonOptions?.isDisabled !== true && confirmButtonOptions?.isFooterConfirmEnterKeyEnabled !== false;
     const hasEnabledEnterConfirm =
         (!!confirmButtonOptions?.showButton && !confirmButtonOptions?.isDisabled) || (!!footerContent && !!confirmButtonOptions?.onConfirm && isCustomFooterConfirmEnabled);
 

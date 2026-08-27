@@ -19,6 +19,7 @@ import {clearErrors, openWorkspaceInvitePage as policyOpenWorkspaceInvitePage} f
 import {searchUserInServer} from '@libs/actions/Report';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -277,6 +278,9 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
                     confirmButtonOptions={{
                         onConfirm: inviteUser,
                         isDisabled: !selectedOptions.length,
+                        // The footer is a `FormAlertWithSubmitButton`, whose Enter handling is force-disabled on Android
+                        // Native, so the list must keep row Enter there instead of surrendering it to a dead footer.
+                        isFooterConfirmEnterKeyEnabled: getPlatform() !== CONST.PLATFORM.ANDROID,
                     }}
                     shouldShowLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}

@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {inviteToGroupChat, searchUserInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getPlatform from '@libs/getPlatform';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
@@ -196,6 +197,9 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
                 ListItem={InviteMemberListItem}
                 confirmButtonOptions={{
                     onConfirm: inviteUsers,
+                    // The footer is a `FormAlertWithSubmitButton`, whose Enter handling is force-disabled on Android
+                    // Native, so the list must keep row Enter there instead of surrendering it to a dead footer.
+                    isFooterConfirmEnterKeyEnabled: getPlatform() !== CONST.PLATFORM.ANDROID,
                 }}
                 shouldShowTextInput
                 textInputOptions={textInputOptions}
