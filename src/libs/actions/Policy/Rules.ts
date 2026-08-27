@@ -5,6 +5,7 @@ import type {
     DeletePolicyAgentRuleParams,
     GetAgentRuleSuggestionsParams,
     ImportMerchantRulesSpreadsheetParams,
+    ParsePolicyRuleParams,
     UpdatePolicyAgentRuleParams,
 } from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
@@ -18,10 +19,11 @@ import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleForm} from '@src/types/form';
+import NEW_RULE_PROMPT_INPUT_IDS from '@src/types/form/NewRulePromptForm';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type Policy from '@src/types/onyx/Policy';
 import type {AgentRule, CodingRule, CodingRuleFilter, CodingRuleTax} from '@src/types/onyx/Policy';
-import type {OnyxData} from '@src/types/onyx/Request';
+import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 
@@ -417,6 +419,68 @@ function deletePolicyCodingRule(policy: Policy, ruleID: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
 }
 
+/**
+ * Asks Concierge to turn a plain-English rule description into a structured rule.
+ *
+ * The answer arrives asynchronously on the returned parseID's Onyx key, since a background job does the work.
+ *
+ * @returns the parseID to read the answer under
+ */
+function parsePolicyRule(policyID: string, prompt: string): string {
+    const parseID = NumberUtils.rand64();
+
+    const optimisticData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_PARSED_POLICY_RULE,
+            value: true,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_PARSED_POLICY_RULE,
+            value: {parseID, state: CONST.PARSED_POLICY_RULE.STATE.PARSING},
+        },
+    ];
+
+    const failureData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_PARSED_POLICY_RULE,
+            value: false,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_PARSED_POLICY_RULE,
+            value: {parseID, state: CONST.PARSED_POLICY_RULE.STATE.FAILED},
+        },
+    ];
+
+    const parameters: ParsePolicyRuleParams = {policyID, parseID, prompt};
+
+    // No successData clears the loading flag: queueing the job is not the same as having the rule, so Auth
+    // clears it when it answers and the job clears it if it dies first.
+    API.write(WRITE_COMMANDS.PARSE_POLICY_RULE, parameters, {optimisticData, failureData});
+
+    return parseID;
+}
+
+/**
+ * Shows Concierge's answer as an inline error under the prompt.
+ */
+function setNewRulePromptError(message: string) {
+    Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {
+        errorFields: {[NEW_RULE_PROMPT_INPUT_IDS.PROMPT]: ErrorUtils.getMicroSecondOnyxErrorWithMessage(message)},
+    });
+}
+
+function clearNewRulePromptError() {
+    Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {errors: null, errorFields: null});
+}
+
+function clearParsedPolicyRule() {
+    Onyx.set(ONYXKEYS.NVP_PARSED_POLICY_RULE, null);
+}
+
 function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: string) {
     if (!policyID || !agentRuleID || !prompt) {
         Log.warn('Invalid params for addPolicyAgentRule', {policyID, agentRuleID, prompt});
@@ -693,6 +757,10 @@ export {
     deletePolicyCodingRule,
     getTransactionsMatchingCodingRule,
     addPolicyAgentRule,
+    parsePolicyRule,
+    clearParsedPolicyRule,
+    setNewRulePromptError,
+    clearNewRulePromptError,
     updatePolicyAgentRule,
     deletePolicyAgentRule,
     clearPolicyCodingRuleErrors,
