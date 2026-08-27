@@ -125,7 +125,7 @@ If you have a free Submit workspace, you can upgrade it to a paid Collect or Con
 Workspace Editors and anyone who approves a report on a Submit workspace can upgrade the workspace:
 
  - Workspace Editors can switch the **Plan type** in the workspace **Overview** tab.
- - Anyone who approves a report can upgrade the workspace by clicking Approve on a report submitted to them. 
+ - Anyone who approves a report can upgrade the workspace by clicking **Approve** on a report submitted to them. 
 
 You can’t downgrade a Collect or Control workspace back to a Submit workspace after upgrading.
 
