@@ -127,7 +127,6 @@ describe('ModifiedExpenseMessage', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                     owner: CURRENT_USER_LOGIN,
                     outputCurrency: CONST.CURRENCY.USD,
-                    isPolicyExpenseChatEnabled: true,
                 };
                 const result = getMovedFromOrToReportMessage(translateLocal, undefined, selfDMReport, CURRENT_USER_LOGIN, policy);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedToPersonalSpace');
@@ -160,7 +159,6 @@ describe('ModifiedExpenseMessage', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                     owner: CURRENT_USER_LOGIN,
                     outputCurrency: CONST.CURRENCY.USD,
-                    isPolicyExpenseChatEnabled: true,
                 };
                 const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_LOGIN, policy);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', policyExpenseReport.reportName, policy.name);
@@ -188,7 +186,6 @@ describe('ModifiedExpenseMessage', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                     owner: CURRENT_USER_LOGIN,
                     outputCurrency: CONST.CURRENCY.USD,
-                    isPolicyExpenseChatEnabled: true,
                 };
                 const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_LOGIN, policy);
                 // When a valid policy provides a name, the movedFromPersonalSpace message is returned
@@ -237,7 +234,6 @@ describe('ModifiedExpenseMessage', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                     owner: CURRENT_USER_LOGIN,
                     outputCurrency: CONST.CURRENCY.USD,
-                    isPolicyExpenseChatEnabled: true,
                 };
                 const result = getMovedFromOrToReportMessage(translateLocal, movedFromReport, undefined, CURRENT_USER_LOGIN, policy);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', movedFromReport.reportName ?? '');
@@ -1117,7 +1113,6 @@ describe('ModifiedExpenseMessage', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                     owner: 'test@example.com',
                     outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
                 };
 
                 jest.spyOn(PolicyUtils, 'isPolicyAdmin').mockReturnValue(true);
@@ -1553,7 +1548,6 @@ describe('ModifiedExpenseMessage', () => {
                         type: CONST.POLICY.TYPE.TEAM,
                         owner: 'test@example.com',
                         outputCurrency: CONST.CURRENCY.USD,
-                        isPolicyExpenseChatEnabled: true,
                     },
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
@@ -1760,7 +1754,6 @@ describe('ModifiedExpenseMessage', () => {
                         type: CONST.POLICY.TYPE.TEAM,
                         owner: 'test@example.com',
                         outputCurrency: CONST.CURRENCY.USD,
-                        isPolicyExpenseChatEnabled: true,
                     },
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
@@ -1810,7 +1803,6 @@ describe('ModifiedExpenseMessage', () => {
                         type: CONST.POLICY.TYPE.TEAM,
                         owner: 'test@example.com',
                         outputCurrency: CONST.CURRENCY.USD,
-                        isPolicyExpenseChatEnabled: true,
                     },
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
@@ -1862,7 +1854,6 @@ describe('ModifiedExpenseMessage', () => {
                         type: CONST.POLICY.TYPE.TEAM,
                         owner: 'owner@example.com',
                         outputCurrency: CONST.CURRENCY.USD,
-                        isPolicyExpenseChatEnabled: true,
                     },
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
@@ -1879,7 +1870,6 @@ describe('ModifiedExpenseMessage', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                     owner: 'test@example.com',
                     outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
                 };
 
                 jest.spyOn(PolicyUtils, 'isPolicyAdmin').mockReturnValue(true);
@@ -1972,7 +1962,6 @@ describe('ModifiedExpenseMessage', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                     owner: CURRENT_USER_LOGIN,
                     outputCurrency: CONST.CURRENCY.USD,
-                    isPolicyExpenseChatEnabled: true,
                 };
 
                 const result = getForReportAction({
@@ -2006,7 +1995,6 @@ describe('ModifiedExpenseMessage', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                     owner: CURRENT_USER_LOGIN,
                     outputCurrency: CONST.CURRENCY.USD,
-                    isPolicyExpenseChatEnabled: true,
                 };
 
                 const result = getForReportAction({
@@ -2078,7 +2066,6 @@ describe('ModifiedExpenseMessage', () => {
                         type: CONST.POLICY.TYPE.TEAM,
                         owner: 'test@example.com',
                         outputCurrency: CONST.CURRENCY.USD,
-                        isPolicyExpenseChatEnabled: true,
                     },
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
@@ -2124,7 +2111,6 @@ describe('ModifiedExpenseMessage', () => {
                         type: CONST.POLICY.TYPE.TEAM,
                         owner: 'test@example.com',
                         outputCurrency: CONST.CURRENCY.USD,
-                        isPolicyExpenseChatEnabled: true,
                     },
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
@@ -2173,7 +2159,6 @@ describe('ModifiedExpenseMessage', () => {
                         type: CONST.POLICY.TYPE.TEAM,
                         owner: 'test@example.com',
                         outputCurrency: CONST.CURRENCY.USD,
-                        isPolicyExpenseChatEnabled: true,
                     },
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
@@ -2222,7 +2207,6 @@ describe('ModifiedExpenseMessage', () => {
                         type: CONST.POLICY.TYPE.TEAM,
                         owner: 'test@example.com',
                         outputCurrency: CONST.CURRENCY.USD,
-                        isPolicyExpenseChatEnabled: true,
                     },
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
@@ -2268,7 +2252,6 @@ describe('ModifiedExpenseMessage', () => {
                         type: CONST.POLICY.TYPE.TEAM,
                         owner: 'test@example.com',
                         outputCurrency: CONST.CURRENCY.USD,
-                        isPolicyExpenseChatEnabled: true,
                     },
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
@@ -2291,7 +2274,6 @@ describe('ModifiedExpenseMessage', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 owner: 'test@example.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 connections: {
                     quickbooksOnline: {
                         data: {
@@ -2430,7 +2412,6 @@ describe('ModifiedExpenseMessage', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                     owner: 'test@example.com',
                     outputCurrency: CONST.CURRENCY.USD,
-                    isPolicyExpenseChatEnabled: true,
                     connections: {
                         xero: {
                             config: {isConfigured: true},

@@ -541,7 +541,6 @@ const policy: Policy = {
     type: CONST.POLICY.TYPE.TEAM,
     owner: '',
     outputCurrency: '',
-    isPolicyExpenseChatEnabled: false,
 };
 
 describe('ReportUtils', () => {
@@ -4523,7 +4522,6 @@ describe('ReportUtils', () => {
                         role: 'user',
                         owner: '',
                         outputCurrency: '',
-                        isPolicyExpenseChatEnabled: false,
                     } as const;
                     const moneyRequestOptions = temporary_getMoneyRequestOptions(
                         report,
@@ -4584,7 +4582,6 @@ describe('ReportUtils', () => {
                     role: 'user',
                     owner: '',
                     outputCurrency: '',
-                    isPolicyExpenseChatEnabled: false,
                     employeeList: {
                         [currentUserEmail]: {
                             email: currentUserEmail,
@@ -4653,7 +4650,6 @@ describe('ReportUtils', () => {
                     role: 'user',
                     owner: currentUserEmail,
                     outputCurrency: '',
-                    isPolicyExpenseChatEnabled: false,
                 };
                 Promise.all([
                     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${paidPolicy.id}`, paidPolicy),
@@ -5926,7 +5922,6 @@ describe('ReportUtils', () => {
                 type: CONST.POLICY.TYPE.CORPORATE,
                 owner: '',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: false,
                 employeeList: {
                     'lagertha2@vikings.net': {
                         email: 'lagertha2@vikings.net',
@@ -6189,7 +6184,6 @@ describe('ReportUtils', () => {
                 type: CONST.POLICY.TYPE.CORPORATE,
                 owner: '',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: false,
                 employeeList: {
                     'lagertha2@vikings.net': {
                         email: 'lagertha2@vikings.net',
@@ -6787,7 +6781,6 @@ describe('ReportUtils', () => {
             role: CONST.POLICY.ROLE.USER,
             owner: `owner${ownerAccountID}@test.com`,
             outputCurrency: 'USD',
-            isPolicyExpenseChatEnabled: true,
             approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
             approver: approverEmail,
             employeeList: {
@@ -13582,7 +13575,6 @@ describe('ReportUtils', () => {
             role: CONST.POLICY.ROLE.ADMIN,
             owner: 'test@example.com',
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             autoReporting: true,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
             harvesting: {
@@ -16110,7 +16102,6 @@ describe('ReportUtils', () => {
                     },
                 },
                 owner: currentUserEmail,
-                isPolicyExpenseChatEnabled: true,
             };
 
             const chatReport: Report = {
@@ -16198,7 +16189,6 @@ describe('ReportUtils', () => {
                     },
                 },
                 owner: currentUserEmail,
-                isPolicyExpenseChatEnabled: true,
             };
 
             const chatReport: Report = {
@@ -16295,7 +16285,6 @@ describe('ReportUtils', () => {
                     },
                 },
                 owner: currentUserEmail,
-                isPolicyExpenseChatEnabled: true,
             };
 
             const chatReport: Report = {
@@ -16405,7 +16394,6 @@ describe('ReportUtils', () => {
                     },
                 },
                 owner: currentUserEmail,
-                isPolicyExpenseChatEnabled: true,
             };
 
             const chatReport: Report = {
@@ -16494,7 +16482,6 @@ describe('ReportUtils', () => {
                     },
                 },
                 owner: currentUserEmail,
-                isPolicyExpenseChatEnabled: true,
             };
 
             const chatReport: Report = {
@@ -16581,7 +16568,6 @@ describe('ReportUtils', () => {
                     },
                 },
                 owner: currentUserEmail,
-                isPolicyExpenseChatEnabled: true,
             };
 
             const chatReport: Report = {
@@ -16674,7 +16660,6 @@ describe('ReportUtils', () => {
                 },
             },
             owner: currentUserEmail,
-            isPolicyExpenseChatEnabled: true,
         };
 
         const chatReport: Report = {
@@ -16820,7 +16805,6 @@ describe('ReportUtils', () => {
                 },
             },
             owner: currentUserEmail,
-            isPolicyExpenseChatEnabled: true,
         };
 
         const chatReport: Report = {
@@ -16948,7 +16932,6 @@ describe('ReportUtils', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: currentUserEmail,
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
         };
 
@@ -17219,7 +17202,6 @@ describe('ReportUtils', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: approverEmail,
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             approver: approverEmail,
             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             employeeList: {
@@ -20768,7 +20750,6 @@ describe('ReportUtils', () => {
             type: CONST.POLICY.TYPE.CORPORATE,
             owner: 'test@test.com',
             outputCurrency: 'USD',
-            isPolicyExpenseChatEnabled: true,
             taxRates: {
                 taxes: {
                     TAX_CODE_1: {

@@ -2916,7 +2916,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     arePerDiemRatesEnabled: true,
                     customUnits: {
                         ABCDEF: perDiemCustomUnit,
@@ -2926,7 +2925,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     arePerDiemRatesEnabled: true,
                     customUnits: {
                         ABCDEF: perDiemCustomUnit,
@@ -2945,7 +2943,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     arePerDiemRatesEnabled: true,
                     customUnits: {
                         ABCDEF: perDiemCustomUnit,
@@ -2955,7 +2952,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     arePerDiemRatesEnabled: true,
                     customUnits: {
                         ABCDEF: {
@@ -2968,7 +2964,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     arePerDiemRatesEnabled: true,
                     customUnits: {
                         ABCDEF: perDiemCustomUnit,
@@ -2986,7 +2981,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     // Migrated member: flag never arrived, but the configured custom unit is present
                     arePerDiemRatesEnabled: undefined,
                     customUnits: {
@@ -3004,7 +2998,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     // Explicit off must be respected, so the lingering custom unit cannot re-enable it
                     arePerDiemRatesEnabled: false,
                     customUnits: {

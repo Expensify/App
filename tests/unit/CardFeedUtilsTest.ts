@@ -34,7 +34,6 @@ function createTestPolicy(overrides: Partial<Policy> & Pick<Policy, 'id'>): Poli
         type: CONST.POLICY.TYPE.TEAM,
         owner: 'admin@test.com',
         outputCurrency: 'USD',
-        isPolicyExpenseChatEnabled: false,
         ...overrides,
     };
 }

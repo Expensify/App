@@ -216,7 +216,6 @@ describe('actions/Policy', () => {
             expect(policy?.arePerDiemRatesEnabled).toBe(false);
             expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
             expect(policy?.approver).toBe(ESH_EMAIL);
-            expect(policy?.isPolicyExpenseChatEnabled).toBe(true);
             expect(policy?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
             expect(policy?.employeeList).toEqual({[ESH_EMAIL]: {email: ESH_EMAIL, submitsTo: ESH_EMAIL, errors: {}, role: CONST.POLICY.ROLE.ADMIN}});
             expect(policy?.mccGroup).toBeDefined();
@@ -437,7 +436,6 @@ describe('actions/Policy', () => {
             expect(policy?.arePerDiemRatesEnabled).toBe(true);
             expect(policy?.approvalMode).toBe(fakePolicy.approvalMode);
             expect(policy?.approver).toBe(fakePolicy.approver);
-            expect(policy?.isPolicyExpenseChatEnabled).toBe(fakePolicy.isPolicyExpenseChatEnabled);
             expect(policy?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
             expect(policy?.employeeList).toEqual(fakePolicy.employeeList);
             expect(policy?.mccGroup).toBe(fakePolicy.mccGroup);
@@ -7288,7 +7286,6 @@ describe('actions/Policy', () => {
             expect(policyDraft?.role).toBe(CONST.POLICY.ROLE.ADMIN);
             expect(policyDraft?.outputCurrency).toBe('USD');
             expect(policyDraft?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-            expect(policyDraft?.isPolicyExpenseChatEnabled).toBe(true);
             expect(policyDraft?.areCategoriesEnabled).toBe(true);
             expect(policyDraft?.areCompanyCardsEnabled).toBe(true);
             expect(policyDraft?.areExpensifyCardsEnabled).toBe(false);

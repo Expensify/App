@@ -189,7 +189,6 @@ function createTestPolicy(overrides?: Partial<Policy>): Policy {
         owner: ACCOUNT_LOGIN,
         ownerAccountID: ACCOUNT_ID,
         outputCurrency: CONST.CURRENCY.USD,
-        isPolicyExpenseChatEnabled: true,
         ...overrides,
     } as Policy;
 }

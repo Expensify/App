@@ -34,7 +34,6 @@ const FAKE_POLICY: Policy = {
     type: 'corporate',
     owner: 'work.sa1206+travel@gmail.com',
     outputCurrency: 'USD',
-    isPolicyExpenseChatEnabled: true,
     customUnits: {
         C9031B6F4725D: {
             ...distanceCustomUnitBase,

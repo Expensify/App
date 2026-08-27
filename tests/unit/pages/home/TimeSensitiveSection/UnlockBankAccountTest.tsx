@@ -95,7 +95,6 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
             name: POLICY_NAME,
             role: CONST.POLICY.ROLE.ADMIN,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
             achAccount: {
                 bankAccountID: LOCKED_BANK_ACCOUNT_ID,
                 accountNumber: 'XXXXXXXX1234',
@@ -180,7 +179,6 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
             name: POLICY_NAME,
             role: CONST.POLICY.ROLE.USER,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
             achAccount: {
                 bankAccountID: LOCKED_BANK_ACCOUNT_ID,
                 accountNumber: 'XXXXXXXX1234',
@@ -208,7 +206,6 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
             name: 'Workspace One',
             role: CONST.POLICY.ROLE.ADMIN,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
             achAccount: {
                 bankAccountID: LOCKED_BANK_ACCOUNT_ID,
                 accountNumber: 'XXXXXXXX1234',
@@ -224,7 +221,6 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
             name: 'Workspace Two',
             role: CONST.POLICY.ROLE.ADMIN,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
             achAccount: {
                 bankAccountID: SECOND_LOCKED_BANK_ACCOUNT_ID,
                 accountNumber: 'XXXXXXXX5678',
@@ -255,7 +251,6 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
                 name: 'Workspace One',
                 role: CONST.POLICY.ROLE.ADMIN,
                 type: CONST.POLICY.TYPE.TEAM,
-                isPolicyExpenseChatEnabled: true,
                 achAccount: {
                     bankAccountID: LOCKED_BANK_ACCOUNT_ID,
                     accountNumber: 'XXXXXXXX1234',
@@ -271,7 +266,6 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
                 name: 'Workspace Two',
                 role: CONST.POLICY.ROLE.ADMIN,
                 type: CONST.POLICY.TYPE.TEAM,
-                isPolicyExpenseChatEnabled: true,
                 achAccount: {
                     bankAccountID: LOCKED_BANK_ACCOUNT_ID,
                     accountNumber: 'XXXXXXXX5678',
@@ -304,7 +298,6 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
             name: POLICY_NAME,
             role: CONST.POLICY.ROLE.ADMIN,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
             achAccount: {
                 bankAccountID: LOCKED_BANK_ACCOUNT_ID,
                 accountNumber: 'XXXXXXXX1234',

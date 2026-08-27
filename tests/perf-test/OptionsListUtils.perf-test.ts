@@ -82,7 +82,6 @@ const allPolicies = {
         type: CONST.POLICY.TYPE.TEAM,
         owner: 'test@expensify.com',
         outputCurrency: 'USD',
-        isPolicyExpenseChatEnabled: false,
         approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
     } as Policy,
 };
