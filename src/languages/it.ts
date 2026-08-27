@@ -8504,7 +8504,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             return `ha aggiunto l’aliquota fiscale "${newValue} (${newTaxPercentage})" alla tariffa distanza "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
+            if (oldValue !== undefined) {
                 return `ha modificato la parte di imposta recuperabile sulla tariffa distanza "${customUnitRateName}" a "${newValue}%" (in precedenza "${oldValue}%")`;
             }
             return `ha aggiunto una parte di imposta rimborsabile di "${newValue}%" alla tariffa distanza "${customUnitRateName}"`;

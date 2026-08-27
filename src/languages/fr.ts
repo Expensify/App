@@ -8571,7 +8571,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             return `a ajouté le taux de taxe « ${newValue} (${newTaxPercentage}) » au taux de distance « ${customUnitRateName} »`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
+            if (oldValue !== undefined) {
                 return `a modifié la part de taxe récupérable sur le taux de distance « ${customUnitRateName} » à « ${newValue}% » (auparavant « ${oldValue}% »)`;
             }
             return `a ajouté une partie de taxe récupérable de « ${newValue}% » au taux de distance « ${customUnitRateName} »`;

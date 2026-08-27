@@ -8396,7 +8396,7 @@ ${reportName}`,
             return `距離レート「${customUnitRateName}」に税率「${newValue}（${newTaxPercentage}）」を追加しました`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
+            if (oldValue !== undefined) {
                 return `距離レート「${customUnitRateName}」の税還付可能部分を「${newValue}%」（以前は「${oldValue}%」）に変更しました`;
             }
             return `距離単価「${customUnitRateName}」に対して、税金還付対象額「${newValue}%」を追加しました`;

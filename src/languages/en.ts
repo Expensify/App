@@ -8646,7 +8646,7 @@ const translations = {
             return `added the tax rate "${newValue} (${newTaxPercentage})" to the distance rate "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
+            if (oldValue !== undefined) {
                 return `changed the tax reclaimable portion on the distance rate "${customUnitRateName}" to "${newValue}%" (previously "${oldValue}%")`;
             }
             return `added a tax reclaimable portion of "${newValue}%" to the distance rate "${customUnitRateName}"`;

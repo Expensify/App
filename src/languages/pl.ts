@@ -8504,7 +8504,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             return `dodano stawkę podatku „${newValue} (${newTaxPercentage})” do stawki za dystans „${customUnitRateName}”`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
+            if (oldValue !== undefined) {
                 return `zmienił zwrotną część podatku w stawce za dystans „${customUnitRateName}” na „${newValue}%” (wcześniej „${oldValue}%”)`;
             }
             return `dodano odzyskiwalną część podatku w wysokości „${newValue}%” do stawki za dystans „${customUnitRateName}”`;

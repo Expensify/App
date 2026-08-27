@@ -8742,7 +8742,7 @@ ${reportName}`,
             return `πρόσθεσε τον φορολογικό συντελεστή «${newValue} (${newTaxPercentage})» στον συντελεστή απόστασης «${customUnitRateName}»`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
+            if (oldValue !== undefined) {
                 return `άλλαξε το ανακτήσιμο φόρου τμήμα στο τιμολόγιο απόστασης «${customUnitRateName}» σε «${newValue}%» (προηγουμένως «${oldValue}%»)`;
             }
             return `προστέθηκε φορολογικά επιστρεπτέο μέρος «${newValue}%» στο χιλιομετρικό κόστος «${customUnitRateName}»`;

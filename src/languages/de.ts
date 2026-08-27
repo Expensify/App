@@ -8542,7 +8542,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             return `die Steuerquote „${newValue} (${newTaxPercentage})“ zum Entfernungssatz „${customUnitRateName}“ hinzugefügt`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
+            if (oldValue !== undefined) {
                 return `hat den erstattungsfähigen Steueranteil im Distanzsatz „${customUnitRateName}“ auf „${newValue}%“ geändert (zuvor „${oldValue}%“)`;
             }
             return `eine steuerlich rückforderbare Komponente von „${newValue}%“ zum Distanzsatz „${customUnitRateName}“ hinzugefügt`;

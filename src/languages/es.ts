@@ -8393,7 +8393,7 @@ ${reportName}`,
             return `añadió la tasa de impuesto "${newValue} (${newTaxPercentage})" a la tasa de distancia "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName, newValue, oldValue) => {
-            if (oldValue) {
+            if (oldValue !== undefined) {
                 return `cambió la parte recuperable de impuestos en la tasa por distancia "${customUnitRateName}" a "${newValue}%" (previamente "${oldValue}%")`;
             }
             return `añadió una parte recuperable de impuestos de "${newValue}%" a la tasa por distancia "${customUnitRateName}"`;

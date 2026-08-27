@@ -8481,7 +8481,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             return `adicionou a alíquota de imposto "${newValue} (${newTaxPercentage})" à tarifa de distância "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
+            if (oldValue !== undefined) {
                 return `alterou a parte recuperável de impostos na taxa de distância "${customUnitRateName}" para "${newValue}%" (antes "${oldValue}%")`;
             }
             return `adicionou uma parte recuperável de impostos de "${newValue}%" à taxa de distância "${customUnitRateName}"`;

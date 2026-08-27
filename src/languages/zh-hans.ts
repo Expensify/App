@@ -8181,7 +8181,7 @@ ${reportName}`,
             return `已将税率“${newValue}（${newTaxPercentage}）”添加到距离费率“${customUnitRateName}”`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
+            if (oldValue !== undefined) {
                 return `已将距离费率“${customUnitRateName}”的可退税部分更改为“${newValue}%”（之前为“${oldValue}%”）`;
             }
             return `已将“${newValue}%”的可退税部分添加到距离费率“${customUnitRateName}”中`;
