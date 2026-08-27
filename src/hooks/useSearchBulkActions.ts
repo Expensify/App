@@ -65,6 +65,7 @@ import {
     isIndividualInvoiceRoom,
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
+    isOneTransactionReport,
     isSelfDM,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
@@ -1759,7 +1760,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every((id) => selectedReportIDs.includes(id));
             const typeInvoice = queryJSON?.type === CONST.REPORT.TYPE.INVOICE;
             const typeExpense = queryJSON?.type === CONST.REPORT.TYPE.EXPENSE;
-            const isAllOneTransactionReport = Object.values(selectedTransactions).every((transaction) => transaction.isFromOneTransactionReport);
+            // Derive the one-transaction-report check from the live search snapshot rather than the value frozen
+            // into each selection at click time. When a row is selected before its report finishes hydrating,
+            // the frozen `isFromOneTransactionReport` can be stale (e.g. `false` because `transactionCount` wasn't
+            // loaded yet), which produced the wrong export options until the user unselected and reselected.
+            // Resolving the report live lets the options recompute as soon as report data lands (both
+            // `currentSearchResults?.data` and `allReports` are already memo deps), with a fallback to the frozen
+            // value when live data isn't available.
+            const isAllOneTransactionReport = Object.values(selectedTransactions).every((transaction) => {
+                const snapshotReport = transaction.reportID ? getReportFromSearchSnapshot(transaction.reportID, currentSearchResults?.data, allReports) : undefined;
+                return snapshotReport ? isOneTransactionReport(snapshotReport) : transaction.isFromOneTransactionReport;
+            });
 
             const includeReportLevelExport = ((isExpenseReportType || typeInvoice) && areFullReportsSelected) || (typeExpense && !isExpenseReportType && isAllOneTransactionReport);
 
