@@ -600,10 +600,9 @@ function getQueryHashes(query: SearchQueryJSON) {
     // Only filters that are part of a suggested search's base query should affect the
     // similarSearchHash (i.e. the tab identity). All other flat filters are user-applied
     // refinements within the same tab and must not change the tab identity or the
-    // backend searchKey derived from it. FEED is intentionally excluded because it is
-    // a user-applied refinement in reconciliation even though it is part of the
-    // UNAPPROVED_CARD base query — UNAPPROVED_CARD is still uniquely identified by its
-    // groupBy and status.
+    // backend searchKey derived from it. Some base-query filters (e.g. FEED, POSTED)
+    // are intentionally excluded because their tabs are still uniquely identified by
+    // other base-query filters (groupBy + status).
     const similarSearchIdentityFilters = new Set<SearchFilterKey>([
         CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
         CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
