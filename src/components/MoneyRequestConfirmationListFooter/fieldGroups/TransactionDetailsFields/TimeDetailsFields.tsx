@@ -13,7 +13,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 
 type TimeDetailsFieldsProps = DetailsFieldsProps & {
-    /** Active policy (read by Amount/Description) */
+    /** Active policy */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Pre-formatted amount values */
@@ -24,19 +24,9 @@ type TimeDetailsFieldsProps = DetailsFieldsProps & {
 
     /** Error state surfaced into Amount */
     errorState: ErrorState;
-
-    /** Whether the parent-owned participant picker modal is currently open (new manual expense flow) */
-    isParticipantPickerVisible: boolean;
 };
 
-/**
- * The expense-type-driven fields for a time confirmation: Amount, Description and the hours/rate fields.
- *
- * Merchant is never shown — a time confirmation is always reached with `action === CREATE`, which is
- * exactly the case the caller suppresses it for (`shouldShowMerchant`). Distance and Rate belong to
- * distance expenses, so no distance data is threaded here.
- */
-function TimeDetailsFields({policy, amountDisplay, isDescriptionRequired, errorState, isParticipantPickerVisible, fieldVisibility, iouCurrencyCode}: TimeDetailsFieldsProps) {
+function TimeDetailsFields({policy, amountDisplay, isDescriptionRequired, errorState, fieldVisibility, iouCurrencyCode}: TimeDetailsFieldsProps) {
     const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isNewManualExpenseFlowEnabled} = useConfirmationFields();
     const shouldAutoFocusAmountField = !canUseTouchScreen();
 
@@ -59,7 +49,6 @@ function TimeDetailsFields({policy, amountDisplay, isDescriptionRequired, errorS
                     reportActionID={reportActionID}
                     policy={policy}
                     autoFocus={shouldAutoFocusAmountField}
-                    isParticipantPickerVisible={isParticipantPickerVisible}
                     {...errorState}
                 />
             )}

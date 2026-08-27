@@ -94,14 +94,8 @@ function DefaultFooter({
 
                 <ReceiptSection
                     policy={policy}
-                    isReceiptEditable={receiptOptions.isReceiptEditable ?? false}
-                    shouldDisplayReceipt={receiptOptions.shouldDisplayReceipt}
-                    isLoadingReceipt={receiptOptions.isLoadingReceipt ?? false}
-                    receiptPath={receiptOptions.receiptPath}
-                    receiptFilename={receiptOptions.receiptFilename}
                     showMoreFields={showMoreFields}
-                    onPDFLoadError={receiptOptions.onPDFLoadError}
-                    onPDFPassword={receiptOptions.onPDFPassword}
+                    {...receiptOptions}
                 />
 
                 {!!receiptStitchError && (

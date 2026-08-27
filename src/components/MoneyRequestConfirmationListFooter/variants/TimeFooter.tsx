@@ -29,7 +29,7 @@ function TimeFooter({
     requiredFlags,
     visibilityFlags,
     errorState,
-    toggleHandlers,
+    toggleHandlers = {},
     receiptOptions,
     scrollFocusedInputIntoView,
     onSubmitForm,
@@ -45,7 +45,6 @@ function TimeFooter({
             amountDisplay={amountDisplay}
             isDescriptionRequired={requiredFlags.isDescriptionRequired}
             errorState={errorState}
-            isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
         />
     );
 
@@ -79,7 +78,7 @@ function TimeFooter({
                     requiredFlags={requiredFlags}
                     visibilityFlags={visibilityFlags}
                     errorState={errorState}
-                    toggleHandlers={toggleHandlers ?? {}}
+                    toggleHandlers={toggleHandlers}
                     renderTransactionDetailsFields={renderTransactionDetailsFields}
                 />
             </View>
