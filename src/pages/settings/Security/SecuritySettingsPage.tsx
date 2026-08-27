@@ -183,6 +183,12 @@ function SecuritySettingsPage() {
             icon: icons.ClosedSign,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.CLOSE_ACCOUNT,
             action: async () => {
+                // Copiloting into an agent is also a delegate session and must fall through to the
+                // agent-delete flow below, so only plain delegates are blocked here.
+                if (isActingAsDelegate && !isCopilotingIntoAgent) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
                 if (isAccountLocked) {
                     showLockedAccountModal();
                     return;

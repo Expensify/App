@@ -25,6 +25,7 @@ import useUserToInviteReports from '@hooks/useUserToInviteReports';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import goToSettings from '@libs/goToSettings';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
+import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatSectionsFromSearchTerm, getHeaderMessage, getParticipantsOption, getPolicyExpenseReportOption, isCurrentUser} from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
@@ -322,7 +323,9 @@ function ParticipantSearchResults({
         );
         sections.push({...formatResults.section, sectionIndex: 0});
 
-        const workspaceChats = (availableOptions.workspaceChats ?? []).filter((option) => !selectedParticipantKeys.has(getParticipantOptionKey(option)));
+        const workspaceChats = (availableOptions.workspaceChats ?? []).filter(
+            (option) => !selectedParticipantKeys.has(getParticipantOptionKey(option)) && !isTeachersUnitePolicyID(option.policyID),
+        );
         if (workspaceChats.length > 0) {
             sections.push({
                 title: translate('workspace.common.workspace'),

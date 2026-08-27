@@ -163,6 +163,11 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
     originalApprovers: Approver[];
 
     /**
+     * Email of the member whose workflow this edit session belongs to.
+     */
+    memberEmail?: string;
+
+    /**
      * Whether the user is in the initial creation flow
      */
     isInitialFlow?: boolean;

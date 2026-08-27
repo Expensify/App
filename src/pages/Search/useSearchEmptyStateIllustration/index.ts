@@ -4,7 +4,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type UseSearchEmptyStateIllustration from './types';
 
 const useSearchEmptyStateIllustration: UseSearchEmptyStateIllustration = () => {
-    const illustrations = useMemoizedLazyIllustrations(['Fireworks', 'FolderWithPapersAndWatch']);
+    const illustrations = useMemoizedLazyIllustrations(['Fireworks', 'FolderWithPapersAndWatch', 'EmptyStateSearchExpenses']);
     const styles = useThemeStyles();
 
     return {
@@ -14,6 +14,10 @@ const useSearchEmptyStateIllustration: UseSearchEmptyStateIllustration = () => {
         },
         folder: {
             headerMedia: illustrations.FolderWithPapersAndWatch,
+            headerContentStyles: [styles.emptyStateFolderStaticIllustration],
+        },
+        expenses: {
+            headerMedia: illustrations.EmptyStateSearchExpenses,
             headerContentStyles: [styles.emptyStateFolderStaticIllustration],
         },
     };

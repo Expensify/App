@@ -54,7 +54,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
     const {preferredLocale} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
 
-    const {getLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
+    const {getLabel, getShortLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
     const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
 
     const handleItemPress = (filterQuery: string) => {
@@ -90,6 +90,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
         <ChartComponent
             data={data}
             getLabel={(item) => StringUtils.normalize(getLabel(item))}
+            getShortLabel={getShortLabel}
             getFilterQuery={getFilterQuery}
             onItemPress={handleItemPress}
             isLoading={isLoading}

@@ -25,6 +25,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
+import {clearActiveTransactionIDs, setActiveTransactionIDs, shouldWriteActiveTransactionIDsForSearch} from '@libs/actions/TransactionThreadNavigation';
 import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -62,7 +63,7 @@ import {
     getNavigateToReportsSpans,
 } from '@libs/telemetry/navigateToReportsSpans';
 import {cancelSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
-import {isTransactionPendingDelete, shouldShowAttendees} from '@libs/TransactionUtils';
+import {isDeletedTransaction, isTransactionPendingDelete, shouldShowAttendees} from '@libs/TransactionUtils';
 
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -384,14 +385,7 @@ function Search({
             return;
         }
 
-        Log.info('[Search] Showing skeleton', false, {
-            isOffline,
-            isDataLoaded,
-            isCardFeedsLoading,
-            isSearchLoading: !!searchResults?.search?.isLoading,
-            hasErrors,
-            shouldUseLiveData,
-        });
+        Log.info('[Search] Showing skeleton', false, {isOffline, isDataLoaded, isCardFeedsLoading, isSearchLoading: !!searchResults?.search?.isLoading, hasErrors, shouldUseLiveData});
     }, [hasErrors, isCardFeedsLoading, isDataLoaded, isOffline, searchResults?.search?.isLoading, shouldShowLoadingState, shouldUseLiveData]);
 
     useEffect(() => {
@@ -566,6 +560,16 @@ function Search({
         }, 0);
     }, [areItemsGrouped, filteredData]);
 
+    const carouselSiblingTransactionIDs = useMemo(
+        () =>
+            (filteredData as SearchListItem[])
+                .filter(
+                    (t): t is TransactionListItemType => !!t && isTransactionListItemType(t) && t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedTransaction(t),
+                )
+                .map((t) => t.transactionID),
+        [filteredData],
+    );
+
     const onSelectRow = useCallback(
         (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
             if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -574,6 +578,17 @@ function Search({
 
             const isTransactionItem = isTransactionListItemType(item);
             const backTo = Navigation.getActiveRoute();
+
+            // When opening an expense from the Spend page (flat transaction list), populate the carousel
+            // with all sibling transactions so prev/next navigation works in the RHP transaction view.
+            if (isTransactionItem) {
+                if (carouselSiblingTransactionIDs.length > 1) {
+                    setActiveTransactionIDs(carouselSiblingTransactionIDs, hash);
+                } else {
+                    clearActiveTransactionIDs();
+                }
+            }
+
             // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
             if (isTransactionItem && !item?.reportAction?.childReportID) {
                 // If the report is unreported (self DM), we want to open the track expense thread instead of a report with an ID of 0
@@ -680,10 +695,7 @@ function Search({
                     allowPostSearchRecount: true,
                 });
 
-                const route = ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({
-                    reportID,
-                    backTo,
-                });
+                const route = ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo});
                 if (openInternalRouteInNewTab(route, event)) {
                     return;
                 }
@@ -698,11 +710,7 @@ function Search({
                     isCreatedTaskReportAction(reportActionItem) && (isOptimisticCreatedTaskAction || reportActionItem.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                 const reportActionID = shouldSkipReportActionID ? undefined : reportActionItem.reportActionID;
-                const route = ROUTES.SEARCH_REPORT.getRoute({
-                    reportID,
-                    reportActionID,
-                    backTo,
-                });
+                const route = ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo});
                 if (openInternalRouteInNewTab(route, event)) {
                     return;
                 }
@@ -743,13 +751,30 @@ function Search({
             email,
             accountID,
             queryJSON,
+            hash,
             offset,
             searchResults?.search?.hasMoreResults,
             currentSearchKey,
+            carouselSiblingTransactionIDs,
             getCurrencyDecimals,
             conciergeChat,
         ],
     );
+
+    const carouselSiblingsKey = carouselSiblingTransactionIDs.join(',');
+    const [activeCarouselSnapshotHash] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH);
+    const [activeCarouselTransactionIDs] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+
+    useEffect(() => {
+        if (shouldShowLoadingState) {
+            return;
+        }
+        if (!shouldWriteActiveTransactionIDsForSearch(activeCarouselTransactionIDs, activeCarouselSnapshotHash, hash, carouselSiblingTransactionIDs)) {
+            return;
+        }
+        setActiveTransactionIDs(carouselSiblingTransactionIDs, hash);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- carouselSiblingsKey is an order-sensitive proxy for the array, which is rebuilt on every search data change
+    }, [carouselSiblingsKey, activeCarouselSnapshotHash, activeCarouselTransactionIDs, hash, shouldShowLoadingState]);
 
     // getColumnsToShow allocates a fresh array on every call; preserve the previous reference
     // when contents are equal so downstream consumers don't re-render on Onyx snapshot churn
@@ -814,9 +839,7 @@ function Search({
     const onLayoutBase = useCallback(() => {
         hasHadFirstLayout.current = true;
         onDestinationVisible?.(isSearchResultsEmptyRef.current, 'layout');
-        endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
-            [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true,
-        });
+        endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
         endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_FIRST);
         endNavigateToReportsContentLoad();
         TransitionTracker.runAfterTransitions({
@@ -871,9 +894,7 @@ function Search({
 
     const onLayoutChart = useCallback(() => {
         hasHadFirstLayout.current = true;
-        endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
-            [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true,
-        });
+        endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
         endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_FIRST);
         endNavigateToReportsContentLoad();
     }, []);
@@ -962,13 +983,7 @@ function Search({
     );
 
     const amountIndicators = useMemo(
-        () =>
-            searchResults?.data
-                ? getWideAmountIndicators(searchResults.data)
-                : {
-                      shouldShowAmountInWideColumn: false,
-                      shouldShowTaxAmountInWideColumn: false,
-                  },
+        () => (searchResults?.data ? getWideAmountIndicators(searchResults.data) : {shouldShowAmountInWideColumn: false, shouldShowTaxAmountInWideColumn: false}),
         [searchResults?.data],
     );
 

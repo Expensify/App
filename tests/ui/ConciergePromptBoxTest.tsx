@@ -11,6 +11,7 @@ import {isSafari} from '@libs/Browser';
 import ConciergePromptBox from '@pages/home/ForYouSection/ConciergePromptBox';
 
 import {close} from '@userActions/Modal';
+import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -88,11 +89,18 @@ jest.mock('@userActions/Modal', () => ({
     close: jest.fn(),
 }));
 
+jest.mock('@userActions/Session', () => ({
+    isAnonymousUser: jest.fn(() => false),
+    signOutAndRedirectToSignIn: jest.fn(),
+}));
+
 const mockUseAskConcierge = jest.mocked(useAskConcierge);
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 const mockUseKeyboardState = jest.mocked(useKeyboardState);
 const mockIsSafari = jest.mocked(isSafari);
 const mockClose = jest.mocked(close);
+const mockIsAnonymousUser = jest.mocked(isAnonymousUser);
+const mockSignOutAndRedirectToSignIn = jest.mocked(signOutAndRedirectToSignIn);
 
 function ConciergePromptBoxWrapper() {
     const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -162,6 +170,7 @@ describe('ConciergePromptBox', () => {
         setResponsiveLayout(false);
         setKeyboardShown(false);
         mockIsSafari.mockReturnValue(false);
+        mockIsAnonymousUser.mockReturnValue(false);
     });
 
     describe('sending a message', () => {
@@ -307,6 +316,50 @@ describe('ConciergePromptBox', () => {
             // Then the attachments are sent with the message and the input is emptied
             expect(mockAskConciergeWithAttachment).toHaveBeenCalledWith(files, 'Here it is');
             expect(getInput()).toHaveDisplayValue('');
+        });
+    });
+
+    describe('anonymous user', () => {
+        beforeEach(() => {
+            mockIsAnonymousUser.mockReturnValue(true);
+        });
+
+        it('asks to sign in instead of sending on the send button', () => {
+            // Given an anonymous user with a typed message
+            render(<ConciergePromptBoxWrapper />);
+            fireEvent.changeText(getInput(), 'Where is my expense?');
+
+            // When the send button is pressed
+            fireEvent.press(screen.getByLabelText(SEND_BUTTON));
+
+            // Then nothing is sent and the sign in flow opens
+            expect(mockAskConcierge).not.toHaveBeenCalled();
+            expect(mockSignOutAndRedirectToSignIn).toHaveBeenCalled();
+        });
+
+        it('asks to sign in instead of sending on Enter', () => {
+            // Given an anonymous user with a typed message
+            render(<ConciergePromptBoxWrapper />);
+            fireEvent.changeText(getInput(), 'Where is my expense?');
+
+            // When Enter is pressed
+            pressEnter();
+
+            // Then nothing is sent and the sign in flow opens
+            expect(mockAskConcierge).not.toHaveBeenCalled();
+            expect(mockSignOutAndRedirectToSignIn).toHaveBeenCalled();
+        });
+
+        it('asks to sign in instead of opening the actions menu', () => {
+            // Given an anonymous user
+            render(<ConciergePromptBoxWrapper />);
+
+            // When the "+" button is pressed
+            fireEvent.press(screen.getByLabelText(PLUS_BUTTON));
+
+            // Then the menu stays closed and the sign in flow opens
+            expect(screen.queryByLabelText(ADD_ATTACHMENT)).toBeNull();
+            expect(mockSignOutAndRedirectToSignIn).toHaveBeenCalled();
         });
     });
 

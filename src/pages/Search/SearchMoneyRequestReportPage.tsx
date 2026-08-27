@@ -231,7 +231,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
         return () => {
             // Cancel any pending send-message spans to prevent orphaned spans when navigating away
-            cancelSpansByPrefix(CONST.TELEMETRY.SPAN_SEND_MESSAGE);
+            cancelSpansByPrefix(CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE);
         };
     }, [reportIDFromRoute]);
 

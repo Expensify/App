@@ -171,13 +171,6 @@ function useComposerSubmit(reportID: string) {
                 [CONST.TELEMETRY.ATTRIBUTE_REPORT_ACTION_COUNT]: reportActionCount,
                 [CONST.TELEMETRY.ATTRIBUTE_MONEY_REQUEST_PREVIEW_COUNT]: moneyRequestPreviewCount,
             };
-            startSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${optimisticReportActionID}`, {
-                name: 'send-message',
-                op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
-                attributes,
-            });
-            // Dual-emit while validating the new anchor: same start, but ended at the message's onLayout
-            // (visibility) instead of the passive effect. Remove the effect-anchored span once compared.
             startSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${optimisticReportActionID}`, {
                 name: 'send-message-visible',
                 op: CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE,

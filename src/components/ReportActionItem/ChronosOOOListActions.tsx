@@ -60,7 +60,7 @@ function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
                                     : translate(
                                           'chronos.oooEventSummaryPartialDay',
                                           event.summary,
-                                          `${DateUtils.formatToLocalTime(start, dateFnsLocale)} - ${DateUtils.formatToLocalTime(end, dateFnsLocale)}`,
+                                          `${DateUtils.formatToLocalTime(translate, start)} - ${DateUtils.formatToLocalTime(translate, end)}`,
                                           DateUtils.formatToLongDateWithWeekday(end, dateFnsLocale),
                                       )}
                             </Text>

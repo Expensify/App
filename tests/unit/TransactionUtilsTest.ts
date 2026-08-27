@@ -1918,7 +1918,61 @@ describe('TransactionUtils', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
             };
 
-            expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, 'test@example.com')).toBe(false);
+            expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, CURRENT_USER_EMAIL, CURRENT_USER_ID)).toBe(false);
+        });
+
+        it('should return true for auto approval limit violation when the submitter is also the approver of the processing report', () => {
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                ownerAccountID: CURRENT_USER_ID,
+                managerID: CURRENT_USER_ID,
+            };
+
+            const policy: Policy = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, CURRENT_USER_EMAIL, CURRENT_USER_ID)).toBe(true);
+        });
+
+        it('should return false for auto approval limit violation when the submitter is not the approver of the processing report', () => {
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                ownerAccountID: CURRENT_USER_ID,
+                managerID: 2,
+            };
+
+            const policy: Policy = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, CURRENT_USER_EMAIL, CURRENT_USER_ID)).toBe(false);
+        });
+
+        it('should return true for auto approval limit violation when the approver is not the submitter of the processing report', () => {
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                ownerAccountID: 2,
+                managerID: CURRENT_USER_ID,
+            };
+
+            const policy: Policy = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, CURRENT_USER_EMAIL, CURRENT_USER_ID)).toBe(true);
         });
     });
 

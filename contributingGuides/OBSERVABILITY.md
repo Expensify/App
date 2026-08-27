@@ -58,7 +58,7 @@ In development, Sentry is always initialized but does not send data by default. 
 ### Constants
 
 Defined in `src/CONST/index.ts` under `CONST.TELEMETRY`:
-- Span names: `SPAN_OPEN_REPORT`, `SPAN_SEND_MESSAGE`
+- Span names: `SPAN_OPEN_REPORT`, `SPAN_SEND_MESSAGE_VISIBLE`
 - Tag names: `TAGS.ACTIVE_POLICY`, `TAGS.AUTHENTICATION_ERROR_TYPE`
 - Attribute names: `ATTRIBUTE_REPORT_ID`, `ATTRIBUTE_MESSAGE_LENGTH`
 - Configuration: `CONFIG.MEMORY_TRACKING_INTERVAL`
