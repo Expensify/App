@@ -7,7 +7,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useBlockManualOrOdometerDistanceRequest from '@hooks/useBlockManualOrOdometerDistanceRequest';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -112,7 +112,7 @@ function IOURequestEditReportCommon({
 
     const [perDiemWarningModalVisible, setPerDiemWarningModalVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
-    const blockManualOrOdometerDistanceRequestIfNeeded = useBlockManualOrOdometerDistanceRequest({
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         isManualDistanceRequest,
         isOdometerDistanceRequest,
     });
@@ -258,7 +258,7 @@ function IOURequestEditReportCommon({
             navigateBack();
             return;
         }
-        if (blockManualOrOdometerDistanceRequestIfNeeded(item.policyID)) {
+        if (blockDistanceRequestIfNeeded(item.policyID)) {
             return;
         }
         const itemPolicy = item.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] : undefined;
@@ -298,14 +298,14 @@ function IOURequestEditReportCommon({
     };
 
     const handleCreateReport = useCallback(() => {
-        if (blockManualOrOdometerDistanceRequestIfNeeded(policyForMovingExpenses?.id)) {
+        if (blockDistanceRequestIfNeeded(policyForMovingExpenses?.id)) {
             return;
         }
         if (!validatePerDiemMove(policyForMovingExpenses?.id)) {
             return;
         }
         createReport?.();
-    }, [blockManualOrOdometerDistanceRequestIfNeeded, validatePerDiemMove, policyForMovingExpenses?.id, createReport]);
+    }, [blockDistanceRequestIfNeeded, validatePerDiemMove, policyForMovingExpenses?.id, createReport]);
 
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions.length, translate]);
 

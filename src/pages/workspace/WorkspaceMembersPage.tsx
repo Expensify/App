@@ -10,7 +10,6 @@ import type {TableHandle} from '@components/Table';
 import type {WorkspaceMemberRowData, WorkspaceMembersTableColumnKey} from '@components/Tables/WorkspaceMembersTable';
 import WorkspaceMembersTable from '@components/Tables/WorkspaceMembersTable';
 import Text from '@components/Text';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextLink from '@components/TextLink';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -70,6 +69,7 @@ import {
     shouldFilterExpensifyTeam,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+import getShouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {generateAccountID} from '@libs/UserUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 
@@ -116,7 +116,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
-    const textInputRef = useRef<BaseTextInputRef>(null);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
@@ -191,6 +190,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             memberName: formatPhoneNumber(getPersonalDetailsByID(firstSelectedEmployeeAccountID, personalDetails)?.displayName ?? ''),
         });
     }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, personalDetails]);
+
     /**
      * Get members for the current workspace
      */
@@ -282,12 +282,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             prompt: confirmModalPrompt,
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
-            onModalHide: () => {
-                if (!textInputRef.current) {
-                    return;
-                }
-                textInputRef.current.focus();
-            },
         }).then(({action}) => {
             if (action !== ModalActions.CONFIRM) {
                 return;
@@ -451,7 +445,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const invitedMemberIndex = tableMembers.findIndex((member) => invitedEmails.includes(member.login));
 
         if (invitedMemberIndex !== -1) {
-            tableRef.current?.scrollToIndex({index: invitedMemberIndex, animated: false});
+            tableRef.current?.scrollToIndex({
+                index: invitedMemberIndex,
+                animated: false,
+                viewPosition: 0.5,
+            });
             tableRef.current?.highlightItems(invitedEmails);
             clearInviteDraft(policyID);
         }
@@ -515,8 +513,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         onNavigationCallBack: () => Navigation.goBack(),
     });
 
+    const hasSelectedRuleBot = selectedEmployees.some((email) => isRuleBotEnforcingRules(policyMemberEmailsToAccountIDs[email], policy));
+
     const changeUserRole = (role: ValueOf<typeof CONST.POLICY.ROLE>) => {
-        if (role !== CONST.POLICY.ROLE.ADMIN && selectedEmployees.some((email) => isRuleBotEnforcingRules(policyMemberEmailsToAccountIDs[email], policy))) {
+        if (role !== CONST.POLICY.ROLE.ADMIN && hasSelectedRuleBot) {
             showRuleBotGuardModal('changeRole', policyID);
             return;
         }
@@ -542,6 +542,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 text: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
                 icon: icons.RemoveMembers,
+                shouldSkipFocusRestore: true,
                 onSelected: askForConfirmationToRemove,
             });
         }
@@ -554,6 +555,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             text: translate('workspace.people.makeMember', {count: selectedEmployees.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
             icon: icons.User,
+            shouldSkipFocusRestore: hasSelectedRuleBot,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
         };
         const adminOption = {
@@ -567,24 +569,28 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             text: translate('workspace.people.makeAuditor', {count: selectedEmployees.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_AUDITOR,
             icon: icons.UserEye,
+            shouldSkipFocusRestore: hasSelectedRuleBot,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.AUDITOR),
         };
         const cardAdminOption = {
             text: translate('workspace.people.makeCardAdmin', {count: selectedEmployees.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_CARD_ADMIN,
             icon: icons.MakeAdmin,
+            shouldSkipFocusRestore: hasSelectedRuleBot,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.CARD_ADMIN),
         };
         const peopleAdminOption = {
             text: translate('workspace.people.makePeopleAdmin', {count: selectedEmployees.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_PEOPLE_ADMIN,
             icon: icons.MakeAdmin,
+            shouldSkipFocusRestore: hasSelectedRuleBot,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.PEOPLE_ADMIN),
         };
         const paymentsAdminOption = {
             text: translate('workspace.people.makePaymentsAdmin', {count: selectedEmployees.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_PAYMENTS_ADMIN,
             icon: icons.MakeAdmin,
+            shouldSkipFocusRestore: hasSelectedRuleBot,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.PAYMENTS_ADMIN),
         };
 
@@ -730,6 +736,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         if (!canWriteMembers) {
             return null;
         }
+        const bulkActionOptions = getBulkActionsButtonOptions();
         return (shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
             <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -737,7 +744,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 customText={translate('workspace.common.selected', {count: selectedEmployees.length})}
                 size={CONST.BUTTON_SIZE.MEDIUM}
                 onPress={() => null}
-                options={getBulkActionsButtonOptions()}
+                options={bulkActionOptions}
+                shouldPopoverUseScrollView={getShouldPopoverUseScrollView(bulkActionOptions)}
                 isSplitButton={false}
                 style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                 isDisabled={!selectedEmployees.length}
@@ -770,6 +778,21 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     };
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+    let tableHeaderComponent: React.ReactElement | undefined;
+    if (data.length > 0) {
+        tableHeaderComponent = shouldUseNarrowLayout ? (
+            <View style={[styles.pr5]}>{getHeaderContent()}</View>
+        ) : (
+            <>
+                {!!headerMessage && (
+                    <View style={[styles.ph5, styles.pb5]}>
+                        <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
+                    </View>
+                )}
+                {getHeaderContent()}
+            </>
+        );
+    }
 
     return (
         <WorkspacePageWithSections
@@ -804,8 +827,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         onClose={() => setIsDownloadFailureModalVisible(false)}
                     />
 
-                    {shouldUseNarrowLayout && data.length > 0 && <View style={[styles.pr5]}>{getHeaderContent()}</View>}
-                    {!shouldUseNarrowLayout && (
+                    {!shouldUseNarrowLayout && data.length === 0 && (
                         <>
                             {!!headerMessage && (
                                 <View style={[styles.ph5, styles.pb5]}>
@@ -825,6 +847,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         shouldShowCustomField1Column={shouldShowCustomField1Column}
                         shouldShowCustomField2Column={shouldShowCustomField2Column}
                         onRowSelectionChange={setSelectedEmployees}
+                        headerComponent={tableHeaderComponent}
                     />
                 </>
             )}

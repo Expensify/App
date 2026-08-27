@@ -3209,7 +3209,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether distance expenses on this policy must come from a mapped route or a GPS track, which rules out the manual and odometer flows */
         requireMapOrGPS?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
+    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | keyof WorkspaceTravelSettings | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
 >;
 
 /** Stages of policy connection sync */
