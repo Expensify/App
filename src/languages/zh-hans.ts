@@ -423,6 +423,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseReport: '报销报告',
         rateOutOfPolicy: '超出政策的费率',
         leaveWorkspace: '离开工作区',
+        leaveWorkspaceTitle: (workspaceName: string) => `离开${workspaceName}？`,
         leaveWorkspaceConfirmation: '如果你离开此工作区，将无法再向其提交报销。',
         leaveWorkspaceConfirmationAuditor: '如果你离开此工作区，将无法查看其报表和设置。',
         leaveWorkspaceConfirmationAdmin: '如果你离开此工作区，将无法管理其设置。',

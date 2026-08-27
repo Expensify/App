@@ -423,6 +423,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseReport: 'Έκθεση εξόδων',
         rateOutOfPolicy: 'Ποσοστό εκτός πολιτικής',
         leaveWorkspace: 'Έξοδος από τον χώρο εργασίας',
+        leaveWorkspaceTitle: (workspaceName: string) => `Έξοδος από ${workspaceName};`,
         leaveWorkspaceConfirmation: 'Αν αποχωρήσετε από αυτόν τον χώρο εργασίας, δεν θα μπορείτε να υποβάλλετε σε αυτόν έξοδα.',
         leaveWorkspaceConfirmationAuditor: 'Αν αποχωρήσετε από αυτόν τον χώρο εργασίας, δεν θα μπορείτε να δείτε τις αναφορές και τις ρυθμίσεις του.',
         leaveWorkspaceConfirmationAdmin: 'Αν αποχωρήσετε από αυτόν τον χώρο εργασίας, δεν θα μπορείτε να διαχειρίζεστε τις ρυθμίσεις του.',

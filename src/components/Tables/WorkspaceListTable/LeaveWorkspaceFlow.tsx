@@ -66,7 +66,7 @@ function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
             }
 
             showConfirmModal({
-                title: translate('common.leaveWorkspace'),
+                title: translate('common.leaveWorkspaceTitle', policy?.name ?? ''),
                 prompt,
                 confirmText: translate('common.leaveWorkspace'),
                 cancelText: translate('common.cancel'),

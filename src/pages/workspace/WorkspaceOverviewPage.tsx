@@ -327,9 +327,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
 
         showConfirmModal({
-            title: translate('common.leaveWorkspace'),
+            title: translate('common.leaveWorkspaceTitle', policyName),
             prompt,
-            confirmText: translate('common.leave'),
+            confirmText: translate('common.leaveWorkspace'),
             cancelText: translate('common.cancel'),
             danger: true,
         }).then((result) => {
