@@ -46,7 +46,6 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => P
         hasCompletedGuidedSetupFlow: boolean | undefined;
         betas: OnyxEntry<Beta[]>;
         hasReportActions: boolean | undefined;
-        /** The Concierge chat report, threaded so prepareOnboardingOnyxData no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
         conciergeChat: OnyxEntry<OnyxReport>;
     }) => PromotedAction;
 } & {

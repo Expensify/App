@@ -77,8 +77,7 @@ type ReportActionsListContentProps = {
     /** The ID of the report to display actions for */
     reportID: string;
 
-    /** The Concierge chat report, threaded so prepareOnboardingOnyxData no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
-    // TODO: Make conciergeChat required once all ReportActionsList surfaces pass it. Refactor issue: https://github.com/Expensify/App/issues/66411
+    // Make conciergeChat required once all ReportActionsList surfaces pass it. Refactor issue: https://github.com/Expensify/App/issues/66411
     conciergeChat?: OnyxEntry<OnyxTypes.Report>;
 
     /** Callback executed on list layout */
