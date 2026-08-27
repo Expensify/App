@@ -22,12 +22,6 @@ type AvatarCommonProps = {
     /** Set the size of Avatar */
     size?: AvatarSizeName;
 
-    /**
-     * The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'
-     * For workspace avatars this fill color is ignored — the colors are derived from the avatarID prop instead.
-     */
-    fill?: string;
-
     /** Test ID for the Avatar component */
     testID?: string;
 };

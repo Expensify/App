@@ -72,7 +72,6 @@ function SubscriptCardFeedAvatar({
                     <AvatarFromIcon
                         containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
                         icon={primaryAvatar}
-                        fill={primaryAvatar.fill}
                         size={size}
                         testID="ReportActionAvatars-Subscript-MainAvatar"
                     />

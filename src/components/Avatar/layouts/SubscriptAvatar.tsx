@@ -50,7 +50,6 @@ function SubscriptAvatar({primaryAvatar, secondaryAvatar, size, subscriptAvatarB
                     <AvatarFromIcon
                         containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
                         icon={primaryAvatar}
-                        fill={primaryAvatar.fill}
                         size={size}
                         testID="ReportActionAvatars-Subscript-MainAvatar"
                     />
@@ -65,7 +64,6 @@ function SubscriptAvatar({primaryAvatar, secondaryAvatar, size, subscriptAvatarB
                         <AvatarFromIcon
                             iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(borderWidthSize), StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor ?? theme.componentBG)]}
                             icon={secondaryAvatar}
-                            fill={secondaryAvatar.fill}
                             size={subscriptSize}
                             testID="ReportActionAvatars-Subscript-SecondaryAvatar"
                         />

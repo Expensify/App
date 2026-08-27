@@ -64,7 +64,6 @@ function PressableSubscriptAvatar({size, primaryAvatar, secondaryAvatar, onAvata
                         <AvatarFromIcon
                             containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
                             icon={primaryAvatar}
-                            fill={primaryAvatar.fill}
                             size={size}
                             testID="ReportActionAvatars-Subscript-MainAvatar"
                         />
@@ -85,7 +84,6 @@ function PressableSubscriptAvatar({size, primaryAvatar, secondaryAvatar, onAvata
                         <AvatarFromIcon
                             iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(borderWidthSize), StyleUtils.getBorderColorStyle(theme.componentBG)]}
                             icon={secondaryAvatar}
-                            fill={secondaryAvatar.fill}
                             size={subscriptSize}
                             testID="ReportActionAvatars-Subscript-SecondaryAvatar"
                         />

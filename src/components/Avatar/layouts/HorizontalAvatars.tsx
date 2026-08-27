@@ -76,7 +76,7 @@ function HorizontalAvatars({
                     key={`stackedAvatars-${icon.id}`}
                     avatar={icon}
                     fallbackDisplayName={fallbackDisplayName}
-                    style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(size, icon.type)]}
+                    style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(size, StyleUtils.getShapeFromIconType(icon.type))]}
                 >
                     <AvatarFromIcon
                         iconAdditionalStyles={[
@@ -91,7 +91,6 @@ function HorizontalAvatars({
                             StyleUtils.getAvatarBorderWidth(size),
                         ]}
                         icon={icon}
-                        fill={icon.fill}
                         size={size}
                         testID="ReportActionAvatars-MultipleAvatars-StackedHorizontally-Avatar"
                     />
@@ -113,7 +112,7 @@ function HorizontalAvatars({
                             }),
                             StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
                             StyleUtils.getHorizontalStackedOverlayAvatarStyle(size),
-                            icons.at(3)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons.at(3)?.type),
+                            icons.at(3)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, CONST.AVATAR_SHAPE.ROUNDED_SQUARE),
                         ]}
                     >
                         <View style={[styles.justifyContentCenter, styles.alignItemsCenter, StyleUtils.getHeight(oneAvatarSize.height), StyleUtils.getWidthStyle(oneAvatarSize.width)]}>

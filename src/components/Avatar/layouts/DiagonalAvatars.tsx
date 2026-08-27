@@ -20,7 +20,7 @@ import type {MultipleAvatarsProps} from './types';
 import DiagonalAvatarsFrame from './DiagonalAvatarsFrame';
 import getDiagonalAvatarSizing from './getDiagonalAvatarSizing';
 
-// Rendered when the icons array is unexpectedly short — falls back to the default user avatar.
+// Rendered when the icons array is unexpectedly short. Falls back to the default user avatar.
 const EMPTY_USER_ICON: Icon = {source: '', type: CONST.ICON_TYPE_AVATAR};
 
 type DiagonalAvatarsProps = MultipleAvatarsProps & {
@@ -50,8 +50,11 @@ function DiagonalAvatars({size, icons, isInReportAction, secondaryAvatarContaine
             size={size}
             iconCount={icons.length}
             containerStyle={StyleUtils.getContainerStyles(size, isInReportAction)}
-            primaryContainerStyle={primaryIcon?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, primaryIcon.type)}
-            secondaryContainerStyle={[secondaryAvatarContainerStyles, secondaryIcon?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, secondaryIcon.type)]}
+            primaryContainerStyle={primaryIcon?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, CONST.AVATAR_SHAPE.ROUNDED_SQUARE)}
+            secondaryContainerStyle={[
+                secondaryAvatarContainerStyles,
+                secondaryIcon?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, CONST.AVATAR_SHAPE.ROUNDED_SQUARE),
+            ]}
             primary={
                 <AvatarTooltip
                     avatar={primaryIcon}
@@ -59,7 +62,6 @@ function DiagonalAvatars({size, icons, isInReportAction, secondaryAvatarContaine
                 >
                     <AvatarFromIcon
                         icon={primaryIcon ?? EMPTY_USER_ICON}
-                        fill={primaryIcon?.fill}
                         size={avatarSize}
                         imageStyles={styles[singleAvatarStyleKey]}
                         testID="ReportActionAvatars-MultipleAvatars-MainAvatar"
@@ -74,7 +76,6 @@ function DiagonalAvatars({size, icons, isInReportAction, secondaryAvatarContaine
                     >
                         <AvatarFromIcon
                             icon={secondaryIcon ?? EMPTY_USER_ICON}
-                            fill={secondaryIcon?.fill}
                             size={avatarSize}
                             imageStyles={styles[singleAvatarStyleKey]}
                             testID="ReportActionAvatars-MultipleAvatars-SecondaryAvatar"

@@ -35,7 +35,6 @@ function UserAvatar({
     iconAdditionalStyles,
     containerStyles,
     size = CONST.AVATAR_SIZE.DEFAULT,
-    fill,
     fallbackIcon,
     fallbackIconTestID = '',
     accountID,
@@ -111,7 +110,7 @@ function UserAvatar({
                 iconAdditionalStyles={iconAdditionalStyles}
                 fallbackAvatarTestID={fallbackAvatarTestID}
                 iconColors={iconColors}
-                fill={iconColors?.fill ?? (hasImageError ? theme.offline : fill)}
+                fill={iconColors?.fill ?? (hasImageError ? theme.offline : undefined)}
             />
         </AvatarContainer>
     );

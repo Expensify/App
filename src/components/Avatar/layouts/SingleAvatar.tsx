@@ -26,7 +26,6 @@ function SingleAvatar({avatar, size, containerStyles, fallbackDisplayName}: Sing
             <AvatarFromIcon
                 containerStyles={containerStyles}
                 icon={avatar}
-                fill={avatar.fill}
                 size={size}
                 testID="SingleAvatar"
             />

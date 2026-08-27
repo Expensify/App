@@ -58,7 +58,6 @@ function PressableDiagonalAvatars({size, primaryAvatar, secondaryAvatar, iconCou
             >
                 <AvatarFromIcon
                     icon={avatar}
-                    fill={avatar.fill}
                     size={avatarSize}
                     imageStyles={styles[singleAvatarStyleKey]}
                     testID={testID}
@@ -72,10 +71,10 @@ function PressableDiagonalAvatars({size, primaryAvatar, secondaryAvatar, iconCou
             size={size}
             iconCount={iconCount}
             containerStyle={StyleUtils.getContainerStyles(size)}
-            primaryContainerStyle={primaryAvatar.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, primaryAvatar.type)}
+            primaryContainerStyle={primaryAvatar.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, CONST.AVATAR_SHAPE.ROUNDED_SQUARE)}
             secondaryContainerStyle={[
                 StyleUtils.getBackgroundAndBorderStyle(theme.componentBG),
-                secondaryAvatar.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, secondaryAvatar.type),
+                secondaryAvatar.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, CONST.AVATAR_SHAPE.ROUNDED_SQUARE),
             ]}
             primary={renderPressableAvatar(primaryAvatar, 'ReportActionAvatars-MultipleAvatars-MainAvatar')}
             secondary={renderPressableAvatar(secondaryAvatar, 'ReportActionAvatars-MultipleAvatars-SecondaryAvatar')}

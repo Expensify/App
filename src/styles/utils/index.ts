@@ -300,10 +300,17 @@ function getAvatarBorderWidth(size: AvatarSizeName): ViewStyle {
 }
 
 /**
+ * Map an icon type to the avatar shape it renders with
+ */
+function getShapeFromIconType(type?: string): AvatarShape {
+    return type === CONST.ICON_TYPE_WORKSPACE ? CONST.AVATAR_SHAPE.ROUNDED_SQUARE : CONST.AVATAR_SHAPE.CIRCLE;
+}
+
+/**
  * Return the border radius for an avatar
  */
-function getAvatarBorderRadius(size: AvatarSizeName, type?: string): ViewStyle {
-    if (type === CONST.ICON_TYPE_WORKSPACE) {
+function getAvatarBorderRadius(size: AvatarSizeName, shape: AvatarShape): ViewStyle {
+    if (shape === CONST.AVATAR_SHAPE.ROUNDED_SQUARE) {
         return {borderRadius: avatarBorderSizes[size]};
     }
 
@@ -317,7 +324,7 @@ function getAvatarBorderRadius(size: AvatarSizeName, type?: string): ViewStyle {
 function getAvatarBorderStyle(size: AvatarSizeName, shape: AvatarShape): ViewStyle {
     return {
         overflow: 'hidden',
-        borderRadius: shape === CONST.AVATAR_SHAPE.ROUNDED_SQUARE ? avatarBorderSizes[size] : variables.buttonBorderRadius,
+        ...getAvatarBorderRadius(size, shape),
     };
 }
 
@@ -1414,6 +1421,7 @@ const staticStyleUtils = {
     getAvatarSizeWithBorder,
     getAvatarWidthStyle,
     getAvatarSubscriptIconContainerStyle,
+    getShapeFromIconType,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,

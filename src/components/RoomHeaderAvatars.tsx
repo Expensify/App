@@ -131,7 +131,9 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
 
     // Bordered workspace avatars here are 88px (avatar + border), so they keep the larger rounded radius instead of the 16px radius mapped to a plain xxx-large avatar.
     const getRoomHeaderAvatarBorderRadius = (type?: string) =>
-        type === CONST.ICON_TYPE_WORKSPACE ? {borderRadius: variables.componentBorderRadiusRounded} : StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.XXX_LARGE, type);
+        type === CONST.ICON_TYPE_WORKSPACE
+            ? {borderRadius: variables.componentBorderRadiusRounded}
+            : StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.XXX_LARGE, StyleUtils.getShapeFromIconType(type));
     return (
         <View style={styles.pointerEventsBoxNone}>
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
