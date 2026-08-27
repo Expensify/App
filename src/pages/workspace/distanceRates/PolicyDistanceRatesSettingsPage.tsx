@@ -68,6 +68,8 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     const defaultUnit = customUnit?.attributes?.unit;
     const errorFields = customUnit?.errorFields;
 
+    const FullPageBlockingView = !customUnit ? FullPageOfflineBlockingView : View;
+
     const clearErrorFields = (fieldName: keyof CustomUnit) => {
         if (!customUnit?.customUnitID) {
             return;
@@ -137,7 +139,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                     keyboardShouldPersistTaps="always"
                     addBottomSafeAreaPadding
                 >
-                    <FullPageOfflineBlockingView addBottomSafeAreaPadding={false}>
+                    <FullPageBlockingView addBottomSafeAreaPadding={false}>
                         {!!defaultUnit && (
                             <OfflineWithFeedback
                                 errors={getLatestErrorField(customUnit ?? {}, 'attributes')}
@@ -264,7 +266,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                 </View>
                             )}
                         </OfflineWithFeedback>
-                    </FullPageOfflineBlockingView>
+                    </FullPageBlockingView>
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
