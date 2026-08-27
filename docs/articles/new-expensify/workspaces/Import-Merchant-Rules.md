@@ -28,15 +28,14 @@ Prepare a spreadsheet where each row is one rule. Include a column for the merch
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Workspaces > [workspace name]**.
 2. Click **Rules**.
-3. If the **Rules** page shows tabs, select the **Expense defaults** tab.
-4. Click **More**, then select **Import merchant rules**.
-5. Upload your spreadsheet file.
-6. Map each column to a merchant rule field. Map the merchant column to **Merchant is** or **Merchant contains**, and map at least one field to update, such as **Updated merchant**, **Updated category**, **Updated tag**, or **Updated description**.
-7. Click **Import**.
+3. Click **More**, then select **Import merchant rules**. If the **Rules** page shows tabs, **More** is available on any tab.
+4. Upload your spreadsheet file.
+5. Map each column to a merchant rule field. Map the merchant column to **Merchant is** or **Merchant contains**, and map at least one field to update, such as **Updated merchant**, **Updated category**, **Updated tag**, or **Updated description**.
+6. Click **Import**.
 
 <!-- SCREENSHOT:
 Suggestion: The column-mapping screen with a spreadsheet column mapped to Merchant is and another mapped to Updated tag.
-Location: After step 6.
+Location: After step 5.
 Purpose: Confirms admins are on the correct mapping screen and shows how to pair a spreadsheet column with a specific merchant rule field, which is the step most likely to cause confusion.
 -->
 
@@ -57,6 +56,7 @@ How a colon in a Tag cell is read depends on how your workspace tags are set up 
 
 - A confirmation message shows how many Merchant Rules were added.
 - Rules that duplicate an existing rule are skipped.
+- If the **Rules** page shows tabs, you're returned to the **Expense defaults** tab, where the imported rules appear.
 - Each new rule appears in the **Merchant** section of the **Rules** page and is applied to matching expenses going forward.
 
 ---
