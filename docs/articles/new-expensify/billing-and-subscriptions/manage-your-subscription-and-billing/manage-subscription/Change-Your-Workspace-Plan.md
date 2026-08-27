@@ -39,7 +39,7 @@ If you have an Annual subscription, changes to your plan may be restricted. To l
 
 A free Submit workspace can be upgraded to Collect or Control. Once upgraded, it can’t be downgraded back to Submit.
 
-[Learn how to upgrade a Submit workspace](/articles/new-expensify/getting-started/Submit-Workspace#what-happens-when-my-approver-clicks-approve).
+[Learn how to upgrade a Submit workspace](/articles/new-expensify/getting-started/Submit-Workspace#how-to-upgrade-a-submit-workspace).
 
 ---
 
