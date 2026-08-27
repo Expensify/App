@@ -3125,9 +3125,10 @@ function readNewestAction(reportID: string | undefined, isReportActionsLoaded: b
                 lastReadTime,
                 // Intentionally do NOT clear `manuallyMarkedUnreadReportActionID` here. An explicit
                 // mark-as-unread should keep its "New" marker anchored even after the report is auto-read
-                // (readNewestAction fires whenever the report is focused/visible). The marker is instead
-                // reconciled when the report is re-loaded via openReport, which returns the server's
-                // authoritative value for this field.
+                // (readNewestAction fires whenever the report is focused/visible), so it stays put for the
+                // duration of the visit that created it. The marker is instead cleared client-side in
+                // openReport's optimisticData when the user navigates away and comes back, or on a page
+                // refresh (see the `didNavigateBackToReport || isFirstLoadAfterRefresh` handling there).
             },
         },
     ];
