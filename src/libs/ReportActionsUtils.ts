@@ -3808,6 +3808,45 @@ function getForwardsToUpdateMessage(translate: LocalizedTranslate, action: Repor
     return translate('workspaceActions.changedForwardsTo', {approver: approvers, forwardsTo: forwardsToEmail, previousForwardsTo});
 }
 
+function getOverLimitForwardsToUpdateMessage(translate: LocalizedTranslate, action: ReportAction, convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']): string {
+    if (!isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO)) {
+        return getReportActionText(action);
+    }
+
+    const originalMessage = getOriginalMessage(action) ?? {};
+    const currency = originalMessage.currency ?? CONST.CURRENCY.USD;
+    const member = formatPhoneNumber(originalMessage.member?.email ?? '');
+    const previousApprover = originalMessage.previousOverLimitForwardsTo ? formatPhoneNumber(originalMessage.previousOverLimitForwardsTo.email) : undefined;
+    const previousLimit = convertToDisplayString(originalMessage.previousLimit ?? 0, currency);
+    const didLimitChange = typeof originalMessage.limit === 'number' && typeof originalMessage.previousLimit === 'number' && originalMessage.limit !== originalMessage.previousLimit;
+
+    if (!originalMessage.overLimitForwardsTo) {
+        return translate('workspaceActions.removedOverLimitForwardsTo', {member, previousApprover, previousLimit});
+    }
+
+    return translate('workspaceActions.changedOverLimitForwardsTo', {
+        member,
+        approver: formatPhoneNumber(originalMessage.overLimitForwardsTo.email),
+        limit: convertToDisplayString(originalMessage.limit ?? 0, currency),
+        previousApprover,
+        previousLimit: didLimitChange ? previousLimit : undefined,
+    });
+}
+
+function getApprovalLimitUpdateMessage(translate: LocalizedTranslate, action: ReportAction, convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']): string {
+    if (!isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT)) {
+        return getReportActionText(action);
+    }
+
+    const originalMessage = getOriginalMessage(action) ?? {};
+    const currency = originalMessage.currency ?? CONST.CURRENCY.USD;
+    return translate('workspaceActions.changedApprovalLimit', {
+        member: formatPhoneNumber(originalMessage.member?.email ?? ''),
+        limit: convertToDisplayString(originalMessage.limit ?? 0, currency),
+        previousLimit: convertToDisplayString(originalMessage.previousLimit ?? 0, currency),
+    });
+}
+
 function getInvoiceCompanyNameUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {newValue, oldValue} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME>) ?? {};
 
@@ -5146,6 +5185,8 @@ export {
     getDefaultApproverUpdateMessage,
     getSubmitsToUpdateMessage,
     getForwardsToUpdateMessage,
+    getOverLimitForwardsToUpdateMessage,
+    getApprovalLimitUpdateMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
     getReimburserUpdateMessage,
