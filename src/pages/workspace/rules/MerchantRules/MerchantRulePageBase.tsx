@@ -757,9 +757,9 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
                 includeSafeAreaPaddingBottom
             >
                 <HeaderWithBackButton title={translate(isRulesRevampEnabled ? 'workspace.rules.merchantRules.expenseDefaultsTitle' : titleKey)}>
-                    {/* Reset only makes sense while a condition is set, and only on a rule that isn't already saved
-                        against a category. An existing category rule is identified by its category. */}
-                    {canWriteRules && isRulesRevampEnabled && !isEditingCategoryTaxRule && (hasMerchantCondition || hasCategoryCondition) && (
+                    {/* Reset only makes sense while a condition is set, and only on an unsaved rule. Resetting a saved
+                        rule would let it switch condition type, which the two storage shapes can't express as one edit. */}
+                    {canWriteRules && isRulesRevampEnabled && !isEditing && !isEditingCategoryTaxRule && (hasMerchantCondition || hasCategoryCondition) && (
                         <TextLink onPress={resetRule}>{translate('common.reset')}</TextLink>
                     )}
                 </HeaderWithBackButton>
