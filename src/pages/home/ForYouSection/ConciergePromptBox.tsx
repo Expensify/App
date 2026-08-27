@@ -83,13 +83,6 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     const [selection, setSelection] = useState({start: value.length, end: value.length});
     const [lastSyncedDraft, setLastSyncedDraft] = useState(draft);
 
-    // Onyx owns the draft, so it survives refresh and is wiped along with the rest of the cache.
-    if (draft !== lastSyncedDraft) {
-        setLastSyncedDraft(draft);
-        setValue(draft ?? '');
-        setSelection({start: draft?.length ?? 0, end: draft?.length ?? 0});
-    }
-
     const {saveDraft: debouncedSaveDraft, cancelSaveDraft} = useDebouncedSaveDraft(
         (nextDraft: string) => {
             setLastSyncedDraft(nextDraft);
@@ -98,6 +91,15 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
         undefined,
         true,
     );
+
+    // Onyx owns the draft, so it survives refresh and is wiped along with the rest of the cache.
+    if (draft !== lastSyncedDraft) {
+        cancelSaveDraft();
+        setLastSyncedDraft(draft);
+        setValue(draft ?? '');
+        setSelection({start: draft?.length ?? 0, end: draft?.length ?? 0});
+    }
+
     const [isFocused, setIsFocused] = useState(false);
     const [longPlaceholderHeight, setLongPlaceholderHeight] = useState<number | null>(null);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
