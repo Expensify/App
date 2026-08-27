@@ -5,15 +5,17 @@ import {useLockedAccountActions, useLockedAccountState} from '@components/Locked
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Text from '@components/Text';
 
+import useCanEnrollNewExpensifyCardProgram from '@hooks/useCanEnrollNewExpensifyCardProgram';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
-import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -33,8 +35,6 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 
 import variables from '@styles/variables';
-
-import {updateGeneralSettings as updatePolicyGeneralSettings} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -66,27 +66,34 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const {canWrite: canWriteExpensifyCard, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
-    // Dismiss the "Update to USD" modal if the currency changes to USD externally (e.g. from another device)
+    const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
+    const {canEnrollNewCardProgram, isUkEuCurrencySupported} = useCanEnrollNewExpensifyCardProgram(policy?.id);
+    const {isBetaEnabled} = usePermissions();
+    const shouldBlockCurrencyChange = useShouldBlockCurrencyChange(policy?.id);
+
+    // Dismiss the currency modal if the workspace currency becomes a supported one externally (e.g. from another device)
     const isCurrencyModalOpen = useRef(false);
     useEffect(() => {
-        if (policy?.outputCurrency !== CONST.CURRENCY.USD || !isCurrencyModalOpen.current) {
+        if (!canEnrollNewCardProgram || !isCurrencyModalOpen.current) {
             return;
         }
         closeModal();
         isCurrencyModalOpen.current = false;
-    }, [policy?.outputCurrency, closeModal]);
+    }, [canEnrollNewCardProgram, closeModal]);
 
-    const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
-    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policy?.id);
     const {allFeeds} = useExpensifyCardFeedsForFeedSelector(policy?.id);
     const hasAccessibleFeeds = allFeeds.length > 0;
+    const setupCtaTranslationKey = isSetupUnfinished ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard';
+    const ctaTextTranslationKey = hasAccessibleFeeds ? 'workspace.moreFeatures.expensifyCard.feed.viewCards' : setupCtaTranslationKey;
 
     const eligibleBankAccounts = isUkEuCurrencySupported
         ? getEligibleBankAccountsForUkEuCard(bankAccountList, supportedCountriesByCurrency, policy?.outputCurrency)
         : getEligibleBankAccountsForCard(bankAccountList);
     const shouldStartBankAccountSetup = !eligibleBankAccounts.length || isSetupUnfinished;
-    const canStartBankAccountSetup = canEditWorkspaceSettings(policy, currentUserLogin);
-    const shouldDisableCTA = !canWriteExpensifyCard || (!hasAccessibleFeeds && shouldStartBankAccountSetup && !canStartBankAccountSetup);
+    const canEditSettings = canEditWorkspaceSettings(policy, currentUserLogin);
+    // Without an existing feed the only path forward is enrolling a new card program, and both the
+    // bank account setup page and the currency page are admin only
+    const shouldDisableCTA = !canWriteExpensifyCard || (!hasAccessibleFeeds && !canEditSettings);
 
     const startFlow = () => {
         if (hasAccessibleFeeds && policy?.id) {
@@ -124,21 +131,23 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         },
     ];
 
-    const promptCurrencyChangeAndStartFlow = async () => {
+    const promptCurrencyChange = async () => {
         isCurrencyModalOpen.current = true;
+        // An open or partially set up bank account blocks the currency page, so only offer the change when it can be completed
         const result = await showConfirmModal({
-            title: translate('workspace.common.expensifyCard'),
-            prompt: translate('workspace.bankAccount.updateCurrencyPrompt'),
-            confirmText: translate('workspace.bankAccount.updateToUSD'),
-            cancelText: translate('common.cancel'),
-            danger: true,
+            title: translate('workspace.bankAccount.updateCurrencyForExpensifyCardTitle'),
+            prompt: translate(
+                isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? 'workspace.bankAccount.euUkUpdateCurrencyForExpensifyCard' : 'workspace.bankAccount.updateCurrencyForExpensifyCard',
+            ),
+            confirmText: translate(shouldBlockCurrencyChange ? 'common.buttonConfirm' : 'workspace.bankAccount.updateWorkspaceCurrency'),
+            cancelText: shouldBlockCurrencyChange ? undefined : translate('common.cancel'),
+            shouldShowCancelButton: !shouldBlockCurrencyChange,
         });
         isCurrencyModalOpen.current = false;
-        if (result.action !== ModalActions.CONFIRM || !policy) {
+        if (shouldBlockCurrencyChange || result.action !== ModalActions.CONFIRM || !policy) {
             return;
         }
-        updatePolicyGeneralSettings(policy, policy.name, CONST.CURRENCY.USD);
-        startFlow();
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
     };
 
     return (
@@ -154,16 +163,12 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
             <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, {minHeight: windowHeight - variables.contentHeaderHeight}]}>
                 <FeatureList
                     menuItems={isUkEuCurrencySupported ? expensifyCardFeatures.slice(1) : expensifyCardFeatures}
-                    title={translate('workspace.moreFeatures.expensifyCard.feed.title')}
+                    title={translate(hasAccessibleFeeds ? 'workspace.moreFeatures.expensifyCard.feed.existingFeedTitle' : 'workspace.moreFeatures.expensifyCard.feed.title')}
                     subtitle={translate('workspace.moreFeatures.expensifyCard.feed.subTitle')}
-                    ctaText={translate(isSetupUnfinished && !hasAccessibleFeeds ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard')}
-                    ctaAccessibilityLabel={translate('workspace.moreFeatures.expensifyCard.feed.ctaTitle')}
+                    ctaText={translate(ctaTextTranslationKey)}
+                    ctaAccessibilityLabel={translate(hasAccessibleFeeds ? 'workspace.moreFeatures.expensifyCard.feed.viewCards' : 'workspace.moreFeatures.expensifyCard.feed.ctaTitle')}
                     onCtaPress={() => {
-                        if (!canWriteExpensifyCard) {
-                            showReadOnlyModal();
-                            return;
-                        }
-                        if (!hasAccessibleFeeds && shouldStartBankAccountSetup && !canStartBankAccountSetup) {
+                        if (shouldDisableCTA) {
                             showReadOnlyModal();
                             return;
                         }
@@ -175,8 +180,10 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                             showLockedAccountModal();
                             return;
                         }
-                        if (!(policy?.outputCurrency === CONST.CURRENCY.USD || isUkEuCurrencySupported)) {
-                            promptCurrencyChangeAndStartFlow();
+                        // The supported currency restriction only applies to enrolling a brand-new card program.
+                        // If hasAccessibleFeeds is true, allow the flow to start in order to link an existing feed
+                        if (!hasAccessibleFeeds && !canEnrollNewCardProgram) {
+                            promptCurrencyChange();
                             return;
                         }
                         startFlow();
