@@ -597,22 +597,14 @@ function getQueryHashes(query: SearchQueryJSON) {
         filterSet.add(exactMatchIdentity);
     }
 
-    // Only filters that are part of a suggested search's base query should affect the
-    // similarSearchHash (i.e. the tab identity). All other flat filters are user-applied
-    // refinements within the same tab and must not change the tab identity or the
-    // backend searchKey derived from it. Some base-query filters (e.g. FEED, POSTED)
-    // are intentionally excluded because their tabs are still uniquely identified by
-    // other base-query filters (groupBy + status).
-    const similarSearchIdentityFilters = new Set<SearchFilterKey>([
-        CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
-        CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
-        CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-        CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-        CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
-        CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
-        CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
-        CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
-        CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
+    // Certain filters shouldn't affect whether two searchers are similar or not, since they dont
+    // actually filter out results
+    const similarSearchIgnoredFilters = new Set<SearchFilterKey>([
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
     ]);
 
     // Certain filters' values are significant in deciding which search we are on, so we want to include
@@ -634,7 +626,7 @@ function getQueryHashes(query: SearchQueryJSON) {
             continue;
         }
 
-        if (similarSearchIdentityFilters.has(filterKey)) {
+        if (!similarSearchIgnoredFilters.has(filterKey)) {
             filterSet.add(filterKey);
         }
 
