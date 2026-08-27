@@ -124,7 +124,7 @@ function initSplitExpense(
                 merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
                 attendees: transactionDetails?.attendees as Attendee[],
                 reportID,
-                reimbursable: getSplitReimbursable(effectivePolicy, transactionDetails?.reimbursable),
+                reimbursable: getSplitReimbursable(effectivePolicy, transactionDetails?.reimbursable, originalTransaction),
             },
         });
 
@@ -226,7 +226,7 @@ function initSplitExpense(
             participants: transaction?.participants,
             attendees: transactionDetails?.attendees as Attendee[],
             reportID,
-            reimbursable: getSplitReimbursable(effectivePolicy, transactionDetails?.reimbursable),
+            reimbursable: getSplitReimbursable(effectivePolicy, transactionDetails?.reimbursable, transaction),
             customUnit: transaction?.comment?.customUnit,
             odometerStart: transaction?.comment?.odometerStart,
             odometerEnd: transaction?.comment?.odometerEnd,
