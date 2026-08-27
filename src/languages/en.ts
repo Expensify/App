@@ -4548,6 +4548,7 @@ const translations = {
             },
         },
         hotel: 'Hotel',
+        hotelBlock: 'Hotel block',
         hotelDetails: {
             guest: 'Guest',
             checkIn: 'Check-in',
