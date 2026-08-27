@@ -5,7 +5,7 @@ import Onyx from 'react-native-onyx';
 
 const mockRegisterReportActionsPagination = jest.fn(() => Promise.resolve());
 
-jest.mock('@libs/registerPaginationConfig', () => ({
+jest.mock('@libs/registerReportActionsPagination', () => ({
     __esModule: true,
     default: () => mockRegisterReportActionsPagination(),
 }));
