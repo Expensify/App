@@ -1352,7 +1352,7 @@ type BulkDuplicateReportsParams = {
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
-function bulkDuplicateReports({
+async function bulkDuplicateReports({
     dateFnsLocale,
     selectedReports: selectedReportsParam,
     allReports,
@@ -1404,7 +1404,16 @@ function bulkDuplicateReports({
         transactionsByReportID.set(transaction.reportID, list);
     }
 
-    for (const selectedReport of selectedReportsParam) {
+    for (const [index, selectedReport] of selectedReportsParam.entries()) {
+        if (index > 0) {
+            // Duplicate one report per tick. Every expense fires its own API.write, which applies optimistic data
+            // synchronously, so building the whole selection in one pass blocks the thread until the last expense is created.
+            // eslint-disable-next-line no-await-in-loop
+            await new Promise<void>((resolve) => {
+                setTimeout(resolve, 0);
+            });
+        }
+
         const reportID = selectedReport.reportID;
         if (!reportID) {
             continue;
