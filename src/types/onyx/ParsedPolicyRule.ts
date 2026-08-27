@@ -37,4 +37,3 @@ type ParsedPolicyRule = {
 };
 
 export default ParsedPolicyRule;
-export type {ParsedPolicyRuleState, ParsedPolicyRuleType, ParsedPolicyRuleValues};

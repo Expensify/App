@@ -135,4 +135,3 @@ function RulesNewPromptForm({onSubmit, onBuildManually, isLoading, onCreateAgent
 RulesNewPromptForm.displayName = 'RulesNewPromptForm';
 
 export default RulesNewPromptForm;
-export type {NewRulePromptFormID};
