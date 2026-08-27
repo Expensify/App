@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Icon from '@components/Icon';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
@@ -98,18 +98,16 @@ function CardListItem<TItem extends ListItem>({
                             <View>
                                 <UserDetailsTooltip
                                     shouldRender={showTooltip}
-                                    accountID={Number(item.cardOwnerPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID)}
+                                    accountID={ownersAvatar.id}
                                     icon={ownersAvatar}
                                     fallbackUserDetails={{
                                         displayName: item.cardOwnerPersonalDetails?.displayName,
                                     }}
                                 >
                                     <View>
-                                        <Avatar
+                                        <UserAvatar
                                             source={ownersAvatar.source}
-                                            name={ownersAvatar.name}
-                                            avatarID={ownersAvatar.id}
-                                            type={CONST.ICON_TYPE_AVATAR}
+                                            accountID={ownersAvatar.id}
                                             fallbackIcon={ownersAvatar.fallbackIcon}
                                         />
                                     </View>
