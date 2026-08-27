@@ -53,6 +53,9 @@ const filterComponents = {
     ReportField: ReportFieldFilterContentPopupWrapper,
 } as const;
 
+/** The filter the popover opens on. */
+const INITIAL_FILTER = CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE;
+
 type MountedFilterContentProps = {
     /** The filter whose content this is. */
     filterKey: SearchFilter['key'];
@@ -87,16 +90,17 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const initialFilter = CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE;
+    const filterContentRef = useRef<View>(null);
     // The list highlights `hoveredFilter` immediately. The content pane follows `activeFilter`.
-    const [hoveredFilter, setHoveredFilter] = useState<SearchFilter['key']>(initialFilter);
+    const [hoveredFilter, setHoveredFilter] = useState<SearchFilter['key']>(INITIAL_FILTER);
     const [mountedFilterState, setMountedFilterState] = useState<MountedFilterState>(() => ({
-        activeFilter: initialFilter,
-        mountedFilters: [initialFilter],
-        formAtLastRest: {[initialFilter]: searchAdvancedFiltersForm},
+        activeFilter: INITIAL_FILTER,
+        mountedFilters: [INITIAL_FILTER],
+        formAtLastRest: {[INITIAL_FILTER]: searchAdvancedFiltersForm},
         contentVersions: {},
     }));
     const {activeFilter, mountedFilters, formAtLastRest, contentVersions} = mountedFilterState;
+    const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
 
     // The MAX_MOUNTED_FILTER_CONTENTS most recently active contents stay mounted, so revisiting a filter reveals its
     // content instead of building it again. Activating a filter promotes it to most recently used and evicts whatever
@@ -133,6 +137,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
             };
         });
     };
+
     // The debounce below always calls the latest version of this, so a hover whose delay elapsed after the cursor or the
     // focus already moved on is dropped instead of replacing the content of the row the user is on now.
     const activateHoveredFilter = (filterKey: SearchFilter['key']) => {
@@ -142,21 +147,21 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
 
         activateFilter(filterKey);
     };
+
     // Hovering only shows a row's content once the cursor has stayed on it for SEARCH_FILTER_HOVER_INTENT_DELAY, so
     // sweeping across rows doesn't render a content pane per row. Moving focus is deliberate and never sweeps across
     // rows, so it shows the content right away and keyboard users don't read a pane that is about to be replaced.
     const debouncedActivateHoveredFilter = useDebounceNonReactive(activateHoveredFilter, CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
+
     const hoverFilter = (filterKey: SearchFilter['key']) => {
         setHoveredFilter(filterKey);
         debouncedActivateHoveredFilter(filterKey);
     };
+
     const focusFilter = (filterKey: SearchFilter['key']) => {
         setHoveredFilter(filterKey);
         activateFilter(filterKey);
     };
-    const filterContentRef = useRef<View>(null);
-
-    const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
 
     return (
         <SafeTriangle submenuRef={filterContentRef}>

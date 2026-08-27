@@ -144,7 +144,7 @@ const areArgumentsEquivalent = (previousArgument: unknown, nextArgument: unknown
  * call from unchanged sources, where `'shallow'` always misses and `'deep'` would walk the whole payload.
  */
 const equivalentArgsComparator = <Key extends readonly unknown[]>(previousArgs: Key, nextArgs: Key) =>
-    previousArgs.length === nextArgs.length && previousArgs.every((argument, index) => areArgumentsEquivalent(argument, nextArgs.at(index)));
+    previousArgs.length === nextArgs.length && previousArgs.every((argument, index) => areArgumentsEquivalent(argument, nextArgs[index]));
 
 export default memoize;
 export {equivalentArgsComparator};

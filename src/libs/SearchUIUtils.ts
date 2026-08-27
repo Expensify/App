@@ -5860,6 +5860,12 @@ function getDisplayValue(
     return Array.isArray(formValue) ? formValue.join(', ') : formValue;
 }
 
+/** A filter value together with whether the form holds it under the negated key. */
+type FilterNegatableValue = {
+    isNegated: boolean;
+    value: unknown;
+};
+
 function getFilterNegatableValue<K extends ListFilterContentProps['baseFilterKey'] | TextInputFilterContentProps['baseFilterKey']>(
     baseFilterKey: K,
     values: (Partial<SearchAdvancedFiltersForm> & Partial<Record<`${K}${typeof CONST.SEARCH.NOT_MODIFIER}`, SearchAdvancedFiltersForm[K]>>) | undefined,
@@ -5873,7 +5879,7 @@ function getFilterNegatableValue<K extends ListFilterContentProps['baseFilterKey
 }
 
 /** Whether a negatable value, the pair `SearchAdvancedFiltersContent` hands to a content, changed between two forms. */
-function hasNegatableValueChanged(previousNegatableValue: {isNegated: boolean; value: unknown}, negatableValue: {isNegated: boolean; value: unknown}): boolean {
+function hasNegatableValueChanged(previousNegatableValue: FilterNegatableValue, negatableValue: FilterNegatableValue): boolean {
     return previousNegatableValue.isNegated !== negatableValue.isNegated || !deepEqual(previousNegatableValue.value, negatableValue.value);
 }
 
