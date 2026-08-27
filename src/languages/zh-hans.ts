@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -5665,13 +5666,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         },
         companyCards: {
             balance: {
-                currentBalance: 'Current balance',
-                remainingLimit: 'Remaining limit',
-                notAvailable: 'Not available',
-                currentBalanceDescription: ({lastUpdated}: {lastUpdated: string}) => `Current balance is reported by your bank and last updated ${lastUpdated}.`,
-                remainingLimitDescription: ({lastUpdated}: {lastUpdated: string}) => `Remaining limit is reported by your bank and last updated ${lastUpdated}.`,
-                currentBalanceDescriptionNoTimestamp: 'Current balance is reported by your bank.',
-                remainingLimitDescriptionNoTimestamp: 'Remaining limit is reported by your bank.',
+                currentBalance: '当前余额',
+                remainingLimit: '剩余额度',
+                notAvailable: '不可用',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `当前余额由您的银行提供，上次更新于 ${lastUpdated}。`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `剩余额度由您的银行提供，并于 ${lastUpdated} 最后更新。`,
+                currentBalanceDescriptionNoTimestamp: '当前余额由您的银行提供。',
+                remainingLimitDescriptionNoTimestamp: '剩余额度由您的银行提供。',
             },
             addCards: '添加卡片',
             selectCards: '选择卡片',

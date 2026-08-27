@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -5867,13 +5868,13 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
         },
         companyCards: {
             balance: {
-                currentBalance: 'Current balance',
-                remainingLimit: 'Remaining limit',
-                notAvailable: 'Not available',
-                currentBalanceDescription: ({lastUpdated}: {lastUpdated: string}) => `Current balance is reported by your bank and last updated ${lastUpdated}.`,
-                remainingLimitDescription: ({lastUpdated}: {lastUpdated: string}) => `Remaining limit is reported by your bank and last updated ${lastUpdated}.`,
-                currentBalanceDescriptionNoTimestamp: 'Current balance is reported by your bank.',
-                remainingLimitDescriptionNoTimestamp: 'Remaining limit is reported by your bank.',
+                currentBalance: 'Huidige saldo',
+                remainingLimit: 'Resterende limiet',
+                notAvailable: 'Niet beschikbaar',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Het huidige saldo wordt door je bank doorgegeven en is het laatst bijgewerkt op ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Het resterende limiet wordt door je bank doorgegeven en is het laatst bijgewerkt op ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'De huidige saldo wordt door je bank doorgegeven.',
+                remainingLimitDescriptionNoTimestamp: 'Het resterende limiet wordt door je bank doorgegeven.',
             },
             addCards: 'Kaarten toevoegen',
             selectCards: 'Kaarten selecteren',

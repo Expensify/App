@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -5867,13 +5868,13 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
         },
         companyCards: {
             balance: {
-                currentBalance: 'Current balance',
-                remainingLimit: 'Remaining limit',
-                notAvailable: 'Not available',
-                currentBalanceDescription: ({lastUpdated}: {lastUpdated: string}) => `Current balance is reported by your bank and last updated ${lastUpdated}.`,
-                remainingLimitDescription: ({lastUpdated}: {lastUpdated: string}) => `Remaining limit is reported by your bank and last updated ${lastUpdated}.`,
-                currentBalanceDescriptionNoTimestamp: 'Current balance is reported by your bank.',
-                remainingLimitDescriptionNoTimestamp: 'Remaining limit is reported by your bank.',
+                currentBalance: 'Saldo atual',
+                remainingLimit: 'Limite restante',
+                notAvailable: 'Indisponível',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `O saldo atual é informado pelo seu banco e foi atualizado pela última vez em ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `O limite restante é informado pelo seu banco e foi atualizado pela última vez em ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'O saldo atual é informado pelo seu banco.',
+                remainingLimitDescriptionNoTimestamp: 'O limite restante é informado pelo seu banco.',
             },
             addCards: 'Adicionar cartões',
             selectCards: 'Selecionar cartões',

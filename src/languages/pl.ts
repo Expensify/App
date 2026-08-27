@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -5892,13 +5893,13 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
         },
         companyCards: {
             balance: {
-                currentBalance: 'Current balance',
-                remainingLimit: 'Remaining limit',
-                notAvailable: 'Not available',
-                currentBalanceDescription: ({lastUpdated}: {lastUpdated: string}) => `Current balance is reported by your bank and last updated ${lastUpdated}.`,
-                remainingLimitDescription: ({lastUpdated}: {lastUpdated: string}) => `Remaining limit is reported by your bank and last updated ${lastUpdated}.`,
-                currentBalanceDescriptionNoTimestamp: 'Current balance is reported by your bank.',
-                remainingLimitDescriptionNoTimestamp: 'Remaining limit is reported by your bank.',
+                currentBalance: 'Bieżące saldo',
+                remainingLimit: 'Pozostały limit',
+                notAvailable: 'Niedostępne',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Aktualne saldo jest zgłaszane przez twój bank i zostało ostatnio zaktualizowane ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Pozostały limit jest zgłaszany przez twój bank, a ostatnia aktualizacja nastąpiła ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'Bieżące saldo jest zgłaszane przez twój bank.',
+                remainingLimitDescriptionNoTimestamp: 'Pozostały limit jest zgłaszany przez twój bank.',
             },
             addCards: 'Dodaj karty',
             selectCards: 'Wybierz karty',

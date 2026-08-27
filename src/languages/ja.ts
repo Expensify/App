@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -5805,13 +5806,13 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
         },
         companyCards: {
             balance: {
-                currentBalance: 'Current balance',
-                remainingLimit: 'Remaining limit',
-                notAvailable: 'Not available',
-                currentBalanceDescription: ({lastUpdated}: {lastUpdated: string}) => `Current balance is reported by your bank and last updated ${lastUpdated}.`,
-                remainingLimitDescription: ({lastUpdated}: {lastUpdated: string}) => `Remaining limit is reported by your bank and last updated ${lastUpdated}.`,
-                currentBalanceDescriptionNoTimestamp: 'Current balance is reported by your bank.',
-                remainingLimitDescriptionNoTimestamp: 'Remaining limit is reported by your bank.',
+                currentBalance: '現在残高',
+                remainingLimit: '残りの上限',
+                notAvailable: '利用できません',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `現在残高はご利用の銀行から報告されており、最終更新日は ${lastUpdated} です。`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `残りの限度額はご利用の銀行から報告され、最終更新日時は${lastUpdated}です。`,
+                currentBalanceDescriptionNoTimestamp: '現在残高は、お使いの銀行から報告されています。',
+                remainingLimitDescriptionNoTimestamp: '残りの限度額は、お客様の銀行から報告されます。',
             },
             addCards: 'カードを追加',
             selectCards: 'カードを選択',

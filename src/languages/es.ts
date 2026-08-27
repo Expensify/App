@@ -9,13 +9,13 @@
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
-
 import CONST from '@src/CONST';
 import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
     common: {
@@ -5803,10 +5803,10 @@ ${amount} para ${merchant} - ${date}`,
                 currentBalance: 'Saldo actual',
                 remainingLimit: 'Límite restante',
                 notAvailable: 'No disponible',
-                currentBalanceDescription: ({lastUpdated}: {lastUpdated: string}) => `El saldo actual lo informa tu banco y se actualizó por última vez el ${lastUpdated}.`,
-                remainingLimitDescription: ({lastUpdated}: {lastUpdated: string}) => `El límite restante lo informa tu banco y se actualizó por última vez el ${lastUpdated}.`,
-                currentBalanceDescriptionNoTimestamp: 'El saldo actual lo informa tu banco.',
-                remainingLimitDescriptionNoTimestamp: 'El límite restante lo informa tu banco.',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `El saldo actual es informado por tu banco y se actualizó por última vez el ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `El límite restante lo informa tu banco y se actualizó por última vez el ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'Tu banco informa del saldo actual.',
+                remainingLimitDescriptionNoTimestamp: 'El límite restante lo indica tu banco.',
             },
             addCards: 'Añadir tarjetas',
             selectCards: 'Seleccionar tarjetas',
