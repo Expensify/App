@@ -46,7 +46,7 @@ type NumberComposerProps = {
     /** Maximum number of integer digits accepted by the composer. */
     maxLength?: number;
 
-    /** Error supplied by FormProvider. Rendered by the Composer error primitive (later PR). */
+    /** Error supplied by FormProvider. Rendered by the `NumberComposer.Error` primitive wherever the composition places it. */
     errorText?: string;
 
     /** Form callback supplied by InputWrapper. */

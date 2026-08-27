@@ -26,7 +26,7 @@ type NumberFormProps = {
     /** Maximum number of integer digits accepted by the form. */
     maxLength?: number;
 
-    /** Error supplied by FormProvider. */
+    /** Error supplied by FormProvider. Rendered inline by the text input, which owns the label and error slots. */
     errorText?: string;
 
     /** Form callback supplied by InputWrapper. */

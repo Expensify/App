@@ -26,7 +26,7 @@ type NumberComposerStateContextValue = {
     /** Whether negative values are allowed. */
     allowNegative: boolean;
 
-    /** Error supplied by FormProvider. Rendered by the Composer error primitive (later PR). */
+    /** Error supplied by FormProvider. Rendered by the `NumberComposer.Error` primitive wherever the composition places it. */
     errorText?: string;
 };
 

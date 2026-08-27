@@ -30,4 +30,9 @@ type NumberComposerSymbolInputProps = NumberInputBaseProps &
         negativeSymbolStyle?: StyleProp<TextStyle>;
     };
 
-export type {NumberComposerRef, NumberComposerSymbolInputProps};
+type NumberComposerErrorProps = {
+    /** Style applied to the message container, appended to the primitive's defaults. */
+    style?: StyleProp<ViewStyle>;
+};
+
+export type {NumberComposerErrorProps, NumberComposerRef, NumberComposerSymbolInputProps};

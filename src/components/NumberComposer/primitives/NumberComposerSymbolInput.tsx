@@ -1,4 +1,3 @@
-import FormHelpMessage from '@components/FormHelpMessage';
 import {useNumberComposerActions, useNumberComposerState} from '@components/NumberComposer/context';
 import type {NumberComposerSymbolInputProps} from '@components/NumberComposer/types';
 import type {NumberInputKeyPressEvent} from '@components/NumberInput';
@@ -7,7 +6,6 @@ import TextInputWithSymbol from '@components/TextInputWithSymbol';
 
 import useLocalize from '@hooks/useLocalize';
 import {useMouseActions} from '@hooks/useMouseContext';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import mergeRefs from '@libs/mergeRefs';
 
@@ -57,10 +55,9 @@ function NumberComposerSymbolInput({
     symbolTextStyle,
     negativeSymbolStyle,
 }: NumberComposerSymbolInputProps) {
-    const styles = useThemeStyles();
     const {numberFormat} = useLocalize();
     const {setMouseDown, setMouseUp} = useMouseActions();
-    const {errorText, formattedNumber, isNegative, selection} = useNumberComposerState();
+    const {formattedNumber, isNegative, selection} = useNumberComposerState();
     const {clearSign, handleBlur, handleKeyPress, handleSelectionChange, inputRef, setNumber} = useNumberComposerActions();
     const textInput = useRef<BaseTextInputRef | null>(null);
 
@@ -93,59 +90,49 @@ function NumberComposerSymbolInput({
     };
 
     return (
-        <>
-            <TextInputWithSymbol
-                accessibilityLabel={accessibilityLabel}
-                autoFocus={autoFocus}
-                autoGrow={autoGrow}
-                autoGrowExtraSpace={autoGrowExtraSpace}
-                autoGrowMarginSide={autoGrowMarginSide}
-                containerStyle={containerStyle}
-                contentWidth={contentWidth}
-                disabled={disabled}
-                disableKeyboard={disableKeyboard}
-                formattedAmount={formattedNumber}
-                hideFocusedState={hideFocusedState}
-                hideSymbol={hideSymbol}
-                isNegative={isNegative}
-                isSymbolPressable={isSymbolPressable}
-                keyboardType={keyboardType}
-                negativeSymbolStyle={negativeSymbolStyle}
-                onBlur={handleInputBlur}
-                onChangeAmount={setNumber}
-                onFocus={onFocus}
-                onKeyPress={handleInputKeyPress}
-                onMouseDown={handleMouseDown}
-                onMouseUp={handleMouseUp}
-                onPress={onPress}
-                onSelectionChange={handleSelectionChange}
-                onSymbolButtonPress={onSymbolButtonPress}
-                placeholder={numberFormat(0)}
-                prefixCharacter={prefixCharacter}
-                prefixContainerStyle={prefixContainerStyle}
-                prefixStyle={prefixStyle}
-                ref={mergeRefs(textInput, inputRef, ref)}
-                selection={selection}
-                shouldAllowFocusInLandscapeMode={shouldAllowFocusInLandscapeMode}
-                shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
-                shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
-                style={style}
-                submitBehavior={submitBehavior}
-                symbol={symbol}
-                symbolPosition={inputPosition}
-                symbolTextStyle={symbolTextStyle}
-                testID={testID}
-                touchableInputWrapperStyle={touchableInputWrapperStyle}
-            />
-            {/* TODO: Unify both input paths (NumberComposer.SymbolInput and NumberForm.TextInput) around a shared NumberInput.Error primitive so error rendering is no longer conditional. */}
-            {!!errorText && (
-                <FormHelpMessage
-                    style={[styles.ph5, styles.w100]}
-                    isError
-                    message={errorText}
-                />
-            )}
-        </>
+        <TextInputWithSymbol
+            accessibilityLabel={accessibilityLabel}
+            autoFocus={autoFocus}
+            autoGrow={autoGrow}
+            autoGrowExtraSpace={autoGrowExtraSpace}
+            autoGrowMarginSide={autoGrowMarginSide}
+            containerStyle={containerStyle}
+            contentWidth={contentWidth}
+            disabled={disabled}
+            disableKeyboard={disableKeyboard}
+            formattedAmount={formattedNumber}
+            hideFocusedState={hideFocusedState}
+            hideSymbol={hideSymbol}
+            isNegative={isNegative}
+            isSymbolPressable={isSymbolPressable}
+            keyboardType={keyboardType}
+            negativeSymbolStyle={negativeSymbolStyle}
+            onBlur={handleInputBlur}
+            onChangeAmount={setNumber}
+            onFocus={onFocus}
+            onKeyPress={handleInputKeyPress}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onPress={onPress}
+            onSelectionChange={handleSelectionChange}
+            onSymbolButtonPress={onSymbolButtonPress}
+            placeholder={numberFormat(0)}
+            prefixCharacter={prefixCharacter}
+            prefixContainerStyle={prefixContainerStyle}
+            prefixStyle={prefixStyle}
+            ref={mergeRefs(textInput, inputRef, ref)}
+            selection={selection}
+            shouldAllowFocusInLandscapeMode={shouldAllowFocusInLandscapeMode}
+            shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
+            shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
+            style={style}
+            submitBehavior={submitBehavior}
+            symbol={symbol}
+            symbolPosition={inputPosition}
+            symbolTextStyle={symbolTextStyle}
+            testID={testID}
+            touchableInputWrapperStyle={touchableInputWrapperStyle}
+        />
     );
 }
 

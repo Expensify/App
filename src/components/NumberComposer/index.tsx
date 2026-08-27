@@ -20,19 +20,24 @@
  *     symbol="$"
  *     position="prefix"
  *   />
+ *   <NumberComposer.Error />
  * </NumberComposer>
  * ```
  *
- * The `useNumberComposerActions` hook is also exported for custom composed
- * primitives. The number pad, layouts, controls,
- * error, and footer primitives arrive in a later PR.
+ * The error is rendered by its own primitive rather than by the input, because the number-pad layouts position it
+ * differently. The `useNumberComposerActions` hook is also exported for custom composed primitives. The number pad,
+ * layouts, controls, and footer primitives arrive in a later PR.
  */
 import NumberComposerComponent from './NumberComposer';
+import NumberComposerError from './primitives/NumberComposerError';
 import NumberComposerSymbolInput from './primitives/NumberComposerSymbolInput';
 
 const NumberComposer = Object.assign(NumberComposerComponent, {
     /** Renders a numeric input with a symbol beside it and a separately rendered minus. */
     SymbolInput: NumberComposerSymbolInput,
+
+    /** Renders the root error, positioned by the composition that places it. */
+    Error: NumberComposerError,
 });
 
 export default NumberComposer;
