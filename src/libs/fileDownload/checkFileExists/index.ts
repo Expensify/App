@@ -65,4 +65,3 @@ function checkFileExists(path: string | undefined): Promise<boolean> {
 
 export default checkFileExists;
 export {checkFileExistsWithReason};
-export type {FileCheckResult, FileCheckError};
