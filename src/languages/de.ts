@@ -7362,6 +7362,10 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             yourWorkspace: `Dein Arbeitsbereich ist auf eine nicht unterstützte Währung eingestellt. Sieh dir die <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">Liste der unterstützten Währungen</a> an.`,
             chooseAnExisting: 'Wähle ein bestehendes Bankkonto zum Bezahlen von Ausgaben oder füge ein neues hinzu.',
             changeBankAccount: 'Bankkonto ändern',
+            updateCurrencyForExpensifyCard: 'Die Expensify Karte kann in USD ausgegeben werden. Bitte aktualisieren Sie diesen Workspace auf USD oder verwenden Sie einen anderen Workspace.',
+            updateCurrencyForExpensifyCardTitle: 'Expensify Karte bestellen',
+            euUkUpdateCurrencyForExpensifyCard:
+                'Die Expensify Karte kann in USD, GBP und EUR ausgestellt werden. Bitte aktualisieren Sie diesen Workspace auf eine unterstützte Währung oder verwenden Sie einen anderen Workspace.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Besitz übertragen',

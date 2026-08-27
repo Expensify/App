@@ -7055,6 +7055,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             yourWorkspace: `您的工作区当前使用不受支持的货币。请查看<a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">支持的货币列表</a>。`,
             chooseAnExisting: '选择现有银行账户来支付报销，或添加新账户。',
             changeBankAccount: '更改银行账户',
+            updateCurrencyForExpensifyCard: 'Expensify 卡目前仅支持以美元（USD）发行。请将此工作区的货币更新为美元（USD），或使用其他工作区。',
+            updateCurrencyForExpensifyCardTitle: '获取 Expensify 卡',
+            euUkUpdateCurrencyForExpensifyCard: 'Expensify 卡目前可发行的货币包括 USD、GBP 和 EUR。请将此工作区更新为受支持的货币或使用其他工作区。',
         },
         changeOwner: {
             changeOwnerPageTitle: '转移所有者',

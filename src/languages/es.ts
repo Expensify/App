@@ -7334,6 +7334,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             yourWorkspace: `Tu espacio de trabajo está configurado en una moneda no soportada. Consulta la <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">lista de monedas soportadas</a>.`,
             chooseAnExisting: 'Elige una cuenta bancaria existente para pagar gastos o añade una nueva.',
             changeBankAccount: 'Cambiar cuenta bancaria',
+            updateCurrencyForExpensifyCard:
+                'La Tarjeta Expensify está disponible para emitirse en USD. Por favor, actualiza este espacio de trabajo a USD o usa un espacio de trabajo diferente.',
+            updateCurrencyForExpensifyCardTitle: 'Consigue la Tarjeta Expensify',
+            euUkUpdateCurrencyForExpensifyCard:
+                'La Tarjeta Expensify está disponible para emitirse en USD, GBP y EUR. Actualiza este espacio de trabajo a una moneda compatible o utiliza un espacio de trabajo diferente.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transferir la propiedad',

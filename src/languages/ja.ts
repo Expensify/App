@@ -7236,6 +7236,9 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             yourWorkspace: `ご利用のワークスペースはサポートされていない通貨に設定されています。<a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">サポートされている通貨の一覧</a>を表示します。`,
             chooseAnExisting: '既存の銀行口座を選択して経費を支払うか、新しい口座を追加してください。',
             changeBankAccount: '銀行口座を変更',
+            updateCurrencyForExpensifyCard: 'Expensify カードは USD でのみ発行できます。このワークスペースを USD に更新するか、別のワークスペースをご利用ください。',
+            updateCurrencyForExpensifyCardTitle: 'Expensify カードを申し込む',
+            euUkUpdateCurrencyForExpensifyCard: 'Expensify カードは USD、GBP、EUR で発行できます。このワークスペースを対応している通貨に更新するか、別のワークスペースを使用してください。',
         },
         changeOwner: {
             changeOwnerPageTitle: '所有者を変更',
