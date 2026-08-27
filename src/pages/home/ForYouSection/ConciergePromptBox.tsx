@@ -1,5 +1,6 @@
 import AttachmentPicker from '@components/AttachmentPicker';
 import Composer from '@components/Composer';
+import type {ComposerRef} from '@components/Composer/types';
 import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -18,9 +19,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isSafari} from '@libs/Browser';
+import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys} from '@libs/ComposerUtils';
 import DateUtils from '@libs/DateUtils';
 import getButtonState from '@libs/getButtonState';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 
 import SubmitDraftButton from '@pages/inbox/report/ReportActionCompose/SubmitDraftButton';
 
@@ -32,10 +35,12 @@ import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {TextInputKeyPressEvent} from 'react-native';
+import type {NativeMethods, TextInputKeyPressEvent} from 'react-native';
 
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import {useAnimatedRef} from 'react-native-reanimated';
+import {scheduleOnUI} from 'react-native-worklets';
 
 import useConciergeAttachmentPicker from './useConciergeAttachmentPicker';
 
@@ -75,15 +80,27 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     const [longPlaceholderHeight, setLongPlaceholderHeight] = useState<number | null>(null);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
+    const animatedRef = useAnimatedRef<NativeMethods>();
+
+    // The native Composer only forwards its underlying input to a callback ref, so an object ref would never be populated.
+    const composerRef = useRef<ComposerRef | null>(null);
+
+    const setComposerRef = (element: ComposerRef) => {
+        animatedRef(element);
+        composerRef.current = element;
+    };
 
     const clearInput = () => {
         setValue('');
         setSelection({start: 0, end: 0});
+        scheduleOnUI(forceClearInput, animatedRef);
     };
 
     const sendAttachment = (attachments: FileObject | FileObject[]) => {
-        askConciergeWithAttachment(attachments, value);
-        clearInput();
+        interceptAnonymousUser(() => {
+            askConciergeWithAttachment(attachments, value);
+            clearInput();
+        });
     };
     const {pickAttachments, PDFValidationComponent} = useConciergeAttachmentPicker(conciergeTargetReportID, sendAttachment);
 
@@ -117,8 +134,10 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
         if (!canSubmit) {
             return;
         }
-        askConcierge(value);
-        clearInput();
+        interceptAnonymousUser(() => {
+            askConcierge(value);
+            clearInput();
+        });
     };
 
     const handleKeyPress = (event: TextInputKeyPressEvent) => {
@@ -163,7 +182,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                                                     onPress={(e) => {
                                                         e?.preventDefault();
                                                         actionButtonRef.current?.blur();
-                                                        setIsMenuVisible((prev) => !prev);
+                                                        interceptAnonymousUser(() => setIsMenuVisible((prev) => !prev));
                                                     }}
                                                     style={({hovered, pressed}) => [
                                                         styles.composerSizeButton,
@@ -216,6 +235,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                 </View>
                 <View style={[StyleUtils.getContainerComposeStyles(), styles.pRelative]}>
                     <Composer
+                        ref={setComposerRef}
                         style={[styles.textInputCompose, styles.textInputCollapseCompose]}
                         value={value}
                         onChangeText={setValue}
@@ -225,6 +245,18 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
                         onKeyPress={handleKeyPress}
+                        onPasteFile={(files) => {
+                            // Concierge isn't reachable yet, so there is nowhere to send the paste. Mirrors the disabled "+" button.
+                            if (!shouldShowAskConcierge) {
+                                return;
+                            }
+
+                            interceptAnonymousUser(() => {
+                                // Blur before the attachment preview modal takes over, so the keyboard doesn't stay up over it.
+                                composerRef.current?.blur();
+                                pickAttachments(files);
+                            });
+                        }}
                         maxLines={MAX_INPUT_LINES}
                         multiline
                         textAlignVertical="top"
