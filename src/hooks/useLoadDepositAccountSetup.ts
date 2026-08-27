@@ -33,7 +33,7 @@ function useLoadDepositAccountSetup(): boolean {
 
     // Reading the flag through an effect event keeps it out of the effect's dependencies, so the request the flag
     // itself triggers can't feed back and re-run the effect.
-    const openDepositAccountSetupEvent = useEffectEvent(() => {
+    const loadDepositAccountSetup = useEffectEvent(() => {
         if (!isFlowEntryMount && isLoadingDepositAccountSetup !== undefined) {
             return;
         }
