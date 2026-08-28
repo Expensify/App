@@ -32,8 +32,8 @@ function DualEntryCardProgramAccountPage({policy}: WithPolicyConnectionsProps) {
     const dualentryData = policy?.connections?.dualEntry?.data;
     const creditCardAccountID = dualentryConfig?.export?.creditCardAccountID;
     const cardProgramsUsingCustomAccounts = dualentryConfig?.export?.cardProgramAccounts;
-    const cardsUsingCustomAccountsCount = getCardsUsingCustomExportCount(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT);
-    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID) : undefined;
+    const cardsUsingCustomAccountsCount = getCardsUsingCustomExportCount(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT);
+    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPORT.getRoute(policyID) : undefined;
 
     return (
         <ConnectionLayout
@@ -67,7 +67,7 @@ function DualEntryCardProgramAccountPage({policy}: WithPolicyConnectionsProps) {
                     return (
                         <OfflineWithFeedback
                             key={feedKey}
-                            pendingAction={settingsPendingAction([`${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`], dualentryConfig?.pendingFields)}
+                            pendingAction={settingsPendingAction([`${CONST.DUALENTRY_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`], dualentryConfig?.pendingFields)}
                         >
                             <MenuItemWithTopDescription
                                 title={cardProgramAccountDisplayName}
@@ -78,11 +78,11 @@ function DualEntryCardProgramAccountPage({policy}: WithPolicyConnectionsProps) {
                                         : undefined
                                 }
                                 onPress={() =>
-                                    policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID)) : undefined
+                                    policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID)) : undefined
                                 }
                                 shouldShowRightIcon
                                 brickRoadIndicator={
-                                    areSettingsInErrorFields([`${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`], dualentryConfig?.errorFields)
+                                    areSettingsInErrorFields([`${CONST.DUALENTRY_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`], dualentryConfig?.errorFields)
                                         ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                                         : undefined
                                 }
