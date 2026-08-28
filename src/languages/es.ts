@@ -9,7 +9,6 @@
  * - Improve the prompts in prompts/translation, or
  * - Improve context annotations in src/languages/en.ts
  */
-
 import CONST from '@src/CONST';
 import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 
@@ -5791,7 +5790,7 @@ ${amount} para ${merchant} - ${date}`,
                 label: 'Cuenta de la Tarjeta Expensify',
                 description: 'Elige dónde exportar las transacciones de la Tarjeta Expensify.',
             },
-            autoSyncDescription: 'Sincroniza DualEntry y Expensify automáticamente, todos los días. Los informes se sincronizan en tiempo real.',
+            autoSyncDescription: 'Sincroniza DualEntry y Expensify automáticamente cada día. Los informes se sincronizan en tiempo real.',
             accountingMethods: {
                 label: 'Método de exportación',
                 description: 'Elige cuándo exportar los gastos.',
@@ -5811,7 +5810,7 @@ ${amount} para ${merchant} - ${date}`,
             settlementAccount: {label: 'Cuenta de liquidación de la Tarjeta Expensify', description: 'Elige tu cuenta de liquidación y crearemos el pago en DualEntry.'},
             syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes',
             travelInvoicingSettlementAccount: {label: 'Cuenta de liquidación de facturación de viajes', description: 'Elige tu cuenta de liquidación y crearemos el pago en DualEntry.'},
-            travelInvoicingPayableAccount: {label: 'Cuenta a pagar por facturación de viajes'},
+            travelInvoicingPayableAccount: {label: 'Cuenta a pagar de facturación de viajes'},
         },
         type: {
             free: 'Gratis',
@@ -6859,7 +6858,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 },
             },
             connections: {
-                syncStageName: (stage, integrationName = 'QuickBooks Online') => {
+                syncStageName: (stage: PolicyConnectionSyncStage, integrationName = 'QuickBooks Online') => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -6868,35 +6867,35 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'netSuiteSyncImportEmployees':
                         case 'intacctImportEmployees':
                         case 'quickbooksDesktopImportEmployees':
-                            return 'Importando empleados';
+                            return 'Importación de empleados';
                         case 'quickbooksOnlineImportAccounts':
                         case 'quickbooksDesktopImportAccounts':
                             return 'Importando cuentas';
                         case 'quickbooksOnlineImportClasses':
                         case 'quickbooksDesktopImportClasses':
-                            return 'Importando clases';
+                            return 'Importación de clases';
                         case 'quickbooksOnlineImportLocations':
-                            return 'Importando localidades';
+                            return 'Importando ubicaciones';
                         case 'quickbooksOnlineImportProcessing':
                             return 'Procesando datos importados';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
-                            return 'Sincronizando reportes reembolsados y facturas pagadas';
+                            return 'Sincronizar informes reembolsados y pagos de facturas';
                         case 'quickbooksOnlineSyncTaxCodes':
-                            return 'Importando tipos de impuestos';
+                            return 'Importando códigos de impuestos';
                         case 'quickbooksOnlineCheckConnection':
-                            return `Revisando conexión a ${integrationName}`;
+                            return `Comprobando la conexión de ${integrationName}`;
                         case 'quickbooksOnlineImportMain':
-                            return `Importando datos desde ${integrationName}`;
+                            return `Importando datos de ${integrationName}`;
                         case 'startingImportXero':
-                            return 'Importando datos desde Xero';
+                            return 'Importando datos de Xero';
                         case 'startingImportQBO':
-                            return `Importando datos desde ${integrationName}`;
+                            return `Importando datos de ${integrationName}`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
-                            return 'Importando datos desde QuickBooks Desktop';
+                            return 'Importar datos de QuickBooks Desktop';
                         case 'quickbooksDesktopImportTitle':
-                            return 'Importando título';
+                            return 'Título de importación';
                         case 'quickbooksDesktopImportApproveCertificate':
                             return 'Importando certificado de aprobación';
                         case 'quickbooksDesktopImportDimensions':
@@ -6904,9 +6903,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'quickbooksDesktopImportSavePolicy':
                             return 'Importando política de guardado';
                         case 'quickbooksDesktopWebConnectorReminder':
-                            return 'Aún sincronizando datos con QuickBooks... Por favor, asegúrate de que el Conector Web esté en funcionamiento';
+                            return 'Sincronizando datos con QuickBooks... Asegúrate de que Web Connector esté en ejecución';
                         case 'quickbooksOnlineSyncTitle':
-                            return `Sincronizando datos desde ${integrationName}`;
+                            return `Sincronizando datos de ${integrationName}`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':
@@ -6914,45 +6913,45 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'quickbooksOnlineSyncApplyCategories':
                             return 'Actualizando categorías';
                         case 'quickbooksOnlineSyncApplyCustomers':
-                            return 'Actualizando clientes/proyectos';
+                            return 'Actualizar clientes/proyectos';
                         case 'quickbooksOnlineSyncApplyEmployees':
-                            return 'Actualizando empleados';
+                            return 'Actualizando la lista de personas';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
-                            return 'Actualizando clases';
+                            return 'Actualizando campos del informe';
                         case 'jobDone':
                             return 'Esperando a que se carguen los datos importados';
                         case 'xeroSyncImportChartOfAccounts':
-                            return 'Sincronizando plan de cuentas';
+                            return 'Sincronizando el plan de cuentas';
                         case 'xeroSyncImportCategories':
-                            return 'Sincronizando categorias';
+                            return 'Sincronizando categorías';
                         case 'xeroSyncImportCustomers':
                             return 'Sincronizando clientes';
                         case 'xeroSyncXeroReimbursedReports':
                             return 'Marcar los informes de Expensify como reembolsados';
                         case 'xeroSyncExpensifyReimbursedReports':
-                            return 'Marcar facturas y recibos de Xero como pagados';
+                            return 'Marcar facturas y comprobantes de Xero como pagados';
                         case 'xeroSyncImportTrackingCategories':
                             return 'Sincronizando categorías de seguimiento';
                         case 'xeroSyncImportBankAccounts':
                             return 'Sincronizando cuentas bancarias';
                         case 'xeroSyncImportTaxRates':
-                            return 'Sincronizando las tasas de impuesto';
+                            return 'Sincronizando tasas de impuestos';
                         case 'xeroCheckConnection':
-                            return 'Comprobando la conexión a Xero';
+                            return 'Comprobando la conexión con Xero';
                         case 'xeroSyncTitle':
-                            return 'Sincronizando los datos de Xero';
+                            return 'Sincronizando datos de Xero';
                         case 'netSuiteSyncConnection':
                             return 'Iniciando conexión a NetSuite';
                         case 'netSuiteSyncCustomers':
                             return 'Importando clientes';
                         case 'netSuiteSyncInitData':
-                            return 'Recuperando datos de NetSuite';
+                            return 'Obteniendo datos desde NetSuite';
                         case 'netSuiteSyncImportTaxes':
                             return 'Importando impuestos';
                         case 'netSuiteSyncImportItems':
-                            return 'Importando artículos';
+                            return 'Importando elementos';
                         case 'netSuiteSyncData':
-                            return 'Importando datos a Expensify';
+                            return 'Importar datos en Expensify';
                         case 'netSuiteSyncAccounts':
                             return 'Sincronizando cuentas';
                         case 'netSuiteSyncCurrencies':
@@ -6960,36 +6959,36 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'netSuiteSyncCategories':
                             return 'Sincronizando categorías';
                         case 'netSuiteSyncReportFields':
-                            return 'Importando datos como campos de informe de Expensify';
+                            return 'Importar datos como campos de informe de Expensify';
                         case 'netSuiteSyncTags':
-                            return 'Importando datos como etiquetas de Expensify';
+                            return 'Importar datos como etiquetas de Expensify';
                         case 'netSuiteSyncUpdateConnectionData':
-                            return 'Actualizando información de conexión';
+                            return 'Actualizando información de la conexión';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
-                            return 'Marcando informes de Expensify como reembolsados';
-                        case 'netSuiteSyncImportCustomLists':
-                            return 'Importando listas personalizadas';
-                        case 'netSuiteSyncImportSubsidiaries':
-                            return 'Importando subsidiarias';
-                        case 'netSuiteSyncImportVendors':
-                        case 'quickbooksDesktopImportVendors':
-                            return 'Importando proveedores';
+                            return 'Marcar los informes de Expensify como reembolsados';
                         case 'netSuiteSyncExpensifyReimbursedReports':
-                            return 'Marcando facturas y recibos de NetSuite como pagados';
+                            return 'Marcar facturas y recibos de NetSuite como pagados';
                         case 'netSuiteImportVendorsTitle':
                             return 'Importando proveedores';
                         case 'netSuiteImportCustomListsTitle':
-                            return 'Importando listas personalizadas';
+                            return 'Importar listas personalizadas';
+                        case 'netSuiteSyncImportCustomLists':
+                            return 'Importar listas personalizadas';
+                        case 'netSuiteSyncImportSubsidiaries':
+                            return 'Importando filiales';
+                        case 'netSuiteSyncImportVendors':
+                        case 'quickbooksDesktopImportVendors':
+                            return 'Importando proveedores';
                         case 'intacctCheckConnection':
-                            return 'Comprobando la conexión a Sage Intacct';
+                            return 'Comprobando la conexión con Sage Intacct';
                         case 'intacctImportDimensions':
-                            return 'Importando dimensiones';
+                            return 'Importando dimensiones de Sage Intacct';
                         case 'intacctImportTitle':
-                            return 'Importando datos desde Sage Intacct';
+                            return 'Importar datos de Sage Intacct';
                         case 'financialForceSyncTitle':
                             return 'Sincronizando datos de Certinia';
                         case 'financialForceSyncStep':
-                            return 'Sincronizando la conexión de Certinia';
+                            return 'Sincronizando conexión con Certinia';
                         case 'financialForceSyncCategories':
                             return 'Importando categorías';
                         case 'financialForceSyncTags':
@@ -7001,11 +7000,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'financialForceSyncCompanies':
                             return 'Importando empresas';
                         case 'financialForceSyncUsers':
-                            return 'Importando usuarios';
+                            return 'Importación de usuarios';
                         case 'financialForceSyncDimensions':
                             return 'Importando dimensiones';
                         case 'financialForceMarkAsReimbursed':
-                            return 'Marcando informes como reembolsados';
+                            return 'Marcar informes como reembolsados';
                         case 'rilletSyncTitle':
                             return 'Sincronizando datos de Rillet';
                         case 'rilletSyncConnection':
@@ -7018,8 +7017,14 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                             return 'Iniciando conexión con DualEntry';
                         case 'dualEntrySyncImportData':
                             return 'Cargando datos';
+                        case 'dualEntrySyncPayments':
+                            return 'Sincronizando pagos a proveedores';
+                        case 'dualEntrySyncCardSettlements':
+                            return 'Sincronizando liquidaciones de tarjetas';
+                        case 'dualEntrySyncTravelSettlements':
+                            return 'Sincronizando liquidaciones de viaje';
                         default: {
-                            return `Translation missing for stage: ${stage}`;
+                            return `Falta la traducción para la etapa: ${stage}`;
                         }
                     }
                 },

@@ -6013,22 +6013,22 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 label: 'Μέθοδος εξαγωγής',
                 description: 'Επιλέξτε πότε θα εξαχθούν οι δαπάνες.',
                 values: {
-                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Δεδουλευμένη βάση',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Δεδουλευμένο',
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Μετρητά',
                 },
                 alternateText: {
-                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Οι εκτός τσέπης δαπάνες θα εξαχθούν όταν λάβουν την τελική έγκριση',
-                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Οι εκτός τσέπης δαπάνες θα εξαχθούν όταν πληρωθούν',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Οι δαπάνες από την τσέπη σας θα εξαχθούν όταν εγκριθούν οριστικά',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Οι εκτός τσέπης δαπάνες θα εξαχθούν όταν εξοφληθούν',
                 },
             },
-            syncReimbursedReports: 'Συγχρονισμός αποζημιωμένων αναφορών',
-            syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρώνεται μέσω ACH, θα δημιουργηθεί μια πληρωμή λογαριασμού σε αυτόν τον λογαριασμό.',
+            syncReimbursedReports: 'Συγχρονισμός εξοφλημένων αναφορών',
+            syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρώνεται μέσω ACH, θα δημιουργηθεί πληρωμή λογαριασμού σε αυτόν τον λογαριασμό.',
             billPaymentAccount: {label: 'Λογαριασμός πληρωμής λογαριασμών', description: 'Επιλέξτε από πού θα πληρώνετε λογαριασμούς και θα δημιουργήσουμε την πληρωμή στο DualEntry.'},
             syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών κάρτας Expensify',
             settlementAccount: {label: 'λογαριασμός διακανονισμού κάρτας Expensify', description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο DualEntry.'},
             syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών τιμολόγησης ταξιδιών',
             travelInvoicingSettlementAccount: {
-                label: 'Λογαριασμός εκκαθάρισης τιμολόγησης ταξιδιών',
+                label: 'Λογαριασμός διακανονισμού τιμολόγησης ταξιδιών',
                 description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο DualEntry.',
             },
             travelInvoicingPayableAccount: {label: 'Λογαριασμός πληρωτέων τιμολόγησης ταξιδιών'},
@@ -7182,11 +7182,11 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 },
             },
             connections: {
-                syncStageName: (stage, integrationName = 'QuickBooks Online') => {
+                syncStageName: (stage: PolicyConnectionSyncStage, integrationName = 'QuickBooks Online') => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
-                            return 'Γίνεται εισαγωγή πελατών';
+                            return 'Εισαγωγή πελατών';
                         case 'quickbooksOnlineImportEmployees':
                         case 'netSuiteSyncImportEmployees':
                         case 'intacctImportEmployees':
@@ -7197,43 +7197,43 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             return 'Εισαγωγή λογαριασμών';
                         case 'quickbooksOnlineImportClasses':
                         case 'quickbooksDesktopImportClasses':
-                            return 'Εισαγωγή κλάσεων';
+                            return 'Εισαγωγή κατηγοριών';
                         case 'quickbooksOnlineImportLocations':
-                            return 'Γίνεται εισαγωγή τοποθεσιών';
+                            return 'Εισαγωγή τοποθεσιών';
                         case 'quickbooksOnlineImportProcessing':
-                            return 'Γίνεται επεξεργασία των εισαγόμενων δεδομένων';
+                            return 'Επεξεργασία εισαγόμενων δεδομένων';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
                             return 'Συγχρονισμός αποζημιωμένων αναφορών και πληρωμών λογαριασμών';
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Εισαγωγή κωδικών φόρου';
                         case 'quickbooksOnlineCheckConnection':
-                            return `Γίνεται έλεγχος σύνδεσης με το ${integrationName}`;
+                            return `Έλεγχος σύνδεσης ${integrationName}`;
                         case 'quickbooksOnlineImportMain':
-                            return `Εισαγωγή δεδομένων από το ${integrationName}`;
+                            return `Γίνεται εισαγωγή δεδομένων ${integrationName}`;
                         case 'startingImportXero':
-                            return 'Εισαγωγή δεδομένων Xero';
+                            return 'Γίνεται εισαγωγή δεδομένων Xero';
                         case 'startingImportQBO':
-                            return `Εισαγωγή δεδομένων από το ${integrationName}`;
+                            return `Γίνεται εισαγωγή δεδομένων ${integrationName}`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
-                            return 'Εισαγωγή δεδομένων από το QuickBooks Desktop';
+                            return 'Εισαγωγή δεδομένων QuickBooks Desktop';
                         case 'quickbooksDesktopImportTitle':
-                            return 'Εισαγωγή τίτλου';
+                            return 'Γίνεται εισαγωγή τίτλου';
                         case 'quickbooksDesktopImportApproveCertificate':
-                            return 'Εισαγωγή πιστοποιητικού έγκρισης';
+                            return 'Γίνεται εισαγωγή πιστοποιητικού έγκρισης';
                         case 'quickbooksDesktopImportDimensions':
                             return 'Γίνεται εισαγωγή διαστάσεων';
                         case 'quickbooksDesktopImportSavePolicy':
                             return 'Γίνεται εισαγωγή πολιτικής αποθήκευσης';
                         case 'quickbooksDesktopWebConnectorReminder':
-                            return 'Συνεχίζεται ο συγχρονισμός δεδομένων με το QuickBooks... Βεβαιωθείτε ότι το Web Connector εκτελείται';
+                            return 'Γίνεται ακόμη συγχρονισμός δεδομένων με το QuickBooks... Βεβαιωθείτε ότι το Web Connector εκτελείται';
                         case 'quickbooksOnlineSyncTitle':
-                            return `Συγχρονισμός δεδομένων ${integrationName}`;
+                            return `Γίνεται συγχρονισμός δεδομένων ${integrationName}`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':
-                            return 'Φόρτωση δεδομένων';
+                            return 'Γίνεται φόρτωση δεδομένων';
                         case 'quickbooksOnlineSyncApplyCategories':
                             return 'Ενημέρωση κατηγοριών';
                         case 'quickbooksOnlineSyncApplyCustomers':
@@ -7245,7 +7245,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'jobDone':
                             return 'Αναμονή για τη φόρτωση των εισαγόμενων δεδομένων';
                         case 'xeroSyncImportChartOfAccounts':
-                            return 'Γίνεται συγχρονισμός του λογιστικού σχεδίου';
+                            return 'Συγχρονισμός λογιστικού σχεδίου';
                         case 'xeroSyncImportCategories':
                             return 'Γίνεται συγχρονισμός κατηγοριών';
                         case 'xeroSyncImportCustomers':
@@ -7253,23 +7253,23 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'xeroSyncXeroReimbursedReports':
                             return 'Σήμανση αναφορών Expensify ως αποζημιωμένων';
                         case 'xeroSyncExpensifyReimbursedReports':
-                            return 'Σήμανση των Xero λογαριασμών και τιμολογίων ως εξοφλημένων';
+                            return 'Σήμανση λογαριασμών και τιμολογίων Xero ως εξοφλημένων';
                         case 'xeroSyncImportTrackingCategories':
-                            return 'Γίνεται συγχρονισμός κατηγοριών παρακολούθησης';
+                            return 'Συγχρονισμός κατηγοριών παρακολούθησης';
                         case 'xeroSyncImportBankAccounts':
                             return 'Συγχρονισμός τραπεζικών λογαριασμών';
                         case 'xeroSyncImportTaxRates':
-                            return 'Γίνεται συγχρονισμός φορολογικών συντελεστών';
+                            return 'Συγχρονισμός φορολογικών συντελεστών';
                         case 'xeroCheckConnection':
-                            return 'Έλεγχος σύνδεσης με το Xero';
+                            return 'Γίνεται έλεγχος σύνδεσης με το Xero';
                         case 'xeroSyncTitle':
-                            return 'Συγχρονισμός δεδομένων Xero';
+                            return 'Γίνεται συγχρονισμός δεδομένων Xero';
                         case 'netSuiteSyncConnection':
-                            return 'Γίνεται αρχικοποίηση σύνδεσης με το NetSuite';
+                            return 'Αρχικοποίηση σύνδεσης με το NetSuite';
                         case 'netSuiteSyncCustomers':
-                            return 'Γίνεται εισαγωγή πελατών';
+                            return 'Εισαγωγή πελατών';
                         case 'netSuiteSyncInitData':
-                            return 'Γίνεται λήψη δεδομένων από το NetSuite';
+                            return 'Γίνεται ανάκτηση δεδομένων από το NetSuite';
                         case 'netSuiteSyncImportTaxes':
                             return 'Εισαγωγή φόρων';
                         case 'netSuiteSyncImportItems':
@@ -7279,7 +7279,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'netSuiteSyncAccounts':
                             return 'Συγχρονισμός λογαριασμών';
                         case 'netSuiteSyncCurrencies':
-                            return 'Γίνεται συγχρονισμός νομισμάτων';
+                            return 'Συγχρονισμός νομισμάτων';
                         case 'netSuiteSyncCategories':
                             return 'Γίνεται συγχρονισμός κατηγοριών';
                         case 'netSuiteSyncReportFields':
@@ -7304,23 +7304,23 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'quickbooksDesktopImportVendors':
                             return 'Εισαγωγή προμηθευτών';
                         case 'intacctCheckConnection':
-                            return 'Έλεγχος σύνδεσης με το Sage Intacct';
+                            return 'Έλεγχος σύνδεσης Sage Intacct';
                         case 'intacctImportDimensions':
                             return 'Εισαγωγή διαστάσεων Sage Intacct';
                         case 'intacctImportTitle':
                             return 'Εισαγωγή δεδομένων Sage Intacct';
                         case 'financialForceSyncTitle':
-                            return 'Συγχρονισμός δεδομένων Certinia';
+                            return 'Γίνεται συγχρονισμός δεδομένων Certinia';
                         case 'financialForceSyncStep':
                             return 'Γίνεται συγχρονισμός της σύνδεσης Certinia';
                         case 'financialForceSyncCategories':
-                            return 'Γίνεται εισαγωγή κατηγοριών';
+                            return 'Εισαγωγή κατηγοριών';
                         case 'financialForceSyncTags':
                             return 'Γίνεται εισαγωγή ετικετών';
                         case 'financialForceSyncVendors':
                             return 'Εισαγωγή προμηθευτών';
                         case 'financialForceSyncContacts':
-                            return 'Γίνεται εισαγωγή επαφών';
+                            return 'Εισαγωγή επαφών';
                         case 'financialForceSyncCompanies':
                             return 'Εισαγωγή εταιρειών';
                         case 'financialForceSyncUsers':
@@ -7330,19 +7330,25 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'financialForceMarkAsReimbursed':
                             return 'Σήμανση αναφορών ως αποζημιωμένων';
                         case 'rilletSyncTitle':
-                            return 'Συγχρονισμός δεδομένων Rillet';
+                            return 'Γίνεται συγχρονισμός δεδομένων Rillet';
                         case 'rilletSyncConnection':
-                            return 'Γίνεται αρχικοποίηση σύνδεσης με το Rillet';
+                            return 'Γίνεται προετοιμασία σύνδεσης με το Rillet';
                         case 'rilletSyncImportData':
-                            return 'Φόρτωση δεδομένων';
+                            return 'Γίνεται φόρτωση δεδομένων';
                         case 'dualEntrySyncTitle':
-                            return 'Γίνεται συγχρονισμός δεδομένων DualEntry';
+                            return 'Συγχρονισμός δεδομένων DualEntry';
                         case 'dualEntrySyncConnection':
                             return 'Γίνεται προετοιμασία σύνδεσης με το DualEntry';
                         case 'dualEntrySyncImportData':
-                            return 'Φόρτωση δεδομένων';
+                            return 'Γίνεται φόρτωση δεδομένων';
+                        case 'dualEntrySyncPayments':
+                            return 'Γίνεται συγχρονισμός πληρωμών προμηθευτών';
+                        case 'dualEntrySyncCardSettlements':
+                            return 'Γίνεται συγχρονισμός των διακανονισμών κάρτας';
+                        case 'dualEntrySyncTravelSettlements':
+                            return 'Γίνεται συγχρονισμός των διακανονισμών ταξιδιού';
                         default: {
-                            return `Λείπει μετάφραση για το στάδιο: ${stage}`;
+                            return `Λείπει η μετάφραση για το στάδιο: ${stage}`;
                         }
                     }
                 },

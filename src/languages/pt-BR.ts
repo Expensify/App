@@ -5873,13 +5873,13 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             },
             syncReimbursedReports: 'Sincronizar relatórios reembolsados',
             syncReimbursedReportsDescription: 'Quando um relatório for pago via ACH, um pagamento de conta será gerado nesta conta.',
-            billPaymentAccount: {label: 'Conta para pagamento de contas', description: 'Escolha de onde pagar as contas e nós criaremos o pagamento no DualEntry.'},
+            billPaymentAccount: {label: 'Conta de pagamento de faturas', description: 'Escolha de onde deseja pagar as contas e criaremos o pagamento no DualEntry.'},
             syncExpensifyCardSettlements: 'Sincronizar liquidações do Cartão Expensify',
-            settlementAccount: {label: 'Conta de liquidação do Cartão Expensify', description: 'Escolha sua conta de liquidação e vamos criar o pagamento no DualEntry.'},
+            settlementAccount: {label: 'Conta de liquidação do Cartão Expensify', description: 'Escolha sua conta de liquidação e nós criaremos o pagamento no DualEntry.'},
             syncTravelInvoicingSettlements: 'Sincronizar liquidações de faturamento de viagens',
             travelInvoicingSettlementAccount: {
-                label: 'Conta de liquidação de faturamento de viagens',
-                description: 'Escolha sua conta de liquidação e vamos criar o pagamento no DualEntry.',
+                label: 'Conta de liquidação de faturamento de viagem',
+                description: 'Escolha sua conta de liquidação e nós criaremos o pagamento no DualEntry.',
             },
             travelInvoicingPayableAccount: {label: 'Conta a pagar de faturamento de viagens'},
         },
@@ -6995,7 +6995,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 },
             },
             connections: {
-                syncStageName: (stage, integrationName = 'QuickBooks Online') => {
+                syncStageName: (stage: PolicyConnectionSyncStage, integrationName = 'QuickBooks Online') => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -7019,15 +7019,15 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'intacctImportSyncBillPayments':
                             return 'Sincronizando relatórios reembolsados e pagamentos de contas';
                         case 'quickbooksOnlineSyncTaxCodes':
-                            return 'Importando códigos de impostos';
+                            return 'Importando códigos de imposto';
                         case 'quickbooksOnlineCheckConnection':
                             return `Verificando conexão com ${integrationName}`;
                         case 'quickbooksOnlineImportMain':
-                            return `Importando dados do ${integrationName}`;
+                            return `Importando dados de ${integrationName}`;
                         case 'startingImportXero':
                             return 'Importando dados do Xero';
                         case 'startingImportQBO':
-                            return `Importando dados do ${integrationName}`;
+                            return `Importando dados de ${integrationName}`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return 'Importando dados do QuickBooks Desktop';
@@ -7064,7 +7064,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'xeroSyncImportCustomers':
                             return 'Sincronizando clientes';
                         case 'xeroSyncXeroReimbursedReports':
-                            return 'Marcando relatórios do Expensify como reembolsados';
+                            return 'Marcar relatórios do Expensify como reembolsados';
                         case 'xeroSyncExpensifyReimbursedReports':
                             return 'Marcar contas e faturas do Xero como pagas';
                         case 'xeroSyncImportTrackingCategories':
@@ -7074,11 +7074,11 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'xeroSyncImportTaxRates':
                             return 'Sincronizando taxas de imposto';
                         case 'xeroCheckConnection':
-                            return 'Verificando conexão com Xero';
+                            return 'Verificando conexão com o Xero';
                         case 'xeroSyncTitle':
                             return 'Sincronizando dados do Xero';
                         case 'netSuiteSyncConnection':
-                            return 'Inicializando conexão com a NetSuite';
+                            return 'Inicializando conexão com o NetSuite';
                         case 'netSuiteSyncCustomers':
                             return 'Importando clientes';
                         case 'netSuiteSyncInitData':
@@ -7096,15 +7096,15 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'netSuiteSyncCategories':
                             return 'Sincronizando categorias';
                         case 'netSuiteSyncReportFields':
-                            return 'Importar dados como campos de relatório do Expensify';
+                            return 'Importando dados como campos de relatório do Expensify';
                         case 'netSuiteSyncTags':
                             return 'Importando dados como tags do Expensify';
                         case 'netSuiteSyncUpdateConnectionData':
                             return 'Atualizando informações de conexão';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
-                            return 'Marcando relatórios do Expensify como reembolsados';
+                            return 'Marcar relatórios do Expensify como reembolsados';
                         case 'netSuiteSyncExpensifyReimbursedReports':
-                            return 'Marcando contas e faturas do NetSuite como pagas';
+                            return 'Marcar contas e faturas do NetSuite como pagas';
                         case 'netSuiteImportVendorsTitle':
                             return 'Importando fornecedores';
                         case 'netSuiteImportCustomListsTitle':
@@ -7125,7 +7125,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'financialForceSyncTitle':
                             return 'Sincronizando dados do Certinia';
                         case 'financialForceSyncStep':
-                            return 'Sincronizando conexao do Certinia';
+                            return 'Sincronizando conexão Certinia';
                         case 'financialForceSyncCategories':
                             return 'Importando categorias';
                         case 'financialForceSyncTags':
@@ -7137,11 +7137,11 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'financialForceSyncCompanies':
                             return 'Importando empresas';
                         case 'financialForceSyncUsers':
-                            return 'Importando usuarios';
+                            return 'Importando usuários';
                         case 'financialForceSyncDimensions':
-                            return 'Importando dimensoes';
+                            return 'Importando dimensões';
                         case 'financialForceMarkAsReimbursed':
-                            return 'Marcando relatorios como reembolsados';
+                            return 'Marcando relatórios como reembolsados';
                         case 'rilletSyncTitle':
                             return 'Sincronizando dados do Rillet';
                         case 'rilletSyncConnection':
@@ -7149,13 +7149,19 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'rilletSyncImportData':
                             return 'Carregando dados';
                         case 'dualEntrySyncTitle':
-                            return 'Sincronizando dados DualEntry';
+                            return 'Sincronizando dados do DualEntry';
                         case 'dualEntrySyncConnection':
                             return 'Inicializando conexão com o DualEntry';
                         case 'dualEntrySyncImportData':
                             return 'Carregando dados';
+                        case 'dualEntrySyncPayments':
+                            return 'Sincronizando pagamentos a fornecedores';
+                        case 'dualEntrySyncCardSettlements':
+                            return 'Sincronizando liquidações do cartão';
+                        case 'dualEntrySyncTravelSettlements':
+                            return 'Sincronizando acertos de viagem';
                         default: {
-                            return `Tradução ausente para o estágio: ${stage}`;
+                            return `Tradução ausente para etapa: ${stage}`;
                         }
                     }
                 },

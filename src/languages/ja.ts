@@ -5799,24 +5799,24 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             autoSyncDescription: 'DualEntry と Expensify を毎日自動で同期します。レポートはリアルタイムで同期されます。',
             accountingMethods: {
                 label: 'エクスポート方法',
-                description: '経費をエクスポートするタイミングを選択します。',
+                description: '経費をいつエクスポートするか選択します。',
                 values: {
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '発生主義',
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '現金',
                 },
                 alternateText: {
-                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '立替経費は最終承認されるとエクスポートされます',
-                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '実費精算は、支払い済みになるとエクスポートされます',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自己負担経費は、最終承認時にエクスポートされます',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '立替経費は支払われるとエクスポートされます',
                 },
             },
             syncReimbursedReports: '精算済みレポートを同期',
-            syncReimbursedReportsDescription: 'レポートがACHで支払われると、この口座に支払伝票が作成されます。',
-            billPaymentAccount: {label: '支払口座', description: '請求書の支払い元を選択すると、DualEntry に支払いを作成します。'},
-            syncExpensifyCardSettlements: 'Expensify カードの清算を同期する',
-            settlementAccount: {label: 'Expensify カード精算口座', description: '精算口座を選択すると、DualEntry 内に支払を作成します。'},
+            syncReimbursedReportsDescription: 'レポートが ACH 経由で支払われると、この勘定科目で支払伝票が作成されます。',
+            billPaymentAccount: {label: '請求支払口座', description: '請求書の支払元を選択すると、DualEntry 内に支払いを作成します。'},
+            syncExpensifyCardSettlements: 'Expensify カードの清算を同期',
+            settlementAccount: {label: 'Expensify カードの決済口座', description: '精算口座を選択すると、DualEntry で支払いを作成します。'},
             syncTravelInvoicingSettlements: '出張請求の精算を同期する',
-            travelInvoicingSettlementAccount: {label: '出張請求の決済口座', description: '精算口座を選択すると、DualEntry 内に支払を作成します。'},
-            travelInvoicingPayableAccount: {label: '旅行請求買掛金勘定'},
+            travelInvoicingSettlementAccount: {label: '出張請求の精算勘定', description: '精算口座を選択すると、DualEntry で支払いを作成します。'},
+            travelInvoicingPayableAccount: {label: '旅行請求書の買掛金勘定'},
         },
         type: {
             free: '無料',
@@ -6917,11 +6917,11 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 },
             },
             connections: {
-                syncStageName: (stage, integrationName = 'QuickBooks Online') => {
+                syncStageName: (stage: PolicyConnectionSyncStage, integrationName = 'QuickBooks Online') => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
-                            return '顧客のインポート';
+                            return '顧客のインポート中';
                         case 'quickbooksOnlineImportEmployees':
                         case 'netSuiteSyncImportEmployees':
                         case 'intacctImportEmployees':
@@ -6934,22 +6934,22 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         case 'quickbooksDesktopImportClasses':
                             return 'クラスのインポート';
                         case 'quickbooksOnlineImportLocations':
-                            return '場所をインポート中';
+                            return '場所をインポートしています';
                         case 'quickbooksOnlineImportProcessing':
                             return 'インポートしたデータを処理しています';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
-                            return '払い戻し済みレポートと支払い済み請求書の同期';
+                            return '払い戻されたレポートと支払い済み請求書の同期';
                         case 'quickbooksOnlineSyncTaxCodes':
                             return '税コードのインポート';
                         case 'quickbooksOnlineCheckConnection':
-                            return `${integrationName} 接続を確認中`;
+                            return `${integrationName} 接続を確認しています`;
                         case 'quickbooksOnlineImportMain':
-                            return `${integrationName} データのインポート`;
+                            return `${integrationName} のデータをインポートしています`;
                         case 'startingImportXero':
                             return 'Xero データのインポート';
                         case 'startingImportQBO':
-                            return `${integrationName} データのインポート`;
+                            return `${integrationName} のデータをインポートしています`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return 'QuickBooks Desktop データのインポート';
@@ -6960,49 +6960,49 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         case 'quickbooksDesktopImportDimensions':
                             return 'ディメンションをインポート中';
                         case 'quickbooksDesktopImportSavePolicy':
-                            return '保存ポリシーのインポート';
+                            return '保存ポリシーをインポート中';
                         case 'quickbooksDesktopWebConnectorReminder':
                             return 'QuickBooks とデータを同期中です… Web Connector が実行中であることを確認してください';
                         case 'quickbooksOnlineSyncTitle':
-                            return `${integrationName} データを同期中`;
+                            return `${integrationName} データを同期しています`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':
                             return 'データを読み込んでいます';
                         case 'quickbooksOnlineSyncApplyCategories':
-                            return 'カテゴリを更新中';
+                            return 'カテゴリを更新しています';
                         case 'quickbooksOnlineSyncApplyCustomers':
                             return '顧客／プロジェクトの更新';
                         case 'quickbooksOnlineSyncApplyEmployees':
-                            return 'メンバー一覧を更新中';
+                            return 'メンバー一覧を更新しています';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
-                            return 'レポートフィールドを更新中';
+                            return 'レポート項目を更新中';
                         case 'jobDone':
                             return 'インポートしたデータの読み込みを待っています';
                         case 'xeroSyncImportChartOfAccounts':
-                            return '勘定科目表を同期中';
+                            return '勘定科目表を同期しています';
                         case 'xeroSyncImportCategories':
                             return 'カテゴリを同期しています';
                         case 'xeroSyncImportCustomers':
-                            return '顧客を同期中';
+                            return '顧客を同期しています';
                         case 'xeroSyncXeroReimbursedReports':
-                            return 'Expensifyレポートを精算済みとしてマークする';
+                            return 'Expensify レポートを精算済みにする';
                         case 'xeroSyncExpensifyReimbursedReports':
                             return 'Xero の請求書とインボイスを支払済みにする';
                         case 'xeroSyncImportTrackingCategories':
-                            return 'トラッキングカテゴリを同期中';
+                            return 'トラッキングカテゴリを同期しています';
                         case 'xeroSyncImportBankAccounts':
-                            return '銀行口座を同期中';
+                            return '銀行口座を同期しています';
                         case 'xeroSyncImportTaxRates':
                             return '税率を同期しています';
                         case 'xeroCheckConnection':
-                            return 'Xero 接続を確認中';
+                            return 'Xero への接続を確認しています';
                         case 'xeroSyncTitle':
-                            return 'Xero データを同期中';
+                            return 'Xero データを同期しています';
                         case 'netSuiteSyncConnection':
-                            return 'NetSuite への接続を初期化中';
+                            return 'NetSuite への接続を初期化しています';
                         case 'netSuiteSyncCustomers':
-                            return '顧客のインポート';
+                            return '顧客のインポート中';
                         case 'netSuiteSyncInitData':
                             return 'NetSuite からデータを取得しています';
                         case 'netSuiteSyncImportTaxes':
@@ -7010,25 +7010,25 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         case 'netSuiteSyncImportItems':
                             return '項目をインポート中';
                         case 'netSuiteSyncData':
-                            return 'Expensify へのデータのインポート';
+                            return 'Expensify へのデータインポート';
                         case 'netSuiteSyncAccounts':
-                            return 'アカウントを同期中';
+                            return 'アカウントを同期しています';
                         case 'netSuiteSyncCurrencies':
-                            return '通貨を同期中';
+                            return '通貨を同期しています';
                         case 'netSuiteSyncCategories':
                             return 'カテゴリを同期しています';
                         case 'netSuiteSyncReportFields':
-                            return 'データをExpensifyのレポートフィールドとしてインポートする';
+                            return 'Expensify レポート項目としてデータをインポート';
                         case 'netSuiteSyncTags':
-                            return 'Expensify タグとしてデータをインポート';
+                            return 'データを Expensify タグとしてインポートする';
                         case 'netSuiteSyncUpdateConnectionData':
                             return '接続情報を更新しています';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
-                            return 'Expensifyレポートを精算済みとしてマークする';
+                            return 'Expensify レポートを精算済みにする';
                         case 'netSuiteSyncExpensifyReimbursedReports':
-                            return 'NetSuite の請求書とインボイスを支払済みにマークする';
+                            return 'NetSuite の請求書および請求書を支払済みにマークする';
                         case 'netSuiteImportVendorsTitle':
-                            return '仕入先のインポート';
+                            return '仕入先をインポート中';
                         case 'netSuiteImportCustomListsTitle':
                             return 'カスタムリストのインポート';
                         case 'netSuiteSyncImportCustomLists':
@@ -7037,33 +7037,33 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                             return '子会社のインポート';
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
-                            return '仕入先のインポート';
+                            return '仕入先をインポート中';
                         case 'intacctCheckConnection':
-                            return 'Sage Intacct 接続を確認しています';
+                            return 'Sage Intacct との接続を確認しています';
                         case 'intacctImportDimensions':
                             return 'Sage Intacct ディメンションのインポート';
                         case 'intacctImportTitle':
                             return 'Sage Intacct データのインポート';
                         case 'financialForceSyncTitle':
-                            return 'Certinia データを同期中';
+                            return 'Certinia データを同期しています';
                         case 'financialForceSyncStep':
-                            return 'Certinia 接続を同期中';
+                            return 'Certinia 接続を同期しています';
                         case 'financialForceSyncCategories':
-                            return 'カテゴリをインポート中';
+                            return 'カテゴリをインポートしています';
                         case 'financialForceSyncTags':
-                            return 'タグをインポート中';
+                            return 'タグのインポート';
                         case 'financialForceSyncVendors':
-                            return 'ベンダーをインポート中';
+                            return '仕入先をインポート中';
                         case 'financialForceSyncContacts':
-                            return '連絡先をインポート中';
+                            return '連絡先のインポート';
                         case 'financialForceSyncCompanies':
-                            return '会社をインポート中';
+                            return '会社のインポート';
                         case 'financialForceSyncUsers':
-                            return 'ユーザーをインポート中';
+                            return 'ユーザーのインポート';
                         case 'financialForceSyncDimensions':
                             return 'ディメンションをインポート中';
                         case 'financialForceMarkAsReimbursed':
-                            return 'レポートを払い戻し済みにマーク中';
+                            return 'レポートを精算済みにする';
                         case 'rilletSyncTitle':
                             return 'Rillet データを同期しています';
                         case 'rilletSyncConnection':
@@ -7076,8 +7076,14 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                             return 'DualEntry への接続を初期化しています';
                         case 'dualEntrySyncImportData':
                             return 'データを読み込んでいます';
+                        case 'dualEntrySyncPayments':
+                            return '取引先への支払いを同期しています';
+                        case 'dualEntrySyncCardSettlements':
+                            return 'カード決済を同期しています';
+                        case 'dualEntrySyncTravelSettlements':
+                            return '出張精算を同期しています';
                         default: {
-                            return `ステージの翻訳が見つかりません: ${stage}`;
+                            return `ステージ「${stage}」の翻訳が見つかりません`;
                         }
                     }
                 },
