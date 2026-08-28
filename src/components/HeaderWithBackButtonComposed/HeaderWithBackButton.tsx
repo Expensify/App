@@ -1,7 +1,6 @@
 import Avatar from '@components/Avatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
 
@@ -14,13 +13,15 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 
+import type {SvgProps} from 'react-native-svg';
+
 import {Keyboard, View} from 'react-native';
 
 import HeaderBackButton from './primitives/HeaderBackButton';
 import HeaderCloseButton from './primitives/HeaderCloseButton';
 import HeaderDownloadButton from './primitives/HeaderDownloadButton';
 import HeaderIcon from './primitives/HeaderIcon';
-import HeaderMenuItemButton from './primitives/HeaderMenuItemButton';
+import HeaderIconButton from './primitives/HeaderIconButton';
 import HeaderThreeDotsMenu, {DEFAULT_ANCHOR_ALIGNMENT} from './primitives/HeaderThreeDotsMenu';
 import HeaderTitle from './primitives/HeaderTitle';
 import useHeaderStyles from './styles/useHeaderStyles';
@@ -102,14 +103,18 @@ function HeaderWithBackButton({
     const isInLandscapeMode = useIsInLandscapeMode();
     const {containerStyle, innerRowStyle} = useHeaderStyles({shouldUseHeadlineHeader, shouldShowBorderBottom, style});
 
+    const threeDotsMenuFirstItem = threeDotsMenuItems.at(0);
     const threeDotMenuTooltipsSection = (
         <>
-            {shouldShowThreeDotsButton &&
-                threeDotsMenuItems.length === 1 &&
-                shouldMinimizeMenuButton && (
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- length === 1 guarantees .at(0) is defined; the fallback only satisfies the type checker.
-                    <HeaderMenuItemButton threeDotsMenuItem={threeDotsMenuItems.at(0) ?? ({} as PopoverMenuItem)} />
-                )}
+            {shouldShowThreeDotsButton && threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton && !!threeDotsMenuFirstItem && (
+                <HeaderIconButton
+                    tooltipText={threeDotsMenuFirstItem.text}
+                    onPress={threeDotsMenuFirstItem.onSelected}
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- PopoverMenuItem.icon is typed as a generic component; header menu items always pass an SVG icon component.
+                    iconSrc={threeDotsMenuFirstItem.icon as React.FC<SvgProps>}
+                    sentryLabel={threeDotsMenuFirstItem.sentryLabel}
+                />
+            )}
             {shouldShowThreeDotsButton && !(threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton) && (
                 <HeaderThreeDotsMenu
                     items={threeDotsMenuItems}
