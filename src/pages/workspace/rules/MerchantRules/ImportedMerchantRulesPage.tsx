@@ -33,7 +33,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PolicyCategories} from '@src/types/onyx';
+import type {ImportedSpreadsheet, Policy, PolicyCategories} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {CodingRule} from '@src/types/onyx/Policy';
@@ -42,7 +42,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 
 /** Column roles that update the matched expense; at least one must be mapped alongside a merchant filter */
 const ACTION_COLUMNS: string[] = [
@@ -122,6 +122,125 @@ function parseCsvBooleanValue(raw: string | undefined): boolean | undefined {
         return false;
     }
     return undefined;
+}
+
+/** The rules parsed from a mapped spreadsheet, plus the counts needed to build the confirmation modal. */
+type ParsedSpreadsheetRules = {
+    /** The net-new rules to import, keyed by a generated ID */
+    rules: Record<string, ImportedMerchantRule>;
+
+    /** How many rows were skipped because they duplicate an existing rule or another row */
+    skippedDuplicateCount: number;
+
+    /** The lower-cased category cells that didn't match any workspace category */
+    invalidCategoryNames: Set<string>;
+};
+
+/**
+ * Parses the mapped spreadsheet into the merchant rules to import. Rows that duplicate an existing/loaded rule are
+ * counted in `skippedDuplicateCount`, and category cells that don't match a workspace category are collected in
+ * `invalidCategoryNames`. Kept as a pure function so the offline button-enablement check and `importRules` derive
+ * from the exact same parse and can never disagree about whether the import needs the API.
+ */
+function parseSpreadsheetRules(
+    spreadsheet: OnyxEntry<ImportedSpreadsheet>,
+    containsHeader: boolean,
+    policy: OnyxEntry<Policy>,
+    policyCategories: OnyxEntry<PolicyCategories>,
+): ParsedSpreadsheetRules {
+    const columns = Object.values(spreadsheet?.columns ?? {});
+    const merchantIsColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.MERCHANT_IS);
+    const merchantContainsColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.MERCHANT_CONTAINS);
+    const updatedMerchantColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.UPDATED_MERCHANT);
+    const categoryColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.CATEGORY);
+    const tagColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.TAG);
+    const commentColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.COMMENT);
+    const reimbursableColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.REIMBURSABLE);
+    const billableColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.BILLABLE);
+
+    const rowCount = (spreadsheet?.data.at(0)?.length ?? 0) - (containsHeader ? 1 : 0);
+    const getCellValue = (columnIndex: number, rowIndex: number): string => {
+        if (columnIndex === -1) {
+            return '';
+        }
+        const dataIndex = containsHeader ? rowIndex + 1 : rowIndex;
+        return spreadsheet?.data.at(columnIndex)?.at(dataIndex)?.toString().trim() ?? '';
+    };
+
+    // Seed the duplicate check with the policy's current rules so re-importing a spreadsheet doesn't recreate them
+    const seenRuleKeys = new Set(
+        Object.values(policy?.rules?.codingRules ?? {})
+            .filter((rule) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && rule.filters?.right)
+            .map(getRuleContentKey),
+    );
+    let skippedDuplicateCount = 0;
+
+    const categoryLookup = buildImportedCategoryLookup(policyCategories);
+    const invalidCategoryNames = new Set<string>();
+
+    const rules: Record<string, ImportedMerchantRule> = {};
+    for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+        // "Merchant is" wins when both filter columns have a value for the same row
+        const merchantIsValue = getCellValue(merchantIsColumn, rowIndex);
+        const merchantToMatch = merchantIsValue || getCellValue(merchantContainsColumn, rowIndex);
+        if (!merchantToMatch) {
+            continue;
+        }
+
+        const updatedMerchant = getCellValue(updatedMerchantColumn, rowIndex);
+
+        // A rule may only reference a category that exists on the workspace, so unknown cells are dropped
+        // and reported in the final modal rather than stored as a category the rule could never apply
+        const categoryCell = getCellValue(categoryColumn, rowIndex);
+        const category = categoryCell ? (categoryLookup.get(categoryCell.toLowerCase()) ?? '') : '';
+        if (categoryCell && !category) {
+            invalidCategoryNames.add(categoryCell.toLowerCase());
+        }
+        const tag = normalizeImportedTag(getCellValue(tagColumn, rowIndex), !!policy?.hasMultipleTagLists);
+        const comment = getCellValue(commentColumn, rowIndex);
+        const reimbursable = parseCsvBooleanValue(getCellValue(reimbursableColumn, rowIndex));
+        const billable = parseCsvBooleanValue(getCellValue(billableColumn, rowIndex));
+
+        // Skip rows where every action cell is empty since the resulting rule would never change anything
+        if (!updatedMerchant && !category && !tag && !comment && reimbursable === undefined && billable === undefined) {
+            continue;
+        }
+
+        const rule: ImportedMerchantRule = {
+            filters: {
+                left: 'merchant',
+                operator: merchantIsValue ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO : CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+                right: merchantToMatch,
+            },
+            ...(updatedMerchant && {merchant: updatedMerchant}),
+            ...(category && {category}),
+            ...(tag && {tag}),
+            ...(comment && {comment: Parser.replace(comment)}),
+            ...(reimbursable !== undefined && {reimbursable}),
+            ...(billable !== undefined && {billable}),
+            created: new Date().toISOString(),
+        };
+
+        const ruleKey = getRuleContentKey(rule);
+        if (seenRuleKeys.has(ruleKey)) {
+            skippedDuplicateCount++;
+            continue;
+        }
+        seenRuleKeys.add(ruleKey);
+
+        rules[rand64()] = rule;
+    }
+
+    return {rules, skippedDuplicateCount, invalidCategoryNames};
+}
+
+/**
+ * Whether the parsed import resolves entirely client-side: no net-new rule remains, but at least one row was
+ * skipped as a duplicate or referenced an unknown category. In that case `importRules` builds the confirmation
+ * modal locally with no API call, so it's the only case where the import can proceed offline.
+ */
+function willImportShortCircuitLocally({rules, skippedDuplicateCount, invalidCategoryNames}: ParsedSpreadsheetRules): boolean {
+    return Object.keys(rules).length === 0 && (skippedDuplicateCount > 0 || invalidCategoryNames.size > 0);
 }
 
 type ImportedMerchantRulesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_IMPORTED>;
@@ -204,6 +323,19 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
         Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
     };
 
+    // Parse once and reuse the result for both the offline button-enablement check and the import itself, so the
+    // button can never be enabled offline for an import that actually needs the (non-retryable) API call
+    const parsedRules = useMemo(() => parseSpreadsheetRules(spreadsheet, containsHeader, policy, policyCategories), [spreadsheet, containsHeader, policy, policyCategories]);
+
+    // When categories are enabled but not yet cached (e.g. after a cache clear, before the on-focus fetch), the
+    // category lookup is empty so every category is wrongly flagged invalid. Invalid-category counts are only
+    // trustworthy once categories are loaded; a purely-duplicate short-circuit (no invalid categories) is safe regardless.
+    const areCategoriesReady = !policy?.areCategoriesEnabled || !!policyCategories;
+
+    // The import short-circuits locally (no API call) only when every row was skipped, so that's the only case
+    // where the button may stay active offline — and only when that short-circuit doesn't hinge on unvalidated categories.
+    const canImportOffline = willImportShortCircuitLocally(parsedRules) && (areCategoriesReady || parsedRules.invalidCategoryNames.size === 0);
+
     const importRules = async () => {
         setIsValidationEnabled(true);
         const errors = validate();
@@ -211,99 +343,21 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
             return;
         }
 
-        const columns = Object.values(spreadsheet?.columns ?? {});
-        const merchantIsColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.MERCHANT_IS);
-        const merchantContainsColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.MERCHANT_CONTAINS);
-        const updatedMerchantColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.UPDATED_MERCHANT);
-        const categoryColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.CATEGORY);
-        const tagColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.TAG);
-        const commentColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.COMMENT);
-        const reimbursableColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.REIMBURSABLE);
-        const billableColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.BILLABLE);
-
-        const rowCount = (spreadsheet?.data.at(0)?.length ?? 0) - (containsHeader ? 1 : 0);
-        const getCellValue = (columnIndex: number, rowIndex: number): string => {
-            if (columnIndex === -1) {
-                return '';
-            }
-            const dataIndex = containsHeader ? rowIndex + 1 : rowIndex;
-            return spreadsheet?.data.at(columnIndex)?.at(dataIndex)?.toString().trim() ?? '';
-        };
-
-        // Seed the duplicate check with the policy's current rules so re-importing a spreadsheet doesn't recreate them
-        const seenRuleKeys = new Set(
-            Object.values(policy?.rules?.codingRules ?? {})
-                .filter((rule) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && rule.filters?.right)
-                .map(getRuleContentKey),
-        );
-        let skippedDuplicateCount = 0;
-
-        const categoryLookup = buildImportedCategoryLookup(policyCategories);
-        const invalidCategoryNames = new Set<string>();
-
-        const rules: Record<string, ImportedMerchantRule> = {};
-        for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
-            // "Merchant is" wins when both filter columns have a value for the same row
-            const merchantIsValue = getCellValue(merchantIsColumn, rowIndex);
-            const merchantToMatch = merchantIsValue || getCellValue(merchantContainsColumn, rowIndex);
-            if (!merchantToMatch) {
-                continue;
-            }
-
-            const updatedMerchant = getCellValue(updatedMerchantColumn, rowIndex);
-
-            // A rule may only reference a category that exists on the workspace, so unknown cells are dropped
-            // and reported in the final modal rather than stored as a category the rule could never apply
-            const categoryCell = getCellValue(categoryColumn, rowIndex);
-            const category = categoryCell ? (categoryLookup.get(categoryCell.toLowerCase()) ?? '') : '';
-            if (categoryCell && !category) {
-                invalidCategoryNames.add(categoryCell.toLowerCase());
-            }
-            const tag = normalizeImportedTag(getCellValue(tagColumn, rowIndex), !!policy?.hasMultipleTagLists);
-            const comment = getCellValue(commentColumn, rowIndex);
-            const reimbursable = parseCsvBooleanValue(getCellValue(reimbursableColumn, rowIndex));
-            const billable = parseCsvBooleanValue(getCellValue(billableColumn, rowIndex));
-
-            // Skip rows where every action cell is empty since the resulting rule would never change anything
-            if (!updatedMerchant && !category && !tag && !comment && reimbursable === undefined && billable === undefined) {
-                continue;
-            }
-
-            const rule: ImportedMerchantRule = {
-                filters: {
-                    left: 'merchant',
-                    operator: merchantIsValue ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO : CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
-                    right: merchantToMatch,
-                },
-                ...(updatedMerchant && {merchant: updatedMerchant}),
-                ...(category && {category}),
-                ...(tag && {tag}),
-                ...(comment && {comment: Parser.replace(comment)}),
-                ...(reimbursable !== undefined && {reimbursable}),
-                ...(billable !== undefined && {billable}),
-                created: new Date().toISOString(),
-            };
-
-            const ruleKey = getRuleContentKey(rule);
-            if (seenRuleKeys.has(ruleKey)) {
-                skippedDuplicateCount++;
-                continue;
-            }
-            seenRuleKeys.add(ruleKey);
-
-            rules[rand64()] = rule;
-        }
+        const {rules, skippedDuplicateCount, invalidCategoryNames} = parsedRules;
 
         setIsImportingRules(true);
         // When every row was skipped (duplicate rules and/or unknown categories), skip the API call and confirm that nothing was added
-        const importFinalModal: ImportFinalModal =
-            Object.keys(rules).length === 0 && (skippedDuplicateCount > 0 || invalidCategoryNames.size > 0)
-                ? {
-                      titleKey: 'spreadsheet.importSuccessfulTitle',
-                      promptKey: 'spreadsheet.importMerchantRulesSuccessfulDescription',
-                      promptKeyParams: {rules: 0, duplicates: skippedDuplicateCount, invalidCategories: invalidCategoryNames.size},
-                  }
-                : await importMerchantRulesSpreadsheet(policyID, rules, invalidCategoryNames.size);
+        const importFinalModal: ImportFinalModal = canImportOffline
+            ? {
+                  titleKey: 'spreadsheet.importSuccessfulTitle',
+                  promptKey: 'spreadsheet.importMerchantRulesSuccessfulDescription',
+                  promptKeyParams: {count: 0, duplicates: skippedDuplicateCount},
+                  ...(invalidCategoryNames.size > 0 && {
+                      pendingMessageKey: 'spreadsheet.importMerchantRulesSkippedCategories',
+                      pendingMessageKeyParams: {count: invalidCategoryNames.size},
+                  }),
+              }
+            : await importMerchantRulesSpreadsheet(policyID, rules, invalidCategoryNames.size);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
         if (!didShowImportFinalModal) {
             setIsImportingRules(false);
@@ -347,6 +401,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
                     columnRoles={columnRoles}
                     isButtonLoading={isImportingRules}
                     customHeaderText={translate('workspace.rules.merchantRules.importRulesSupportingText')}
+                    shouldDisableButtonWhenOffline={!canImportOffline}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
@@ -354,4 +409,4 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
 }
 
 export default ImportedMerchantRulesPage;
-export {buildImportedCategoryLookup, normalizeImportedTag};
+export {buildImportedCategoryLookup, normalizeImportedTag, parseSpreadsheetRules, willImportShortCircuitLocally};
