@@ -1,14 +1,18 @@
 import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
@@ -30,8 +34,9 @@ function WorkspaceMCPPage({route}: WorkspaceMCPPageProps) {
     const policyID = route.params.policyID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['ChatGPTSquare']);
+    const theme = useTheme();
+    const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['ChatGPTSquare', 'QuestionMark']);
     const policy = usePolicy(policyID);
 
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.mcp');
@@ -81,6 +86,19 @@ function WorkspaceMCPPage({route}: WorkspaceMCPPageProps) {
                                 </Button>
                             }
                         />
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt7]}>
+                            <Icon
+                                src={icons.QuestionMark}
+                                width={20}
+                                height={20}
+                                fill={theme.icon}
+                                additionalStyles={styles.mr3}
+                            />
+                            <View style={[!isLargeScreenWidth ? styles.flexColumn : styles.flexRow]}>
+                                <Text style={styles.textSupporting}>{translate('workspace.mcp.helpPrompt')}</Text>
+                                <TextLink onPress={() => openExternalLink(CONST.MCP_HELP_URL)}>{translate('workspace.mcp.helpLink')}</TextLink>
+                            </View>
+                        </View>
                     </Section>
                 </View>
             </ScrollView>
