@@ -1,5 +1,6 @@
 import Text from '@components/Text';
 
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
@@ -22,25 +23,38 @@ type WrappingTextProps = {
  * at the minimum device font size). The links are therefore rendered as their own PressableWithoutFeedback
  * nodes inside a flexWrap row, and this component renders the plain copy between them as per-word <Text>
  * nodes so the paragraph still flows and wraps naturally across the row.
+ *
+ * The per-word nodes are hidden from the accessibility tree and a single visually-hidden node carries the
+ * full run as one label, so TalkBack announces coherent prose instead of one node per word while the link
+ * pressables around this component stay independently focusable.
  */
 function WrappingText({text}: WrappingTextProps) {
     const styles = useThemeStyles();
+    const {preferredLocale} = useLocalize();
 
-    // Keep each word (with its own leading/trailing whitespace) as a separate node so the paragraph wraps in the flexWrap row.
-    // Preserving the run's own spacing means locales that don't use spaces around the links (e.g. Japanese, Chinese) aren't
-    // given extra spaces the translation never intended.
-    return (text.match(/\s*\S+\s*/g) ?? []).map((word, wordIndex) => (
-        <Text
-            // The word list is derived synchronously from a fixed translation and is never reordered, inserted into, or
-            // filtered, so a word's index is a stable identity. wordIndex is only needed to disambiguate repeated words
-            // within a run (the word text alone can't); the array position is what makes it unique.
-            // eslint-disable-next-line react/no-array-index-key -- index is a stable identity for this static, never-reordered word list
-            key={`${text}-${word}-${wordIndex}`}
-            style={styles.textSupporting}
-        >
-            {word}
-        </Text>
-    ));
+    // Segment on word boundaries (rather than a whitespace regex) so locales without spaces (e.g. Japanese, Chinese)
+    // also get real break opportunities, letting the run wrap within itself on narrow screens.
+    const words = Array.from(new Intl.Segmenter(preferredLocale, {granularity: 'word'}).segment(text), (segment) => segment.segment);
+
+    return (
+        <>
+            <Text style={styles.screenReaderOnlyAnchor}>{text}</Text>
+            {words.map((word, wordIndex) => (
+                <Text
+                    // The word list is derived synchronously from a fixed translation and is never reordered, inserted into, or
+                    // filtered, so a word's index is a stable identity. wordIndex is only needed to disambiguate repeated words
+                    // within a run, since the word text alone can't. The array position is what makes it unique.
+                    // eslint-disable-next-line react/no-array-index-key -- index is a stable identity for this static, never-reordered word list
+                    key={`${text}-${word}-${wordIndex}`}
+                    style={styles.textSupporting}
+                    accessible={false}
+                    aria-hidden
+                >
+                    {word}
+                </Text>
+            ))}
+        </>
+    );
 }
 
 WrappingText.displayName = 'WrappingText';
