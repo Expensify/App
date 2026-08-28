@@ -4,6 +4,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
 
+// Renders plain paragraph copy as per-word <Text> nodes so it flows and wraps naturally inside a flexWrap
+// row alongside tappable link nodes. Used by the company-card CSV import help text (see JSDoc below).
+
 type WrappingTextProps = {
     /** Plain copy to render, split into per-word nodes so it wraps naturally inside a flexWrap row. */
     text: string;
