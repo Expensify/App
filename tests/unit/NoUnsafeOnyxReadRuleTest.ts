@@ -89,6 +89,7 @@ describe('no-unsafe-onyx-read', () => {
             // Deferred at module scope is still deferred: the callback runs on the timer or the promise, not now.
             `${ONYX_IMPORT} setTimeout(() => Onyx.get(key), 0);`,
             `${ONYX_IMPORT} ready.then(() => Onyx.get(key));`,
+            `${ONYX_IMPORT} new Promise((resolve) => { ready.then(() => resolve(Onyx.get(key))); });`,
             `${ONYX_IMPORT} Onyx.init(config).then(() => Onyx.get(key));`,
 
             // Not the library: a local object that happens to expose a get, and the debug shim on window.
@@ -133,6 +134,7 @@ describe('no-unsafe-onyx-read', () => {
 
             `${ONYX_IMPORT} function write() { Onyx.merge(key, value); } function read() { return Onyx.get(key); }`,
             `${ONYX_IMPORT} function submit() { Onyx.merge(key, value); setTimeout(() => Onyx.get(key), 0); }`,
+            `${ONYX_IMPORT} function submit() { Onyx.merge(key, value); return new Promise((resolve) => { setTimeout(() => resolve(Onyx.get(key)), 0); }); }`,
             `${ONYX_IMPORT} function submit() { Onyx.merge(key, value).then(() => Onyx.get(key)); }`,
 
             // The read is an argument of the write, so it is evaluated before it.
@@ -172,6 +174,7 @@ describe('no-unsafe-onyx-read', () => {
             {code: `${ONYX_IMPORT} const {get} = Onyx; export async function submit() { return get(key); }`, options: OPTIONS, errors: DIRECT_ERRORS},
 
             {code: `${WRAPPER_IMPORT} const initialValue = OnyxUtils.get(key);`, errors: MODULE_SCOPE_ERRORS},
+            {code: `${ONYX_IMPORT} new Promise((resolve) => { resolve(Onyx.get(key)); });`, errors: MODULE_SCOPE_ERRORS},
             {
                 code: `${ONYX_IMPORT} ${WRAPPER_IMPORT} async function submit() { Onyx.merge(key, value); return OnyxUtils.get(key); }`,
                 errors: READ_AFTER_WRITE_ERRORS,
@@ -199,8 +202,11 @@ describe('no-unsafe-onyx-read', () => {
             // useMemo runs during render, unlike useCallback.
             {code: `${ONYX_IMPORT} function Row() { const value = useMemo(() => Onyx.get(key), []); return <View value={value} />; }`, errors: RENDER_ERRORS},
 
-            // Function boundaries that defer nothing: an IIFE, and a synchronous array callback.
+            // Function boundaries that defer nothing: an IIFE, a synchronous array callback, and a Promise
+            // executor, which runs while the constructor is still on the stack.
             {code: `${ONYX_IMPORT} function Row() { const value = (() => Onyx.get(key))(); return <View value={value} />; }`, errors: RENDER_ERRORS},
+            {code: `${ONYX_IMPORT} function Row() { new Promise(() => Onyx.get(key)); return <View />; }`, errors: RENDER_ERRORS},
+            {code: `${ONYX_IMPORT} function Row() { new Promise((resolve) => { resolve(Onyx.get(key)); }); return <View />; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} function Row() { const values = ids.map((id) => Onyx.get(id)); return <View values={values} />; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} function Row() { const values = ids.filter((id) => Onyx.get(id)).map((id) => id); return <View values={values} />; }`, errors: RENDER_ERRORS},
 
@@ -297,6 +303,13 @@ describe('no-unsafe-onyx-read', () => {
             {code: `${ONYX_IMPORT} function submit(report) { if (isMoneyRequestReport(report)) { Onyx.merge(key, null); } return Onyx.get(key); }`, errors: READ_AFTER_WRITE_ERRORS},
             {
                 code: `${ONYX_IMPORT} function submit(reports) { for (const report of reports) { if (report) { Onyx.merge(key, null); break; } } return Onyx.get(key); }`,
+                errors: READ_AFTER_WRITE_ERRORS,
+            },
+
+            // A Promise executor runs in the constructing body's tick, so it does not separate the two either way.
+            {code: `${ONYX_IMPORT} function submit() { new Promise((resolve) => { Onyx.merge(key, value); resolve(); }); return Onyx.get(key); }`, errors: READ_AFTER_WRITE_ERRORS},
+            {
+                code: `${ONYX_IMPORT} function submit() { Onyx.merge(key, value); return new Promise((resolve) => { resolve(Onyx.get(key)); }); }`,
                 errors: READ_AFTER_WRITE_ERRORS,
             },
 

@@ -29,6 +29,9 @@ const RENDER_TIME_HOOK_NAMES = new Set(['useMemo']);
 /** Calls that wrap a component without deferring it, so their callback argument is still a render body. */
 const COMPONENT_WRAPPER_NAMES = new Set(['memo', 'forwardRef']);
 
+/** Constructors whose first argument runs during construction rather than later. */
+const SYNCHRONOUS_EXECUTOR_NAMES = new Set(['Promise']);
+
 /** What a function boundary does to the timing of the code inside it. */
 const RENDER = 'render';
 const DEFERRED = 'deferred';
@@ -179,6 +182,12 @@ function getVariableByName(scope, variableName) {
  * continues through it.
  */
 function classifyFunctionBoundary(functionNode, parent) {
+    // `new Promise((resolve) => ...)` runs its executor while the constructor is still on the stack, so the
+    // read inside one happens in the constructing body's own tick, render included.
+    if (parent?.type === 'NewExpression' && parent.arguments.at(0) === functionNode && matchesCalleeName(parent.callee, SYNCHRONOUS_EXECUTOR_NAMES)) {
+        return SYNCHRONOUS;
+    }
+
     if (parent?.type === 'CallExpression') {
         if (parent.callee === functionNode) {
             return SYNCHRONOUS;
