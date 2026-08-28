@@ -60,12 +60,14 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import {useWindowDimensions} from 'react-native-keyboard-controller';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -159,10 +161,17 @@ function IOURequestStepDistanceOdometer({
     // state pointing at a stale view. Remounting is the only way to reset it. Keyed on `isFocused`, not a counter,
     // so it only remounts on an actual focus transition.
     const keyboardAvoidingViewInstanceKey = isFocused ? 'focused' : 'unfocused';
-    const contentRef = useRef<View>(null);
-    // KeyboardAvoidingView measures its position relative to its parent, not the screen, so without this it
-    // under-reserves space and the buttons end up behind the keyboard.
-    const [headerOffset, setHeaderOffset] = useState(0);
+    // KeyboardAvoidingView measures its position relative to its parent, not the screen, so without an offset it
+    // under-reserves space and the buttons end up behind the keyboard. `windowHeight - ownY - ownHeight` derives
+    // that offset from this view's own layout and the same window-height source the library's internal math uses.
+    const {height: windowHeight} = useWindowDimensions();
+    const [ownY, setOwnY] = useState(0);
+    const [ownHeight, setOwnHeight] = useState(0);
+    const handleOwnLayout = useCallback((e: LayoutChangeEvent) => {
+        setOwnY(e.nativeEvent.layout.y);
+        setOwnHeight(e.nativeEvent.layout.height);
+    }, []);
+    const keyboardVerticalOffset = windowHeight - ownY - ownHeight;
 
     const shouldUseDefaultExpensePolicy = useMemo(
         () => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserAccountIDParam),
@@ -633,11 +642,11 @@ function IOURequestStepDistanceOdometer({
                 style={styles.flex1}
                 behavior="padding"
                 enabled={isCreatingNewRequest}
-                keyboardVerticalOffset={headerOffset}
+                keyboardVerticalOffset={keyboardVerticalOffset}
+                shouldOffsetBottomSafeAreaPadding
+                onLayout={handleOwnLayout}
             >
                 <View
-                    ref={contentRef}
-                    onLayout={() => contentRef.current?.measureInWindow((x, y) => setHeaderOffset(y))}
                     testID="odometerContentContainer"
                     style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}
                 >
