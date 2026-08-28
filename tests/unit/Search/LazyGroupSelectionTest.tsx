@@ -1210,6 +1210,27 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.excludedTransactions).toEqual({});
     });
 
+    it('collapses a Select All onto the span the next shift+click lands in', async () => {
+        const {result} = renderSelection(ExpenseReportWrapper);
+        const [firstReport] = reportGroups;
+
+        // Given Select All, which seeds a block covering the whole list
+        await act(async () => {
+            result.current.toggleAll();
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(Object.keys(result.current.selectedTransactions).length).toBeGreaterThan(1);
+
+        // When a shift+click lands on the first report
+        await act(async () => {
+            result.current.toggle(firstReport, firstReport.transactions, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the selection narrows onto it, which is what makes an overshoot recoverable in one click
+        expect(Object.keys(result.current.selectedTransactions)).toEqual(['6']);
+    });
+
     it('drops a group’s published rows when the search changes, so a range cannot reach the previous results', async () => {
         groupedSearchResults = makeFlatSearchResults(undefined);
         const {result, rerender} = renderSelection(SearchChangeWrapper);
