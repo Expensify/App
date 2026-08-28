@@ -131,6 +131,7 @@ import {
     getIcons,
     getMovedActionMessage,
     getMovedTransactionMessage,
+    parseMovedTransactionReportIDs,
     getParticipantsAccountIDsForDisplay,
     getPolicyChangeLogCopyMessage,
     getPolicyChangeMessage,
@@ -507,18 +508,15 @@ function getAlternateText(
  * Searches for a match when provided with a value
  */
 function isSearchStringMatch(searchValue: string, searchText?: string | null, participantNames = new Set<string>(), isReportChatRoom = false): boolean {
-    const searchWords = new Set(searchValue.replaceAll(',', ' ').split(/\s+/));
+    const searchWords = Array.from(new Set(searchValue.replaceAll(',', ' ').split(/\s+/).filter(Boolean)));
     const valueToSearch = searchText?.replaceAll(new RegExp(/&nbsp;/g), '');
-    let matching = true;
     for (const word of searchWords) {
-        // if one of the word is not matching, we don't need to check further
-        if (!matching) {
-            continue;
+        const regex = new RegExp(Str.escapeForRegExp(word), 'i');
+        if (!(regex.test(valueToSearch ?? '') || (!isReportChatRoom && participantNames.has(word)))) {
+            return false;
         }
-        const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
-        matching = matchRegex.test(valueToSearch ?? '') || (!isReportChatRoom && participantNames.has(word));
     }
-    return matching;
+    return true;
 }
 
 function getLatestVisibleMoneyRequestAction(
@@ -746,7 +744,15 @@ function getLastMessageTextForReport({
         const properSchemaForModifiedExpenseMessage = Parser.htmlToText(properSchemaForModifiedExpenseMessageWithHTML);
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
-        lastMessageTextFromReport = Parser.htmlToText(getMovedTransactionMessage(translate, lastReportAction, reportAttributesDerived));
+        const {fromReportID, toReportID, displayReportID} = parseMovedTransactionReportIDs(lastReportAction);
+        lastMessageTextFromReport = Parser.htmlToText(
+            getMovedTransactionMessage({
+                translate,
+                fromReportID,
+                toReportID,
+                derivedReportName: displayReportID ? reportAttributesDerived?.[displayReportID]?.reportName : undefined,
+            }),
+        );
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(translate, lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
@@ -859,7 +865,14 @@ function getLastMessageTextForReport({
     } else if (isMovedAction(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getMovedActionMessage(translate, lastReportAction, report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        lastMessageTextFromReport = Parser.htmlToText(getUnreportedTransactionMessage(translate, lastReportAction, reportAttributesDerived));
+        const {fromReportID} = parseMovedTransactionReportIDs(lastReportAction);
+        lastMessageTextFromReport = Parser.htmlToText(
+            getUnreportedTransactionMessage({
+                translate,
+                fromReportID,
+                derivedReportName: fromReportID ? reportAttributesDerived?.[fromReportID]?.reportName : undefined,
+            }),
+        );
     } else if (isActionableMentionWhisper(lastReportAction)) {
         const targetAccountIDs = getOriginalMessage(lastReportAction)?.inviteeAccountIDs;
         lastMessageTextFromReport = Parser.htmlToText(getActionableMentionWhisperMessage(translate, lastReportAction, getPersonalDetailsListByIDs(targetAccountIDs, personalDetails)));
