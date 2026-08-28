@@ -427,11 +427,6 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                 strategy: 'custom',
                 splitChunks: {
                     cacheGroups: {
-                        lottiePlayer: {
-                            test: /[\\/]node_modules[\\/](@dotlottie\/react-player)[\\/]/,
-                            name: 'lottiePlayer',
-                            chunks: 'all',
-                        },
                         heicTo: {
                             test: /[\\/]node_modules[\\/](heic-to)[\\/]/,
                             name: 'heicTo',
