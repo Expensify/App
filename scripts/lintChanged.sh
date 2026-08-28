@@ -8,30 +8,13 @@ TOP="$(realpath "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 readonly TOP
 source "${TOP}/scripts/shellUtils.sh"
 
-# Fetch the commit history to include the merge-base commit
 info "Fetching origin/main"
-git fetch origin main --no-tags
-
-MERGE_BASE_SHA_HASH="$(git merge-base origin/main HEAD)"
+MERGE_BASE_SHA_HASH="$(get_merge_base_with_main)" || exit 1
 readonly MERGE_BASE_SHA_HASH
 
-# Check if output is empty or malformed
-if [[ -z "$MERGE_BASE_SHA_HASH" ]] || ! [[ "$MERGE_BASE_SHA_HASH" =~ ^[a-fA-F0-9]{40}$ ]]; then
-    error "git merge-base returned unexpected output: $MERGE_BASE_SHA_HASH"
-    exit 1
-fi
-
-# Diff against the working tree (not HEAD) so staged and unstaged changes are included too
-if ! GIT_DIFF_OUTPUT="$(git diff --diff-filter=AMR --name-only "$MERGE_BASE_SHA_HASH" -- '*.js' '*.jsx' '*.ts' '*.tsx' '*.mjs' '*.cjs')"; then
-    error "git diff failed - output: $GIT_DIFF_OUTPUT"
-    exit 1
-fi
-
-# Untracked files are not part of the diff above, so list them separately
-UNTRACKED_OUTPUT="$(git ls-files --others --exclude-standard -- '*.js' '*.jsx' '*.ts' '*.tsx' '*.mjs' '*.cjs')"
-readonly UNTRACKED_OUTPUT
-
-ALL_CHANGED_FILES="$(printf '%s\n%s' "$GIT_DIFF_OUTPUT" "$UNTRACKED_OUTPUT" | grep -v '^$' || true)"
+# Diffs against the working tree (not HEAD) and includes untracked files, so
+# committed, staged, unstaged and untracked changes are all linted
+ALL_CHANGED_FILES="$(get_changed_files "$MERGE_BASE_SHA_HASH" '*.js' '*.jsx' '*.ts' '*.tsx' '*.mjs' '*.cjs')"
 readonly ALL_CHANGED_FILES
 
 # Run eslint on the changed files, forwarding any user-provided flags

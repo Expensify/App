@@ -126,6 +126,51 @@ get_abs_path() {
     echo "$abs_path"
 }
 
+# Fetches origin/main and prints the merge-base SHA between it and HEAD.
+# This is the single definition of "base" shared by the *-changed scripts
+# (lintChanged.sh, knip-changed.sh, spellChanged.sh) so they all agree on
+# what "changed" means.
+# Usage: get_merge_base_with_main
+get_merge_base_with_main() {
+  git fetch origin main --no-tags >&2
+
+  local merge_base_sha_hash
+  merge_base_sha_hash="$(git merge-base origin/main HEAD)"
+
+  if [[ -z "$merge_base_sha_hash" ]] || ! [[ "$merge_base_sha_hash" =~ ^[a-fA-F0-9]{40}$ ]]; then
+    error "git merge-base returned unexpected output: $merge_base_sha_hash"
+    return 1
+  fi
+
+  echo "$merge_base_sha_hash"
+}
+
+# Prints files changed relative to a base commit, diffed against the working
+# tree (so committed, staged and unstaged changes are all included), plus
+# any untracked files. Excludes deletions.
+# Usage: get_changed_files <base_sha> [path spec...]
+get_changed_files() {
+  local base_sha="$1"
+  shift
+  local path_specs=("$@")
+
+  local diff_output
+  if [[ ${#path_specs[@]} -gt 0 ]]; then
+    diff_output="$(git diff --diff-filter=AMR --name-only "$base_sha" -- "${path_specs[@]}")"
+  else
+    diff_output="$(git diff --diff-filter=AMR --name-only "$base_sha")"
+  fi
+
+  local untracked_output
+  if [[ ${#path_specs[@]} -gt 0 ]]; then
+    untracked_output="$(git ls-files --others --exclude-standard -- "${path_specs[@]}")"
+  else
+    untracked_output="$(git ls-files --others --exclude-standard)"
+  fi
+
+  printf '%s\n%s' "$diff_output" "$untracked_output" | grep -v '^$' || true
+}
+
 # Function to read lines from standard input into an array using a temporary file.
 # This is a bash 3 polyfill for readarray.
 # Arguments:
