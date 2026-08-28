@@ -1,8 +1,8 @@
 ---
 title: Distance Expenses
 description: Learn how to create a Distance expense using GPS tracking, map-based routes, manual entry, or odometer readings, and how the reimbursement rate is determined in New Expensify.
-keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, edit stop, trim trip, edit GPS trip, shorten GPS route, GPS slider, total distance]
-internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, manual entry, and odometer readings, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
+keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, edit stop, trim trip, edit GPS trip, shorten GPS route, GPS slider, total distance, require GPS or map entry, manual tab missing, odometer tab missing, manual distance disabled]
+internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, manual entry, and odometer readings, plus how reimbursement rates are applied and what members see when a Workspace requires GPS or map entry. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
 ---
 
 # Distance Expenses
@@ -64,6 +64,8 @@ To create an expense by inputting a distance manually:
    - Other optional fields
 6. Select **Create expense**.
 
+**Note:** If the **Manual** tab isn't shown, your Workspace Admin has enabled **Require GPS or map entry** on the Workspace. Use **Map** or **GPS** instead.
+
 ---
 
 ## How to create a Distance expense using Odometer readings (Web and Mobile)
@@ -85,6 +87,8 @@ To create an expense using your vehicle's odometer readings:
    - Date
    - (Optional) Add a description, category, or tag.
 9. Select **Create expense**.
+
+**Note:** If the **Odometer** tab isn't shown, your Workspace Admin has enabled **Require GPS or map entry** on the Workspace. Use **Map** or **GPS** instead.
 
 Once a Distance expense is created, it can be submitted on a report. To learn how to add expenses to a report, see [Create and Submit Reports](/articles/new-expensify/reports-and-expenses/Create-and-Submit-Reports).
 
@@ -179,6 +183,16 @@ Yes. After you tap **Stop**, tap the pencil **Edit** icon next to the distance c
 ## Can I use GPS tracking on web or desktop?
 
 No. GPS tracking requires the iOS or Android mobile app because it uses your device's location services. On web or desktop, you'll see a prompt to download the mobile app when selecting GPS. You can still use map-based or manual distance entry on any platform.
+
+## Why don't I see the Manual or Odometer tabs when creating a Distance expense?
+
+Your Workspace Admin has enabled **Require GPS or map entry** on the Workspace, which limits Distance expenses to mapped routes and GPS-tracked trips. Only the **Map** and **GPS** tabs appear. If you belong to more than one Workspace, the **Manual** and **Odometer** tabs stay available until every Workspace you belong to requires GPS or map entry.
+
+[Learn how admins require GPS or map entry](/articles/new-expensify/workspaces/Set-distance-rates)
+
+## Why am I blocked when I select a Workspace for a manual or odometer Distance expense?
+
+The Workspace you selected requires GPS or map entry, so it doesn't accept a typed distance or odometer readings. You'll see the message **This workspace requires either map-based or GPS-tracked distance expenses.** Select **Confirm**, then create the expense again using **Map** or **GPS**, or choose a Workspace that allows manual and odometer entry.
 
 ## Can my odometer images be SmartScanned?
 
