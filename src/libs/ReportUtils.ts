@@ -11687,6 +11687,7 @@ function getNonHeldAndFullAmount(
  * - The action is a split expense action
  * - The action is deleted and is not threaded
  * - The report is archived and the action is not threaded
+ * - The action is a moved system message and is not threaded (moved actions can't be threaded server-side, so offering "Reply in thread" leads to a failed thread-creation call)
  * - The action is a whisper action and it's neither a report preview nor IOU action
  * - The action is the thread's first chat
  */
@@ -11697,8 +11698,6 @@ function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, isThr
     const isIOUAction = isMoneyRequestAction(reportAction);
     const isWhisperActionLocal = isWhisperAction(reportAction) || isActionableTrackExpense(reportAction);
     const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
-    // Moved system messages can't be threaded server-side, so offering "Reply in thread" leads to a failed thread-creation call.
-    // Gate them out of the thread UI, but keep any moved actions that have already been legitimately threaded.
     const isMovedSystemMessage = isMovedAction(reportAction) || isMovedTransactionAction(reportAction);
     const isActionDisabled = CONST.REPORT.ACTIONS.THREAD_DISABLED.some((action: string) => action === reportAction?.actionName);
     return (
