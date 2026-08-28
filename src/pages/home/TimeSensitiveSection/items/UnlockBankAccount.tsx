@@ -1,5 +1,6 @@
 import BaseWidgetItem from '@components/BaseWidgetItem';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -34,6 +35,8 @@ function UnlockBankAccount({bankAccountID, policyName}: UnlockBankAccountProps) 
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
+    const [unlockRequestedAt] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${bankAccountID}`);
+    const {showConfirmModal} = useConfirmModal();
 
     const title = policyName ? translate('homePage.timeSensitiveSection.unlockBankAccount.workspaceTitle') : translate('homePage.timeSensitiveSection.unlockBankAccount.personalTitle');
 
@@ -42,6 +45,15 @@ function UnlockBankAccount({bankAccountID, policyName}: UnlockBankAccountProps) 
         : translate('homePage.timeSensitiveSection.unlockBankAccount.personalSubtitle');
 
     const handleCtaPress = () => {
+        if (unlockRequestedAt) {
+            showConfirmModal({
+                title: translate('bankAccount.unlockAlreadyRequestedTitle'),
+                prompt: translate('bankAccount.unlockAlreadyRequestedDescription'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+            return;
+        }
         pressLockedBankAccount(bankAccountID, translate, conciergeReportID, delegateAccountID);
         navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
     };

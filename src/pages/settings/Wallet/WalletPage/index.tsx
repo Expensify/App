@@ -99,6 +99,11 @@ function WalletPage() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [lockedVBAUnlockRequestedNVPs] = useOnyx(ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED);
+    const lockedVBAUnlockRequestedNVPsRef = useRef(lockedVBAUnlockRequestedNVPs);
+    useEffect(() => {
+        lockedVBAUnlockRequestedNVPsRef.current = lockedVBAUnlockRequestedNVPs;
+    }, [lockedVBAUnlockRequestedNVPs]);
     const delegateAccountID = useDelegateAccountID();
     const isUserValidated = userAccount?.validated ?? false;
     const {isBetaEnabled} = usePermissions();
@@ -158,7 +163,17 @@ function WalletPage() {
         paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
 
         if (accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED && accountData?.bankAccountID) {
-            pressLockedBankAccount(accountData?.bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID);
+            const unlockRequestedAt = lockedVBAUnlockRequestedNVPsRef.current?.[`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${accountData.bankAccountID}`];
+            if (unlockRequestedAt) {
+                showConfirmModal({
+                    title: translate('bankAccount.unlockAlreadyRequestedTitle'),
+                    prompt: translate('bankAccount.unlockAlreadyRequestedDescription'),
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                });
+                return;
+            }
+            pressLockedBankAccount(accountData.bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID);
             navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas);
             return;
         }

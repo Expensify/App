@@ -3699,6 +3699,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             deletePaymentBankAccount: '此银行账户无法删除，因为它被用于 Expensify 卡付款。如果您仍希望删除此账户，请联系 Concierge。',
             sameDepositAndWithdrawalAccount: '存款账户和取款账户相同。',
         },
+        unlockAlreadyRequestedTitle: '请求已提交',
+        unlockAlreadyRequestedDescription: '您解锁此银行账户的请求已发送。如需其他信息，Concierge 会与您联系。',
     },
     addPersonalBankAccount: {
         countrySelectionStepHeader: '您的银行账户位于哪个国家/地区？',

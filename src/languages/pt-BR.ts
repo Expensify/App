@@ -3818,6 +3818,8 @@ ${amount} para ${merchant} - ${date}`,
                 'Essa conta bancária não pode ser excluída porque é usada para pagamentos do Cartão Expensify. Se ainda assim quiser excluir essa conta, entre em contato com o Concierge.',
             sameDepositAndWithdrawalAccount: 'As contas de depósito e saque são as mesmas.',
         },
+        unlockAlreadyRequestedTitle: 'Solicitação já enviada',
+        unlockAlreadyRequestedDescription: 'Sua solicitação para desbloquear esta conta bancária já foi enviada. O Concierge vai entrar em contato se for necessário mais alguma coisa.',
     },
     addPersonalBankAccount: {
         countrySelectionStepHeader: 'Onde fica localizada a sua conta bancária?',

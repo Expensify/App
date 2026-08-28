@@ -156,6 +156,8 @@ function SettlementButton({
     const {isBetaEnabled} = usePermissions();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    // eslint-disable-next-line rulesdir/no-default-id-values
+    const [unlockRequestedAt] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${policy?.achAccount?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID}`);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -181,26 +183,35 @@ function SettlementButton({
     // interrupted by account validation resumes, since the validation gate skipped them.
     const checkForPostValidationBlockers = () => {
         if (isBankAccountLocked) {
-            showConfirmModal({
-                title: translate('bankAccount.lockedBankAccount'),
-                prompt: (
-                    <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML html={translate('bankAccount.youCantPayThis')} />
-                    </View>
-                ),
-                confirmText: translate('bankAccount.unlockBankAccount'),
-                cancelText: translate('common.cancel'),
-                shouldDisableConfirmButtonWhenOffline: true,
-            }).then(({action}) => {
-                if (action !== ModalActions.CONFIRM) {
-                    return;
-                }
-                if (policy?.achAccount?.bankAccountID === undefined) {
-                    return;
-                }
-                pressLockedBankAccount(policy?.achAccount?.bankAccountID, translate, conciergeReportID, delegateAccountID);
-                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
-            });
+            if (unlockRequestedAt) {
+                showConfirmModal({
+                    title: translate('bankAccount.unlockAlreadyRequestedTitle'),
+                    prompt: translate('bankAccount.unlockAlreadyRequestedDescription'),
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                });
+            } else {
+                showConfirmModal({
+                    title: translate('bankAccount.lockedBankAccount'),
+                    prompt: (
+                        <View style={[styles.renderHTML, styles.flexRow]}>
+                            <RenderHTML html={translate('bankAccount.youCantPayThis')} />
+                        </View>
+                    ),
+                    confirmText: translate('bankAccount.unlockBankAccount'),
+                    cancelText: translate('common.cancel'),
+                    shouldDisableConfirmButtonWhenOffline: true,
+                }).then(({action}) => {
+                    if (action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+                    if (policy?.achAccount?.bankAccountID === undefined) {
+                        return;
+                    }
+                    pressLockedBankAccount(policy?.achAccount?.bankAccountID, translate, conciergeReportID, delegateAccountID);
+                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+                });
+            }
             return true;
         }
 

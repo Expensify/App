@@ -3909,6 +3909,8 @@ const translations = {
         lockedBankAccount: 'Locked bank account',
         unlockBankAccount: 'Unlock bank account',
         youCantPayThis: `You can't pay this report because you have a <a href="${CONST.UNLOCK_BANK_ACCOUNT_HELP_URL}">locked bank account</a>. Tap below and Concierge will help with the next steps to unlock it.`,
+        unlockAlreadyRequestedTitle: 'Request already submitted',
+        unlockAlreadyRequestedDescription: 'Your request to unlock this bank account has already been sent. Concierge will reach out if anything else is needed.',
         htmlUnlockMessage: (maskedAccountNumber: string) =>
             `<h1>Expensify Business Bank Account ${maskedAccountNumber}</h1><p>Thank you for submitting a request to unlock your bank account. Withdrawal requests can be rejected due to insufficient funds, or if the bank account has not been enabled for direct debit. We will review your case and reach out to you if we need anything else to resolve this issue.</p>`,
         textUnlockMessage: (maskedAccountNumber: string) =>

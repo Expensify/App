@@ -1019,6 +1019,9 @@ const ONYXKEYS = {
 
         NVP_EXPENSIFY_REPORT_PDF_FILENAME: 'nvp_expensify_report_PDFFilename_',
 
+        /** Marker written when the user has already requested to unlock a locked business bank account */
+        NVP_LOCKED_VBA_UNLOCK_REQUESTED: 'nvp_expensify_vbaUnlockRequested_',
+
         /** The last submission method (Submit / Submit via PDF) the user chose on a given workspace, so the Submit button can default to it. Keyed by policyID. */
         NVP_PREFERRED_REPORT_SUBMISSION_METHOD: 'preferredReportSubmissionMethod_',
 
@@ -1531,6 +1534,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SELECTED_DISTANCE_REQUEST_TAB]: OnyxTypes.SelectedTabRequest;
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
     [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME]: string;
+    [ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED]: string;
     [ONYXKEYS.COLLECTION.NVP_PREFERRED_REPORT_SUBMISSION_METHOD]: ValueOf<typeof CONST.REPORT.SUBMISSION_METHOD>;
     [ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER]: OnyxTypes.PolicyJoinMember;
     [ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS]: OnyxTypes.PolicyConnectionSyncProgress;
