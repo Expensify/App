@@ -195,6 +195,7 @@ import {
     isUnread,
     isUploadingAttachmentRemovedFromDraft,
     isWorkspaceMemberLeavingWorkspaceRoom,
+    parseMovedTransactionReportIDs,
     parseReportRouteParams,
     prepareOnboardingOnyxData,
     pushTransactionAutoSelectionsOnyxData,
@@ -770,17 +771,18 @@ describe('ReportUtils', () => {
             const passedCurrentUserAccountID = 50;
             const passedAccountID = 999;
 
-            const {optimisticAssigneeAddComment} = getTaskAssigneeChatOnyxData(
-                passedAccountID,
-                1,
-                'taskReportID',
-                'assigneeChatReportID',
-                'parentReportID',
-                'Task title',
-                createMock<OnyxEntry<Report>>({}),
-                passedCurrentUserEmail,
-                passedCurrentUserAccountID,
-            );
+            const {optimisticAssigneeAddComment} = getTaskAssigneeChatOnyxData({
+                accountID: passedAccountID,
+                assigneeAccountID: 1,
+                taskReportID: 'taskReportID',
+                assigneeChatReportID: 'assigneeChatReportID',
+                parentReportID: 'parentReportID',
+                title: 'Task title',
+                assigneeChatReport: createMock<OnyxEntry<Report>>({}),
+                currentUserEmail: passedCurrentUserEmail,
+                currentUserAccountID: passedCurrentUserAccountID,
+                delegateAccountID: undefined,
+            });
 
             expect(optimisticAssigneeAddComment).toBeDefined();
             const reportAction = optimisticAssigneeAddComment?.reportAction as ReportAction | undefined;
@@ -794,17 +796,18 @@ describe('ReportUtils', () => {
             const passedCurrentUserEmail = 'different-email@user.com';
             const passedCurrentUserAccountID = currentUserAccountID; // 5, which exists in `participantsPersonalDetails`
 
-            const result = getTaskAssigneeChatOnyxData(
-                1,
-                2,
-                'taskReportID',
-                'assigneeChatReportID',
-                'parentReportID',
-                'Task title',
-                createMock<OnyxEntry<Report>>({}),
-                passedCurrentUserEmail,
-                passedCurrentUserAccountID,
-            );
+            const result = getTaskAssigneeChatOnyxData({
+                accountID: 1,
+                assigneeAccountID: 2,
+                taskReportID: 'taskReportID',
+                assigneeChatReportID: 'assigneeChatReportID',
+                parentReportID: 'parentReportID',
+                title: 'Task title',
+                assigneeChatReport: createMock<OnyxEntry<Report>>({}),
+                currentUserEmail: passedCurrentUserEmail,
+                currentUserAccountID: passedCurrentUserAccountID,
+                delegateAccountID: undefined,
+            });
 
             const reportAction = result.optimisticAssigneeAddComment?.reportAction as ReportAction | undefined;
             expect(reportAction?.actorAccountID).toBe(passedCurrentUserAccountID);
@@ -814,9 +817,40 @@ describe('ReportUtils', () => {
         });
 
         it('does not create optimistic assignee comment when assigneeChatReportID equals parentReportID', () => {
-            const result = getTaskAssigneeChatOnyxData(1, 2, 'taskReportID', 'sameReportID', 'sameReportID', 'Task title', createMock<OnyxEntry<Report>>({}), 'email@user.com', 50);
+            const result = getTaskAssigneeChatOnyxData({
+                accountID: 1,
+                assigneeAccountID: 2,
+                taskReportID: 'taskReportID',
+                assigneeChatReportID: 'sameReportID',
+                parentReportID: 'sameReportID',
+                title: 'Task title',
+                assigneeChatReport: createMock<OnyxEntry<Report>>({}),
+                currentUserEmail: 'email@user.com',
+                currentUserAccountID: 50,
+                delegateAccountID: undefined,
+            });
 
             expect(result.optimisticAssigneeAddComment).toBeUndefined();
+        });
+
+        it('sets the passed delegateAccountID on the optimistic assignee comment', () => {
+            const delegateAccountID = 901;
+
+            const {optimisticAssigneeAddComment} = getTaskAssigneeChatOnyxData({
+                accountID: 1,
+                assigneeAccountID: 2,
+                taskReportID: 'taskReportID',
+                assigneeChatReportID: 'assigneeChatReportID',
+                parentReportID: 'parentReportID',
+                title: 'Task title',
+                assigneeChatReport: createMock<OnyxEntry<Report>>({}),
+                currentUserEmail: 'email@user.com',
+                currentUserAccountID: 50,
+                delegateAccountID,
+            });
+
+            const reportAction = optimisticAssigneeAddComment?.reportAction as ReportAction | undefined;
+            expect(reportAction?.delegateAccountID).toBe(delegateAccountID);
         });
     });
 
@@ -18129,15 +18163,7 @@ describe('ReportUtils', () => {
 
     describe('getUnreportedTransactionMessage', () => {
         it('should return unreported transaction message when fromReportID is UNREPORTED_REPORT_ID', () => {
-            const action = createMock<ReportAction>({
-                ...LHNTestUtils.getFakeReportAction(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
-                originalMessage: {
-                    fromReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-                },
-            });
-
-            const result = getUnreportedTransactionMessage(translateLocal, action);
+            const result = getUnreportedTransactionMessage({translate: translateLocal, fromReportID: CONST.REPORT.UNREPORTED_REPORT_ID});
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
         });
@@ -18146,15 +18172,7 @@ describe('ReportUtils', () => {
             const fromReport = LHNTestUtils.getFakeReport();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
 
-            const action = createMock<ReportAction>({
-                ...LHNTestUtils.getFakeReportAction(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
-                originalMessage: {
-                    fromReportID: fromReport.reportID,
-                },
-            });
-
-            const result = getUnreportedTransactionMessage(translateLocal, action);
+            const result = getUnreportedTransactionMessage({translate: translateLocal, fromReportID: fromReport.reportID});
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
         });
@@ -18163,16 +18181,8 @@ describe('ReportUtils', () => {
             const fromReport = LHNTestUtils.getFakeReport();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
 
-            const action = createMock<ReportAction>({
-                ...LHNTestUtils.getFakeReportAction(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
-                originalMessage: {
-                    fromReportID: fromReport.reportID,
-                },
-            });
-
-            const result1 = getUnreportedTransactionMessage(translateLocal, action);
-            const result2 = getUnreportedTransactionMessage(translateLocal, action);
+            const result1 = getUnreportedTransactionMessage({translate: translateLocal, fromReportID: fromReport.reportID});
+            const result2 = getUnreportedTransactionMessage({translate: translateLocal, fromReportID: fromReport.reportID});
             expect(typeof result1).toBe('string');
             expect(typeof result2).toBe('string');
         });
@@ -21922,7 +21932,8 @@ describe('ReportUtils', () => {
                 },
             });
 
-            const result = getMovedTransactionMessage(translateLocal, action);
+            const {fromReportID, toReportID} = parseMovedTransactionReportIDs(action);
+            const result = getMovedTransactionMessage({translate: translateLocal, fromReportID, toReportID});
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
         });
@@ -21940,9 +21951,148 @@ describe('ReportUtils', () => {
                 },
             });
 
-            const result = getMovedTransactionMessage(translateLocal, action);
+            const {fromReportID, toReportID} = parseMovedTransactionReportIDs(action);
+            const result = getMovedTransactionMessage({translate: translateLocal, fromReportID, toReportID});
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
+        });
+    });
+
+    describe('parseMovedTransactionReportIDs', () => {
+        it('should return both fromReportID and toReportID when both are present', () => {
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {
+                    fromReportID: '111',
+                    toReportID: '222',
+                },
+            });
+
+            const result = parseMovedTransactionReportIDs(action);
+            expect(result).toEqual({fromReportID: '111', toReportID: '222', displayReportID: '111'});
+        });
+
+        it('should return undefined for missing IDs', () => {
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {},
+            });
+
+            const result = parseMovedTransactionReportIDs(action);
+            expect(result.fromReportID).toBeUndefined();
+            expect(result.toReportID).toBeUndefined();
+        });
+
+        it('should return only fromReportID when toReportID is missing', () => {
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {
+                    fromReportID: '111',
+                },
+            });
+
+            const result = parseMovedTransactionReportIDs(action);
+            expect(result.fromReportID).toBe('111');
+            expect(result.toReportID).toBeUndefined();
+        });
+
+        it('should return only toReportID when fromReportID is missing', () => {
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {
+                    toReportID: '222',
+                },
+            });
+
+            const result = parseMovedTransactionReportIDs(action);
+            expect(result.fromReportID).toBeUndefined();
+            expect(result.toReportID).toBe('222');
+        });
+    });
+
+    describe('parseMovedTransactionReportIDs - moved transaction', () => {
+        it('should return both fromReportID and toReportID when present', () => {
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {
+                    fromReportID: '111',
+                    toReportID: '222',
+                },
+            });
+
+            const {fromReportID, toReportID} = parseMovedTransactionReportIDs(action);
+            expect(fromReportID).toBe('111');
+            expect(toReportID).toBe('222');
+        });
+
+        it('should return only toReportID when fromReportID is undefined', () => {
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {
+                    toReportID: '222',
+                },
+            });
+
+            const {fromReportID, toReportID} = parseMovedTransactionReportIDs(action);
+            expect(fromReportID).toBeUndefined();
+            expect(toReportID).toBe('222');
+        });
+
+        it('should return undefined for both when IDs are missing', () => {
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {},
+            });
+
+            const {fromReportID, toReportID} = parseMovedTransactionReportIDs(action);
+            expect(fromReportID).toBeUndefined();
+            expect(toReportID).toBeUndefined();
+        });
+    });
+
+    describe('parseMovedTransactionReportIDs - unreported transaction', () => {
+        it('should return fromReportID', () => {
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
+                originalMessage: {
+                    fromReportID: '333',
+                },
+            });
+
+            expect(parseMovedTransactionReportIDs(action).fromReportID).toBe('333');
+        });
+
+        it('should return undefined when fromReportID is missing', () => {
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
+                originalMessage: {},
+            });
+
+            expect(parseMovedTransactionReportIDs(action).fromReportID).toBeUndefined();
+        });
+
+        it('should return both fromReportID and toReportID independently', () => {
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
+                originalMessage: {
+                    fromReportID: '333',
+                    toReportID: '444',
+                },
+            });
+
+            const {fromReportID, toReportID} = parseMovedTransactionReportIDs(action);
+            expect(fromReportID).toBe('333');
+            expect(toReportID).toBe('444');
         });
     });
 
