@@ -33,7 +33,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import {isPersonalBankAccountMissingInfo, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 import {hasDisplayableAssignedCards, isDirectFeed, maskCardNumber} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -165,12 +165,7 @@ function WalletPage() {
         if (accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED && accountData?.bankAccountID) {
             const unlockRequestedAt = lockedVBAUnlockRequestedNVPsRef.current?.[`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${accountData.bankAccountID}`];
             if (unlockRequestedAt) {
-                showConfirmModal({
-                    title: translate('bankAccount.unlockAlreadyRequestedTitle'),
-                    prompt: translate('bankAccount.unlockAlreadyRequestedDescription'),
-                    confirmText: translate('common.buttonConfirm'),
-                    shouldShowCancelButton: false,
-                });
+                showUnlockAlreadyRequestedModal(showConfirmModal, translate);
                 return;
             }
             pressLockedBankAccount(accountData.bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID);

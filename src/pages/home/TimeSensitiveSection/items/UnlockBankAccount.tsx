@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import {pressLockedBankAccount} from '@libs/actions/BankAccounts';
 import {navigateToConciergeChat} from '@libs/actions/Report';
+import {showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 
 import colors from '@styles/theme/colors';
 
@@ -46,12 +47,7 @@ function UnlockBankAccount({bankAccountID, policyName}: UnlockBankAccountProps) 
 
     const handleCtaPress = () => {
         if (unlockRequestedAt) {
-            showConfirmModal({
-                title: translate('bankAccount.unlockAlreadyRequestedTitle'),
-                prompt: translate('bankAccount.unlockAlreadyRequestedDescription'),
-                confirmText: translate('common.buttonConfirm'),
-                shouldShowCancelButton: false,
-            });
+            showUnlockAlreadyRequestedModal(showConfirmModal, translate);
             return;
         }
         pressLockedBankAccount(bankAccountID, translate, conciergeReportID, delegateAccountID);

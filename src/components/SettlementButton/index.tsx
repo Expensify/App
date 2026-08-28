@@ -25,7 +25,7 @@ import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 import {createWorkspace, generateDefaultWorkspaceName, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
-import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {isBankAccountPartiallySetup, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
 import {isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
@@ -184,12 +184,7 @@ function SettlementButton({
     const checkForPostValidationBlockers = () => {
         if (isBankAccountLocked) {
             if (unlockRequestedAt) {
-                showConfirmModal({
-                    title: translate('bankAccount.unlockAlreadyRequestedTitle'),
-                    prompt: translate('bankAccount.unlockAlreadyRequestedDescription'),
-                    confirmText: translate('common.buttonConfirm'),
-                    shouldShowCancelButton: false,
-                });
+                showUnlockAlreadyRequestedModal(showConfirmModal, translate);
             } else {
                 showConfirmModal({
                     title: translate('bankAccount.lockedBankAccount'),
