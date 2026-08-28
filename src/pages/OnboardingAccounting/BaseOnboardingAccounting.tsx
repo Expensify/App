@@ -294,6 +294,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
 
     return (
         <ScreenWrapper
+            includePaddingTop={false}
             testID="BaseOnboardingAccounting"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
             shouldEnableMaxHeight={!isMobileSafari()}

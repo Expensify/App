@@ -242,6 +242,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
 
     return (
         <ScreenWrapper
+            includePaddingTop={false}
             testID="BaseOnboardingInterestedFeatures"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
             shouldEnableMaxHeight

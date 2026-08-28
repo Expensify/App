@@ -131,6 +131,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
+            includePaddingTop={false}
             testID="BaseOnboardingPrivateDomain"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >

@@ -44,7 +44,7 @@ function OnboardingHeaderContextProvider({children}: {children: React.ReactNode}
  * focused screen and stale values from the outgoing screen don't linger.
  *
  * `onBackButtonPress` is read through a ref so the focus effect only re-registers when
- * `shouldShowBackButton` (the value that actually affects rendering) changes — screens can pass a
+ * `shouldShowBackButton` (the value that actually affects rendering) changes. Screens can pass a
  * fresh inline handler each render without triggering extra re-registrations, while the caret still
  * always invokes the latest handler.
  */

@@ -91,6 +91,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
 
     return (
         <ScreenWrapper
+            includePaddingTop={false}
             testID="BaseOnboardingPersonalTrackGoal"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >

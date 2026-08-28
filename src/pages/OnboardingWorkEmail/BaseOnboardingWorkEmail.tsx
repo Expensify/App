@@ -204,6 +204,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             shouldEnableMaxHeight={!isMobileSafari()}
             shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
             includeSafeAreaPaddingBottom
+            includePaddingTop={false}
             testID="BaseOnboardingWorkEmail"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >

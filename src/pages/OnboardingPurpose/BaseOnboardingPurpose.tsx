@@ -181,6 +181,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
+            includePaddingTop={false}
             testID="BaseOnboardingPurpose"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
             shouldEnableMaxHeight={shouldEnableMaxHeight}

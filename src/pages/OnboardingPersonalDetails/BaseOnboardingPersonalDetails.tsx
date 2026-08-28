@@ -256,6 +256,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
+            includePaddingTop={false}
             testID="BaseOnboardingPersonalDetails"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >

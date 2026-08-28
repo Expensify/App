@@ -148,6 +148,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
 
     return (
         <ScreenWrapper
+            includePaddingTop={false}
             testID="BaseOnboardingEmployees"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >

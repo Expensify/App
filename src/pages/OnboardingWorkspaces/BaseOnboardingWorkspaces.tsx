@@ -177,6 +177,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
+            includePaddingTop={false}
             testID="BaseOnboardingWorkspaces"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
             shouldShowOfflineIndicator={isSmallScreenWidth}

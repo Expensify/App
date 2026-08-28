@@ -27,7 +27,7 @@ type CaretBackHeaderProps = {
 
 /**
  * Popover-style back link: caret + label (defaults to "Back").
- * Matches the submenu back row used by PopoverMenu. Not onboarding-specific — it can be
+ * Matches the submenu back row used by PopoverMenu. It is not onboarding-specific. It can be
  * rendered anywhere a lightweight "back caret" modal header is needed.
  */
 function CaretBackHeader({onBackButtonPress, shouldShowBackButton = true, label}: CaretBackHeaderProps) {
