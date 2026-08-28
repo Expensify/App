@@ -199,6 +199,7 @@ import {
     getDisplayNamesWithTooltips,
     getMovedActionMessage,
     getMovedTransactionMessage,
+    parseMovedTransactionReportIDs,
     getParticipantsAccountIDsForDisplay,
     getPolicyChangeLogCopyMessage,
     getPolicyChangeMessage,
@@ -620,7 +621,15 @@ function getLastMessageTextForReport({
         const properSchemaForModifiedExpenseMessage = Parser.htmlToText(properSchemaForModifiedExpenseMessageWithHTML);
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
-        lastMessageTextFromReport = Parser.htmlToText(getMovedTransactionMessage(translate, lastReportAction, reportAttributesDerived));
+        const {fromReportID, toReportID, displayReportID} = parseMovedTransactionReportIDs(lastReportAction);
+        lastMessageTextFromReport = Parser.htmlToText(
+            getMovedTransactionMessage({
+                translate,
+                fromReportID,
+                toReportID,
+                derivedReportName: displayReportID ? reportAttributesDerived?.[displayReportID]?.reportName : undefined,
+            }),
+        );
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(translate, lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
@@ -733,7 +742,14 @@ function getLastMessageTextForReport({
     } else if (isMovedAction(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getMovedActionMessage(translate, lastReportAction, report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        lastMessageTextFromReport = Parser.htmlToText(getUnreportedTransactionMessage(translate, lastReportAction, reportAttributesDerived));
+        const {fromReportID} = parseMovedTransactionReportIDs(lastReportAction);
+        lastMessageTextFromReport = Parser.htmlToText(
+            getUnreportedTransactionMessage({
+                translate,
+                fromReportID,
+                derivedReportName: fromReportID ? reportAttributesDerived?.[fromReportID]?.reportName : undefined,
+            }),
+        );
     } else if (isActionableMentionWhisper(lastReportAction)) {
         const targetAccountIDs = getOriginalMessage(lastReportAction)?.inviteeAccountIDs;
         lastMessageTextFromReport = Parser.htmlToText(getActionableMentionWhisperMessage(translate, lastReportAction, getPersonalDetailsListByIDs(targetAccountIDs, personalDetails)));
@@ -1384,7 +1400,14 @@ function getReportAlternateText({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
             alternateText = getPolicyChangeLogDeleteMemberMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-            alternateText = Parser.htmlToText(getUnreportedTransactionMessage(translate, lastAction, reportAttributesDerived));
+            const {fromReportID} = parseMovedTransactionReportIDs(lastAction);
+            alternateText = Parser.htmlToText(
+                getUnreportedTransactionMessage({
+                    translate,
+                    fromReportID,
+                    derivedReportName: fromReportID ? reportAttributesDerived?.[fromReportID]?.reportName : undefined,
+                }),
+            );
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
             alternateText = getReportActionMessageText(lastAction) ?? '';
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION) {
@@ -1468,7 +1491,15 @@ function getReportAlternateText({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
             alternateText = Parser.htmlToText(getUpdatedOwnershipMessage(translate, lastAction, policy));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
-            alternateText = Parser.htmlToText(getMovedTransactionMessage(translate, lastAction, reportAttributesDerived));
+            const {fromReportID, toReportID, displayReportID} = parseMovedTransactionReportIDs(lastAction);
+            alternateText = Parser.htmlToText(
+                getMovedTransactionMessage({
+                    translate,
+                    fromReportID,
+                    toReportID,
+                    derivedReportName: displayReportID ? reportAttributesDerived?.[displayReportID]?.reportName : undefined,
+                }),
+            );
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
             alternateText = Parser.htmlToText(getSettlementAccountLockedMessage(translate, lastAction));
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
