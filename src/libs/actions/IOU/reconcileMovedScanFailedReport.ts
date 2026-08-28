@@ -8,12 +8,16 @@ import {getAllReportActions, getOriginalMessage, isMoneyRequestAction} from '@li
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
-import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
 import {getAllReports} from '.';
+
+/** Every key this reconciliation writes to, so the updates it builds are checked against the real Onyx value types. */
+type ReconciliationUpdate = OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>;
 
 const REPORT_ID_ROUTE_PREFIXES = ['/r/', '/search/view/'];
 
@@ -110,7 +114,7 @@ function reconcileMovedScanFailedReport(
     realReportID: string,
     realActionIDByTransactionID: Map<string, string>,
     hasResponseValue: (key: string, field: string) => boolean = () => false,
-): AnyOnyxUpdate[] {
+): ReconciliationUpdate[] {
     const allReports = getAllReports();
     const optimisticReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`];
     if (!optimisticReport) {
@@ -120,7 +124,7 @@ function reconcileMovedScanFailedReport(
     const chatReportID = optimisticReport.parentReportID;
     const reportPreviewActionID = optimisticReport.parentReportActionID;
 
-    const updates: AnyOnyxUpdate[] = [
+    const updates: ReconciliationUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
