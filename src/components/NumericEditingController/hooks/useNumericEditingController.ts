@@ -1,11 +1,8 @@
 import {normalizeNumericInput} from '@components/NumericEditingController/utils';
-import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 
 import useLocalize from '@hooks/useLocalize';
 
 import {replaceAllDigits, stripDecimalsFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
-
-import type {BlurEvent} from 'react-native';
 
 import {useEffect, useEffectEvent, useLayoutEffect, useRef, useState} from 'react';
 
@@ -26,19 +23,7 @@ type UseNumberEditControllerParams = {
 
     /** Maximum number of integer digits accepted by the controller. */
     maxLength?: number;
-
-    /** Blur callback forwarded by the form. */
-    onBlur?: BaseTextInputProps['onBlur'];
-
-    /** Maps a canonical value to displayed text (e.g. NumericEditing separating the minus). Defaults to identity. */
-    toDisplayText?: (canonicalValue: string) => string;
-
-    /** Maps validated display text back to the canonical value. Defaults to identity. */
-    toCanonicalValue?: (displayText: string, previousCanonicalValue: string) => string;
 };
-
-const toDisplayTextDefault = (canonicalValue: string) => canonicalValue;
-const toCanonicalValueDefault = (displayText: string) => displayText;
 
 /**
  * Runs the callback whenever `decimals` changes, including on mount, where it sanitizes a value that already
@@ -62,16 +47,7 @@ function useDecimalsChangeEffect(decimals: number, onDecimalsChange: (decimals: 
  * Controller owning the numeric value: its formatting, validation and commit. The caret belongs to
  * `useNumericSelection`, which the controller calls whenever an edit changes the displayed text.
  */
-function useNumericEditingController({
-    value: externalValueProp,
-    onInputChange,
-    allowNegative = false,
-    decimals = 0,
-    maxLength,
-    onBlur,
-    toDisplayText = toDisplayTextDefault,
-    toCanonicalValue = toCanonicalValueDefault,
-}: UseNumberEditControllerParams) {
+function useNumericEditingController({value: externalValueProp, onInputChange, allowNegative = false, decimals = 0, maxLength}: UseNumberEditControllerParams) {
     const {fromLocaleDigit, toLocaleDigit} = useLocalize();
 
     const externalValue = externalValueProp ?? '';
@@ -82,8 +58,7 @@ function useNumericEditingController({
     // Synchronously tracks the latest committed value across batched state updates.
     const committedValueRef = useRef(externalValue);
 
-    const isNegative = currentValue.startsWith('-');
-    const formattedNumber = replaceAllDigits(toDisplayText(currentValue), toLocaleDigit);
+    const formattedNumber = replaceAllDigits(currentValue, toLocaleDigit);
 
     const selectionControls = useNumericSelection({displayText: formattedNumber});
 
@@ -118,32 +93,19 @@ function useNumericEditingController({
             return;
         }
 
-        const nextCanonicalValue = toCanonicalValue(numberWithLeadingZero, committedValueRef.current);
-        const nextDisplayText = toDisplayText(nextCanonicalValue);
-        const previousDisplayText = toDisplayText(applyValue(nextCanonicalValue));
+        const previousValue = applyValue(numberWithLeadingZero);
 
-        selectionControls.syncAfterEdit({previousText: previousDisplayText, nextText: nextDisplayText});
+        selectionControls.syncAfterEdit({previousText: previousValue, nextText: numberWithLeadingZero});
     };
 
     /** Replaces canonical value without validation or notification and moves caret to the end. */
     const updateNumber = (newNumber: string) => {
-        const nextDisplayText = toDisplayText(newNumber);
-
         applyValue(newNumber, {notify: false});
-        selectionControls.moveToEnd(nextDisplayText);
-    };
-
-    /** Commits canonical value without validation or moving caret, notifying parent by default. */
-    const setValue = (nextValue: string, {notify = true}: {notify?: boolean} = {}) => {
-        applyValue(nextValue, {notify});
+        selectionControls.moveToEnd(newNumber);
     };
 
     /** Returns the canonical signed value. */
     const getNumber = () => committedValueRef.current;
-
-    const handleBlur = (event: BlurEvent) => {
-        onBlur?.(event);
-    };
 
     useLayoutEffect(() => {
         // Catches up with the external reset, the one commit that bypasses applyValue.
@@ -156,23 +118,19 @@ function useNumericEditingController({
             return;
         }
 
-        setNumber(toDisplayText(stripDecimalsFromAmount(currentValue)));
+        setNumber(stripDecimalsFromAmount(currentValue));
     });
 
     return {
         value: currentValue,
-        externalValue,
         formattedNumber,
-        isNegative,
         selection: selectionControls.selection,
         setNumber,
-        setValue,
         updateNumber,
         getNumber,
         clearSelection: selectionControls.collapse,
         handleSelectionChange: selectionControls.handleNativeSelectionChange,
         handleKeyPress: selectionControls.handleKeyPress,
-        handleBlur,
     };
 }
 

@@ -1,6 +1,6 @@
+import type {NumericEditingKeyPressEvent} from '@components/NumericEditingController';
 import {useNumericFieldActions, useNumericFieldState} from '@components/NumericField/context';
 import type {NumericTextInputProps} from '@components/NumericField/types';
-import type {NumericEditingKeyPressEvent} from '@components/NumericEditingController';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 
@@ -56,7 +56,7 @@ function NumericTextInput({
 
     const handleInputBlur = (event: BlurEvent) => {
         onBlur?.(event);
-        handleBlur(event);
+        handleBlur?.(event);
     };
 
     const handleSubmitEditing = (event: Parameters<NonNullable<BaseTextInputProps['onSubmitEditing']>>[0]) => {

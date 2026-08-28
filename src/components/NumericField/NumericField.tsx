@@ -45,7 +45,7 @@ type NumericFieldProps = {
 };
 
 function NumericField({value = '', onInputChange, allowNegative = false, decimals = 0, maxLength, errorText, onBlur, onSubmitEditing, ref, numericEditingRef, children}: NumericFieldProps) {
-    const controller = useNumericEditingController({value, onInputChange, allowNegative, decimals, maxLength, onBlur});
+    const controller = useNumericEditingController({value, onInputChange, allowNegative, decimals, maxLength});
 
     useImperativeHandle(numericEditingRef, () => ({
         clearSelection: controller.clearSelection,
@@ -55,9 +55,7 @@ function NumericField({value = '', onInputChange, allowNegative = false, decimal
 
     const stateContextValue: NumericFieldStateContextValue = {
         value: controller.value,
-        externalValue: controller.externalValue,
         formattedNumber: controller.formattedNumber,
-        isNegative: controller.isNegative,
         selection: controller.selection,
         allowNegative,
         errorText,
@@ -70,7 +68,7 @@ function NumericField({value = '', onInputChange, allowNegative = false, decimal
         clearSelection: controller.clearSelection,
         handleSelectionChange: controller.handleSelectionChange,
         handleKeyPress: controller.handleKeyPress,
-        handleBlur: controller.handleBlur,
+        handleBlur: onBlur,
         onSubmitEditing,
         inputRef: ref,
     };

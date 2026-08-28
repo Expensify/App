@@ -118,4 +118,3 @@ function useNumericSelection({displayText}: UseNumericSelectionParams) {
 }
 
 export default useNumericSelection;
-export type {NumericSelectionEdit, UseNumericSelectionParams};

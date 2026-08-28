@@ -589,7 +589,6 @@ function NumberWithSymbolForm({
         <TextInputWithCurrencySymbol
             formattedAmount={formattedNumber}
             onChangeAmount={setNewNumber}
-            shouldNormalizeAmountOnChange
             onSymbolButtonPress={onSymbolButtonPress}
             placeholder={numberFormat(0)}
             ref={(newRef: BaseTextInputRef | null) => {

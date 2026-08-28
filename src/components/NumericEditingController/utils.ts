@@ -1,4 +1,3 @@
-
 import {isMobileSafari} from '@libs/Browser';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import {addLeadingZero, replaceAllDigits, replaceCommasWithPeriod, stripCommaFromAmount, stripSpacesFromAmount} from '@libs/MoneyRequestUtils';
@@ -63,4 +62,3 @@ function clampSelection(selection: NumericEditingSelection, maxLength: number): 
 }
 
 export {clampSelection, collapseSelection, getNewSelection, getSelectionAtOffset, isForwardDeleteKeyPress, normalizeNumericInput};
-export type {NormalizeNumericInputOptions};

@@ -2,23 +2,13 @@ import type {NumericEditingKeyPressEvent, NumericEditingSelection} from '@compon
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import type {ForwardedRef} from 'react';
-import type {BlurEvent} from 'react-native';
 
 type NumericFieldStateContextValue = {
     /** The canonical signed value owned by the root. */
     value: string;
 
-    /**
-     * The `value` prop exactly as passed to the root, before any internal editing state. The decimals-change logic
-     * reads this the way the legacy component read its own `number` prop, so an intentionally empty field is left alone.
-     */
-    externalValue: string;
-
     /** The text the composed input displays: the canonical value rendered with locale digits. */
     formattedNumber: string;
-
-    /** Whether the canonical value is negative. */
-    isNegative: boolean;
 
     /** The selection to render, clamped to the displayed text. */
     selection: NumericEditingSelection;
@@ -49,8 +39,8 @@ type NumericFieldActionsContextValue = {
     /** Tracks forward-delete key presses. */
     handleKeyPress: (event: NumericEditingKeyPressEvent) => void;
 
-    /** Forwards blur to the root (InputWrapper) callback. */
-    handleBlur: (event: BlurEvent) => void;
+    /** Blur callback supplied by InputWrapper. */
+    handleBlur?: BaseTextInputProps['onBlur'];
 
     /** Submit callback supplied by InputWrapper. */
     onSubmitEditing?: BaseTextInputProps['onSubmitEditing'];
