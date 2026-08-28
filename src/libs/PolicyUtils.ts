@@ -712,19 +712,6 @@ function getReimburserEmail(policy: OnyxEntry<Policy>): string | undefined {
     return policy.reimburser ?? policy.achAccount?.reimburser ?? (isManualReimbursement ? policy.owner : undefined);
 }
 
-/**
- * Whether the given role is allowed to pay (reimburse) on a workspace.
- */
-function canRolePay(role: string | undefined): boolean {
-    return !!role && ROLE_PERMISSION_BUNDLES[role]?.[CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS] === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
-}
-
-/**
- * The roles that are allowed to pay (reimburse) on a workspace, derived from the WORKFLOWS_PAYMENTS permission. The
- * Authorized Payer (reimburser) must always hold one of these, so any role change for a payer is restricted to this set.
- */
-const PAYER_ROLES = Object.values(CONST.POLICY.ROLE).filter(canRolePay);
-
 function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean {
     if (!policy) {
         return false;
@@ -3231,8 +3218,6 @@ export {
     isPolicyMember,
     isPolicyPayer,
     getReimburserEmail,
-    PAYER_ROLES,
-    canRolePay,
     arePaymentsEnabled,
     isSubmitterAndApprover,
     isSubmitAndClose,
