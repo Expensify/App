@@ -6231,7 +6231,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             },
             mcp: {
                 title: 'MCP',
-                subtitle: '将 AI 助手连接到您的工作区数据。',
+                subtitle: '将 AI 助手连接到您的 Expensify 账户。',
             },
             receiptPartners: {
                 title: '收据合作伙伴',

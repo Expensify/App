@@ -6596,7 +6596,7 @@ const translations = {
             },
             mcp: {
                 title: 'MCP',
-                subtitle: 'Connect AI assistants to your workspace data.',
+                subtitle: 'Connect an AI assistant to your Expensify account.',
             },
             receiptPartners: {
                 title: 'Receipt partners',

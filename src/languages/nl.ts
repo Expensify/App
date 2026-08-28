@@ -6464,7 +6464,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             },
             mcp: {
                 title: 'MCP',
-                subtitle: 'Verbind AI-assistenten met de gegevens van je werkruimte.',
+                subtitle: 'Verbind een AI-assistent met je Expensify-account.',
             },
             receiptPartners: {
                 title: 'Bonpartners',

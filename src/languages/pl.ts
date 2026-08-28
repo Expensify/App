@@ -6487,7 +6487,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             },
             mcp: {
                 title: 'MCP',
-                subtitle: 'Połącz asystentów AI z danymi swojego obszaru roboczego.',
+                subtitle: 'Połącz asystenta AI ze swoim kontem Expensify.',
             },
             receiptPartners: {
                 title: 'Partnerzy paragonów',

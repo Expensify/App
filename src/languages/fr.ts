@@ -6527,7 +6527,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             },
             mcp: {
                 title: 'MCP',
-                subtitle: 'Connectez des assistants IA aux données de votre espace de travail.',
+                subtitle: 'Connectez un assistant IA à votre compte Expensify.',
             },
             receiptPartners: {
                 title: 'Partenaires de reçus',

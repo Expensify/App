@@ -6390,7 +6390,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             },
             mcp: {
                 title: 'MCP',
-                subtitle: 'AIアシスタントをワークスペースのデータに接続します。',
+                subtitle: 'AIアシスタントをExpensifyアカウントに接続します。',
             },
             receiptPartners: {
                 title: '領収書パートナー',

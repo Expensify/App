@@ -6508,7 +6508,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             },
             mcp: {
                 title: 'MCP',
-                subtitle: 'Verbinde KI-Assistenten mit den Daten deines Arbeitsbereichs.',
+                subtitle: 'Verbinde einen KI-Assistenten mit deinem Expensify-Konto.',
             },
             receiptPartners: {
                 title: 'Belegpartner',

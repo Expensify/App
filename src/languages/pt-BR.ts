@@ -6465,7 +6465,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             },
             mcp: {
                 title: 'MCP',
-                subtitle: 'Conecte assistentes de IA aos dados do seu espaço de trabalho.',
+                subtitle: 'Conecte um assistente de IA à sua conta do Expensify.',
             },
             receiptPartners: {
                 title: 'Parceiros de recibos',

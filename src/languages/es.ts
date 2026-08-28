@@ -6391,7 +6391,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             mcp: {
                 title: 'MCP',
-                subtitle: 'Conecta asistentes de IA a los datos de tu espacio de trabajo.',
+                subtitle: 'Conecta un asistente de IA a tu cuenta de Expensify.',
             },
             receiptPartners: {
                 title: 'Socios de recibos',
