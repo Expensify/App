@@ -4,7 +4,7 @@ import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils
 
 import HomeAddressRequiredContent from '@pages/inbox/report/actionContents/HomeAddressRequiredContent';
 
-import type {ReportAction} from '@src/types/onyx';
+import CONST from '@src/CONST';
 
 import type {ReactNode} from 'react';
 
@@ -40,7 +40,7 @@ jest.mock('@libs/ReportActionsUtils', () => ({
     getReportActionText: jest.fn(),
 }));
 
-const mockReportAction = createMock<ReportAction<'HOMEADDRESSREQUIRED'>>({actionName: 'HOMEADDRESSREQUIRED'});
+const mockReportAction = createMock<Parameters<typeof HomeAddressRequiredContent>[0]['action']>({actionName: CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED});
 
 describe('HomeAddressRequiredContent', () => {
     it('renders the home address link from the report action HTML', () => {
