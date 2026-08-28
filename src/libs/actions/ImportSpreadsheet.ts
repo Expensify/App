@@ -222,6 +222,7 @@ function applyCompanyCardSavedColumnMappings(spreadsheetData: string[][], savedC
         if (role === CONST.CSV_IMPORT_COLUMNS.IGNORE || !validRoles.has(role)) {
             continue;
         }
+
         // A saved externalID index is ambiguous: the company cards import appends a synthetic externalID column
         // when the user maps no Unique ID, and that index is indistinguishable from a Unique ID the user mapped to
         // the last column. Restoring it could point Unique ID at an unrelated column of the new file, whose repeated
