@@ -235,7 +235,12 @@ const mockReportActions: OnyxTypes.ReportAction[] = [
 
 const renderReportActionsList = (props: {reportID?: string} = {}) => {
     const reportID = props.reportID ?? mockReport.reportID;
-    return render(<ReportActionsList reportID={reportID} />);
+    return render(
+        <ReportActionsList
+            reportID={reportID}
+            conciergeChat={undefined}
+        />,
+    );
 };
 
 describe('ReportActionsList (body)', () => {

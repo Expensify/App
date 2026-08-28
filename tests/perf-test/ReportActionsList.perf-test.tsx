@@ -110,6 +110,7 @@ function ReportActionsListWrapper() {
                     <ActionListContext.Provider value={actionListContextValue}>
                         <ReportActionsList
                             reportID={REPORT_ID}
+                            conciergeChat={undefined}
                             onLayout={mockOnLayout}
                         />
                     </ActionListContext.Provider>

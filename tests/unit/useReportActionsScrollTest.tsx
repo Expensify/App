@@ -172,6 +172,7 @@ function makeAction(reportActionID: string, overrides: Partial<ReportAction> = {
 function buildParams(overrides: Partial<ScrollParams> = {}): ScrollParams {
     return {
         reportID: REPORT_ID,
+        conciergeChat: undefined,
         report: createMockReport({reportID: REPORT_ID}),
         transactionThreadReport: undefined,
         parentReportAction: undefined,

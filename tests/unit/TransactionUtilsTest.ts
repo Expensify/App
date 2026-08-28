@@ -1203,6 +1203,44 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('getDetailedExpenseTypeTranslationKey', () => {
+        it('returns Expensify Card for an Expensify Card transaction', () => {
+            const transaction = generateTransaction({managedCard: true, bank: CONST.EXPENSIFY_CARD.BANK});
+
+            expect(TransactionUtils.getDetailedExpenseTypeTranslationKey(transaction)).toBe('cardTransactions.expensifyCard');
+        });
+
+        it('returns Company card for a managed card transaction on a company feed', () => {
+            const transaction = generateTransaction({managedCard: true, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA});
+
+            expect(TransactionUtils.getDetailedExpenseTypeTranslationKey(transaction)).toBe('cardTransactions.companyCard');
+        });
+
+        it('returns Personal card for an unmanaged card transaction', () => {
+            const transaction = generateTransaction({cardName: 'Some personal card'});
+
+            expect(TransactionUtils.getDetailedExpenseTypeTranslationKey(transaction)).toBe('cardTransactions.personalCard');
+        });
+
+        it('falls back to the plain expense type for a non-card transaction', () => {
+            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, merchant: '(none)'});
+
+            expect(TransactionUtils.getDetailedExpenseTypeTranslationKey(transaction)).toBe('common.distance');
+        });
+
+        it('returns pending for a still-posting card transaction, ahead of its card type', () => {
+            const transaction = generateTransaction({managedCard: true, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, status: CONST.TRANSACTION.STATUS.PENDING});
+
+            expect(TransactionUtils.getDetailedExpenseTypeTranslationKey(transaction)).toBe('iou.pending');
+        });
+
+        it('returns Travel Card for a travel billing transaction', () => {
+            const transaction = generateTransaction({managedCard: true, feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US});
+
+            expect(TransactionUtils.getDetailedExpenseTypeTranslationKey(transaction)).toBe('cardTransactions.travelCard');
+        });
+    });
+
     describe('isMapBasedDistanceRequest', () => {
         const waypoints = {
             waypoint0: {keyForList: 'start_waypoint', address: 'A'},

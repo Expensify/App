@@ -50,12 +50,6 @@ type SettlementButtonProps = WithSentryLabel & {
     /** Should we show the payment options? */
     shouldHidePaymentOptions?: boolean;
 
-    /** Should we show the payment options? */
-    shouldShowApproveButton?: boolean;
-
-    /** Should approve button be disabled? */
-    shouldDisableApproveButton?: boolean;
-
     /** The policyID of the report we are paying */
     policyID: string | undefined;
 
@@ -97,9 +91,6 @@ type SettlementButtonProps = WithSentryLabel & {
 
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;
-
-    /** Callback to open confirmation modal if any of the transactions is on HOLD */
-    confirmApproval?: () => void;
 
     /** Whether to use keyboard shortcuts for confirmation or not */
     useKeyboardShortcuts?: boolean;
