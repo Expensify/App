@@ -13,7 +13,7 @@ If you're still getting familiar with navigation or looking for a side-by-side m
 - [Coming from Expensify Classic for Submitters and Approvers](/articles/new-expensify/getting-started/Transitioning-to-New-Expensify/Coming-from-Expensify-Classic-for-Submitters-and-Approvers)
 - [Coming from Expensify Classic for Workspace Admins](/articles/new-expensify/getting-started/Transitioning-to-New-Expensify/Coming-from-Expensify-Classic-for-Workspace-Admins).
 
-You can also [register](https://help.expensify.com/articles/new-expensify/getting-started/How-to-Access-Expensify-Training) to attend a live training webinar or watch a recording on demand.
+You can also [register](/articles/new-expensify/getting-started/How-to-Access-Expensify-Training) to attend a live training webinar or watch a recording on demand.
 
 ---
 
