@@ -368,4 +368,47 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
 
         expect(preventRemoveFlags.some(Boolean)).toBe(true);
     });
+
+    it('disarms the native discard guard when the request type changes after a sign-only change', async () => {
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+
+        const transaction: Transaction = {
+            ...createRandomTransaction(1),
+            transactionID: TRANSACTION_ID,
+            reportID: REPORT_ID,
+            amount: 0,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+        };
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createTestReport());
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, transaction);
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        render(
+            <OnyxListItemProvider>
+                <CurrentUserPersonalDetailsProvider>
+                    <IOURequestStepAmount
+                        // @ts-expect-error minimal route for test
+                        route={createRouteParams({iouType: CONST.IOU.TYPE.CREATE})}
+                        navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT>['navigation']>({})}
+                    />
+                </CurrentUserPersonalDetailsProvider>
+            </OnyxListItemProvider>,
+        );
+
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('iou.flip'));
+        await waitForBatchedUpdatesWithAct();
+        expect(preventRemoveFlags.some(Boolean)).toBe(true);
+
+        preventRemoveFlags.length = 0;
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(preventRemoveFlags.some(Boolean)).toBe(false);
+    });
 });
