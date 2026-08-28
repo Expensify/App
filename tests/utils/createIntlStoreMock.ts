@@ -22,14 +22,35 @@ export default function createIntlStoreMock(locale: Locale = 'en'): MockedIntlSt
     /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 
     const cache = new Map<Locale, FlatTranslationsObject>([[locale, flattenObject(translations)]]);
-    // Same reference on every call so `useSyncExternalStore` does not loop the render.
-    const snapshot = {locale, isCurrentLocaleLoaded: cache.has(locale)};
+    const listeners = new Set<() => void>();
+    let currentLocale = locale;
+    let snapshot = {locale: currentLocale, isCurrentLocaleLoaded: cache.has(currentLocale)};
 
     return {
-        getCurrentLocale: () => locale,
-        load: () => Promise.resolve(),
-        get: <TPath extends TranslationPaths>(key: TPath, requestedLocale?: Locale) => cache.get(requestedLocale && cache.has(requestedLocale) ? requestedLocale : locale)?.[key] ?? null,
-        subscribe: () => () => {},
+        getCurrentLocale: () => currentLocale,
+        load: (requestedLocale?: Locale) => {
+            if (requestedLocale && !cache.has(requestedLocale)) {
+                throw new Error(`[createIntlStoreMock] no seed for "${requestedLocale}", so this switch would silently do nothing. Seed it with createIntlStoreMock('${requestedLocale}').`);
+            }
+            // Real behaviour, otherwise a suite exercising a locale switch sees no effect and passes for the wrong reason.
+            if (requestedLocale && requestedLocale !== currentLocale) {
+                currentLocale = requestedLocale;
+                snapshot = {locale: currentLocale, isCurrentLocaleLoaded: true};
+                for (const listener of listeners) {
+                    listener();
+                }
+            }
+            return Promise.resolve();
+        },
+        // Falls back like the real `get`, so an unseeded locale returns a string rather than the dotted path.
+        get: <TPath extends TranslationPaths>(key: TPath, requestedLocale?: Locale) =>
+            cache.get(requestedLocale && cache.has(requestedLocale) ? requestedLocale : currentLocale)?.[key] ?? null,
+        subscribe: (listener: () => void) => {
+            listeners.add(listener);
+            return () => {
+                listeners.delete(listener);
+            };
+        },
         getSnapshot: () => snapshot,
         hasLocale: (requestedLocale: Locale) => cache.has(requestedLocale),
     };

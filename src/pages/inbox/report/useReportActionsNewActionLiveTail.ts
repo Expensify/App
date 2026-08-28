@@ -36,6 +36,7 @@ type UseReportActionsNewActionLiveTailParams = {
     reportID: string;
     introSelected: OpenReportActionParams['introSelected'];
     betas: OpenReportActionParams['betas'];
+    conciergeChat: OpenReportActionParams['conciergeChat'];
     isOffline: boolean;
     reportScrollManager: ReportScrollManager;
     setIsFloatingMessageCounterVisible: (visible: boolean) => void;
@@ -62,6 +63,7 @@ type LiveTailJumpStage = 'idle' | 'open_report' | 'await_scroll' | 'await_prune'
  * it from list `onLayout` outside this hook.
  */
 function useReportActionsNewActionLiveTail({
+    conciergeChat,
     reportID,
     introSelected,
     betas,
@@ -113,6 +115,7 @@ function useReportActionsNewActionLiveTail({
                         openReport({
                             reportID,
                             introSelected,
+                            conciergeChat,
                             betas,
                             hasReportActions: true,
                             currentUserAccountID,
