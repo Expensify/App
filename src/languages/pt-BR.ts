@@ -6463,6 +6463,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 title: 'Contabilidade',
                 subtitle: 'Sincronize seu plano de contas e muito mais.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Conecte assistentes de IA aos dados do seu espaço de trabalho.',
+            },
             receiptPartners: {
                 title: 'Parceiros de recibos',
                 subtitle: 'Importe recibos automaticamente.',

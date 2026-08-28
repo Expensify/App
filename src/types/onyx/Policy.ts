@@ -3128,6 +3128,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the HR feature is enabled */
         isHREnabled?: boolean;
 
+        /** Whether the MCP feature is enabled */
+        isMCPEnabled?: boolean;
+
         /** The verified bank account linked to the policy */
         achAccount?: ACHAccount;
 
@@ -3215,7 +3218,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether Expensify automatically copies newly published government distance rates onto this policy */
         shouldAutoUpdateGovernmentDistanceRates?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | keyof WorkspaceTravelSettings | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
+    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | keyof WorkspaceTravelSettings | 'isHREnabled' | 'isMCPEnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
 >;
 
 /** Stages of policy connection sync */

@@ -6462,6 +6462,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 title: 'Boekhouding',
                 subtitle: 'Synchroniseer je grootboekrekeningschema en meer.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Verbind AI-assistenten met de gegevens van je werkruimte.',
+            },
             receiptPartners: {
                 title: 'Bonpartners',
                 subtitle: 'Automatisch bonnetjes importeren.',

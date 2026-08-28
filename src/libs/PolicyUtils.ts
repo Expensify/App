@@ -1724,6 +1724,9 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) {
         return policy?.[featureName] ? !!policy?.[featureName] : hasAccountingFeatureConnection(policy);
     }
+    if (featureName === CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED) {
+        return isMCPEnabled(policy);
+    }
     if (featureName === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED) {
         return policy?.isHREnabled === true || isAnyHRConnected(policy);
     }
@@ -3071,6 +3074,11 @@ function isTimeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.units?.time?.enabled;
 }
 
+/** MCP is on for every workspace unless an admin has explicitly turned it off, so an absent flag reads as enabled. */
+function isMCPEnabled(policy: OnyxEntry<Policy>): boolean {
+    return policy?.isMCPEnabled ?? true;
+}
+
 /**
  * Returns the policy's default hourly rate for the Time Tracking feature.
  */
@@ -3337,6 +3345,7 @@ export {
     isNonUSDPolicy,
     isDefaultTagName,
     isTimeTrackingEnabled,
+    isMCPEnabled,
     getDefaultTimeTrackingRate,
     getActivePoliciesWithExpenseChatAndTimeEnabled,
     isPolicyTaxEnabled,

@@ -6229,6 +6229,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '会计',
                 subtitle: '同步您的科目表等数据。',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: '将 AI 助手连接到您的工作区数据。',
+            },
             receiptPartners: {
                 title: '收据合作伙伴',
                 subtitle: '自动导入收据。',

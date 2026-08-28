@@ -20,6 +20,8 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {openExternalLink} from '@userActions/Link';
 
 import CONST from '@src/CONST';
@@ -48,70 +50,77 @@ function WorkspaceMCPPage({route}: WorkspaceMCPPageProps) {
     ];
 
     return (
-        <ScreenWrapper
-            enableEdgeToEdgeBottomSafeAreaPadding
-            style={styles.defaultModalContainer}
-            testID="WorkspaceMCPPage"
-            shouldShowOfflineIndicatorInWideScreen
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
         >
-            <HeaderWithBackButton
-                title={translate('workspace.common.mcp')}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldUseHeadlineHeader
-                shouldDisplayHelpButton
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-            <ScrollView
-                contentContainerStyle={styles.pt3}
-                addBottomSafeAreaPadding
+            <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
+                style={styles.defaultModalContainer}
+                testID="WorkspaceMCPPage"
+                shouldShowOfflineIndicatorInWideScreen
             >
-                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    <Section
-                        title={translate('workspace.mcp.connectors')}
-                        subtitle={translate('workspace.mcp.connectorsSubtitle')}
-                        isCentralPane
-                        subtitleMuted
-                        titleStyles={styles.accountSettingsSectionTitle}
-                        childrenStyles={styles.pt5}
-                    >
-                        {connectors.map((connector) => (
-                            <MenuItem
-                                key={connector.title}
-                                icon={connector.icon}
-                                iconType={CONST.ICON_TYPE_AVATAR}
-                                title={connector.title}
-                                description={connector.description}
-                                interactive={false}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                shouldShowRightComponent
-                                rightComponent={
-                                    <Button
-                                        onPress={() => openExternalLink(connector.url)}
-                                        style={styles.justifyContentCenter}
-                                        size={CONST.BUTTON_SIZE.SMALL}
-                                    >
-                                        <Button.Text>{translate('workspace.accounting.setup')}</Button.Text>
-                                    </Button>
-                                }
-                            />
-                        ))}
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt7]}>
-                            <Icon
-                                src={icons.QuestionMark}
-                                width={20}
-                                height={20}
-                                fill={theme.icon}
-                                additionalStyles={styles.mr3}
-                            />
-                            <View style={[!isLargeScreenWidth ? styles.flexColumn : styles.flexRow]}>
-                                <Text style={styles.textSupporting}>{translate('workspace.mcp.helpPrompt')}</Text>
-                                <TextLink onPress={() => openExternalLink(CONST.MCP_HELP_URL)}>{translate('workspace.mcp.helpLink')}</TextLink>
+                <HeaderWithBackButton
+                    title={translate('workspace.common.mcp')}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldUseHeadlineHeader
+                    shouldDisplayHelpButton
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+                <ScrollView
+                    contentContainerStyle={styles.pt3}
+                    addBottomSafeAreaPadding
+                >
+                    <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        <Section
+                            title={translate('workspace.mcp.connectors')}
+                            subtitle={translate('workspace.mcp.connectorsSubtitle')}
+                            isCentralPane
+                            subtitleMuted
+                            titleStyles={styles.accountSettingsSectionTitle}
+                            childrenStyles={styles.pt5}
+                        >
+                            {connectors.map((connector) => (
+                                <MenuItem
+                                    key={connector.title}
+                                    icon={connector.icon}
+                                    iconType={CONST.ICON_TYPE_AVATAR}
+                                    title={connector.title}
+                                    description={connector.description}
+                                    interactive={false}
+                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                    shouldShowRightComponent
+                                    rightComponent={
+                                        <Button
+                                            onPress={() => openExternalLink(connector.url)}
+                                            style={styles.justifyContentCenter}
+                                            size={CONST.BUTTON_SIZE.SMALL}
+                                        >
+                                            <Button.Text>{translate('workspace.accounting.setup')}</Button.Text>
+                                        </Button>
+                                    }
+                                />
+                            ))}
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt7]}>
+                                <Icon
+                                    src={icons.QuestionMark}
+                                    width={20}
+                                    height={20}
+                                    fill={theme.icon}
+                                    additionalStyles={styles.mr3}
+                                />
+                                <View style={[!isLargeScreenWidth ? styles.flexColumn : styles.flexRow]}>
+                                    <Text style={styles.textSupporting}>{translate('workspace.mcp.helpPrompt')}</Text>
+                                    <TextLink onPress={() => openExternalLink(CONST.MCP_HELP_URL)}>{translate('workspace.mcp.helpLink')}</TextLink>
+                                </View>
                             </View>
-                        </View>
-                    </Section>
-                </View>
-            </ScrollView>
-        </ScreenWrapper>
+                        </Section>
+                    </View>
+                </ScrollView>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

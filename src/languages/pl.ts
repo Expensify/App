@@ -6485,6 +6485,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Księgowość',
                 subtitle: 'Synchronizuj swój plan kont i więcej.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Połącz asystentów AI z danymi swojego obszaru roboczego.',
+            },
             receiptPartners: {
                 title: 'Partnerzy paragonów',
                 subtitle: 'Automatycznie importuj paragony.',

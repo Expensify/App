@@ -6388,6 +6388,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: '会計',
                 subtitle: '勘定科目表などを同期します。',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'AIアシスタントをワークスペースのデータに接続します。',
+            },
             receiptPartners: {
                 title: '領収書パートナー',
                 subtitle: '領収書を自動で取り込みます。',

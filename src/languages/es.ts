@@ -6389,6 +6389,10 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Contabilidad',
                 subtitle: 'Sincroniza tu plan de cuentas y otras opciones.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Conecta asistentes de IA a los datos de tu espacio de trabajo.',
+            },
             receiptPartners: {
                 title: 'Socios de recibos',
                 subtitle: 'Importación automática de recibos.',

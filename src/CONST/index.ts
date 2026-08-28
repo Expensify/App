@@ -4274,6 +4274,7 @@ const CONST = {
             REQUIRE_COMPANY_CARDS_ENABLED: 'requireCompanyCardsEnabled',
             IS_TIME_TRACKING_ENABLED: 'isTimeTrackingEnabled',
             IS_HR_ENABLED: 'isHREnabled',
+            IS_MCP_ENABLED: 'isMCPEnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',

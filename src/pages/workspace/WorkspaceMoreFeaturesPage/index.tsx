@@ -37,6 +37,7 @@ import {
     hasAccountingFeatureConnection,
     hasVendorFeature,
     isControlPolicy,
+    isMCPEnabled,
     isPerDiemEnabled,
     isTimeTrackingEnabled,
     tryNavigateToSubmitWorkspaceUpgrade,
@@ -57,6 +58,7 @@ import {
     enablePolicyConnections,
     enablePolicyHR,
     enablePolicyInvoicing,
+    enablePolicyMCP,
     enablePolicyReceiptPartners,
     enablePolicyRules,
     enablePolicyTaxes,
@@ -110,6 +112,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         'ReceiptPartners',
         'Clock',
         'Members',
+        'AiBot',
     ]);
 
     const policyID = policy?.id;
@@ -395,6 +398,27 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
+                            }}
+                        />
+                        <MoreFeatureToggle
+                            icon={illustrations.AiBot}
+                            title={translate('workspace.moreFeatures.mcp.title')}
+                            subtitle={translate('workspace.moreFeatures.mcp.subtitle')}
+                            isActive={isMCPEnabled(policy)}
+                            pendingAction={policy?.pendingFields?.isMCPEnabled}
+                            disabled={!canWriteMoreFeatures}
+                            disabledAction={withReadOnlyFallback()}
+                            onToggle={(isEnabled) => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                enablePolicyMCP(policyID, isEnabled);
+                            }}
+                            onPress={() => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_MCP.getRoute(policyID));
                             }}
                         />
                     </MoreFeaturesSection>

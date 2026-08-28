@@ -6506,6 +6506,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Buchhaltung',
                 subtitle: 'Synchronisieren Sie Ihren Kontenplan und mehr.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Verbinde KI-Assistenten mit den Daten deines Arbeitsbereichs.',
+            },
             receiptPartners: {
                 title: 'Belegpartner',
                 subtitle: 'Belege automatisch importieren.',
