@@ -162,6 +162,7 @@ import {
     getReportOrDraftReport,
     getReportStatusTooltipTranslation,
     getReportStatusTranslation,
+    getTransactionDisplayAmount,
     hasHeldExpenses,
     hasInvoiceReports,
     hasOnlyNonReimbursableTransactions,
@@ -215,7 +216,6 @@ import {
     getTag,
     getTaxAmount,
     getTaxName,
-    getAmount as getTransactionAmount,
     getCreated as getTransactionCreatedDate,
     getMerchant as getTransactionMerchant,
     getTransactionViolations,
@@ -1233,8 +1233,6 @@ function getTransactionItemCommonFormattedProperties(
     report: OnyxTypes.Report | undefined,
     translate: LocalizedTranslate,
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date' | 'posted'> {
-    const isExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
-
     const formattedFrom = temporaryGetDisplayNameOrDefault({passedPersonalDetails: from, translate, formatPhoneNumber});
 
     // Sometimes the search data personal detail for the 'to' account might not hold neither the display name nor the login
@@ -1244,8 +1242,8 @@ function getTransactionItemCommonFormattedProperties(
         formattedTo = temporaryGetDisplayNameOrDefault({passedPersonalDetails: getPersonalDetailsForAccountID(to?.accountID), translate, formatPhoneNumber});
     }
 
-    const isDeleted = isDeletedTransaction(transactionItem);
-    const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport, false, isDeleted);
+    // formattedTotal is the Amount column's sort key, so it has to be signed exactly like the amount the row renders.
+    const formattedTotal = getTransactionDisplayAmount(transactionItem, report, policy);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = getTransactionMerchant(transactionItem);
     const formattedMerchant = isInvalidMerchantValue(merchant) ? '' : merchant;

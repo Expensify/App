@@ -93,6 +93,7 @@ function mapTransactionItemToSelectedEntry({
             reportID: item.reportID,
             policyID: item.policyID,
             amount: allowNegativeAmount ? amount : Math.abs(amount),
+            displayAmount: item.formattedTotal,
             groupAmount: item.groupAmount,
             currency: item.currency,
             isFromOneTransactionReport: isOneTransactionReport(item.report),

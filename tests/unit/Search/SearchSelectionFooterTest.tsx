@@ -166,6 +166,18 @@ describe('SearchSelectionFooter', () => {
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 10, total: 36000, currency: CONST.CURRENCY.USD}));
     });
 
+    it('nets a selected credit against a selected expense instead of summing their magnitudes', async () => {
+        mockSelectedTransactions.current = {
+            transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), displayAmount: 10000},
+            transaction2: {...buildSelectedTransaction(CONST.CURRENCY.USD), displayAmount: -10000},
+        };
+
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 5)} />);
+        await waitForBatchedUpdates();
+
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 2, total: 0}));
+    });
+
     it("offers the user's live payment currency as the Reset target when there is no active workspace", async () => {
         // A fresh no-workspace account: the active policy is the personal policy, and the only selected expense
         // happens to be in a different currency (JPY) from the live payment currency (GBP).

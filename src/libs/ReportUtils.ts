@@ -280,6 +280,7 @@ import {
     hasViolation,
     hasWarningTypeViolation,
     isManagedCardTransaction as isCardTransactionTransactionUtils,
+    isDeletedTransaction,
     isDemoTransaction,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -5026,6 +5027,16 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
     });
 
     return fields.filter(Boolean) as PolicyReportField[];
+}
+
+/**
+ * getAmount() drops the sign unless the row is classified as an expense-report or tracked expense, so anything that
+ * renders or sorts an amount must classify it here or the two can disagree on a row's sign.
+ */
+function getTransactionDisplayAmount(transaction: OnyxInputOrEntry<Transaction>, report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): number {
+    const isFromExpenseReport = (!isEmptyObject(report) && isExpenseReport(report)) || isGroupPolicyPolicyUtils(policy);
+    const isFromTrackedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    return getTransactionAmount(transaction, isFromExpenseReport, isFromTrackedExpense, !!transaction && isDeletedTransaction(transaction));
 }
 
 /**
@@ -14400,6 +14411,7 @@ export {
     getAddExpenseDropdownOptions,
     getTaskAssigneeChatOnyxData,
     getTransactionDetails,
+    getTransactionDisplayAmount,
     getTransactionReportName,
     getDisplayedReportID,
     getTransactionsWithReceipts,

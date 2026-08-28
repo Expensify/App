@@ -1044,7 +1044,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         },
         formattedFrom: 'Admin',
         formattedTo: 'Approver',
-        formattedTotal: 1200,
+        formattedTotal: -1200,
         formattedMerchant: '',
         date: '2025-03-05',
         shouldShowMerchant: false,
@@ -1114,7 +1114,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         },
         formattedFrom: 'Admin',
         formattedTo: 'Approver',
-        formattedTotal: 3200,
+        formattedTotal: -3200,
         formattedMerchant: '',
         date: '2025-03-05',
         shouldShowMerchant: false,
@@ -1539,7 +1539,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 },
                 formattedFrom: 'Admin',
                 formattedTo: 'Approver',
-                formattedTotal: 1200,
+                formattedTotal: -1200,
                 formattedMerchant: '',
                 date: '2025-03-05',
                 shouldShowMerchant: false,
@@ -1608,7 +1608,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 },
                 formattedFrom: 'Admin',
                 formattedTo: 'Approver',
-                formattedTotal: 3200,
+                formattedTotal: -3200,
                 formattedMerchant: '',
                 date: '2025-03-05',
                 shouldShowMerchant: false,
@@ -6391,6 +6391,20 @@ describe('SearchUIUtils', () => {
                 const [sections] = callGetTransactionsSections(data);
                 const item = sections.find((s) => s.transactionID === filterTestTxID);
                 expect(item?.submitted).toBe('');
+            });
+
+            it('should keep the negative sign on formattedTotal for an unreported (tracked) credit', () => {
+                const data = makeFilterTestData({}, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID, amount: 5000});
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+                expect(item?.formattedTotal).toBe(-5000);
+            });
+
+            it('should keep the negative sign on formattedTotal for a credit on a group policy whose report is not an expense report', () => {
+                const data = makeFilterTestData({type: CONST.REPORT.TYPE.IOU}, {amount: 5000});
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+                expect(item?.formattedTotal).toBe(-5000);
             });
         });
 
