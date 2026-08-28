@@ -33,9 +33,10 @@ function List() {
 }
 
 /**
- * A group's rows reach the list twice: the expanded row subscribes to that group's sub-snapshot directly, and
- * `useSearchSnapshot` subscribes to the whole collection to enrich `group.transactions`. The shift-range source reads
- * the second, so it is only safe while the two land together in an ancestor and a descendant, as they do in the app.
+ * `useSearchSnapshot` subscribes to the whole snapshot collection and writes each group's rows onto `group.transactions`.
+ * The components that render those rows used to derive them from the group's own sub-snapshot instead. Reading the list's
+ * copy is only safe if the two land in the same commit, so this records every render of both. It pins Onyx's delivery,
+ * which is that premise, rather than the enrichment itself.
  */
 describe('sub-snapshot subscriptions', () => {
     beforeAll(() => Onyx.init({keys: ONYXKEYS}));

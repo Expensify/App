@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
@@ -38,27 +38,53 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     const {currentSearchHash, currentSearchQueryJSON} = useSearchQueryContext();
     const isExpenseSearch = currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
 
-    const areTransactionsEmpty = useRef(true);
     const [selectionState, setSelectionState] = useState<SelectionState>(defaultSelectionState);
 
-    const currentSearchHashRef = useRef(currentSearchHash);
-    useEffect(() => {
-        currentSearchHashRef.current = currentSearchHash;
-    }, [currentSearchHash]);
+    const [{actions: selectionActionsValue, sync}] = useState(() => createSelectionActions(setSelectionState, currentSearchHash));
 
-    // Held as one object, refreshed during the commit, so a handler cannot read two slices of the selection at different freshness.
-    const selectionStateRef = useRef(selectionState);
+    // Synced as one object, so a handler cannot read two slices of the selection at different freshness.
     useLayoutEffect(() => {
-        selectionStateRef.current = selectionState;
-    }, [selectionState]);
+        sync(selectionState, currentSearchHash);
+    });
+
+    const hasSelectedTransactions =
+        (isExpenseSearch && selectionState.areAllMatchingItemsSelected) ||
+        selectionState.selectedTransactionIDs.length > 0 ||
+        Object.values(selectionState.selectedTransactions).some((t) => t.isSelected);
+
+    const selectionValue: SearchSelectionContextValue = {
+        ...selectionState,
+        hasSelectedTransactions,
+    };
+
+    return (
+        <SearchSelectionContext value={selectionValue}>
+            <SearchSelectionActionsContext value={selectionActionsValue}>{children}</SearchSelectionActionsContext>
+        </SearchSelectionContext>
+    );
+}
+
+type SelectionActions = {
+    /** The context value, stable for the provider's lifetime */
+    actions: SearchSelectionActionsValue;
+
+    /** Pushes the latest render's values in, from the provider's layout effect */
+    sync: (selectionState: SelectionState, currentSearchHash: number) => void;
+};
+
+/** Built once per provider, so a consumer may list any of these in an effect's dependencies. */
+function createSelectionActions(setSelectionState: React.Dispatch<React.SetStateAction<SelectionState>>, initialSearchHash: number): SelectionActions {
+    let latestSelectionState = defaultSelectionState;
+    // Seeded, since a child's layout effect runs before the sync below and may already clear against this hash.
+    let latestSearchHash = initialSearchHash;
+    let isTransactionIDListEmpty = true;
 
     const setSelectedTransactions: SearchSelectionActionsValue['setSelectedTransactions'] = (transactionIDs, data) => {
         if (transactionIDs instanceof Array) {
-            if (!transactionIDs.length && areTransactionsEmpty.current) {
-                areTransactionsEmpty.current = true;
+            if (!transactionIDs.length && isTransactionIDListEmpty) {
                 return;
             }
-            areTransactionsEmpty.current = false;
+            isTransactionIDListEmpty = false;
             setSelectionState((prevState) => ({
                 ...prevState,
                 selectedTransactionIDs: transactionIDs,
@@ -178,7 +204,7 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
             return;
         }
 
-        if (searchHashOrClearIDsFlag === currentSearchHashRef.current) {
+        if (searchHashOrClearIDsFlag === latestSearchHash) {
             return;
         }
 
@@ -240,34 +266,24 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         });
     };
 
-    const hasSelectedTransactions =
-        (isExpenseSearch && selectionState.areAllMatchingItemsSelected) ||
-        selectionState.selectedTransactionIDs.length > 0 ||
-        Object.values(selectionState.selectedTransactions).some((t) => t.isSelected);
-
-    const selectionValue: SearchSelectionContextValue = {
-        ...selectionState,
-        hasSelectedTransactions,
+    return {
+        actions: {
+            setSelectedTransactions,
+            applySelection,
+            getSelectedTransactions: () => latestSelectionState.selectedTransactions,
+            getExcludedTransactions: () => latestSelectionState.excludedTransactions,
+            getAreAllMatchingItemsSelected: () => latestSelectionState.areAllMatchingItemsSelected,
+            setSelectedReports,
+            setCurrentSelectedTransactionReportID,
+            clearSelectedTransactions,
+            removeTransaction,
+            selectAllMatchingItems,
+        },
+        sync: (selectionState, currentSearchHash) => {
+            latestSelectionState = selectionState;
+            latestSearchHash = currentSearchHash;
+        },
     };
-
-    const selectionActionsValue: SearchSelectionActionsValue = {
-        setSelectedTransactions,
-        applySelection,
-        getSelectedTransactions: () => selectionStateRef.current.selectedTransactions,
-        getExcludedTransactions: () => selectionStateRef.current.excludedTransactions,
-        getAreAllMatchingItemsSelected: () => selectionStateRef.current.areAllMatchingItemsSelected,
-        setSelectedReports,
-        setCurrentSelectedTransactionReportID,
-        clearSelectedTransactions,
-        removeTransaction,
-        selectAllMatchingItems,
-    };
-
-    return (
-        <SearchSelectionContext value={selectionValue}>
-            <SearchSelectionActionsContext value={selectionActionsValue}>{children}</SearchSelectionActionsContext>
-        </SearchSelectionContext>
-    );
 }
 
 /**
@@ -297,7 +313,7 @@ function useSyncSelectedReports(data: SearchData) {
 
 /** Narrow per-row selection read: whether the row for `keyForList` is selected (or covered by select-all). */
 function useRowSelection(keyForList: string | undefined, parentGroupKey?: string): {isSelected: boolean} {
-    const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     if (!keyForList) {
         return {isSelected: false};
     }

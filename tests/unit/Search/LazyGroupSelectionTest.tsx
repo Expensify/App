@@ -54,16 +54,16 @@ const threeLoadedChildren = [...loadedChildren, buildChild(5, '5')];
 /** The same group as the server sees it: five rows in total, of which only the first page has loaded. */
 const partiallyLoadedGroup = {...categoryGroup, count: 5};
 
-/** The same group after its sub-snapshot was cached, so it carries its first page of rows while the rest are still unloaded. */
+/** The same group with its sub-snapshot cached, so it carries its first page while the rest are unloaded. */
 const cachedPartialGroup = {...categoryGroup, count: 5, transactions: loadedChildren};
 
-/** A search with every page in, which is what lets select-all-matching be turned off once nothing is left selected. */
+/** A search with every page in, which is what lets select-all-matching be turned off. */
 const settledGroupedResults: SearchResults = {
     ...makeFlatSearchResults(undefined),
     search: {...makeFlatSearchResults(undefined).search, hasMoreResults: false},
 };
 
-/** The same group in a search with every page in, which is what lets select-all-matching be turned off. */
+/** The same group, in a search with every page in. */
 function SettledGroupWrapper({children}: {children: React.ReactNode}) {
     return (
         <SearchContextProvider>
@@ -88,13 +88,13 @@ function SettledGroupWrapper({children}: {children: React.ReactNode}) {
 
 const EARLIER_GROUP_KEY = 'Office';
 
-/** A group rendered above `categoryGroup`, used to prove a range does not start from the top of the list. */
+/** A group rendered above `categoryGroup`. */
 const earlierGroup = buildCategoryGroup(EARLIER_GROUP_KEY, [], buildSearchQueryJSON('type:expense category:Office'));
 
 /** The earlier group's children, expanded and loaded. */
 const earlierChildren = [buildChild(3, '3'), buildChild(4, '4')];
 
-/** The same group as the list sees it while its first page arrives: empty at first, carrying the loaded rows afterwards. */
+/** The same group as the list sees it: empty at first, carrying the loaded rows afterwards. */
 let pagingGroup: TransactionGroupListItemType = partiallyLoadedGroup;
 
 function PagingWrapper({children}: {children: React.ReactNode}) {
@@ -250,7 +250,7 @@ function FlatWrapper({children}: {children: React.ReactNode}) {
     );
 }
 
-/** Expense-report views render report rows as the selectable unit, so a range spans reports rather than their children. */
+/** Expense-report views make the report row the selectable unit, so a range spans reports. */
 const reportGroups = [buildReportGroup(6, 'report-1', [buildChild(6, '6')]), buildReportGroup(7, 'report-2', [buildChild(7, '7')]), buildReportGroup(8, 'report-3', [])];
 
 function ExpenseReportWrapper({children}: {children: React.ReactNode}) {
@@ -312,7 +312,6 @@ function carryRows(groupKey: string, children: TransactionListItemType[]) {
     }
 }
 
-/** What expanding a group does: its rows arrive in the list, and it opens to ranges. */
 function expandGroup(result: ReturnType<typeof renderSelection>['result'], groupKey: string, children: TransactionListItemType[]) {
     carryRows(groupKey, children);
     result.current.addGroupToRange(groupKey);

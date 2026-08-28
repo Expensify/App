@@ -20,6 +20,7 @@ import {
     canEditWorkspaceSettings,
     canModifyPlan,
     getDefaultApprover,
+    getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     getUserFriendlyWorkspaceType,
     isControlPolicy,
@@ -29,6 +30,7 @@ import {
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
+import {setWorkspaceDistanceAutoUpdate} from '@userActions/Policy/DistanceRate';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
 
 import CONST from '@src/CONST';
@@ -86,9 +88,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const policyID = route.params?.policyID;
     const reportID = route.params?.reportID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
     // A submit2026 policy can only be upgraded via the UpgradeSubmit command (the server rejects
     // UpgradeToCorporate for it with a 402), and its owner holds the editor role, so the upgrade
-    // flow below must key off the policy type rather than the SUBMIT_2026 beta or admin checks.
+    // flow below must key off the policy type rather than admin checks.
     const isUpgradingFromSubmitPolicy = isSubmitPolicy(policy);
     const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
     const upgradingFromSubmitLatchPolicyIDRef = useRef<string | undefined>(undefined);
@@ -137,6 +140,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     });
 
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
+    const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
     const categoryId = route.params?.categoryId;
 
     const defaultApprover = getDefaultApprover(policy);
@@ -266,6 +270,11 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     enablePolicyRules(policy, true, false, policyDataRef.current);
                 }
                 break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id:
+                if (distanceRateCustomUnit) {
+                    setWorkspaceDistanceAutoUpdate(policyID, distanceRateCustomUnit, true, governmentMileageRates ?? [], policy?.outputCurrency);
+                }
+                break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.publicReceiptVisibility.id:
                 setPolicyReceiptVisibilityPublic(policyID, true, policy?.isReceiptVisibilityPublic);
                 break;
@@ -333,6 +342,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         policy,
         route.params.featureName,
         perDiemCustomUnit?.customUnitID,
+        distanceRateCustomUnit,
+        governmentMileageRates,
         defaultApprover,
         accountID,
         email,

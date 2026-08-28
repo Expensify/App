@@ -11,6 +11,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 
+import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -320,6 +321,12 @@ function MoneyRequestReportTransactionList({
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
+    const blockDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        policyID: policy?.id,
+        isDistanceRequest: true,
+        isManualDistanceRequest: lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+        isOdometerDistanceRequest: lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+    });
 
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
@@ -336,6 +343,7 @@ function MoneyRequestReportTransactionList({
                 ownerBillingGracePeriodEnd,
                 lastDistanceExpenseType,
                 currentUserAccountID: currentUserDetails?.accountID,
+                blockDistanceRequestIfNeeded,
             }),
         [
             translate,
@@ -348,6 +356,7 @@ function MoneyRequestReportTransactionList({
             ownerBillingGracePeriodEnd,
             draftTransactionIDs,
             currentUserDetails?.accountID,
+            blockDistanceRequestIfNeeded,
         ],
     );
 
@@ -411,6 +420,10 @@ function MoneyRequestReportTransactionList({
             setShowPendingExpensePlaceholder(false);
         }, [showPendingExpensePlaceholder, reportID, transactions.length, hasOptimisticNewTransaction]),
     );
+
+    useEffect(() => {
+        clearSelectedTransactions(true);
+    }, [reportID, clearSelectedTransactions]);
 
     const [sortConfig, setSortConfig] = useState<SortedTransactions>({
         sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
@@ -563,10 +576,9 @@ function MoneyRequestReportTransactionList({
         [visualOrderTransactions],
     );
 
-    // A shift+click asks this once per row, and again if it has to re-resolve the anchor, so the lookup has to be constant time.
+    // The engine asks this per row while resolving an anchor, so the lookup has to be constant time.
     const selectedTransactionIDsSet = useMemo(() => new Set(selectedTransactionIDs), [selectedTransactionIDs]);
 
-    // The same reason: every checkbox press has to find the row the id belongs to.
     const transactionsByID = useMemo(() => new Map(visualOrderTransactions.map((transaction) => [transaction.transactionID, transaction])), [visualOrderTransactions]);
 
     const rangeApi = useShiftRangeSelection<OnyxTypes.Transaction>({
@@ -577,14 +589,10 @@ function MoneyRequestReportTransactionList({
         onApplyRange: (batch) => setSelectedTransactions(applyShiftRangeBatchToKeySet(batch, selectedTransactionIDs, (t) => t.transactionID)),
     });
 
-    // This list is reused for the next report, so everything scoped to one report goes together: a transaction on both would
-    // otherwise leave the old span live and let it collapse rows in the new one.
+    // The session belongs to one report, since this list is reused for the next and a transaction can be on both.
     useEffect(() => {
-        clearSelectedTransactions(true);
         rangeApi.clearAnchor();
-        // Only the report should re-run this. `clearSelectedTransactions` in the deps can loop, and `rangeApi` is stable.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportID]);
+    }, [reportID, rangeApi]);
 
     const toggleTransaction = useCallback(
         (transactionID: string, shiftKey?: boolean) => {
@@ -665,7 +673,7 @@ function MoneyRequestReportTransactionList({
                 // Deselecting paints no block, so reset instead of leaving a stale span to collapse.
                 rangeApi.clearAnchor();
             } else {
-                // Seed just this block: seeding the whole selection would span unrelated rows and deselect them.
+                // Just this block: seeding the whole selection would span unrelated rows and deselect them.
                 rangeApi.seedRangeFromSelection(groupTransactionIDs);
             }
         },

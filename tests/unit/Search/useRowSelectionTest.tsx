@@ -66,16 +66,18 @@ function renderWithSelection<T>(hook: () => T, selectionValue: SearchSelectionCo
 
 function renderRowSelection({
     keyForList,
+    parentGroupKey,
     selectedTransactions,
     excludedTransactions = {},
     areAllMatchingItemsSelected,
 }: {
     keyForList: string | undefined;
+    parentGroupKey?: string;
     selectedTransactions: SelectedTransactions;
     excludedTransactions?: SelectedTransactions;
     areAllMatchingItemsSelected: boolean;
 }): {isSelected: boolean} {
-    return renderWithSelection(() => useRowSelection(keyForList), {...baseSelectionContext, areAllMatchingItemsSelected, selectedTransactions, excludedTransactions});
+    return renderWithSelection(() => useRowSelection(keyForList, parentGroupKey), {...baseSelectionContext, areAllMatchingItemsSelected, selectedTransactions, excludedTransactions});
 }
 
 function renderSelectionCounts(selectedTransactions: SelectedTransactions): {selected: number} {
@@ -86,6 +88,24 @@ describe('useRowSelection', () => {
     it('reads per-key selection state when areAllMatchingItemsSelected is false', () => {
         expect(renderRowSelection({keyForList: 'tx_1', selectedTransactions: buildSelected('tx_1'), areAllMatchingItemsSelected: false}).isSelected).toBe(true);
         expect(renderRowSelection({keyForList: 'tx_2', selectedTransactions: buildSelected('tx_1'), areAllMatchingItemsSelected: false}).isSelected).toBe(false);
+    });
+
+    it('marks the row selected when the group it is rendered under is selected as a whole', () => {
+        expect(
+            renderRowSelection({keyForList: 'tx_1', parentGroupKey: 'Advertising', selectedTransactions: buildSelected('Advertising'), areAllMatchingItemsSelected: false}).isSelected,
+        ).toBe(true);
+    });
+
+    it('does not mark a row selected when its group is excluded, even though the group covers it', () => {
+        expect(
+            renderRowSelection({
+                keyForList: 'tx_1',
+                parentGroupKey: 'Advertising',
+                selectedTransactions: {},
+                excludedTransactions: buildSelected('Advertising'),
+                areAllMatchingItemsSelected: true,
+            }).isSelected,
+        ).toBe(false);
     });
 
     it('marks the row selected when areAllMatchingItemsSelected is true even if the key is absent', () => {

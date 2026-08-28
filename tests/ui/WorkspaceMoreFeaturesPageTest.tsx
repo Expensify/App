@@ -14,7 +14,7 @@ import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+import {getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
@@ -124,7 +124,7 @@ const hasAccountingFeatureConnectionMock = jest.mocked(PolicyUtils.hasAccounting
 const useIsUberConnectedMock = jest.mocked(useIsPolicyConnectedToUberReceiptPartner);
 
 const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => undefined);
-const navigateToConciergeChatSpy = jest.spyOn(ReportActions, 'navigateToConciergeChat').mockImplementation(() => undefined);
+const navigateToConciergeChatSpy = jest.spyOn(ReportActions, 'navigateToConciergeChat').mockImplementation(() => Promise.resolve());
 
 function escapeRegExp(value: string): string {
     return value.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -254,13 +254,13 @@ describe('WorkspaceMoreFeaturesPage', () => {
     describe('Travel toggle (locked when Travel Invoicing is enabled)', () => {
         const workspaceAccountID = LHNTestUtils.getFakePolicy().policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-        const enableTravelInvoicing = () => Onyx.merge(getTravelInvoicingCardSettingsKey(workspaceAccountID), {[CONST.TRAVEL.PROGRAM_TRAVEL_US]: {isEnabled: true}});
+        const enableTravelBilling = () => Onyx.merge(getTravelBillingCardSettingsKey(workspaceAccountID), {[CONST.TRAVEL.PROGRAM_TRAVEL_US]: {isEnabled: true}});
 
         it('locks the Travel switch when Travel Invoicing is enabled', async () => {
             await TestHelper.signInWithTestUser();
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID, isTravelEnabled: true}));
-                await enableTravelInvoicing();
+                await enableTravelBilling();
             });
 
             renderPage({policyID: POLICY_ID});
@@ -285,7 +285,7 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await TestHelper.signInWithTestUser();
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID, isTravelEnabled: true}));
-                await enableTravelInvoicing();
+                await enableTravelBilling();
             });
 
             renderPage({policyID: POLICY_ID});

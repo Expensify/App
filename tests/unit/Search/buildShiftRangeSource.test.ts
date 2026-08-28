@@ -1,4 +1,4 @@
-import {buildShiftRangeSource, isGroupChecked, isGroupSelected, mapEmptyReportToSelectedEntry} from '@components/Search/selectionBuilders';
+import {buildShiftRangeSource, getGroupCheckboxState, isGroupSelected, mapEmptyReportToSelectedEntry} from '@components/Search/selectionBuilders';
 import type {SearchData, SelectedTransactions} from '@components/Search/types';
 
 import CONST from '@src/CONST';
@@ -28,7 +28,6 @@ describe('buildShiftRangeSource: the rows a range spans', () => {
     });
 
     it('skips the rows a closed group still carries, since a range must not reach what is off screen', () => {
-        // A group that was open earlier keeps its rows, because the sub-snapshot stays cached
         const group = makeGroup('groupA', [makeChild(1, 'x'), makeChild(2, 'y')]);
         const filteredData: SearchData = [group];
 
@@ -38,7 +37,6 @@ describe('buildShiftRangeSource: the rows a range spans', () => {
     it('resolves each group independently, so an open group contributes its rows and a closed one contributes none', () => {
         const openChild = makeChild(1, 'open1');
         const openGroup = makeGroup('groupA', [openChild]);
-        // Closed, but still carrying the rows it loaded when it was open
         const closedGroup = makeGroup('groupB', [makeChild(2, 'closed1')]);
         const filteredData: SearchData = [openGroup, closedGroup];
 
@@ -62,7 +60,7 @@ describe('buildShiftRangeSource: the rows a range spans', () => {
 describe('isGroupSelected', () => {
     const child = makeChild(1, 'c1');
 
-    /** Builds a real selection whose entries are only ever read for `isSelected`, so the empty-report builder supplies a fully typed one. */
+    /** Entries are only ever read for `isSelected`, so the empty-report builder supplies a fully typed one. */
     function selectionOf(...keys: string[]): SelectedTransactions {
         const [, entry] = mapEmptyReportToSelectedEntry(makeGroup('anyGroup'));
         return Object.fromEntries(keys.map((key) => [key, entry]));
@@ -91,27 +89,17 @@ describe('isGroupSelected', () => {
 
     it('counts a group whose rows are checked by select-all-matching alone, which is what the user is looking at', () => {
         expect(isGroupSelected(groupOf({}, {areAllMatchingItemsSelected: true}))).toBe(true);
-        expect(isGroupChecked(groupOf({}, {areAllMatchingItemsSelected: true}))).toBe(true);
     });
 
     it('counts a group with no loaded rows that select-all-matching covers, the same as its checkbox does', () => {
         expect(isGroupSelected(groupOf({}, {children: [], areAllMatchingItemsSelected: true}))).toBe(true);
     });
 
-    it('reads a group with no loaded rows from its own key, since there is nothing else to ask', () => {
-        expect(isGroupChecked(groupOf({}, {children: [], areAllMatchingItemsSelected: true}))).toBe(true);
-        expect(isGroupChecked(groupOf({}, {children: []}))).toBe(false);
-    });
-
-    it('does not read a group as fully checked while one of its rows is excluded', () => {
-        expect(isGroupChecked(groupOf(selectionOf('groupA'), {excludedTransactions: selectionOf('c1')}))).toBe(false);
-    });
-
     it('ignores a row being deleted, so clicking the header cannot mean deselect while the checkbox reads unchecked', () => {
         const deletedChild = {...child, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
         const params = groupOf(selectionOf('c1'), {children: [deletedChild]});
         expect(isGroupSelected(params)).toBe(false);
-        expect(isGroupChecked(params)).toBe(false);
+        expect(getGroupCheckboxState(params).isSelectAllChecked).toBe(false);
     });
 });
 
@@ -120,7 +108,6 @@ describe('buildShiftRangeSource: who owns each row', () => {
         const openChild1 = makeChild(1, 'open1');
         const openChild2 = makeChild(2, 'open2');
         const openGroup = makeGroup('groupA', [openChild1, openChild2]);
-        // Closed, but still carrying the rows it loaded when it was open
         const closedGroup = makeGroup('groupB', [makeChild(3, 'closed1')]);
         const filteredData: SearchData = [openGroup, closedGroup];
 

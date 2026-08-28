@@ -129,4 +129,32 @@ second
             expect(StringUtils.startsWithVowel('@example')).toBe(false);
         });
     });
+
+    describe('lineBreaksToSpaces', () => {
+        it('replaces every kind of line break with a space', () => {
+            expect(StringUtils.lineBreaksToSpaces('line1\nline2')).toBe('line1 line2');
+            expect(StringUtils.lineBreaksToSpaces('line1\rline2')).toBe('line1 line2');
+            expect(StringUtils.lineBreaksToSpaces('line1\r\nline2')).toBe('line1 line2');
+            expect(StringUtils.lineBreaksToSpaces('line1 line2')).toBe('line1 line2');
+        });
+
+        it('flattens multiple line breaks in a single string', () => {
+            expect(StringUtils.lineBreaksToSpaces('a\nb\nc')).toBe('a b c');
+        });
+
+        it('leaves strings without line breaks untouched', () => {
+            expect(StringUtils.lineBreaksToSpaces('no line breaks here')).toBe('no line breaks here');
+        });
+
+        it('returns an empty string for empty or missing input', () => {
+            expect(StringUtils.lineBreaksToSpaces('')).toBe('');
+            expect(StringUtils.lineBreaksToSpaces()).toBe('');
+        });
+
+        it('uses a non-breaking space when requested', () => {
+            const result = StringUtils.lineBreaksToSpaces('line1\nline2', true);
+            expect(result).not.toContain('\n');
+            expect(result.charCodeAt(5)).toBe(0xa0);
+        });
+    });
 });

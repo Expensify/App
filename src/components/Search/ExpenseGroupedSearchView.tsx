@@ -136,7 +136,7 @@ function ExpenseGroupedSearchView({
             return next;
         });
 
-    // Only the split layout renders children as their own rows, so outside it no group contributes any to a range.
+    // Only the split layout renders children as their own rows.
     useOpenGroupsForShiftRange(shouldSplit ? expandedGroups : NO_OPEN_GROUPS);
 
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
@@ -237,7 +237,6 @@ function ExpenseGroupedSearchView({
                     isFocused={isItemFocused}
                     isFirstItem={index === firstVisibleIndex}
                     isLastItem={false}
-                    originalKey={originalKey}
                     lastPaymentMethod={lastPaymentMethod}
                     personalPolicyID={personalPolicyID}
                     userBillingGracePeriodEnds={userBillingGracePeriodEnds}
@@ -249,7 +248,7 @@ function ExpenseGroupedSearchView({
 
         if (isGroupChildrenContainerItem(item)) {
             const originalKey = item.groupKeyForList;
-            const containerNewTransactionID = item.keyForList ? newTransactionIDByItemKey.get(originalKey) : undefined;
+            const containerNewTransactionID = newTransactionIDByItemKey.get(originalKey);
             return (
                 <GroupChildrenContainer
                     item={item}

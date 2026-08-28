@@ -741,6 +741,9 @@ type SettingsNavigatorParamList = {
         isIntuitEnterpriseSuite?: string;
         isSandbox?: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.INTUIT_ENTERPRISE_SUITE_ENTITY_SELECTOR]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: {
         policyID: string;
     };
@@ -800,28 +803,28 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_BILLING_CONFIGURATION]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_INVOICING_VENDOR_SELECT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_BILLING_VENDOR_SELECT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_CONFIGURATION]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_BILLING_CONFIGURATION]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_INVOICING_CONFIGURATION]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_BILLING_CONFIGURATION]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE_SELECT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE_SELECT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT]: {
@@ -920,10 +923,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_TRAVEL_INVOICING_CONFIGURATION]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_TRAVEL_BILLING_CONFIGURATION]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED]: {
@@ -1161,10 +1164,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_TRAVEL_INVOICING_CONFIGURATION]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_TRAVEL_BILLING_CONFIGURATION]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ADVANCED]: {
@@ -1274,7 +1277,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_TRAVEL_BILLING_SETTLEMENT_ACCOUNT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_SETUP]: {
@@ -1287,6 +1290,24 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_EXPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_PREFERRED_EXPORTER]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_VENDOR_BILL_DATE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_COMPANY_CARD_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_EXPENSIFY_CARD_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_DEFAULT_COMPANY_CARD_VENDOR]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
@@ -2058,32 +2079,26 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
         /** Whether to limit the destination list to workspaces only (e.g. "Submit to my employer" on the Submit plan) */
         isWorkspacesOnly?: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes;
     };
-    [SCREENS.MONEY_REQUEST.STEP_DATE]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DATE]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes;
         reportActionID?: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESCRIPTION]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes;
         reportActionID: string;
     };
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY]: {
@@ -2127,34 +2142,27 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_WAYPOINT]: {
         iouType: IOUType;
         reportID: string;
-
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes | undefined;
         action: IOUAction;
         pageIndex: string;
         transactionID: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_MERCHANT]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes;
         reportActionID?: string;
     };
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: undefined;
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: undefined;
-    [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE]: {
         action: IOUAction;
         iouType: IOUType;
         transactionID: string;
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes;
         backToReport?: string;
         reportActionID?: string;
     };
@@ -2168,13 +2176,11 @@ type MoneyRequestNavigatorParamList = {
         backToReport?: string;
         reportActionID?: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_MANUAL]: {
         action: IOUAction;
         iouType: IOUType;
         transactionID: string;
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes;
         backToReport?: string;
         reportActionID?: string;
     };
@@ -2241,12 +2247,10 @@ type MoneyRequestNavigatorParamList = {
         backToReport?: string;
         reportActionID?: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_RATE]: {
         action: IOUAction;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes;
         reportID: string;
         reportActionID?: string;
     };
@@ -2261,34 +2265,39 @@ type MoneyRequestNavigatorParamList = {
         participantsAutoAssigned?: string;
         backToReport?: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_SCAN]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SCAN]: {
         action: IOUAction;
         iouType: IOUType;
         transactionID: string;
         reportID: string;
-        pageIndex: number;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes;
         backToReport?: string;
     };
-    [SCREENS.MONEY_REQUEST.RECEIPT_VIEW]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_RECEIPT_VIEW]: {
         transactionID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes;
     };
-    [SCREENS.MONEY_REQUEST.HOLD]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_HOLD_REASON]: {
         /** ID of the transaction the page was opened for */
         transactionID: string;
 
         /** ID of the report that user is providing hold reason to */
-        reportID: string;
-
-        /** Link to previous page */
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: ExpensifyRoute;
-
-        /** Hash that includes info about what is searched for */
-        searchHash?: number;
+        /** Deliberately not named `reportID` so it cannot inherit the base path's report. */
+        holdReportID?: string;
+    };
+    [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE]: {
+        /** Deliberately not named `reportID` so it cannot inherit the base path's report. */
+        splitReportID: string;
+        /** Deliberately not named `transactionID` so it cannot collide with the `transactionID` query param used by the expense step screens nested under this dynamic route. */
+        originalTransactionID: string;
+        splitExpenseTransactionID?: string;
+    };
+    [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH]: {
+        splitReportID: string;
+        originalTransactionID: string;
+        splitExpenseTransactionID?: string;
+    };
+    [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_CREATE_DATE_RANGE]: {
+        splitReportID: string;
+        originalTransactionID: string;
     };
     [SCREENS.MONEY_REQUEST.REJECT]: {
         /** ID of the transaction the page was opened for */
@@ -2311,21 +2320,18 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_ACCOUNTANT]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ACCOUNTANT]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes;
     };
-    [SCREENS.MONEY_REQUEST.STEP_UPGRADE]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes;
+        upgradeBackTo?: Routes;
         upgradePath?: ValueOf<typeof CONST.UPGRADE_PATHS>;
         shouldSubmitExpense?: boolean;
     };
@@ -2343,12 +2349,10 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backToReport?: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_SUBRATE]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SUBRATE]: {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         reportID: string;
         backToReport?: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes | undefined;
         action: IOUAction;
         pageIndex: string;
         transactionID: string;
@@ -2367,11 +2371,10 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backToReport?: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_SUBRATE_EDIT]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SUBRATE_EDIT]: {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes | undefined;
+        backToReport?: string;
         action: IOUAction;
         pageIndex: string;
         transactionID: string;
@@ -2737,8 +2740,12 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: NavigatorScreenParams<MissingPersonalDetailsParamList>;
     [SCREENS.RIGHT_MODAL.DEBUG]: NavigatorScreenParams<DebugParamList>;
     [SCREENS.RIGHT_MODAL.AVATAR_CROP]: NavigatorScreenParams<AvatarCropNavigatorParamList>;
-    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: NavigatorScreenParams<SplitExpenseParamList>;
-    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: NavigatorScreenParams<SplitExpenseParamList>;
+    [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT]: {
+        reportID: string;
+        /** Inherited from the base path's `originalTransactionID` query param (see DYNAMIC_SPLIT_EXPENSE). */
+        originalTransactionID: string;
+        editSplitExpenseTransactionID?: string;
+    };
     [SCREENS.RIGHT_MODAL.ADD_EXISTING_EXPENSE]: NavigatorScreenParams<{reportId: string | undefined}>;
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER]: NavigatorScreenParams<ReportChangeApproverParamList>;
@@ -2777,37 +2784,27 @@ type TravelNavigatorParamList = {
         isTestAccount?: string;
         redirectUrl?: string;
     };
-    [SCREENS.TRAVEL.TRIP_SUMMARY]: {
+    [SCREENS.TRAVEL.DYNAMIC_TRIP_SUMMARY]: {
         reportID: string;
         transactionID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: string;
     };
-    [SCREENS.TRAVEL.TRIP_DETAILS]: {
+    [SCREENS.TRAVEL.DYNAMIC_TRIP_DETAILS]: {
         reportID: string;
         transactionID: string;
-        sequenceIndex: number;
+        sequenceIndex: string;
         pnr: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: string;
     };
     [SCREENS.TRAVEL.DYNAMIC_DOMAIN_PERMISSION_INFO]: {
         domain: string;
         policyID?: string;
     };
-    [SCREENS.TRAVEL.WORKSPACE_CONFIRMATION]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
+    [SCREENS.TRAVEL.DYNAMIC_WORKSPACE_CONFIRMATION]: undefined;
     [SCREENS.TRAVEL.DYNAMIC_PUBLIC_DOMAIN_ERROR]: {
         policyID?: string;
     };
     [SCREENS.TRAVEL.DYNAMIC_UPGRADE]: undefined;
-    [SCREENS.TRAVEL.VERIFY_ACCOUNT]: {
-        domain?: string;
+    [SCREENS.TRAVEL.DYNAMIC_VERIFY_ACCOUNT]: {
         policyID?: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.TRAVEL.ENABLE]: {policyID: string; subPage?: string; action?: 'edit'};
 };
@@ -2912,6 +2909,7 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT]: {
         policyID: string;
         firstApproverEmail: string;
+        memberEmail?: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_WORKFLOWS_APPROVALS_EXPENSES_FROM]: {
         policyID: string;
@@ -3004,6 +3002,9 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_FX_EXPENSE_ACCOUNT_SELECTOR]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS]: {
@@ -3346,29 +3347,6 @@ type MissingPersonalDetailsParamList = {
     };
 };
 
-type SplitExpenseParamList = {
-    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: {
-        reportID: string;
-        transactionID: string;
-        splitExpenseTransactionID?: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
-    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_CREATE_DATE_RANGE]: {
-        reportID: string;
-        transactionID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
-    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: {
-        reportID: string;
-        transactionID: string;
-        splitExpenseTransactionID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
-};
-
 type AddExistingExpensesParamList = {
     [SCREENS.ADD_EXISTING_EXPENSES_ROOT]: {
         reportID: string;
@@ -3545,7 +3523,6 @@ export type {
     TwoFactorAuthNavigatorParamList,
     ScheduleCallParamList,
     TestDriveDemoNavigatorParamList,
-    SplitExpenseParamList,
     SetParamsAction,
     WorkspaceNavigatorRouteName,
     ReportChangeApproverParamList,

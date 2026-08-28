@@ -1,6 +1,3 @@
-import {useSearchSelectionContext} from '@components/Search/SearchContext';
-import {isGroupChecked} from '@components/Search/selectionBuilders';
-
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import useTheme from '@hooks/useTheme';
@@ -13,6 +10,7 @@ import Animated from 'react-native-reanimated';
 import type {GroupChildrenContentProps} from './types';
 
 import GroupChildrenContent from './GroupChildrenContent';
+import {useGroupCheckboxState} from './useGroupChildren';
 
 type GroupChildrenContainerProps = GroupChildrenContentProps & {
     isLastItem?: boolean;
@@ -35,15 +33,12 @@ function GroupChildrenContainer({
 }: GroupChildrenContainerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, false, item.keyForList);
     const isContentVisible = isExpanded || isRendered;
+    const {isSelectAllChecked} = useGroupCheckboxState({groupKey: item.groupKeyForList, groupTransactions: item.transactions});
 
-    // Asked of the rows this container actually holds, so a group whose children live in a snapshot it cannot see paints nothing rather than guessing.
-    const isSelected =
-        !!item.isSelected ||
-        (item.transactions.length > 0 &&
-            isGroupChecked({groupKey: item.groupKeyForList, children: item.transactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}));
+    // Only the rows this container holds decide its background, so a group still waiting for its first page is not painted as selected.
+    const isSelected = !!item.isSelected || (item.transactions.length > 0 && isSelectAllChecked);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,

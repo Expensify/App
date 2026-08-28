@@ -2,21 +2,19 @@ import type {SearchShiftRangeGroupsActions} from '@components/Search/types';
 
 import {useState} from 'react';
 
-/** No group open. Shared so the registry and its subscribers compare against one empty set rather than allocating their own. */
 const NO_OPEN_GROUPS: ReadonlySet<string> = new Set();
 
 type OpenGroupsRegistry = {
     /** The groups currently rendering their children as rows */
     openGroupKeys: ReadonlySet<string>;
 
-    /** Handed to the views and rows that own a group's expanded state */
     shiftRangeGroupsActions: SearchShiftRangeGroupsActions;
 };
 
 /**
- * Which groups a shift+click range may reach into. A group's rows come from the list itself. The one thing the rows
- * cannot answer for the provider is whether the group is open, because whoever owns the expanded state owns that.
- * Scoped to one search, so a group left open across a query change cannot range over the previous results.
+ * Which groups a shift+click range may reach into. Whoever owns a group's expanded state owns that answer, which is
+ * the one thing the rows cannot tell the provider. Scoped to one search, so a group left open across a query change
+ * cannot range over the previous results.
  */
 function useOpenGroupsRegistry(searchHash: number): OpenGroupsRegistry {
     const [openGroupKeys, setOpenGroupKeys] = useState<ReadonlySet<string>>(NO_OPEN_GROUPS);

@@ -36,9 +36,6 @@ type MapTransactionItemToSelectedEntryParams = {
     /** The current user's self-DM report, used as the parent for unreported (track) expenses */
     selfDMReport: OnyxEntry<Report>;
 
-    /** Whether the app is running in production (affects split eligibility) */
-    isProduction: boolean;
-
     /** Keep the amount signed instead of taking its absolute value */
     allowNegativeAmount: boolean;
 
@@ -60,12 +57,11 @@ function mapTransactionItemToSelectedEntry({
     reportNameValuePairs,
     outstandingReportsByPolicyID,
     selfDMReport,
-    isProduction,
     allowNegativeAmount,
     parentReport,
 }: MapTransactionItemToSelectedEntryParams): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID);
-    const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report) : false;
+    const canRejectRequest = item.report ? canRejectReportAction(item.report, currentUserAccountID) : false;
     const amount = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount;
     const isUnreported = isExpenseUnreported(item);
     const reportForSplit = item.report ?? (isUnreported ? selfDMReport : undefined);
@@ -79,7 +75,7 @@ function mapTransactionItemToSelectedEntry({
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
-            canSplit: isSplitAction(reportForSplit, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, item.policy, parentReport, isProduction),
+            canSplit: isSplitAction(reportForSplit, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, item.policy, parentReport),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest({
                 reportAction: item.reportAction,
@@ -184,9 +180,6 @@ type PrepareTransactionsListParams = {
     /** The current user's self-DM report, used as the parent for unreported (track) expenses */
     selfDMReport: OnyxEntry<Report>;
 
-    /** Whether the app is running in production (affects split eligibility) */
-    isProduction: boolean;
-
     /** The row's parent report, used for split eligibility */
     parentReport: OnyxEntry<Report> | undefined;
 };
@@ -205,7 +198,6 @@ function prepareTransactionsList({
     reportNameValuePairs,
     outstandingReportsByPolicyID,
     selfDMReport,
-    isProduction,
     parentReport,
 }: PrepareTransactionsListParams) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
@@ -223,7 +215,6 @@ function prepareTransactionsList({
         reportNameValuePairs,
         outstandingReportsByPolicyID,
         selfDMReport,
-        isProduction,
         allowNegativeAmount: false,
         parentReport,
     });
@@ -326,24 +317,15 @@ type GroupSelectionParams = {
     areAllMatchingItemsSelected: boolean;
 };
 
-/** Whether clicking a group's checkbox means "deselect": true once any row under it reads as checked, which is what the user is looking at. */
+/** Whether clicking a group's checkbox means "deselect": true once any row under it reads as checked. */
 function isGroupSelected({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): boolean {
     if (groupKey && isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected})) {
         return true;
     }
-    // A row being deleted is skipped by everything the checkbox reads, so counting it here would make the click mean the opposite of what the box shows.
+    // Everything the checkbox reads skips a row being deleted, so counting it here would invert the click.
     return children
         .filter((child) => !isTransactionPendingDelete(child))
         .some((child) => isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}));
-}
-
-/** Whether a group's checkbox reads as fully checked. A group with no rows of its own answers for itself, since there is nothing else to ask. */
-function isGroupChecked({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): boolean {
-    const selectable = children.filter((child) => !isTransactionPendingDelete(child));
-    if (selectable.length === 0) {
-        return !!groupKey && isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected});
-    }
-    return selectable.every((child) => isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}));
 }
 
 /** What a group's checkbox shows: fully checked, and whether only some of its rows are. Rows being deleted count for neither. */
@@ -362,14 +344,14 @@ function getGroupCheckboxState({groupKey, children, selectedTransactions, exclud
             checkedCount++;
         }
     }
-    // A group with no rows of its own answers from its own key, since there is nothing else to ask.
-    if (selectableCount === 0) {
+    // A group carrying no rows answers from its own key. One whose rows are all being deleted has rows, so it does not.
+    if (children.length === 0) {
         return {
             isSelectAllChecked: !!groupKey && isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}),
             isIndeterminate: false,
         };
     }
-    return {isSelectAllChecked: checkedCount === selectableCount, isIndeterminate: checkedCount > 0 && checkedCount !== selectableCount};
+    return {isSelectAllChecked: selectableCount > 0 && checkedCount === selectableCount, isIndeterminate: checkedCount > 0 && checkedCount !== selectableCount};
 }
 
 type RowCheckedParams = {
@@ -389,7 +371,7 @@ type RowCheckedParams = {
     areAllMatchingItemsSelected: boolean;
 };
 
-/** Whether a row's checkbox reads as checked, which is what a click has to toggle and what a range has to give back. */
+/** Whether a row's checkbox reads as checked, which is what a click has to toggle. */
 function isRowChecked({rowKey, parentGroupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: RowCheckedParams): boolean {
     // An entry of its own wins, since a row picked individually is not covered by anything wider.
     if (selectedTransactions[rowKey]?.isSelected) {
@@ -402,23 +384,22 @@ function isRowChecked({rowKey, parentGroupKey, selectedTransactions, excludedTra
     return areAllMatchingItemsSelected || !!(parentGroupKey && selectedTransactions[parentGroupKey]?.isSelected);
 }
 
-/** A group's rows as a range may reach them: the rows it carries while it is open, since a closed group still carries the ones it loaded. */
+/** Openness is the gate, not the rows: a closed group still carries the ones it loaded. */
 function resolveGroupChildren(group: TransactionGroupListItemType, openGroupKeys: ReadonlySet<string>): TransactionListItemType[] {
     return openGroupKeys.has(group.keyForList) ? group.transactions : [];
 }
 
 type ShiftRangeSource = {
-    /** Each group header followed by the rows it carries, in visual order, which is what a range spans */
+    /** Each group header followed by the rows it carries, in visual order */
     items: SearchListItem[];
 
-    /** Each group's rows as the range sees them */
     childrenByGroupKey: Map<string, TransactionListItemType[]>;
 
-    /** The group a child row belongs to, so its selection is stored and removed under the right parent */
+    /** So a child's selection is stored and removed under the right parent */
     groupKeyByChildKey: Map<string, string>;
 };
 
-/** What a range spans and who owns each row, from one pass so the two cannot disagree. Flattens only in group-by views. */
+/** One pass, so what a range spans and who owns each row cannot disagree. Flattens only in group-by views. */
 function buildShiftRangeSource(sortedData: SearchListItem[], openGroupKeys: ReadonlySet<string>, groupsAreHeaders: boolean): ShiftRangeSource {
     const childrenByGroupKey = new Map<string, TransactionListItemType[]>();
     const groupKeyByChildKey = new Map<string, string>();
@@ -451,7 +432,6 @@ export {
     deriveSelectedReports,
     buildShiftRangeSource,
     isGroupSelected,
-    isGroupChecked,
     getGroupCheckboxState,
     isRowChecked,
 };

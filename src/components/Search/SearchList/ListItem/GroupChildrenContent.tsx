@@ -16,7 +16,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import type {GroupChildrenContentProps, TransactionListItemType} from './types';
 
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
-import useGroupChildrenForShiftRange from './useGroupChildrenForShiftRange';
+import useGroupChildren from './useGroupChildren';
 
 function GroupChildrenContent({
     item,
@@ -44,9 +44,8 @@ function GroupChildrenContent({
     const snapshotData = transactionsSnapshot?.data;
 
     // Uses groupKeyForList: this split container's own keyForList is prefixed.
-    const {transactions} = useGroupChildrenForShiftRange({
+    const {transactions} = useGroupChildren({
         groupKey: groupItem.groupKeyForList,
-        isExpenseReportType,
         groupTransactions: groupItem.transactions,
     });
 
@@ -63,7 +62,6 @@ function GroupChildrenContent({
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
-            isOffline,
         });
     };
 
@@ -77,7 +75,6 @@ function GroupChildrenContent({
             offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
-            isOffline,
         });
     };
 

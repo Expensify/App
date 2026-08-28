@@ -116,7 +116,6 @@ function renderGroupHeader(rows: TransactionListItemType[], selection: SelectedT
                         onCheckboxPress={onCheckboxPress}
                         isFirstItem
                         isLastItem={false}
-                        originalKey={GROUP_KEY}
                     />
                 </MockSearchContextProvider>
             </ScreenWrapperStatusContext>

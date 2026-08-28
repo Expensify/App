@@ -3,7 +3,7 @@ import {useSearchShiftRangeGroups} from '@components/Search/SearchContext';
 
 import {useEffect, useRef} from 'react';
 
-/** Keeps a set of groups' children reachable by a shift+click range while they are open. For a view that owns the expanded state on behalf of rows it may recycle. */
+/** For a view that owns the expanded state on behalf of rows it may recycle. */
 function useOpenGroupsForShiftRange(openGroupKeys: ReadonlySet<string>) {
     const {addGroupToRange, removeGroupFromRange, registryGeneration} = useSearchShiftRangeGroups();
 
@@ -12,7 +12,7 @@ function useOpenGroupsForShiftRange(openGroupKeys: ReadonlySet<string>) {
     const seenGenerationRef = useRef(registryGeneration);
 
     useEffect(() => {
-        // The registry drops openness with the search, so anything opened under the previous one is already gone and the diff below reopens it.
+        // Anything opened under the previous search is already gone from the registry, so the diff below reopens it.
         const opened = seenGenerationRef.current === registryGeneration ? openedKeysRef.current : NO_OPEN_GROUPS;
         seenGenerationRef.current = registryGeneration;
 

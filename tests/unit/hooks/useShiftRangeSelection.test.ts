@@ -560,7 +560,6 @@ describe('useShiftRangeSelection', () => {
             act(() => {
                 result.current.applyShiftClick(ROW_D, true);
             });
-            // Anchored at the first row of the block rather than the top of the list, and 'e' falls out of it right away.
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c', 'd'], toDeselect: ['e']});
             act(() => {
                 result.current.applyShiftClick(ROW_C, true);
@@ -580,7 +579,6 @@ describe('useShiftRangeSelection', () => {
             act(() => {
                 result.current.applyShiftClick(ROW_C, true);
             });
-            // The anchor re-resolved to the block's first row, and the rest of the block fell out of the range with it.
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c'], toDeselect: ['d', 'e']});
         });
 

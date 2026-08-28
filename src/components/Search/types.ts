@@ -256,11 +256,9 @@ type SearchSelectionActionsValue = {
             reconciledExcludedTransactions?: SelectedTransactions;
         },
     ) => void;
-    /** Reads the current selection on demand without subscribing, so the shift-range hook can anchor from the live selection. */
+    /** Read on demand without subscribing, so a handler can anchor from the live selection without re-rendering every row */
     getSelectedTransactions: () => SelectedTransactions;
-    /** The same for the exclusions, which are rebuilt on every commit and would otherwise re-render every row on each press. */
     getExcludedTransactions: () => SelectedTransactions;
-    /** And for the all-matching flag, so a handler reads it at the same freshness as the two maps. */
     getAreAllMatchingItemsSelected: () => boolean;
     setSelectedReports: (reports: SelectedReports[]) => void;
     setCurrentSelectedTransactionReportID: (reportID: string | undefined) => void;
@@ -291,11 +289,9 @@ type SearchRowSelectionActionsValue = {
 
 /** Lets whoever owns a group's expanded state say whether a shift+click range may reach the rows it renders. */
 type SearchShiftRangeGroupsActions = {
-    /** Let a range reach a group's rows, for as long as it is open. Called by whoever owns the expanded state. */
     addGroupToRange: (groupKey: string) => void;
-    /** Take a group back out of ranges. */
     removeGroupFromRange: (groupKey: string) => void;
-    /** Changes when the registry is dropped for a new search. Subscribers key off it, so a group left open across the change reopens. */
+    /** Changes when the registry is dropped for a new search, so a group left open across the change reopens */
     registryGeneration: number | undefined;
 };
 
@@ -463,6 +459,9 @@ type SearchChartProps = {
 
     /** Function to extract label from grouped item */
     getLabel: (item: GroupedItem) => string;
+
+    /** Function to extract the compact axis label from grouped item. When it returns undefined, `getLabel` is used. */
+    getShortLabel?: (item: GroupedItem) => string | undefined;
 
     /** Function to build filter query from grouped item */
     getFilterQuery: (item: GroupedItem) => string;

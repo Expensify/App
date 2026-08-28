@@ -21,7 +21,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getColumnsToShow} from '@libs/SearchUIUtils';
-import {isDeletedTransaction} from '@libs/TransactionUtils';
+import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,7 +47,7 @@ import MonthListItemHeader from './MonthListItemHeader';
 import QuarterListItemHeader from './QuarterListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 import TagListItemHeader from './TagListItemHeader';
-import {useGroupCheckboxState} from './useGroupChildrenForShiftRange';
+import {useGroupCheckboxState} from './useGroupChildren';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
@@ -68,7 +68,6 @@ type GroupHeaderProps = SearchListActionProps & {
     isFocused?: boolean;
     isFirstItem: boolean;
     isLastItem: boolean;
-    originalKey: string;
     visibleColumns?: SearchCustomColumnIds[];
 };
 
@@ -88,7 +87,6 @@ function GroupHeader({
     isFocused,
     isFirstItem,
     isLastItem,
-    originalKey,
     lastPaymentMethod,
     personalPolicyID,
     userBillingGracePeriodEnds,
@@ -177,13 +175,14 @@ function GroupHeader({
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
     // The same derivation the narrow layout reads, so the two cannot disagree about what a group's checkbox shows.
-    const {isSelectAllChecked, isIndeterminate} = useGroupCheckboxState({groupKey: originalKey, groupTransactions: groupItem.transactions});
+    const {isSelectAllChecked, isIndeterminate} = useGroupCheckboxState({groupKey: item.groupKeyForList, groupTransactions: groupItem.transactions});
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
 
+    // The row this half renders carries a prefixed key, so anything handed back to the selection gets the group's own.
     const withOriginalKey = <T extends SearchListItem>(rowItem: T): T => ({
         ...rowItem,
-        keyForList: originalKey,
+        keyForList: item.groupKeyForList,
     });
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -199,7 +198,7 @@ function GroupHeader({
 
     const pendingAction =
         item.pendingAction ??
-        (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => isTransactionPendingDelete(transaction))
             ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
             : undefined);
 

@@ -1,5 +1,4 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -46,7 +45,7 @@ type SearchWriteActionsProviderProps = {
     /** The currently displayed (filtered, grouped) rows. Screen-derived; the provider cannot recompute it. */
     filteredData: SearchData;
 
-    /** The exact rows the list renders, so a range spans the on-screen order rather than the pre-sort `filteredData` */
+    /** As rendered, so a range spans on-screen order rather than the pre-sort `filteredData` */
     renderedData: SearchListItem[];
 
     /** Keeps "select all matching" in lock-step: select-all unchecks once the selection no longer covers every item. */
@@ -55,7 +54,7 @@ type SearchWriteActionsProviderProps = {
     /** The raw search snapshot, read for denormalized transaction/report lookups. */
     searchResults: SearchResults | undefined;
 
-    /** Identity of the query being rendered. Everything scoped to one search — the registry, its openness, the range session — is keyed on it. */
+    /** Everything scoped to one search is keyed on it */
     searchHash: number;
 
     /** The live TRANSACTION collection, subscribed by `<Search>` and passed down. */
@@ -102,9 +101,6 @@ type ReconcileSelectionParams = {
     /** The live TRANSACTION Onyx collection */
     transactions: OnyxCollection<Transaction>;
 
-    /** Email of the current user */
-    currentUserEmail: string;
-
     /** Login (email or phone) of the current user */
     currentUserLogin: string;
 
@@ -113,9 +109,6 @@ type ReconcileSelectionParams = {
 
     /** The current user's self-DM report, used as the parent for unreported (track) expenses */
     selfDMReport: OnyxEntry<Report>;
-
-    /** Whether the app is running in production (affects split eligibility) */
-    isProduction: boolean;
 
     /** Report name-value pairs collection, used for the change-report eligibility archived check */
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
@@ -142,11 +135,9 @@ function useReconcileSelectionWithData({
     filteredData,
     searchResultsData,
     transactions,
-    currentUserEmail,
     currentUserLogin,
     currentUserAccountID,
     selfDMReport,
-    isProduction,
     reportNameValuePairs,
     outstandingReportsByPolicyID,
     shouldReconcileExcludedTransactions,
@@ -172,7 +163,7 @@ function useReconcileSelectionWithData({
                 }
 
                 const reportKey = transactionGroup.keyForList;
-                // Only group-by groups that carry no rows, since anything missing from a group that does carry them is gone for real.
+                // Only groups carrying no rows: a row missing from a group that has them is gone for real.
                 if (reportKey && !isExpenseReportType && transactionGroup.transactions.length === 0 && transactionGroup.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                     presentGroupKeys.add(reportKey);
                 }
@@ -209,7 +200,6 @@ function useReconcileSelectionWithData({
                     const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
                     const isDirectlyExcluded = Object.hasOwn(excludedTransactions, listKey) || Object.hasOwn(excludedTransactions, transactionItem.transactionID);
                     const isSelected = listKey in selectedTransactions || transactionItem.transactionID in selectedTransactions;
-                    // An entry of its own wins, the same rule the checkbox renders from: a row picked back out of an excluded group is not covered by it.
                     const isExcluded = !isSelected && (isParentGroupExcluded || isDirectlyExcluded);
 
                     // Include transaction if: already individually selected, part of select-all, or group-level propagation (expense report / empty group expanded)
@@ -226,7 +216,6 @@ function useReconcileSelectionWithData({
                     const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
                     const previousSelection = selectedTransactions[listKey] ?? selectedTransactions[transactionItem.transactionID];
 
-                    // The overrides below are what reconcile computes differently from a toggle, so keep them.
                     const [, baseEntry] = mapTransactionItemToSelectedEntry({
                         item: transactionItem,
                         itemTransaction,
@@ -236,7 +225,6 @@ function useReconcileSelectionWithData({
                         reportNameValuePairs,
                         outstandingReportsByPolicyID,
                         selfDMReport,
-                        isProduction,
                         allowNegativeAmount: true,
                         parentReport: itemParentReport,
                     });
@@ -244,7 +232,7 @@ function useReconcileSelectionWithData({
                     const liveSelectionEntry: SelectedTransactionInfo = {
                         ...baseEntry,
                         isSelected: !isExcluded && (areAllMatchingItemsSelected || !!previousSelection?.isSelected || propagateSelectionToAllRows),
-                        canReject: currentUserEmail && transactionItem.report ? canRejectReportAction(currentUserEmail, transactionItem.report) : false,
+                        canReject: transactionItem.report ? canRejectReportAction(transactionItem.report, currentUserAccountID) : false,
                         policyID: transactionItem.report?.policyID,
                         groupKey: previousSelection?.groupKey ?? (propagateSelectionToAllRows && !isExpenseReportType ? reportKey : undefined),
                         isSelectedViaGroup: previousSelection?.isSelectedViaGroup,
@@ -281,7 +269,6 @@ function useReconcileSelectionWithData({
                     reportNameValuePairs,
                     outstandingReportsByPolicyID,
                     selfDMReport,
-                    isProduction,
                     allowNegativeAmount: true,
                     parentReport: itemParentReport,
                 });
@@ -289,7 +276,7 @@ function useReconcileSelectionWithData({
                 const liveSelectionEntry: SelectedTransactionInfo = {
                     ...baseEntry,
                     isSelected: areAllMatchingItemsSelected || !!flatPreviousSelection?.isSelected,
-                    canReject: currentUserEmail && transactionItem.report ? canRejectReportAction(currentUserEmail, transactionItem.report) : false,
+                    canReject: transactionItem.report ? canRejectReportAction(transactionItem.report, currentUserAccountID) : false,
                     policyID: transactionItem.report?.policyID,
                 };
                 liveSelectionEntries.set(listKey, liveSelectionEntry);
@@ -300,7 +287,7 @@ function useReconcileSelectionWithData({
             }
         }
 
-        // A group written out into its loaded rows keeps them while the group is still here, since a lazy group's children never reach `filteredData`.
+        // A lazy group's children never reach `filteredData`, so the group's presence is what keeps them.
         if (areItemsGrouped) {
             for (const [key, selectedTransaction] of Object.entries(selectedTransactions)) {
                 const parentGroupKey = selectedTransaction.groupKey;
@@ -332,8 +319,7 @@ function useReconcileSelectionWithData({
                     continue;
                 }
 
-                // Lazy group children are held in a separate snapshot. Keep their exclusions while the parent
-                // group is still present. If the parent disappears, the child no longer matches this search.
+                // A lazy group's children live in a separate snapshot, so the parent's presence is what proves they still match.
                 if (excludedTransaction.groupKey && liveSelectionEntries.has(excludedTransaction.groupKey)) {
                     nextExcludedTransactions[key] = excludedTransaction;
                 }
@@ -444,7 +430,6 @@ function SearchWriteActionsProvider({
     children,
 }: SearchWriteActionsProviderProps) {
     const isFocused = useIsFocused();
-    const {isProduction} = useEnvironment();
     const {isOffline} = useNetwork();
     const {accountID, email, login} = useCurrentUserPersonalDetails();
     const selfDMReport = useSelfDMReport();
@@ -454,7 +439,7 @@ function SearchWriteActionsProvider({
 
     const {openGroupKeys, shiftRangeGroupsActions} = useOpenGroupsRegistry(searchHash);
 
-    // Read at the gesture, not from render scope: closing over it would give every row a new `toggle` each time a group opens.
+    // Read at the gesture: closing over it would give every row a new `toggle` each time a group opens.
     const groupKeyByChildKeyRef = useRef<ReadonlyMap<string, string>>(new Map());
     const childrenByGroupKeyRef = useRef<ReadonlyMap<string, TransactionListItemType[]>>(new Map());
 
@@ -462,7 +447,7 @@ function SearchWriteActionsProvider({
     const currentUserEmail = email ?? '';
     const currentUserLogin = login ?? '';
 
-    // One policy for every gesture, live Onyx first: the hold and split flags read the optimistic row, and the snapshot only refreshes when the search returns.
+    // Live Onyx first: the hold and split flags read the optimistic row, and the snapshot only refreshes when the search returns.
     const readTransaction = (transactionID: string | undefined): OnyxEntry<Transaction> => {
         if (!transactionID) {
             return undefined;
@@ -482,7 +467,6 @@ function SearchWriteActionsProvider({
         };
     };
 
-    // Shared selection-entry builder so the toggle / select-all / range call sites can't drift apart.
     const buildSelectedEntry = (item: TransactionListItemType) => {
         const {itemTransaction, originalItemTransaction, parentReport} = resolveTransactionRefs(item);
         return mapTransactionItemToSelectedEntry({
@@ -494,22 +478,19 @@ function SearchWriteActionsProvider({
             reportNameValuePairs,
             outstandingReportsByPolicyID,
             selfDMReport,
-            isProduction,
             allowNegativeAmount: true,
             parentReport,
         });
     };
 
-    // One exit rule for every selection commit, so the range path cannot be the one call site that forgets it.
     const commitOptions = {
         totalSelectableItemsCount,
         shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE,
         shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
     };
 
-    // Expense-report rows are the selectable unit. Only group-by rows are headers whose children flatten in.
+    // Expense-report rows are the selectable unit, so only group-by rows are headers whose children flatten in.
     const hasValidGroupBy = areItemsGrouped && !isExpenseReportType;
-    // One pass: the rows a range spans and the parent each belongs to cannot be built separately without being able to disagree.
     const {items: flattenedShiftRangeItems, childrenByGroupKey, groupKeyByChildKey} = buildShiftRangeSource(renderedData, openGroupKeys, hasValidGroupBy);
     useLayoutEffect(() => {
         groupKeyByChildKeyRef.current = groupKeyByChildKey;
@@ -517,7 +498,7 @@ function SearchWriteActionsProvider({
     }, [groupKeyByChildKey, childrenByGroupKey]);
     const isShiftRangeHeaderItem = (item: SearchData[number]) => isTransactionGroupListItemType(item) && hasValidGroupBy;
 
-    // A child's parent, resolved once, or undefined where the group is not a whole-group selection this code may enumerate.
+    // Undefined under select-all-matching, where the group is selected without its rows being known.
     const resolveGroupBlock = (selection: SelectedTransactions, childKey: string) => {
         const groupKey = groupKeyByChildKeyRef.current.get(childKey);
         if (!groupKey || getAreAllMatchingItemsSelected() || !selection[groupKey]?.isSelected) {
@@ -526,10 +507,10 @@ function SearchWriteActionsProvider({
         return {groupKey, loaded: childrenByGroupKeyRef.current.get(groupKey) ?? []};
     };
 
-    // A group selected before its children loaded lives under the group key alone, so dropping one child needs the group written out first.
+    // A group selected before its children loaded lives under its own key, so dropping one child means writing it out first.
     const spellOutGroupSelection = (selection: SelectedTransactions, childKey: string): SelectedTransactions => {
         const block = resolveGroupBlock(selection, childKey);
-        // Nothing to write it out into is not the same as a group with no rows: it would delete the entry and put nothing back.
+        // Writing out with no rows would delete the entry and put nothing back.
         if (!block || block.loaded.length === 0) {
             return selection;
         }
@@ -547,7 +528,7 @@ function SearchWriteActionsProvider({
         return spelledOut;
     };
 
-    // Defaults to the refs, so asking whether a group is checked never re-renders this provider. A reducer passes its own map.
+    // Defaults to the refs, so asking whether a group is checked never re-renders this provider.
     const groupSelectionParams = (groupKey: string | undefined, groupChildren: TransactionListItemType[], selectedTransactions = getSelectedTransactions()) => ({
         groupKey,
         children: groupChildren,
@@ -560,9 +541,9 @@ function SearchWriteActionsProvider({
         applySelection(
             (selectedTransactions) => {
                 let updated: SelectedTransactions = {...selectedTransactions};
-                // The same rule the group toggle follows: a batch that writes nothing returns the map it was given, so the commit bails on identity rather than re-rendering every row.
+                // Returning the given map unchanged is what lets the commit bail on identity rather than re-render every row.
                 let hasWritten = false;
-                // Groups this batch took a row from, and groups it took whole. Whole wins, since that is the gesture a header click makes.
+                // Whole wins over partial, since that is the gesture a header click makes.
                 const partialGroupKeys = new Set<string>();
                 const wholeGroupKeys = new Set<string>();
                 const dropKey = (key: string) => {
@@ -572,7 +553,7 @@ function SearchWriteActionsProvider({
                     delete updated[key];
                     hasWritten = true;
                 };
-                // `blockGroupKey` is set only when a whole group row joins the range, which is what makes its children narrowable later.
+                // Set only when a whole group row joins the range, which is what makes its children narrowable later.
                 const addTransaction = (tx: TransactionListItemType, blockGroupKey: string | undefined) => {
                     if (!tx.keyForList || isTransactionPendingDelete(tx)) {
                         return;
@@ -584,7 +565,7 @@ function SearchWriteActionsProvider({
                         (blockGroupKey ? wholeGroupKeys : partialGroupKeys).add(parentGroupKey);
                     }
                     const entry = parentGroupKey ? {...info, groupKey: parentGroupKey, isSelectedViaGroup: !!blockGroupKey} : info;
-                    // Extending a range re-covers rows it already holds, so writing an equal entry would commit a map nothing reads differently.
+                    // Extending a range re-covers rows it already holds, so an equal entry must not count as a write.
                     if (deepEqual(updated[key], entry)) {
                         return;
                     }
@@ -604,7 +585,7 @@ function SearchWriteActionsProvider({
                         return;
                     }
                     if (isTransactionGroupListItemType(row)) {
-                        // Mirrors the group toggle: a group can hold an entry under its own key as well as under its children's.
+                        // A group can hold an entry under its own key as well as under its children's.
                         if (row.keyForList) {
                             dropKey(row.keyForList);
                         }
@@ -627,12 +608,11 @@ function SearchWriteActionsProvider({
                             }
                         }
                     } else if (isTransactionGroupListItemType(row)) {
-                        // Same as the group toggle: a group with nothing it can select is left exactly as it was.
                         const selectable = (row.transactions ?? []).filter((child) => !isTransactionPendingDelete(child));
                         if (selectable.length === 0) {
                             return;
                         }
-                        // The children carry the selection once they are here, the same as the group toggle: leaving the group's own entry behind would count it twice.
+                        // The children carry the selection from here, so the group's own key would count it twice.
                         if (row.keyForList) {
                             dropKey(row.keyForList);
                         }
@@ -647,7 +627,7 @@ function SearchWriteActionsProvider({
                 for (const row of batch.toSelect) {
                     addRow(row);
                 }
-                // Taking part of a group makes it partial, so the rows left behind stop claiming it covers them. Otherwise an export sends a whole-group filter.
+                // Rows left behind must stop claiming the group covers them, or an export sends a whole-group filter.
                 for (const [key, transaction] of Object.entries(updated)) {
                     if (transaction.isSelectedViaGroup && transaction.groupKey && partialGroupKeys.has(transaction.groupKey) && !wholeGroupKeys.has(transaction.groupKey)) {
                         updated[key] = {...transaction, isSelectedViaGroup: false};
@@ -682,10 +662,10 @@ function SearchWriteActionsProvider({
         });
     };
 
-    // A row checked through a group header belongs to that block, so a range may take it back. Report rows are the row the user clicked, not a block.
+    // A row checked through a group header belongs to that block, so a range may take it back.
     const isRowHandPicked = (item: SearchData[number]) => {
         const selectedTransactions = getSelectedTransactions();
-        // A report row is the row the user clicked, so any selected child makes it hand-picked. A group header selects a block instead.
+        // A report row is the row the user clicked, so any selected child makes it hand-picked.
         if (isTransactionGroupListItemType(item) && item.transactions.length > 0) {
             return item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected);
         }
@@ -703,12 +683,11 @@ function SearchWriteActionsProvider({
         isHeaderItem: isShiftRangeHeaderItem,
     });
 
-    // The session belongs to one search, the same as the registry: a row matching both queries would otherwise let the old span collapse rows in the new results.
+    // The session belongs to one search, since a row can match both queries.
     useEffect(() => {
         rangeApi.clearAnchor();
     }, [searchHash, rangeApi]);
 
-    // Seeded as membership rather than rows, so a group whose children are still loading seeds correctly once they arrive.
     const seedGroup = (groupKey: string) => rangeApi.seedRangeFromSelection((childKey) => groupKeyByChildKeyRef.current.get(childKey) === groupKey);
 
     const toggle: SearchRowSelectionActionsValue['toggle'] = (item, itemTransactions, shiftKey) => {
@@ -729,7 +708,7 @@ function SearchWriteActionsProvider({
                 // Deselecting paints no block, so reset instead of leaving a stale span to collapse.
                 rangeApi.clearAnchor();
             } else if (groupTransactions.length === 0 || groupTransactions.some((transactionItem) => !isTransactionPendingDelete(transactionItem))) {
-                // Seed just this block: seeding the whole selection would span unrelated rows and deselect them. A group holding rows it cannot select commits nothing, so it seeds nothing.
+                // Just this block: seeding the whole selection would span unrelated rows and deselect them.
                 seedGroup(item.keyForList);
             }
         } else if (!isShiftRangeHeaderItem(item)) {
@@ -754,7 +733,6 @@ function SearchWriteActionsProvider({
                     reportNameValuePairs,
                     outstandingReportsByPolicyID,
                     selfDMReport,
-                    isProduction,
                     parentReport: itemParentReport,
                 });
 
@@ -769,7 +747,6 @@ function SearchWriteActionsProvider({
                             }
                         }
                     }
-                    // If the clicked expense is still selected, keep its parent group key.
                     if (groupKey && updatedTransactions[item.keyForList]) {
                         updatedTransactions[item.keyForList] = {...updatedTransactions[item.keyForList], groupKey};
                     }
@@ -890,11 +867,9 @@ function SearchWriteActionsProvider({
         filteredData,
         searchResultsData,
         transactions,
-        currentUserEmail,
         currentUserLogin,
         currentUserAccountID: accountID,
         selfDMReport,
-        isProduction,
         reportNameValuePairs,
         outstandingReportsByPolicyID,
         shouldReconcileExcludedTransactions: type === CONST.SEARCH.DATA_TYPES.EXPENSE && !!searchResultsData && searchResults?.search?.isLoading === false && !searchResults?.errors,

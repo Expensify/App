@@ -65,7 +65,7 @@ import QuarterListItemHeader from './QuarterListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 import TagListItemHeader from './TagListItemHeader';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
-import useGroupChildrenForShiftRange from './useGroupChildrenForShiftRange';
+import useGroupChildren from './useGroupChildren';
 import useGroupOpenForShiftRange from './useGroupOpenForShiftRange';
 import useLiveRowCapabilities from './useLiveRowCapabilities';
 import WeekListItemHeader from './WeekListItemHeader';
@@ -145,9 +145,8 @@ function TransactionGroupListItemImpl({
     // Expense-report rows are already part of the list, so only group-by views need this.
     useGroupOpenForShiftRange(groupItem.keyForList, isExpanded && !isExpenseReportType);
 
-    const {transactions, isSelectAllChecked, isIndeterminate} = useGroupChildrenForShiftRange({
+    const {transactions, isSelectAllChecked, isIndeterminate} = useGroupChildren({
         groupKey: groupItem.keyForList,
-        isExpenseReportType,
         groupTransactions: groupItem.transactions,
     });
 
@@ -171,7 +170,6 @@ function TransactionGroupListItemImpl({
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
-            isOffline,
         });
     };
 
@@ -187,7 +185,6 @@ function TransactionGroupListItemImpl({
             offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
-            isOffline,
         });
     };
 
@@ -228,9 +225,8 @@ function TransactionGroupListItemImpl({
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
-            isOffline,
         });
-    }, [newTransactionID, isExpanded, groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading]);
+    }, [newTransactionID, isExpanded, groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.isLoading]);
 
     const wasScreenFocusedRef = useRef(isScreenFocused);
     useEffect(() => {
@@ -252,9 +248,8 @@ function TransactionGroupListItemImpl({
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
-            isOffline,
         });
-    }, [isScreenFocused, isExpanded, isExpenseReportType, groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading]);
+    }, [isScreenFocused, isExpanded, isExpenseReportType, groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.isLoading]);
 
     const handleToggle = () => {
         setIsExpanded((prev) => {
@@ -471,7 +466,7 @@ function TransactionGroupListItemImpl({
 
     const pendingAction =
         item.pendingAction ??
-        (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => isTransactionPendingDelete(transaction))
             ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
             : undefined);
 
