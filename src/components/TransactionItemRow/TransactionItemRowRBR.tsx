@@ -96,7 +96,7 @@ function TransactionItemRowRBRInner({transaction, violations, report, containerS
     return (
         RBRMessages.length > 0 && (
             <View
-                style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, containerStyles]}
+                style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.userSelectNone, containerStyles]}
                 testID="TransactionItemRowRBR"
             >
                 <Icon

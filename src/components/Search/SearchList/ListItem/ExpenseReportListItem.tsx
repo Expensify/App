@@ -413,7 +413,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const getDescription = useMemo(() => {
         if (reportItem?.isRejectedReport) {
             return (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.userSelectNone]}>
                     <Icon
                         src={expensifyIcons.DotIndicator}
                         fill={theme.danger}
@@ -429,7 +429,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             return;
         }
         return (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.userSelectNone]}>
                 <Icon
                     src={expensifyIcons.DotIndicator}
                     fill={theme.danger}
@@ -453,6 +453,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         styles.textMicro,
         styles.mutedNormalTextLabel,
         styles.textDanger,
+        styles.userSelectNone,
         isLargeScreenWidth,
         expensifyIcons.DotIndicator,
         theme.danger,
