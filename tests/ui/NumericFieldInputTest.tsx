@@ -255,13 +255,45 @@ describe('NumericField.TextInput', () => {
         expect(screen.getByDisplayValue('-12')).toBeOnTheScreen();
     });
 
-    it('uses maxLength for integer validation without forwarding it to the native input', async () => {
+    it('does not forward maxLength to the native input', async () => {
         // Given maxLength set for integer validation on the root
         renderTextInput({}, {value: '12345678.99', decimals: 2, maxLength: 8});
         await waitForBatchedUpdatesWithAct();
 
         // Then maxLength is not forwarded to the native input
         expect(screen.getByDisplayValue('12345678.99').props.maxLength).toBeUndefined();
+    });
+
+    it('rejects a value with more integer digits than maxLength allows', async () => {
+        const onInputChange = jest.fn();
+
+        // Given a TextInput with maxLength set to 2 and value "12"
+        renderTextInput({testID: INPUT_TEST_ID}, {value: '12', decimals: 2, maxLength: 2, onInputChange});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user enters a value longer than maxLength
+        fireEvent.changeText(screen.getByTestId(INPUT_TEST_ID), '123');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the change is rejected and the value stays "12"
+        expect(onInputChange).not.toHaveBeenCalled();
+        expect(screen.getByDisplayValue('12')).toBeOnTheScreen();
+    });
+
+    it('accepts a value that fits within maxLength', async () => {
+        const onInputChange = jest.fn();
+
+        // Given a TextInput with maxLength set to 2 and value "1"
+        renderTextInput({testID: INPUT_TEST_ID}, {value: '1', decimals: 2, maxLength: 2, onInputChange});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user enters a value within maxLength
+        fireEvent.changeText(screen.getByTestId(INPUT_TEST_ID), '12');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the change is accepted
+        expect(onInputChange).toHaveBeenLastCalledWith('12');
+        expect(screen.getByDisplayValue('12')).toBeOnTheScreen();
     });
 
     it('strips decimals from the value when the decimals prop changes to a lower precision', async () => {
@@ -326,22 +358,25 @@ describe('NumericField.TextInput', () => {
         const numericEditingRef = React.createRef<NumericFieldRef>();
         const onInputChange = jest.fn();
 
-        // Given a TextInput with value "10" and a numericEditingRef
-        renderTextInput({}, {value: '10', numericEditingRef, onInputChange});
+        // Given a TextInput with value "10", zero decimal places, and a numericEditingRef
+        renderTextInput({testID: INPUT_TEST_ID}, {value: '10', decimals: 0, numericEditingRef, onInputChange});
         await waitForBatchedUpdatesWithAct();
 
         expect(numericEditingRef.current?.getNumber()).toBe('10');
 
-        // When updateNumber is called imperatively
+        // When updateNumber is called imperatively with a value that is invalid for decimals: 0
         act(() => {
-            numericEditingRef.current?.updateNumber('25');
+            numericEditingRef.current?.updateNumber('1.5');
         });
         await waitForBatchedUpdatesWithAct();
 
-        // Then the value updates in the ref and the input without notifying onInputChange
-        expect(numericEditingRef.current?.getNumber()).toBe('25');
+        // Then the value is stored without validation or notifying onInputChange, matching NumberWithSymbolForm
+        expect(numericEditingRef.current?.getNumber()).toBe('1.5');
         expect(onInputChange).not.toHaveBeenCalled();
-        expect(screen.getByDisplayValue('25')).toBeOnTheScreen();
+        expect(screen.getByDisplayValue('1.5')).toBeOnTheScreen();
+
+        // And the caret moves to the end of the new value
+        expect(screen.getByTestId(INPUT_TEST_ID).props.selection).toEqual({start: 3, end: 3});
     });
 
     it('forwards onSubmitEditing and onKeyPress to both the primitive props and the root', async () => {

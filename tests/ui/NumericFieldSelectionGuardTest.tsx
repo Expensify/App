@@ -57,25 +57,7 @@ describe('NumericField.TextInput native selection guard', () => {
         mockUseIsFocused.mockReturnValue(true);
     });
 
-    it('drops the stale selection event emitted in the same batch as the change', async () => {
-        const onInputChange = jest.fn();
-
-        // Given a TextInput with value "12"
-        renderTextInput(onInputChange);
-        await waitForBatchedUpdatesWithAct();
-
-        // When onChangeText and stale onSelectionChange arrive in the same batch
-        const inputProps: {onChangeText?: (text: string) => void; onSelectionChange?: (event: {nativeEvent: {selection: {start: number; end: number}}}) => void} = getInput().props;
-        await act(async () => {
-            inputProps.onChangeText?.('123');
-            inputProps.onSelectionChange?.({nativeEvent: {selection: {start: 0, end: 0}}});
-        });
-
-        // Then the value updates and the caret moves to the end instead of the stale position
-        expect(onInputChange).toHaveBeenCalledWith('123');
-        expect(getInput().props.selection).toEqual({start: 3, end: 3});
-    });
-
+    // The same-batch variant of this scenario is covered by the useNumericSelection unit tests.
     it('drops the stale selection event even when it arrives after the change has committed', async () => {
         const onInputChange = jest.fn();
 
@@ -87,6 +69,7 @@ describe('NumericField.TextInput native selection guard', () => {
         fireEvent.changeText(getInput(), '123');
         await waitForBatchedUpdatesWithAct();
 
+        expect(onInputChange).toHaveBeenCalledWith('123');
         expect(getInput().props.selection).toEqual({start: 3, end: 3});
 
         // When the stale selection event arrives only after the update has committed (async native delivery)
