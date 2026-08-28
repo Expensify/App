@@ -4,6 +4,8 @@ import CONST from '@src/CONST';
 import type {SearchSnapshotOnyxKey} from '@src/CONST/runtimeDefaults';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ReadonlyDeep} from 'type-fest';
+
 import type {OnyxKey, OnyxValue} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
@@ -16,7 +18,7 @@ function isSnapshotCompatibleKey(key: OnyxKey): boolean {
     return !key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) && CONST.SEARCH.SNAPSHOT_ONYX_KEYS.some((snapshotKey) => key.startsWith(snapshotKey));
 }
 
-function get<TKey extends ReadableOnyxKey>(key: TKey): Promise<OnyxValue<TKey>> {
+function get<TKey extends ReadableOnyxKey>(key: TKey): Promise<ReadonlyDeep<OnyxValue<TKey>>> {
     if (isSnapshotCompatibleKey(key)) {
         if (__DEV__) {
             throw new Error(`OnyxUtils.get is not allowed for Search snapshot keys such as ${String(key)}. Use useOnyx instead.`);

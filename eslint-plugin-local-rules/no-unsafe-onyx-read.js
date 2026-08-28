@@ -6,16 +6,13 @@ const ONYX_WRAPPER_MODULE = '@libs/OnyxUtils';
 
 const READ_METHODS = new Set(['get', 'multiGet', 'tupleGet', 'getAllKeys']);
 
-const WRITE_METHODS = new Set(['merge', 'update', 'set', 'multiSet', 'mergeCollection', 'setCollection', 'clear']);
-
-const MUTATING_ARRAY_METHODS = new Set(['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse', 'fill', 'copyWithin']);
-
 const SYNCHRONOUS_CALLBACK_METHODS = new Set(['map', 'filter', 'reduce', 'reduceRight', 'forEach', 'find', 'findIndex', 'findLast', 'findLastIndex', 'flatMap', 'some', 'every', 'sort']);
 
 const RENDER_TIME_HOOK_ARGUMENTS = new Map([
     ['useMemo', new Set([0])],
     ['useState', new Set([0])],
     ['useReducer', new Set([2])],
+    ['useSyncExternalStore', new Set([1, 2])],
 ]);
 
 const RENDER_TIME_OPTION_NAMES = new Set(['selector']);
@@ -23,8 +20,6 @@ const RENDER_TIME_OPTION_NAMES = new Set(['selector']);
 const COMPONENT_WRAPPER_NAMES = new Set(['memo', 'forwardRef']);
 
 const SYNCHRONOUS_EXECUTOR_NAMES = new Set(['Promise']);
-
-const TEMPLATE_INTERPOLATION_PREFIX = '`${';
 
 const RENDER = 'render';
 const DEFERRED = 'deferred';
@@ -37,7 +32,7 @@ const meta = {
     type: 'problem',
     docs: {
         description:
-            'Disallow unsafe Onyx reads (Onyx.get and friends): during render, where the read does not subscribe; at module scope, where it can only be parked in a stale module variable; after an un-awaited write in the same body, or in a body that repeats and writes, where it resolves to the pre-write value; around the read surface, which the Search snapshot keys need; and mutations of the result, which write straight into the cache.',
+            'Disallow unsafe Onyx reads (Onyx.get and friends): during render, where the read does not subscribe; at module scope, where it can only be parked in a stale module variable; and straight off the library, around the read surface that the Search snapshot keys need.',
         recommended: 'error',
     },
     schema: [
@@ -56,18 +51,9 @@ const meta = {
         noOnyxReadAtModuleScope:
             'Do not read Onyx at module scope. A module body runs at import time and cannot await, so the value can only be parked in a module variable through .then(), where it is a one-shot snapshot that never updates when the key changes.\n\n' +
             'Move the read inside the function that needs it, so it runs at event time and reads the current value. If the module genuinely needs to track a key, subscribe with Onyx.connectWithoutView() instead of caching one read.',
-        noOnyxReadAfterWrite:
-            'Do not read Onyx after writing it in the same tick. Onyx.get() samples the cache when it is called and the Promise only defers delivery, so awaiting the read cannot wait for a pending write. Which writes land before returning is version-dependent and a set inside update() is deferred either way, so no write is exempt here.\n\n' +
-            'Do all of the reads before the first write, or await the write before reading. Reads of keys the tick has not written are always current.',
-        noOnyxReadAfterWriteInLoop:
-            'Do not read Onyx in a body that repeats and also writes it. The next pass calls this read in the same tick as the write the previous pass queued, so it resolves to the value from before that write however early in the body the read sits. An array method such as forEach is this shape too: it does not await its callback, so awaiting the write inside one does not order the passes.\n\n' +
-            'Read every key once before the loop and write once after it, or, in a statement loop only, await the write inside the body.',
         noDirectOnyxGet:
             "Do not read Onyx straight from the library. {{readSurface}} is this repo's read surface and refuses the Search snapshot keys, which src/hooks/useOnyx.ts redirects to snapshot_<hash> in a way the library cannot see. Reading around it returns live data where the component would have seen the snapshot.\n\n" +
             'Import the wrapper from {{readSurface}} and call its get() instead.',
-        noMutatedOnyxRead:
-            'Do not mutate the result of an Onyx read. A single key resolves to the cached object itself rather than a copy, so this writes straight into the cache and no subscriber is told. A collection resolves frozen and throws instead, which makes this the silent case.\n\n' +
-            'Spread it first, or build the change into a new object.',
     },
 };
 
@@ -262,296 +248,13 @@ function classifyPosition(ancestors) {
     return MODULE_SCOPE;
 }
 
-function isTransparentBoundary(functionNode, parent) {
-    return classifyFunctionBoundary(functionNode, parent) === SYNCHRONOUS;
-}
-
-function getEnclosingBody(ancestors) {
-    for (let index = ancestors.length - 1; index >= 0; index--) {
-        const ancestor = ancestors[index];
-
-        if (isFunctionNode(ancestor) && !isTransparentBoundary(ancestor, ancestors[index - 1] ?? null)) {
-            return ancestor;
-        }
-    }
-
-    return null;
-}
-
-function getEnclosingAwait(ancestors) {
-    for (let index = ancestors.length - 1; index >= 0; index--) {
-        const ancestor = ancestors[index];
-
-        if (ancestor.type === 'AwaitExpression') {
-            return ancestor;
-        }
-
-        if (isFunctionNode(ancestor) || ancestor.type.endsWith('Statement') || ancestor.type.endsWith('Declaration')) {
-            return null;
-        }
-    }
-
-    return null;
-}
-
-function isAwaitedBeforeRead(write, read) {
-    const awaitNode = getEnclosingAwait(write.ancestors);
-
-    return !!awaitNode && read.node.range.at(0) >= awaitNode.range.at(1);
-}
-
-function isOnEveryPathTo(awaitEntry, read) {
-    const parent = awaitEntry.ancestors.at(-1);
-    const isOwnStatement = parent?.type === 'ExpressionStatement';
-    const isDeclarationInit = parent?.type === 'VariableDeclarator' && parent.init === awaitEntry.node;
-
-    if (!isOwnStatement && !isDeclarationInit) {
-        return false;
-    }
-
-    // One step up from an expression statement, two from a declarator, since its declaration sits between.
-    const block = awaitEntry.ancestors.at(isOwnStatement ? -2 : -3);
-
-    return !!block && (block.type === 'BlockStatement' || block.type === 'Program') && read.ancestors.includes(block);
-}
-
-function isSeparatedByAwait(awaits, write, read) {
-    return awaits.some((awaitEntry) => awaitEntry.node.range.at(0) >= write.node.range.at(1) && awaitEntry.node.range.at(1) <= read.node.range.at(0) && isOnEveryPathTo(awaitEntry, read));
-}
-
-function getStaticKeyPath(keyNode) {
-    if (!keyNode) {
-        return null;
-    }
-
-    if (keyNode.type === 'Literal' && typeof keyNode.value === 'string') {
-        return `'${keyNode.value}'`;
-    }
-
-    if (keyNode.type === 'Identifier') {
-        return keyNode.name;
-    }
-
-    if (keyNode.type === 'TemplateLiteral') {
-        const [firstExpression] = keyNode.expressions;
-
-        return firstExpression?.range.at(0) === keyNode.range.at(0) + TEMPLATE_INTERPOLATION_PREFIX.length ? getStaticKeyPath(firstExpression) : null;
-    }
-
-    if (keyNode.type !== 'MemberExpression') {
-        return null;
-    }
-
-    const propertyName = getStaticPropertyName(keyNode);
-    const objectPath = getStaticKeyPath(keyNode.object);
-
-    return propertyName && objectPath ? `${objectPath}.${propertyName}` : null;
-}
-
-const SINGLE_KEY_WRITE_METHODS = new Set(['merge', 'set', 'mergeCollection', 'setCollection']);
-
-function isProvablyDifferentKey(writeCall, readCall) {
-    const writeMethod = writeCall.callee.type === 'MemberExpression' ? getStaticPropertyName(writeCall.callee) : null;
-    const readMethod = readCall.callee.type === 'MemberExpression' ? getStaticPropertyName(readCall.callee) : null;
-
-    if (!writeMethod || !SINGLE_KEY_WRITE_METHODS.has(writeMethod) || readMethod !== 'get') {
-        return false;
-    }
-
-    const writePath = getStaticKeyPath(writeCall.arguments.at(0));
-    const readPath = getStaticKeyPath(readCall.arguments.at(0));
-
-    if (!writePath || !readPath || !writePath.includes('.') || !readPath.includes('.') || writePath === readPath) {
-        return false;
-    }
-
-    const writeSegments = writePath.split('.');
-    const readSegments = readPath.split('.');
-
-    return writeSegments.length === readSegments.length && writeSegments.slice(0, -1).join('.') === readSegments.slice(0, -1).join('.');
-}
-
-const LOOP_TYPES = new Set(['ForStatement', 'ForInStatement', 'ForOfStatement', 'WhileStatement', 'DoWhileStatement']);
-
-function isRepeatingCallback(functionNode, parent) {
-    return (
-        parent?.type === 'CallExpression' &&
-        parent.arguments.includes(functionNode) &&
-        parent.callee.type === 'MemberExpression' &&
-        matchesCalleeName(parent.callee, SYNCHRONOUS_CALLBACK_METHODS)
-    );
-}
-
-function getSharedRepeatEdge(write, read, body) {
-    const readAncestors = new Set(read.ancestors);
-
-    for (let index = write.ancestors.length - 1; index >= 0; index--) {
-        const ancestor = write.ancestors[index];
-
-        if (ancestor === body) {
-            return null;
-        }
-
-        if (!readAncestors.has(ancestor)) {
-            continue;
-        }
-
-        if (LOOP_TYPES.has(ancestor.type)) {
-            return {node: ancestor, isLoop: true};
-        }
-
-        if (isFunctionNode(ancestor) && isRepeatingCallback(ancestor, write.ancestors[index - 1] ?? null)) {
-            return {node: ancestor, isLoop: false};
-        }
-    }
-
-    return null;
-}
-
-function isWithin(node, container) {
-    return node.range.at(0) >= container.range.at(0) && node.range.at(1) <= container.range.at(1);
-}
-
-function isSeparatedAcrossBackEdge(awaits, continues, write, read, loop) {
-    if (getEnclosingAwait(write.ancestors)) {
-        return true;
-    }
-
-    if (continues.some((continueNode) => isWithin(continueNode, loop))) {
-        return false;
-    }
-
-    return awaits.some(
-        (awaitEntry) =>
-            isWithin(awaitEntry.node, loop) &&
-            (awaitEntry.node.range.at(0) >= write.node.range.at(1) || awaitEntry.node.range.at(1) <= read.node.range.at(0)) &&
-            isOnEveryPathTo(awaitEntry, read),
-    );
-}
-
-function getRootIdentifier(node) {
-    let current = node;
-
-    while (current?.type === 'MemberExpression' || current?.type === 'ChainExpression' || current?.type === 'TSAsExpression' || current?.type === 'TSNonNullExpression') {
-        current = current.type === 'MemberExpression' ? current.object : current.expression;
-    }
-
-    return current?.type === 'Identifier' ? current : null;
-}
-
-function isCacheOwnedInit(node, isReadCall) {
-    let current = node;
-    let isAwaited = false;
-
-    while (current) {
-        if (current.type === 'AwaitExpression') {
-            isAwaited = true;
-            current = current.argument;
-            continue;
-        }
-
-        if (current.type === 'ChainExpression' || current.type === 'TSAsExpression' || current.type === 'TSNonNullExpression') {
-            current = current.expression;
-            continue;
-        }
-
-        if (current.type === 'MemberExpression') {
-            current = current.object;
-            continue;
-        }
-
-        return isAwaited && current.type === 'CallExpression' && isReadCall(current);
-    }
-
-    return false;
-}
-
-function collectPatternBindings(pattern, names = []) {
-    if (pattern.type === 'Identifier') {
-        names.push(pattern.name);
-    } else if (pattern.type === 'AssignmentPattern') {
-        collectPatternBindings(pattern.left, names);
-    } else if (pattern.type === 'ObjectPattern') {
-        for (const property of pattern.properties) {
-            if (property.type === 'Property') {
-                collectPatternBindings(property.value, names);
-            }
-        }
-    } else if (pattern.type === 'ArrayPattern') {
-        for (const element of pattern.elements) {
-            if (element && element.type !== 'RestElement') {
-                collectPatternBindings(element, names);
-            }
-        }
-    }
-
-    return names;
-}
-
-const EXITING_STATEMENTS = new Set(['ReturnStatement', 'ThrowStatement']);
-
-function endsByExiting(block) {
-    const last = block.body.at(-1);
-
-    if (!last) {
-        return false;
-    }
-
-    return EXITING_STATEMENTS.has(last.type) || (last.type === 'BlockStatement' && endsByExiting(last));
-}
-
-function exitsBeforeRead(write, read) {
-    const readAncestors = new Set(read.ancestors);
-
-    return write.ancestors.some((ancestor) => ancestor.type === 'BlockStatement' && !readAncestors.has(ancestor) && endsByExiting(ancestor));
-}
-
-function findDivergence(write, read) {
-    const writeChain = [...write.ancestors, write.node];
-    const readChain = [...read.ancestors, read.node];
-    const depth = Math.min(writeChain.length, readChain.length);
-
-    for (let index = 0; index < depth; index++) {
-        if (writeChain[index] !== readChain[index]) {
-            return {
-                parent: writeChain[index - 1] ?? null,
-                writeBranch: writeChain[index],
-                readBranch: readChain[index],
-            };
-        }
-    }
-
-    return null;
-}
-
-function areMutuallyExclusive(write, read) {
-    const divergence = findDivergence(write, read);
-
-    if (!divergence?.parent) {
-        return false;
-    }
-
-    const {parent, writeBranch, readBranch} = divergence;
-
-    if (parent.type === 'IfStatement' || parent.type === 'ConditionalExpression') {
-        return (parent.consequent === writeBranch && parent.alternate === readBranch) || (parent.alternate === writeBranch && parent.consequent === readBranch);
-    }
-
-    return parent.type === 'SwitchStatement' && writeBranch.type === 'SwitchCase' && readBranch.type === 'SwitchCase';
-}
-
 function create(context) {
     const sourceCode = context.sourceCode ?? context.getSourceCode();
     const {readSurface} = context.options.at(0) ?? {};
     const onyxImportBindings = new WeakSet();
     const libraryImportBindings = new WeakSet();
     const readAliases = new WeakSet();
-    const cacheOwnedBindings = new WeakSet();
     const libraryReadAliases = new WeakSet();
-    const writeAliases = new WeakSet();
-
-    const callsByBody = new Map();
-    const continueStatements = [];
 
     function trackBinding(node, bindingName, bindings) {
         const variable = sourceCode.getDeclaredVariables(node).find((declaredVariable) => declaredVariable.name === bindingName);
@@ -574,37 +277,6 @@ function create(context) {
 
         const objectVariable = getVariableByName(scope, node.object.name);
         return !!objectVariable && onyxImportBindings.has(objectVariable);
-    }
-
-    function isReadCall(node, scope) {
-        const calleeVariable = node.callee.type === 'Identifier' ? getVariableByName(scope, node.callee.name) : null;
-        return isOnyxMember(node.callee, scope, READ_METHODS) || (!!calleeVariable && readAliases.has(calleeVariable));
-    }
-
-    function reportIfCacheOwned(node, target, scope) {
-        const root = getRootIdentifier(target);
-        const variable = root ? getVariableByName(scope, root.name) : null;
-
-        if (variable && cacheOwnedBindings.has(variable)) {
-            context.report({node, messageId: 'noMutatedOnyxRead'});
-        }
-    }
-
-    function getCalls(body) {
-        const calls = callsByBody.get(body) ?? {reads: [], writes: [], awaits: []};
-        callsByBody.set(body, calls);
-
-        return calls;
-    }
-
-    function record(node, ancestors, kind) {
-        const body = getEnclosingBody(ancestors);
-
-        if (!body) {
-            return;
-        }
-
-        getCalls(body)[kind].push({node, ancestors});
     }
 
     return {
@@ -649,18 +321,8 @@ function create(context) {
                             trackBinding(node, property.value.name, libraryReadAliases);
                         }
                     }
-
-                    if (keyName && WRITE_METHODS.has(keyName)) {
-                        trackBinding(node, property.value.name, writeAliases);
-                    }
                 }
                 return;
-            }
-
-            if (node.parent?.kind === 'const' && isCacheOwnedInit(node.init, (call) => isReadCall(call, scope))) {
-                for (const bindingName of collectPatternBindings(node.id)) {
-                    trackBinding(node, bindingName, cacheOwnedBindings);
-                }
             }
 
             if (node.id.type !== 'Identifier') {
@@ -681,125 +343,36 @@ function create(context) {
 
             if (isOnyxMember(node.init, scope, READ_METHODS)) {
                 trackBinding(node, node.id.name, readAliases);
-            } else if (isOnyxMember(node.init, scope, WRITE_METHODS)) {
-                trackBinding(node, node.id.name, writeAliases);
             }
-        },
-        AssignmentExpression(node) {
-            reportIfCacheOwned(node, node.left, sourceCode.getScope(node));
-        },
-        UpdateExpression(node) {
-            reportIfCacheOwned(node, node.argument, sourceCode.getScope(node));
-        },
-        UnaryExpression(node) {
-            if (node.operator !== 'delete') {
-                return;
-            }
-
-            reportIfCacheOwned(node, node.argument, sourceCode.getScope(node));
-        },
-        ContinueStatement(node) {
-            continueStatements.push(node);
-        },
-        AwaitExpression(node) {
-            const ancestors = sourceCode.getAncestors(node);
-            const body = getEnclosingBody(ancestors);
-
-            if (!body) {
-                return;
-            }
-
-            getCalls(body).awaits.push({node, ancestors});
         },
         CallExpression(node) {
             const scope = sourceCode.getScope(node);
-
-            if (node.callee.type === 'MemberExpression') {
-                const methodName = getStaticPropertyName(node.callee);
-
-                if (methodName === 'assign' && node.callee.object.type === 'Identifier' && node.callee.object.name === 'Object') {
-                    reportIfCacheOwned(node, node.arguments.at(0), scope);
-                } else if (methodName && MUTATING_ARRAY_METHODS.has(methodName)) {
-                    reportIfCacheOwned(node, node.callee.object, scope);
-                }
-            }
-
             const calleeVariable = node.callee.type === 'Identifier' ? getVariableByName(scope, node.callee.name) : null;
 
-            if (isReadCall(node, scope)) {
-                const ancestors = sourceCode.getAncestors(node);
-
-                const position = classifyPosition(ancestors);
-
-                if (position === MODULE_SCOPE) {
-                    context.report({node, messageId: 'noOnyxReadAtModuleScope'});
-                    return;
-                }
-
-                if (position === RENDER) {
-                    context.report({node, messageId: 'noOnyxGetInRender'});
-                    return;
-                }
-
-                if (readSurface) {
-                    const objectVariable = node.callee.type === 'MemberExpression' && node.callee.object.type === 'Identifier' ? getVariableByName(scope, node.callee.object.name) : null;
-
-                    if ((!!objectVariable && libraryImportBindings.has(objectVariable)) || (!!calleeVariable && libraryReadAliases.has(calleeVariable))) {
-                        context.report({node, messageId: 'noDirectOnyxGet', data: {readSurface}});
-                        return;
-                    }
-                }
-
-                record(node, ancestors, 'reads');
+            if (!isOnyxMember(node.callee, scope, READ_METHODS) && !(!!calleeVariable && readAliases.has(calleeVariable))) {
                 return;
             }
 
-            if (isOnyxMember(node.callee, scope, WRITE_METHODS) || (!!calleeVariable && writeAliases.has(calleeVariable))) {
-                record(node, sourceCode.getAncestors(node), 'writes');
+            const position = classifyPosition(sourceCode.getAncestors(node));
+
+            if (position === MODULE_SCOPE) {
+                context.report({node, messageId: 'noOnyxReadAtModuleScope'});
+                return;
             }
-        },
-        'Program:exit': function reportReadsAfterWrites() {
-            for (const [body, {reads, writes, awaits}] of callsByBody.entries()) {
-                for (const read of reads) {
-                    const precedingWrite = writes.find(
-                        (write) =>
-                            read.node.range.at(0) >= write.node.range.at(1) &&
-                            !isAwaitedBeforeRead(write, read) &&
-                            !isSeparatedByAwait(awaits, write, read) &&
-                            !areMutuallyExclusive(write, read) &&
-                            !exitsBeforeRead(write, read) &&
-                            !isProvablyDifferentKey(write.node, read.node),
-                    );
 
-                    if (precedingWrite) {
-                        context.report({
-                            node: read.node,
-                            messageId: 'noOnyxReadAfterWrite',
-                        });
-                        continue;
-                    }
+            if (position === RENDER) {
+                context.report({node, messageId: 'noOnyxGetInRender'});
+                return;
+            }
 
-                    const loopCarriedWrite = writes.find((write) => {
-                        const edge = read.node.range.at(0) < write.node.range.at(1) ? getSharedRepeatEdge(write, read, body) : null;
+            if (!readSurface) {
+                return;
+            }
 
-                        return (
-                            !!edge &&
-                            (!edge.isLoop || !isSeparatedAcrossBackEdge(awaits, continueStatements, write, read, edge.node)) &&
-                            !areMutuallyExclusive(write, read) &&
-                            !exitsBeforeRead(write, read) &&
-                            !isProvablyDifferentKey(write.node, read.node)
-                        );
-                    });
+            const objectVariable = node.callee.type === 'MemberExpression' && node.callee.object.type === 'Identifier' ? getVariableByName(scope, node.callee.object.name) : null;
 
-                    if (!loopCarriedWrite) {
-                        continue;
-                    }
-
-                    context.report({
-                        node: read.node,
-                        messageId: 'noOnyxReadAfterWriteInLoop',
-                    });
-                }
+            if ((!!objectVariable && libraryImportBindings.has(objectVariable)) || (!!calleeVariable && libraryReadAliases.has(calleeVariable))) {
+                context.report({node, messageId: 'noDirectOnyxGet', data: {readSurface}});
             }
         },
     };

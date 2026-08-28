@@ -14,17 +14,16 @@ Do not re-check these, they are enforced:
 | Already enforced | By what |
 |---|---|
 | Read during render, or at module scope | `no-unsafe-onyx-read` |
-| Read after an un-awaited write **in the same function body** | `no-unsafe-onyx-read`, via its `callsByBody` map |
 | Reading a `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` key | the `ReadableOnyxKey` parameter type, and `@libs/OnyxUtils.get` at runtime for a key that is only a `string` until then |
 | Reading straight off `react-native-onyx` instead of `@libs/OnyxUtils` | `no-unsafe-onyx-read` |
 | A forgotten `await` whose value is then used | `tsc`, since the value is a `Promise` |
-| Mutating a read result held in a `const` | `no-unsafe-onyx-read` |
+| Mutating the read result | `tsc`, since `@libs/OnyxUtils.get` resolves to a `ReadonlyDeep` value |
 
-What is left is what none of them can see: anything that crosses a file boundary, anything only visible as a diff, and dataflow after the read.
+What is left is what none of them can see: **every** read-after-write ordering question, anything that crosses a file boundary, anything only visible as a diff, and dataflow after the read.
 
-**A. Position.** A read is a render read when render reaches it, wherever it is written. Lint decides that syntactically: a function is a render body only when it is named like a component or a hook, or has a top-level `return <JSX>` (the `returnsJSX` check in `eslint-plugin-local-rules/no-unsafe-onyx-read.js`). So it is silent on a read in a library function a hook calls, on a helper that returns JSX from inside an `if` or a `switch`, and on a function handed to a child as a prop, because the body that invokes it is in another file. Silence is not a verdict. Classify by position.
+**A. Position.** A read is a render read when render reaches it, wherever it is written. Lint decides that syntactically: a function is a render body only when it is named like a component or a hook, or has a top-level `return <JSX>` (the `returnsJSX` check in `eslint-plugin-local-rules/no-unsafe-onyx-read.js`). It also reads a `selector` option, a lazy initializer and a `useSyncExternalStore` snapshot as render. So it is silent on a read in a library function a hook calls, on a helper that returns JSX from inside an `if` or a `switch`, and on a function handed to a child as a prop, because the body that invokes it is in another file. Silence is not a verdict. Classify by position.
 
-**B. Tick.** Awaiting the read does not wait for a pending write, and cannot: The read samples the cache when it is called, and the Promise defers delivery rather than the read. Treat every write as deferred. Which writes land before returning is version-dependent, so do not exempt one by name. A derived key lags every write to its sources either way. Lint pairs writes with reads inside a single enclosing body, via the `callsByBody` map in that same rule file. A write in the caller with the read in a callee is the same defect, invisible there.
+**B. Tick.** Awaiting the read does not wait for a pending write, and cannot: The read samples the cache when it is called, and the Promise defers delivery rather than the read. Treat every write as deferred. Which writes land before returning is version-dependent, so do not exempt one by name. A derived key lags every write to its sources either way. Nothing checks this before you: pair every write with every later read of the same key, in the same body, in the caller, and across the passes of a loop. An `await` between them clears the pair only when it runs on every path and awaits the write's own promise, so `Promise.all` counts and `Promise.race` does not.
 
 **C. Trigger.** A `useOnyx` binding whose value is only forwarded still re-renders the component when its key changes, and sometimes that re-render is the point: an effect keyed on the value, or a dependency array carrying it. Replacing such a binding with a read in the same body deletes the trigger. The finished file looks correct, so this shape is only visible in the diff.
 
