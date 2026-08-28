@@ -1,19 +1,25 @@
-import React from 'react';
-
 import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
 
 type WrappingTextProps = {
     /** Plain copy to render, split into per-word nodes so it wraps naturally inside a flexWrap row. */
     text: string;
 };
 
-// The help text mixes plain copy with tappable links (e.g. a client-side template download and an external help guide).
-// On Android, a link nested inline inside a <Text> becomes a ClickableSpan whose touch area is limited to the glyph bounds,
-// which makes it unreliable to tap (e.g. at the minimum device font size). The links are therefore rendered as their own
-// PressableWithoutFeedback nodes inside a flexWrap row, and this component renders the plain copy between them as a sequence
-// of per-word <Text> nodes so the paragraph still flows and wraps naturally across the row.
+/**
+ * Renders plain copy as a sequence of per-word <Text> nodes so it flows and wraps naturally inside a
+ * flexWrap row alongside tappable link nodes.
+ *
+ * The company-card CSV import help text mixes plain copy with tappable links (a client-side template
+ * download and an external help guide). On Android, a link nested inline inside a <Text> becomes a
+ * ClickableSpan whose touch area is limited to the glyph bounds, which makes it unreliable to tap (e.g.
+ * at the minimum device font size). The links are therefore rendered as their own PressableWithoutFeedback
+ * nodes inside a flexWrap row, and this component renders the plain copy between them as per-word <Text>
+ * nodes so the paragraph still flows and wraps naturally across the row.
+ */
 function WrappingText({text}: WrappingTextProps) {
     const styles = useThemeStyles();
 
@@ -37,4 +43,3 @@ function WrappingText({text}: WrappingTextProps) {
 WrappingText.displayName = 'WrappingText';
 
 export default WrappingText;
-export type {WrappingTextProps};
