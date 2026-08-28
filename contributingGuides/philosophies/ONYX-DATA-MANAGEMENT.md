@@ -188,10 +188,10 @@ const named = {...report, reportName: report?.reportName ?? CONST.REPORT.DEFAULT
 ### - The Search snapshot keys MUST stay on `useOnyx`
 `@hooks/useOnyx` is not the library hook. Inside a `SearchScopeProvider` subtree it rewrites the key: for the keys in `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` it subscribes to `snapshot_<hash>` and extracts the requested key out of that blob. `Onyx.get()` always reads the global key, so a conversion on one of them would silently swap snapshot data for live data.
 
-Nothing here is left to judgment. `@libs/OnyxUtils.get` throws on these keys, and `no-unsafe-onyx-read` rejects a call whose key statically resolves to one of them, so a conversion fails at lint time and again at runtime. There is no provider tree to walk: the keys are simply off limits, whichever subtree the read sits in.
+Nothing here is left to judgment. `@libs/OnyxUtils.get` takes a `ReadableOnyxKey`, which is `OnyxKey` with these prefixes excluded, so passing one does not compile. A key that is only a `string` until runtime still reaches the wrapper, which throws in development and reports in production. There is no provider tree to walk: the keys are simply off limits, whichever subtree the read sits in.
 
 ```typescript
-// BAD ❌ throws, and lint rejects it first
+// BAD ❌ does not compile: report_ is not a ReadableOnyxKey
 const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 ```
 

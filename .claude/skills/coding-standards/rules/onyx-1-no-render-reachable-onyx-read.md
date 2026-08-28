@@ -15,7 +15,7 @@ Do not re-check these, they are enforced:
 |---|---|
 | Read during render, or at module scope | `no-unsafe-onyx-read` |
 | Read after an un-awaited write **in the same function body** | `no-unsafe-onyx-read`, via its `callsByBody` map |
-| Reading a `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` key | `no-unsafe-onyx-read` for a static key, `@libs/OnyxUtils.get` throws for a computed one |
+| Reading a `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` key | the `ReadableOnyxKey` parameter type, and `@libs/OnyxUtils.get` at runtime for a key that is only a `string` until then |
 | Reading straight off `react-native-onyx` instead of `@libs/OnyxUtils` | `no-unsafe-onyx-read` |
 | A forgotten `await` whose value is then used | `tsc`, since the value is a `Promise` |
 | Mutating a read result held in a `const` | `no-unsafe-onyx-read` |

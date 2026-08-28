@@ -7,7 +7,7 @@ description: Onyx.get() reads an Onyx key once, asynchronously, and never subscr
 
 **The rules are in [ONYX-DATA-MANAGEMENT.md](../../../contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md#reading-onyx-data-useonyx-onyxget-and-onyxconnectwithoutview).** Read that section before writing or converting a read.
 
-In EApp every read goes through `@libs/OnyxUtils.get`, which throws for the Search snapshot keys.
+In EApp every read goes through `@libs/OnyxUtils.get`, which takes a `ReadableOnyxKey`: the Search snapshot keys do not compile. One that is only a `string` until runtime still reaches the wrapper, which throws in development and reports in production.
 
 `npm run lint-changed` runs `no-unsafe-onyx-read`, which checks three things: not during render, not at module scope, and not after an un-awaited write in the same body. It does not check anything below.
 

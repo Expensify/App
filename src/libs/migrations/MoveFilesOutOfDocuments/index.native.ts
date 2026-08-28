@@ -1,4 +1,5 @@
 import Log from '@libs/Log';
+import OnyxUtils from '@libs/OnyxUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -9,7 +10,6 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import RNFS from 'react-native-fs';
 import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 const OLD_ATTACHMENT_DIR = `${RNFS.DocumentDirectoryPath}/attachments`;
 const NEW_ATTACHMENT_DIR = `${RNFS.CachesDirectoryPath}/attachments`;

@@ -51,8 +51,6 @@ const meta = {
             properties: {
                 // Reads must go through this wrapper rather than the library.
                 readSurface: {type: 'string'},
-                // Dotted ONYXKEYS paths this repo forbids reading, mirroring the wrapper's runtime guard.
-                forbiddenKeys: {type: 'array', items: {type: 'string'}},
             },
             additionalProperties: false,
         },
@@ -70,9 +68,6 @@ const meta = {
         noDirectOnyxGet:
             "Do not read Onyx straight from the library. {{readSurface}} is this repo's read surface and refuses the Search snapshot keys, which src/hooks/useOnyx.ts redirects to snapshot_<hash> in a way the library cannot see. Reading around it returns live data where the component would have seen the snapshot.\n\n" +
             'Import the wrapper from {{readSurface}} and call its get() instead.',
-        noForbiddenKeyRead:
-            'Do not read {{key}} with Onyx.get(). src/hooks/useOnyx.ts redirects this key to snapshot_<hash> inside a SearchScopeProvider, and a one-shot read cannot see that redirect, so it returns live data where the component would have seen the snapshot.\n\n' +
-            'Keep this key on useOnyx().',
         noMutatedOnyxRead:
             'Do not mutate the result of an Onyx read. A single key resolves to the cached object itself rather than a copy, so this writes straight into the cache and no subscriber is told. A collection resolves frozen and throws instead, which makes this the silent case.\n\n' +
             'Spread it first, or build the change into a new object.',
@@ -478,8 +473,7 @@ function areMutuallyExclusive(write, read) {
  */
 function create(context) {
     const sourceCode = context.sourceCode ?? context.getSourceCode();
-    const {readSurface, forbiddenKeys: forbiddenKeyList = []} = context.options.at(0) ?? {};
-    const forbiddenKeys = new Set(forbiddenKeyList);
+    const {readSurface} = context.options.at(0) ?? {};
     const onyxImportBindings = new WeakSet();
     const libraryImportBindings = new WeakSet();
     const readAliases = new WeakSet();
@@ -499,20 +493,6 @@ function create(context) {
         }
     }
 
-    function isReadCall(node, scope) {
-        const calleeVariable = node.callee.type === 'Identifier' ? getVariableByName(scope, node.callee.name) : null;
-        return isOnyxMember(node.callee, scope, READ_METHODS) || (!!calleeVariable && readAliases.has(calleeVariable));
-    }
-
-    function reportIfCacheOwned(node, target, scope) {
-        const root = getRootIdentifier(target);
-        const variable = root ? getVariableByName(scope, root.name) : null;
-
-        if (variable && cacheOwnedBindings.has(variable)) {
-            context.report({node, messageId: 'noMutatedOnyxRead'});
-        }
-    }
-
     function isOnyxMember(node, scope, methods) {
         if (node?.type !== 'MemberExpression' || node.object.type !== 'Identifier') {
             return false;
@@ -526,6 +506,20 @@ function create(context) {
 
         const objectVariable = getVariableByName(scope, node.object.name);
         return !!objectVariable && onyxImportBindings.has(objectVariable);
+    }
+
+    function isReadCall(node, scope) {
+        const calleeVariable = node.callee.type === 'Identifier' ? getVariableByName(scope, node.callee.name) : null;
+        return isOnyxMember(node.callee, scope, READ_METHODS) || (!!calleeVariable && readAliases.has(calleeVariable));
+    }
+
+    function reportIfCacheOwned(node, target, scope) {
+        const root = getRootIdentifier(target);
+        const variable = root ? getVariableByName(scope, root.name) : null;
+
+        if (variable && cacheOwnedBindings.has(variable)) {
+            context.report({node, messageId: 'noMutatedOnyxRead'});
+        }
     }
 
     function record(node, ancestors, kind) {
@@ -659,12 +653,6 @@ function create(context) {
 
                 if (position === RENDER) {
                     context.report({node, messageId: 'noOnyxGetInRender'});
-                    return;
-                }
-
-                const keyPath = getStaticKeyPath(node.arguments.at(0));
-                if (keyPath && forbiddenKeys.has(keyPath)) {
-                    context.report({node, messageId: 'noForbiddenKeyRead', data: {key: keyPath}});
                     return;
                 }
 

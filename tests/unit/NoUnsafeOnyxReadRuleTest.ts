@@ -43,23 +43,9 @@ const RENDER_ERRORS = [{messageId: 'noOnyxGetInRender'}];
 const MODULE_SCOPE_ERRORS = [{messageId: 'noOnyxReadAtModuleScope'}];
 const READ_AFTER_WRITE_ERRORS = [{messageId: 'noOnyxReadAfterWrite'}];
 const DIRECT_ERRORS = [{messageId: 'noDirectOnyxGet'}];
-const FORBIDDEN_KEY_ERRORS = [{messageId: 'noForbiddenKeyRead'}];
 const MUTATION_ERRORS = [{messageId: 'noMutatedOnyxRead'}];
 
-const OPTIONS = [
-    {
-        readSurface: '@libs/OnyxUtils',
-        forbiddenKeys: [
-            'ONYXKEYS.COLLECTION.REPORT',
-            'ONYXKEYS.COLLECTION.POLICY',
-            'ONYXKEYS.COLLECTION.TRANSACTION',
-            'ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS',
-            'ONYXKEYS.COLLECTION.REPORT_ACTIONS',
-            'ONYXKEYS.PERSONAL_DETAILS_LIST',
-            'ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS',
-        ],
-    },
-];
+const OPTIONS = [{readSurface: '@libs/OnyxUtils'}];
 
 /**
  * The rule polices one call, `Onyx.get(...)`, on two axes:
@@ -182,14 +168,6 @@ describe('no-unsafe-onyx-read', () => {
             {code: `${ONYX_IMPORT} export async function submit() { return Onyx.get(key); }`, options: OPTIONS, errors: DIRECT_ERRORS},
             {code: `${ONYX_IMPORT} const {get} = Onyx; export async function submit() { return get(key); }`, options: OPTIONS, errors: DIRECT_ERRORS},
 
-            // Keys the wrapper refuses at runtime, refused here too so the author hears about it sooner.
-            {code: `${WRAPPER_IMPORT} export async function submit() { return OnyxUtils.get(ONYXKEYS.COLLECTION.REPORT); }`, options: OPTIONS, errors: FORBIDDEN_KEY_ERRORS},
-            {
-                code: `${WRAPPER_IMPORT} export async function submit(reportID) { return OnyxUtils.get(\`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\`); }`,
-                options: OPTIONS,
-                errors: FORBIDDEN_KEY_ERRORS,
-            },
-            {code: `${WRAPPER_IMPORT} export async function submit() { return OnyxUtils.get(ONYXKEYS.PERSONAL_DETAILS_LIST); }`, options: OPTIONS, errors: FORBIDDEN_KEY_ERRORS},
             {code: `${WRAPPER_IMPORT} const initialValue = OnyxUtils.get(key);`, errors: MODULE_SCOPE_ERRORS},
             {
                 code: `${ONYX_IMPORT} ${WRAPPER_IMPORT} async function submit() { Onyx.merge(key, value); return OnyxUtils.get(key); }`,

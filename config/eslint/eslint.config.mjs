@@ -337,23 +337,7 @@ const config = defineConfig([
             'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
             'rulesdir/no-raw-typography': 'error',
             'rulesdir/require-locale-for-localized-date-format': 'error',
-            'rulesdir/no-unsafe-onyx-read': [
-                'error',
-                {
-                    readSurface: '@libs/OnyxUtils',
-                    // Mirrors CONST.SEARCH.SNAPSHOT_ONYX_KEYS, which @libs/OnyxUtils refuses at runtime.
-                    // tests/unit/libs/OnyxUtilsTest.ts fails if the two lists drift apart.
-                    forbiddenKeys: [
-                        'ONYXKEYS.COLLECTION.REPORT',
-                        'ONYXKEYS.COLLECTION.POLICY',
-                        'ONYXKEYS.COLLECTION.TRANSACTION',
-                        'ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS',
-                        'ONYXKEYS.COLLECTION.REPORT_ACTIONS',
-                        'ONYXKEYS.PERSONAL_DETAILS_LIST',
-                        'ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS',
-                    ],
-                },
-            ],
+            'rulesdir/no-unsafe-onyx-read': ['error', {readSurface: '@libs/OnyxUtils'}],
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
                 {
