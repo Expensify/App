@@ -33,7 +33,7 @@ Only **Workspace Admins** can import transactions for company cards.
 7. Click **Next**.
 8. Choose the CSV, TXT, XLS, or XLSX file you want to upload.
 9. Set your field mappings, mapping either a **Card number** or a **Card name**, along with **Date**, **Merchant**, **Amount**, and **Currency**.
-10. Assign cards to users based on the transactions in the file.
+10. Assign cards to Workspace members based on the transactions in the file.
 11. Click **Import**.
 
 You must map at least one card-identity column — a **Card number** or a **Card name** — so each transaction can be grouped under a card.
@@ -96,7 +96,7 @@ Your file must include a way to identify each card so transactions can be matche
 
 ## How does matching transactions by card name work?
 
-Instead of a **Card number**, you can map a **Card name** column, and Expensify groups each transaction under the card identified by that name. After you upload the file, those cards appear as entries you can assign to users — the name doesn't need to match a card you've already assigned. You only need one card-identity column, so map a **Card number** column instead if you'd rather identify cards by number.
+Instead of a **Card number**, you can map a **Card name** column, and Expensify groups each transaction under the card identified by that name. After you upload the file, those cards appear as entries you can assign to Workspace members — the name doesn't need to match a card you've already assigned. You only need one card-identity column, so map a **Card number** column instead if you'd rather identify cards by number.
 
 ## What happens if I map the same spreadsheet column twice?
 
