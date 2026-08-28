@@ -5890,6 +5890,7 @@ function getDisplayValue(
         key === FILTER_KEYS.ATTENDEE ||
         key === FILTER_KEYS.ASSIGNEE ||
         key === FILTER_KEYS.PAID_BY ||
+        key === FILTER_KEYS.PAID_BY_NOT ||
         key === FILTER_KEYS.TAX_RATE ||
         key === FILTER_KEYS.IN ||
         key === FILTER_KEYS.BANK_ACCOUNT ||
