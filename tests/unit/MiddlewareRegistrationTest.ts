@@ -21,15 +21,6 @@ jest.mock('@libs/Request', () => ({
     addMiddleware: jest.fn(),
 }));
 
-/**
- * The order of these registrations is load-bearing and documented in src/libs/Middleware/register.ts:
- * SaveResponseInOnyx must be the last middleware that writes Onyx, so RecordFullReconnectTime and
- * LoadPostDataForOpenOrReconnect have to precede it and FraudMonitoring has to follow it.
- *
- * Note this deliberately does not use jest.isolateModules: register.ts has to resolve the middleware
- * modules from the same registry this file imported them from, or the identity comparison below sees two
- * distinct copies of every function.
- */
 const EXPECTED_ORDER: RequestModule.Middleware[] = [
     Logging,
     LoadTest,
@@ -50,8 +41,8 @@ describe('Middleware registration', () => {
     let registered: RequestModule.Middleware[] = [];
 
     beforeAll(() => {
-        // Imported for its side effect, which is the thing under test. require() keeps it in this file's
-        // module registry so the registered functions are the same references imported above.
+        // jest.isolateModules would give register.ts its own module registry, so the middlewares it resolves
+        // would be distinct function objects from the ones imported above and every identity check would fail.
         require('@libs/Middleware/register');
         registered = jest.mocked(addMiddleware).mock.calls.map(([middleware]) => middleware);
     });
