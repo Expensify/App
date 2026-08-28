@@ -9,6 +9,7 @@ import useRootNavigationState from './useRootNavigationState';
  * An RHP sits beside a wide pane rather than over it, so only another tab covers one outright.
  * Tabs switch inside the root's tab navigator, so which one this screen belongs to shows only while it holds focus.
  * Callers pass the narrow flag that applies to them: `shouldUseNarrowLayoutIgnoringWideRHP` where the screen cannot itself become a wide RHP.
+ * That flag already carries per-route RHP membership, being false only while this route is the displayed one, so an RHP screen covered by a stacked wide route arrives here narrow.
  */
 function useIsReportVisible(shouldUseNarrowLayout: boolean): boolean {
     const isFocused = useIsFocused();
