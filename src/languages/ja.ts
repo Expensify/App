@@ -4697,8 +4697,16 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         mcp: {
             connectors: 'コネクタ',
             connectorsSubtitle: 'AIアシスタントをExpensifyアカウントに接続します。',
-            helpPrompt: 'その他の AI アシスタントの接続にお困りですか？ ',
+            helpPrompt: '接続にお困りですか？ ',
             helpLink: 'ガイドをご覧ください。',
+            claude: {
+                title: 'Claude',
+                subtitle: 'Anthropic 提供',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'Anysphere 提供',
+            },
             chatgpt: {
                 title: 'ChatGPT',
                 subtitle: 'OpenAI 提供',

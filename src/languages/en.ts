@@ -4890,8 +4890,16 @@ const translations = {
         mcp: {
             connectors: 'Connectors',
             connectorsSubtitle: 'Connect an AI assistant to your Expensify account.',
-            helpPrompt: 'Need help connecting other AI assistants? ',
+            helpPrompt: 'Need help connecting? ',
             helpLink: 'Read our guide.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'by Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'by Anysphere',
+            },
             chatgpt: {
                 title: 'ChatGPT',
                 subtitle: 'by OpenAI',

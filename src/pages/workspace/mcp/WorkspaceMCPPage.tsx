@@ -36,10 +36,15 @@ function WorkspaceMCPPage({route}: WorkspaceMCPPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['ChatGPTSquare', 'QuestionMark']);
+    const icons = useMemoizedLazyExpensifyIcons(['ChatGPTSquare', 'ClaudeSquare', 'QuestionMark']);
     const policy = usePolicy(policyID);
 
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.mcp');
+
+    const connectors = [
+        {icon: icons.ChatGPTSquare, title: translate('workspace.mcp.chatgpt.title'), description: translate('workspace.mcp.chatgpt.subtitle'), url: CONST.CHATGPT_CONNECT_URL},
+        {icon: icons.ClaudeSquare, title: translate('workspace.mcp.claude.title'), description: translate('workspace.mcp.claude.subtitle'), url: CONST.CLAUDE_MCP_HELP_URL},
+    ];
 
     return (
         <ScreenWrapper
@@ -68,24 +73,27 @@ function WorkspaceMCPPage({route}: WorkspaceMCPPageProps) {
                         titleStyles={styles.accountSettingsSectionTitle}
                         childrenStyles={styles.pt5}
                     >
-                        <MenuItem
-                            icon={icons.ChatGPTSquare}
-                            iconType={CONST.ICON_TYPE_AVATAR}
-                            title={translate('workspace.mcp.chatgpt.title')}
-                            description={translate('workspace.mcp.chatgpt.subtitle')}
-                            interactive={false}
-                            wrapperStyle={styles.sectionMenuItemTopDescription}
-                            shouldShowRightComponent
-                            rightComponent={
-                                <Button
-                                    onPress={() => openExternalLink(CONST.CHATGPT_CONNECT_URL)}
-                                    style={styles.justifyContentCenter}
-                                    size={CONST.BUTTON_SIZE.SMALL}
-                                >
-                                    <Button.Text>{translate('workspace.accounting.setup')}</Button.Text>
-                                </Button>
-                            }
-                        />
+                        {connectors.map((connector) => (
+                            <MenuItem
+                                key={connector.title}
+                                icon={connector.icon}
+                                iconType={CONST.ICON_TYPE_AVATAR}
+                                title={connector.title}
+                                description={connector.description}
+                                interactive={false}
+                                wrapperStyle={styles.sectionMenuItemTopDescription}
+                                shouldShowRightComponent
+                                rightComponent={
+                                    <Button
+                                        onPress={() => openExternalLink(connector.url)}
+                                        style={styles.justifyContentCenter}
+                                        size={CONST.BUTTON_SIZE.SMALL}
+                                    >
+                                        <Button.Text>{translate('workspace.accounting.setup')}</Button.Text>
+                                    </Button>
+                                }
+                            />
+                        ))}
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt7]}>
                             <Icon
                                 src={icons.QuestionMark}

@@ -4583,8 +4583,16 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         mcp: {
             connectors: '连接器',
             connectorsSubtitle: '将 AI 助手连接到您的 Expensify 账户。',
-            helpPrompt: '需要帮助连接其他 AI 助手吗？',
+            helpPrompt: '需要帮助连接吗？',
             helpLink: '阅读我们的指南。',
+            claude: {
+                title: 'Claude',
+                subtitle: '由 Anthropic 提供',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: '由 Anysphere 提供',
+            },
             chatgpt: {
                 title: 'ChatGPT',
                 subtitle: '由 OpenAI 提供',
