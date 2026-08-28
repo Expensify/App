@@ -24,18 +24,13 @@ function isCategoryTaxRuleKey(key: string) {
     return key.startsWith(CATEGORY_TAX_RULE_KEY_PREFIX);
 }
 
-/**
- * The category a rule matches on. `applyWhen` is an array on the backend, but a category tax default only
- * ever carries the single `category matches <name>` condition, so there is exactly one name to read.
- */
+/** The category a rule matches on. A category tax default only ever carries the one `category matches <name>` condition. */
 function getRuleCategoryName(rule: ExpenseRule): string | undefined {
     return rule.applyWhen?.find(({condition, field}) => condition === CONST.POLICY.RULE_CONDITIONS.MATCHES && field === CONST.POLICY.FIELDS.CATEGORY)?.value;
 }
 
-/**
- * Only the rules that carry an explicit tax default. `getCategoryDefaultTaxRate` can't be used here because it falls
- * back to the workspace default, which would make every category look like it has a rule of its own.
- */
+/** Only rules with an explicit tax default. `getCategoryDefaultTaxRate` falls back to the workspace default, which
+ * would make every category look covered. */
 function getCategoryTaxRules(expenseRules: ExpenseRule[] | undefined): ExpenseRule[] {
     return (expenseRules ?? []).filter((rule) => !!rule.tax?.field_id_TAX?.externalID && !!getRuleCategoryName(rule));
 }
@@ -52,16 +47,20 @@ function getCategoryTaxRuleTaxID(expenseRules: ExpenseRule[] | undefined, catego
     return getCategoryTaxRule(expenseRules, categoryName)?.tax?.field_id_TAX?.externalID;
 }
 
-/**
- * The `Name (Value)` label used for a tax rate everywhere in the rules UI. A tax rate deleted from the workspace
- * leaves a rule pointing at nothing, so fall back to the raw ID rather than rendering an empty label.
- */
-function getTaxRateDisplayName(policy: Policy | undefined, taxID: string | undefined): string {
+/** The `Name (Value)` tax label. Prefers the workspace rate so renames read correctly, then the label the rule saved
+ * inline, then the raw ID. */
+function getTaxRateDisplayName(policy: Policy | undefined, taxID: string | undefined, savedTaxRate?: {name?: string; value?: string}): string {
     if (!taxID) {
         return '';
     }
     const taxRate = policy?.taxRates?.taxes?.[taxID];
-    return taxRate ? `${taxRate.name} (${taxRate.value})` : taxID;
+    if (taxRate) {
+        return `${taxRate.name} (${taxRate.value})`;
+    }
+    if (savedTaxRate?.name && savedTaxRate.value) {
+        return `${savedTaxRate.name} (${savedTaxRate.value})`;
+    }
+    return taxID;
 }
 
 function getCategoryTaxRulesTableData({
@@ -119,10 +118,7 @@ const INCOMPATIBLE_CATEGORY_RULE_DEFAULT_KEYS = [
     INPUT_IDS.BILLABLE,
 ] as const;
 
-/**
- * Whether the draft holds defaults a category rule can't carry. They would be silently dropped on save, so the picker
- * warns before clearing them.
- */
+/** Whether the draft holds defaults a category rule can't carry. They'd be dropped on save, so the picker warns first. */
 function hasIncompatibleCategoryRuleDefaults(form: MerchantRuleForm | undefined): boolean {
     if (!form) {
         return false;
@@ -134,4 +130,13 @@ function hasIncompatibleCategoryRuleDefaults(form: MerchantRuleForm | undefined)
     });
 }
 
-export {categoryHasTaxRule, getCategoryNameFromTaxRuleKey, getCategoryTaxRulesTableData, getCategoryTaxRuleTaxID, hasIncompatibleCategoryRuleDefaults, isCategoryTaxRuleKey};
+export {
+    categoryHasTaxRule,
+    getCategoryNameFromTaxRuleKey,
+    getCategoryTaxRulesTableData,
+    getCategoryTaxRuleTaxID,
+    getRuleCategoryName,
+    getTaxRateDisplayName,
+    hasIncompatibleCategoryRuleDefaults,
+    isCategoryTaxRuleKey,
+};

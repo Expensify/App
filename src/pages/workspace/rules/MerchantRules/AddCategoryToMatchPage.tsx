@@ -12,13 +12,12 @@ import type {ListItem} from '@components/SelectionList/types';
 import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyCategoryPickerCategories from '@hooks/usePolicyCategoryPickerCategories';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {updateDraftMerchantRule} from '@libs/actions/User';
 import {categoryHasTaxRule} from '@libs/CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -35,7 +34,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import {useFocusEffect} from '@react-navigation/native';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -47,7 +45,7 @@ type CategoryListItem = ListItem & {
 
 function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
     const {policyID, categoryName: editingCategoryName} = route.params;
-    // Editing a category tax default edits one rule, so its category is swapped rather than added to.
+    // Editing a category tax default edits one rule, so its category is swapped, not added to.
     const isEditingCategoryTaxRule = !!editingCategoryName;
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -55,55 +53,27 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
     const policy = usePolicy(policyID);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const areCategoriesEnabled = !!policy?.areCategoriesEnabled;
 
     const draftCategories = form?.categoriesToMatch ?? [];
     const [selectedCategories, setSelectedCategories] = useState<string[]>(draftCategories);
     const initialSelectedCategories = useInitialSelection(draftCategories, {resetOnFocus: true});
 
-    const fetchPolicyCategories = () => {
-        if (!areCategoriesEnabled || policyCategories !== undefined) {
-            return;
-        }
-        openPolicyCategoriesPage(policyID);
-    };
-
-    const {isOffline} = useNetwork({onReconnect: fetchPolicyCategories});
-
-    useFocusEffect(() => {
-        fetchPolicyCategories();
+    const {
+        categories,
+        areCategoriesEnabled,
+        isLoading: arePolicyCategoriesLoading,
+    } = usePolicyCategoryPickerCategories({
+        policyID,
+        // Keep current selections so they stay removable; don't offer a category that already has a tax default.
+        isEligible: (category) => selectedCategories.includes(category.name) || !categoryHasTaxRule(policy?.rules?.expenseRules, category.name),
     });
 
-    // Only spin while a fetch can actually resolve. Offline there is nothing to wait for, so fall through to the
-    // list instead of a spinner that never goes away.
-    const arePolicyCategoriesLoading = areCategoriesEnabled && policyCategories === undefined && !isOffline;
-
-    const categoryItems: CategoryListItem[] = Object.values(policyCategories ?? {})
-        .filter((category) => {
-            if (!category.enabled) {
-                return false;
-            }
-
-            // Match the rules table: keep pending-delete categories visible while offline.
-            if (!isOffline && category.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                return false;
-            }
-
-            // Keep the current selections available so they stay visible and removable, but don't offer a category that
-            // already has a tax default, since saving over it would silently replace the existing rule.
-            if (selectedCategories.includes(category.name)) {
-                return true;
-            }
-
-            return !categoryHasTaxRule(policy?.rules?.expenseRules, category.name);
-        })
-        .map((category) => ({
-            keyForList: category.name,
-            text: getDecodedCategoryName(category.name),
-            value: category.name,
-            isSelected: selectedCategories.includes(category.name),
-        }));
+    const categoryItems: CategoryListItem[] = categories.map((category) => ({
+        keyForList: category.name,
+        text: getDecodedCategoryName(category.name),
+        value: category.name,
+        isSelected: selectedCategories.includes(category.name),
+    }));
 
     const filterCategory = (item: CategoryListItem, searchInput: string) => (item.text ?? '').toLowerCase().includes(searchInput.toLowerCase());
 
@@ -117,8 +87,7 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
     const [inputValue, setInputValue, filteredCategoryItems] = useSearchResults(sortedCategoryItems, filterCategory);
 
     const toggleCategory = (item: CategoryListItem) => {
-        // One rule holds one category, so editing replaces the selection instead of growing it. Saving several
-        // categories here would write a rule for each and leave the edited one behind.
+        // One rule holds one category. Saving several would write a rule each and orphan the edited one.
         if (isEditingCategoryTaxRule) {
             setSelectedCategories([item.value]);
             return;
@@ -139,14 +108,14 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
         setSelectedCategories((prev) => Array.from(new Set([...prev, ...visibleValues])));
     };
 
-    // Passing the way back explicitly, as every sibling picker does, keeps a deep link into this page from having
-    // nothing to pop to. A category tax default is addressed by its category rather than a ruleID.
+    // Passed explicitly like every sibling picker, so a deep link has somewhere to pop to. A category tax default is
+    // addressed by category rather than ruleID.
     const backToRoute = editingCategoryName ? ROUTES.RULES_CATEGORY_TAX_EDIT.getRoute(policyID, editingCategoryName) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
     const goBackToRule = () => Navigation.goBack(backToRoute);
     const goBackAfterSave = () => Navigation.goBack(backToRoute, {shouldSkipFocusRestore: true});
 
-    // The defaults a category rule can't carry were already cleared before this page opened, so saving is just the
-    // selection. Clearing every category leaves an ordinary merchant rule behind.
+    // Incompatible defaults were cleared before this page opened, so saving is just the selection. Clearing every
+    // category leaves an ordinary merchant rule.
     const handleSave = () => {
         updateDraftMerchantRule({categoriesToMatch: selectedCategories});
         goBackAfterSave();

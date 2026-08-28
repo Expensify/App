@@ -23,6 +23,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
+import {getRuleCategoryName} from '@libs/CategoryTaxRulesUtils';
 import * as CategoryUtils from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -1832,10 +1833,9 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_APPROVER, parameters, onyxData);
 }
 
-/** Whether an expense rule is the tax default for this category. `applyWhen` is typed as required but comes from the
- * backend, and Classic writes this same array, so a rule without one must not take the whole list down. */
+/** Whether an expense rule is this category's tax default. Shares `getRuleCategoryName` so writes and the table agree. */
 function matchesCategoryTaxRule(rule: ExpenseRule, categoryName: string): boolean {
-    return !!rule.applyWhen?.some((when) => when.value === categoryName);
+    return getRuleCategoryName(rule) === categoryName;
 }
 
 /** Builds the expense rule that carries a category's default tax rate. */
@@ -1858,8 +1858,7 @@ function buildCategoryTaxRule(categoryName: string, taxID: string): ExpenseRule 
 /**
  * Applies a tax rate to each category, returning the whole rules array.
  *
- * `expenseRules` is an array and Onyx replaces arrays wholesale rather than merging them, so a write can never patch a
- * single rule. Every stage has to supply the complete array, which is why this returns one rather than mutating.
+ * Onyx replaces arrays wholesale, so a write can never patch one rule. Every stage supplies the complete array.
  */
 function withCategoryTaxRates(expenseRules: ExpenseRule[], taxRatesByCategory: Map<string, string | undefined>): ExpenseRule[] {
     const updated = expenseRules.map((rule) => {
@@ -1883,10 +1882,8 @@ function withCategoryTaxRates(expenseRules: ExpenseRule[], taxRatesByCategory: M
 /**
  * Sets the same default tax rate on one or more categories.
  *
- * There is no `successData`, matching `setPolicyCategoryApprover` and every other action here that owns a nested array.
- * Clearing a per-rule flag would mean rewriting the whole array, and `API.write` persists `successData` with the
- * request, so offline writes would replay stale full-array snapshots on reconnect and overwrite each other. The server
- * response is authoritative for the final array instead.
+ * No `successData`, like `setPolicyCategoryApprover`: it would carry a whole-array snapshot, and `API.write` persists
+ * those, so queued offline writes would replay stale arrays over each other. The server response is authoritative.
  */
 function setPolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[], taxID: string) {
     if (!policy?.id || categoryNames.length === 0 || !taxID) {
@@ -1954,7 +1951,7 @@ function deletePolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: str
         return;
     }
 
-    // Shared for the same reason as the save path: all the writes are enqueued together, so each needs the same end state.
+    // Shared like the save path: the writes are enqueued together, so each needs the same end state.
     const optimisticExpenseRules = expenseRules.filter((rule) => !targets.some((categoryName) => matchesCategoryTaxRule(rule, categoryName)));
 
     for (const categoryName of targets) {

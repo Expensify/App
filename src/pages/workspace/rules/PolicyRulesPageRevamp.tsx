@@ -355,8 +355,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             </View>
         </View>
     );
-    // Kept outside the list so the bulk-actions button stays pinned above it: it reports how many rows are selected,
-    // which is useless if it scrolls away with the rows it is counting.
+    // Outside the list so it stays pinned: it counts selected rows, which is useless once it scrolls away.
     const separateLineButtons =
         shouldDisplayButtonsInSeparateLine && !!headerButtons ? <View style={[styles.flexShrink0, styles.pl5, styles.pr5, styles.pb5, styles.w100]}>{headerButtons}</View> : null;
     const sharedTableTabProps = {
@@ -388,8 +387,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 headerContent={!shouldDisplayButtonsInSeparateLine && headerButtons}
             >
                 <View style={[styles.flex1, styles.w100, styles.mnh0]}>
-                    {/* The table and agent tabs render the selector inside their own list, below these buttons, so
-                        General puts the buttons first too rather than being the one tab that reverses the order. */}
                     {separateLineButtons}
                     {!isTableTab && !isAgentsTab && rulesTabSelector}
                     <View

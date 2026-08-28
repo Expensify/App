@@ -3895,7 +3895,7 @@ const ROUTES = {
     },
     RULES_CATEGORY_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/category-to-match',
-        // A category tax default has no ruleID, so editing one passes its category to keep the picker's way back.
+        // A category tax default has no ruleID, so editing one passes its category for the way back.
         getRoute: (policyID: string, ruleID?: string, categoryName?: string) =>
             `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/category-to-match${categoryName ? `?categoryName=${encodeURIComponent(categoryName)}` : ''}` as const,
     },

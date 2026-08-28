@@ -12,7 +12,7 @@ import type {CodingRule} from '@src/types/onyx/Policy';
 import {DEFAULT_MCC_GROUP, isDefaultMccGroupID} from './actions/Policy/Category';
 import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
 import {clearPolicyCodingRuleErrors} from './actions/Policy/Rules';
-import {getCategoryTaxRulesTableData} from './CategoryTaxRulesUtils';
+import {getCategoryTaxRulesTableData, getTaxRateDisplayName} from './CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import Parser from './Parser';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
@@ -155,7 +155,13 @@ function getMerchantCodingRulesTableData({
                 actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.description, commentMarkdown));
             }
             if (rule.tax?.field_id_TAX?.value) {
-                actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.tax, `${rule.tax.field_id_TAX.name} (${rule.tax.field_id_TAX.value})`));
+                actions.push(
+                    translate(
+                        'workspace.rules.merchantRules.ruleSummarySubtitleUpdateField',
+                        fieldLabels.tax,
+                        getTaxRateDisplayName(policy, rule.tax.field_id_TAX.externalID, rule.tax.field_id_TAX),
+                    ),
+                );
             }
             if (rule.vendorID) {
                 const unavailableLabel = translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
