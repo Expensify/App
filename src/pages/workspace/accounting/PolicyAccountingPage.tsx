@@ -137,7 +137,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const connectionSyncStage = connectionSyncProgress?.stageInProgress;
 
     const canUseDualEntryIntegration = isBetaEnabled(CONST.BETAS.DUALENTRY) || !!policy?.connections?.dualEntry;
-    const shouldShowIntuitEnterpriseSuiteIntegration = isBetaEnabled(CONST.BETAS.INTUIT_ENTERPRISE_SUITE) && (isCollectPolicy(policy) || isControlPolicy(policy));
+    const shouldShowIntuitEnterpriseSuiteIntegration = isCollectPolicy(policy) || isControlPolicy(policy);
     const accountingIntegrations = useMemo(
         () =>
             CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
