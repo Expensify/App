@@ -1424,7 +1424,8 @@ async function bulkDuplicateReports({
         }
 
         if (hasDuplicatedReport) {
-            // Let the previous report's optimistic writes apply before blocking the thread again.
+            // Temporary until the backend exposes a single command that duplicates a whole selection. Until then,
+            // let the previous report's optimistic writes apply before blocking the thread again.
             // eslint-disable-next-line no-await-in-loop
             await new Promise<void>((resolve) => {
                 setTimeout(resolve, 0);
