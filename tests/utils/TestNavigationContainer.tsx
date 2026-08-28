@@ -3,6 +3,7 @@ import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavig
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {
     AuthScreensParamList,
+    DomainSplitNavigatorParamList,
     ReportsSplitNavigatorParamList,
     RightModalNavigatorParamList,
     SearchFullscreenNavigatorParamList,
@@ -30,6 +31,7 @@ type TestRootParamList = AuthScreensParamList & {
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
     [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
     [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;
+    [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: NavigatorScreenParams<DomainSplitNavigatorParamList>;
     [NAVIGATORS.WORKSPACE_NAVIGATOR]: NavigatorScreenParams<WorkspaceNavigatorParamList>;
 };
 
@@ -39,6 +41,7 @@ const ReportsSplit = createSplitNavigator<ReportsSplitNavigatorParamList>();
 const SettingsSplit = createSplitNavigator<SettingsSplitNavigatorParamList>();
 const SearchStack = createPlatformStackNavigator<SearchFullscreenNavigatorParamList>();
 const WorkspaceSplit = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
+const DomainSplit = createSplitNavigator<DomainSplitNavigatorParamList>();
 const WorkspaceStack = createPlatformStackNavigator<WorkspaceNavigatorParamList>();
 const RightModalNavigatorStack = createSplitNavigator<RightModalNavigatorParamList>();
 
@@ -92,7 +95,30 @@ function TestWorkspaceNavigator() {
                 name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
                 component={TestWorkspaceSplitNavigator}
             />
+            <WorkspaceStack.Screen
+                name={NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR}
+                component={TestDomainSplitNavigator}
+            />
         </WorkspaceStack.Navigator>
+    );
+}
+
+function TestDomainSplitNavigator() {
+    return (
+        <DomainSplit.Navigator
+            sidebarScreen={SCREENS.DOMAIN.INITIAL}
+            defaultCentralScreen={SCREENS.DOMAIN.MEMBERS}
+            parentRoute={CONST.NAVIGATION_TESTS.DEFAULT_PARENT_ROUTE}
+        >
+            <DomainSplit.Screen
+                name={SCREENS.DOMAIN.INITIAL}
+                getComponent={getEmptyComponent}
+            />
+            <DomainSplit.Screen
+                name={SCREENS.DOMAIN.MEMBERS}
+                getComponent={getEmptyComponent}
+            />
+        </DomainSplit.Navigator>
     );
 }
 

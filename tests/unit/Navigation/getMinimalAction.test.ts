@@ -1,4 +1,4 @@
-import getMinimalAction from '@libs/Navigation/helpers/linkTo/getMinimalAction';
+import getMinimalAction, {hasMatchingSplitScope} from '@libs/Navigation/helpers/linkTo/getMinimalAction';
 
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -119,7 +119,7 @@ function buildWorkspaceAction(policyID: string): NavigationAction {
     };
 }
 
-function buildDomainAction(domainAccountID: number): NavigationAction {
+function buildDomainAction(domainAccountID: number | string): NavigationAction {
     return {
         type: 'NAVIGATE',
         payload: {
@@ -220,5 +220,30 @@ describe('getMinimalAction', () => {
                 },
             },
         });
+    });
+
+    it('targets the existing domain split when the path and state parameter types differ', () => {
+        const result = getMinimalAction(buildDomainAction(String(DOMAIN_A)), buildDomainState(DOMAIN_A));
+
+        expect(result.action).toMatchObject({
+            type: 'NAVIGATE',
+            target: 'domain-split-state',
+            payload: {name: SCREENS.DOMAIN.MEMBERS, params: {domainAccountID: String(DOMAIN_A)}},
+        });
+    });
+
+    it('matches domain split history by domain account ID', () => {
+        const domainState = buildDomainState(DOMAIN_A);
+        const workspaceState = domainState.routes.at(0)?.state?.routes.at(0)?.state;
+        const domainSplitRoute = workspaceState?.routes.at(0);
+        const minimalAction = getMinimalAction(buildDomainAction(DOMAIN_B), domainState).action;
+        if (!domainSplitRoute) {
+            throw new Error('Expected a domain split route');
+        }
+
+        expect(hasMatchingSplitScope(domainSplitRoute, minimalAction.payload)).toBe(false);
+
+        const matchingAction = getMinimalAction(buildDomainAction(DOMAIN_A), buildDomainState(DOMAIN_B)).action;
+        expect(hasMatchingSplitScope(domainSplitRoute, matchingAction.payload)).toBe(true);
     });
 });
