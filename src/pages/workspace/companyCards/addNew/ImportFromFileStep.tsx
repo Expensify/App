@@ -31,6 +31,8 @@ import {useRoute} from '@react-navigation/native';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
+import WrappingText from './WrappingText';
+
 // cspell:disable
 // Example CSV shared with customers so they can see how to structure a company card import file.
 // Sourced from the Expensify Classic "Manage Company Cards" help article.
@@ -66,27 +68,6 @@ function ImportFromFileStep() {
         localFileDownload(CSV_TEMPLATE_FILE_NAME, CSV_TEMPLATE_CONTENT, translate);
     };
 
-    // The help text mixes plain copy with two tappable links (a client-side template download and an external help guide).
-    // On Android, a link nested inline inside a <Text> becomes a ClickableSpan whose touch area is limited to the glyph bounds,
-    // which makes it unreliable to tap (e.g. at the minimum device font size). Rendering each link as its own PressableWithoutFeedback
-    // gives it a real native touch target, while splitting the plain copy into words keeps the paragraph flowing/wrapping naturally.
-    const renderPlainCopy = (text: string) =>
-        // Keep each word (with its own leading/trailing whitespace) as a separate node so the paragraph wraps in the flexWrap row.
-        // Preserving the run's own spacing means locales that don't use spaces around the links (e.g. Japanese, Chinese) aren't
-        // given extra spaces the translation never intended.
-        (text.match(/\s*\S+\s*/g) ?? []).map((word, wordIndex) => (
-            <Text
-                // The word list is derived synchronously from a fixed translation and is never reordered, inserted into, or
-                // filtered, so a word's index is a stable identity. wordIndex is only needed to disambiguate repeated words
-                // within a run (the word text alone can't); the array position is what makes it unique.
-                // eslint-disable-next-line react/no-array-index-key -- index is a stable identity for this static, never-reordered word list
-                key={`${text}-${word}-${wordIndex}`}
-                style={styles.textSupporting}
-            >
-                {word}
-            </Text>
-        ));
-
     const navigateToImport = () => {
         if (!companyCardLayoutName.trim()) {
             setHasError(true);
@@ -114,7 +95,7 @@ function ImportFromFileStep() {
                 addBottomSafeAreaPadding
             >
                 <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap, styles.alignItemsCenter]}>
-                    {renderPlainCopy(translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionStart'))}
+                    <WrappingText text={translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionStart')} />
                     <PressableWithoutFeedback
                         testID="ImportFromFileStep-TemplateLink"
                         role={CONST.ROLE.BUTTON}
@@ -125,7 +106,7 @@ function ImportFromFileStep() {
                     >
                         <Text style={[styles.textSupporting, styles.link]}>{translate('workspace.companyCards.addNewCard.createFileFeedHelpText.templateLink')}</Text>
                     </PressableWithoutFeedback>
-                    {renderPlainCopy(translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionMiddle'))}
+                    <WrappingText text={translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionMiddle')} />
                     <PressableWithoutFeedback
                         testID="ImportFromFileStep-HelpGuideLink"
                         role={CONST.ROLE.LINK}
@@ -142,7 +123,7 @@ function ImportFromFileStep() {
                     >
                         <Text style={[styles.textSupporting, styles.link]}>{translate('workspace.companyCards.addNewCard.createFileFeedHelpText.helpGuideLink')}</Text>
                     </PressableWithoutFeedback>
-                    {renderPlainCopy(translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionEnd'))}
+                    <WrappingText text={translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionEnd')} />
                 </View>
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
