@@ -38,6 +38,9 @@ type FilterListProps = FilterItemCallbacks & {
     selectedFilter?: SearchFilter['key'];
     style?: StyleProp<ViewStyle>;
     contentContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Called as the cursor travels over the list. Web only - it reports the movement between rows that `onHoverIn` cannot. */
+    onPointerMove?: (event: {clientX: number; clientY: number}) => void;
 };
 
 type FilterItemProps = FilterItemCallbacks & {
@@ -102,7 +105,7 @@ function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: Filter
     );
 }
 
-function FilterList({type, policyID, selectedFilter, style, contentContainerStyle, onHoverIn, onFocus, onPress}: FilterListProps) {
+function FilterList({type, policyID, selectedFilter, style, contentContainerStyle, onHoverIn, onFocus, onPress, onPointerMove}: FilterListProps) {
     const styles = useThemeStyles();
     const typeFiltersKeys = useAdvancedSearchFilters(type, policyID);
 
@@ -111,6 +114,7 @@ function FilterList({type, policyID, selectedFilter, style, contentContainerStyl
             style={[style]}
             contentContainerStyle={[contentContainerStyle]}
             showsVerticalScrollIndicator={false}
+            onMouseMove={onPointerMove}
         >
             {typeFiltersKeys.map((section, index) => (
                 <View key={`${section.at(0)}`}>

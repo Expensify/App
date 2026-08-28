@@ -22,6 +22,9 @@ const mockHoverableFilterKeys: string[] = [FILTER_KEYS.TYPE, FILTER_KEYS.FROM, F
 /** Called once per mounted filter content instance, so a remount shows up as a second call for the same key. */
 const mockOnContentCreated = jest.fn<void, [string]>();
 
+/** The pointer move handler the popup hands to the filter list, captured so tests can drive the cursor. */
+let mockOnPointerMove: ((event: {clientX: number; clientY: number}) => void) | undefined;
+
 /** The advanced filters form value served by the useOnyx mock. Reassigned by tests simulating filter value changes. */
 let mockFiltersForm: Partial<SearchAdvancedFiltersForm> | undefined;
 
@@ -33,26 +36,38 @@ jest.mock('@components/SafeTriangle', () => ({
 // Stand-in for the filter list: per filter, one pressable reporting a hover on the row and one reporting focus on it.
 jest.mock('@components/Search/FilterComponents/AdvancedFilters/FilterList', () => ({
     __esModule: true,
-    default: ({onHoverIn, onFocus}: {onHoverIn: (filterKey: string) => void; onFocus: (filterKey: string) => void}) => (
-        <MockView>
-            {mockHoverableFilterKeys.map((filterKey) => (
-                <MockView key={filterKey}>
-                    <MockPressable
-                        testID={`hover-${filterKey}`}
-                        accessibilityLabel={filterKey}
-                        role="menuitem"
-                        onPress={() => onHoverIn(filterKey)}
-                    />
-                    <MockPressable
-                        testID={`focus-${filterKey}`}
-                        accessibilityLabel={filterKey}
-                        role="menuitem"
-                        onPress={() => onFocus(filterKey)}
-                    />
-                </MockView>
-            ))}
-        </MockView>
-    ),
+    default: ({
+        onHoverIn,
+        onFocus,
+        onPointerMove,
+    }: {
+        onHoverIn: (filterKey: string) => void;
+        onFocus: (filterKey: string) => void;
+        onPointerMove: (event: {clientX: number; clientY: number}) => void;
+    }) => {
+        mockOnPointerMove = onPointerMove;
+
+        return (
+            <MockView>
+                {mockHoverableFilterKeys.map((filterKey) => (
+                    <MockView key={filterKey}>
+                        <MockPressable
+                            testID={`hover-${filterKey}`}
+                            accessibilityLabel={filterKey}
+                            role="menuitem"
+                            onPress={() => onHoverIn(filterKey)}
+                        />
+                        <MockPressable
+                            testID={`focus-${filterKey}`}
+                            accessibilityLabel={filterKey}
+                            role="menuitem"
+                            onPress={() => onFocus(filterKey)}
+                        />
+                    </MockView>
+                ))}
+            </MockView>
+        );
+    },
 }));
 
 // Stand-in for the filter content, which is the expensive part being mounted or kept alive.
@@ -100,6 +115,13 @@ function hoverAndRest(filterKey: string) {
     });
 }
 
+/** Travels the cursor to a point over the filter list. */
+function movePointer(clientX: number, clientY: number) {
+    act(() => {
+        mockOnPointerMove?.({clientX, clientY});
+    });
+}
+
 /** Moves the keyboard focus onto a filter row. */
 function focus(filterKey: string) {
     fireEvent.press(screen.getByTestId(`focus-${filterKey}`));
@@ -109,6 +131,7 @@ beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockFiltersForm = undefined;
+    mockOnPointerMove = undefined;
 });
 
 afterEach(() => {
@@ -116,6 +139,83 @@ afterEach(() => {
 });
 
 describe('SearchAdvancedFiltersPopup', () => {
+    it('keeps the content hidden while the cursor is still traveling over a row', () => {
+        render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
+
+        hover(FILTER_KEYS.FROM);
+        // The cursor crosses the row without ever pausing on it for the rest delay, and within the dwell allowance.
+        for (let step = 1; step <= 2; step++) {
+            act(() => {
+                jest.advanceTimersByTime(15);
+            });
+            movePointer(100, 100 + step * 20);
+        }
+
+        expect(mockOnContentCreated).not.toHaveBeenCalledWith(FILTER_KEYS.FROM);
+
+        // It comes to rest, and the content follows without waiting for the full dwell allowance.
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
+        });
+
+        expect(mockOnContentCreated).toHaveBeenCalledWith(FILTER_KEYS.FROM);
+    });
+
+    it('treats a cursor that only shakes on the spot as at rest', () => {
+        render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
+
+        hover(FILTER_KEYS.FROM);
+        movePointer(100, 100);
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY - 10);
+        });
+        // Within HOVER_INTENT_REST_RADIUS_PX of where it settled, so it does not restart the wait.
+        movePointer(104, 103);
+        act(() => {
+            jest.advanceTimersByTime(15);
+        });
+
+        expect(mockOnContentCreated).toHaveBeenCalledWith(FILTER_KEYS.FROM);
+    });
+
+    it('shows the content of a row the cursor never comes to rest on', () => {
+        render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
+
+        hover(FILTER_KEYS.FROM);
+        // Wandering around inside the row, always further than the rest radius: every step restarts the rest wait, so
+        // only the row allowance can end it.
+        for (let step = 1; step <= 25; step++) {
+            act(() => {
+                jest.advanceTimersByTime(CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY - 10);
+            });
+            movePointer(100 + (step % 2) * 20, 100 + (step % 3) * 12);
+        }
+
+        expect(mockOnContentCreated).toHaveBeenCalledWith(FILTER_KEYS.FROM);
+    });
+
+    it('shows nothing while the cursor travels across several rows without stopping', () => {
+        render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
+
+        for (const filterKey of [FILTER_KEYS.FROM, FILTER_KEYS.TO, FILTER_KEYS.ATTENDEE]) {
+            hover(filterKey);
+            movePointer(100, 100 + mockHoverableFilterKeys.indexOf(filterKey) * 30);
+            act(() => {
+                jest.advanceTimersByTime(12);
+            });
+        }
+
+        expect(mockOnContentCreated).not.toHaveBeenCalledWith(FILTER_KEYS.FROM);
+        expect(mockOnContentCreated).not.toHaveBeenCalledWith(FILTER_KEYS.TO);
+
+        // Only the row it stopped on ends up shown.
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
+        });
+
+        expect(mockOnContentCreated).toHaveBeenCalledWith(FILTER_KEYS.ATTENDEE);
+    });
+
     it('does not mount the content of filters the cursor only passes over', () => {
         render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
 

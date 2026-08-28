@@ -4,7 +4,6 @@ import SearchAdvancedFiltersContent from '@components/Search/FilterComponents/Ad
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,7 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
-import React, {Activity, useRef, useState} from 'react';
+import React, {Activity, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import AmountFilterContentPopupWrapper from './AmountFilterContentPopupWrapper';
@@ -138,27 +137,68 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
         });
     };
 
-    // The debounce below always calls the latest version of this, so a hover whose delay elapsed after the cursor or the
-    // focus already moved on is dropped instead of replacing the content of the row the user is on now.
-    const activateHoveredFilter = (filterKey: SearchFilter['key']) => {
-        if (filterKey !== hoveredFilter) {
-            return;
-        }
+    // Shows the content of whichever row the cursor is on once it comes to rest. Time spent on a row cannot tell a
+    // deliberate hover from a slow pass over it, but coming to rest can: a cursor traveling down the list keeps
+    // restarting the wait however slowly it moves, while one that arrived at its target stops and lets it through.
+    const activateRestingFilter = () => {
+        activateFilter(hoveredFilter);
+    };
+    // Held in a ref so a wait started by an earlier render still activates the row the cursor is on now.
+    // `useDebounceNonReactive` cannot express either of the waits below: it always hands lodash a `maxWait` key, and
+    // lodash reads the key rather than its value, so every wait it creates is capped and fires mid-movement.
+    const activateRestingFilterRef = useRef(activateRestingFilter);
+    useEffect(() => {
+        activateRestingFilterRef.current = activateRestingFilter;
+    });
 
-        activateFilter(filterKey);
+    const restTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const rowAllowanceTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const cancelPendingActivation = () => {
+        clearTimeout(restTimeoutRef.current);
+        clearTimeout(rowAllowanceTimeoutRef.current);
+    };
+    useEffect(() => cancelPendingActivation, []);
+
+    /** Restarted by every movement of the cursor, so it only elapses once the cursor has come to rest. */
+    const waitForCursorToRest = () => {
+        clearTimeout(restTimeoutRef.current);
+        restTimeoutRef.current = setTimeout(() => activateRestingFilterRef.current(), CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
     };
 
-    // Hovering only shows a row's content once the cursor has stayed on it for SEARCH_FILTER_HOVER_INTENT_DELAY, so
-    // sweeping across rows doesn't render a content pane per row. Moving focus is deliberate and never sweeps across
-    // rows, so it shows the content right away and keyboard users don't read a pane that is about to be replaced.
-    const debouncedActivateHoveredFilter = useDebounceNonReactive(activateHoveredFilter, CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
+    /**
+     * What a cursor that never comes to rest is given instead. Movement does not restart it, so wandering around inside
+     * one row still ends in its content being shown, while moving on to the next row does - which is why a pass across
+     * the list never reaches it.
+     */
+    const waitForRowAllowance = () => {
+        clearTimeout(rowAllowanceTimeoutRef.current);
+        rowAllowanceTimeoutRef.current = setTimeout(() => activateRestingFilterRef.current(), CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_MAX_DELAY);
+    };
 
     const hoverFilter = (filterKey: SearchFilter['key']) => {
         setHoveredFilter(filterKey);
-        debouncedActivateHoveredFilter(filterKey);
+        waitForCursorToRest();
+        waitForRowAllowance();
     };
 
+    // Where the cursor was when it last counted as moving. Distance is measured from there rather than from the previous
+    // event, because a hand that shakes stays within HOVER_INTENT_REST_RADIUS_PX of one point however many events it
+    // emits, while a cursor crossing the list leaves that point behind even when it creeps a pixel at a time.
+    const restAnchorRef = useRef<{x: number; y: number} | null>(null);
+    const trackPointerMovement = (event: {clientX: number; clientY: number}) => {
+        const anchor = restAnchorRef.current;
+        if (anchor && Math.hypot(event.clientX - anchor.x, event.clientY - anchor.y) < CONST.SEARCH.HOVER_INTENT_REST_RADIUS_PX) {
+            return;
+        }
+
+        restAnchorRef.current = {x: event.clientX, y: event.clientY};
+        waitForCursorToRest();
+    };
+
+    // Moving the focus is deliberate and never passes over rows on the way, so it shows the content right away and
+    // drops whatever the cursor had pending.
     const focusFilter = (filterKey: SearchFilter['key']) => {
+        cancelPendingActivation();
         setHoveredFilter(filterKey);
         activateFilter(filterKey);
     };
@@ -172,6 +212,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                     policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, searchAdvancedFiltersForm)}
                     selectedFilter={hoveredFilter}
                     onHoverIn={hoverFilter}
+                    onPointerMove={trackPointerMovement}
                     onFocus={focusFilter}
                 />
                 <View
