@@ -195,6 +195,14 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
         waitForCursorToRest();
     };
 
+    // Leaving the list - for the content pane beside it, or for anywhere else - means the row the cursor last passed
+    // over was not the one it was after, so whatever it had pending for that row is dropped rather than replacing the
+    // content the user is on their way to.
+    const stopTrackingPointer = () => {
+        cancelPendingActivation();
+        restAnchorRef.current = null;
+    };
+
     // Moving the focus is deliberate and never passes over rows on the way, so it shows the content right away and
     // drops whatever the cursor had pending.
     const focusFilter = (filterKey: SearchFilter['key']) => {
@@ -213,6 +221,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                     selectedFilter={hoveredFilter}
                     onHoverIn={hoverFilter}
                     onPointerMove={trackPointerMovement}
+                    onPointerLeave={stopTrackingPointer}
                     onFocus={focusFilter}
                 />
                 <View

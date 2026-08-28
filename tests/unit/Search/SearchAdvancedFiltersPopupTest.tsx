@@ -25,6 +25,9 @@ const mockOnContentCreated = jest.fn<void, [string]>();
 /** The pointer move handler the popup hands to the filter list, captured so tests can drive the cursor. */
 let mockOnPointerMove: ((event: {clientX: number; clientY: number}) => void) | undefined;
 
+/** The pointer leave handler the popup hands to the filter list, captured so tests can drive the cursor off it. */
+let mockOnPointerLeave: (() => void) | undefined;
+
 /** The advanced filters form value served by the useOnyx mock. Reassigned by tests simulating filter value changes. */
 let mockFiltersForm: Partial<SearchAdvancedFiltersForm> | undefined;
 
@@ -40,12 +43,15 @@ jest.mock('@components/Search/FilterComponents/AdvancedFilters/FilterList', () =
         onHoverIn,
         onFocus,
         onPointerMove,
+        onPointerLeave,
     }: {
         onHoverIn: (filterKey: string) => void;
         onFocus: (filterKey: string) => void;
         onPointerMove: (event: {clientX: number; clientY: number}) => void;
+        onPointerLeave: () => void;
     }) => {
         mockOnPointerMove = onPointerMove;
+        mockOnPointerLeave = onPointerLeave;
 
         return (
             <MockView>
@@ -122,6 +128,13 @@ function movePointer(clientX: number, clientY: number) {
     });
 }
 
+/** Takes the cursor off the filter list, towards the content pane beside it. */
+function leaveList() {
+    act(() => {
+        mockOnPointerLeave?.();
+    });
+}
+
 /** Moves the keyboard focus onto a filter row. */
 function focus(filterKey: string) {
     fireEvent.press(screen.getByTestId(`focus-${filterKey}`));
@@ -132,6 +145,7 @@ beforeEach(() => {
     jest.useFakeTimers();
     mockFiltersForm = undefined;
     mockOnPointerMove = undefined;
+    mockOnPointerLeave = undefined;
 });
 
 afterEach(() => {
@@ -159,6 +173,20 @@ describe('SearchAdvancedFiltersPopup', () => {
         });
 
         expect(mockOnContentCreated).toHaveBeenCalledWith(FILTER_KEYS.FROM);
+    });
+
+    it('drops what a row had pending once the cursor leaves the list for the content beside it', () => {
+        render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
+
+        // The cursor passes over a row on its way to the content pane, without ever stopping on it.
+        hover(FILTER_KEYS.FROM);
+        movePointer(100, 100);
+        leaveList();
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_MAX_DELAY * 2);
+        });
+
+        expect(mockOnContentCreated).not.toHaveBeenCalledWith(FILTER_KEYS.FROM);
     });
 
     it('treats a cursor that only shakes on the spot as at rest', () => {

@@ -41,6 +41,9 @@ type FilterListProps = FilterItemCallbacks & {
 
     /** Called as the cursor travels over the list. Web only - it reports the movement between rows that `onHoverIn` cannot. */
     onPointerMove?: (event: {clientX: number; clientY: number}) => void;
+
+    /** Called when the cursor leaves the list, for whatever it has pending for the row it was on. Web only. */
+    onPointerLeave?: () => void;
 };
 
 type FilterItemProps = FilterItemCallbacks & {
@@ -105,7 +108,7 @@ function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: Filter
     );
 }
 
-function FilterList({type, policyID, selectedFilter, style, contentContainerStyle, onHoverIn, onFocus, onPress, onPointerMove}: FilterListProps) {
+function FilterList({type, policyID, selectedFilter, style, contentContainerStyle, onHoverIn, onFocus, onPress, onPointerMove, onPointerLeave}: FilterListProps) {
     const styles = useThemeStyles();
     const typeFiltersKeys = useAdvancedSearchFilters(type, policyID);
 
@@ -115,6 +118,7 @@ function FilterList({type, policyID, selectedFilter, style, contentContainerStyl
             contentContainerStyle={[contentContainerStyle]}
             showsVerticalScrollIndicator={false}
             onMouseMove={onPointerMove}
+            onMouseLeave={onPointerLeave}
         >
             {typeFiltersKeys.map((section, index) => (
                 <View key={`${section.at(0)}`}>
