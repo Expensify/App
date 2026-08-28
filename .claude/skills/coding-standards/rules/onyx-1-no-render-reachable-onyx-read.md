@@ -17,9 +17,10 @@ Do not re-check these, they are enforced:
 | Reading a `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` key | the `ReadableOnyxKey` parameter type, and `@libs/OnyxUtils.get` at runtime for a key that is only a `string` until then |
 | Reading straight off `react-native-onyx` instead of `@libs/OnyxUtils` | `no-unsafe-onyx-read` |
 | A forgotten `await` whose value is then used | `tsc`, since the value is a `Promise` |
-| Mutating the read result | `tsc`, since `@libs/OnyxUtils.get` resolves to a `ReadonlyDeep` value |
 
 What is left is what none of them can see: **every** read-after-write ordering question, anything that crosses a file boundary, anything only visible as a diff, and dataflow after the read.
+
+Mutating a read result is not on either list. The resolved value is the object the cache holds, so writing to it is a real bug, but `useOnyx` returns that same object typed the same way and the codebase already accepts the hazard there. Enforcing it on the read alone would only make the read harder to adopt than the subscription it replaces, so it stays a convention documented on `@libs/OnyxUtils.get`.
 
 **A. Position.** A read is a render read when render reaches it, wherever it is written. Lint decides that syntactically: a function is a render body only when it is named like a component or a hook, or has a top-level `return <JSX>` (the `returnsJSX` check in `eslint-plugin-local-rules/no-unsafe-onyx-read.js`). It also reads a `selector` option, a lazy initializer and a `useSyncExternalStore` snapshot as render. So it is silent on a read in a library function a hook calls, on a helper that returns JSX from inside an `if` or a `switch`, and on a function handed to a child as a prop, because the body that invokes it is in another file. Silence is not a verdict. Classify by position.
 
