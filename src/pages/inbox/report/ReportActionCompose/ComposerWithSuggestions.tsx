@@ -286,7 +286,7 @@ function ComposerWithSuggestions({
     });
 
     // Save the draft of the report action. This debounced so that we're not ceaselessly saving your edit.
-    const {saveDraft: debouncedSaveReportActionDraft, isSavePending: isDraftSavePending} = useDebouncedSaveDraft(saveReportActionDraft);
+    const {saveDraft: debouncedSaveReportActionDraft, isSavePending: isDraftSavePending, cancelSaveDraft: cancelSaveReportActionDraft} = useDebouncedSaveDraft(saveReportActionDraft);
 
     // Save the draft of the report comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
     // allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
@@ -308,6 +308,22 @@ function ComposerWithSuggestions({
         updateDraftMessage: setText,
         isEditInProgressRef: isDraftSavePending,
     });
+
+    // A pending report-action draft save belongs to the edit session that scheduled it. Without cancelling it at the
+    // session boundary, the trailing debounced write can land after Save/Cancel has already cleared the draft and
+    // re-open the editor with stale text (see the composer flipping back into edit mode after saving on narrow layout).
+    useEffect(() => {
+        if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING) {
+            return;
+        }
+        cancelSaveReportActionDraft();
+    }, [editingState, cancelSaveReportActionDraft]);
+
+    // Switching from one edit target straight to another never passes through OFF, so it needs its own cancellation.
+    // Otherwise the first message's pending save can overwrite the draft of the message just switched to.
+    useEffect(() => {
+        cancelSaveReportActionDraft();
+    }, [editingReportID, editingReportAction?.reportActionID, cancelSaveReportActionDraft]);
 
     const [selection, setSelection] = useState<TextSelection>(() => currentEditMessageSelection ?? {start: initialText.length, end: initialText.length});
 
@@ -337,7 +353,7 @@ function ComposerWithSuggestions({
     const ignoreEditSelectionResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     const handleEditFocus = useCallback(() => {
-        focus(true, undefined, true);
+        focus(true, undefined, editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING);
         onFocus();
 
         if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING) {
