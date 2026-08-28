@@ -1,63 +1,35 @@
 const name = 'no-unsafe-onyx-read';
 
-/**
- * Import sources that resolve to the Onyx library, including `react-native-onyx/dist/OnyxUtils`.
- */
 const ONYX_MODULE_PREFIX = 'react-native-onyx';
 
-/** EApp's wrapper around the library. Reads are supposed to go through it, so it is a read surface too. */
 const ONYX_WRAPPER_MODULE = '@libs/OnyxUtils';
 
-/** One-shot read APIs on the Onyx surface. They return a Promise and none of them subscribe. */
 const READ_METHODS = new Set(['get', 'multiGet', 'tupleGet', 'getAllKeys']);
 
-/**
- * Write APIs a later read in the same tick cannot be trusted to see. None is exempt: which ones land
- * immediately is version-dependent, and any `set` inside `update()` is deferred regardless.
- */
 const WRITE_METHODS = new Set(['merge', 'update', 'set', 'multiSet', 'mergeCollection', 'setCollection', 'clear']);
 
-/** Array methods that write in place, so calling one on a read result edits the cache. */
 const MUTATING_ARRAY_METHODS = new Set(['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse', 'fill', 'copyWithin']);
 
-/** Array methods whose callback runs in the caller's own tick, so the boundary defers nothing. */
 const SYNCHRONOUS_CALLBACK_METHODS = new Set(['map', 'filter', 'reduce', 'reduceRight', 'forEach', 'find', 'findIndex', 'findLast', 'findLastIndex', 'flatMap', 'some', 'every', 'sort']);
 
-/**
- * Hook argument positions whose function runs during render, unlike useCallback and useEffect. The
- * position matters: `useReducer`'s reducer runs on dispatch while its third argument is the lazy
- * initializer, and a lazy initializer runs on the render path even though it only runs once.
- */
 const RENDER_TIME_HOOK_ARGUMENTS = new Map([
     ['useMemo', new Set([0])],
     ['useState', new Set([0])],
     ['useReducer', new Set([2])],
 ]);
 
-/**
- * Option properties whose function runs during render. A `useOnyx` selector runs inside the hook's
- * `getSnapshot`, which React calls while rendering, so a read in one is a render read even though the
- * function sits in an object rather than in an argument position.
- *
- * Matched by property name inside a call to a `use`-prefixed function rather than against a list of
- * hooks, which covers wrappers such as `usePolicy(id, {selector})` and leaves a `selector` option on a
- * non-hook API alone. Only the selector written inline is caught: one hoisted to a `const` and passed by
- * reference reads as a plain module function, so resolve the binding if that shape shows up.
- */
 const RENDER_TIME_OPTION_NAMES = new Set(['selector']);
 
-/** Calls that wrap a component without deferring it, so their callback argument is still a render body. */
 const COMPONENT_WRAPPER_NAMES = new Set(['memo', 'forwardRef']);
 
-/** Constructors whose first argument runs during construction rather than later. */
 const SYNCHRONOUS_EXECUTOR_NAMES = new Set(['Promise']);
 
-/** What a function boundary does to the timing of the code inside it. */
+const TEMPLATE_INTERPOLATION_PREFIX = '`${';
+
 const RENDER = 'render';
 const DEFERRED = 'deferred';
 const SYNCHRONOUS = 'synchronous';
 
-/** Where a read runs, which is what decides the message it gets. `RENDER` is shared with the set above. */
 const MODULE_SCOPE = 'moduleScope';
 const EVENT = 'event';
 
@@ -72,7 +44,6 @@ const meta = {
         {
             type: 'object',
             properties: {
-                // Reads must go through this wrapper rather than the library.
                 readSurface: {type: 'string'},
             },
             additionalProperties: false,
@@ -128,7 +99,6 @@ function getFunctionName(functionNode, parent) {
     return null;
 }
 
-/** A function that returns JSX is a render body whatever it is called, which covers anonymous default exports. */
 function returnsJSX(functionNode) {
     const body = functionNode.body;
 
@@ -163,7 +133,6 @@ function getStaticPropertyName(memberExpression) {
     return getStaticName(memberExpression.property, memberExpression.computed);
 }
 
-/** The name a call is written under, `Onyx.get` reading as `get`, or `null` when it is computed. */
 function getCalleeName(callee) {
     if (callee.type === 'Identifier') {
         return callee.name;
@@ -178,14 +147,12 @@ function matchesCalleeName(callee, names) {
     return !!calleeName && names.has(calleeName);
 }
 
-/** The render-time argument positions of a call, so `React.useMemo` counts the same as `useMemo`. */
 function getRenderTimeArgumentIndices(callee) {
     const calleeName = getCalleeName(callee);
 
     return calleeName ? (RENDER_TIME_HOOK_ARGUMENTS.get(calleeName) ?? null) : null;
 }
 
-/** Whether the object holding this property is passed to a hook, which is what makes it hook options. */
 function isHookOption(property) {
     const call = property.parent?.parent;
 
@@ -222,17 +189,11 @@ function getVariableByName(scope, variableName) {
     return null;
 }
 
-/**
- * `SYNCHRONOUS` means the boundary is transparent, an IIFE or an array callback, so a walk outwards
- * continues through it.
- */
 function classifyFunctionBoundary(functionNode, parent) {
     if (parent?.type === 'Property' && parent.value === functionNode && RENDER_TIME_OPTION_NAMES.has(getStaticName(parent.key, parent.computed)) && isHookOption(parent)) {
         return RENDER;
     }
 
-    // `new Promise((resolve) => ...)` runs its executor while the constructor is still on the stack, so the
-    // read inside one happens in the constructing body's own tick, render included.
     if (parent?.type === 'NewExpression' && parent.arguments.at(0) === functionNode && matchesCalleeName(parent.callee, SYNCHRONOUS_EXECUTOR_NAMES)) {
         return SYNCHRONOUS;
     }
@@ -268,10 +229,6 @@ function classifyFunctionBoundary(functionNode, parent) {
     return returnsJSX(functionNode) ? RENDER : DEFERRED;
 }
 
-/**
- * A JSX expression sets a flag rather than deciding on the spot, so a read written straight into JSX at
- * module scope is reported as the module-scope read it is. Inside any boundary the flag still wins.
- */
 function classifyPosition(ancestors) {
     let sawJSXExpression = false;
 
@@ -309,15 +266,6 @@ function isTransparentBoundary(functionNode, parent) {
     return classifyFunctionBoundary(functionNode, parent) === SYNCHRONOUS;
 }
 
-/**
- * The body an `await` suspends, which is the innermost enclosing function with no transparency: `await`
- * only suspends the async function it is written in. An async callback passed to `forEach` suspends
- * itself while `forEach` carries on, even though a plain call in that callback does run in its caller's tick.
- */
-function getAwaitingBody(ancestors) {
-    return ancestors.findLast(isFunctionNode) ?? null;
-}
-
 function getEnclosingBody(ancestors) {
     for (let index = ancestors.length - 1; index >= 0; index--) {
         const ancestor = ancestors[index];
@@ -330,10 +278,6 @@ function getEnclosingBody(ancestors) {
     return null;
 }
 
-/**
- * The `await` a call is written under, reached through expressions such as `Promise.all([...])`, or
- * `null` when there is none. Only a syntactic `await` counts.
- */
 function getEnclosingAwait(ancestors) {
     for (let index = ancestors.length - 1; index >= 0; index--) {
         const ancestor = ancestors[index];
@@ -350,28 +294,12 @@ function getEnclosingAwait(ancestors) {
     return null;
 }
 
-/**
- * Whether the write's own `await` finishes before the read starts. It does not when the read sits inside
- * that same awaited expression: `await Promise.all([Onyx.merge(key, value), OnyxUtils.get(key)])` calls
- * the read in the write's tick, so the await it shares defers nothing between them.
- */
 function isAwaitedBeforeRead(write, read) {
     const awaitNode = getEnclosingAwait(write.ancestors);
 
     return !!awaitNode && read.node.range.at(0) >= awaitNode.range.at(1);
 }
 
-/**
- * Whether the `await` is a statement of a block the read sits inside, `await settle();` or
- * `const settled = await settle();` written directly in that block. Entering a block runs its statements
- * in order, so such an `await` is on every path that reaches the read, while one nested in an expression
- * or in a deeper block can be stepped over: an `if` or `switch` branch, the right side of a short-circuit,
- * a loop entered zero times.
- *
- * ponytail: a position test rather than path analysis, so an `await` that does run from somewhere else is
- * reported anyway, `try { await settle(); } catch {}` among them. Suppress those with a justified disable;
- * a real control-flow pass is the upgrade if they turn out to be common.
- */
 function isOnEveryPathTo(awaitEntry, read) {
     const parent = awaitEntry.ancestors.at(-1);
     const isOwnStatement = parent?.type === 'ExpressionStatement';
@@ -387,21 +315,10 @@ function isOnEveryPathTo(awaitEntry, read) {
     return !!block && (block.type === 'BlockStatement' || block.type === 'Program') && read.ancestors.includes(block);
 }
 
-/**
- * An `await` ends the write's tick: the read resumes in a later one, after the queued write has had its
- * turn. `await waitForBatchedUpdates()` in tests is this shape, and so is awaiting the write's promise
- * indirectly, through a handle taken earlier in the body. An `await` the read can get past is not this:
- * the path that skips it still reaches the read in the write's own tick.
- */
 function isSeparatedByAwait(awaits, write, read) {
     return awaits.some((awaitEntry) => awaitEntry.node.range.at(0) >= write.node.range.at(1) && awaitEntry.node.range.at(1) <= read.node.range.at(0) && isOnEveryPathTo(awaitEntry, read));
 }
 
-/**
- * The dotted path a key expression is written as, or `null` when it is computed at runtime. A collection
- * member reads as its collection: `` `${ONYXKEYS.COLLECTION.REPORT}${reportID}` `` gives the prefix path,
- * which is what one member and another share and what two collections cannot.
- */
 function getStaticKeyPath(keyNode) {
     if (!keyNode) {
         return null;
@@ -416,11 +333,9 @@ function getStaticKeyPath(keyNode) {
     }
 
     if (keyNode.type === 'TemplateLiteral') {
-        // A collection member opens with its prefix expression, so the first expression starts three
-        // characters into the literal, one for the backtick and two for the `${`.
         const [firstExpression] = keyNode.expressions;
 
-        return firstExpression?.range.at(0) === keyNode.range.at(0) + 3 ? getStaticKeyPath(firstExpression) : null;
+        return firstExpression?.range.at(0) === keyNode.range.at(0) + TEMPLATE_INTERPOLATION_PREFIX.length ? getStaticKeyPath(firstExpression) : null;
     }
 
     if (keyNode.type !== 'MemberExpression') {
@@ -433,16 +348,8 @@ function getStaticKeyPath(keyNode) {
     return propertyName && objectPath ? `${objectPath}.${propertyName}` : null;
 }
 
-/** Writes whose first argument names the single key, or the single collection, the call touches. */
 const SINGLE_KEY_WRITE_METHODS = new Set(['merge', 'set', 'mergeCollection', 'setCollection']);
 
-/**
- * Whether the two calls provably touch different keys, the one exemption: a read of a key the tick did
- * not write is always current. It has to be provable, so both keys must be static paths differing only
- * in their last segment, which is how `ONYXKEYS` is used. Two paths from different objects can hold the
- * same string, and three pairs do, each an `ONYXKEYS.X` aliased by an `ONYXKEYS.FORMS.X_FORM`. Bare
- * identifiers are not enough either, and a write with no single key argument can touch anything.
- */
 function isProvablyDifferentKey(writeCall, readCall) {
     const writeMethod = writeCall.callee.type === 'MemberExpression' ? getStaticPropertyName(writeCall.callee) : null;
     const readMethod = readCall.callee.type === 'MemberExpression' ? getStaticPropertyName(readCall.callee) : null;
@@ -466,10 +373,6 @@ function isProvablyDifferentKey(writeCall, readCall) {
 
 const LOOP_TYPES = new Set(['ForStatement', 'ForInStatement', 'ForOfStatement', 'WhileStatement', 'DoWhileStatement']);
 
-/**
- * A callback an array method calls once per element, so its body repeats. The other synchronous
- * boundaries, an IIFE and a Promise executor, run once and have no repeat edge.
- */
 function isRepeatingCallback(functionNode, parent) {
     return (
         parent?.type === 'CallExpression' &&
@@ -479,15 +382,6 @@ function isRepeatingCallback(functionNode, parent) {
     );
 }
 
-/**
- * The innermost body both calls sit in that runs more than once, whose repeat edge can therefore run the
- * write before the read even where the read is written first. A `while` and a `forEach` callback differ
- * in one way that matters downstream: passes of a loop are ordered, so an `await` in one lands before the
- * next begins, while an array method does not await its callback and so overlaps the passes instead.
- *
- * The search stops at the body holding the calls, since a repeat outside it repeats the deferral too:
- * `items.forEach((item) => setTimeout(() => {...}, 0))` gives each pass a task of its own.
- */
 function getSharedRepeatEdge(write, read, body) {
     const readAncestors = new Set(read.ancestors);
 
@@ -518,15 +412,6 @@ function isWithin(node, container) {
     return node.range.at(0) >= container.range.at(0) && node.range.at(1) <= container.range.at(1);
 }
 
-/**
- * Whether the back edge crosses an `await`, which ends the tick before the next pass reaches the read.
- * Awaiting the write itself counts, and so does an `await` the rest of the pass reaches, whether it sits
- * after the write or ahead of the read.
- *
- * A `continue` takes the back edge early, so a pass can reach the read again without having awaited
- * anything. Any `continue` in the loop withdraws the exemption, which is coarse in the one direction that
- * only costs a report: one belonging to a nested loop cannot actually skip this loop's `await`.
- */
 function isSeparatedAcrossBackEdge(awaits, continues, write, read, loop) {
     if (getEnclosingAwait(write.ancestors)) {
         return true;
@@ -547,7 +432,6 @@ function isSeparatedAcrossBackEdge(awaits, continues, write, read, loop) {
 function getRootIdentifier(node) {
     let current = node;
 
-    // The cast can sit on the mutation target rather than on the read: `(report as Report).name = 'x'`.
     while (current?.type === 'MemberExpression' || current?.type === 'ChainExpression' || current?.type === 'TSAsExpression' || current?.type === 'TSNonNullExpression') {
         current = current.type === 'MemberExpression' ? current.object : current.expression;
     }
@@ -555,12 +439,6 @@ function getRootIdentifier(node) {
     return current?.type === 'Identifier' ? current : null;
 }
 
-/**
- * Whether the initializer hands back a value the cache owns: an awaited read, or a property reached off
- * one. A spread or a method call in between produces a copy, and copies are the fix rather than the bug.
- *
- * The `await` is required, since an un-awaited read is a Promise and writing to one cannot reach the cache.
- */
 function isCacheOwnedInit(node, isReadCall) {
     let current = node;
     let isAwaited = false;
@@ -572,7 +450,6 @@ function isCacheOwnedInit(node, isReadCall) {
             continue;
         }
 
-        // An `as` cast and a `!` are gone at runtime, so the value under one is still the cache's own.
         if (current.type === 'ChainExpression' || current.type === 'TSAsExpression' || current.type === 'TSNonNullExpression') {
             current = current.expression;
             continue;
@@ -589,6 +466,28 @@ function isCacheOwnedInit(node, isReadCall) {
     return false;
 }
 
+function collectPatternBindings(pattern, names = []) {
+    if (pattern.type === 'Identifier') {
+        names.push(pattern.name);
+    } else if (pattern.type === 'AssignmentPattern') {
+        collectPatternBindings(pattern.left, names);
+    } else if (pattern.type === 'ObjectPattern') {
+        for (const property of pattern.properties) {
+            if (property.type === 'Property') {
+                collectPatternBindings(property.value, names);
+            }
+        }
+    } else if (pattern.type === 'ArrayPattern') {
+        for (const element of pattern.elements) {
+            if (element && element.type !== 'RestElement') {
+                collectPatternBindings(element, names);
+            }
+        }
+    }
+
+    return names;
+}
+
 const EXITING_STATEMENTS = new Set(['ReturnStatement', 'ThrowStatement']);
 
 function endsByExiting(block) {
@@ -601,11 +500,6 @@ function endsByExiting(block) {
     return EXITING_STATEMENTS.has(last.type) || (last.type === 'BlockStatement' && endsByExiting(last));
 }
 
-/**
- * The guard-clause shape, `if (isSpecialCase) { Onyx.merge(...); return; }` followed by a read: running
- * the write means leaving before the read. Only `return` and `throw` count, since a `break` or
- * `continue` leaves a loop rather than the body.
- */
 function exitsBeforeRead(write, read) {
     const readAncestors = new Set(read.ancestors);
 
@@ -613,7 +507,6 @@ function exitsBeforeRead(write, read) {
 }
 
 function findDivergence(write, read) {
-    // The calls themselves are the last link, since they can be a branch: `cond ? write() : read()`.
     const writeChain = [...write.ancestors, write.node];
     const readChain = [...read.ancestors, read.node];
     const depth = Math.min(writeChain.length, readChain.length);
@@ -644,36 +537,20 @@ function areMutuallyExclusive(write, read) {
         return (parent.consequent === writeBranch && parent.alternate === readBranch) || (parent.alternate === writeBranch && parent.consequent === readBranch);
     }
 
-    // Separate cases of one switch. Fallthrough can reach the read from the write's case, but that shape
-    // (a write in a case that deliberately falls through into a read) is not worth the false positives.
     return parent.type === 'SwitchStatement' && writeBranch.type === 'SwitchCase' && readBranch.type === 'SwitchCase';
 }
 
-/**
- * Hydration is not one of the axes: `Onyx.get` resolves only after `Onyx.init`.
- *
- * One read gets one message, position first.
- *
- * The object has to resolve to an import from `react-native-onyx`, so a local object that happens to
- * expose `get` and `merge` is left alone.
- *
- * @param {import('eslint').Rule.RuleContext} context
- * @returns {import('eslint').Rule.RuleListener}
- */
 function create(context) {
     const sourceCode = context.sourceCode ?? context.getSourceCode();
     const {readSurface} = context.options.at(0) ?? {};
     const onyxImportBindings = new WeakSet();
     const libraryImportBindings = new WeakSet();
     const readAliases = new WeakSet();
-    /** Variables holding a value the cache owns, so writing through them writes the cache. */
     const cacheOwnedBindings = new WeakSet();
     const libraryReadAliases = new WeakSet();
     const writeAliases = new WeakSet();
 
-    /** Event-time reads, writes and awaits per enclosing body, in source order. Bodies are only compared against themselves. */
     const callsByBody = new Map();
-    /** Every `continue` in the file, since one inside a loop can take its back edge before an `await`. */
     const continueStatements = [];
 
     function trackBinding(node, bindingName, bindings) {
@@ -751,7 +628,6 @@ function create(context) {
         VariableDeclarator(node) {
             const scope = sourceCode.getScope(node);
 
-            // const {get, merge} = Onyx;  /  const {get: readOnyx} = Onyx;
             if (node.id.type === 'ObjectPattern' && node.init?.type === 'Identifier') {
                 const initVariable = getVariableByName(scope, node.init.name);
 
@@ -781,11 +657,16 @@ function create(context) {
                 return;
             }
 
+            if (node.parent?.kind === 'const' && isCacheOwnedInit(node.init, (call) => isReadCall(call, scope))) {
+                for (const bindingName of collectPatternBindings(node.id)) {
+                    trackBinding(node, bindingName, cacheOwnedBindings);
+                }
+            }
+
             if (node.id.type !== 'Identifier') {
                 return;
             }
 
-            // const api = Onyx;  every method stays reachable through the new name, reads and writes alike.
             if (node.init?.type === 'Identifier') {
                 const aliasedVariable = getVariableByName(scope, node.init.name);
 
@@ -797,14 +678,6 @@ function create(context) {
                     }
                 }
             }
-
-            // Only `const`: a `let` can be reassigned to a copy, `report = {...report}`, and then mutating it is
-            // the fix rather than the bug, which no test of the initializer alone can tell apart.
-            if (node.parent?.kind === 'const' && isCacheOwnedInit(node.init, (call) => isReadCall(call, scope))) {
-                trackBinding(node, node.id.name, cacheOwnedBindings);
-            }
-
-            // const readOnyx = Onyx.get;
 
             if (isOnyxMember(node.init, scope, READ_METHODS)) {
                 trackBinding(node, node.id.name, readAliases);
@@ -830,7 +703,7 @@ function create(context) {
         },
         AwaitExpression(node) {
             const ancestors = sourceCode.getAncestors(node);
-            const body = getAwaitingBody(ancestors);
+            const body = getEnclosingBody(ancestors);
 
             if (!body) {
                 return;
@@ -841,7 +714,6 @@ function create(context) {
         CallExpression(node) {
             const scope = sourceCode.getScope(node);
 
-            // `Object.assign(target, ...)` and `target.push(...)` write through their target.
             if (node.callee.type === 'MemberExpression') {
                 const methodName = getStaticPropertyName(node.callee);
 
@@ -886,14 +758,11 @@ function create(context) {
                 record(node, sourceCode.getAncestors(node), 'writes');
             }
         },
-        // Reported here rather than on the read, because a read is only a finding once the whole body is known.
         'Program:exit': function reportReadsAfterWrites() {
             for (const [body, {reads, writes, awaits}] of callsByBody.entries()) {
                 for (const read of reads) {
                     const precedingWrite = writes.find(
                         (write) =>
-                            // The read's text starts after the write call's, so it also runs after it. Containment is
-                            // the case this excludes: a read passed as an argument to the write runs before it.
                             read.node.range.at(0) >= write.node.range.at(1) &&
                             !isAwaitedBeforeRead(write, read) &&
                             !isSeparatedByAwait(awaits, write, read) &&
@@ -910,15 +779,11 @@ function create(context) {
                         continue;
                     }
 
-                    // A write later in the same loop body reaches this read on the next pass. Mutual exclusivity
-                    // is still an exemption here, even though one branch per pass does not hold across passes:
-                    // which branch a pass takes is not decidable, so reporting it would be noise.
                     const loopCarriedWrite = writes.find((write) => {
                         const edge = read.node.range.at(0) < write.node.range.at(1) ? getSharedRepeatEdge(write, read, body) : null;
 
                         return (
                             !!edge &&
-                            // Only a loop orders its passes, so only a loop can have an `await` between them.
                             (!edge.isLoop || !isSeparatedAcrossBackEdge(awaits, continueStatements, write, read, edge.node)) &&
                             !areMutuallyExclusive(write, read) &&
                             !exitsBeforeRead(write, read) &&

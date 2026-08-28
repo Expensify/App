@@ -1,7 +1,7 @@
 import type {Rule} from 'eslint';
 
-import * as typescriptParser from '@typescript-eslint/parser';
 import {RuleTester} from 'eslint';
+import {parser as typescriptParser} from 'typescript-eslint';
 
 type LocalRuleModule = Rule.RuleModule & {
     name: string;
@@ -97,6 +97,17 @@ describe('no-unsafe-onyx-read', () => {
             `${ONYX_IMPORT} ready.then(() => Onyx.get(key));`,
             `${ONYX_IMPORT} new Promise((resolve) => { ready.then(() => resolve(Onyx.get(key))); });`,
             `${ONYX_IMPORT} Onyx.init(config).then(() => Onyx.get(key));`,
+
+            // A rest element builds a new object, so what it hands back is a copy rather than the cached value.
+            `${WRAPPER_IMPORT} async function f(key) { const {...copy} = await OnyxUtils.get(key); copy.name = 'x'; return copy; }`,
+            `${WRAPPER_IMPORT} async function f(keys) { const [, ...rest] = await OnyxUtils.multiGet(keys); rest.push(1); return rest; }`,
+            `${WRAPPER_IMPORT} async function f(key) { const {details} = await somethingElse(key); details.name = 'x'; return details; }`,
+
+            // An await inside a transparent boundary suspends the rest of its own pass, so it separates a write
+            // before it from a read after it, wherever the enclosing body recorded the two.
+            `${ONYX_IMPORT} function submit() { (async () => { Onyx.merge(key, value); await flush(); Onyx.get(key); })(); }`,
+            `${ONYX_IMPORT} function submit(items) { Onyx.merge(key, value); items.forEach(async () => { await flush(); return Onyx.get(key); }); }`,
+            `${ONYX_IMPORT} function submit() { new Promise(async (resolve) => { Onyx.merge(key, value); await flush(); resolve(Onyx.get(key)); }); }`,
 
             // An alias of something else keeps its own methods, and an un-awaited read is a Promise, so writing
             // to one cannot reach the cache.
@@ -199,6 +210,11 @@ describe('no-unsafe-onyx-read', () => {
             {code: `${WRAPPER_IMPORT} async function f(key) { const report = await OnyxUtils.get(key); report.items.push(1); return report; }`, errors: MUTATION_ERRORS},
 
             {code: `${WRAPPER_IMPORT} async function f(key) { const actions = (await OnyxUtils.get(key))?.actions; actions.latest = 1; return actions; }`, errors: MUTATION_ERRORS},
+
+            // A binding pattern reaches the same properties a dot would, so what it binds is the cache's own.
+            {code: `${WRAPPER_IMPORT} async function f(key) { const {details} = await OnyxUtils.get(key); details.name = 'x'; return details; }`, errors: MUTATION_ERRORS},
+            {code: `${WRAPPER_IMPORT} async function f(key) { const {details: own} = await OnyxUtils.get(key); own.name = 'x'; return own; }`, errors: MUTATION_ERRORS},
+            {code: `${WRAPPER_IMPORT} async function f(keys) { const [first] = await OnyxUtils.multiGet(keys); first.name = 'x'; return first; }`, errors: MUTATION_ERRORS},
 
             {code: `${WRAPPER_IMPORT} function Row() { const value = OnyxUtils.get(key); return <View value={value} />; }`, errors: RENDER_ERRORS},
 
