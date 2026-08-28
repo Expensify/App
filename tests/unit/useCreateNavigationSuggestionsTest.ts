@@ -349,6 +349,19 @@ describe('useCreateNavigationSuggestions', () => {
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.TRAVEL_MY_TRIPS.getRoute(submitPolicy.id));
     });
 
+    it('uses the session email when the primary login is unavailable', () => {
+        mockOnyxValues.set(`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, {...submitPolicy, isTravelEnabled: true});
+        mockOnyxValues.set(ONYXKEYS.ACCOUNT, {primaryLogin: undefined});
+        mockIsPaidGroupPolicy.mockReturnValue(true);
+        mockHasAcceptedTravelTerms.mockReturnValue(true);
+        const {result} = renderHook(() => useCreateNavigationSuggestions());
+
+        act(() => result.current.find((item) => item.keyForList === 'create_travel')?.action?.());
+
+        expect(openTravelDotLink).toHaveBeenCalledWith(submitPolicy.id);
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.TRAVEL_MY_TRIPS.getRoute(submitPolicy.id));
+    });
+
     it.each([
         ['Travel is blocked', true, session.email, session.email, true, true],
         ['the primary login is an SMS login', false, '+15555550123', session.email, true, true],
