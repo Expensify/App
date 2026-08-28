@@ -1,7 +1,9 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -20,6 +22,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import React from 'react';
+import {View} from 'react-native';
 
 type WithFullTransactionOrNotFoundOnyxProps = {
     /** Indicates whether the report data is loading */
@@ -31,40 +34,41 @@ type WithFullTransactionOrNotFoundOnyxProps = {
 
 type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.CREATE
-    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE
     | typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT
-    | typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT
-    | typeof SCREENS.MONEY_REQUEST.STEP_DESCRIPTION
-    | typeof SCREENS.MONEY_REQUEST.STEP_DATE
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_WAYPOINT
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESCRIPTION
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DATE
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_AMOUNT
-    | typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS
-    | typeof SCREENS.MONEY_REQUEST.STEP_MERCHANT
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_MERCHANT
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAG
-    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION
-    | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_VENDOR
-    | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SCAN
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SEND_FROM
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_REPORT
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_COMPANY_INFO
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT
-    | typeof SCREENS.MONEY_REQUEST.STEP_TIME
-    | typeof SCREENS.MONEY_REQUEST.STEP_TIME_EDIT
-    | typeof SCREENS.MONEY_REQUEST.STEP_SUBRATE
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME_EDIT
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SUBRATE
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SUBRATE_EDIT
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_GPS
     | typeof SCREENS.MONEY_REQUEST.GPS_TRIP_EDIT
     | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE
-    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_MANUAL
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER
     | typeof SCREENS.MONEY_REQUEST.ODOMETER_IMAGE
     | typeof SCREENS.MONEY_REQUEST.STEP_TIME_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_HOURS
     | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT
-    | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE;
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY_CREATE;
 
 type WithFullTransactionOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithFullTransactionOrNotFoundOnyxProps &
     PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
@@ -72,6 +76,9 @@ type WithFullTransactionOrNotFoundProps<RouteName extends MoneyRequestRouteName>
 type WithFullTransactionOrNotFoundImplProps<TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>> = {
     WrappedComponent: ComponentType<TProps>;
     shouldShowLoadingIndicator: boolean;
+
+    /** When the wrapped step is embedded in a page that already renders navigation chrome (e.g. IOURequestStartPage), the parent's header stays visible, so the loading indicator must not trap the user. */
+    shouldHideHeader?: boolean;
 } & Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>;
 
 function WithFullTransactionOrNotFoundImpl<TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>>({
@@ -79,7 +86,10 @@ function WithFullTransactionOrNotFoundImpl<TProps extends WithFullTransactionOrN
     shouldShowLoadingIndicator,
     ...props
 }: WithFullTransactionOrNotFoundImplProps<TProps>) {
+    const styles = useThemeStyles();
     const {route} = props;
+    // Read (but don't consume) shouldHideHeader so it is still forwarded to the wrapped component below.
+    const {shouldHideHeader} = props;
     const transactionID = route.params.transactionID;
     const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
 
@@ -103,7 +113,13 @@ function WithFullTransactionOrNotFoundImpl<TProps extends WithFullTransactionOrN
     }
 
     if (isLoadingTransaction && shouldShowLoadingIndicator) {
-        return <FullScreenLoadingIndicator />;
+        return shouldHideHeader ? (
+            <View style={[styles.flex1, styles.fullScreenLoading]}>
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+            </View>
+        ) : (
+            <FullScreenLoadingIndicator shouldUseGoBackButton />
+        );
     }
     return (
         <WrappedComponent
@@ -117,8 +133,8 @@ function WithFullTransactionOrNotFoundImpl<TProps extends WithFullTransactionOrN
 export default function <TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>>(
     WrappedComponent: ComponentType<TProps>,
     shouldShowLoadingIndicator = false,
-): React.ComponentType<Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>> {
-    function WithFullTransactionOrNotFound(props: Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>) {
+): React.ComponentType<Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps> & {shouldHideHeader?: boolean}> {
+    function WithFullTransactionOrNotFound(props: Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps> & {shouldHideHeader?: boolean}) {
         return (
             <WithFullTransactionOrNotFoundImpl
                 WrappedComponent={WrappedComponent}

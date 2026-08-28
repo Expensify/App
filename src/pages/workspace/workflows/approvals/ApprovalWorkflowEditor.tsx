@@ -53,14 +53,14 @@ type ApprovalWorkflowEditorProps = {
 function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, policy, policyID, ref}: ApprovalWorkflowEditorProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const styles = useThemeStyles();
-    const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
+    const {translate, toLocaleOrdinalWithWords, localeCompare} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const approverCount = approvalWorkflow.approvers.length;
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const approverDescription = useCallback(
-        (index: number) => (approverCount > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`),
-        [approverCount, toLocaleOrdinal, translate],
+        (index: number) => (approverCount > 1 ? `${toLocaleOrdinalWithWords(index + 1)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`),
+        [approverCount, toLocaleOrdinalWithWords, translate],
     );
 
     const getApprovalPendingAction = useCallback(
@@ -148,13 +148,15 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
         // Always pass a backTo so that after editing expenses-from (including the invite-a-member detour),
         // we return to the page we came from. For EDIT that's the edit page; for CREATE we're on the
         // confirm (new) page, so return there instead of falling through to the Approver step.
+        // Preserve memberEmail so a fresh edit mount (e.g. after refresh) re-resolves this exact workflow
+        // instead of the first one sharing firstApproverEmail.
         const backTo =
             approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT
-                ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail)
+                ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail, approvalWorkflow.memberEmail)
                 : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID);
 
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path, backTo));
-    }, [approvalWorkflow.action, approvalWorkflow.originalApprovers, policyID]);
+    }, [approvalWorkflow.action, approvalWorkflow.originalApprovers, approvalWorkflow.memberEmail, policyID]);
 
     // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addAdditionalApprover = useCallback(() => {

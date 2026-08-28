@@ -33,11 +33,13 @@ import {
     getCompanyCardCustomName,
     getCompanyCardDescription,
     getCompanyCardFeed,
+    getCompanyCardFeedWithDomainIDForCard,
     getCompanyFeeds,
     getConnectionBankAccountsForReconciliation,
     getCSVFeedType,
     getCustomFeedNameFromFeeds,
     getCustomOrFormattedFeedName,
+    getDefaultCommercialFeedDisplayName,
     getDefaultExpensifyCardLimitType,
     getDisplayableExpensifyCards,
     getDisplayableThirdPartyCards,
@@ -60,6 +62,7 @@ import {
     isBrokenConnectionPastDismissThreshold,
     isCardAlreadyAssigned,
     isCardFrozen,
+    isLastScrapePastDismissThreshold,
     isCSVFeedOrExpensifyCard,
     isCSVUploadFeed,
     isCustomFeed as isCustomFeedCardUtils,
@@ -107,7 +110,7 @@ import * as path from 'path';
 
 import createRandomCard from '../utils/collections/card';
 import createMock from '../utils/createMock';
-import {localeCompare, translateLocal} from '../utils/TestHelper';
+import {formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const shortDate = '0924';
@@ -1439,6 +1442,57 @@ describe('CardUtils', () => {
             );
             expect(feedName).toBe(unknownFeed);
         });
+
+        const commercialFeedCases: Array<[Parameters<typeof getCustomOrFormattedFeedName>[1], string]> = [
+            [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, 'Visa cards'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}1`, 'Visa cards'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2`, 'Visa 2 cards'],
+            [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, 'Mastercard cards'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}1`, 'Mastercard cards'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}2`, 'Mastercard 2 cards'],
+            [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, 'American Express cards'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}1`, 'American Express cards'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}2`, 'American Express 2 cards'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}12345`, 'Visa 2 cards'],
+        ];
+
+        it.each(commercialFeedCases)('Should format commercial feed %s as %s', (feed, expectedFeedName) => {
+            const feedName = getCustomOrFormattedFeedName(translateLocal, feed);
+            expect(feedName).toBe(expectedFeedName);
+        });
+
+        const commercialFeedWithoutSuffixCases: Array<[Parameters<typeof getCustomOrFormattedFeedName>[1], string]> = [[`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2`, 'Visa 2']];
+
+        it.each(commercialFeedWithoutSuffixCases)('Should format commercial feed %s without cards suffix as %s', (feed, expectedFeedName) => {
+            const feedName = getCustomOrFormattedFeedName(translateLocal, feed, undefined, false);
+            expect(feedName).toBe(expectedFeedName);
+        });
+
+        it('Should return custom name for numbered feed if custom name exists', () => {
+            const numberedVisaFeedForCustomName: Parameters<typeof getCustomOrFormattedFeedName>[1] = `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2`;
+            const feedName = getCustomOrFormattedFeedName(translateLocal, numberedVisaFeedForCustomName, customFeedName);
+            expect(feedName).toBe(customFeedName);
+        });
+    });
+
+    describe('getDefaultCommercialFeedDisplayName', () => {
+        const defaultCommercialFeedCases: Array<[Parameters<typeof getDefaultCommercialFeedDisplayName>[0], string]> = [
+            [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, 'Visa'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}1`, 'Visa'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2`, 'Visa 2'],
+            [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, 'Mastercard'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}1`, 'Mastercard'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}2`, 'Mastercard 2'],
+            [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, 'American Express'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}1`, 'American Express'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}2`, 'American Express 2'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}12345`, 'Visa 2'],
+        ];
+
+        it.each(defaultCommercialFeedCases)('Should derive default display name for commercial feed %s as %s', (feed, expectedFeedName) => {
+            const feedName = getDefaultCommercialFeedDisplayName(feed);
+            expect(feedName).toBe(expectedFeedName);
+        });
     });
 
     describe('doesCardFeedExist', () => {
@@ -1678,6 +1732,16 @@ describe('CardUtils', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Runtime feed suffixes are accepted but are not modeled by the production parameter type.
             const feedName = getBankName(feedWithAmex1205Prefix as Parameters<typeof getBankName>[0]);
             expect(feedName).toBe('American Express');
+        });
+
+        const canonicalDisplayFeedCases: Array<[Parameters<typeof getBankName>[0], string]> = [
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2`, 'Visa'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}2`, 'American Express'],
+        ];
+
+        it.each(canonicalDisplayFeedCases)('Should keep canonical bank name for display feed variant %s', (feed, expectedFeedName) => {
+            const feedName = getBankName(feed);
+            expect(feedName).toBe(expectedFeedName);
         });
     });
 
@@ -2325,7 +2389,7 @@ describe('CardUtils', () => {
         it('should sort cards by cardholder name in ascending order', () => {
             const policyMembersAccountIDs = [1, 2, 3];
             const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal, formatPhoneNumber);
 
             expect(sortedCards).toHaveLength(3);
             expect(sortedCards.at(0)?.cardID).toBe(2);
@@ -2336,7 +2400,7 @@ describe('CardUtils', () => {
         it('should filter out cards that are not associated with policy members', () => {
             const policyMembersAccountIDs = [1, 2]; // Exclude accountID 3
             const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal, formatPhoneNumber);
 
             expect(sortedCards).toHaveLength(2);
             expect(sortedCards.at(0)?.cardID).toBe(2);
@@ -2346,7 +2410,7 @@ describe('CardUtils', () => {
         it('should handle undefined cardsList', () => {
             const policyMembersAccountIDs = [1, 2, 3];
             const cards = getCardsByCardholderName(undefined, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal, formatPhoneNumber);
 
             expect(sortedCards).toHaveLength(0);
         });
@@ -2354,7 +2418,7 @@ describe('CardUtils', () => {
         it('should handle undefined personalDetails', () => {
             const policyMembersAccountIDs = [1, 2, 3];
             const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, undefined, localeCompare, translateLocal);
+            const sortedCards = sortCardsByCardholderName(cards, undefined, localeCompare, translateLocal, formatPhoneNumber);
 
             expect(sortedCards).toHaveLength(3);
             // All cards should be sorted with default names
@@ -2392,7 +2456,7 @@ describe('CardUtils', () => {
 
             const policyMembersAccountIDs = [1, 2];
             const cards = getCardsByCardholderName(cardsWithMissingAccountID, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal, formatPhoneNumber);
 
             expect(sortedCards).toHaveLength(1);
             expect(sortedCards.at(0)?.cardID).toBe(1);
@@ -2408,7 +2472,7 @@ describe('CardUtils', () => {
             };
 
             // With no personal details available, each cardholder name falls back to translate('common.hidden').
-            sortCardsByCardholderName(cards, undefined, localeCompare, translate);
+            sortCardsByCardholderName(cards, undefined, localeCompare, translate, formatPhoneNumber);
 
             expect(requestedPaths).toContain('common.hidden');
         });
@@ -2423,12 +2487,12 @@ describe('CardUtils', () => {
             // A translate whose hidden value sorts before "Mike" puts the nameless cardholder first.
             const translateHiddenFirst: LocalizedTranslate = (translatePath, ...parameters) =>
                 translatePath === 'common.hidden' ? 'AAA hidden' : translateLocal(translatePath, ...parameters);
-            expect(sortCardsByCardholderName(cards, personalDetailsWithOneKnownUser, localeCompare, translateHiddenFirst).map((card) => card.cardID)).toEqual([2, 1]);
+            expect(sortCardsByCardholderName(cards, personalDetailsWithOneKnownUser, localeCompare, translateHiddenFirst, formatPhoneNumber).map((card) => card.cardID)).toEqual([2, 1]);
 
             // A translate whose hidden value sorts after "Mike" puts the nameless cardholder last.
             const translateHiddenLast: LocalizedTranslate = (translatePath, ...parameters) =>
                 translatePath === 'common.hidden' ? 'zzz hidden' : translateLocal(translatePath, ...parameters);
-            expect(sortCardsByCardholderName(cards, personalDetailsWithOneKnownUser, localeCompare, translateHiddenLast).map((card) => card.cardID)).toEqual([1, 2]);
+            expect(sortCardsByCardholderName(cards, personalDetailsWithOneKnownUser, localeCompare, translateHiddenLast, formatPhoneNumber).map((card) => card.cardID)).toEqual([1, 2]);
         });
     });
 
@@ -4287,6 +4351,66 @@ describe('CardUtils', () => {
             const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01 00:00:00'};
             expect(isBrokenConnectionPastDismissThreshold(card)).toBe(true);
         });
+
+        // Regression: a personal card's lastScrape can arrive as ISO 8601 instead of the DB format. The strict DB-format
+        // parse returns NaN on it, so without the new Date() fallback the connection would never dismiss and the RBR would
+        // linger forever (the reported bug). Uses the real DateUtils to prove the ISO string is parsed and dismissed.
+        it('parses an ISO 8601 lastScrape and dismisses a long-broken connection without mocking', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01T00:00:00Z'};
+            expect(isBrokenConnectionPastDismissThreshold(card)).toBe(true);
+        });
+
+        it('parses an ISO 8601 lastScrape without a Z suffix and dismisses a long-broken connection', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01T00:00:00'};
+            expect(isBrokenConnectionPastDismissThreshold(card)).toBe(true);
+        });
+
+        it('returns false when lastScrape is not a valid date in any supported format', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: 'not-a-date'};
+            expect(isBrokenConnectionPastDismissThreshold(card)).toBe(false);
+        });
+
+        // The server can set a connection error on the card even when lastScrapeResult is one of the ignored
+        // statuses (e.g. 434), which isCardConnectionBroken treats as not broken — so this stays false for them.
+        it('returns false for an ignored scrape status even when the last sync is long past the threshold', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 434, lastScrape: '2020-01-01 00:00:00'};
+            expect(isBrokenConnectionPastDismissThreshold(card)).toBe(false);
+        });
+    });
+
+    describe('isLastScrapePastDismissThreshold', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        // Unlike isBrokenConnectionPastDismissThreshold this is keyed on the last successful sync only, so it is true
+        // for a long-stale card regardless of scrape status — including ignored statuses like 434, which still carry a
+        // server-set connection error that would otherwise light the Account/Wallet indicators forever.
+        it('returns true for a long-stale card with an ignored scrape status (e.g. 434)', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 434, lastScrape: '2020-01-01 00:00:00'};
+            expect(isLastScrapePastDismissThreshold(card)).toBe(true);
+        });
+
+        it('returns true for a long-stale card with a broken scrape status', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01 00:00:00'};
+            expect(isLastScrapePastDismissThreshold(card)).toBe(true);
+        });
+
+        it('returns false when the last sync is within the grace period', () => {
+            jest.spyOn(DateUtils, 'getDifferenceInDaysFromNow').mockReturnValue(CONST.COMPANY_CARDS.BROKEN_CONNECTION_DISMISS_AFTER_DAYS - 1);
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 434, lastScrape: '2024-08-26 18:58:19'};
+            expect(isLastScrapePastDismissThreshold(card)).toBe(false);
+        });
+
+        it('returns false when lastScrape is missing (fail safe: keep prompting)', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 434, lastScrape: ''};
+            expect(isLastScrapePastDismissThreshold(card)).toBe(false);
+        });
+
+        it('returns false when lastScrape is not a valid date', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 434, lastScrape: 'not-a-date'};
+            expect(isLastScrapePastDismissThreshold(card)).toBe(false);
+        });
     });
 
     describe('getCardHintText', () => {
@@ -4678,6 +4802,7 @@ describe('getCardConnectionStatusDisplay', () => {
             actionKey: undefined,
             shouldUsePersonalCardFix: false,
             shouldUseCompanyCardsLink: false,
+            shouldUseReauthMessage: false,
         });
     });
 
@@ -4689,6 +4814,7 @@ describe('getCardConnectionStatusDisplay', () => {
             actionKey: 'common.actionBadge.fix',
             shouldUsePersonalCardFix: true,
             shouldUseCompanyCardsLink: false,
+            shouldUseReauthMessage: false,
         });
     });
 
@@ -4700,6 +4826,7 @@ describe('getCardConnectionStatusDisplay', () => {
             actionKey: undefined,
             shouldUsePersonalCardFix: false,
             shouldUseCompanyCardsLink: true,
+            shouldUseReauthMessage: false,
         });
     });
 
@@ -4711,6 +4838,7 @@ describe('getCardConnectionStatusDisplay', () => {
             actionKey: undefined,
             shouldUsePersonalCardFix: false,
             shouldUseCompanyCardsLink: false,
+            shouldUseReauthMessage: false,
         });
     });
 
@@ -4722,7 +4850,64 @@ describe('getCardConnectionStatusDisplay', () => {
             actionKey: undefined,
             shouldUsePersonalCardFix: false,
             shouldUseCompanyCardsLink: false,
+            shouldUseReauthMessage: false,
         });
+    });
+
+    it('returns the reconnect bank message for a broken personal card that needs re-auth', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isCardBroken: true, doesCardNeedReauthentication: true, isPersonalCard: true})).toEqual({
+            statusKey: 'walletPage.cardStatus.inactive',
+            statusTone: 'danger',
+            messageKey: 'walletPage.cardStatus.reconnectBank',
+            actionKey: 'common.actionBadge.fix',
+            shouldUsePersonalCardFix: true,
+            shouldUseCompanyCardsLink: false,
+            shouldUseReauthMessage: true,
+        });
+    });
+
+    it('asks the admin to fix a non-admin company card that needs re-auth instead of showing the reconnect bank message', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isCardBroken: true, doesCardNeedReauthentication: true, policyID: 'ABC123'})).toEqual({
+            statusKey: 'walletPage.cardStatus.inactive',
+            statusTone: 'danger',
+            messageKey: 'walletPage.cardStatus.askAdminToFixConnection',
+            actionKey: undefined,
+            shouldUsePersonalCardFix: false,
+            shouldUseCompanyCardsLink: false,
+            shouldUseReauthMessage: false,
+        });
+    });
+
+    it('prefers the company cards link over the reconnect bank message for an admin', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isCardBroken: true, doesCardNeedReauthentication: true, isAdminForCardPolicy: true, policyID: 'ABC123'})).toEqual({
+            statusKey: 'walletPage.cardStatus.inactive',
+            statusTone: 'danger',
+            messageKey: 'walletPage.cardStatus.fixConnectionIn',
+            actionKey: undefined,
+            shouldUsePersonalCardFix: false,
+            shouldUseCompanyCardsLink: true,
+            shouldUseReauthMessage: false,
+        });
+    });
+});
+
+describe('getCompanyCardFeedWithDomainIDForCard', () => {
+    it('returns the feed key of the card feed the card belongs to', () => {
+        const card = createMock<Card>({cardID: 1, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT, fundID: '7001'});
+
+        expect(getCompanyCardFeedWithDomainIDForCard(card)).toBe(`${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT}#7001`);
+    });
+
+    it('returns undefined for a personal card, which has no fundID', () => {
+        const card = createMock<Card>({cardID: 2, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE, fundID: '0'});
+
+        expect(getCompanyCardFeedWithDomainIDForCard(card)).toBeUndefined();
+    });
+
+    it('returns undefined for an Expensify Card, which has no company card feed', () => {
+        const card = createMock<Card>({cardID: 3, bank: CONST.EXPENSIFY_CARD.BANK, fundID: '7001'});
+
+        expect(getCompanyCardFeedWithDomainIDForCard(card)).toBeUndefined();
     });
 });
 

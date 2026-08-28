@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,22 +24,24 @@ function SearchFilterPageFooterButtons({resetChanges, applyChanges}: SearchFilte
         <View>
             {!!resetChanges && (
                 <Button
-                    large
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.mt3]}
-                    text={translate('common.reset')}
                     onPress={resetChanges}
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_RESET_BUTTON}
-                />
+                >
+                    <Button.Text>{translate('common.reset')}</Button.Text>
+                </Button>
             )}
             <Button
-                large
-                success
-                pressOnEnter
+                size={CONST.BUTTON_SIZE.LARGE}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 style={[styles.mt3]}
-                text={translate('common.save')}
                 onPress={applyChanges}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
-            />
+            >
+                <Button.KeyboardShortcut />
+                <Button.Text>{translate('common.save')}</Button.Text>
+            </Button>
         </View>
     );
 }

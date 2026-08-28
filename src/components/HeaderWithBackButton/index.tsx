@@ -50,6 +50,8 @@ function HeaderWithBackButton({
     onThreeDotsButtonPress = () => {},
     report,
     policyAvatar,
+    policyAvatarSize = CONST.AVATAR_SIZE.DEFAULT,
+    titleStyles,
     shouldShowReportAvatarWithDisplay = false,
     shouldDisplayStatus,
     shouldShowBackButton = true,
@@ -68,6 +70,7 @@ function HeaderWithBackButton({
     subtitle = '',
     title = '',
     titleColor,
+    numberOfTitleLines = 1,
     threeDotsAnchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -82,7 +85,6 @@ function HeaderWithBackButton({
     shouldNavigateToTopMostReport = false,
     shouldDisplayHelpButton = false,
     shouldDisplaySearchRouter = false,
-    progressBarPercentage,
     style,
     subTitleLink = '',
     shouldMinimizeMenuButton = false,
@@ -103,31 +105,6 @@ function HeaderWithBackButton({
 
     const middleContent = useMemo(() => {
         const stepCounterTranslation = stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : undefined;
-        if (progressBarPercentage) {
-            const progressBarLabel = stepCounter ? `${translate('common.progressBarLabel')}, ${stepCounterTranslation}` : undefined;
-            return (
-                <>
-                    {/* Reserves as much space for the middleContent as possible */}
-                    <View style={styles.flexGrow1} />
-                    {/* Uses absolute positioning so that it's always centered instead of being affected by the
-                    presence or absence of back/close buttons to the left/right of it */}
-                    <View style={styles.headerProgressBarContainer}>
-                        <View
-                            style={styles.headerProgressBar}
-                            accessible={!!progressBarLabel}
-                            accessibilityLabel={progressBarLabel}
-                            role={CONST.ROLE.PROGRESSBAR}
-                            aria-valuetext={progressBarLabel}
-                        >
-                            <View
-                                aria-hidden
-                                style={[{width: `${progressBarPercentage}%`}, styles.headerProgressBarFill]}
-                            />
-                        </View>
-                    </View>
-                </>
-            );
-        }
         if (shouldShowReportAvatarWithDisplay) {
             return (
                 <AvatarWithDisplayName
@@ -143,9 +120,9 @@ function HeaderWithBackButton({
             <Header
                 title={title}
                 subtitle={stepCounterTranslation ?? subtitle}
-                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2]}
+                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2, titleStyles]}
                 subTitleLink={subTitleLink}
-                numberOfTitleLines={1}
+                numberOfTitleLines={numberOfTitleLines}
                 isScreenHeader
                 shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
             />
@@ -154,19 +131,16 @@ function HeaderWithBackButton({
         StyleUtils,
         subTitleLink,
         shouldUseHeadlineHeader,
-        progressBarPercentage,
         report,
         shouldEnableDetailPageNavigation,
         shouldShowReportAvatarWithDisplay,
         stepCounter,
-        styles.flexGrow1,
-        styles.headerProgressBar,
-        styles.headerProgressBarContainer,
-        styles.headerProgressBarFill,
         styles.textHeadlineH2,
         subtitle,
         title,
         titleColor,
+        titleStyles,
+        numberOfTitleLines,
         translate,
         openParentReportInCurrentTab,
         shouldDisplayStatus,
@@ -226,9 +200,6 @@ function HeaderWithBackButton({
                 styles.headerBar,
                 shouldUseHeadlineHeader && styles.headerBarHeight,
                 shouldShowBorderBottom && styles.borderBottom,
-                // progressBarPercentage can be 0 which would
-                // be falsy, hence using !== undefined explicitly
-                progressBarPercentage !== undefined && styles.pl0,
                 shouldShowBackButton && [styles.pl2],
                 shouldOverlay && StyleSheet.absoluteFill,
                 style,
@@ -276,14 +247,16 @@ function HeaderWithBackButton({
                 {!!policyAvatar &&
                     (policyAvatar.type === CONST.ICON_TYPE_WORKSPACE ? (
                         <WorkspaceAvatar
-                            containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
+                            containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(policyAvatarSize)), styles.mr3]}
+                            size={policyAvatarSize}
                             source={policyAvatar.source}
                             name={policyAvatar.name ?? ''}
                             avatarID={policyAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
                         />
                     ) : (
                         <UserAvatar
-                            containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
+                            containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(policyAvatarSize)), styles.mr3]}
+                            size={policyAvatarSize}
                             source={policyAvatar.source}
                             accountID={getAccountIDFromAvatarID(policyAvatar.id)}
                         />

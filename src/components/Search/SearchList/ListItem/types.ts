@@ -8,9 +8,7 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import type CONST from '@src/CONST';
 import type {
-    BankAccountList,
     BillingGraceEndPeriod,
-    CardFeeds,
     CardList,
     LastPaymentMethod,
     PersonalDetails,
@@ -164,6 +162,9 @@ type TransactionListItemType = ListItem &
 
         /** Key used internally by React */
         keyForList: string;
+
+        /** Parent selection key when this transaction is rendered inside a lazily loaded group. */
+        selectionGroupKey?: string;
 
         /** The name of the file used for a receipt */
         filename?: string;
@@ -417,6 +418,9 @@ type TransactionMonthGroupListItemType = TransactionGroupListItemType & {grouped
         /** Final and formatted "month" value used for displaying */
         formattedMonth: string;
 
+        /** Compact "month" value used where space is tight, e.g. chart axis labels */
+        shortFormattedMonth: string;
+
         /** Key used for sorting */
         sortKey: number;
     };
@@ -447,6 +451,9 @@ type TransactionTagGroupListItemType = TransactionGroupListItemType & {groupedBy
 type TransactionWeekGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WEEK} & SearchWeekGroup & {
         /** Final and formatted "week" value used for displaying */
         formattedWeek: string;
+
+        /** Compact "week" value used where space is tight, e.g. chart axis labels */
+        shortFormattedWeek: string;
     };
 
 type TransactionYearGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.YEAR} & SearchYearGroup & {
@@ -460,6 +467,9 @@ type TransactionYearGroupListItemType = TransactionGroupListItemType & {groupedB
 type TransactionQuarterGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.QUARTER} & SearchQuarterGroup & {
         /** Final and formatted "quarter" value used for displaying */
         formattedQuarter: string;
+
+        /** Compact "quarter" value used where space is tight, e.g. chart axis labels */
+        shortFormattedQuarter: string;
 
         /** Sort key for sorting */
         sortKey: number;
@@ -515,7 +525,7 @@ const GROUP_ITEM_TYPES = {
     CHILDREN_CONTAINER: 'children_container',
 } as const;
 
-type GroupHeaderListItemType = {listItemType: typeof GROUP_ITEM_TYPES.GROUP_HEADER};
+type GroupHeaderListItemType = {listItemType: typeof GROUP_ITEM_TYPES.GROUP_HEADER; groupKeyForList: string};
 
 type GroupHeaderItemType =
     | (TransactionReportGroupListItemType & GroupHeaderListItemType)
@@ -533,6 +543,7 @@ type GroupHeaderItemType =
 
 type GroupChildrenContainerItemType = TransactionGroupListItemType & {
     listItemType: typeof GROUP_ITEM_TYPES.CHILDREN_CONTAINER;
+    groupKeyForList: string;
 };
 
 function isGroupHeaderItem(item: SearchListItem): item is GroupHeaderItemType {
@@ -556,9 +567,6 @@ type GroupChildrenContentProps = {
     nonPersonalAndWorkspaceCards?: CardList;
     onUndelete?: (transaction: Transaction) => void;
     newTransactionID?: string;
-    bankAccountList?: OnyxEntry<BankAccountList>;
-    cardFeeds?: OnyxCollection<CardFeeds>;
-    conciergeReportID: string | undefined;
 };
 
 type UnreportedExpenseListItemType = Transaction & {

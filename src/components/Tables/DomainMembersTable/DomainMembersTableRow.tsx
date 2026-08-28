@@ -70,7 +70,6 @@ export default function DomainMembersTableRow({item, rowIndex, shouldUseNarrowTa
                             size={avatarSize}
                             accountID={item.accountID}
                             fallbackDisplayName={item.name}
-                            shouldShowTooltip
                         />
                         <View style={[shouldUseNarrowTableLayout && styles.gap1, styles.flex1]}>
                             <TextWithTooltip

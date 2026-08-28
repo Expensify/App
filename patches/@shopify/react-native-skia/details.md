@@ -68,3 +68,32 @@
 - Upstream PR/issue: https://github.com/Shopify/react-native-skia/pull/3996 — applies the same defensive handling (and the `skia-surface-unavailable` event) to upstream `main`, where the throws now live in the renderer constructor and `onResize`. Once it ships in a release we consume, this patch can be dropped.
 - E/App issue: https://github.com/Expensify/App/issues/97104
 - PR introducing patch: https://github.com/Expensify/App/pull/97219
+
+### [@shopify+react-native-skia+2.4.14+003+fix-dispose-symbol-eval.patch](@shopify+react-native-skia+2.4.14+003+fix-dispose-symbol-eval.patch)
+
+- Reason:
+
+    ```
+    Fixes two iOS failures with one cause: the Top merchants pie chart killing the app
+    (Sentry APP-K19, fatal unhandled "SyntaxError: Parsing source code unsupported:
+    Symbol.for('Symbol.dispose');"), and every Line and Bar chart sitting on an indefinite
+    loading spinner because their fonts never load.
+
+    JsiHostObject::get() falls back to a "dispose symbol" check for any property it does
+    not recognise, and that check calls jsi::eval(). Hermes without a runtime compiler
+    rejects that, so any unknown property read on a Skia host object throws instead of
+    returning undefined:
+
+    - Pie: <Path path={Skia.Path.Make()} /> reaches skia's ReanimatedRecorder, whose
+      isSharedValue worklet reads _isReanimatedSharedValue on the SkPath. Nothing catches
+      the throw, so the app terminates.
+    - Line/Bar: Skia.Data.fromURI resolves with an SkData host object and promise
+      resolution reads .then on it, so every typeface load rejects, the font manager is
+      never built, and the charts never leave their loading state.
+
+    Fix: obtain the symbol through runtime.global() instead of eval.
+    ```
+
+- Upstream PR/issue: https://github.com/Shopify/react-native-skia/pull/3855 — the same fix, merged upstream on 2026-05-26. Drop this patch once the Skia dependency is bumped to >= 2.6.9.
+- E/App issue: https://github.com/Expensify/App/issues/98331, https://github.com/Expensify/App/issues/95905
+- PR introducing patch: https://github.com/Expensify/App/pull/98437

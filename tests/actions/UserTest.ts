@@ -170,6 +170,29 @@ describe('actions/User', () => {
         });
     });
 
+    describe('dismissMarketingWindow', () => {
+        it('should dismiss the supplied marketing update key optimistically', async () => {
+            const updateKey = 'productUpdateJuly2026';
+
+            UserActions.dismissMarketingWindow(updateKey);
+            await waitForBatchedUpdates();
+
+            expect(mockAPI.write).toHaveBeenCalledWith(
+                WRITE_COMMANDS.DISMISS_MARKETING_WINDOW,
+                {updateKey},
+                {
+                    optimisticData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW,
+                            value: updateKey,
+                        },
+                    ],
+                },
+            );
+        });
+    });
+
     describe('verifyAddSecondaryLoginCode', () => {
         it('should call API.write with correct parameters', async () => {
             // Given a validate code
