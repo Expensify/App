@@ -127,12 +127,12 @@ function ImportFromFileStep() {
                 addBottomSafeAreaPadding
             >
                 <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap, styles.alignItemsCenter]}>
-                    {createFileFeedHelpTextSegments.map((segment, segmentIndex) => {
+                    {createFileFeedHelpTextSegments.map((segment) => {
                         if (segment.onPress) {
                             return (
                                 <PressableWithoutFeedback
-                                    // eslint-disable-next-line react/no-array-index-key
-                                    key={`${segment.text}-${segmentIndex}`}
+                                    // Each link segment's translated text is unique (template vs. help guide), so it's a stable key on its own.
+                                    key={segment.text}
                                     role={segment.role}
                                     href={segment.href}
                                     accessibilityLabel={segment.text}
@@ -149,8 +149,11 @@ function ImportFromFileStep() {
                         // (e.g. Japanese, Chinese) aren't given extra spaces the translation never intended.
                         return (segment.text.match(/\s*\S+\s*/g) ?? []).map((word, wordIndex) => (
                             <Text
-                                // eslint-disable-next-line react/no-array-index-key
-                                key={`${segment.text}-${segmentIndex}-${wordIndex}`}
+                                // The word list is derived synchronously from a fixed translation and is never reordered, inserted into, or
+                                // filtered, so a word's index is a stable identity. wordIndex is only needed to disambiguate repeated words
+                                // within a segment (segment.text alone can't); the array position is what makes it unique.
+                                // eslint-disable-next-line react/no-array-index-key -- index is a stable identity for this static, never-reordered word list
+                                key={`${segment.text}-${word}-${wordIndex}`}
                                 style={styles.textSupporting}
                             >
                                 {word}
