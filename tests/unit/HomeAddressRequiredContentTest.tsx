@@ -4,10 +4,11 @@ import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils
 
 import HomeAddressRequiredContent from '@pages/inbox/report/actionContents/HomeAddressRequiredContent';
 
-import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
-import React from 'react';
+import type {ReactNode} from 'react';
+
+import createMock from '../utils/createMock';
 
 const mockRenderHTML = jest.fn();
 
@@ -21,11 +22,17 @@ jest.mock('@components/RenderHTML', () => ({
 
 jest.mock('@components/ReportActionItem/ActionableItemButtons', () => () => null);
 jest.mock('@components/ButtonComposed', () => {
-    const MockButton = () => null;
-    MockButton.Text = () => null;
-    return {__esModule: true, default: MockButton};
+    function MockButton() {
+        return null;
+    }
+
+    function MockButtonText() {
+        return null;
+    }
+
+    return {__esModule: true, default: Object.assign(MockButton, {Text: MockButtonText})};
 });
-jest.mock('@pages/inbox/report/ReportActionItemBasicMessage', () => ({__esModule: true, default: ({children}: {children: React.ReactNode}) => children}));
+jest.mock('@pages/inbox/report/ReportActionItemBasicMessage', () => ({__esModule: true, default: ({children}: {children: ReactNode}) => children}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: jest.fn()}));
 jest.mock('@libs/ReportActionsUtils', () => ({
     getOriginalMessage: jest.fn(),
@@ -33,11 +40,13 @@ jest.mock('@libs/ReportActionsUtils', () => ({
     getReportActionText: jest.fn(),
 }));
 
+const mockReportAction = createMock<ReportAction<'HOMEADDRESSREQUIRED'>>({actionName: 'HOMEADDRESSREQUIRED'});
+
 describe('HomeAddressRequiredContent', () => {
     it('renders the home address link from the report action HTML', () => {
         jest.mocked(getReportActionHtml).mockReturnValue('Add your <a href="https://example.com">home address</a>.');
 
-        render(<HomeAddressRequiredContent action={{} as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED>} />);
+        render(<HomeAddressRequiredContent action={mockReportAction} />);
 
         expect(mockRenderHTML).toHaveBeenCalledWith('<comment><muted-text>Add your <a href="https://example.com">home address</a>.</muted-text></comment>');
     });
@@ -46,7 +55,7 @@ describe('HomeAddressRequiredContent', () => {
         jest.mocked(getReportActionHtml).mockReturnValue('');
         jest.mocked(getReportActionText).mockReturnValue('Add your home address.');
 
-        render(<HomeAddressRequiredContent action={{} as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED>} />);
+        render(<HomeAddressRequiredContent action={mockReportAction} />);
 
         expect(mockRenderHTML).toHaveBeenLastCalledWith('<comment><muted-text>Add your home address.</muted-text></comment>');
     });
