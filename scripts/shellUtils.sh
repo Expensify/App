@@ -30,11 +30,11 @@ function success {
 }
 
 function error {
-  echo -e "💥 $RED$1$RESET"
+  echo -e "💥 $RED$1$RESET" >&2
 }
 
 function info {
-  echo -e "$BLUE$1$RESET"
+  echo -e "$BLUE$1$RESET" >&2
 }
 
 function title {
