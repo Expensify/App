@@ -74,7 +74,11 @@ function ImportFromFileStep() {
         {text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionStart')},
         {text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.templateLink'), onPress: downloadTemplate, role: CONST.ROLE.BUTTON},
         {text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionMiddle')},
-        {text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.helpGuideLink'), onPress: () => openLink(CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL, environmentURL), role: CONST.ROLE.LINK},
+        {
+            text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.helpGuideLink'),
+            onPress: () => openLink(CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL, environmentURL),
+            role: CONST.ROLE.LINK,
+        },
         {text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionEnd')},
     ];
 
