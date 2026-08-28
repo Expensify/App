@@ -1,4 +1,5 @@
 import Button from '@components/ButtonComposed';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
@@ -122,7 +123,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     ]);
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -262,6 +263,30 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         );
     }
 
+    const continueButton = (
+        <>
+            {!!error && (
+                <FormHelpMessage
+                    style={[styles.ph1, styles.mb2]}
+                    isError
+                    message={error}
+                />
+            )}
+
+            <Button
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
+                onPress={submitAccounting}
+                isDisabled={isOffline}
+                isLoading={isCompletingOnboarding}
+                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
+            >
+                <Button.KeyboardShortcut />
+                <Button.Text>{translate('common.continue')}</Button.Text>
+            </Button>
+        </>
+    );
+
     return (
         <ScreenWrapper
             testID="BaseOnboardingAccounting"
@@ -269,20 +294,23 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             shouldEnableMaxHeight={!isMobileSafari()}
             shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
         >
-            <OnboardingHeader onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute())} />
-            <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                <Text
-                    style={[styles.textHeadlineH1, styles.mb5]}
-                    accessibilityRole={CONST.ROLE.HEADER}
-                >
-                    {translate('onboarding.accounting.title')}
-                </Text>
-            </View>
+            <CollapsibleHeaderOnKeyboard>
+                <OnboardingHeader onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute())} />
+                <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
+                    <Text
+                        style={[styles.textHeadlineH1, styles.mb5]}
+                        accessibilityRole={CONST.ROLE.HEADER}
+                    >
+                        {translate('onboarding.accounting.title')}
+                    </Text>
+                </View>
+            </CollapsibleHeaderOnKeyboard>
             <ScrollView
                 ref={scrollViewRef}
                 style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                 contentContainerStyle={[styles.pt3, styles.pb5]}
                 onContentSizeChange={handleContentSizeChange}
+                keyboardShouldPersistTaps="handled"
             >
                 <View style={[styles.flexRow, styles.flexWrap, styles.gap3, styles.mb3]}>
                     {accountingOptions.map(renderOption)}
@@ -304,28 +332,10 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         autoFocus
                     />
                 )}
-            </ScrollView>
-            <FixedFooter style={[styles.pt3, styles.ph5]}>
-                {!!error && (
-                    <FormHelpMessage
-                        style={[styles.ph1, styles.mb2]}
-                        isError
-                        message={error}
-                    />
-                )}
 
-                <Button
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    size={CONST.BUTTON_SIZE.LARGE}
-                    onPress={submitAccounting}
-                    isDisabled={isOffline}
-                    isLoading={isCompletingOnboarding}
-                    sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
-                >
-                    <Button.KeyboardShortcut />
-                    <Button.Text>{translate('common.continue')}</Button.Text>
-                </Button>
-            </FixedFooter>
+                {isInLandscapeMode && <View style={[styles.pt8]}>{continueButton}</View>}
+            </ScrollView>
+            {!isInLandscapeMode && <FixedFooter style={[styles.pt3, styles.ph5]}>{continueButton}</FixedFooter>}
         </ScreenWrapper>
     );
 }

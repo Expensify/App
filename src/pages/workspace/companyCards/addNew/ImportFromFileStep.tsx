@@ -1,16 +1,18 @@
 import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import Switch from '@components/Switch';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import localFileDownload from '@libs/localFileDownload';
 
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
@@ -27,13 +29,28 @@ import {useRoute} from '@react-navigation/native';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
+// cspell:disable
+// Example CSV shared with customers so they can see how to structure a company card import file.
+// Sourced from the Expensify Classic "Manage Company Cards" help article.
+const CSV_TEMPLATE_FILE_NAME = 'Expensify_company_card_import_template.csv';
+const CSV_TEMPLATE_CONTENT = [
+    'Card Number,Posted Date,Merchant,Posted Amount,Posted Currency,Sales Date,Original Amount,Original Currency,Comment,Category,Tag,Unique ID',
+    '902212XXXXXX1234,2019-01-26,ACE Hardware,13.41,EUR,2019-01-23,12,USD,Impromptu supply run,Other,Client Project 4,982000000000000',
+    '902212XXXXXX1234,2019-01-24,McDonalds,4.48,EUR,2019-01-23,5,USD,Lunch at worksite,Meals,Client Project 4,375000000000000',
+    '902212XXXXXX8999,2019-01-27,United Airlines,"1,200.00",USD,2019-01-24,"1,200.00",USD,Flight to client site,Travel,Client Project 8,135000000000000',
+    '902212XXXXXX8999,2019-01-28,United Airlines,"-1,200.00",USD,2019-01-25,"-1,200.00",USD,Flight refund,Travel,Client Project 8,735000000000000',
+    '902212XXXXXX8999,2019-01-28,Sheraton NYC,357,USD,2019-01-24,357,USD,Overnight stay due to flight cancellation,Lodging,Client Project 8,529000000000000',
+    '902212XXXXXX8999,2019-01-29,Shell Oil,54,USD,2019-01-25,100,USD,Gas,Fuel,Client Project 8,765400000000000',
+].join('\n');
+// cspell:enable
+
 function ImportFromFileStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const icons = useMemoizedLazyExpensifyIcons(['Download']);
     const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_COMPANY_CARDS_ADD_NEW>>();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const shouldUseAdvancedFields = addNewCard?.data?.useAdvancedFields ?? false;
     const companyCardLayoutName = addNewCard?.data?.companyCardLayoutName ?? '';
     const [hasError, setHasError] = useState(false);
     const {policyID} = route.params;
@@ -42,8 +59,8 @@ function ImportFromFileStep() {
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
     };
 
-    const toggleAdvancedFields = (value: boolean) => {
-        setAddNewCompanyCardStepAndData({data: {useAdvancedFields: value}});
+    const downloadTemplate = () => {
+        localFileDownload(CSV_TEMPLATE_FILE_NAME, CSV_TEMPLATE_CONTENT, translate);
     };
 
     const navigateToImport = () => {
@@ -72,9 +89,13 @@ function ImportFromFileStep() {
                 contentContainerStyle={styles.flexGrow1}
                 addBottomSafeAreaPadding
             >
-                <View style={[styles.renderHTML, styles.ph5, styles.mv3, styles.textSupporting]}>
-                    <RenderHTML html={translate('workspace.companyCards.addNewCard.createFileFeedHelpText')} />
-                </View>
+                <Text style={[styles.ph5, styles.mv3, styles.textSupporting]}>
+                    {translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionStart')}
+                    <TextLink onPress={downloadTemplate}>{translate('workspace.companyCards.addNewCard.createFileFeedHelpText.templateLink')}</TextLink>
+                    {translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionMiddle')}
+                    <TextLink href={CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}>{translate('workspace.companyCards.addNewCard.createFileFeedHelpText.helpGuideLink')}</TextLink>
+                    {translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionEnd')}
+                </Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
                     title={companyCardLayoutName}
@@ -84,17 +105,15 @@ function ImportFromFileStep() {
                     brickRoadIndicator={shouldShowLayoutNameError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldShowLayoutNameError ? translate('workspace.companyCards.addNewCard.cardLayoutNameRequired') : undefined}
                 />
-                <View style={[styles.mt5, styles.mh5]}>
-                    <View style={[styles.flexRow, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.companyCards.addNewCard.useAdvancedFields')}</Text>
-                        <Switch
-                            isOn={shouldUseAdvancedFields}
-                            accessibilityLabel={translate('workspace.companyCards.addNewCard.useAdvancedFields')}
-                            onToggle={toggleAdvancedFields}
-                        />
-                    </View>
-                </View>
-                <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
+                <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd, styles.gap3]}>
+                    <Button
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        style={[styles.w100]}
+                        onPress={downloadTemplate}
+                    >
+                        <Button.Icon src={icons.Download} />
+                        <Button.Text>{translate('workspace.companyCards.addNewCard.downloadTemplate')}</Button.Text>
+                    </Button>
                     <Button
                         isDisabled={isOffline}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -111,3 +130,4 @@ function ImportFromFileStep() {
 }
 
 export default ImportFromFileStep;
+export {CSV_TEMPLATE_FILE_NAME, CSV_TEMPLATE_CONTENT};

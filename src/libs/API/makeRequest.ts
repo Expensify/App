@@ -109,7 +109,7 @@ function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
     const {optimisticData, successData, failureData, ...onyxDataWithoutOptimisticData} = onyxData;
 
     if (optimisticData && shouldApplyOptimisticData) {
-        Log.info('[API] Applying optimistic data', false, {command, type});
+        Log.info('[API] Applying optimistic data', false, {command, type}, undefined, optimisticData);
         Onyx.update(optimisticData);
     }
 

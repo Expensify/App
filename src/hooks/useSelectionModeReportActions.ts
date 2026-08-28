@@ -27,7 +27,6 @@ import {useState} from 'react';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useEnvironment from './useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLifecycleActions from './useLifecycleActions';
 import useLocalize from './useLocalize';
@@ -76,7 +75,6 @@ function useSelectionModeReportActions({
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const {isProduction} = useEnvironment();
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'Cash', 'ArrowRight'] as const);
@@ -171,7 +169,6 @@ function useSelectionModeReportActions({
             policies,
             outstandingReportsByPolicyID,
             isChatReportArchived,
-            isProduction,
             isOffline,
         });
     })();

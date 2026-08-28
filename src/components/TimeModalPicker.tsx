@@ -1,3 +1,4 @@
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
@@ -34,8 +35,9 @@ type TimeModalPickerProps = {
 
 function TimeModalPicker({value, errorText, label, onInputChange = () => {}, ref}: TimeModalPickerProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
-    const currentTime = value ? DateUtils.extractTime12Hour(value) : undefined;
+    const currentTime = value ? DateUtils.getTime12HourWithTranslatedPeriod(translate, value) : undefined;
 
     const hidePickerModal = () => {
         setIsPickerVisible(false);

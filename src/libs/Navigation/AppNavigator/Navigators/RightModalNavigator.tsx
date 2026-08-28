@@ -195,10 +195,21 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // When the wide rhp page is opened as first one, it will be animated with the entire RightModalNavigator.
     const animationEnabledOnSearchReport = superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || isSmallScreenWidth;
 
-    const animatedWidth = expandedRHPProgress.interpolate({
-        inputRange: [0, 1, 2],
-        outputRange: [singleRHPWidth, getWideRHPWidth(windowWidth), calculateSuperWideRHPWidth(windowWidth)],
-    });
+    // When the Concierge/Help Side Panel is open on a wide (extra large) layout, it shifts the whole RHP
+    // left by its width via paddingRight (see useModalCardStyleInterpolator + SidePanelContextProvider).
+    // The super wide RHP already spans almost the full window, so without shrinking it by the same amount
+    // its left edge would be pushed off-screen once the Side Panel opens. Subtract the Side Panel offset
+    // from the super wide width only (progress === 2) so the sheet's left edge stays put while the Side
+    // Panel animates open/closed. See https://github.com/Expensify/App/issues/99035
+    const superWideRHPSidePanelOffset = Animated.multiply(expandedRHPProgress.interpolate({inputRange: [0, 1, 2], outputRange: [0, 0, 1], extrapolate: 'clamp'}), sidePanelOffset.current);
+
+    const animatedWidth = Animated.subtract(
+        expandedRHPProgress.interpolate({
+            inputRange: [0, 1, 2],
+            outputRange: [singleRHPWidth, getWideRHPWidth(windowWidth), calculateSuperWideRHPWidth(windowWidth)],
+        }),
+        superWideRHPSidePanelOffset,
+    );
 
     const animatedWidthStyle = useMemo(() => {
         return {

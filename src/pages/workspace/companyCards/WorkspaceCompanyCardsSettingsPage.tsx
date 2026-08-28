@@ -39,15 +39,6 @@ import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
-const ADVANCED_CSV_COLUMNS = new Set<string>([
-    CONST.CSV_IMPORT_COLUMNS.ORIGINAL_TRANSACTION_DATE,
-    CONST.CSV_IMPORT_COLUMNS.ORIGINAL_AMOUNT,
-    CONST.CSV_IMPORT_COLUMNS.ORIGINAL_CURRENCY,
-    CONST.CSV_IMPORT_COLUMNS.COMMENT,
-    CONST.CSV_IMPORT_COLUMNS.CATEGORY,
-    CONST.CSV_IMPORT_COLUMNS.TAG,
-]);
-
 type WorkspaceCompanyCardsSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS>;
 
 function WorkspaceCompanyCardsSettingsPage({
@@ -81,8 +72,6 @@ function WorkspaceCompanyCardsSettingsPage({
     const isPending = !!selectedFeedData?.pending;
     const isDirectFeedType = isDirectFeed(feed);
     const isCsvFeed = isCSVUploadFeed(feed);
-    const storedMappings = selectedFeedData?.uploadLayoutSettings?.columnMappings;
-    const hadAdvancedFields = !!storedMappings && Object.keys(storedMappings).some((col) => ADVANCED_CSV_COLUMNS.has(col));
 
     const statementCloseDate = useMemo(() => {
         if (!selectedFeedData?.statementPeriodEndDay) {
@@ -205,7 +194,6 @@ function WorkspaceCompanyCardsSettingsPage({
                                         data: {
                                             layoutType: feed,
                                             companyCardLayoutName: selectedFeedData?.customFeedName ?? feedName ?? '',
-                                            useAdvancedFields: hadAdvancedFields,
                                             existingInstanceID: selectedFeedData?.uploadLayoutSettings?.instanceID ?? null,
                                             domainAccountID: domainOrWorkspaceAccountID,
                                         },

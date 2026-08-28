@@ -51,7 +51,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
     navigate: jest.fn(),
 }));
-jest.mock('@components/Avatar', () => jest.fn(() => null));
 jest.mock('@components/ActivityIndicator', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {View} = jest.requireActual<{View: React.ComponentType<{testID?: string}>}>('react-native');

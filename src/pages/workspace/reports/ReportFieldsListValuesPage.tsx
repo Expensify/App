@@ -187,6 +187,7 @@ function ReportFieldsListValuesPage({
                     icon: icons.Trashcan,
                     text: translate(selectedKeys.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                    shouldSkipFocusRestore: true,
                     onSelected: () => {
                         showConfirmModal({
                             danger: true,

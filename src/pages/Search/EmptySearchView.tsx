@@ -335,7 +335,7 @@ function EmptySearchViewContent({
                         };
                     } else if (!hasResults || !hasTransactions) {
                         content = {
-                            ...defaultViewItemHeader.folder,
+                            ...defaultViewItemHeader.expenses,
                             title: translate('search.searchResults.emptyExpenseResults.title'),
                             subtitle: translate(hasSeenTour ? 'search.searchResults.emptyExpenseResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyExpenseResults.subtitle'),
                             buttons: [

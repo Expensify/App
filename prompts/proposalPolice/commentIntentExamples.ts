@@ -76,6 +76,16 @@ export default Str.dedent(`
     ${CONST.INTENT.NOT_AN_ATTEMPT} - a question about the issue.
 
     ___
+    @reviewer Would you like to take over here? Or propose a solution?
+    ___
+    ${CONST.INTENT.NOT_AN_ATTEMPT} - coordination about transferring ownership of the issue, not a claim on the job.
+
+    ___
+    I don't have a solution yet. If you don't mind, I can take over here and review.
+    ___
+    ${CONST.INTENT.NOT_AN_ATTEMPT} - offering to take over or review is coordination, not a job claim.
+
+    ___
     Bug Report:
     The app is crashing when uploading images
     We should fix this by implementing compression

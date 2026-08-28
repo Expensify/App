@@ -17,13 +17,7 @@ import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {
-    getReportOrDraftReport,
-    hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
-    hasUpdatedTotal,
-    hasViolations as hasViolationsReportUtils,
-    isInvoiceReport as isInvoiceReportUtils,
-} from '@libs/ReportUtils';
+import {getReportOrDraftReport, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isInvoiceReport as isInvoiceReportUtils} from '@libs/ReportUtils';
 
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 
@@ -34,15 +28,7 @@ import ROUTES from '@src/ROUTES';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
 
-import {
-    useReportPreviewActions,
-    useReportPreviewActionState,
-    useReportPreviewAnimationState,
-    useReportPreviewData,
-    useReportPreviewTransactionViolations,
-    useReportPreviewUIState,
-} from './MoneyRequestReportPreviewContext';
-import useConfirmApproveReportAction from './useConfirmApproveReportAction';
+import {useReportPreviewActions, useReportPreviewActionState, useReportPreviewAnimationState, useReportPreviewData, useReportPreviewUIState} from './MoneyRequestReportPreviewContext';
 import useReportPreviewActionButtonData from './useReportPreviewActionButtonData';
 
 function PayActionButton() {
@@ -74,20 +60,16 @@ function PayActionButton() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
-    const {transactionViolations} = useReportPreviewTransactionViolations();
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
     const canAllowSettlement = hasUpdatedTotal(iouReport, policy);
-    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail, undefined, transactions);
 
     const shouldShowOnlyPayElsewhere = !canIOUBePaid && onlyShowPayElsewhere;
     const canIOUBePaidAndApproved = canIOUBePaid;
 
     const formattedAmount = getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction, transactions, convertToDisplayString);
-
-    const confirmApproval = useConfirmApproveReportAction(actionButtonData, transactions, hasViolations);
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type) {
@@ -169,7 +151,6 @@ function PayActionButton() {
             onPaymentOptionsShow={onPaymentOptionsShow}
             onPaymentOptionsHide={onPaymentOptionsHide}
             formattedAmount={formattedAmount}
-            confirmApproval={confirmApproval}
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
             shouldHidePaymentOptions={!shouldShowPayButton}
             kycWallAnchorAlignment={{

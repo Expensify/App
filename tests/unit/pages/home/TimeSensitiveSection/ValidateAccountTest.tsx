@@ -3,8 +3,9 @@ import {render, screen} from '@testing-library/react-native';
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import TimeSensitiveSection from '@src/pages/home/TimeSensitiveSection';
 import useTimeSensitiveAddPaymentCard from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddPaymentCard';
+import TimeSensitiveGroup from '@src/pages/home/TimeSensitiveSection/TimeSensitiveGroup';
+import useTimeSensitiveItems from '@src/pages/home/TimeSensitiveSection/useTimeSensitiveItems';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
@@ -60,6 +61,9 @@ jest.mock('@hooks/useCardFeedErrors', () =>
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({login: 'test@example.com'})));
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLayout: false})));
+function TimeSensitiveSection() {
+    return <TimeSensitiveGroup items={useTimeSensitiveItems()} />;
+}
 
 const renderTimeSensitiveSection = () =>
     render(

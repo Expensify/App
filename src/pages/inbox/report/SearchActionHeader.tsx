@@ -50,7 +50,7 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
     const reportTransactionsCollection = useReportTransactionsCollection(reportForHeaderReportID);
     const linkedTransactions = Object.values(reportTransactionsCollection ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 
-    const reportName = getChatListItemReportName(action, report, conciergeReportID, linkedTransactions, translate, personalDetailsList);
+    const reportName = getChatListItemReportName(action, report, parentReport, conciergeReportID, linkedTransactions, translate, personalDetailsList);
 
     return (
         <View style={[styles.p4]}>

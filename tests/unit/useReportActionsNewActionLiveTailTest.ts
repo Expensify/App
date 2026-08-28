@@ -67,6 +67,7 @@ function buildParams(overrides: Partial<HookParams> = {}): HookParams {
     return {
         reportID: '1',
         introSelected: undefined,
+        conciergeChat: undefined,
         betas: [],
         isOffline: false,
         reportScrollManager,
@@ -91,6 +92,17 @@ describe('useReportActionsNewActionLiveTail', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         newActionHandler = undefined;
+    });
+
+    it('threads the conciergeChat report through to the catch-up openReport call', () => {
+        const conciergeChat = {reportID: 'concierge-live-tail-1'};
+        renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams({conciergeChat})});
+
+        act(() => {
+            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+        });
+
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
     });
 
     it('clears the report screen param after loading the live tail without changing the focused route', () => {

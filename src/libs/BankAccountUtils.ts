@@ -1,3 +1,5 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -284,7 +286,108 @@ function getRequiredKYBDocuments(externalApiResponses: KYBVerificationResponses)
     return requiredDocuments;
 }
 
+function isValidIBAN(value?: string): boolean {
+    return CONST.BANK_ACCOUNT.REGEX.IBAN.test((value ?? '').trim());
+}
+
+function isValidSwiftBic(value?: string): boolean {
+    return CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test((value ?? '').trim());
+}
+
+/**
+ * IBAN/SWIFT can come from the dedicated `iban`/`swiftCode` fields or from `accountNumber`/`swiftBicCode` on the
+ * Corpay bank-details step. IBAN must match the IBAN format in either place. Dedicated `swiftCode` must be a BIC;
+ * first-page `swiftBicCode` is already Corpay-validated, so non-empty is enough (it may not be a BIC).
+ */
+function hasValidInternationalBankAccountDetails(iban: string | undefined, swiftCode: string | undefined, accountNumber?: string, swiftBicCode?: string) {
+    return (isValidIBAN(iban) || isValidIBAN(accountNumber)) && (isValidSwiftBic(swiftCode) || !!swiftBicCode);
+}
+
+/**
+ * Whether the Corpay account details step already collected a real IBAN and a SWIFT value. That is the only case
+ * where the dedicated international details step can be omitted. `accountNumber` must be an IBAN (it is often a local
+ * number). `swiftBicCode` is always the SWIFT field and is validated on that step, so non-empty is enough. Filled
+ * `iban`/`swiftCode` must not omit the step, or it disappears from the wizard after the user completes it.
+ */
+function hasValidAccountDetailsInternationalFields(accountNumber?: string, swiftBicCode?: string): boolean {
+    return isValidIBAN(accountNumber) && !!swiftBicCode;
+}
+
+/**
+ * Resolves the IBAN/SWIFT values to display or submit, falling back to `accountNumber`/`swiftBicCode` when the
+ * dedicated `iban`/`swiftCode` fields weren't collected (e.g. the international bank account details step was
+ * skipped because the Corpay bank-details step already gathered equivalent values).
+ */
+function getInternationalBankAccountDetailsValues(iban: string | undefined, swiftCode: string | undefined, accountNumber?: string, swiftBicCode?: string): {iban: string; swiftCode: string} {
+    let resolvedIBAN = iban ?? '';
+    if (!resolvedIBAN && isValidIBAN(accountNumber)) {
+        resolvedIBAN = accountNumber ?? '';
+    }
+
+    let resolvedSwiftCode = swiftCode ?? '';
+    if (!resolvedSwiftCode && swiftBicCode) {
+        resolvedSwiftCode = swiftBicCode;
+    }
+
+    // `swiftBicCode` is always the SWIFT field and is already validated on the account details step, so a non-empty
+    // value can be copied as-is. `accountNumber` is not always an IBAN, so that fallback still uses isValidIBAN.
+    return {
+        iban: resolvedIBAN,
+        swiftCode: resolvedSwiftCode,
+    };
+}
+
+/**
+ * Locks the international-details IBAN or SWIFT/BIC input when the initial bank details page already collected
+ * that value, so the user cannot submit a second conflicting copy.
+ */
+function getDisabledInternationalBankAccountFields(accountNumber?: string, swiftBicCode?: string): {isIBANDisabled: boolean; isSwiftCodeDisabled: boolean} {
+    return {
+        isIBANDisabled: isValidIBAN(accountNumber),
+        isSwiftCodeDisabled: !!swiftBicCode,
+    };
+}
+
+/**
+ * Confirmation should list IBAN/SWIFT from the international details step only when the user entered them there.
+ * Prefill comes from `accountNumber` (IBAN countries) or `swiftBicCode`, which are already shown on the initial
+ * bank details fields, so a matching value is hidden.
+ */
+function shouldShowInternationalDetailOnConfirmation(value: string | undefined, sourceValue?: string): boolean {
+    const trimmed = value?.trim();
+    if (!trimmed) {
+        return false;
+    }
+    return trimmed !== sourceValue?.trim();
+}
+
+/**
+ * Shared IBAN/SWIFT format validation for the international bank account details step, used by both the USD and
+ * international personal bank account flows.
+ */
+function getInternationalBankAccountDetailsErrors(
+    iban: string | undefined,
+    swiftCode: string | undefined,
+    translate: LocaleContextProps['translate'],
+    isSwiftCodeDisabled = false,
+): Partial<Record<'iban' | 'swiftCode', string>> {
+    const errors: Partial<Record<'iban' | 'swiftCode', string>> = {};
+    if (iban && !isValidIBAN(iban)) {
+        errors.iban = translate('bankAccount.error.iban');
+    }
+    if (swiftCode && !isSwiftCodeDisabled && !isValidSwiftBic(swiftCode)) {
+        errors.swiftCode = translate('bankAccount.error.swiftCode');
+    }
+    return errors;
+}
+
 export {
+    hasValidInternationalBankAccountDetails,
+    hasValidAccountDetailsInternationalFields,
+    getInternationalBankAccountDetailsValues,
+    getDisabledInternationalBankAccountFields,
+    shouldShowInternationalDetailOnConfirmation,
+    getInternationalBankAccountDetailsErrors,
     getBankAccountSearchLabel,
     isFilterableBankAccount,
     getDefaultCompanyWebsite,

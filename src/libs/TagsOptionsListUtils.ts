@@ -334,19 +334,17 @@ function getUpdatedTransactionTag({transactionTag, selectedTagName, currentTag, 
             tagParts.splice(tagListIndex, tagParts.length - tagListIndex, selectedTagName);
 
             const policyTagLists = getTagLists(policyTags);
-            // Auto-select subsequent tags if there is only one enabled tag
+            // Auto-selects the next level when the selected parent leaves exactly one enabled option.
             for (let i = tagListIndex + 1; i < policyTagLists.length; i++) {
                 const availableNextLevelTags = getTagList(policyTags, i);
-                const enabledTags = Object.values(availableNextLevelTags.tags).filter((tag) => tag.enabled);
+                const enabledTags = getEnabledTags(availableNextLevelTags.tags, tagParts.join(':'), i);
 
                 if (enabledTags.length === 1) {
-                    // If there is only one enabled tag, we can auto-select it.
                     const firstTag = enabledTags.at(0);
                     if (firstTag) {
                         tagParts.push(firstTag.name);
                     }
                 } else {
-                    // If there are no enabled tags or more than one, stop auto-selecting.
                     break;
                 }
             }

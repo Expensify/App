@@ -233,3 +233,10 @@ If the search operator isn’t recognized, the system will ignore it and return 
 ## Do I need to use quotes for everything?
 
 Only use quotes for values that include spaces or exact phrases, like `description:"client lunch"` or `in:"#general"`.
+
+## How do I find all messages from a specific person?
+
+You have two options:
+
+- Enter `type:chat from:` followed by the person's email, phone, or display name in the search bar (for example, `type:chat from:alice@acme.com`).
+- Open the person's profile and select **View user history** (or **View agent history** for an agent). This opens the **Search** page filtered to that person's messages.

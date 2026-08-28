@@ -11,6 +11,7 @@ import {openExternalLink} from '@libs/actions/Link';
 
 import HelpPage from '@pages/settings/HelpPage/HelpPage';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {NavigationContainer} from '@react-navigation/native';
@@ -81,5 +82,51 @@ describe('HelpPage', () => {
         // And pressing it opens the account manager's calendar link
         fireEvent.press(bookCallButton);
         expect(mockOpenExternalLink).toHaveBeenCalledWith(CALENDAR_LINK);
+    });
+
+    it('hides the duplicate account manager row when the account manager is Concierge', async () => {
+        // Given Concierge assigned as the account manager
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: CONST.ACCOUNT_ID.CONCIERGE});
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, login: CONST.EMAIL.CONCIERGE, displayName: 'Concierge'},
+        });
+        await waitForBatchedUpdates();
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the account manager slot is not rendered, and only the dedicated Concierge button remains
+        expect(screen.queryByText(translateLocal('initialSettingsPage.helpPage.yourAccountManager'))).not.toBeOnTheScreen();
+        expect(screen.getByText(translateLocal('initialSettingsPage.helpPage.conciergeChat'))).toBeOnTheScreen();
+    });
+
+    it('hides the duplicate guide row when the guide is Concierge', async () => {
+        // Given Concierge assigned as the guide (guide is resolved by email)
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {guideDetails: {email: CONST.EMAIL.CONCIERGE}});
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, login: CONST.EMAIL.CONCIERGE, displayName: 'Concierge'},
+        });
+        await waitForBatchedUpdates();
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the guide slot is not rendered, and only the dedicated Concierge button remains
+        expect(screen.queryByText(translateLocal('initialSettingsPage.helpPage.guideDescription'))).not.toBeOnTheScreen();
+        expect(screen.getByText(translateLocal('initialSettingsPage.helpPage.conciergeChat'))).toBeOnTheScreen();
+    });
+
+    it('still renders a non-Concierge account manager row', async () => {
+        // Given a human account manager (not Concierge)
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: ACCOUNT_MANAGER_ACCOUNT_ID});
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ACCOUNT_MANAGER_ACCOUNT_ID]: {accountID: ACCOUNT_MANAGER_ACCOUNT_ID, login: 'am@example.com', displayName: ACCOUNT_MANAGER_NAME}});
+        await waitForBatchedUpdates();
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the account manager row is rendered as normal
+        expect(screen.getByText(translateLocal('initialSettingsPage.helpPage.yourAccountManager'))).toBeOnTheScreen();
+        expect(screen.getByText(ACCOUNT_MANAGER_NAME)).toBeOnTheScreen();
     });
 });

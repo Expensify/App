@@ -85,6 +85,7 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             shouldBeBlocked={!shouldShowChangeWorkspaceOwnerPage(fundList, error)}
+            canBeAccessedIfArchived
         >
             <ScreenWrapper testID="DynamicWorkspaceOwnerChangeWrapperPage">
                 <HeaderWithBackButton

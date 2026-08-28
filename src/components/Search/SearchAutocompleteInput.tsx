@@ -26,7 +26,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ForwardedRef} from 'react';
 import type {StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 
-import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Animated, {interpolateColor, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
@@ -124,7 +123,7 @@ function SearchAutocompleteInput({
     const categoryAutocompleteList = getAutocompleteCategories(allPolicyCategories);
     const categorySharedValue = useSharedValue(categoryAutocompleteList);
 
-    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const tagAutocompleteList = getAutocompleteTags(allPoliciesTags);
     const tagSharedValue = useSharedValue(tagAutocompleteList);
 

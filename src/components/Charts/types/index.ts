@@ -4,8 +4,11 @@ import type {SkParagraph} from '@shopify/react-native-skia';
 import type {ValueOf} from 'type-fest';
 
 type ChartDataPoint = {
-    /** Label displayed under the data point (e.g., "Amazon", "Nov 2025") */
+    /** Full label for the data point (e.g., "Amazon", "November 2025") */
     label: string;
+
+    /** Compact label for the x-axis (e.g., "Nov ’25"). Defaults to `label`. */
+    shortLabel?: string;
 
     /** Total amount (pre-formatted, e.g., dollars not cents) */
     total: number;

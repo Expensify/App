@@ -109,6 +109,20 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         openPolicyRoomsPage(policyID);
     });
 
+    const roomsTableHeader =
+        shouldUseNarrowLayout && !isArchived ? (
+            <View style={[styles.ph5, styles.pb3]}>
+                <Button
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
+                    style={styles.w100}
+                >
+                    <Button.Icon src={headerIcons.Plus} />
+                    <Button.Text>{translate('common.create')}</Button.Text>
+                </Button>
+            </View>
+        ) : undefined;
+
     return (
         <AccessOrNotFoundWrapper policyID={policyID}>
             <ScreenWrapper
@@ -136,23 +150,11 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     )}
                 </HeaderWithBackButton>
 
-                {shouldUseNarrowLayout && !isArchived && (
-                    <View style={[styles.ph5, styles.pb3]}>
-                        <Button
-                            variant={CONST.BUTTON_VARIANT.SUCCESS}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
-                            style={styles.w100}
-                        >
-                            <Button.Icon src={headerIcons.Plus} />
-                            <Button.Text>{translate('common.create')}</Button.Text>
-                        </Button>
-                    </View>
-                )}
-
                 <WorkspaceRoomsTable
                     rooms={rooms}
                     policyID={policyID}
                     highlightedReportID={highlightedReportID}
+                    headerComponent={roomsTableHeader}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

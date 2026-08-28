@@ -51,6 +51,7 @@ function DynamicWorkspaceOwnerChangeErrorPage({route}: DynamicWorkspaceOwnerChan
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             shouldBeBlocked={!shouldShowRef.current}
+            canBeAccessedIfArchived
         >
             <ScreenWrapper
                 testID="DynamicWorkspaceOwnerChangeErrorPage"

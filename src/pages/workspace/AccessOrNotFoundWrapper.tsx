@@ -18,7 +18,6 @@ import {
     canEditWorkspaceSettings,
     canMemberRead,
     canMemberWrite,
-    canSendInvoice,
     isControlPolicy,
     isGroupPolicy,
     isPolicyAccessible,
@@ -40,7 +39,7 @@ import type Policy from '@src/types/onyx/Policy';
 import callOrReturn from '@src/types/utils/callOrReturn';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
 /* eslint-disable rulesdir/no-negated-variables */
 import {useIsFocused} from '@react-navigation/native';
@@ -54,7 +53,7 @@ const ACCESS_VARIANTS = {
         policy: OnyxEntry<Policy>,
         login: string,
         report: OnyxEntry<Report>,
-        allPolicies: NonNullable<OnyxCollection<Policy>> | null,
+        canSendInvoice: boolean,
         betas: OnyxEntry<Beta[]>,
         iouType?: IOUType,
         isReportArchived?: boolean,
@@ -65,14 +64,14 @@ const ACCESS_VARIANTS = {
         // Allow the user to submit the expense if we are submitting the expense in global menu or the report can create the expense
 
         (isEmptyObject(report?.reportID) || canCreateRequest(report, policy, iouType, isReportArchived, betas, isRestrictedToPreferredPolicy)) &&
-        (iouType !== CONST.IOU.TYPE.INVOICE || canSendInvoice(allPolicies, login)),
+        (iouType !== CONST.IOU.TYPE.INVOICE || canSendInvoice),
 } as const satisfies Record<
     string,
     (
         policy: Policy,
         login: string,
         report: Report,
-        allPolicies: NonNullable<OnyxCollection<Policy>> | null,
+        canSendInvoice: boolean,
         betas: OnyxEntry<Beta[]>,
         iouType?: IOUType,
         isArchivedReport?: boolean,
@@ -121,11 +120,14 @@ type AccessOrNotFoundWrapperProps = {
     /** Whether or not to block user from accessing the page */
     shouldBeBlocked?: boolean;
 
+    /** Whether the ADMIN access variant should still grant access when the policy is archived */
+    canBeAccessedIfArchived?: boolean;
+
     /** The type of the transaction */
     iouType?: IOUType;
 
-    /** The list of all policies */
-    allPolicies?: OnyxCollection<Policy>;
+    /** Only read for the invoice iou type */
+    canSendInvoice?: boolean;
 } & Pick<FullPageNotFoundViewProps, 'subtitleKey' | 'onLinkPress'>;
 
 type PageNotFoundFallbackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID' | 'fullPageNotFoundViewProps'> & {
@@ -158,10 +160,11 @@ function AccessOrNotFoundWrapper({
     accessVariants = [],
     fullPageNotFoundViewProps,
     shouldBeBlocked,
+    canBeAccessedIfArchived = false,
     policyID,
     reportID,
     iouType,
-    allPolicies,
+    canSendInvoice,
     featureName,
     policyFeature,
     policyFeatureAccess = CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
@@ -207,9 +210,12 @@ function AccessOrNotFoundWrapper({
     const isPageAccessible = accessVariantsToCheck.reduce((acc, variant) => {
         const accessFunction = ACCESS_VARIANTS[variant];
         if (variant === CONST.IOU.ACCESS_VARIANTS.CREATE) {
-            return acc && accessFunction(policy, login, report, allPolicies ?? null, betas, iouType, isReportArchived, isRestrictedToPreferredPolicy);
+            return acc && accessFunction(policy, login, report, !!canSendInvoice, betas, iouType, isReportArchived, isRestrictedToPreferredPolicy);
         }
-        return acc && accessFunction(policy, login, report, allPolicies ?? null, betas, iouType, isReportArchived);
+        if (variant === CONST.POLICY.ACCESS_VARIANTS.ADMIN) {
+            return acc && canEditWorkspaceSettings(policy, login, canBeAccessedIfArchived);
+        }
+        return acc && accessFunction(policy, login, report, !!canSendInvoice, betas, iouType, isReportArchived);
     }, true);
     let hasAccessToPolicyFeature = true;
     if (policyFeature) {

@@ -1,10 +1,12 @@
 import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Popover from '@components/Popover';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -20,6 +22,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getCardSettings} from '@libs/CardUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isSupportedInviteOnboardingChoice, isSupportedPendingInviteOnboarding} from '@libs/OnboardingUtils';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -29,7 +32,7 @@ import variables from '@styles/variables';
 
 import {queueExpensifyCardForBilling} from '@userActions/Card';
 import {requestExpensifyCardLimitIncrease} from '@userActions/Policy/Policy';
-import {navigateToConciergeChat} from '@userActions/Report';
+import {navigateToConciergeChat, openReport} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,7 +43,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {addDays, format} from 'date-fns';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -65,12 +68,25 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`, {selector: Boolean});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+
+    // Mirror ReportFetchHandler's onboarding-pending logic so we can detect when Concierge still has a pending guided
+    // setup (welcome message + tasks) that OpenReport will create. See https://github.com/Expensify/App/issues/99396.
+    const isOnboardingCompleted = hasCompletedGuidedSetupFlow ?? false;
+    const isRegularOnboardingPending = !!introSelected && !introSelected.inviteType && isSupportedInviteOnboardingChoice(introSelected.choice) && !isOnboardingCompleted;
+    const isPendingInviteOnboarding = isSupportedPendingInviteOnboarding(introSelected);
+    const isGuidedSetupPending = isRegularOnboardingPending || isPendingInviteOnboarding;
     const [isVisible, setVisible] = useState(false);
     const [anchorPosition, setAnchorPosition] = useState({top: 0, left: 0});
     const anchorRef = useRef(null);
@@ -109,8 +125,39 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     }, [isVisible, windowWidth]);
 
     const requestLimitIncrease = () => {
-        requestExpensifyCardLimitIncrease(settings?.paymentBankAccountID, defaultFundID);
         setVisible(false);
+
+        // The Concierge onboarding welcome message + tasks are created by OpenReport's guidedSetupData, and the request
+        // queue is a blocking FIFO, so an OpenReport carrying that onboarding data must be enqueued BEFORE the limit-increase
+        // write for Concierge's reply to be stamped last. getGuidedSetupData de-dupes, so ReportFetchHandler's later mount
+        // OpenReport won't duplicate the onboarding. See https://github.com/Expensify/App/issues/99396.
+        if (isGuidedSetupPending && !conciergeReportID) {
+            // No Concierge chat exists yet: navigateToConciergeChat creates it and enqueues the onboarding OpenReport on
+            // its create path. Wait for that promise so the limit-increase write lands after it in the queue.
+            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false).then(() => {
+                requestExpensifyCardLimitIncrease(settings?.paymentBankAccountID, defaultFundID);
+            });
+            return;
+        }
+
+        // Concierge chat already exists but onboarding is still pending. ReportFetchHandler's onboarding OpenReport only
+        // fires on its mount effect, which runs after this handler, so we enqueue the same OpenReport ourselves first to win
+        // the ordering. We mirror ReportFetchHandler's isLoadingApp guard because guided-setup tasks need loaded policies to
+        // resolve their deep links (https://github.com/Expensify/App/issues/71742). When isLoadingApp is true we skip and let
+        // ReportFetchHandler's deferred OpenReport run instead. Keep this guard as-is.
+        if (isGuidedSetupPending && !isLoadingApp) {
+            openReport({
+                reportID: conciergeReportID,
+                introSelected,
+                conciergeChat,
+                betas,
+                hasReportActions,
+                currentUserAccountID,
+                isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
+            });
+        }
+        requestExpensifyCardLimitIncrease(settings?.paymentBankAccountID, defaultFundID);
         navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
     };
 
@@ -122,7 +169,17 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const settlementDate = isSettleDateTextDisplayed ? format(addDays(new Date(), 1), CONST.DATE.FNS_FORMAT_STRING) : '';
 
     const handleSettleBalanceButtonClick = () => {
-        queueExpensifyCardForBilling(CONST.COUNTRY.US, defaultFundID);
+        showConfirmModal({
+            title: translate('workspace.expensifyCard.settleBalanceConfirmationTitle'),
+            prompt: translate('workspace.expensifyCard.settleBalanceConfirmationPrompt'),
+            confirmText: translate('workspace.expensifyCard.settleBalance'),
+            cancelText: translate('common.cancel'),
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+            queueExpensifyCardForBilling(CONST.COUNTRY.US, defaultFundID);
+        });
     };
 
     const handleViewTransactionsPress = () => {

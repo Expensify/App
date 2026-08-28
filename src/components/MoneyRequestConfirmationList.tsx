@@ -1,5 +1,5 @@
 import useAttendees from '@hooks/useAttendees';
-import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
@@ -256,7 +256,7 @@ function MoneyRequestConfirmationList({
     const isDistanceRequest = isDistanceRequestUtil(transaction);
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
     const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
-    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: isPolicyExpenseChat ? policy?.id : undefined,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
@@ -513,7 +513,7 @@ function MoneyRequestConfirmationList({
         setDidConfirmSplit,
         showDelegateNoAccessModal,
         onConfirm: () => {
-            if (blockManualOrOdometerDistanceRequestIfNeeded()) {
+            if (blockDistanceRequestIfNeeded()) {
                 return;
             }
             onConfirm?.();

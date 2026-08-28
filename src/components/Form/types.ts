@@ -124,6 +124,7 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
     ref?: Ref<unknown>;
     multiline?: boolean;
     autoGrowHeight?: boolean;
+    autoGrowSingleLine?: boolean;
     submitBehavior?: SubmitBehavior;
     shouldSubmitForm?: boolean;
     uncontrolled?: boolean;
