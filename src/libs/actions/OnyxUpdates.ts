@@ -24,8 +24,14 @@ let lastUpdateIDAppliedToClient: number | undefined = 0;
 // applied so queued WRITE responses don't look like gaps; reset if the flush fails so recovery can kick in.
 let lastUpdateIDPendingFlush = 0;
 
+let lastUpdateIDPendingApply = 0;
+
 function getEffectiveLastUpdateID(): number {
     return Math.max(lastUpdateIDAppliedToClient ?? 0, lastUpdateIDPendingFlush);
+}
+
+function getLastUpdateIDForGapCheck(clientLastUpdateID?: number): number {
+    return Math.max(clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0, lastUpdateIDPendingFlush, lastUpdateIDPendingApply);
 }
 
 function getPersistedLastUpdateID(): number {
@@ -42,6 +48,7 @@ Onyx.connectWithoutView({
         // too — a stale value from the previous session would mask real gaps after signing back in.
         if (val === undefined) {
             lastUpdateIDPendingFlush = 0;
+            lastUpdateIDPendingApply = 0;
         }
     },
 });
@@ -209,6 +216,8 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
                 return result;
             })
             .catch((error) => {
+                lastUpdateIDPendingApply = 0;
+
                 if (shouldAdvanceLastUpdateID) {
                     Log.alert('[OnyxUpdateManagerError] Applying the updates failed, not advancing lastUpdateID so the client can recover on the next reconnect', {
                         type,
@@ -241,6 +250,10 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
         return advanceLastUpdateIDAfterApply(applyPromise);
     }
     if (type === CONST.ONYX_UPDATE_TYPES.PUSHER && updates) {
+        if (shouldAdvanceLastUpdateID) {
+            lastUpdateIDPendingApply = Math.max(lastUpdateIDPendingApply, Number(lastUpdateID));
+        }
+
         return advanceLastUpdateIDAfterApply(applyPusherOnyxUpdates(updates, Number(lastUpdateID)));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.AIRSHIP && updates) {
@@ -282,9 +295,7 @@ function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID}: DoesC
         return false;
     }
 
-    // Updates staged for the deferred WRITE flush count as applied here, otherwise the responses of queued
-    // WRITE requests would look like gaps until the flush runs and needlessly pause the queue to refetch.
-    const lastUpdateIDFromClient = Math.max(clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0, lastUpdateIDPendingFlush);
+    const lastUpdateIDFromClient = getLastUpdateIDForGapCheck(clientLastUpdateID);
 
     // If we don't have any value in lastUpdateIDFromClient, this is the first time we're receiving anything, so we need to do a last reconnectApp
     if (!lastUpdateIDFromClient) {

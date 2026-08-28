@@ -1,4 +1,5 @@
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import PusherUtils from '@libs/PusherUtils';
 
 import CONST from '@src/CONST';
 import * as OnyxUpdates from '@src/libs/actions/OnyxUpdates';
@@ -313,6 +314,102 @@ describe('OnyxUpdatesTest', () => {
 
         // Drain the staged updates so they don't leak into other tests
         await flushQueue();
+    });
+
+    const applyHeldPusherUpdate = (previousUpdateID: number, lastUpdateID: number) => {
+        let releaseApply: () => void = () => {};
+        const handlerSpy = jest.spyOn(PusherUtils, 'triggerMultiEventHandler').mockReturnValueOnce(
+            new Promise<void>((resolve) => {
+                releaseApply = resolve;
+            }),
+        );
+        const applyPromise = OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.PUSHER,
+            previousUpdateID,
+            lastUpdateID,
+            updates: [{eventType: 'onyxApiUpdate', data: []}],
+        });
+
+        return {
+            release: () => {
+                releaseApply();
+                handlerSpy.mockRestore();
+                return applyPromise;
+            },
+        };
+    };
+
+    it('does not report a gap for a Pusher update that is still applying', async () => {
+        // Given the client is caught up to update 10
+        await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+        await waitForBatchedUpdates();
+
+        // When update 20 arrives over Pusher and its apply is held mid-flight
+        const heldApply = applyHeldPusherUpdate(10, 20);
+        await waitForBatchedUpdates();
+
+        // Then the next event, chained on update 20, is not treated as a gap even though the watermark is still at 10
+        expect(OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: 20})).toBe(false);
+
+        await heldApply.release();
+    });
+
+    it('keeps a Pusher update that is still applying out of the catch-up fetch range', async () => {
+        // Given the client is caught up to update 10
+        await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+        await waitForBatchedUpdates();
+
+        // When update 20 arrives over Pusher and its apply is held mid-flight
+        const heldApply = applyHeldPusherUpdate(10, 20);
+        await waitForBatchedUpdates();
+
+        // Then a genuinely later gap is still detected
+        expect(OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: 30})).toBe(true);
+
+        // And it fetches from the persisted watermark, so a rejected apply cannot strand update 20
+        expect(OnyxUpdates.getEffectiveLastUpdateID()).toBe(10);
+
+        await heldApply.release();
+    });
+
+    it('clears the pending apply watermark on sign-out', async () => {
+        // Given the client is caught up to update 10 and update 20 from Pusher is held mid-apply
+        await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+        await waitForBatchedUpdates();
+        const heldApply = applyHeldPusherUpdate(10, 20);
+        await waitForBatchedUpdates();
+
+        // When the user signs out, which clears Onyx storage
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+
+        // Then the pending marker from the previous session no longer masks gaps in the new session
+        expect(OnyxUpdates.doesClientNeedToBeUpdated({clientLastUpdateID: 5, previousUpdateID: 15})).toBe(true);
+
+        await heldApply.release();
+    });
+
+    it('resumes gap detection when the Pusher apply fails, and leaves the shared Pusher chain rejected so no Pusher test can follow it', async () => {
+        // Given the client is caught up to update 10
+        await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+        await waitForBatchedUpdates();
+
+        // When applying update 20 from Pusher fails
+        const handlerSpy = jest.spyOn(PusherUtils, 'triggerMultiEventHandler').mockRejectedValueOnce(new Error('storage write failed'));
+        await expect(
+            OnyxUpdates.apply({
+                type: CONST.ONYX_UPDATE_TYPES.PUSHER,
+                previousUpdateID: 10,
+                lastUpdateID: 20,
+                updates: [{eventType: 'onyxApiUpdate', data: []}],
+            }),
+        ).rejects.toThrow('storage write failed');
+        await waitForBatchedUpdates();
+
+        // Then the update no longer counts as applied, so the gap is detected and recovery can refetch it
+        expect(OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: 20})).toBe(true);
+
+        handlerSpy.mockRestore();
     });
 
     it('does not move the watermark backwards when a slower older update settles after a newer one', async () => {
