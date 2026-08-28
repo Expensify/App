@@ -958,7 +958,7 @@ describe('ReportNameUtils', () => {
                 {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: removedParentAction}},
                 currentUserAccountID,
             );
-            expect(removedName).toBe('changed the approval workflow for member@example.com to stop forwarding reports over the $100.00 limit (previously forwarded to approver@example.com)');
+            expect(removedName).toBe('changed the approval workflow for member@example.com to stop forwarding reports over $100.00 (previously forwarded to approver@example.com)');
         });
 
         test('UPDATE_APPROVAL_LIMIT parent action', () => {

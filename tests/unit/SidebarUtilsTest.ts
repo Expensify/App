@@ -2983,7 +2983,7 @@ describe('SidebarUtils', () => {
             });
 
             expect(removedResult?.alternateText).toBe(
-                'changed the approval workflow for member@example.com to stop forwarding reports over the $100.00 limit (previously forwarded to approver@example.com)',
+                'changed the approval workflow for member@example.com to stop forwarding reports over $100.00 (previously forwarded to approver@example.com)',
             );
         });
 
