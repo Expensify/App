@@ -510,17 +510,15 @@ function SearchWriteActionsProvider({
     // A group selected before its children loaded lives under its own key, so dropping one child means writing it out first.
     const spellOutGroupSelection = (selection: SelectedTransactions, childKey: string): SelectedTransactions => {
         const block = resolveGroupBlock(selection, childKey);
-        // Writing out with no rows would delete the entry and put nothing back.
-        if (!block || block.loaded.length === 0) {
+        // Counted the same way the loop writes, so writing out can never delete the entry and put nothing back.
+        const selectable = block?.loaded.filter((child) => !isTransactionPendingDelete(child)) ?? [];
+        if (!block || selectable.length === 0) {
             return selection;
         }
         const {groupKey} = block;
         const spelledOut: SelectedTransactions = {...selection};
         delete spelledOut[groupKey];
-        for (const child of block.loaded) {
-            if (isTransactionPendingDelete(child)) {
-                continue;
-            }
+        for (const child of selectable) {
             const [key, info] = buildSelectedEntry(child);
             // No `isSelectedViaGroup`: the caller is about to drop one of these, so the group stops being a whole-group selection.
             spelledOut[key] = {...info, groupKey};
