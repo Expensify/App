@@ -31,4 +31,3 @@ function useDetailsFields(): DetailsFieldsContextValue {
 
 export default DetailsFieldsContext;
 export {useDetailsFields};
-export type {DetailsFieldsContextValue};
