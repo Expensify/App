@@ -32,7 +32,10 @@ After you confirm the deletion:
 - Workspace rooms are archived. Historical chats remain available to view, but no new messages can be sent.
 - Submitted expenses and reports remain available to workspace admins, auditors, and the original submitter.
 - Unsubmitted expenses and reports remain available to the submitter and can be assigned to another workspace.
-- Outstanding expenses and reports can be retracted by the submitter and assigned to another workspace.
+- Outstanding expenses and reports can be assigned to another workspace by the submitter.
+- Reports on the deleted workspace can no longer change state. **Submit**, **Approve**, **Pay**, **Unapprove**, **Cancel payment**, **Retract**, and **Reopen** no longer appear in the report header, the **More** menu, or the report preview.
+
+To keep working on a report from a deleted workspace, move it to an active workspace first. Open the report, select **More**, choose **Change workspace**, and pick the workspace you want. The report's actions become available again on the new workspace.
 
 # FAQ
 
@@ -45,3 +48,7 @@ To learn more about the Annual subscription commitment, see [When You Can Change
 ## What happens to my expenses after I delete a Workspace?
 
 Submitted expenses and reports remain available to workspace admins, auditors, and the original submitter. Unsubmitted expenses and reports remain available to the submitter and can be reassigned to another Workspace.
+
+## Can I still approve or pay a report after I delete a Workspace?
+
+No. Deleting a Workspace archives it, and reports on an archived Workspace can no longer change state. To approve or pay the report, move it to an active workspace first using **More > Change workspace**.

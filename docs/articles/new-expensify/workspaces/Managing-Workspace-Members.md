@@ -68,11 +68,13 @@ If someone no longer needs access to your workspace, you can remove them individ
 
 **Note:** If you remove a member who is an approver on an Outstanding report, the workspace owner replaces them as the approver. Learn more about [automatic approver reassignment](/articles/new-expensify/workspaces/Add-Approvals).
 
+**Note:** Removing a member does not close out the reports they already submitted. Workspace admins can still **Approve** and **Pay** the removed member’s Outstanding reports, and the report preview in the workspace chat still shows the **Approve** and **Pay** buttons. Report actions are only unavailable when the workspace itself is deleted. Learn more about [what happens after you delete a workspace](/articles/new-expensify/workspaces/Delete-a-Workspace).
+
 ## Remove a Single Member
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
 2. Click the member’s name.
-3. In the right-hand panel, click **Remove from Workspace**.
+3. In the right-hand panel, click **Remove from workspace**.
 4. Confirm by clicking **Remove**.
 
 ## Remove Multiple Members
