@@ -134,11 +134,7 @@ function AddDomainPage() {
                             submittedDomainName.current = domainName;
                             domainKeysBeforeCreation.current = isLoadingOnyxValue(allDomainsResult)
                                 ? undefined
-                                : new Set(
-                                      Object.entries(allDomains ?? {})
-                                          .filter(([, domain]) => !!domain?.accountID)
-                                          .map(([domainKey]) => domainKey),
-                                  );
+                                : new Set(Object.keys(allDomains ?? {}).filter((domainKey) => !!allDomains?.[domainKey]?.accountID));
                             createDomain(domainName, domainKeysBeforeCreation.current);
                         };
 
