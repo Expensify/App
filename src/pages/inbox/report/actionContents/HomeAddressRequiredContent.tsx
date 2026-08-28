@@ -5,7 +5,7 @@ import ActionableItemButtons from '@components/ReportActionItem/ActionableItemBu
 import useLocalize from '@hooks/useLocalize';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {getOriginalMessage, getReportActionHtml} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 
@@ -29,7 +29,7 @@ function HomeAddressRequiredContent({action}: HomeAddressRequiredContentProps) {
 
     return (
         <ReportActionItemBasicMessage>
-            <RenderHTML html={`<comment><muted-text>${getReportActionHtml(action)}</muted-text></comment>`} />
+            <RenderHTML html={`<comment><muted-text>${getReportActionHtml(action) || getReportActionText(action)}</muted-text></comment>`} />
             {!isResolved && (
                 <ActionableItemButtons layout="horizontal">
                     <Button

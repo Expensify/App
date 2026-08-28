@@ -1,6 +1,6 @@
 import {render} from '@testing-library/react-native';
 
-import {getReportActionHtml} from '@libs/ReportActionsUtils';
+import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 
 import HomeAddressRequiredContent from '@pages/inbox/report/actionContents/HomeAddressRequiredContent';
 
@@ -30,6 +30,7 @@ jest.mock('@hooks/useLocalize', () => () => ({translate: jest.fn()}));
 jest.mock('@libs/ReportActionsUtils', () => ({
     getOriginalMessage: jest.fn(),
     getReportActionHtml: jest.fn(),
+    getReportActionText: jest.fn(),
 }));
 
 describe('HomeAddressRequiredContent', () => {
@@ -39,5 +40,14 @@ describe('HomeAddressRequiredContent', () => {
         render(<HomeAddressRequiredContent action={{} as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED>} />);
 
         expect(mockRenderHTML).toHaveBeenCalledWith('<comment><muted-text>Add your <a href="https://example.com">home address</a>.</muted-text></comment>');
+    });
+
+    it('renders the text message when HTML is unavailable', () => {
+        jest.mocked(getReportActionHtml).mockReturnValue('');
+        jest.mocked(getReportActionText).mockReturnValue('Add your home address.');
+
+        render(<HomeAddressRequiredContent action={{} as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED>} />);
+
+        expect(mockRenderHTML).toHaveBeenLastCalledWith('<comment><muted-text>Add your home address.</muted-text></comment>');
     });
 });
