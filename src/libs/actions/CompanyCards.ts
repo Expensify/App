@@ -112,11 +112,11 @@ function buildOptimisticCompanyCardCSVTransactions(
     // The backend dedupes rows by their `externalID`, so a mapped Unique ID column makes re-uploading
     // the same file idempotent. Without one, every row gets a fresh generated ID and always imports.
     const mappedExternalIDColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID);
-    const hasMappedExternalIDColumn = mappedExternalIDColumnIndex >= 0;
-    if (!hasMappedExternalIDColumn) {
+    const isExternalIDColumnMapped = mappedExternalIDColumnIndex >= 0;
+    if (!isExternalIDColumnMapped) {
         normalizedColumnMappings.push(CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID);
     }
-    const externalIDColumnIndex = hasMappedExternalIDColumn ? mappedExternalIDColumnIndex : normalizedColumnMappings.length - 1;
+    const externalIDColumnIndex = isExternalIDColumnMapped ? mappedExternalIDColumnIndex : normalizedColumnMappings.length - 1;
 
     const cardNumberColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER);
     const postedDateColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.POSTED_DATE);
