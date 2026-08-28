@@ -114,7 +114,13 @@ const getCategoryRuleErrorMessage = (translate: LocalizedTranslate, taxID: strin
  * enter a merchant is only right on the legacy page where a merchant is the only condition there is.
  */
 const getErrorMessage = (translate: LocalizedTranslate, isRulesRevampEnabled: boolean, form?: MerchantRuleForm) => {
-    const matchingCriteriaFields = new Set<string>([MERCHANT_RULE_INPUT_IDS.MERCHANT_TO_MATCH, MERCHANT_RULE_INPUT_IDS.MATCH_TYPE, MERCHANT_RULE_INPUT_IDS.CATEGORIES_TO_MATCH]);
+    const matchingCriteriaFields = new Set<string>([
+        MERCHANT_RULE_INPUT_IDS.MERCHANT_TO_MATCH,
+        MERCHANT_RULE_INPUT_IDS.MATCH_TYPE,
+        MERCHANT_RULE_INPUT_IDS.CATEGORIES_TO_MATCH,
+        // Scoping, not a default the admin set.
+        MERCHANT_RULE_INPUT_IDS.RULE_TYPE,
+    ]);
     const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => {
         if (matchingCriteriaFields.has(key)) {
             return false;
@@ -277,7 +283,11 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
     const categoriesToMatch = form?.categoriesToMatch ?? [];
     const hasCategoryCondition = categoriesToMatch.length > 0;
     const hasMerchantCondition = !!form?.merchantToMatch;
-    const isCategoryRule = hasCategoryCondition || isEditingCategoryTaxRule;
+    // Scoping lives in the draft rather than the route, so it survives a trip to any picker and every picker can route
+    // back to the same URL.
+    const isScopedToCategory = form?.ruleType === 'category';
+    const isScopedToMerchant = form?.ruleType === 'merchant';
+    const isCategoryRule = hasCategoryCondition || isEditingCategoryTaxRule || isScopedToCategory;
     // Deleting means writing the workspace default rate back, so without one there is nothing to write.
     const canDeleteCategoryTaxRule = isEditingCategoryTaxRule && !!policy?.taxRates?.defaultExternalID;
     // Writing the workspace default rate deletes the rule, so a draft tax equal to it means "no rule". A merchant
@@ -530,20 +540,23 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
         {
             titleTranslationKey: 'workspace.rules.merchantRules.expensesWith',
             items: [
-                {
-                    key: 'merchantToMatch',
-                    description: translate('common.merchant'),
-                    // Exactly one condition is required, so neither row can be marked required on its own.
-                    required: !isRulesRevampEnabled,
-                    title: form?.merchantToMatch,
-                    isLocked: isMerchantConditionLocked,
-                    onPress: isMerchantConditionLocked ? showMerchantConditionExplainer : () => Navigation.navigate(ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.getRoute(policyID, ruleID)),
-                    icon: getItemIcon(icons.Basket),
-                },
-                isRulesRevampEnabled
+                isScopedToCategory
+                    ? undefined
+                    : {
+                          key: 'merchantToMatch',
+                          description: translate('common.merchant'),
+                          // Exactly one condition is required, so neither row can be marked required on its own.
+                          required: !isRulesRevampEnabled || isScopedToMerchant,
+                          title: form?.merchantToMatch,
+                          isLocked: isMerchantConditionLocked,
+                          onPress: isMerchantConditionLocked ? showMerchantConditionExplainer : () => Navigation.navigate(ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.getRoute(policyID, ruleID)),
+                          icon: getItemIcon(icons.Basket),
+                      },
+                isRulesRevampEnabled && !isScopedToMerchant
                     ? {
                           key: 'categoriesToMatch',
                           description: translate('common.category'),
+                          required: isScopedToCategory,
                           title: categoriesToMatchDisplayName,
                           isLocked: isCategoryConditionLocked,
                           onPress: isCategoryConditionLocked ? showCategoryConditionExplainer : openCategoryConditionPicker,
@@ -627,8 +640,12 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
                           icon: getItemIcon(icons.Paycheck),
                       }
                     : undefined,
-                // Tax is the only default a category rule can set, so every other row locks behind the explainer.
-            ].map((item) => (!item || item.key === 'tax' ? item : withCategoryRuleLock(item))),
+                // Tax is the only default a category rule can set. Scoped up front there is nothing to explain, so the
+                // other rows are dropped; reached by picking a category in the mixed editor they lock behind the
+                // explainer, since the admin may have already filled them in.
+            ]
+                .filter((item) => !isScopedToCategory || !item || item.key === 'tax')
+                .map((item) => (!item || item.key === 'tax' ? item : withCategoryRuleLock(item))),
         },
     ];
 

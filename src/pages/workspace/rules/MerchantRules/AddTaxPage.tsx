@@ -24,7 +24,7 @@ function AddTaxPage({route}: AddTaxPageProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     // Writing the workspace default rate deletes the rule, so offering it here would remove rather than save.
-    const isCategoryRule = !!categoryName || !!form?.categoriesToMatch?.length;
+    const isCategoryRule = !!categoryName || form?.ruleType === 'category' || !!form?.categoriesToMatch?.length;
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const shouldHideTax = (taxKey: string) => isCategoryRule && taxKey === defaultExternalID;
 

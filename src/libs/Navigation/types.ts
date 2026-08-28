@@ -1634,6 +1634,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
         categoryName?: string;
     };
+    [SCREENS.WORKSPACE.RULES_EXPENSE_DEFAULT_TYPE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
         policyID: string;
         categoryName?: string;

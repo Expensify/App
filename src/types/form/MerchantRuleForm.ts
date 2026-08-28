@@ -13,6 +13,7 @@ const INPUT_IDS = {
     MERCHANT_TO_MATCH: 'merchantToMatch',
     MERCHANT: 'merchant',
     REIMBURSABLE: 'reimbursable',
+    RULE_TYPE: 'ruleType',
     TAG: 'tag',
     TAX: 'tax',
     VENDOR_ID: 'vendorID',
@@ -31,6 +32,9 @@ type MerchantRuleForm = Form<
         [INPUT_IDS.MERCHANT]: string;
         [INPUT_IDS.MERCHANT_TO_MATCH]: string;
         [INPUT_IDS.REIMBURSABLE]: boolean;
+        /** Which kind of expense default this is, chosen before the editor opened. Kept in the draft so it survives a
+         * trip to any picker, rather than having to ride on every picker's route. */
+        [INPUT_IDS.RULE_TYPE]: 'merchant' | 'category';
         [INPUT_IDS.TAG]: string;
         [INPUT_IDS.TAX]: string;
         [INPUT_IDS.VENDOR_ID]: string;

@@ -8118,6 +8118,14 @@ const translations = {
                 categoryRulesApplyGoingForwardTitle: 'Category rules apply going forward',
                 categoryRulesApplyGoingForwardPrompt: "A default tax rate applies to new expenses in this category. Expenses that already exist won't change.",
             },
+            expenseDefaultType: {
+                title: 'Apply expense defaults',
+                subtitle: 'What should this rule match on?',
+                merchant: 'Merchant',
+                merchantDescription: 'Update fields on expenses from a specific merchant',
+                category: 'Category',
+                categoryDescription: 'Set a default tax rate for a specific category',
+            },
             newRule: {
                 title: 'New rule',
                 subtitle: 'What do you want to do?',

@@ -1074,6 +1074,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.RULES_CUSTOM]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesCustomPage').default,
     [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesProhibitedDefaultPage').default,
     [SCREENS.WORKSPACE.RULES_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesNewPage').default,
+    [SCREENS.WORKSPACE.RULES_EXPENSE_DEFAULT_TYPE]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/ExpenseDefaultTypePage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddMerchantRulePage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/ImportMerchantRulesPage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/ImportedMerchantRulesPage').default,
