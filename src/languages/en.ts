@@ -1060,11 +1060,6 @@ const translations = {
                 subtitle: 'Account',
                 cta: 'Validate',
             },
-            addHomeAddress: {
-                title: 'Add your home address for distance tracking',
-                subtitle: 'Account',
-                cta: 'Add address',
-            },
             fixFailedBilling: {
                 title: "We couldn't bill your card on file",
                 subtitle: 'Subscription',
@@ -1377,14 +1372,6 @@ const translations = {
         createTimeExpense: 'Create time expense',
     },
     iou: {
-        homeAddressRequired: {
-            title: 'Home address is required',
-            prompt: ({workspaceName}: {workspaceName: string}) =>
-                workspaceName
-                    ? `Before you track distance, you need to add your home address to your private profile. ${workspaceName} uses this address for commuter deductions.`
-                    : 'Before you track distance, you need to add your home address to your private profile. This workspace uses this address for commuter deductions.',
-            cta: 'Add Home Address',
-        },
         amount: 'Amount',
         percent: 'Percent',
         date: 'Date',
@@ -3750,8 +3737,7 @@ const translations = {
         legalName: 'Legal name',
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
-        address: 'Home address',
-        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} uses this address for commuter exclusions.`,
+        address: 'Address',
         error: {
             dateShouldBeBefore: (dateString: string) => `Date should be before ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `Date should be after ${dateString}`,
@@ -7525,24 +7511,13 @@ const translations = {
                 title: 'Exclude commutes',
                 summaryDisabled: 'No commute exclusion',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Exclude ${distance} ${unit} per claim`,
-                summaryHomeAndOffice: 'Use home and office locations',
                 optionDisabledTitle: 'Do not exclude commutes',
-                optionDisabledHelp: 'No commute is removed from claims.',
+                optionDisabledHelp: 'No commute exclusion is applied.',
                 optionFixedDistanceTitle: 'Exclude a fixed distance per claim',
                 optionFixedDistanceHelp: 'Remove the same commute distance from each claim. Best for members who submit one claim per workday.',
-                optionHomeAndOfficeTitle: 'Calculate by home and office',
-                optionHomeAndOfficeHelp: 'Use member’s home address, work arrangement, and office assignment to calculate commute exclusions.',
                 distanceLabel: 'Distance',
-                workspaceAddressRequired: {
-                    title: 'Not so fast...',
-                    promptStart: 'You can’t enable the calculate by home and office setting until you first add an office location in ',
-                    linkText: 'Overview',
-                    promptEnd: '.',
-                    cta: 'Got it',
-                },
                 errors: {
                     distanceMustBePositive: 'Distance must be a positive whole number.',
-                    invalidAddress: 'Please enter a valid address',
                     distanceTooLarge: 'Distance is too large.',
                 },
             },

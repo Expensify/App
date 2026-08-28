@@ -1,6 +1,5 @@
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 
-import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -29,10 +28,6 @@ function AddExpenseActionButton() {
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const distanceExpenseType = getDistanceExpenseTypeForPolicy(policy, lastDistanceExpenseType);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
-        policyID: policy?.id,
-        isDistanceRequest: true,
-    });
 
     return (
         <ButtonWithDropdownMenu
@@ -53,7 +48,6 @@ function AddExpenseActionButton() {
                 unreportedExpenseBackToReport: iouReport?.parentReportID,
                 lastDistanceExpenseType: distanceExpenseType,
                 currentUserAccountID: currentUserDetails.accountID,
-                blockDistanceRequestIfNeeded,
             })}
             isSplitButton={false}
             anchorAlignment={{

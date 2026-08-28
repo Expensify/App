@@ -1,4 +1,3 @@
-import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -33,11 +32,6 @@ function TrackDistanceMenuItem({reportID}: TrackDistanceMenuItemProps) {
     const policy = usePolicy(report?.policyID);
     const distanceExpenseType = getDistanceExpenseTypeForPolicy(policy, lastDistanceExpenseType);
 
-    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
-        policyID: report?.policyID,
-        isDistanceRequest: true,
-    });
-
     return (
         <FABFocusableMenuItem
             itemId={ITEM_ID}
@@ -46,9 +40,6 @@ function TrackDistanceMenuItem({reportID}: TrackDistanceMenuItemProps) {
             title={translate('iou.trackDistance')}
             onPress={() =>
                 interceptAnonymousUser(() => {
-                    if (blockDistanceRequestIfNeeded()) {
-                        return;
-                    }
                     // Start the flow to start tracking a distance request
                     startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, distanceExpenseType, undefined, undefined, true);
                 })

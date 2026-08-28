@@ -3237,7 +3237,6 @@ type GetAddExpenseDropdownOptionsParams = {
     unreportedExpenseBackToReport?: string;
     lastDistanceExpenseType?: IOURequestType;
     currentUserAccountID: number;
-    blockDistanceRequestIfNeeded?: () => boolean;
 };
 
 function getAddExpenseDropdownOptions({
@@ -3253,7 +3252,6 @@ function getAddExpenseDropdownOptions({
     unreportedExpenseBackToReport,
     lastDistanceExpenseType,
     currentUserAccountID,
-    blockDistanceRequestIfNeeded,
 }: GetAddExpenseDropdownOptionsParams): Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> {
     const isReportTeachersUnite = isTeachersUnitePolicyID(getReportOrDraftReport(iouReportID)?.policyID ?? policy?.id);
 
@@ -3293,9 +3291,6 @@ function getAddExpenseDropdownOptions({
                           }
                           if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                               Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                              return;
-                          }
-                          if (blockDistanceRequestIfNeeded?.()) {
                               return;
                           }
                           startDistanceRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, draftTransactionIDs, lastDistanceExpenseType, false, iouRequestBackToReport);

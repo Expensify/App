@@ -106,7 +106,6 @@ function useParticipantSubmission({
     const transactionIDs = draftTransactions?.map((transaction) => transaction.transactionID);
     const [transactions] = useTransactionsByID(transactionIDs);
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
-        isDistanceRequest: isDistanceRequest(initialTransaction),
         isManualDistanceRequest: isManualDistanceRequest(initialTransaction),
         isOdometerDistanceRequest: isOdometerDistanceRequest(initialTransaction),
     });

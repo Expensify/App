@@ -967,7 +967,6 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `${cardName}個人カードの接続を修正` : '個人カードの連携を修正'), subtitle: 'ウォレット'},
             validateAccount: {title: 'アカウントを認証してください', subtitle: 'アカウント', cta: '検証する'},
-            addHomeAddress: {title: '距離の追跡用に自宅住所を追加してください', subtitle: 'アカウント', cta: '住所を追加'},
             fixFailedBilling: {title: '登録されているカードから請求できませんでした', subtitle: 'サブスクリプション'},
             unlockBankAccount: {
                 workspaceTitle: 'ビジネス用銀行口座がロックされました',
@@ -1274,14 +1273,6 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: '時間経費を作成',
     },
     iou: {
-        homeAddressRequired: {
-            title: '自宅住所は必須です',
-            prompt: ({workspaceName}: {workspaceName: string}) =>
-                workspaceName
-                    ? `距離を記録する前に、プライベートプロフィールに自宅住所を追加する必要があります。${workspaceName} は通勤控除のためにこの住所を使用します。`
-                    : '距離を記録する前に、プライベートプロフィールに自宅住所を追加する必要があります。このワークスペースでは、その住所を通勤控除に使用します。',
-            cta: '自宅住所を追加',
-        },
         amount: '金額',
         percent: 'パーセント',
         date: '日付',
@@ -3599,8 +3590,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         legalName: '法的氏名',
         legalFirstName: '法的な名',
         legalLastName: '法的な姓',
-        address: '自宅住所',
-        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} は通勤手当の除外にこの住所を使用します。`,
+        address: '住所',
         error: {
             dateShouldBeBefore: (dateString: string) => `日付は${dateString}より前である必要があります`,
             dateShouldBeAfter: (dateString: string) => `日付は${dateString}より後の日付にしてください`,
@@ -7199,21 +7189,11 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 summaryDisabled: '通勤除外なし',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `申請ごとに ${distance} ${unit} を除外します`,
                 optionDisabledTitle: '通勤を除外しない',
-                optionDisabledHelp: '通勤分は精算申請から除外されていません。',
+                optionDisabledHelp: '通勤除外は適用されていません。',
                 optionFixedDistanceTitle: '申請ごとに一定距離を除外します',
                 optionFixedDistanceHelp: '各申請から同じ通勤距離を差し引きます。1勤務日につき1件の申請を行うメンバーに最適です。',
                 distanceLabel: '距離',
-                summaryHomeAndOffice: '自宅と勤務先の所在地を使用する',
-                optionHomeAndOfficeTitle: '自宅とオフィスで按分計算します',
-                optionHomeAndOfficeHelp: 'メンバーの自宅住所、勤務形態、オフィス配属先を使用して、通勤の除外額を計算します。',
-                workspaceAddressRequired: {
-                    title: 'ちょっとお待ちください…',
-                    promptStart: '自宅とオフィスで計算する設定は、先にオフィスの所在地を追加しないと有効にできません',
-                    linkText: '概要',
-                    promptEnd: 'でオフィスの住所を追加してください。',
-                    cta: '了解です',
-                },
-                errors: {distanceMustBePositive: '距離は正の整数で入力してください。', invalidAddress: '有効な住所を入力してください', distanceTooLarge: '距離が大きすぎます。'},
+                errors: {distanceMustBePositive: '距離は正の整数で入力してください。', distanceTooLarge: '距離が大きすぎます。'},
             },
             distance: '距離',
             centrallyManage: '料金を一元管理し、マイルまたはキロメートルで追跡し、デフォルトのカテゴリを設定できます。',

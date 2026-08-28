@@ -270,7 +270,6 @@ function IOURequestStepConfirmation({
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: policy?.id,
-        isDistanceRequest,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
     });
