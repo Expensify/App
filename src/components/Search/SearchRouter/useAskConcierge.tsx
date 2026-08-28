@@ -39,7 +39,7 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
         }
         openConciergeAnywhere({forceConcierge});
 
-        if (createTaskFromMarkdown({text: trimmedQuery, parentReport: targetReport, currentUserPersonalDetails, quickAction})) {
+        if (createTaskFromMarkdown({text: trimmedQuery, parentReport: targetReport, currentUserPersonalDetails, quickAction, delegateAccountID})) {
             return;
         }
         addComment({
