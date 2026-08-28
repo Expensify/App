@@ -16,8 +16,30 @@ const tagAttribute = 'data-testid';
 const hiddenElementAttribute = `data-${CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT}`;
 const hiddenElementSelector = `[${hiddenElementAttribute}=true]`;
 
-function getCopyableElementText(element: globalThis.Element): string {
-    return element.textContent?.trim().replaceAll(/[\t\n\r ]+/g, ' ') ?? '';
+function getCopyableElementText(element: globalThis.Element, selection: Selection): string {
+    const elementRange = document.createRange();
+    elementRange.selectNodeContents(element);
+    const selectedText: string[] = [];
+
+    for (let i = 0; i < selection.rangeCount; i++) {
+        const intersectionRange = selection.getRangeAt(i).cloneRange();
+        if (!intersectionRange.intersectsNode(element)) {
+            continue;
+        }
+
+        if (intersectionRange.compareBoundaryPoints(globalThis.Range.START_TO_START, elementRange) < 0) {
+            intersectionRange.setStart(elementRange.startContainer, elementRange.startOffset);
+        }
+        if (intersectionRange.compareBoundaryPoints(globalThis.Range.END_TO_END, elementRange) > 0) {
+            intersectionRange.setEnd(elementRange.endContainer, elementRange.endOffset);
+        }
+        selectedText.push(intersectionRange.toString());
+    }
+
+    return selectedText
+        .join(' ')
+        .trim()
+        .replaceAll(/[\t\n\r ]+/g, ' ');
 }
 
 function replaceElementContentWithLines(element: globalThis.Element, lines: string[]) {
@@ -103,7 +125,7 @@ function getHTMLOfSelectedCopyableRows(selection: Selection): string {
         .map((row) =>
             [row, ...Array.from(row.querySelectorAll(COPYABLE_TEXT_SELECTOR))]
                 .filter((copyableElement) => selectedCopyableElementsByRow.get(row)?.has(copyableElement))
-                .map(getCopyableElementText)
+                .map((copyableElement) => getCopyableElementText(copyableElement, selection))
                 .filter((text) => !!text)
                 .join(' '),
         )
