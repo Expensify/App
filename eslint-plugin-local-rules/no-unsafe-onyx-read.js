@@ -343,6 +343,11 @@ function create(context) {
 
             if (isOnyxMember(node.init, scope, READ_METHODS)) {
                 trackBinding(node, node.id.name, readAliases);
+                const objectVariable = getVariableByName(scope, node.init.object.name);
+
+                if (!!objectVariable && libraryImportBindings.has(objectVariable)) {
+                    trackBinding(node, node.id.name, libraryReadAliases);
+                }
             }
         },
         CallExpression(node) {

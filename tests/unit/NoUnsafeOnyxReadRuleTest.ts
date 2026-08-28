@@ -117,6 +117,8 @@ describe('no-unsafe-onyx-read', () => {
 
             {code: `${ONYX_IMPORT} export async function submit() { return Onyx.get(key); }`, options: OPTIONS, errors: DIRECT_ERRORS},
             {code: `${ONYX_IMPORT} const {get} = Onyx; export async function submit() { return get(key); }`, options: OPTIONS, errors: DIRECT_ERRORS},
+            {code: `${ONYX_IMPORT} const read = Onyx.get; export async function submit() { return read(key); }`, options: OPTIONS, errors: DIRECT_ERRORS},
+            {code: `${ONYX_IMPORT} const Library = Onyx; const read = Library.get; export async function submit() { return read(key); }`, options: OPTIONS, errors: DIRECT_ERRORS},
 
             {code: `${WRAPPER_IMPORT} const initialValue = OnyxUtils.get(key);`, errors: MODULE_SCOPE_ERRORS},
             {code: `${ONYX_IMPORT} new Promise((resolve) => { resolve(Onyx.get(key)); });`, errors: MODULE_SCOPE_ERRORS},
