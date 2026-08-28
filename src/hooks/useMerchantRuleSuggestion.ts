@@ -39,6 +39,7 @@ function useMerchantRuleSuggestion(reportID: string | undefined, policyID: strin
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     const [storedSuggestion] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION);
+    const [dismissedSuggestions] = useOnyx(ONYXKEYS.NVP_DISMISSED_MERCHANT_RULE_SUGGESTIONS);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(storedSuggestion?.transactionID)}`);
@@ -52,8 +53,10 @@ function useMerchantRuleSuggestion(reportID: string | undefined, policyID: strin
     const reportTransactions = useReportTransactions(reportID);
     const isOneExpenseReportForSuggestion = reportTransactions.length === 1 && reportTransactions.at(0)?.transactionID === storedSuggestion?.transactionID;
     const isHostingReport = !!reportID && (reportID === storedSuggestion?.reportIDs.at(0) || isOneExpenseReportForSuggestion);
-    const isDismissed = !!storedSuggestion?.transactionID && !!storedSuggestion.dismissedTransactionIDs?.includes(storedSuggestion.transactionID);
-    const isForThisExpenseView = !!storedSuggestion && !isDismissed && ((!!transactionID && transactionID === storedSuggestion.transactionID) || isHostingReport);
+    // Dismissal is permanent and per expense, so it lives in an NVP rather than alongside the session-scoped offer
+    const isDismissed = !!storedSuggestion?.transactionID && !!dismissedSuggestions?.[storedSuggestion.transactionID];
+    const isForThisExpenseView =
+        !!storedSuggestion && !isDismissed && !storedSuggestion.isRetired && ((!!transactionID && transactionID === storedSuggestion.transactionID) || isHostingReport);
     // Only workspace admins can create merchant rules, so nobody else should be offered one
     const canCreateMerchantRule = isPolicyAdmin(policy, currentUserLogin) && canWriteRules && arePolicyRulesEnabled(policy, policyCategories, isBetaEnabled(CONST.BETAS.RULES_REVAMP));
     const suggestion = isForThisExpenseView && canCreateMerchantRule ? storedSuggestion : undefined;

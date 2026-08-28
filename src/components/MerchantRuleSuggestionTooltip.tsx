@@ -2,7 +2,7 @@ import useMerchantRuleSuggestion from '@hooks/useMerchantRuleSuggestion';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {dismissMerchantRuleSuggestion, setIsCreatingMerchantRule} from '@libs/actions/MerchantRuleSuggestion';
+import {retireMerchantRuleSuggestion, setIsCreatingMerchantRule} from '@libs/actions/MerchantRuleSuggestion';
 import {setDraftMerchantRule} from '@libs/actions/User';
 import {getMerchantRuleDraftFromTransaction} from '@libs/MerchantRuleSuggestionUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -51,14 +51,15 @@ function MerchantRuleSuggestionTooltipInner({reportID, policyID, transactionID, 
         hasBeenShownRef.current = true;
     }, [shouldShowProductTrainingTooltip]);
 
-    // The offer is about the edit the user just made, so it is consumed once they have seen it and moved on. Without
-    // this it would live in the RAM-only key untouched until dismissed, and re-appear on every return to the expense.
+    // The offer is about the edit the user just made, so it ends once they have seen it and moved on. Retiring rather
+    // than dismissing keeps this out of the NVP: leaving the view should not silence the expense for good, only stop
+    // the callout from re-appearing on every return to it.
     useEffect(
         () => () => {
             if (!hasBeenShownRef.current) {
                 return;
             }
-            dismissMerchantRuleSuggestion();
+            retireMerchantRuleSuggestion();
         },
         [],
     );
@@ -105,10 +106,11 @@ MerchantRuleSuggestionTooltipInner.displayName = 'MerchantRuleSuggestionTooltipI
  */
 function MerchantRuleSuggestionTooltip({reportID, policyID, transactionID, children}: MerchantRuleSuggestionTooltipProps) {
     const [storedSuggestion] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION);
+    const [dismissedSuggestions] = useOnyx(ONYXKEYS.NVP_DISMISSED_MERCHANT_RULE_SUGGESTIONS);
 
     // Nothing is stored for most of a session, so skip the inner component (and its heavy hooks, which subscribe to the
     // policy, its categories, the transaction and the report's transactions) until an edit is waiting to be offered.
-    if (!storedSuggestion?.transactionID || storedSuggestion.dismissedTransactionIDs?.includes(storedSuggestion.transactionID)) {
+    if (!storedSuggestion?.transactionID || storedSuggestion.isRetired || dismissedSuggestions?.[storedSuggestion.transactionID]) {
         return children;
     }
 
