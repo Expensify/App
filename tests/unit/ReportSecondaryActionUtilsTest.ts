@@ -1876,8 +1876,8 @@ describe('getSecondaryAction', () => {
     });
 
     // Each workflow action requires a different eligible report state, so every case carries its own report and
-    // policy data. Each case first asserts the action is available without archivedDate to guarantee the exclusion
-    // assertion is not passing vacuously.
+    // policy data. Each case first asserts the action is available without archivedDate and then asserts the action
+    // is not available with archivedDate.
     it.each<{action: ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>; reportData: Partial<Report>; policyData: Partial<Policy>; hasDuplicateViolation?: boolean}>([
         {
             action: CONST.REPORT.SECONDARY_ACTIONS.SUBMIT,
