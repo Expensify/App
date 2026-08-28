@@ -11,4 +11,11 @@ const CHART_TYPEFACE_SAME_FAMILY_FALLBACKS: Partial<Record<ChartSkiaTypefaceKey,
     EXP_NEW_KANSAS_MEDIUM_ITALIC: ['EXP_NEW_KANSAS_MEDIUM'],
 };
 
+/** List of fallback fonts for symbols not included in Expensify New Kansas  */
+const CHART_TYPEFACE_GLYPH_FALLBACKS: Partial<Record<ChartSkiaTypefaceKey, ChartSkiaTypefaceKey>> = {
+    EXP_NEW_KANSAS_MEDIUM: 'EXP_NEUE_BOLD',
+    EXP_NEW_KANSAS_MEDIUM_ITALIC: 'EXP_NEUE_BOLD_ITALIC',
+};
+
 export default CHART_TYPEFACE_SAME_FAMILY_FALLBACKS;
+export {CHART_TYPEFACE_GLYPH_FALLBACKS};

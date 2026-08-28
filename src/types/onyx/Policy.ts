@@ -266,6 +266,9 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The old tax code of the tax rate when we edit the tax code */
     previousTaxCode?: string;
 
+    /** Every tax code this rate has previously used, oldest first, so expenses still referencing any old code can be resolved back to this rate */
+    previousTaxCodes?: string[];
+
     /** The old tax code kept only while a tax code edit is in flight, used to resolve the rate from the old code; cleared once the API resolves */
     optimisticPreviousTaxCode?: string;
 
@@ -363,6 +366,27 @@ type QBOCredentials = {
      * The current scope of QBO connection.
      */
     scope: string;
+
+    /** Whether these credentials authorize an Intuit sandbox company. */
+    isSandbox?: boolean;
+
+    /** Absolute epoch time when the refresh token expires. */
+    refreshTokenExpiresAt?: number;
+};
+
+/** An IES entity authorized for this workspace. */
+type IntuitEnterpriseSuiteEntity = {
+    /** Intuit company identifier. */
+    realmId: string;
+
+    /** Intuit company name. */
+    companyName: string;
+
+    /** OAuth credentials for this entity. */
+    credentials: QBOCredentials;
+
+    /** Whether selecting this entity must start OAuth again. */
+    needsReconnect?: boolean;
 };
 
 /** Financial account (bank account, debit card, etc) */
@@ -465,6 +489,9 @@ type QBOConnectionData = {
     /** Collection of journal entry accounts  */
     journalEntryAccounts: Account[];
 
+    /** Profit and loss accounts, the only ones a currency conversion cost can be charged to */
+    expenseAccounts: Account[];
+
     /** Collection of bank accounts */
     bankAccounts: Account[];
 
@@ -555,6 +582,9 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** ID of the bill payment account */
     reimbursementAccountID?: string;
 
+    /** ID of the account cross-border currency conversion costs are charged to. Unset means the cost is not exported. */
+    fxExpenseAccount?: string;
+
     /** Account that receives the reimbursable expenses */
     reimbursableExpensesAccount?: Account;
 
@@ -614,6 +644,9 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Credentials of the current QBO connection */
     credentials: QBOCredentials;
+
+    /** IES entities authorized for this workspace, keyed by realm ID. */
+    entities?: Record<string, IntuitEnterpriseSuiteEntity>;
 
     /** The accounting Method for NetSuite connection config */
     accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
@@ -2142,6 +2175,9 @@ type DualEntryExport = {
     /** Account used when exporting company card expenses. */
     creditCardAccountID: string;
 
+    /** Account used when exporting Expensify Card expenses. */
+    expensifyCardAccountID: string;
+
     /**
      * Whether card transactions should be exported to multiple
      * accounts based on card program mappings.
@@ -2881,6 +2917,15 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The reimbursement choice for policy */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
 
+        /** Configuration for collecting employee deposit account details for reimbursement outside of Expensify */
+        reimbursement?: {
+            /** Whether reimbursement is enabled for the policy */
+            enabled?: boolean;
+
+            /** Countries (keyed by ISO code) where the company has a withdrawal account it can reimburse from */
+            countries?: Record<string, unknown>;
+        };
+
         /** The set reimburser for the policy */
         reimburser?: string;
 
@@ -3166,8 +3211,14 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the policy requires purchases to be on a company card */
         requireCompanyCardsEnabled?: boolean;
+
+        /** Whether Expensify automatically copies newly published government distance rates onto this policy */
+        shouldAutoUpdateGovernmentDistanceRates?: boolean;
+
+        /** Whether distance expenses on this policy must come from a mapped route or a GPS track, which rules out the manual and odometer flows */
+        requireMapOrGPS?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
+    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | keyof WorkspaceTravelSettings | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
 >;
 
 /** Stages of policy connection sync */
@@ -3228,6 +3279,7 @@ export type {
     QBDNonReimbursableExportAccountType,
     QBOReimbursableExportAccountType,
     QBOConnectionConfig,
+    IntuitEnterpriseSuiteEntity,
     XeroTrackingCategory,
     NetSuiteConnection,
     ConnectionLastSync,
@@ -3281,4 +3333,10 @@ export type {
     DualEntryConnectionsConfig,
     DualEntryCompany,
     DualEntryCoding,
+    DualEntryExportDate,
+    DualEntryVendor,
+    DualEntryAccount,
+    DualEntryExport,
+    DualEntryAutoSync,
+    DualEntrySync,
 };

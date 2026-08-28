@@ -5,7 +5,6 @@ import CONST from '@src/CONST';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {addDays, differenceInDays, differenceInMinutes, format, isSameDay, startOfDay} from 'date-fns';
@@ -13,6 +12,7 @@ import lodashSortBy from 'lodash/sortBy';
 
 import type {OptionTree} from './OptionsListUtils';
 
+import DateUtils from './DateUtils';
 import {isPolicyExpenseChat} from './ReportUtils';
 import tokenizedSearch from './tokenizedSearch';
 
@@ -221,17 +221,17 @@ function getSubratesForDisplay(subrate: Subrate | undefined, qtyText: string) {
  * param {string} dateTimeString
  * returns {string} example: 2023-05-16 11:10 PM
  */
-function formatDateTimeTo12Hour(dateTimeString: string, dateFnsLocale: DateFnsLocale | undefined): string {
+function formatDateTimeTo12Hour(translate: LocalizedTranslate, dateTimeString: string): string {
     if (!dateTimeString) {
         return '';
     }
     const date = new Date(dateTimeString);
-    return format(date, 'hh:mm a, yyyy-MM-dd', {locale: dateFnsLocale});
+    return `${DateUtils.formatTimeWithPeriod(translate, date, CONST.DATE.TIME_FORMAT_WITHOUT_PERIOD)}, ${format(date, CONST.DATE.FNS_FORMAT_STRING)}`;
 }
 
-function getTimeForDisplay(transaction: OnyxEntry<Transaction>, dateFnsLocale: DateFnsLocale | undefined) {
+function getTimeForDisplay(transaction: OnyxEntry<Transaction>, translate: LocalizedTranslate) {
     const customUnitRateDate = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
-    return `${formatDateTimeTo12Hour(customUnitRateDate.start, dateFnsLocale)} - ${formatDateTimeTo12Hour(customUnitRateDate.end, dateFnsLocale)}`;
+    return `${formatDateTimeTo12Hour(translate, customUnitRateDate.start)} - ${formatDateTimeTo12Hour(translate, customUnitRateDate.end)}`;
 }
 
 function getTimeDifferenceIntervals(transaction: OnyxEntry<Transaction>) {

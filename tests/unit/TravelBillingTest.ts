@@ -32,7 +32,7 @@ describe('TravelBilling', () => {
         jest.clearAllMocks();
     });
 
-    it('setTravelInvoicingSettlementAccount sends correct optimistic, success, and failure data', () => {
+    it('setTravelBillingSettlementAccount sends correct optimistic, success, and failure data', () => {
         const policyID = '123';
         const workspaceAccountID = 456;
         const settlementBankAccountID = 789;
@@ -42,7 +42,7 @@ describe('TravelBilling', () => {
         setTravelBillingSettlementAccount(policyID, workspaceAccountID, settlementBankAccountID, previousPaymentBankAccountID);
 
         expect(spyAPIWrite).toHaveBeenCalledWith(
-            'SetTravelInvoicingSettlementAccount',
+            'SetTravelBillingSettlementAccount',
             {
                 policyID,
                 settlementBankAccountID,
@@ -106,7 +106,7 @@ describe('TravelBilling', () => {
         );
     });
 
-    it('setTravelInvoicingSettlementAccount reverts to the previous account when the change fails', () => {
+    it('setTravelBillingSettlementAccount reverts to the previous account when the change fails', () => {
         const workspaceAccountID = 456;
         const previousPaymentBankAccountID = 111;
         const cardSettingsKey = getTravelBillingCardSettingsKey(workspaceAccountID);
@@ -115,7 +115,7 @@ describe('TravelBilling', () => {
 
         // Matched exactly so the rejected account cannot linger anywhere in the failure update
         expect(spyAPIWrite).toHaveBeenCalledWith(
-            'SetTravelInvoicingSettlementAccount',
+            'SetTravelBillingSettlementAccount',
             expect.anything(),
             expect.objectContaining({
                 failureData: [
@@ -142,7 +142,7 @@ describe('TravelBilling', () => {
         );
     });
 
-    it('setTravelInvoicingSettlementAccount keeps the new account and clears the previous one on success', () => {
+    it('setTravelBillingSettlementAccount keeps the new account and clears the previous one on success', () => {
         const workspaceAccountID = 456;
         const settlementBankAccountID = 789;
         const cardSettingsKey = getTravelBillingCardSettingsKey(workspaceAccountID);
@@ -150,7 +150,7 @@ describe('TravelBilling', () => {
         setTravelBillingSettlementAccount('123', workspaceAccountID, settlementBankAccountID, 111);
 
         expect(spyAPIWrite).toHaveBeenCalledWith(
-            'SetTravelInvoicingSettlementAccount',
+            'SetTravelBillingSettlementAccount',
             expect.anything(),
             expect.objectContaining({
                 successData: [
@@ -177,14 +177,14 @@ describe('TravelBilling', () => {
         );
     });
 
-    it('setTravelInvoicingSettlementAccount leaves no settlement account when a first enable fails', () => {
+    it('setTravelBillingSettlementAccount leaves no settlement account when a first enable fails', () => {
         const workspaceAccountID = 456;
         const cardSettingsKey = getTravelBillingCardSettingsKey(workspaceAccountID);
 
         setTravelBillingSettlementAccount('123', workspaceAccountID, 789);
 
         expect(spyAPIWrite).toHaveBeenCalledWith(
-            'SetTravelInvoicingSettlementAccount',
+            'SetTravelBillingSettlementAccount',
             expect.anything(),
             expect.objectContaining({
                 failureData: expect.arrayContaining([
@@ -202,14 +202,14 @@ describe('TravelBilling', () => {
         );
     });
 
-    it('setTravelInvoicingSettlementAccount falls back to the generic error keyed below a server message', () => {
+    it('setTravelBillingSettlementAccount falls back to the generic error keyed below a server message', () => {
         const workspaceAccountID = 456;
         const cardSettingsKey = getTravelBillingCardSettingsKey(workspaceAccountID);
 
         setTravelBillingSettlementAccount('123', workspaceAccountID, 789, 111);
 
         expect(spyAPIWrite).toHaveBeenCalledWith(
-            'SetTravelInvoicingSettlementAccount',
+            'SetTravelBillingSettlementAccount',
             expect.anything(),
             expect.objectContaining({
                 failureData: expect.arrayContaining([
@@ -238,7 +238,7 @@ describe('TravelBilling', () => {
         expect(getLatestErrorField({errorFields: {paymentBankAccountID: fallbackErrors}}, 'paymentBankAccountID')).toEqual(fallbackErrors);
     });
 
-    it('clearTravelInvoicingSettlementAccountErrors clears errors and pendingFields', () => {
+    it('clearTravelBillingSettlementAccountErrors clears errors and pendingFields', () => {
         const workspaceAccountID = 456;
         const restoredAccountID = 111;
         const cardSettingsKey = getTravelBillingCardSettingsKey(workspaceAccountID);
@@ -259,7 +259,7 @@ describe('TravelBilling', () => {
         });
     });
 
-    it('toggleTravelInvoicingContinuousReconciliation sends travel-specific optimistic, success, and failure data', () => {
+    it('toggleTravelBillingContinuousReconciliation sends travel-specific optimistic, success, and failure data', () => {
         const workspaceAccountID = 456;
         const connectionName = CONST.POLICY.CONNECTIONS.NAME.NETSUITE;
         const oldConnectionName = CONST.POLICY.CONNECTIONS.NAME.QBO;
@@ -267,11 +267,11 @@ describe('TravelBilling', () => {
         toggleTravelBillingContinuousReconciliation(workspaceAccountID, true, connectionName, oldConnectionName);
 
         expect(spyAPIWrite).toHaveBeenCalledWith(
-            'ToggleTravelInvoicingContinuousReconciliation',
+            'ToggleTravelBillingContinuousReconciliation',
             {
                 policyAccountID: workspaceAccountID,
                 shouldUseContinuousReconciliation: true,
-                travelInvoicingContinuousReconciliationConnection: connectionName,
+                travelBillingContinuousReconciliationConnection: connectionName,
             },
             expect.objectContaining({
                 optimisticData: expect.arrayContaining([
@@ -308,7 +308,7 @@ describe('TravelBilling', () => {
         );
     });
 
-    it('setTravelInvoicingReconciliationBankAccount sends the selected bank account and reverts on failure', () => {
+    it('setTravelBillingReconciliationBankAccount sends the selected bank account and reverts on failure', () => {
         const workspaceAccountID = 456;
         const domainName = 'expensify_policy_123.expensify.com';
         const selectedBankAccountID = 'account-123';
@@ -317,10 +317,10 @@ describe('TravelBilling', () => {
         setTravelBillingReconciliationBankAccount(workspaceAccountID, domainName, selectedBankAccountID, previousBankAccountID);
 
         expect(spyAPIWrite).toHaveBeenCalledWith(
-            'SetTravelInvoicingReconciliationBankAccount',
+            'SetTravelBillingReconciliationBankAccount',
             {
                 domainName,
-                travelInvoicingReconciliationBankAccountID: selectedBankAccountID,
+                travelBillingReconciliationBankAccountID: selectedBankAccountID,
             },
             expect.objectContaining({
                 optimisticData: expect.arrayContaining([
@@ -339,7 +339,7 @@ describe('TravelBilling', () => {
         );
     });
 
-    it('clearTravelInvoicingSettlementFrequencyErrors clears errors', () => {
+    it('clearTravelBillingSettlementFrequencyErrors clears errors', () => {
         const workspaceAccountID = 456;
         const cardSettingsKey = getTravelBillingCardSettingsKey(workspaceAccountID);
 
@@ -360,7 +360,7 @@ describe('TravelBilling', () => {
         });
     });
 
-    it('updateTravelInvoiceSettlementFrequency sends correct optimistic, success, and failure data', () => {
+    it('updateTravelBillingSettlementFrequency sends correct optimistic, success, and failure data', () => {
         const workspaceAccountID = 456;
         const frequency = CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY;
         const currentMonthlySettlementDate = new Date('2024-01-01');
@@ -374,7 +374,7 @@ describe('TravelBilling', () => {
         updateTravelBillingSettlementFrequency(workspaceAccountID, frequency, currentMonthlySettlementDate);
 
         expect(spyAPIWrite).toHaveBeenCalledWith(
-            'UpdateTravelInvoiceSettlementFrequency',
+            'UpdateTravelBillingSettlementFrequency',
             {
                 domainAccountID: workspaceAccountID,
                 settlementFrequency: frequency,
@@ -437,7 +437,7 @@ describe('TravelBilling', () => {
         jest.useRealTimers();
     });
 
-    it('configureTravelInvoicingForPolicy sends correct optimistic, success, and failure data', () => {
+    it('configureTravelBillingForPolicy sends correct optimistic, success, and failure data', () => {
         const policyID = '123';
         const workspaceAccountID = 456;
         const settlementBankAccountID = 789;
@@ -446,7 +446,7 @@ describe('TravelBilling', () => {
         configureTravelBillingForPolicy(policyID, workspaceAccountID, settlementBankAccountID);
 
         expect(spyAPIWrite).toHaveBeenCalledWith(
-            'ConfigureTravelInvoicingForPolicy',
+            'ConfigureTravelBillingForPolicy',
             {
                 policyID,
                 settlementBankAccountID,
@@ -497,7 +497,7 @@ describe('TravelBilling', () => {
         );
     });
 
-    it('deactivateTravelInvoicing sends correct optimistic, success, and failure data', () => {
+    it('deactivateTravelBilling sends correct optimistic, success, and failure data', () => {
         const policyID = '123';
         const workspaceAccountID = 456;
         const cardSettingsKey = getTravelBillingCardSettingsKey(workspaceAccountID);
@@ -505,7 +505,7 @@ describe('TravelBilling', () => {
         deactivateTravelBilling(policyID, workspaceAccountID);
 
         expect(spyAPIWrite).toHaveBeenCalledWith(
-            'DeactivateTravelInvoicing',
+            'DeactivateTravelBilling',
             {
                 policyID,
             },

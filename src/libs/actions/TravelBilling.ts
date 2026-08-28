@@ -186,7 +186,7 @@ function toggleTravelBillingContinuousReconciliation(
         ? {
               policyAccountID: workspaceAccountID,
               shouldUseContinuousReconciliation,
-              travelInvoicingContinuousReconciliationConnection: connectionName,
+              travelBillingContinuousReconciliationConnection: connectionName,
           }
         : {
               policyAccountID: workspaceAccountID,
@@ -262,7 +262,7 @@ function setTravelBillingReconciliationBankAccount(
 ) {
     const parameters: SetTravelBillingReconciliationBankAccountParams = {
         domainName,
-        travelInvoicingReconciliationBankAccountID: travelBillingReconciliationBankAccountID,
+        travelBillingReconciliationBankAccountID,
     };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRAVEL_BILLING_RECONCILIATION_BANK_ACCOUNT_ID>> = [
@@ -568,7 +568,7 @@ function retryTravelCardsProvisioning(policyID: string, workspaceAccountID: numb
  * Optimistically sets the manual billing flag to true (payment queued state).
  * The backend will send updates for private_expensifyCardManualBilling_ to clear it when billing runs.
  */
-function payTravelBillingSpend(workspaceAccountID: number, travelSpend: number) {
+function payTravelBillingSpend(policyID: string, workspaceAccountID: number, travelSpend: number) {
     const cardSettingsKey = getTravelBillingCardSettingsKey(workspaceAccountID);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
@@ -596,7 +596,7 @@ function payTravelBillingSpend(workspaceAccountID: number, travelSpend: number) 
     ];
 
     const params: PayTravelBillingSpendParams = {
-        domainAccountID: workspaceAccountID,
+        policyID,
     };
 
     return API.write(WRITE_COMMANDS.PAY_TRAVEL_BILLING_SPEND, params, {optimisticData, failureData});

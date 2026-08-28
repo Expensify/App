@@ -10,14 +10,13 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
+import startsWithVowel from '@libs/StringUtils/startsWithVowel';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
@@ -36,6 +35,18 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        durationDays: ({count}: {count: number}) => ({
+            one: `1 日`,
+            other: `${count} 日`,
+        }),
+        durationHours: ({count}: {count: number}) => ({
+            one: `1 時間`,
+            other: `${count} 時間`,
+        }),
+        durationMinutes: ({count}: {count: number}) => ({
+            one: `1 分`,
+            other: `${count} 分`,
+        }),
         count: '数',
         cancel: 'キャンセル',
         dismiss: '閉じる',
@@ -43,6 +54,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: '共有を解除',
         yes: 'はい',
         no: 'いいえ',
+        dontChange: '変更しない',
         ok: 'OK',
         notNow: '今はしない',
         noThanks: '結構です',
@@ -674,10 +686,13 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmationPromptAll: 'よろしいですか？今後どのデバイスでも次回の認証にはセキュリティコードが必要になります。',
             ctaAll: 'すべて取り消す',
             thisDevice: 'このデバイス',
-            otherDevices: (otherDeviceCount?: number) => {
-                const numberWords = ['1', '二', '三', '四', '五', '六', '七', '8', '9'];
-                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
-                return `その他${displayCount}件の${otherDeviceCount === 1 ? 'デバイス' : 'デバイス'}`;
+            otherDevices: ({count}: {count: number}) => {
+                const numberWords = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
+                const displayCount = count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
+                return {
+                    one: `その他${displayCount}件のデバイス`,
+                    other: `その他${displayCount}件のデバイス`,
+                };
             },
             confirmationPromptThisDevice: '本当によろしいですか？このデバイスで次回の認証を行うには、セキュリティコードが必要になります。',
             confirmationPromptMultiple: 'よろしいですか？その端末で次回の認証を行うには、セキュリティコードが必要になります。',
@@ -906,6 +921,13 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: '管理者のみ',
         },
     },
+    supportalSwitcher: {
+        title: '別のアカウントでサポートポータルを開く',
+        emailLabel: 'メールアドレス',
+        reasonLabel: 'サポートログインの理由',
+        reasonHint: 'このアカウントには最近のチケットが見つかりませんでした。',
+        login: 'ログイン',
+    },
     sidebarScreen: {
         buttonFind: '何かを検索…',
         buttonMySettings: '自分の設定',
@@ -945,6 +967,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `${cardName}個人カードの接続を修正` : '個人カードの連携を修正'), subtitle: 'ウォレット'},
             validateAccount: {title: 'アカウントを認証してください', subtitle: 'アカウント', cta: '検証する'},
+            addHomeAddress: {title: '距離の追跡用に自宅住所を追加してください', subtitle: 'アカウント', cta: '住所を追加'},
             fixFailedBilling: {title: '登録されているカードから請求できませんでした', subtitle: 'サブスクリプション'},
             unlockBankAccount: {
                 workspaceTitle: 'ビジネス用銀行口座がロックされました',
@@ -955,7 +978,6 @@ const translations: TranslationDeepObject<typeof en> = {
             addVirtualCardPersonalDetails: {title: 'Expensify カードを表示して利用を開始するには、ご自身の情報を追加してください。', subtitle: 'Expensify カード', cta: '詳細を追加'},
             enterSignerInfo: {title: '署名者情報が必要です', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `銀行口座 ${bankAccountLastFour}`},
         },
-        announcements: 'お知らせ',
         discoverSection: {
             title: '発見',
             menuItemTitleNonAdmin: '経費の作成方法とレポートの提出方法を学びましょう。',
@@ -963,10 +985,22 @@ const translations: TranslationDeepObject<typeof en> = {
             menuItemDescription: 'Expensify でできることを 2 分で確認',
         },
         forYouSection: {
-            submit: ({count}: {count: number}) => `${count} ${count === 1 ? 'レポート' : 'レポート'} を送信`,
-            approve: ({count}: {count: number}) => `${count} 件の ${count === 1 ? 'レポート' : 'レポート'} を承認`,
-            pay: ({count}: {count: number}) => `${count} ${count === 1 ? 'レポート' : 'レポート'} を支払う`,
-            export: ({count}: {count: number}) => `${count} 件の ${count === 1 ? 'レポート' : 'レポート'} をエクスポート`,
+            submit: ({count}: {count: number}) => ({
+                one: `${count} 件のレポートを送信`,
+                other: `${count} 件のレポートを送信`,
+            }),
+            approve: ({count}: {count: number}) => ({
+                one: `${count} 件のレポートを承認`,
+                other: `${count} 件のレポートを承認`,
+            }),
+            pay: ({count}: {count: number}) => ({
+                one: `${count} 件のレポートを支払う`,
+                other: `${count} 件のレポートを支払う`,
+            }),
+            export: ({count}: {count: number}) => ({
+                one: `${count} 件のレポートをエクスポート`,
+                other: `${count} 件のレポートをエクスポート`,
+            }),
             begin: '開始',
             emptyStateMessages: {
                 thumbsUpStarsTitle: '完了しました！',
@@ -1000,7 +1034,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 f1FlagsTitle: 'すべて確認済みです',
                 f1FlagsDescription: 'すべての未処理の To-do が完了しました。',
             },
-            reviewExpenses: ({count}: {count: number}) => `${count} 件の${count === 1 ? '経費' : '経費'}を確認`,
+            reviewExpenses: ({count}: {count: number}) => ({
+                one: `${count} 件の経費を確認`,
+                other: `${count} 件の経費を確認`,
+            }),
         },
         upcomingTravel: '今後の出張',
         upcomingTravelSection: {
@@ -1013,7 +1050,10 @@ const translations: TranslationDeepObject<typeof en> = {
             today: '今日',
         },
         freeTrialSection: {
-            title: ({days}: {days: number}) => `無料トライアル：あと ${days} ${days === 1 ? '日' : '日数'} 日！`,
+            title: ({count}: {count: number}) => ({
+                one: `無料トライアル：あと 1 日 日！`,
+                other: `無料トライアル：あと ${count} 日数 日！`,
+            }),
             offer50Body: '初年度が50％オフになります',
             offer25Body: '初年度が25％オフになります',
             addCardBody: '支払いカードを追加',
@@ -1073,6 +1113,13 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateMessage: '新規作成するか、レシートをここにドラッグしてください',
         },
         insightsSection: {chartUnavailable: 'グラフを表示できません', notEnoughData: 'このチャートを表示するためのデータがまだ十分にありません'},
+        conciergePrompt: {
+            goodMorning: ({name}: {name?: string}) => (name ? `${name}さん、おはようございます。` : 'おはようございます。'),
+            goodAfternoon: ({name}: {name?: string}) => (name ? `${name}さん、こんにちは。` : 'こんにちは。'),
+            goodEvening: ({name}: {name?: string}) => (name ? `${name}さん、こんばんは。` : 'こんばんは。'),
+            inputPlaceholder: 'Concierge に経費の分析を依頼するか、サポートを受けます',
+            inputPlaceholderMobile: 'Concierge に何でも聞いてください',
+        },
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -1101,45 +1148,58 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `おっと！1 つのフィールド（「${fieldName}」）を複数の列に割り当てています。確認してもう一度お試しください。`,
         emptyMappedField: (fieldName: string) => `おっと！フィールド（「${fieldName}」）に1つ以上の空の値が含まれています。確認してもう一度お試しください。`,
         importSuccessfulTitle: 'インポートに成功しました',
-        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
-            if (!added && !updated) {
-                return 'カテゴリーは追加も更新もされていません。';
-            }
-            if (added && updated) {
-                return `${added}件のカテゴリーを追加し、${updated}件のカテゴリーを更新しました。`;
-            }
-            if (added) {
-                return added === 1 ? 'カテゴリーを1件追加しました。' : `${added}件のカテゴリーを追加しました。`;
-            }
-            return updated === 1 ? 'カテゴリーを1件更新しました。' : `${updated}件のカテゴリーを更新しました。`;
-        },
-        importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
-            transactions > 1 ? `${transactions} 件の取引が追加されました。` : '1 件の取引が追加されました。',
-        importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
-            if (!added && !updated) {
-                return 'メンバーは追加も更新もされていません。';
-            }
-            if (added && updated) {
-                return `${added}件のメンバー${added > 1 ? 's' : ''}を追加し、${updated}件のメンバー${updated > 1 ? 's' : ''}を更新しました。`;
-            }
-            if (updated) {
-                return updated > 1 ? `${updated} 人のメンバーを更新しました。` : '1 名のメンバーが更新されました。';
-            }
-            return added > 1 ? `${added}人のメンバーが追加されました。` : 'メンバーが1人追加されました。';
-        },
-        importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} 個のタグを追加しました。` : 'タグを1件追加しました。'),
+        importCategoriesNoneAddedOrUpdated: 'カテゴリーは追加も更新もされていません。',
+        importCategoriesAdded: ({count}: {count: number}) => ({
+            one: 'カテゴリーを1件追加しました。',
+            other: `${count}件のカテゴリーを追加しました。`,
+        }),
+        importCategoriesUpdated: ({count}: {count: number}) => ({
+            one: 'カテゴリーを1件更新しました。',
+            other: `${count}件のカテゴリーを更新しました。`,
+        }),
+        importCategoriesAddedAndUpdated: ({added, updated}: {added: number; updated: number}) => `${added}件のカテゴリーを追加し、${updated}件のカテゴリーを更新しました。`,
+        importCompanyCardTransactionsSuccessfulDescription: ({count}: {count: number}) => ({
+            one: `${count} 件の取引が追加されました。`,
+            other: `${count} 件の取引が追加されました。`,
+        }),
+        importMembersNoneAddedOrUpdated: 'メンバーは追加も更新もされていません。',
+        importMembersAdded: ({count}: {count: number}) => ({
+            one: 'メンバーが1人追加されました。',
+            other: `${count}人のメンバーが追加されました。`,
+        }),
+        importMembersUpdated: ({count}: {count: number}) => ({
+            one: '1 名のメンバーが更新されました。',
+            other: `${count} 人のメンバーを更新しました。`,
+        }),
+        importMembersAddedAndUpdated: ({added, updated}: {added: number; updated: number}) => `${added}件のメンバーを追加し、${updated}件のメンバーを更新しました。`,
+        importTagsSuccessfulDescription: ({count}: {count: number}) => ({
+            one: `${count} 個のタグを追加しました。`,
+            other: `${count} 個のタグを追加しました。`,
+        }),
         importMultiLevelTagsSuccessfulDescription: 'マルチレベルタグが追加されました。',
-        importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates}件の日当レートが追加されました。` : '1件の日当レートが追加されました。'),
-        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
-            if (rules === 0) {
+        importPerDiemRatesSuccessfulDescription: ({count}: {count: number}) => ({
+            one: `${count}件の日当レートが追加されました。`,
+            other: `${count}件の日当レートが追加されました。`,
+        }),
+        importMerchantRulesSuccessfulDescription: ({count}: {count: number}) => {
+            if (count === 0) {
                 return 'すべての加盟店ルールが既に存在するため、追加されませんでした。';
             }
-            return rules > 1 ? `${rules}件の加盟店ルールが追加されました。` : '1件の加盟店ルールが追加されました。';
+            return {
+                one: '1件の加盟店ルールが追加されました。',
+                other: `${count}件の加盟店ルールが追加されました。`,
+            };
         },
+        importMerchantRulesSkippedCategories: ({count}: {count: number}) => ({
+            one: `このワークスペースに存在しないため、${count}件のカテゴリーがスキップされました。`,
+            other: `このワークスペースに存在しないため、${count}件のカテゴリーがスキップされました。`,
+        }),
         importMerchantRulesRequiredColumns:
             'おっと！「加盟店が一致」または「加盟店を含む」の列を少なくとも1つ、さらに更新するフィールドを少なくとも1つマッピングしてください。確認してもう一度お試しください。',
-        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
-            transactions > 1 ? `${transactions} 件の取引がインポートされました。` : '1件の取引がインポートされました。',
+        importTransactionsSuccessfulDescription: ({count}: {count: number}) => ({
+            one: `${count} 件の取引がインポートされました。`,
+            other: `${count} 件の取引がインポートされました。`,
+        }),
         importFailedTitle: 'インポートに失敗しました',
         importFailedDescription: 'すべての項目が正しく入力されていることを確認して、もう一度お試しください。問題が解決しない場合は、Concierge までご連絡ください。',
         importDescription: '下のインポートされた各列の横にあるドロップダウンをクリックして、スプレッドシートのどのフィールドを対応付けるか選択してください。',
@@ -1214,6 +1274,14 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: '時間経費を作成',
     },
     iou: {
+        homeAddressRequired: {
+            title: '自宅住所は必須です',
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `距離を記録する前に、プライベートプロフィールに自宅住所を追加する必要があります。${workspaceName} は通勤控除のためにこの住所を使用します。`
+                    : '距離を記録する前に、プライベートプロフィールに自宅住所を追加する必要があります。このワークスペースでは、その住所を通勤控除に使用します。',
+            cta: '自宅住所を追加',
+        },
         amount: '金額',
         percent: 'パーセント',
         date: '日付',
@@ -1450,8 +1518,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'カード' : '銀行口座';
             return isCurrentUser
-                ? `. ${paymentMethod}で支払われた資金が、お客様の${creditBankAccount ? `預金口座（末尾番号 ${creditBankAccount}）` : 'アカウント'}に向けて送金中です。最大で10営業日かかる場合があります。`
-                : `. ${submitterLogin} さんの ${creditBankAccount ? `預金口座（末尾番号 ${creditBankAccount}）` : 'アカウント'} へ送金中です（${paymentMethod} で支払われます）。最大 10 営業日かかる場合があります。`;
+                ? `. ${paymentMethod}で支払われた資金が、お客様の${creditBankAccount ? `預金口座（末尾番号 ${creditBankAccount}）` : 'アカウント'}に向けて送金中です。通常、営業日で4～5日かかります。`
+                : `. ${submitterLogin} さんの ${creditBankAccount ? `預金口座（末尾番号 ${creditBankAccount}）` : 'アカウント'} へ送金中です（${paymentMethod} で支払われます）。通常、営業日で4～5日かかります。`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             `直接入金（ACH）で${creditBankAccount ? `${creditBankAccount}で終わる銀行口座へ。` : '. '}${expectedDate ? `払戻しは${expectedDate}までに完了する見込みです。` : '通常、営業日で4～5日かかります。'}`,
@@ -1468,7 +1536,7 @@ const translations: TranslationDeepObject<typeof en> = {
         basedOnAI: '過去のアクティビティに基づく',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `<a href="${rulesLink}">ワークスペースルール</a>に基づく` : 'ワークスペースのルールに基づく'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `${comment} 用` : '経費'}`,
-        invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `請求書レポート #${linkedReportID}`,
+        invoiceReportName: ({linkedReportID}: OriginalMessageReportPreview) => `請求書レポート #${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} を送信済み${comment ? `${comment}用` : ''}`,
         movedFromPersonalSpace: (reportName?: string, workspaceName?: string) => `経費を個人スペースから${workspaceName ?? `${reportName}とチャット`}に移動しました`,
         movedToPersonalSpace: '経費を個人スペースに移動しました',
@@ -1517,7 +1585,11 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `分割できる最大数は${CONST.IOU.SPLITS_LIMIT}件です。`,
             dateRangeExceedsMaxDays: `日付範囲は${CONST.IOU.SPLITS_LIMIT}日を超えることはできません。`,
             unableToSubmitReport: 'レポートを送信できません',
+            unableToMarkAsDone: '完了にできません',
             allTransactionsPendingDescription: 'すべての取引が保留中のため、このレポートは提出できません。反映されるまでに数日かかる場合があります。',
+            allTransactionsPendingMarkAsDoneDescription: 'すべての取引が保留中のため、このレポートを完了にできません。反映されるまでに数日かかる場合があります。',
+            allExpensesOnHoldDescription: 'すべての経費が保留中のため、このレポートを送信できません。送信するには、保留を解除してください。',
+            allExpensesOnHoldMarkAsDoneDescription: 'すべての経費が保留中のため、このレポートを完了にできません。続行するには、保留を解除してください。',
             stitchOdometerImagesFailed: '走行距離計の画像を結合できませんでした。後でもう一度お試しください。',
             failedToSaveOdometerDraft: 'オドメーターの下書きを保存できませんでした。もう一度お試しください。',
         },
@@ -1526,6 +1598,8 @@ const translations: TranslationDeepObject<typeof en> = {
         waitingOnEnabledWallet: (submitterDisplayName: string) => `清算を開始しました。${submitterDisplayName} がウォレットを有効にするまで、支払いは保留されます。`,
         enableWallet: 'ウォレットを有効にする',
         hold: '保留',
+        sendToSomeone: '誰かに送る',
+        submitToEmployer: '勤務先に送信する',
         unhold: '保留を解除',
         holdExpense: () => ({
             one: '経費を保留',
@@ -1677,8 +1751,9 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesMaxTransactionsError: `レポートは${CONST.REPORT.MAX_TRANSACTIONS}件の経費までに制限されています。一部を別のレポートに移動してください。`,
         moveExpensesError: '日当経費は、ワークスペースごとに日当レートが異なる場合があるため、他のワークスペースのレポートに移動することはできません。',
         submitReportTo: {
-            sendExpense: '経費を誰にでも送信できます',
+            sendExpense: '誰にでも提出',
             sendExpenseSubtitle: 'メールアドレスまたは電話番号を使って、誰でも Expensify に招待できます。',
+            selectRecipientError: '続行するには、提出先を選択するか入力してください。',
         },
         changeApprover: {
             title: '承認者を変更',
@@ -1713,7 +1788,10 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseWorkspace: 'ワークスペースを選択',
         routedDueToDEW: (to: string, reason?: string) => `レポートは ${to}${reason ? ` ${reason} のため` : ''} に回覧されました`,
         timeTracking: {
-            hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? '時間' : '時間'} @ ${rate} / 時間`,
+            hoursAt: ({count, rate}: {count: number; rate: string}) => ({
+                one: `${count} 時間 @ ${rate} / 時間`,
+                other: `${count} 時間 @ ${rate} / 時間`,
+            }),
             hrs: '時間',
             hours: '時間',
             ratePreview: (rate: string) => `${rate} / 時間`,
@@ -1778,8 +1856,8 @@ const translations: TranslationDeepObject<typeof en> = {
             pageTitle: '保持したい詳細を選択してください:',
             noDifferences: '取引間に差異は見つかりませんでした',
             pleaseSelectError: ({field}: {field: string}) => {
-                const article = StringUtils.startsWithVowel(field) ? 'ある' : 'a';
-                return `${article} の${field}を選択してください`;
+                const article = startsWithVowel(field) ? '1つの' : 'a';
+                return `${article} ${field} を選択してください`;
             },
             pleaseSelectAttendees: '出席者を選択してください',
             selectAllDetailsError: '続行する前にすべての詳細を選択してください。',
@@ -2196,6 +2274,14 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: '強調表示されたスパン名',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click、ナビゲーション、ui.load',
             showBranchNameInTitle: 'ブラウザのタイトルにブランチ名を表示',
+            qaAuth: 'QA 認証（Cloudflare）',
+            qaAuthRunProbe: 'プローブを実行',
+            qaAuthSession: 'QA 認証セッション',
+            qaAuthClearSession: 'セッションをクリア',
+            qaAuthStatusSuccess: 'プローブが成功しました',
+            qaAuthStatusReauthRequired: 'セッションの有効期限が切れました — もう一度実行してサインインしてください',
+            qaAuthStatusSignInFailed: 'サインインが完了しませんでした — もう一度実行して再試行してください',
+            qaAuthStatusError: 'プローブに失敗しました',
         },
         security: 'セキュリティ',
         signOut: 'サインアウト',
@@ -2203,13 +2289,18 @@ const translations: TranslationDeepObject<typeof en> = {
         signOutConfirmationText: 'サインアウトすると、オフライン中の変更内容はすべて失われます。',
         saveReceiptsConfirmation: {
             title: 'レシートを保存しますか？',
-            prompt: ({count}: {count: number}) => `${count}件のレシートがまだアップロード中です。今サインアウトすると、写真に保存され、後で新しい経費に追加できます。`,
+            prompt: ({count}: {count: number}) => ({
+                one: `${count}件のレシートがまだアップロード中です。今サインアウトすると、写真に保存され、後で新しい経費に追加できます。`,
+                other: `${count}件のレシートがまだアップロード中です。今サインアウトすると、写真に保存され、後で新しい経費に追加できます。`,
+            }),
             confirm: '保存してサインアウト',
         },
         saveReceiptsAndSignOutConfirmation: {
             title: 'レシートを保存しますか？',
-            prompt: ({count}: {count: number}) =>
-                `${count}件のレシートがまだアップロード中です。今サインアウトすると、写真に保存され、後で新しい経費に追加できます。その他のオフライン中の変更内容はすべて失われます。`,
+            prompt: ({count}: {count: number}) => ({
+                one: `${count}件のレシートがまだアップロード中です。今サインアウトすると、写真に保存され、後で新しい経費に追加できます。その他のオフライン中の変更内容はすべて失われます。`,
+                other: `${count}件のレシートがまだアップロード中です。今サインアウトすると、写真に保存され、後で新しい経費に追加できます。その他のオフライン中の変更内容はすべて失われます。`,
+            }),
             confirm: '保存してサインアウト',
         },
         versionLetter: 'v',
@@ -2894,7 +2985,6 @@ ${date} の ${merchant} への ${amount}`,
         cardLastFour: '末尾番号が',
         addFirstPaymentMethod: 'アプリ内で直接支払いの送受信を行うには、支払方法を追加してください。',
         defaultPaymentMethod: 'デフォルト',
-        bankAccountLastFour: (lastFour: string) => `銀行口座・${lastFour}`,
     },
     agentsPage: {
         title: '担当者',
@@ -3029,7 +3119,7 @@ ${date} の ${merchant} への ${amount}`,
         prompt: (priorityModePageUrl: string) =>
             `未読のチャットや対応が必要なチャットだけを表示して、状況を常に把握できるようにしましょう。いつでも<a href="${priorityModePageUrl}">設定</a>で変更できます。`,
     },
-    inboxTabs: {all: 'すべて', todo: 'To-do リスト', unread: '未読'},
+    inboxTabs: {all: 'すべて', todo: 'To-do リスト', unread: '未読', markAllAsRead: 'すべて既読にする', markAllAsReadConfirmationPrompt: 'すべてのチャットを既読にしてもよろしいですか？'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `${policyName} 内`,
         generatingPDF: 'PDFを生成',
@@ -3082,7 +3172,10 @@ ${date} の ${merchant} への ${amount}`,
         requiredWhen2FAEnabled: '2要素認証が有効な場合は必須',
         requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `<a>${timeRemaining}</a> 後に新しいコードをリクエストする`,
         requestNewCodeAfterErrorOccurred: '新しいコードをリクエスト',
-        timeRemainingAnnouncement: ({timeRemaining}) => `残り時間: ${timeRemaining}秒`,
+        timeRemainingAnnouncement: ({count}) => ({
+            one: `残り時間: ${count}秒`,
+            other: `残り時間: ${count}秒`,
+        }),
         timeExpiredAnnouncement: '時間切れです',
         error: {
             pleaseFillSecurityCode: 'セキュリティコードを入力してください',
@@ -3132,7 +3225,10 @@ ${date} の ${merchant} への ${amount}`,
         joinAWorkspace: 'ワークスペースに参加',
         listOfWorkspaces: '参加できるワークスペースの一覧です。',
         skipForNow: '今はスキップ',
-        workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount}人のメンバー${employeeCount > 1 ? 's' : ''}・${policyOwner}`,
+        workspaceMemberList: ({count, policyOwner}: {count: number; policyOwner: string}) => ({
+            one: `${count}人のメンバー・${policyOwner}`,
+            other: `${count}人のメンバー・${policyOwner}`,
+        }),
         whereYouWork: '勤務先はどこですか？',
         errorSelection: '次に進むオプションを選択してください',
         purpose: {
@@ -3503,7 +3599,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         legalName: '法的氏名',
         legalFirstName: '法的な名',
         legalLastName: '法的な姓',
-        address: '住所',
+        address: '自宅住所',
+        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} は通勤手当の除外にこの住所を使用します。`,
         error: {
             dateShouldBeBefore: (dateString: string) => `日付は${dateString}より前である必要があります`,
             dateShouldBeAfter: (dateString: string) => `日付は${dateString}より後の日付にしてください`,
@@ -3541,38 +3638,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) => `${login} に SMS メッセージを送信できないため、一時的に利用を停止しました。次の手順で番号の確認を行ってください。`,
         validationSuccess: '電話番号が認証されました！下をクリックして、新しいセキュリティサインインコードを送信します。',
-        validationFailed: ({
-            timeData,
-        }: {
-            timeData?: {
-                days?: number;
-                hours?: number;
-                minutes?: number;
-            } | null;
-        }) => {
-            if (!timeData) {
-                return '少し待ってから、もう一度お試しください。';
-            }
-            const timeParts = [];
-            if (timeData.days) {
-                timeParts.push(`${timeData.days} ${timeData.days === 1 ? '日' : '日数'}`);
-            }
-            if (timeData.hours) {
-                timeParts.push(`${timeData.hours} ${timeData.hours === 1 ? '時間' : '時間'}`);
-            }
-            if (timeData.minutes) {
-                timeParts.push(`${timeData.minutes} ${timeData.minutes === 1 ? '分' : '分 minutes'}`);
-            }
-            let timeText = '';
-            if (timeParts.length === 1) {
-                timeText = timeParts.at(0) ?? '';
-            } else if (timeParts.length === 2) {
-                timeText = `${timeParts.at(0)} and ${timeParts.at(1)}`;
-            } else if (timeParts.length === 3) {
-                timeText = `${timeParts.at(0)}, ${timeParts.at(1)}, and ${timeParts.at(2)}`;
-            }
-            return `少々お待ちください！番号を再度確認するまでに、${timeText}お待ちいただく必要があります。`;
-        },
+        validationFailed: ({timeText}: {timeText: string}) =>
+            timeText ? `少々お待ちください！番号を再度確認するまでに、${timeText}お待ちいただく必要があります。` : '少し待ってから、もう一度お試しください。',
     },
     welcomeSignUpForm: {
         join: '参加',
@@ -3652,6 +3719,11 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         thisBankAccount: 'この銀行口座は、ワークスペースでのビジネス支払いに使用されます',
         accountNumber: '口座番号',
         routingNumber: 'ルーティング番号',
+        internationalBankAccountDetails: '海外銀行口座情報',
+        internationalBankAccountDetailsTitle: 'あなたの海外口座情報を教えてください',
+        internationalBankAccountDetailsSubtitle: 'あなたのワークスペースの1つが、払い戻しを処理するために海外口座情報を必要としています',
+        iban: 'IBAN',
+        swiftBicCode: 'SWIFT/BICコード',
         chooseAnAccountBelow: '下のアカウントを選択してください',
         addBankAccount: '銀行口座を追加',
         chooseAnAccount: 'アカウントを選択',
@@ -3701,6 +3773,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             restrictedBusiness: 'ビジネスが制限対象の事業一覧に含まれていないことを確認してください',
             routingNumber: '有効なルーティング番号を入力してください',
             accountNumber: '有効な口座番号を入力してください',
+            iban: '有効なIBANを入力してください',
+            swiftCode: '有効なSWIFT/BICコードを入力してください',
             routingAndAccountNumberCannotBeSame: 'ルーティング番号と口座番号を同じにすることはできません',
             companyType: '有効な会社の種類を選択してください',
             tooManyAttempts: 'ログイン試行回数が多すぎるため、このオプションは24時間無効になっています。時間をおいてから再度お試しいただくか、代わりに詳細情報を手動で入力してください。',
@@ -4450,6 +4524,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             railCard:
                 'Expensify で電車の予約や管理ができることをご存じでしたか？しかも領収書も自動でアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🚂',
         },
+        defaultWorkspaceTravelDisabled: {
+            title: '出張機能は有効になっていません',
+            message: '予約するには、デフォルトのワークスペースで出張機能を有効にするか、出張機能が有効になっているワークスペースをデフォルトとして設定してください。',
+        },
     },
     workspace: {
         common: {
@@ -4460,6 +4538,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             workflows: 'ワークフロー',
             workspace: 'ワークスペース',
             findWorkspace: 'ワークスペースを探す',
+            active: 'アクティブ',
+            archived: 'アーカイブ済み',
+            workspaceStatus: 'ワークスペースのステータス',
             findRoom: 'ルームを探す',
             edit: 'ワークスペースを編集',
             enabled: '有効',
@@ -4532,7 +4613,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             subscription: 'サブスクリプション',
             markAsEntered: '手入力としてマーク',
             markAsExported: 'エクスポート済みにする',
-            exportIntegrationSelected: (connectionName: ConnectionName) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} にエクスポート`,
+            exportIntegrationSelected: ({connectionName, connectionNameFriendly}) =>
+                `${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} にエクスポート`,
             letsDoubleCheck: 'すべて正しく表示されているか、もう一度確認しましょう。',
             lineItemLevel: '明細レベル',
             reportLevel: 'レポートレベル',
@@ -4787,6 +4869,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
         qbo: {
             connectedTo: '接続先',
+            entity: 'エンティティ',
+            entitySelectDescription: 'このワークスペースと同期するエンティティを選択してください。',
+            connectNewEntity: '新しい法人を接続する',
             importDescription: (integrationName = 'QuickBooks Online') => `${integrationName} から Expensify に取り込むコード設定を選択してください。`,
             classes: 'クラス',
             locations: '場所',
@@ -4864,6 +4949,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 qboInvoiceCollectionAccount: (integrationName = 'QuickBooks Online') => `${integrationName} 請求書回収口座`,
                 accountSelectDescription: (integrationName = 'QuickBooks Online') => `請求書の支払元を選択すると、${integrationName} に支払いが作成されます。`,
                 invoiceAccountSelectorDescription: (integrationName = 'QuickBooks Online') => `請求書の入金先を選択すると、${integrationName} に支払いを作成します。`,
+                qboFxExpenseAccount: (integrationName = 'QuickBooks Online') => `${integrationName} 為替差損益勘定`,
+                fxExpenseAccountDescription: (integrationName = 'QuickBooks Online') =>
+                    `会社が海外で行われた支払いに対する通貨換算コストを負担する場合、そのコストは仕訳として ${integrationName} のこの勘定科目に計上します。`,
             },
             debitCardExportDescription: (integrationName = 'QuickBooks Online') =>
                 `デビットカード取引の加盟店名を、${integrationName} 内の対応する仕入先と自動的に照合します。該当する仕入先が存在しない場合は、関連付けのために「Debit Card Misc.」という仕入先を作成します。`,
@@ -5634,8 +5722,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             billPaymentAccount: {label: '請求支払用口座', description: '請求書の支払い元を選択すると、Rillet 内に支払いを作成します。'},
             syncExpensifyCardSettlements: 'Expensify カードの清算を同期する',
             settlementAccount: {label: 'Expensify カードの決済口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
-            syncTravelInvoicingSettlements: '出張請求の精算を同期',
-            travelInvoicingSettlementAccount: {label: '出張請求の精算口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
+            syncTravelInvoicingSettlements: '統合トラベル請求の精算を同期',
+            travelInvoicingSettlementAccount: {label: 'コンソリデーテッド・トラベル・ビリングの決済口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
             exportToMultipleAccounts: '複数アカウントへのエクスポートを設定',
             cardProgramAccount: {
                 label: 'カードプログラム口座',
@@ -5675,11 +5763,83 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             subsidiarySelectDescription: 'DualEntry でデータを取り込みたい子会社を選択してください。',
             noCompaniesFound: '会社が見つかりません',
             noCompaniesFoundDescription: 'DualEntry に会社を追加して、もう一度同期してください',
+            noVendorsFound: 'ベンダーが見つかりません',
+            noVendorsFoundDescription: 'DualEntry にベンダーを追加して、もう一度接続を同期してください',
+            noAccountsFound: 'アカウントが見つかりません',
+            noAccountsFoundDescription: 'DualEntry にアカウントを追加して、もう一度接続を同期してください',
             accountTypesDescription: 'DualEntry アカウントはカテゴリとしてインポートされます。',
             enableNewAccountsTitle: '新しくインポートした口座を有効にする',
             enableNewAccountsDescription: '新しい DualEntry アカウントは、カテゴリとして利用できるようになります。',
             classificationsImport: 'すべての DualEntry 分類はタグとしてインポートされます',
             importDescription: 'DualEntry からインポートするコーディング設定を選択してください。',
+            exportDescription: 'Expensify のデータを DualEntry へエクスポートする方法を設定します。',
+            exportReimbursable: {
+                label: '返金対象経費の書き出し形式',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: '仕入先請求書',
+                    },
+                },
+            },
+            exportDate: {
+                label: '仕入先の請求書日',
+                description: 'レポートを DualEntry にエクスポートするときは、この日付を使用します。',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: '最終支出日',
+                        description: 'レポートに記載されている最新の支出日。',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'エクスポート日',
+                        description: 'レポートがDualEntryにエクスポートされた日付。',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: '提出日',
+                        description: 'レポートが承認のために提出された日付。',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: '会社カード経費のエクスポート形式',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE]: {
+                        label: '直接経費',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'すべての会社カードのデフォルトベンダー',
+                description: '自動的に一致しない経費に使用する既定の DualEntry ベンダーを選択してください。',
+            },
+            companyCardAccount: {
+                label: '会社カード口座',
+                description: '会社カード取引のエクスポート先を選択してください。',
+            },
+            expensifyCardAccount: {
+                label: 'Expensify カード口座',
+                description: 'Expensify カード取引のエクスポート先を選択してください。',
+            },
+            autoSyncDescription: 'DualEntry と Expensify を毎日自動で同期します。レポートはリアルタイムで同期されます。',
+            accountingMethods: {
+                label: 'エクスポート方法',
+                description: '経費をいつエクスポートするか選択します。',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '発生主義',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '現金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自己負担経費は、最終承認時にエクスポートされます',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '立替経費は支払われるとエクスポートされます',
+                },
+            },
+            syncReimbursedReports: '精算済みレポートを同期',
+            syncReimbursedReportsDescription: 'レポートが ACH 経由で支払われると、この勘定科目で支払伝票が作成されます。',
+            billPaymentAccount: {label: '請求支払口座', description: '請求書の支払元を選択すると、DualEntry 内に支払いを作成します。'},
+            syncExpensifyCardSettlements: 'Expensify カードの清算を同期',
+            settlementAccount: {label: 'Expensify カードの決済口座', description: '精算口座を選択すると、DualEntry で支払いを作成します。'},
+            syncTravelInvoicingSettlements: '出張請求の精算を同期する',
+            travelInvoicingSettlementAccount: {label: '出張請求の精算勘定', description: '精算口座を選択すると、DualEntry で支払いを作成します。'},
+            travelInvoicingPayableAccount: {label: '旅行請求書の買掛金勘定'},
         },
         type: {
             free: '無料',
@@ -5702,10 +5862,16 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             addNewCard: {
                 other: 'その他',
                 fileImport: 'ファイルから取引をインポート',
-                createFileFeedHelpText: `<muted-text>会社カードの経費をインポートするには、この<a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">ヘルプガイド</a>に従ってください。</muted-text>`,
+                createFileFeedHelpText: {
+                    instructionStart: '次のページで、カード取引のCSVをアップロードします。アップロードする前に、',
+                    templateLink: 'テンプレートをダウンロード',
+                    instructionMiddle: 'するか、',
+                    helpGuideLink: 'ヘルプガイド',
+                    instructionEnd: 'をご確認ください。',
+                },
                 companyCardLayoutName: '法人カードレイアウト名',
                 cardLayoutNameRequired: '法人カードレイアウト名は必須です',
-                useAdvancedFields: '詳細フィールドを使用（非推奨）',
+                downloadTemplate: 'テンプレートをダウンロード',
                 cardProviders: {
                     gl1025: 'American Express コーポレートカード',
                     cdf: 'Mastercard コマーシャルカード',
@@ -5792,9 +5958,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     currency: '通貨',
                     ignore: '無視',
                     originalTransactionDate: '元の取引日',
-                    originalAmount: '元の金額',
-                    originalCurrency: '元の通貨',
-                    comment: 'コメント',
+                    originalAmount: '購入金額',
+                    originalCurrency: '購入通貨',
+                    comment: '説明',
                     category: 'カテゴリ',
                     tag: 'タグ',
                 },
@@ -5882,6 +6048,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             currentBalanceDescription: '現在残高は、前回の精算日以降に発生し記帳されたすべての Expensify カード取引の合計です。',
             balanceWillBeSettledOn: (settlementDate: string) => `残高は${settlementDate}に精算されます`,
             settleBalance: '残高を清算',
+            settleBalanceConfirmationTitle: '残高を清算しますか？',
+            settleBalanceConfirmationPrompt: '現在の残高が翌営業日に清算されます。清算が完了すると、その金額は残りの利用限度額に戻されます。',
             cardLimit: 'カード上限',
             remaining: '残り',
             remainingLimit: '残りの上限',
@@ -6040,7 +6208,13 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     ctaText: 'リクエストを送信しました',
                 },
                 bookOrManageYourTrip: {title: '出張予約', subtitle: 'おめでとうございます！このワークスペースで旅行の予約と管理を行う準備が整いました。', ctaText: '出張を管理'},
-                settings: {autoAddTripName: {title: '経費に出張名を追加', subtitle: 'Expensifyで予約した出張について、経費の説明に出張名を自動的に追加します。'}},
+                settings: {
+                    autoAddTripName: {title: '経費に出張名を追加', subtitle: 'Expensifyで予約した出張について、経費の説明に出張名を自動的に追加します。'},
+                    codingSync: {
+                        title: 'コーディングを Expensify Travel と同期する',
+                        subtitle: 'このワークスペースのカテゴリ、タグ、レポートフィールドを Expensify Travel にプッシュして、出張者が予約時にそれらに回答できるようにします。',
+                    },
+                },
                 travelInvoicing: {
                     travelBookingSection: {
                         title: '出張予約',
@@ -6109,6 +6283,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                         spend: '支出管理とカスタム上限設定',
                     },
                     ctaTitle: '新しいカードを発行',
+                    existingFeedTitle: 'Expensify カードを管理する',
+                    viewCards: 'カードを表示',
                 },
             },
             companyCards: {
@@ -6626,8 +6802,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 chooseLimitType: '上限の種類を選択',
                 smartLimit: 'スマート制限',
                 smartLimitDescription: '承認が必要になる前に、一定額まで支出できる',
-                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text-label>承認が必要になる前に、一定額まで支出できます。このオプションを選択するには<a href="${workspaceWorkflowsLink}">承認を有効化</a>してください。</muted-text-label>`,
+                smartLimitDisabledDescription: (workspaceWorkflowsLink?: string) =>
+                    `<muted-text-label>承認が必要になる前に、一定額まで支出できます。このオプションを選択するには${workspaceWorkflowsLink ? `<a href="${workspaceWorkflowsLink}">承認を有効化</a>` : '承認を有効化'}してください。</muted-text-label>`,
                 monthly: '毎月',
                 monthlyDescription: '毎月、一定額まで利用する',
                 fixedAmount: '固定額',
@@ -6764,11 +6940,11 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 },
             },
             connections: {
-                syncStageName: (stage, integrationName = 'QuickBooks Online') => {
+                syncStageName: (stage: PolicyConnectionSyncStage, integrationName = 'QuickBooks Online') => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
-                            return '顧客のインポート';
+                            return '顧客のインポート中';
                         case 'quickbooksOnlineImportEmployees':
                         case 'netSuiteSyncImportEmployees':
                         case 'intacctImportEmployees':
@@ -6781,22 +6957,22 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         case 'quickbooksDesktopImportClasses':
                             return 'クラスのインポート';
                         case 'quickbooksOnlineImportLocations':
-                            return '場所をインポート中';
+                            return '場所をインポートしています';
                         case 'quickbooksOnlineImportProcessing':
                             return 'インポートしたデータを処理しています';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
-                            return '払い戻し済みレポートと支払い済み請求書の同期';
+                            return '払い戻されたレポートと支払い済み請求書の同期';
                         case 'quickbooksOnlineSyncTaxCodes':
                             return '税コードのインポート';
                         case 'quickbooksOnlineCheckConnection':
-                            return `${integrationName} 接続を確認中`;
+                            return `${integrationName} 接続を確認しています`;
                         case 'quickbooksOnlineImportMain':
-                            return `${integrationName} データのインポート`;
+                            return `${integrationName} のデータをインポートしています`;
                         case 'startingImportXero':
                             return 'Xero データのインポート';
                         case 'startingImportQBO':
-                            return `${integrationName} データのインポート`;
+                            return `${integrationName} のデータをインポートしています`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return 'QuickBooks Desktop データのインポート';
@@ -6807,49 +6983,49 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         case 'quickbooksDesktopImportDimensions':
                             return 'ディメンションをインポート中';
                         case 'quickbooksDesktopImportSavePolicy':
-                            return '保存ポリシーのインポート';
+                            return '保存ポリシーをインポート中';
                         case 'quickbooksDesktopWebConnectorReminder':
                             return 'QuickBooks とデータを同期中です… Web Connector が実行中であることを確認してください';
                         case 'quickbooksOnlineSyncTitle':
-                            return `${integrationName} データを同期中`;
+                            return `${integrationName} データを同期しています`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':
                             return 'データを読み込んでいます';
                         case 'quickbooksOnlineSyncApplyCategories':
-                            return 'カテゴリを更新中';
+                            return 'カテゴリを更新しています';
                         case 'quickbooksOnlineSyncApplyCustomers':
                             return '顧客／プロジェクトの更新';
                         case 'quickbooksOnlineSyncApplyEmployees':
-                            return 'メンバー一覧を更新中';
+                            return 'メンバー一覧を更新しています';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
-                            return 'レポートフィールドを更新中';
+                            return 'レポート項目を更新中';
                         case 'jobDone':
                             return 'インポートしたデータの読み込みを待っています';
                         case 'xeroSyncImportChartOfAccounts':
-                            return '勘定科目表を同期中';
+                            return '勘定科目表を同期しています';
                         case 'xeroSyncImportCategories':
                             return 'カテゴリを同期しています';
                         case 'xeroSyncImportCustomers':
-                            return '顧客を同期中';
+                            return '顧客を同期しています';
                         case 'xeroSyncXeroReimbursedReports':
-                            return 'Expensifyレポートを精算済みとしてマークする';
+                            return 'Expensify レポートを精算済みにする';
                         case 'xeroSyncExpensifyReimbursedReports':
                             return 'Xero の請求書とインボイスを支払済みにする';
                         case 'xeroSyncImportTrackingCategories':
-                            return 'トラッキングカテゴリを同期中';
+                            return 'トラッキングカテゴリを同期しています';
                         case 'xeroSyncImportBankAccounts':
-                            return '銀行口座を同期中';
+                            return '銀行口座を同期しています';
                         case 'xeroSyncImportTaxRates':
                             return '税率を同期しています';
                         case 'xeroCheckConnection':
-                            return 'Xero 接続を確認中';
+                            return 'Xero への接続を確認しています';
                         case 'xeroSyncTitle':
-                            return 'Xero データを同期中';
+                            return 'Xero データを同期しています';
                         case 'netSuiteSyncConnection':
-                            return 'NetSuite への接続を初期化中';
+                            return 'NetSuite への接続を初期化しています';
                         case 'netSuiteSyncCustomers':
-                            return '顧客のインポート';
+                            return '顧客のインポート中';
                         case 'netSuiteSyncInitData':
                             return 'NetSuite からデータを取得しています';
                         case 'netSuiteSyncImportTaxes':
@@ -6857,25 +7033,25 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         case 'netSuiteSyncImportItems':
                             return '項目をインポート中';
                         case 'netSuiteSyncData':
-                            return 'Expensify へのデータのインポート';
+                            return 'Expensify へのデータインポート';
                         case 'netSuiteSyncAccounts':
-                            return 'アカウントを同期中';
+                            return 'アカウントを同期しています';
                         case 'netSuiteSyncCurrencies':
-                            return '通貨を同期中';
+                            return '通貨を同期しています';
                         case 'netSuiteSyncCategories':
                             return 'カテゴリを同期しています';
                         case 'netSuiteSyncReportFields':
-                            return 'データをExpensifyのレポートフィールドとしてインポートする';
+                            return 'Expensify レポート項目としてデータをインポート';
                         case 'netSuiteSyncTags':
-                            return 'Expensify タグとしてデータをインポート';
+                            return 'データを Expensify タグとしてインポートする';
                         case 'netSuiteSyncUpdateConnectionData':
                             return '接続情報を更新しています';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
-                            return 'Expensifyレポートを精算済みとしてマークする';
+                            return 'Expensify レポートを精算済みにする';
                         case 'netSuiteSyncExpensifyReimbursedReports':
-                            return 'NetSuite の請求書とインボイスを支払済みにマークする';
+                            return 'NetSuite の請求書および請求書を支払済みにマークする';
                         case 'netSuiteImportVendorsTitle':
-                            return '仕入先のインポート';
+                            return '仕入先をインポート中';
                         case 'netSuiteImportCustomListsTitle':
                             return 'カスタムリストのインポート';
                         case 'netSuiteSyncImportCustomLists':
@@ -6884,33 +7060,33 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                             return '子会社のインポート';
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
-                            return '仕入先のインポート';
+                            return '仕入先をインポート中';
                         case 'intacctCheckConnection':
-                            return 'Sage Intacct 接続を確認しています';
+                            return 'Sage Intacct との接続を確認しています';
                         case 'intacctImportDimensions':
                             return 'Sage Intacct ディメンションのインポート';
                         case 'intacctImportTitle':
                             return 'Sage Intacct データのインポート';
                         case 'financialForceSyncTitle':
-                            return 'Certinia データを同期中';
+                            return 'Certinia データを同期しています';
                         case 'financialForceSyncStep':
-                            return 'Certinia 接続を同期中';
+                            return 'Certinia 接続を同期しています';
                         case 'financialForceSyncCategories':
-                            return 'カテゴリをインポート中';
+                            return 'カテゴリをインポートしています';
                         case 'financialForceSyncTags':
-                            return 'タグをインポート中';
+                            return 'タグのインポート';
                         case 'financialForceSyncVendors':
-                            return 'ベンダーをインポート中';
+                            return '仕入先をインポート中';
                         case 'financialForceSyncContacts':
-                            return '連絡先をインポート中';
+                            return '連絡先のインポート';
                         case 'financialForceSyncCompanies':
-                            return '会社をインポート中';
+                            return '会社のインポート';
                         case 'financialForceSyncUsers':
-                            return 'ユーザーをインポート中';
+                            return 'ユーザーのインポート';
                         case 'financialForceSyncDimensions':
                             return 'ディメンションをインポート中';
                         case 'financialForceMarkAsReimbursed':
-                            return 'レポートを払い戻し済みにマーク中';
+                            return 'レポートを精算済みにする';
                         case 'rilletSyncTitle':
                             return 'Rillet データを同期しています';
                         case 'rilletSyncConnection':
@@ -6923,8 +7099,14 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                             return 'DualEntry への接続を初期化しています';
                         case 'dualEntrySyncImportData':
                             return 'データを読み込んでいます';
+                        case 'dualEntrySyncPayments':
+                            return '取引先への支払いを同期しています';
+                        case 'dualEntrySyncCardSettlements':
+                            return 'カード決済を同期しています';
+                        case 'dualEntrySyncTravelSettlements':
+                            return '出張精算を同期しています';
                         default: {
-                            return `ステージの翻訳が見つかりません: ${stage}`;
+                            return `ステージ「${stage}」の翻訳が見つかりません`;
                         }
                     }
                 },
@@ -7009,16 +7191,29 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
         distanceRates: {
             oopsNotSoFast: 'おっと！ちょっと待って…',
             workspaceNeeds: 'ワークスペースには、少なくとも 1 つの有効な距離レートが必要です。',
+            requireMapOrGPSDescription: '手動入力とオドメーター入力は無効になります。',
+            requireMapOrGPSLockedByCommuterExclusions:
+                '通勤を除外するにはルートデータが必要なため、この設定がオンの間は、常にマップまたは GPS による距離情報が必要です。この設定を変更するには、「通勤を除外」を「通勤を除外しない」に設定してください。',
             commuterExclusions: {
                 title: '通勤を除外',
                 summaryDisabled: '通勤除外なし',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `申請ごとに ${distance} ${unit} を除外します`,
                 optionDisabledTitle: '通勤を除外しない',
-                optionDisabledHelp: '通勤除外は適用されていません。',
+                optionDisabledHelp: '通勤分は精算申請から除外されていません。',
                 optionFixedDistanceTitle: '申請ごとに一定距離を除外します',
                 optionFixedDistanceHelp: '各申請から同じ通勤距離を差し引きます。1勤務日につき1件の申請を行うメンバーに最適です。',
                 distanceLabel: '距離',
-                errors: {distanceMustBePositive: '距離は正の整数で入力してください。', distanceTooLarge: '距離が大きすぎます。'},
+                summaryHomeAndOffice: '自宅と勤務先の所在地を使用する',
+                optionHomeAndOfficeTitle: '自宅とオフィスで按分計算します',
+                optionHomeAndOfficeHelp: 'メンバーの自宅住所、勤務形態、オフィス配属先を使用して、通勤の除外額を計算します。',
+                workspaceAddressRequired: {
+                    title: 'ちょっとお待ちください…',
+                    promptStart: '自宅とオフィスで計算する設定は、先にオフィスの所在地を追加しないと有効にできません',
+                    linkText: '概要',
+                    promptEnd: 'でオフィスの住所を追加してください。',
+                    cta: '了解です',
+                },
+                errors: {distanceMustBePositive: '距離は正の整数で入力してください。', invalidAddress: '有効な住所を入力してください', distanceTooLarge: '距離が大きすぎます。'},
             },
             distance: '距離',
             centrallyManage: '料金を一元管理し、マイルまたはキロメートルで追跡し、デフォルトのカテゴリを設定できます。',
@@ -7064,6 +7259,9 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             startDate: '開始日',
             endDate: '終了日',
             autoGeneratedRateTooltip: 'このレートは自動生成されています。',
+            autoUpdateGovernmentRate: '政府レートを自動更新',
+            autoUpdateGovernmentRateDescription: (countryPhrase: string) => `${countryPhrase} が新しいガイダンスを公表したときに、新しいレートを自動的に作成します。`,
+            governmentRateCountries: {US: 'アメリカ合衆国', CA: 'カナダ', GB: 'グレートブリテン', AU: 'オーストラリア'},
         },
         editor: {
             descriptionInputLabel: '説明',
@@ -7109,6 +7307,9 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             yourWorkspace: `ご利用のワークスペースはサポートされていない通貨に設定されています。<a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">サポートされている通貨の一覧</a>を表示します。`,
             chooseAnExisting: '既存の銀行口座を選択して経費を支払うか、新しい口座を追加してください。',
             changeBankAccount: '銀行口座を変更',
+            updateCurrencyForExpensifyCard: 'Expensify カードは USD でのみ発行できます。このワークスペースを USD に更新するか、別のワークスペースをご利用ください。',
+            updateCurrencyForExpensifyCardTitle: 'Expensify カードを申し込む',
+            euUkUpdateCurrencyForExpensifyCard: 'Expensify カードは USD、GBP、EUR で発行できます。このワークスペースを対応している通貨に更新するか、別のワークスペースを使用してください。',
         },
         changeOwner: {
             changeOwnerPageTitle: '所有者を変更',
@@ -7155,10 +7356,11 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
         },
         exportAgainModal: {
             title: '注意！',
-            description: (
-                reportName: string,
-                connectionName: ConnectionName,
-            ) => `次のレポートはすでに ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} にエクスポートされています。もう一度エクスポートしてもよろしいですか？
+            description: ({
+                reportName,
+                connectionName,
+                connectionNameFriendly,
+            }) => `次のレポートはすでに ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} にエクスポートされています。もう一度エクスポートしてもよろしいですか？
 
 ${reportName}`,
             confirmText: 'はい、再度エクスポートします',
@@ -7166,17 +7368,17 @@ ${reportName}`,
         },
         exportDifferentCompaniesModal: {
             title: '注意！',
-            description: (connectionName: ConnectionName) =>
-                `選択したレポートは異なる ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} の会社に接続されているため、一緒にエクスポートすることはできません。同じ会社に接続されているレポートを選択して、もう一度お試しください。`,
+            description: (connectionName: ConnectionName, connectionNameFriendly?: string) =>
+                `選択したレポートは異なる ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} の会社に接続されているため、一緒にエクスポートすることはできません。同じ会社に接続されているレポートを選択して、もう一度お試しください。`,
             confirmText: '了解',
         },
         exportPartialModal: {
-            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
-                `${exportableCount}/${selectedCount}件のレポートを${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}にエクスポートしますか？`,
-            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName, connectionNameFriendly?: string) =>
+                `${exportableCount}/${selectedCount}件のレポートを${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}にエクスポートしますか？`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean, connectionNameFriendly?: string) => {
                 const reasons: string[] = [];
                 if (hasReportsOnOtherIntegrations) {
-                    reasons.push(`${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}に接続されているレポートのみがエクスポートされます。`);
+                    reasons.push(`${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}に接続されているレポートのみがエクスポートされます。`);
                 }
                 if (hasIneligibleReports) {
                     reasons.push(`エクスポート可能なレポートのみがエクスポートされます。`);
@@ -7436,6 +7638,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>領収書の公開可視性は、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `有効メンバー1人あたり1か月ごとに。`}からのControlプランでのみご利用いただけます。</muted-text>`,
             },
+            governmentDistanceRates: {
+                title: '政府レートを自動更新',
+                description: '政府が新しいガイダンスを発表するたびに、Expensify にマイレージレートを自動で最新状態に保ってほしい場合に最適な機能です。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>自動更新される公的レートは、Control プランでのみご利用いただけます（<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} から）。</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7519,8 +7727,7 @@ ${reportName}`,
                 alwaysNonReimbursable: '常に精算対象外',
                 alwaysNonReimbursableDescription: '経費は従業員に精算されません',
                 billableDefault: '請求可能のデフォルト',
-                billableDefaultDescription: (tagsPageLink: string) =>
-                    `<muted-text>現金およびクレジットカード経費をデフォルトで請求可能にするかどうかを選択してください。請求可能な経費は、<a href="${tagsPageLink}">タグ</a>で有効または無効にできます。</muted-text>`,
+                billableDefaultDescription: '現金およびクレジットカード経費をデフォルトで請求可能にするかどうかを選択してください。',
                 billable: '請求可能',
                 billableDescription: '経費は多くの場合、クライアントに再請求されます',
                 nonBillable: '請求不可',
@@ -7808,6 +8015,7 @@ ${reportName}`,
                 restrictMerchantsBlockSubtitle: '承認される支出は、許可された通貨で上限金額を超えないもの、または加盟店または加盟店の種類が条件に一致するものです。',
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `許可された ${shownCount > 1 ? '通貨' : '通貨'}：${currencies}${hiddenCount > 0 ? `、ほか +${hiddenCount} 件` : ''}`,
+                defaultRulesCannotBeDeleted: '既定のルールは削除できません',
             },
             agentRules: {
                 title: 'エージェントルール',
@@ -8098,6 +8306,7 @@ ${reportName}`,
             authenticationError: (providerName: string) => `有効期限が切れた接続のため、${providerName} に接続できません。`,
             reconnect: '再接続',
             reconnectLink: '再接続する',
+            findIntegration: '連携を検索',
         },
         emptyDomain: {
             title: 'ドメインでセキュリティを強化しましょう',
@@ -8346,31 +8555,33 @@ ${reportName}`,
         updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
             switch (featureName) {
                 case 'categories':
-                    return `${enabled ? '有効' : '無効'} 件のカテゴリ`;
+                    return `${enabled ? '有効' : '無効'} 個のカテゴリ`;
                 case 'tags':
                     return `${enabled ? '有効' : '無効'} 個のタグ`;
                 case 'workflows':
                     return `${enabled ? '有効' : '無効'} 個のワークフロー`;
                 case 'distance rates':
-                    return `${enabled ? '有効' : '無効'} 件の距離レート`;
+                    return `${enabled ? '有効' : '無効'} 距離レート`;
                 case 'accounting':
                     return `${enabled ? '有効' : '無効'} 会計`;
                 case 'Expensify Cards':
                     return `${enabled ? '有効' : '無効'} Expensify カード`;
                 case 'travel invoicing':
-                    return `${enabled ? '有効' : '無効'} 統合旅行請求`;
+                    return `${enabled ? '有効' : '無効'} 統合トラベル請求`;
                 case 'company cards':
-                    return `${enabled ? '有効' : '無効'} 件の会社カード`;
+                    return `${enabled ? '有効' : '無効'} 件の法人カード`;
                 case 'invoicing':
-                    return `${enabled ? '有効' : '無効'} 請求書作成`;
+                    return `${enabled ? '有効' : '無効'} の請求書作成`;
                 case 'per diem':
-                    return `${enabled ? '有効' : '無効'} 日当`;
+                    return `${enabled ? '有効' : '無効'} の日当`;
                 case 'receipt partners':
                     return `${enabled ? '有効' : '無効'} 件のレシートパートナー`;
                 case 'rules':
-                    return `${enabled ? '有効' : '無効'} 件のルール`;
+                    return `${enabled ? '有効' : '無効'} 個のルール`;
                 case 'tax tracking':
                     return `${enabled ? '有効' : '無効'} 税金の追跡`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'オンになりました' : 'オフにしました'} は距離レートに GPS もしくは地図での入力が必要です`;
                 default:
                     return `${enabled ? '有効' : '無効'} ${featureName}`;
             }
@@ -8629,6 +8840,9 @@ ${reportName}`,
                 title ? `エージェントルール「${title}」を次の内容に更新しました：${prompt}` : `エージェントルールを次の内容に更新しました：${prompt}`,
             deleted: ({title}: {title: string}) => (title ? `エージェントルール「${title}」を削除しました` : 'エージェントルールを削除しました'),
         },
+        addedRule: 'ルールを追加しました',
+        updatedRule: 'ルールを更新しました',
+        removedRule: 'ルールを削除しました',
         expensifyCardRule: {
             actionVerb: {block: 'ブロック済み', allow: '許可済み'},
             amountOperator: {
@@ -8741,6 +8955,7 @@ ${reportName}`,
         },
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 経費の分類要件`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} の経費タグ付け要件`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `通貨換算手数料の設定を「${preferenceLabel}」に更新しました`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `「${categoryName}」カテゴリの出席者を${newValue ? '必須' : '必須ではありません'}に変更しました（以前は${newValue ? '必須ではありません' : '必須'}）`;
         },
@@ -8892,10 +9107,16 @@ ${reportName}`,
             hold: '保留',
             unhold: '保留を解除',
             reject: '却下',
-            duplicateExpense: ({count}: {count: number}) => `${count === 1 ? '経費を複製' : '経費を一括複製'}`,
+            duplicateExpense: () => ({
+                one: '経費を複製',
+                other: (count: number) => (count === 1 ? '経費を複製' : '経費を一括複製'),
+            }),
             noOptionsAvailable: '選択した経費グループには利用できるオプションがありません。',
             undelete: '削除を取り消す',
-            duplicateReport: ({count}: {count: number}) => `${count === 1 ? 'レポート' : 'レポート'} を複製`,
+            duplicateReport: () => ({
+                one: 'レポートを複製',
+                other: 'レポートを複製',
+            }),
         },
         expensifyCardStatementPDF: {
             title: '明細書をダウンロード',
@@ -9235,7 +9456,10 @@ ${reportName}`,
         },
     },
     chronos: {
-        oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary}（${date} までの ${dayCount} ${dayCount === 1 ? '日' : '日数'} 分）`,
+        oooEventSummaryFullDay: ({summary, count, date}: {summary: string; count: number; date: string}) => ({
+            one: `${summary}（${date} までの ${count} 日間）`,
+            other: `${summary}（${date} までの ${count} 日間）`,
+        }),
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${date}の${timePeriod}の${summary}`,
         startTimer: 'タイマー開始',
         stopTimer: (duration: string) => `タイマーを停止 (${duration})`,
@@ -9432,7 +9656,7 @@ ${reportName}`,
         error: {
             selectSuggestedAddress: '候補の住所を選択するか、現在地を使用してください',
             mapOrGpsDistanceRequired: {
-                title: '地図またはGPSによる距離の入力が必要です',
+                title: 'GPS または地図での入力が必須です',
                 description: 'このワークスペースでは、地図に基づく距離精算または GPS で追跡された距離精算のいずれかが必要です。',
             },
         },
@@ -9692,6 +9916,19 @@ ${reportName}`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return '銀行連携の不具合により、領収書を自動照合できません。';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
+                if (isPersonalCard) {
+                    if (!connectionLink) {
+                        return '銀行連携の再認証が必要なため、領収書を自動照合できません。';
+                    }
+                    return isMarkAsCash
+                        ? `銀行連携の再認証が必要なため、領収書を自動照合できません。無視するには現金としてマークするか、<a href="${connectionLink}">再接続</a>して領収書と照合してください。`
+                        : `銀行連携の再認証が必要なため、領収書を自動照合できません。領収書を照合するには、<a href="${connectionLink}">再接続</a>してください。`;
+                }
+                return isAdmin
+                    ? `銀行連携の再認証が必要です。<a href="${companyCardPageURL}">レシートと照合するために再接続</a>`
+                    : '銀行連携の再認証が必要です。管理者に依頼して再接続し、領収書と照合してください。';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return '銀行連携の不具合により、領収書を自動照合できません。';
@@ -9714,6 +9951,9 @@ ${reportName}`,
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>銀行接続の不具合により領収書が保留されています。<a href="${workspaceCompanyCardRoute}">会社カード</a>で解決してください。</muted-text-label>`,
         memberBrokenConnectionError: '銀行連携の不具合により領収書が保留されています。ワークスペース管理者に対応を依頼してください。',
+        adminReauthConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>銀行連携の再認証が必要なため、領収書が保留されています。<a href="${workspaceCompanyCardRoute}">会社カード</a>で解決してください。</muted-text-label>`,
+        memberReauthConnectionError: '銀行連携の再認証が必要なため、領収書が保留されています。ワークスペース管理者に対応を依頼してください。',
         markAsCashToIgnore: '現金としてマークして無視し、支払いをリクエストします。',
         smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
             if (missingFields.length > 0) {
@@ -9817,7 +10057,10 @@ ${reportName}`,
         authenticatePaymentCard: '支払カードを認証',
         mobileReducedFunctionalityMessage: 'モバイルアプリではサブスクリプションの変更はできません。',
         badge: {
-            freeTrial: (numOfDays: number) => `無料トライアル：残り ${numOfDays} ${numOfDays === 1 ? '日' : '日数'} 日`,
+            freeTrial: ({count}: {count: number}) => ({
+                one: `無料トライアル：残り ${count} 日`,
+                other: `無料トライアル：残り ${count} 日`,
+            }),
         },
         billingBanner: {
             policyOwnerAmountOwed: {
@@ -9876,7 +10119,10 @@ ${reportName}`,
                 subtitle: '次のステップとして、チームが経費精算を開始できるように、<a href="#">セットアップチェックリストを完了してください</a>。',
             },
             trialStarted: {
-                title: (numOfDays: number) => `トライアル：残り ${numOfDays} ${numOfDays === 1 ? '日' : '日数'} 日！`,
+                title: ({count}: {count: number}) => ({
+                    one: `トライアル：残り ${count} 日！`,
+                    other: `トライアル：残り ${count} 日！`,
+                }),
                 subtitle: 'すべてのお気に入り機能を引き続き利用するには、支払い用カードを追加してください。',
             },
             trialEnded: {
@@ -9889,11 +10135,18 @@ ${reportName}`,
                 onboardingChatTitle: (discountType: number) => `期間限定オファー：初年度が${discountType}%オフ！`,
                 subtitle: (days: number, hours: number, minutes: number, seconds: number) => `${days > 0 ? `${days}日：` : ''}${hours}時間以内に請求：${minutes}分：${seconds}秒`,
             },
+            travelInvoiceOverdue: {title: '出張請求書のお支払い期限が過ぎています', subtitle: (date: string) => `${date}までに旅行の請求書を支払って、旅行の予約を続けてください。`},
+            travelInvoiceOverdueLocked: {
+                title: '出張予約は一時停止されています',
+                subtitle: '旅行の請求書のお支払い期限が過ぎています。お支払いを完了して、再度旅行の予約を開始してください。',
+            },
         },
         cardSection: {
             title: '支払い',
             subtitle: 'Expensify のサブスクリプション料金を支払うためのカードを追加してください。',
             addCardButton: '支払カードを追加',
+            addPaymentCardTitle: '支払いカードを追加',
+            addCard: 'カードを追加',
             cardInfo: (name: string, expiration: string, currency: string) => `名前: ${name}、有効期限: ${expiration}、通貨: ${currency}`,
             cardNextPayment: (nextPaymentDate: string) => `次回のお支払い日は${nextPaymentDate}です。`,
             cardEnding: (cardNumber: string) => `末尾が${cardNumber}のカード`,
@@ -10227,8 +10480,13 @@ ${reportName}`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: '管理者向けの新しいロールタイプ',
-                body: '新しいカード、メンバー、支払いの各管理者ロールで、チームにより細かな権限を付与できます。',
+                heading: '拡張されたベンダー対応付け',
+                body: '主要な会計ソフトへのスムーズなマッピングのために、取引先とカスタムルールを作成できます。',
+                cta: '試してみる',
+            },
+            member: {
+                heading: 'あらかじめ作成されたエージェントをご用意しました',
+                body: 'あらかじめ用意されたエージェントやカスタムエージェントを使って、経費を自動的にコード化・分割・提出できます。',
                 cta: '試してみる',
             },
         },
@@ -10463,7 +10721,10 @@ ${reportName}`,
             reportSuspiciousActivityConfirmationPrompt: 'アカウントが安全にロック解除できることを確認するために審査し、質問がある場合はConciergeを通じてご連絡します。',
             emptyMembers: {title: 'このグループにはメンバーがいません', subtitle: 'メンバーを追加するか、上のフィルターを変更してみてください。'},
             moveToGroup: 'グループへ移動',
-            chooseWhereToMove: ({count}: {count: number}) => `${count} ${count === 1 ? 'メンバー' : 'メンバー'} を移動する先を選択してください。`,
+            chooseWhereToMove: ({count}: {count: number}) => ({
+                one: `${count} 人のメンバーを移動する先を選択してください。`,
+                other: `${count} 人のメンバーを移動する先を選択してください。`,
+            }),
             domainGroup: 'ドメイングループ',
             chooseWhereToMoveName: ({name}: {name: string}) => `${name} をどこに移動するか選択してください。`,
             membersFeatureList: {

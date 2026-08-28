@@ -3,17 +3,14 @@ import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {canSendInvoiceFromWorkspace, getActiveAdminWorkspaces, sortWorkspacesBySelected} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 
 import {setMoneyRequestParticipants} from '@userActions/IOU/MoneyRequest';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -36,7 +33,6 @@ type DynamicIOURequestStepSendFromProps = WithWritableReportOrNotFoundProps<type
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SEND_FROM>;
 
 function DynamicIOURequestStepSendFrom({route, transaction}: DynamicIOURequestStepSendFromProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
     const {translate, localeCompare} = useLocalize();
     const {transactionID} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SEND_FROM.path);
@@ -60,19 +56,11 @@ function DynamicIOURequestStepSendFrom({route, transaction}: DynamicIOURequestSt
             .map((policy) => ({
                 text: policy.name,
                 value: policy.id,
+                policyID: policy.id,
                 keyForList: policy.id,
-                icons: [
-                    {
-                        id: policy.id,
-                        source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
-                        fallbackIcon: icons.FallbackWorkspaceAvatar,
-                        name: policy.name,
-                        type: CONST.ICON_TYPE_WORKSPACE,
-                    },
-                ],
                 isSelected: selectedWorkspace?.policyID === policy.id,
             }));
-    }, [allPolicies, currentUserLogin, selectedWorkspace?.policyID, localeCompare, icons.FallbackWorkspaceAvatar]);
+    }, [allPolicies, currentUserLogin, selectedWorkspace?.policyID, localeCompare]);
 
     const navigateBack = () => {
         Navigation.goBack(backPath);
