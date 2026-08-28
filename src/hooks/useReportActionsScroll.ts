@@ -36,7 +36,7 @@ import useScrollToEndOnNewMessageReceived from './useScrollToEndOnNewMessageRece
 import useWindowDimensions from './useWindowDimensions';
 
 type UseReportActionsScrollParams = {
-    /** The Concierge chat report, used to build onboarding data in openReport (https://github.com/Expensify/App/issues/66411) */
+    /** The Concierge chat report */
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     /** The ID of the report currently being looked at */
     reportID: string;
