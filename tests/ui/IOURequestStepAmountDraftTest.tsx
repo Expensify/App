@@ -453,4 +453,51 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
         await waitForBatchedUpdatesWithAct();
         expect(preventRemoveFlags.some(Boolean)).toBe(false);
     });
+
+    it('disarms the native discard guard when backspace clears an empty negative amount', async () => {
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+
+        const transaction: Transaction = {
+            ...createRandomTransaction(1),
+            transactionID: TRANSACTION_ID,
+            reportID: REPORT_ID,
+            amount: 0,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+        };
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createTestReport());
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, transaction);
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        render(
+            <OnyxListItemProvider>
+                <CurrentUserPersonalDetailsProvider>
+                    <IOURequestStepAmount
+                        // @ts-expect-error minimal route for test
+                        route={createRouteParams({iouType: CONST.IOU.TYPE.CREATE})}
+                        navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT>['navigation']>({})}
+                    />
+                </CurrentUserPersonalDetailsProvider>
+            </OnyxListItemProvider>,
+        );
+
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('iou.flip'));
+        await waitForBatchedUpdatesWithAct();
+        expect(preventRemoveFlags.some(Boolean)).toBe(true);
+
+        const amountInput = screen.getByTestId('moneyRequestAmountInput');
+        fireEvent.changeText(amountInput, '5');
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.changeText(amountInput, '');
+        await waitForBatchedUpdatesWithAct();
+
+        preventRemoveFlags.length = 0;
+        fireEvent(amountInput, 'keyPress', {nativeEvent: {key: 'Backspace'}});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(preventRemoveFlags.some(Boolean)).toBe(false);
+    });
 });
