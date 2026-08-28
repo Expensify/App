@@ -411,4 +411,46 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
 
         expect(preventRemoveFlags.some(Boolean)).toBe(false);
     });
+
+    it('arms the native discard guard when a negative amount becomes positive and disarms it when the negative sign is restored', async () => {
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+
+        const transaction: Transaction = {
+            ...createRandomTransaction(1),
+            transactionID: TRANSACTION_ID,
+            reportID: REPORT_ID,
+            amount: -500,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+        };
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createTestReport());
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, transaction);
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        render(
+            <OnyxListItemProvider>
+                <CurrentUserPersonalDetailsProvider>
+                    <IOURequestStepAmount
+                        // @ts-expect-error minimal route for test
+                        route={createRouteParams({iouType: CONST.IOU.TYPE.CREATE})}
+                        navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT>['navigation']>({})}
+                    />
+                </CurrentUserPersonalDetailsProvider>
+            </OnyxListItemProvider>,
+        );
+
+        await waitForBatchedUpdatesWithAct();
+        expect(preventRemoveFlags.some(Boolean)).toBe(false);
+
+        fireEvent.press(screen.getByText('iou.flip'));
+        await waitForBatchedUpdatesWithAct();
+        expect(preventRemoveFlags.some(Boolean)).toBe(true);
+
+        preventRemoveFlags.length = 0;
+        fireEvent.press(screen.getByText('iou.flip'));
+        await waitForBatchedUpdatesWithAct();
+        expect(preventRemoveFlags.some(Boolean)).toBe(false);
+    });
 });
