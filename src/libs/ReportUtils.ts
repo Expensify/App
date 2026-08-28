@@ -237,7 +237,7 @@ import {
 // The functions imported here are pure utility functions that don't create initialization-time dependencies.
 // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
 // eslint-disable-next-line import/no-cycle
-import {deprecatedGetReportName, getGroupChatName, getInvoicePayerName, getInvoiceReportName} from './ReportNameUtils';
+import {deprecatedGetReportName, getGroupChatName, getInvoicePayerName, getInvoiceReportName, getReportName} from './ReportNameUtils';
 import {getAllPersonalDetailLogins} from './ShortMentionLogins';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {isTaskCompleted} from './TaskUtils';
@@ -948,6 +948,20 @@ type OnyxDataTaskAssigneeChat = {
     failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>>;
     optimisticAssigneeAddComment?: OptimisticReportAction;
     optimisticChatCreatedReportAction?: OptimisticCreatedReportAction;
+};
+
+type GetTaskAssigneeChatOnyxDataParams = {
+    accountID: number;
+    assigneeAccountID: number;
+    taskReportID: string;
+    assigneeChatReportID: string;
+    parentReportID: string | undefined;
+    title: string;
+    assigneeChatReport: OnyxEntry<Report>;
+    currentUserEmail: string;
+    currentUserAccountID: number;
+    delegateAccountID: number | undefined;
+    isOptimisticAssigneeChatReport?: boolean;
 };
 
 type Ancestor = {
@@ -7027,6 +7041,7 @@ function updateOptimisticParentReportAction(
  * @param taskAssigneeAccountID - AccountID of the person assigned to the task
  * @param text - Text of the comment
  * @param parentReportID - Report ID of the parent report
+ * @param delegateAccountID - AccountID of the delegate acting on behalf of the current user
  * @param createdOffset - The offset for task's created time that created via a loop
  */
 function buildOptimisticTaskCommentReportAction(
@@ -7035,13 +7050,20 @@ function buildOptimisticTaskCommentReportAction(
     taskAssigneeAccountID: number,
     text: string,
     parentReportID: string | undefined,
+    delegateAccountID: number | undefined,
     actorAccountID?: number,
     createdOffset = 0,
     currentUserEmail?: string,
     currentUserAccountID?: number,
 ): OptimisticReportAction {
-    // delegateAccountIDParam: will be threaded in PR 14; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
-    const reportAction = buildOptimisticAddCommentReportAction({text, reportID: taskReportID, createdOffset, currentUserEmail, currentUserAccountID, delegateAccountIDParam: undefined});
+    const reportAction = buildOptimisticAddCommentReportAction({
+        text,
+        reportID: taskReportID,
+        createdOffset,
+        currentUserEmail,
+        currentUserAccountID,
+        delegateAccountIDParam: delegateAccountID,
+    });
     if (Array.isArray(reportAction.reportAction.message)) {
         const message = reportAction.reportAction.message.at(0);
         if (message) {
@@ -7454,16 +7476,35 @@ function getDeletedTransactionMessage(translate: LocalizedTranslate, action: Rep
     return message;
 }
 
-function getMovedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, reportAttributes?: ReportAttributesDerivedValue['reports']) {
+function parseMovedTransactionReportIDs(action: ReportAction): {fromReportID: string | undefined; toReportID: string | undefined; displayReportID: string | undefined} {
     const movedTransactionOriginalMessage = getOriginalMessage(action) ?? {};
     const {toReportID, fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+    return {toReportID, fromReportID, displayReportID: fromReportID ?? toReportID};
+}
 
-    const toReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
-    const fromReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+function getMovedTransactionMessage({
+    translate,
+    movedReport,
+    toReportID,
+    fromReportID,
+    derivedReportName,
+}: {
+    translate: LocalizedTranslate;
+    movedReport?: Report;
+    toReportID?: string;
+    fromReportID?: string;
+    derivedReportName?: string;
+}) {
+    let report = movedReport;
 
-    const report = fromReport ?? toReport;
+    if (!report) {
+        const toReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
+        const fromReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 
-    const reportName = Parser.htmlToText(deprecatedGetReportName(report, reportAttributes) ?? report?.reportName ?? '');
+        report = fromReport ?? toReport;
+    }
+
+    const reportName = Parser.htmlToText(getReportName(report, derivedReportName));
     const reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
         return reportName ? translate('iou.movedTransactionTo', reportUrl, reportName) : translate('iou.movedTransactionToAnotherReport');
@@ -7471,17 +7512,30 @@ function getMovedTransactionMessage(translate: LocalizedTranslate, action: Repor
     return reportName ? translate('iou.movedTransactionFrom', reportUrl, reportName) : translate('iou.movedTransactionFromAnotherReport');
 }
 
-function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, reportAttributes?: ReportAttributesDerivedValue['reports']) {
-    const movedTransactionOriginalMessage = getOriginalMessage(action) ?? {};
-    const {fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+function getUnreportedTransactionMessage({
+    translate,
+    fromReport,
+    fromReportID,
+    derivedReportName,
+}: {
+    translate: LocalizedTranslate;
+    fromReport?: Report;
+    fromReportID?: string;
+    derivedReportName?: string;
+}) {
+    let report = fromReport;
+    let reportID = report?.reportID;
 
-    const fromReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+    if (!report) {
+        report = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+        reportID = fromReportID;
+    }
 
-    const reportName = Parser.htmlToText(deprecatedGetReportName(fromReport, reportAttributes) ?? fromReport?.reportName ?? '');
+    const reportName = Parser.htmlToText(getReportName(report, derivedReportName));
 
-    let reportUrl = getReportURLForCurrentContext(fromReportID);
+    let reportUrl = getReportURLForCurrentContext(reportID);
 
-    if (fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+    if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         reportUrl = `${environmentURL}/r/${findSelfDMReportID()}`;
         return translate('iou.unreportedTransaction', reportUrl);
     }
@@ -11086,18 +11140,19 @@ function canEditRoomVisibility(policy: OnyxEntry<Policy>, isReportArchived: bool
 /**
  * Returns the onyx data needed for the task assignee chat
  */
-function getTaskAssigneeChatOnyxData(
-    accountID: number,
-    assigneeAccountID: number,
-    taskReportID: string,
-    assigneeChatReportID: string,
-    parentReportID: string | undefined,
-    title: string,
-    assigneeChatReport: OnyxEntry<Report>,
-    currentUserEmail: string,
-    currentUserAccountID: number,
-    isOptimisticAssigneeChatReport?: boolean,
-): OnyxDataTaskAssigneeChat {
+function getTaskAssigneeChatOnyxData({
+    accountID,
+    assigneeAccountID,
+    taskReportID,
+    assigneeChatReportID,
+    parentReportID,
+    title,
+    assigneeChatReport,
+    currentUserEmail,
+    currentUserAccountID,
+    delegateAccountID,
+    isOptimisticAssigneeChatReport,
+}: GetTaskAssigneeChatOnyxDataParams): OnyxDataTaskAssigneeChat {
     // Set if we need to add a comment to the assignee chat notifying them that they have been assigned a task
     let optimisticAssigneeAddComment: OptimisticReportAction | undefined;
     // Set if this is a new chat that needs to be created for the assignee
@@ -11217,6 +11272,7 @@ function getTaskAssigneeChatOnyxData(
             assigneeAccountID,
             `assigned to ${displayname}`,
             parentReportID,
+            delegateAccountID,
             undefined,
             0,
             currentUserEmail,
@@ -12541,7 +12597,8 @@ function prepareOnboardingOnyxData({
 
     // Text message
     const message = typeof onboardingMessage.message === 'function' ? onboardingMessage.message(onboardingTaskParams) : onboardingMessage.message;
-    // delegateAccountIDParam: will be threaded in PR 14; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+    // delegateAccountIDParam: will be threaded in PR 15b
+    // buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
     const textComment = buildOptimisticAddCommentReportAction({text: message, actorAccountID, createdOffset: 1, delegateAccountIDParam: undefined});
     const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
     const textMessage: AddCommentOrAttachmentParams = {
@@ -12594,7 +12651,18 @@ function prepareOnboardingOnyxData({
             );
             const emailCreatingAction = CONST.EMAIL.CONCIERGE;
             const taskCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction});
-            const taskReportAction = buildOptimisticTaskCommentReportAction(currentTask.reportID, taskTitle, 0, `task for ${taskTitle}`, targetChatReportID, actorAccountID, index + 3);
+            // delegateAccountID: will be threaded in PR 15b
+            // buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+            const taskReportAction = buildOptimisticTaskCommentReportAction(
+                currentTask.reportID,
+                taskTitle,
+                0,
+                `task for ${taskTitle}`,
+                targetChatReportID,
+                undefined,
+                actorAccountID,
+                index + 3,
+            );
             currentTask.parentReportActionID = taskReportAction.reportAction.reportActionID;
 
             let isTaskAutoCompleted: boolean = task.autoCompleted;
@@ -12610,7 +12678,8 @@ function prepareOnboardingOnyxData({
             }
 
             const completedTaskReportAction = isTaskAutoCompleted
-                ? // delegateEmailParam: will be threaded in PR 14; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+                ? // delegateEmailParam: will be threaded in PR 17
+                  //  buildOptimisticTaskReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
                   buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, undefined, 'marked as complete', actorAccountID, 2)
                 : null;
             if (task.type === CONST.ONBOARDING_TASK_TYPE.CREATE_WORKSPACE) {
@@ -12639,7 +12708,8 @@ function prepareOnboardingOnyxData({
     // Sign-off welcome message
     const welcomeSignOffText =
         engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? translateLocal('onboarding.welcomeSignOffTitleManageTeam') : translateLocal('onboarding.welcomeSignOffTitle');
-    // delegateAccountIDParam: will be threaded in PR 14; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+    // delegateAccountIDParam: will be threaded in PR 15b
+    // buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
     const welcomeSignOffComment = buildOptimisticAddCommentReportAction({text: welcomeSignOffText, actorAccountID, createdOffset: tasksData.length + 3, delegateAccountIDParam: undefined});
     const welcomeSignOffCommentAction: OptimisticAddCommentReportAction = welcomeSignOffComment.reportAction;
     const welcomeSignOffMessage = {
@@ -14648,6 +14718,7 @@ export {
     isUploadingAttachmentRemovedFromDraft,
     getUploadingAttachmentHtmlFromComment,
     buildEditedCommentWithAttachment,
+    parseMovedTransactionReportIDs,
 };
 
 export type {
