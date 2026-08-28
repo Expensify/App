@@ -15,6 +15,7 @@ import ScrollView from '@components/ScrollView';
 
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -73,6 +74,7 @@ function DynamicNewTaskPage() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributes = useReportAttributes();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const [taskCreatorAndAssigneeDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: personalDetailsListSelector([currentUserPersonalDetails.accountID, task?.assigneeAccountID]),
     });
@@ -149,6 +151,7 @@ function DynamicNewTaskPage() {
             currentUserEmail: currentUserPersonalDetails.email ?? '',
             currentUserDisplayName: currentUserPersonalDetails.displayName,
             currentUserAvatar: currentUserPersonalDetails.avatar,
+            delegateAccountID,
             assigneeAccountID: task.assigneeAccountID,
             assigneeChatReport: task.assigneeChatReport,
             policyID: parentReport?.policyID,
