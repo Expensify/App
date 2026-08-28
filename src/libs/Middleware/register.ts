@@ -21,9 +21,10 @@ import {
 // e.g. an error thrown in Logging or Reauthenticate logic will be caught by the next middleware or the SequentialQueue which retries failing requests.
 //
 // This lives here rather than in libs/API because six of the middlewares below import user actions, and every
-// user action imports libs/API. Registering from inside libs/API therefore closes an
-// API -> Middleware -> action -> API import cycle. Instead the composition root imports this module for its
-// side effect, before anything can call processWithMiddleware: see src/setup/index.ts.
+// user action imports libs/API. Registering from inside libs/API therefore closes an import cycle: libs/API
+// imports Middleware, Middleware imports an action, and that action imports libs/API again. Instead the
+// composition root imports this module for its side effect, before anything can call processWithMiddleware:
+// see src/setup/index.ts.
 
 // Logging - Logs request details and errors.
 addMiddleware(Logging);
