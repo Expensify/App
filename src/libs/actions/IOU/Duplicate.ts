@@ -1002,14 +1002,15 @@ type DuplicateReportTotals = {
  *
  * The copy is created as an empty report in the target policy's output currency, so every expense whose own currency
  * differs from it is skipped by the currency-equality guard in `getMoneyRequestInformation` and never reaches the
- * report total. Each source transaction already stores `convertedAmount` — its amount in the *source report's*
- * currency — so as long as the copy lands in that same currency we can express every expense in the copy's currency
+ * report total. Each source transaction already stores `convertedAmount`, its amount in the *source report's*
+ * currency, so as long as the copy lands in that same currency we can express every expense in the copy's currency
  * without an FX table. This is the rule `calculateGroupTotal` already applies when totalling a mixed-currency group.
  *
- * `undefined` means "don't guess": either the copy's currency differs from the source report's (a cross-workspace
- * duplicate into another output currency, where the stored conversion is for the wrong currency), or an expense needs
- * a conversion it doesn't carry. The caller then leaves the totals as the server will send them rather than writing a
- * fabricated number.
+ * `undefined` means "don't guess". That covers three cases: the copy's currency differs from the source report's (a
+ * cross-workspace duplicate into another output currency, where the stored conversion is for the wrong currency), an
+ * expense needs a conversion it doesn't carry, or an expense has an unsynced amount or currency edit. Only the server
+ * recomputes `convertedAmount`, so while such an edit is still pending the stored conversion describes the old amount.
+ * The caller then leaves the totals as the server will send them rather than writing a fabricated number.
  */
 function buildDuplicateReportCurrencyAmounts(eligibleTransactions: OnyxTypes.Transaction[], sourceReport: OnyxEntry<OnyxTypes.Report>, targetPolicy: OnyxTypes.Policy): number[] | undefined {
     const reportCurrency = sourceReport?.currency;
@@ -1023,11 +1024,17 @@ function buildDuplicateReportCurrencyAmounts(eligibleTransactions: OnyxTypes.Tra
         // created is measured by what it is now, not by what it was created as.
         if (getCurrency(transaction) === reportCurrency) {
             amounts.push(getAmount(transaction, true));
-        } else if (transaction.convertedAmount !== undefined) {
-            amounts.push(getConvertedAmount(transaction, true));
-        } else {
+            continue;
+        }
+
+        // An amount or currency edit that hasn't reached the server yet leaves `convertedAmount` describing the value
+        // before the edit, so it can't stand in for the expense here.
+        const hasUnsyncedAmountEdit = !!transaction.pendingFields?.amount || !!transaction.pendingFields?.currency;
+        if (transaction.convertedAmount === undefined || hasUnsyncedAmountEdit) {
             return undefined;
         }
+
+        amounts.push(getConvertedAmount(transaction, true));
     }
 
     return amounts;

@@ -1440,8 +1440,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(iouReport);
         iouReport = {...iouReport};
         const isCurrencyMatching = iouReport?.currency === currency;
-        // A `new*Total` override is already expressed in the report's currency, so — unlike the raw per-transaction
-        // arithmetic below — it does not need the transaction's own currency to match the report's. That guard is
+        // A `new*Total` override is already expressed in the report's currency, so unlike the raw per-transaction
+        // arithmetic below, it does not need the transaction's own currency to match the report's. That guard is
         // precisely why an expense in another currency otherwise never reaches the total.
         // Compared with `!== undefined` so a legitimate total of 0 is applied instead of being read as "no override".
         const hasReportTotalOverride = newReportTotal !== undefined;
@@ -1467,7 +1467,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                 }
 
                 // The reimbursable totals are what the report preview and details actually read, so they are
-                // overridable in their own right — `total` alone leaves them pinned at whatever they were seeded with.
+                // overridable in their own right. `total` alone leaves them pinned at whatever they were seeded with.
                 if (newReimbursableTotal !== undefined) {
                     iouReport.reimbursableTotal = newReimbursableTotal;
                 }

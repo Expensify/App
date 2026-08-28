@@ -3394,6 +3394,25 @@ describe('actions/Duplicate', () => {
             expect(copy?.total).toBe(0);
         });
 
+        it('should not fabricate a total from a conversion that predates an unsynced amount edit', async () => {
+            // Only the server recomputes convertedAmount, so while the edit is pending the stored conversion still
+            // describes the amount the expense had before it was edited.
+            const copy = await duplicateCrossCurrencyReport([
+                {currency: 'AUD', amount: -500, convertedAmount: -46000, reimbursable: true},
+                {
+                    currency: 'AUD',
+                    amount: -600,
+                    modifiedAmount: -900,
+                    convertedAmount: -54000,
+                    pendingFields: {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    reimbursable: true,
+                },
+            ]);
+
+            expect(copy?.total).toBe(0);
+            expect(copy?.reimbursableTotal).toBe(0);
+        });
+
         it('should not fabricate a total when an expense is missing the conversion it needs', async () => {
             const copy = await duplicateCrossCurrencyReport([
                 {currency: 'AUD', amount: -500, convertedAmount: -46000, reimbursable: true},
