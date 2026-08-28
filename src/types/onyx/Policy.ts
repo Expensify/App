@@ -3107,6 +3107,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Expensify Card feature is enabled */
         areExpensifyCardsEnabled?: boolean;
 
+        /** Whether approvals are locked by an Expensify Card with a monthly limit */
+        areApprovalsLockedByExpensifyCard?: boolean;
+
         /** Whether the workflows feature is enabled */
         areWorkflowsEnabled?: boolean;
 
