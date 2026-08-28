@@ -30,7 +30,6 @@ import type SingleSelectListItem from './SingleSelectListItem';
 import type SingleSelectWithAvatarListItem from './SingleSelectWithAvatarListItem';
 import type SpendCategorySelectorListItem from './SpendCategorySelectorListItem';
 import type SplitListItem from './SplitListItem';
-import type TableListItem from './TableListItem';
 import type TravelDomainListItem from './TravelDomainListItem';
 import type UserListItem from './UserListItem';
 import type UserSelectionListItem from './UserSelectionListItem';
@@ -330,7 +329,6 @@ type ValidListItem =
     | typeof SingleSelectWithAvatarListItem
     | typeof SpendCategorySelectorListItem
     | typeof SplitListItem
-    | typeof TableListItem
     | typeof TravelDomainListItem
     | typeof BareUserListItem
     | typeof UserListItem
@@ -447,8 +445,6 @@ type SpendCategorySelectorListItemProps<TItem extends ListItem> = ListItemProps<
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & ForwardedFSClassProps;
 
-type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
-
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
 type WorkspaceListItemType = {
@@ -490,7 +486,6 @@ export type {
     InviteMemberListItemProps,
     SplitListItemType,
     SplitListItemProps,
-    TableListItemProps,
     WorkspaceListItemType,
     UserSelectionListItemProps,
 };
