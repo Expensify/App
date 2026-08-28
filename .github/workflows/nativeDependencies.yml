@@ -1,0 +1,42 @@
+name: Native dependency check
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
+    paths:
+      - 'ios/Podfile'
+      - 'ios/pod-usage.json'
+      - 'ios/**.swift'
+      - 'ios/**.m'
+      - 'ios/**.mm'
+      - 'ios/**.h'
+      - 'android/app/build.gradle'
+      - 'android/app/dependency-usage.json'
+      - 'android/app/src/**'
+      - 'scripts/checkUnusedPods.ts'
+      - 'scripts/checkUnusedGradleDependencies.ts'
+      - 'scripts/podUsageShared.ts'
+      - 'scripts/gradleUsageShared.ts'
+
+concurrency:
+  group: ${{ github.ref == 'refs/heads/main' && format('{0}-{1}', github.ref, github.sha) || github.ref }}-nativeDependencies
+  cancel-in-progress: true
+
+jobs:
+  nativeDependencies:
+    name: Check for unused native dependencies
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Check for unused pods
+        run: npx bun scripts/checkUnusedPods.ts
+
+      - name: Check for unused Gradle dependencies
+        run: npx bun scripts/checkUnusedGradleDependencies.ts
