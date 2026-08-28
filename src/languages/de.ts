@@ -4628,6 +4628,7 @@ ${amount} für ${merchant} – ${date}`,
             travel: 'Reisen',
             members: 'Mitglieder',
             accounting: 'Buchhaltung',
+            mcp: 'MCP',
             receiptPartners: 'Belegpartner',
             rules: 'Regeln',
             displayedAs: 'Angezeigt als',
@@ -4763,6 +4764,14 @@ ${amount} für ${merchant} – ${date}`,
         createdForClient: {
             title: 'Du hast einen Workspace für deinen Kunden erstellt!',
             description: 'Großartige Neuigkeiten 🎉. Kontaktiere uns, wenn sie Hilfe bei der Einrichtung benötigen.',
+        },
+        mcp: {
+            connectors: 'Konnektoren',
+            connectorsSubtitle: 'Verbinde einen KI-Assistenten mit deinem Expensify-Konto.',
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'von OpenAI',
+            },
         },
         receiptPartners: {
             uber: {

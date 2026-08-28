@@ -4636,6 +4636,7 @@ ${amount} pour ${merchant} - ${date}`,
             travel: 'Déplacements',
             members: 'Membres',
             accounting: 'Comptabilité',
+            mcp: 'MCP',
             receiptPartners: 'Partenaires de reçus',
             rules: 'Règles',
             displayedAs: 'Affiché comme',
@@ -4770,6 +4771,14 @@ ${amount} pour ${merchant} - ${date}`,
         createdForClient: {
             title: 'Vous avez créé un espace de travail pour votre client !',
             description: "Excellente nouvelle 🎉. Contactez-nous si votre client a besoin d'aide pour la configuration.",
+        },
+        mcp: {
+            connectors: 'Connecteurs',
+            connectorsSubtitle: 'Connectez un assistant IA à votre compte Expensify.',
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'par OpenAI',
+            },
         },
         receiptPartners: {
             uber: {

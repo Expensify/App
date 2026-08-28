@@ -65,7 +65,8 @@ type WorkspaceMenuIconMap = Record<
     | 'Clock'
     | 'InvoiceGeneric'
     | 'Gear'
-    | 'Bolt',
+    | 'Bolt'
+    | 'Bot',
     IconAsset
 >;
 
@@ -241,6 +242,14 @@ function getWorkspaceMenuItems({
                 highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
             });
         }
+
+        items.push({
+            translationKey: 'workspace.common.mcp',
+            icon: icons.Bot,
+            getRoute: () => ROUTES.WORKSPACE_MCP.getRoute(policyID),
+            screenName: SCREENS.WORKSPACE.MCP,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.MCP,
+        });
 
         if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED] && canReadMoreFeatures) {
             items.push({

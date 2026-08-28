@@ -3681,6 +3681,15 @@ const ROUTES = {
         route: 'policy/:policyID/copy-settings/confirm',
         getRoute: (policyID: string) => `policy/${policyID}/copy-settings/confirm` as const,
     },
+    WORKSPACE_MCP: {
+        route: 'workspaces/:policyID/mcp',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_MCP route');
+            }
+            return `workspaces/${policyID}/mcp` as const;
+        },
+    },
     WORKSPACE_RECEIPT_PARTNERS: {
         route: 'workspaces/:policyID/receipt-partners',
         getRoute: (policyID: string | undefined, backTo?: string) => {

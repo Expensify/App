@@ -4600,6 +4600,7 @@ ${amount} voor ${merchant} - ${date}`,
             travel: 'Reizen',
             members: 'Leden',
             accounting: 'Boekhouding',
+            mcp: 'MCP',
             receiptPartners: 'Bonpartners',
             rules: 'Regels',
             displayedAs: 'Weergegeven als',
@@ -4735,6 +4736,14 @@ ${amount} voor ${merchant} - ${date}`,
         createdForClient: {
             title: 'Je hebt een werkruimte voor je klant aangemaakt!',
             description: 'Geweldig nieuws 🎉. Neem contact met ons op als ze hulp nodig hebben bij de configuratie.',
+        },
+        mcp: {
+            connectors: 'Connectoren',
+            connectorsSubtitle: 'Verbind een AI-assistent met je Expensify-account.',
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'van OpenAI',
+            },
         },
         receiptPartners: {
             uber: {

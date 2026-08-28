@@ -4700,6 +4700,7 @@ ${amount} για ${merchant} - ${date}`,
             rooms: 'Δωμάτια',
             accounting: 'Λογιστική',
             hr: 'HR',
+            mcp: 'MCP',
             receiptPartners: 'Συνεργάτες αποδείξεων',
             rules: 'Κανόνες',
             displayedAs: 'Εμφανίζεται ως',
@@ -4841,6 +4842,14 @@ ${amount} για ${merchant} - ${date}`,
         createdForClient: {
             title: 'Δημιουργήσατε έναν χώρο εργασίας για τον πελάτη σας!',
             description: 'Καλά νέα 🎉. Επικοινωνήστε μαζί μας αν χρειαστούν βοήθεια με τη ρύθμιση.',
+        },
+        mcp: {
+            connectors: 'Συνδέσεις',
+            connectorsSubtitle: 'Συνδέστε έναν βοηθό AI με τον λογαριασμό σας στο Expensify.',
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'από την OpenAI',
+            },
         },
         receiptPartners: {
             uber: {

@@ -4555,6 +4555,7 @@ ${amount} para ${merchant} - ${date}`,
             rooms: 'Salas',
             accounting: 'Contabilidad',
             hr: 'HR',
+            mcp: 'MCP',
             receiptPartners: 'Socios de recibos',
             rules: 'Reglas',
             plan: 'Plan',
@@ -4697,6 +4698,14 @@ ${amount} para ${merchant} - ${date}`,
         createdForClient: {
             title: '¡Has creado un espacio de trabajo para tu cliente!',
             description: 'Excelentes noticias 🎉. Contáctanos si necesitan ayuda con la configuración.',
+        },
+        mcp: {
+            connectors: 'Conectores',
+            connectorsSubtitle: 'Conecta un asistente de IA a tu cuenta de Expensify.',
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'de OpenAI',
+            },
         },
         receiptPartners: {
             uber: {

@@ -4558,6 +4558,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             travel: '出張',
             members: 'メンバー',
             accounting: '会計',
+            mcp: 'MCP',
             receiptPartners: '領収書パートナー',
             rules: 'ルール',
             displayedAs: '表示形式',
@@ -4692,6 +4693,14 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',
             description: '素晴らしいニュースです 🎉。セットアップにサポートが必要な場合はお問い合わせください。',
+        },
+        mcp: {
+            connectors: 'コネクタ',
+            connectorsSubtitle: 'AIアシスタントをExpensifyアカウントに接続します。',
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'OpenAI 提供',
+            },
         },
         receiptPartners: {
             uber: {

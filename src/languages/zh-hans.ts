@@ -4446,6 +4446,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             travel: '差旅',
             members: '成员',
             accounting: '会计',
+            mcp: 'MCP',
             receiptPartners: '收据合作伙伴',
             rules: '规则',
             displayedAs: '显示为',
@@ -4578,6 +4579,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         createdForClient: {
             title: '您已为客户创建了工作区！',
             description: '好消息 🎉。如果他们在设置方面需要帮助，请联系我们。',
+        },
+        mcp: {
+            connectors: '连接器',
+            connectorsSubtitle: '将 AI 助手连接到您的 Expensify 账户。',
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: '由 OpenAI 提供',
+            },
         },
         receiptPartners: {
             uber: {
