@@ -17,10 +17,10 @@ import CONST from '@src/CONST';
 import {Keyboard, View} from 'react-native';
 
 import HeaderBackButton from './primitives/HeaderBackButton';
-import HeaderCloseButtonTooltip from './primitives/HeaderCloseButtonTooltip';
+import HeaderCloseButton from './primitives/HeaderCloseButton';
 import HeaderDownloadButton from './primitives/HeaderDownloadButton';
 import HeaderIcon from './primitives/HeaderIcon';
-import HeaderMenuItemButtonTooltip from './primitives/HeaderMenuItemButtonTooltip';
+import HeaderMenuItemButton from './primitives/HeaderMenuItemButton';
 import HeaderThreeDotsMenu, {DEFAULT_ANCHOR_ALIGNMENT} from './primitives/HeaderThreeDotsMenu';
 import HeaderTitle from './primitives/HeaderTitle';
 import useHeaderStyles from './styles/useHeaderStyles';
@@ -108,7 +108,7 @@ function HeaderWithBackButton({
                 threeDotsMenuItems.length === 1 &&
                 shouldMinimizeMenuButton && (
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- length === 1 guarantees .at(0) is defined; the fallback only satisfies the type checker.
-                    <HeaderMenuItemButtonTooltip threeDotsMenuItem={threeDotsMenuItems.at(0) ?? ({} as PopoverMenuItem)} />
+                    <HeaderMenuItemButton threeDotsMenuItem={threeDotsMenuItems.at(0) ?? ({} as PopoverMenuItem)} />
                 )}
             {shouldShowThreeDotsButton && !(threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton) && (
                 <HeaderThreeDotsMenu
@@ -120,7 +120,7 @@ function HeaderWithBackButton({
                 />
             )}
             {shouldShowCloseButton && (
-                <HeaderCloseButtonTooltip
+                <HeaderCloseButton
                     iconFill={iconFill}
                     onPress={onCloseButtonPress}
                 />

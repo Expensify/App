@@ -6,7 +6,7 @@ import React from 'react';
 
 import HeaderTooltipIconButton from './HeaderTooltipIconButton';
 
-type HeaderMenuItemButtonTooltipProps = {
+type HeaderMenuItemButtonProps = {
     /** The single menu item to render as a plain icon button, in place of the full three-dots popover. */
     threeDotsMenuItem: PopoverMenuItem;
 };
@@ -15,7 +15,7 @@ type HeaderMenuItemButtonTooltipProps = {
  * Single tooltip-wrapped icon button. Provisional block extracted from the legacy three-dots "minimized" variant
  * (a single-item menu collapsed to a plain icon button). Its only real use is the money-request Category step.
  */
-function HeaderMenuItemButtonTooltip({threeDotsMenuItem}: HeaderMenuItemButtonTooltipProps) {
+function HeaderMenuItemButton({threeDotsMenuItem}: HeaderMenuItemButtonProps) {
     return (
         <HeaderTooltipIconButton
             text={threeDotsMenuItem.text}
@@ -27,4 +27,4 @@ function HeaderMenuItemButtonTooltip({threeDotsMenuItem}: HeaderMenuItemButtonTo
     );
 }
 
-export default HeaderMenuItemButtonTooltip;
+export default HeaderMenuItemButton;

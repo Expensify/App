@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 
 import HeaderTooltipIconButton from './HeaderTooltipIconButton';
 
-type HeaderCloseButtonTooltipProps = {
+type HeaderCloseButtonProps = {
     /** Method to trigger when pressing the close button of the header. */
     onPress: () => void;
     /** The fill color for the close icon. */
@@ -15,7 +15,7 @@ type HeaderCloseButtonTooltipProps = {
 /**
  * Close button. Renders what the legacy `shouldShowCloseButton` branch rendered: a tooltip-wrapped close icon button.
  */
-function HeaderCloseButtonTooltip({onPress, iconFill}: HeaderCloseButtonTooltipProps) {
+function HeaderCloseButton({onPress, iconFill}: HeaderCloseButtonProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
 
@@ -30,4 +30,4 @@ function HeaderCloseButtonTooltip({onPress, iconFill}: HeaderCloseButtonTooltipP
     );
 }
 
-export default HeaderCloseButtonTooltip;
+export default HeaderCloseButton;
