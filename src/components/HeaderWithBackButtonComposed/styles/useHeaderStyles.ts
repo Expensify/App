@@ -13,7 +13,7 @@ type ContainerStyleParams = {
     style?: StyleProp<ViewStyle>;
 };
 
-/** Composed styles for the Header bar + zones. Left padding (pl2/pl0) is derived from block registration, not props. */
+/** Composed styles for the Header bar + zones. */
 function useHeaderStyles({shouldUseHeadlineHeader = false, shouldShowBorderBottom = false, style}: ContainerStyleParams = {}) {
     const styles = useThemeStyles();
 
