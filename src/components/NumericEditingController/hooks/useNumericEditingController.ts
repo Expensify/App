@@ -1,14 +1,11 @@
 import type {NumericEditingKeyPressEvent, NumericEditingSelection} from '@components/NumericEditingController/types';
+import {clampSelection, collapseSelection, getNewSelection, getSelectionAtOffset, isForwardDeleteKeyPress, normalizeNumericInput} from '@components/NumericEditingController/utils';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 
 import useLocalize from '@hooks/useLocalize';
 
-import {isMobileSafari} from '@libs/Browser';
-import getOperatingSystem from '@libs/getOperatingSystem';
-import {addLeadingZero, replaceAllDigits, replaceCommasWithPeriod, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
+import {replaceAllDigits, stripDecimalsFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import shouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually';
-
-import CONST from '@src/CONST';
 
 import type {BlurEvent} from 'react-native';
 
@@ -44,12 +41,6 @@ type UseNumberEditControllerParams = {
 const toDisplayTextDefault = (canonicalValue: string) => canonicalValue;
 const toCanonicalValueDefault = (displayText: string) => displayText;
 
-/** Returns the new selection based on length delta. */
-const getNewSelection = (oldSelection: NumericEditingSelection, previousLength: number, newLength: number): NumericEditingSelection => {
-    const cursorPosition = oldSelection.end + (newLength - previousLength);
-    return {start: cursorPosition, end: cursorPosition};
-};
-
 /** Controller managing numeric input state, formatting, validation, and cursor selection. */
 function useNumericEditingController({
     value: externalValueProp,
@@ -70,7 +61,7 @@ function useNumericEditingController({
     const [currentValue, setCurrentValue] = useState(externalValue);
     const [previousExternalValue, setPreviousExternalValue] = useState(externalValue);
     const [previousIsFocused, setPreviousIsFocused] = useState(isFocused);
-    const [selection, setSelection] = useState<NumericEditingSelection>({start: initialDisplayLength, end: initialDisplayLength});
+    const [selection, setSelection] = useState<NumericEditingSelection>(() => getSelectionAtOffset(initialDisplayLength));
 
     // Synchronously tracks the latest committed value across batched state updates.
     const committedValueRef = useRef(externalValue);
@@ -88,7 +79,7 @@ function useNumericEditingController({
         setPreviousExternalValue(externalValue);
         if (externalValue === '') {
             setCurrentValue('');
-            setSelection({start: 0, end: 0});
+            setSelection(getSelectionAtOffset(0));
         }
     }
 
@@ -96,7 +87,7 @@ function useNumericEditingController({
     if (previousIsFocused !== isFocused) {
         setPreviousIsFocused(isFocused);
         if (isFocused && !previousIsFocused) {
-            setSelection((currentSelection) => ({start: currentSelection.end, end: currentSelection.end}));
+            setSelection(collapseSelection);
         }
     }
 
@@ -104,7 +95,7 @@ function useNumericEditingController({
     const formattedNumber = replaceAllDigits(toDisplayText(currentValue), toLocaleDigit);
 
     const clearSelection = () => {
-        setSelection((currentSelection) => ({start: currentSelection.end, end: currentSelection.end}));
+        setSelection(collapseSelection);
     };
 
     /** Commits a canonical value. Returns the previously committed canonical value. */
@@ -122,12 +113,7 @@ function useNumericEditingController({
     };
 
     const setNumber = (inputValue: string) => {
-        // Strip spaces added by iOS Safari when pasting: https://github.com/Expensify/App/issues/16974
-        const inputWithoutSpaces = stripSpacesFromAmount(inputValue);
-        const newNumberWithoutSpaces = replaceAllDigits(inputWithoutSpaces, fromLocaleDigit);
-        const rawFinalNumber = newNumberWithoutSpaces.includes('.') ? stripCommaFromAmount(newNumberWithoutSpaces) : replaceCommasWithPeriod(newNumberWithoutSpaces);
-
-        const numberWithLeadingZero = addLeadingZero(rawFinalNumber, allowNegative);
+        const numberWithLeadingZero = normalizeNumericInput(inputValue, {fromLocaleDigit, allowNegative});
 
         if (!validateAmount(numberWithLeadingZero, decimals, maxLength, allowNegative)) {
             // Drop native selection event for rejected input so caret stays at the previous valid position:
@@ -155,7 +141,7 @@ function useNumericEditingController({
         const nextDisplayText = toDisplayText(newNumber);
         numberRef.current = nextDisplayText;
         applyValue(newNumber, {notify: false});
-        setSelection({start: nextDisplayText.length, end: nextDisplayText.length});
+        setSelection(getSelectionAtOffset(nextDisplayText.length));
     };
 
     /** Commits canonical value without validation or moving caret, notifying parent by default. */
@@ -179,10 +165,7 @@ function useNumericEditingController({
 
         const maxSelection = numberRef.current?.length ?? formattedNumber.length;
         numberRef.current = undefined;
-        setSelection({
-            start: Math.min(selectionStart, maxSelection),
-            end: Math.min(selectionEnd, maxSelection),
-        });
+        setSelection(clampSelection({start: selectionStart, end: selectionEnd}, maxSelection));
     };
 
     const handleBlur = (event: BlurEvent) => {
@@ -191,18 +174,7 @@ function useNumericEditingController({
 
     /** Detects forward-delete key press or keyboard shortcut. */
     const handleKeyPress = (event: NumericEditingKeyPressEvent) => {
-        const key = event.nativeEvent.key.toLowerCase();
-
-        if (isMobileSafari() && key === CONST.PLATFORM_SPECIFIC_KEYS.CTRL.DEFAULT) {
-            // Optimistically anticipate forward-delete for Mac Accessibility keyboard on iOS Safari.
-            forwardDeletePressedRef.current = true;
-            return;
-        }
-
-        const operatingSystem = getOperatingSystem();
-        const isMacOrIOS = operatingSystem === CONST.OS.MAC_OS || operatingSystem === CONST.OS.IOS;
-        // Control-D is a macOS/iOS hardware keyboard shortcut for forward-delete.
-        forwardDeletePressedRef.current = key === 'delete' || (isMacOrIOS && !!event.nativeEvent.ctrlKey && key === 'd');
+        forwardDeletePressedRef.current = isForwardDeleteKeyPress(event);
     };
 
     useLayoutEffect(() => {
