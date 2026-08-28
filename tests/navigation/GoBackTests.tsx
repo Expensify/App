@@ -37,7 +37,7 @@ function buildWorkspaceSplitRoute(policyID: string) {
                 {name: SCREENS.WORKSPACE.MEMBERS, params: {policyID}},
             ],
         },
-    } as const;
+    };
 }
 
 function buildDomainSplitRoute(domainAccountID: number) {
@@ -50,7 +50,7 @@ function buildDomainSplitRoute(domainAccountID: number) {
                 {name: SCREENS.DOMAIN.MEMBERS, params: {domainAccountID}},
             ],
         },
-    } as const;
+    };
 }
 
 type WorkspaceScopeRoute = ReturnType<typeof buildWorkspaceSplitRoute> | ReturnType<typeof buildDomainSplitRoute>;
