@@ -737,8 +737,10 @@ function SearchWriteActionsProvider({
                 });
 
                 if (areItemsGrouped && isGroupedItemArray(filteredData)) {
-                    const parentGroup = filteredData.find((group) => group.transactions.some((transaction) => transaction.keyForList === item.keyForList));
-                    const groupKey = baseSelection[item.keyForList]?.groupKey ?? groupKeyByChildKeyRef.current.get(item.keyForList) ?? parentGroup?.keyForList;
+                    const groupKey =
+                        baseSelection[item.keyForList]?.groupKey ??
+                        groupKeyByChildKeyRef.current.get(item.keyForList) ??
+                        filteredData.find((group) => group.transactions.some((transaction) => transaction.keyForList === item.keyForList))?.keyForList;
                     // Toggling one expense makes this group a partial selection, so export the remaining expenses individually.
                     if (groupKey) {
                         for (const [key, transaction] of Object.entries(updatedTransactions)) {

@@ -600,12 +600,12 @@ function MoneyRequestReportTransactionList({
             if (item && rangeApi.applyShiftClick(item, shiftKey)) {
                 return;
             }
-            setSelectedTransactions(selectedTransactionIDs.includes(transactionID) ? selectedTransactionIDs.filter((t) => t !== transactionID) : [...selectedTransactionIDs, transactionID]);
+            setSelectedTransactions(selectedTransactionIDsSet.has(transactionID) ? selectedTransactionIDs.filter((t) => t !== transactionID) : [...selectedTransactionIDs, transactionID]);
             if (item) {
                 rangeApi.notifyAnchor(item);
             }
         },
-        [setSelectedTransactions, selectedTransactionIDs, transactionsByID, rangeApi],
+        [setSelectedTransactions, selectedTransactionIDs, selectedTransactionIDsSet, transactionsByID, rangeApi],
     );
 
     // Primitive proxy for visualOrderTransactionIDs used as the effect dependency below.
