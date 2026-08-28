@@ -5,10 +5,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import type {AmountDisplay, CompactControls, DistanceData, ErrorState, ReceiptOptions, RequiredFlags, ToggleHandlers, VisibilityFlags} from './fieldGroupTypes';
 
-/**
- * Props shared by the footer dispatcher and every footer variant. Declared here rather than in the
- * dispatcher module so a variant can type itself without importing the dispatcher that renders it.
- */
 type MoneyRequestConfirmationListFooterProps = {
     /** Error message from the odometer receipt stitcher, rendered below the receipt */
     receiptStitchError?: string | null;
