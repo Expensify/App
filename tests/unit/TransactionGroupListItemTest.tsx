@@ -39,6 +39,7 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getTableMinWidth: jest.fn(() => 0),
     getSuggestedSearches: jest.fn(() => ({})),
     getSuggestedSearchesVisibility: jest.fn(() => ({topSpendersPolicyIDs: []})),
+    isCreatedDateType: jest.fn(() => false),
 }));
 
 jest.mock('@react-navigation/native', () => ({
