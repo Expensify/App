@@ -64,6 +64,8 @@ In rare cases a component that subscribes to multiple large collections through 
 ### - `Onyx.get()` is ONLY for code that runs on an event, never during render
 It returns what is in the cache right now and never subscribes, so a value it returns is frozen at the moment of the read. Use it in action creators, libraries, network handlers, and callbacks such as `useCallback`, `useEffect` and event handlers. A collection key returns every member, exactly as `useOnyx` does. The same rule covers the value it produces: a value read this way MUST NOT reach rendered output, because nothing will re-render when the key changes.
 
+It also resolves only after `Onyx.init` has hydrated the cache, so it cannot be used by anything that runs on the boot path before then. `src/libs/actions/OnyxDerived/index.ts` is the standing example: its restore-from-disk read runs in the same synchronous stretch as `Onyx.init`, so it reads the library's cache directly rather than through the wrapper.
+
 ```typescript
 // GOOD ✅
 function submitExpense(transactionID: string) {
