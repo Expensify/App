@@ -4593,6 +4593,10 @@ ${amount} für ${merchant} – ${date}`,
                 'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Sparen Sie sich das nächste Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Und dass Belege dabei automatisch für Sie hochgeladen werden? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            hotelBlockManual:
+                'Wussten Sie, dass Sie Gruppenreisen wie diese direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand und probieren Sie unser Tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reise-Events</a> aus.',
+            hotelBlockCard:
+                'Wussten Sie, dass Sie Gruppenreisen wie diese direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand und probieren Sie unser Tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reise-Events</a> aus.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Reisen ist nicht aktiviert',
@@ -6076,6 +6080,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     comment: 'Beschreibung',
                     category: 'Kategorie',
                     tag: 'Tag',
+                    uniqueID: 'Eindeutige ID',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Bitte weisen Sie jeder der folgenden Eigenschaften eine Spalte zu: ${missingColumns}.`,

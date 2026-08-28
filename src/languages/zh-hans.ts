@@ -4414,6 +4414,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             carCard: '你知道吗？你可以直接在 Expensify 中预订和管理租车！下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚗',
             railManual: '你知道吗？你可以直接在 Expensify 中预订和管理火车行程！下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
             railCard: '你知道吗？你可以直接在 Expensify 中预订和管理火车行程，而且还会自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
+            hotelBlockManual:
+                '你知道吗？你可以直接在 Expensify 中预订和管理像这样的团队行程。下次就不用再费心了，试试我们的 <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> 工具吧。',
+            hotelBlockCard:
+                '你知道吗？你可以直接在 Expensify 中预订和管理像这样的团队行程。下次就不用再费心了，试试我们的 <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> 工具吧。',
         },
         defaultWorkspaceTravelDisabled: {title: '差旅功能未启用', message: '如需预订，请在您的默认工作区中启用差旅功能，或将默认工作区切换为已启用差旅功能的工作区。'},
     },
@@ -5823,6 +5827,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     comment: '描述',
                     category: '类别',
                     tag: '标签',
+                    uniqueID: '唯一 ID',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `请为以下每个属性分配一列：${missingColumns}`,

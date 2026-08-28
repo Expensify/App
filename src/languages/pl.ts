@@ -4592,6 +4592,10 @@ ${amount} dla ${merchant} - ${date}`,
                 'Wiesz, że możesz rezerwować i zarządzać przejazdami pociągiem bezpośrednio w Expensify? Następnym razem uniknij kłopotu z ręcznym tworzeniem wydatku i po prostu zarezerwuj przejazd przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Wiesz, że możesz rezerwować i zarządzać przejazdami pociągiem bezpośrednio w Expensify? I że paragony są automatycznie przesyłane za Ciebie? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a>',
+            hotelBlockManual:
+                'Wiesz, że możesz rezerwować i zarządzać takimi wyjazdami grupowymi bezpośrednio w Expensify? Oszczędź sobie zachodu następnym razem i wypróbuj nasze narzędzie <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
+            hotelBlockCard:
+                'Wiesz, że możesz rezerwować i zarządzać takimi wyjazdami grupowymi bezpośrednio w Expensify? Oszczędź sobie zachodu następnym razem i wypróbuj nasze narzędzie <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Podróże są wyłączone',
@@ -6051,6 +6055,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     comment: 'Opis',
                     category: 'Kategoria',
                     tag: 'Tag',
+                    uniqueID: 'Unikalny identyfikator',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Przypisz kolumnę do każdego z atrybutów: ${missingColumns}.`,
