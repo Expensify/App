@@ -131,11 +131,10 @@ describe('no-unsafe-onyx-read', () => {
             `${ONYX_IMPORT} async function submit() { Onyx.update(operations); await waitForBatchedUpdates(); return Onyx.get(key); }`,
             `${ONYX_IMPORT} async function submit() { const promises = [Onyx.merge(keyA, value), Onyx.merge(keyB, value)]; await Promise.all(promises); return Onyx.get(keyA); }`,
 
-            // An await that runs on every path from the write, whether it is written beside them or shares their
-            // branch. A `do` body runs at least once, so an await inside one is unconditional too.
+            // An await written as a statement of a block the read sits in, so the read cannot get past it.
             `${ONYX_IMPORT} async function submit() { if (x) { Onyx.merge(key, value); await flush(); return Onyx.get(key); } return null; }`,
-            `${ONYX_IMPORT} async function submit() { Onyx.merge(key, value); try { await flush(); } catch (error) {} return Onyx.get(key); }`,
-            `${ONYX_IMPORT} async function submit() { Onyx.merge(key, value); do { await flush(); } while (more()); return Onyx.get(key); }`,
+            `${ONYX_IMPORT} async function submit() { Onyx.merge(key, value); if (x) { await flush(); return Onyx.get(key); } return null; }`,
+            `${ONYX_IMPORT} async function submit() { const pending = Onyx.merge(key, value); const settled = await pending; return Onyx.get(key); }`,
 
             // The write's own await finishes before the read starts, even when the read is inside a second one.
             `${ONYX_IMPORT} async function submit() { await Promise.all([Onyx.merge(keyA, value), Onyx.merge(keyB, value)]); return await Promise.all([Onyx.get(keyA), Onyx.get(keyB)]); }`,
@@ -358,6 +357,9 @@ describe('no-unsafe-onyx-read', () => {
 
             // An await that only runs when a condition holds: the path that skips it reaches the read in the
             // write's own tick. A loop body can be entered zero times, which makes it one of those paths.
+            //
+            // The last two are the cost of testing the await's position rather than analyzing paths: both do
+            // run, but neither is a statement of a block the read is in, so both are reported.
             {code: `${ONYX_IMPORT} async function submit() { Onyx.merge(key, value); if (shouldFlush) { await flush(); } return Onyx.get(key); }`, errors: READ_AFTER_WRITE_ERRORS},
             {code: `${ONYX_IMPORT} async function submit() { Onyx.merge(key, value); shouldFlush && (await flush()); return Onyx.get(key); }`, errors: READ_AFTER_WRITE_ERRORS},
             {code: `${ONYX_IMPORT} async function submit() { Onyx.merge(key, value); shouldFlush ? await flush() : noop(); return Onyx.get(key); }`, errors: READ_AFTER_WRITE_ERRORS},
@@ -371,6 +373,14 @@ describe('no-unsafe-onyx-read', () => {
             },
             {
                 code: `${ONYX_IMPORT} async function submit() { Onyx.merge(key, value); try { risky(); } catch (error) { await flush(); } return Onyx.get(key); }`,
+                errors: READ_AFTER_WRITE_ERRORS,
+            },
+            {
+                code: `${ONYX_IMPORT} async function submit() { Onyx.merge(key, value); try { await flush(); } catch (error) {} return Onyx.get(key); }`,
+                errors: READ_AFTER_WRITE_ERRORS,
+            },
+            {
+                code: `${ONYX_IMPORT} async function submit() { Onyx.merge(key, value); do { await flush(); } while (more()); return Onyx.get(key); }`,
                 errors: READ_AFTER_WRITE_ERRORS,
             },
 

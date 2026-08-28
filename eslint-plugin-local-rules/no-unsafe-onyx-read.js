@@ -338,63 +338,40 @@ function isAwaitedBeforeRead(write, read) {
 }
 
 /**
- * Whether `child` only runs when a condition holds: an `if` or ternary branch, the right side of a
- * short-circuit, a `switch` case, a `catch` body, or a loop body, which can be entered zero times. A
- * `do` body always runs once, and a `try` block runs whenever the statement is reached.
+ * Whether the `await` is a statement of a block the read sits inside, `await settle();` or
+ * `const settled = await settle();` written directly in that block. Entering a block runs its statements
+ * in order, so such an `await` is on every path that reaches the read, while one nested in an expression
+ * or in a deeper block can be stepped over: an `if` or `switch` branch, the right side of a short-circuit,
+ * a loop entered zero times.
+ *
+ * ponytail: a position test rather than path analysis, so an `await` that does run from somewhere else is
+ * reported anyway, `try { await settle(); } catch {}` among them. Suppress those with a justified disable;
+ * a real control-flow pass is the upgrade if they turn out to be common.
  */
-function isConditionalEdge(parent, child) {
-    switch (parent.type) {
-        case 'IfStatement':
-        case 'ConditionalExpression':
-            return parent.consequent === child || parent.alternate === child;
-        case 'LogicalExpression':
-            return parent.right === child;
-        case 'SwitchCase':
-        case 'CatchClause':
-            return true;
-        case 'ForStatement':
-        case 'ForInStatement':
-        case 'ForOfStatement':
-        case 'WhileStatement':
-            return parent.body === child;
-        default:
-            return false;
-    }
-}
+function isOnEveryPathTo(awaitEntry, read) {
+    const parent = awaitEntry.ancestors.at(-1);
+    const isOwnStatement = parent?.type === 'ExpressionStatement';
+    const isDeclarationInit = parent?.type === 'VariableDeclarator' && parent.init === awaitEntry.node;
 
-/**
- * Whether the `await` runs on every path the read is on, which is what makes it a separator. The walk
- * outwards stops at the first node the read is also inside, since from there the two share their
- * conditions: an `await` in the same `if` body as the read is unconditional relative to it.
- */
-function isUnconditionalAwait(awaitEntry, read) {
-    const readAncestors = new Set(read.ancestors);
-    const chain = awaitEntry.ancestors;
-
-    for (let index = chain.length - 1; index >= 0; index--) {
-        const node = chain[index];
-
-        if (readAncestors.has(node)) {
-            return true;
-        }
-
-        if (isConditionalEdge(node, chain[index + 1] ?? awaitEntry.node)) {
-            return false;
-        }
+    if (!isOwnStatement && !isDeclarationInit) {
+        return false;
     }
 
-    return true;
+    // One step up from an expression statement, two from a declarator, since its declaration sits between.
+    const block = awaitEntry.ancestors.at(isOwnStatement ? -2 : -3);
+
+    return !!block && (block.type === 'BlockStatement' || block.type === 'Program') && read.ancestors.includes(block);
 }
 
 /**
  * An `await` ends the write's tick: the read resumes in a later one, after the queued write has had its
  * turn. `await waitForBatchedUpdates()` in tests is this shape, and so is awaiting the write's promise
- * indirectly, through a handle taken earlier in the body. A conditional `await` is not this: the path
- * that skips it still reaches the read in the write's own tick.
+ * indirectly, through a handle taken earlier in the body. An `await` the read can get past is not this:
+ * the path that skips it still reaches the read in the write's own tick.
  */
 function isSeparatedByAwait(awaits, write, read) {
     return awaits.some(
-        (awaitEntry) => awaitEntry.node.range.at(0) >= write.node.range.at(1) && awaitEntry.node.range.at(1) <= read.node.range.at(0) && isUnconditionalAwait(awaitEntry, read),
+        (awaitEntry) => awaitEntry.node.range.at(0) >= write.node.range.at(1) && awaitEntry.node.range.at(1) <= read.node.range.at(0) && isOnEveryPathTo(awaitEntry, read),
     );
 }
 
@@ -533,7 +510,7 @@ function isSeparatedAcrossBackEdge(awaits, write, read, loop) {
         (awaitEntry) =>
             isWithin(awaitEntry.node, loop) &&
             (awaitEntry.node.range.at(0) >= write.node.range.at(1) || awaitEntry.node.range.at(1) <= read.node.range.at(0)) &&
-            isUnconditionalAwait(awaitEntry, read),
+            isOnEveryPathTo(awaitEntry, read),
     );
 }
 
