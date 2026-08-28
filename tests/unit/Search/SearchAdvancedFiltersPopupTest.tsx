@@ -28,6 +28,9 @@ let mockOnPointerMove: ((event: {clientX: number; clientY: number}) => void) | u
 /** The pointer leave handler the popup hands to the filter list, captured so tests can drive the cursor off it. */
 let mockOnPointerLeave: (() => void) | undefined;
 
+/** The row the filter list is told to highlight, captured so tests can check it against the content being shown. */
+let mockSelectedFilter: string | undefined;
+
 /** The advanced filters form value served by the useOnyx mock. Reassigned by tests simulating filter value changes. */
 let mockFiltersForm: Partial<SearchAdvancedFiltersForm> | undefined;
 
@@ -44,14 +47,17 @@ jest.mock('@components/Search/FilterComponents/AdvancedFilters/FilterList', () =
         onFocus,
         onPointerMove,
         onPointerLeave,
+        selectedFilter,
     }: {
         onHoverIn: (filterKey: string) => void;
         onFocus: (filterKey: string) => void;
         onPointerMove: (event: {clientX: number; clientY: number}) => void;
         onPointerLeave: () => void;
+        selectedFilter: string;
     }) => {
         mockOnPointerMove = onPointerMove;
         mockOnPointerLeave = onPointerLeave;
+        mockSelectedFilter = selectedFilter;
 
         return (
             <MockView>
@@ -146,6 +152,7 @@ beforeEach(() => {
     mockFiltersForm = undefined;
     mockOnPointerMove = undefined;
     mockOnPointerLeave = undefined;
+    mockSelectedFilter = undefined;
 });
 
 afterEach(() => {
@@ -175,18 +182,19 @@ describe('SearchAdvancedFiltersPopup', () => {
         expect(mockOnContentCreated).toHaveBeenCalledWith(FILTER_KEYS.FROM);
     });
 
-    it('drops what a row had pending once the cursor leaves the list for the content beside it', () => {
+    it('shows the row the cursor ended on when it leaves the list without settling', () => {
         render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
 
-        // The cursor passes over a row on its way to the content pane, without ever stopping on it.
-        hover(FILTER_KEYS.FROM);
-        movePointer(100, 100);
+        // A flick across the rows and straight out of the popover, too fast for any of them to be settled on.
+        for (const filterKey of [FILTER_KEYS.FROM, FILTER_KEYS.TO, FILTER_KEYS.ATTENDEE]) {
+            hover(filterKey);
+        }
         leaveList();
-        act(() => {
-            jest.advanceTimersByTime(CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_MAX_DELAY * 2);
-        });
 
-        expect(mockOnContentCreated).not.toHaveBeenCalledWith(FILTER_KEYS.FROM);
+        // The marked row and the content on screen are the same one, and it is the row the cursor left from.
+        expect(mockSelectedFilter).toBe(FILTER_KEYS.ATTENDEE);
+        expect(mockOnContentCreated).toHaveBeenCalledWith(FILTER_KEYS.ATTENDEE);
+        expect(mockOnContentCreated).not.toHaveBeenCalledWith(FILTER_KEYS.TO);
     });
 
     it('treats a cursor that only shakes on the spot as at rest', () => {

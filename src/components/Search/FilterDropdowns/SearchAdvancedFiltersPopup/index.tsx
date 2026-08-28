@@ -195,12 +195,13 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
         waitForCursorToRest();
     };
 
-    // Leaving the list - for the content pane beside it, or for anywhere else - means the row the cursor last passed
-    // over was not the one it was after, so whatever it had pending for that row is dropped rather than replacing the
-    // content the user is on their way to.
+    // The highlight follows the cursor and the content follows where it settles, so a cursor that leaves the list
+    // without settling would leave a row marked whose content is not the one on screen. There is nothing left to wait
+    // for once the cursor is gone, so the row it ended on is shown and the two agree again.
     const stopTrackingPointer = () => {
         cancelPendingActivation();
         restAnchorRef.current = null;
+        activateFilter(hoveredFilter);
     };
 
     // Moving the focus is deliberate and never passes over rows on the way, so it shows the content right away and
