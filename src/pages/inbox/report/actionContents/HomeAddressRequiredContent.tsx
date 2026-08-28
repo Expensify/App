@@ -3,13 +3,12 @@ import ActionableItemButtons from '@components/ReportActionItem/ActionableItemBu
 
 import useLocalize from '@hooks/useLocalize';
 
-import Navigation from '@libs/Navigation/Navigation';
+import openPrivatePersonalDetailsPage from '@libs/Navigation/helpers/openPrivatePersonalDetailsPage';
 import {getOriginalMessage, getReportActionText} from '@libs/ReportActionsUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {ReportAction} from '@src/types/onyx';
 
@@ -32,7 +31,7 @@ function HomeAddressRequiredContent({action}: HomeAddressRequiredContentProps) {
                 <ActionableItemButtons layout="horizontal">
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1))}
+                        onPress={() => openPrivatePersonalDetailsPage(INPUT_IDS.ADDRESS_LINE_1)}
                     >
                         <Button.Text>{translate('homePage.timeSensitiveSection.addHomeAddress.cta')}</Button.Text>
                     </Button>
