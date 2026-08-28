@@ -290,7 +290,7 @@ const WRITE_COMMANDS = {
     DISABLE_POLICY_COMMUTER_EXCLUSIONS: 'DisablePolicyCommuterExclusions',
     SET_POLICY_EXPENSE_MAX_AGE: 'SetPolicyExpenseMaxAge',
     ADD_POLICY_AGENT_RULE: 'AddPolicyAgentRule',
-    PARSE_POLICY_RULE: 'ParsePolicyRule',
+    GENERATE_RULE: 'GenerateRule',
     UPDATE_POLICY_AGENT_RULE: 'UpdatePolicyAgentRule',
     DELETE_POLICY_AGENT_RULE: 'DeletePolicyAgentRule',
     UPDATE_CUSTOM_RULES: 'UpdateCustomRules',
@@ -1004,7 +1004,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT]: Parameters.SetPolicyExpenseMaxAmount;
     [WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AGE]: Parameters.SetPolicyExpenseMaxAge;
     [WRITE_COMMANDS.ADD_POLICY_AGENT_RULE]: Parameters.AddPolicyAgentRuleParams;
-    [WRITE_COMMANDS.PARSE_POLICY_RULE]: Parameters.ParsePolicyRuleParams;
+    [WRITE_COMMANDS.GENERATE_RULE]: Parameters.GenerateRuleParams;
     [WRITE_COMMANDS.UPDATE_POLICY_AGENT_RULE]: Parameters.UpdatePolicyAgentRuleParams;
     [WRITE_COMMANDS.DELETE_POLICY_AGENT_RULE]: Parameters.DeletePolicyAgentRuleParams;
     [WRITE_COMMANDS.UPDATE_CUSTOM_RULES]: Parameters.UpdateCustomRules;

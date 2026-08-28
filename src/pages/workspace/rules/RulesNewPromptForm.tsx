@@ -117,7 +117,7 @@ function RulesNewPromptForm({onSubmit, onBuildManually, isLoading, onCreateAgent
                         excludedMarkdownStyles={['mentionReport']}
                         onKeyPress={submitFormOnModEnter}
                         onValueChange={clearNewRulePromptError}
-                        maxLength={CONST.PARSED_POLICY_RULE.PROMPT_MAX_LENGTH}
+                        maxLength={CONST.GENERATED_RULE.PROMPT_MAX_LENGTH}
                         multiline
                         shouldSaveDraft
                         shouldLabelStayOnSingleLine

@@ -494,7 +494,7 @@ const CONST = {
         MAX_LENGTH: 83,
     },
 
-    PARSED_POLICY_RULE: {
+    GENERATED_RULE: {
         PROMPT_MAX_LENGTH: 6000,
         STATE: {
             RULE: 'rule',

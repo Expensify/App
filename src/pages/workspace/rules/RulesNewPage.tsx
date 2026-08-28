@@ -22,14 +22,14 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import variables from '@styles/variables';
 
-import {clearNewRulePromptError, clearParsedPolicyRule, parsePolicyRule, setNewRulePromptError} from '@userActions/Policy/Rules';
+import {clearNewRulePromptError, clearGeneratedRule, generateRule, setNewRulePromptError} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import AGENT_RULE_INPUT_IDS from '@src/types/form/AddAgentRuleForm';
-import type {ParsedPolicyRule} from '@src/types/onyx';
+import type {GeneratedRule} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import React, {useEffect, useState} from 'react';
@@ -65,37 +65,37 @@ function RulesNewPage({route}: RulesNewPageProps) {
     // The category-scoped flow already knows the category and offers fewer types, so it opens on the list.
     const canDescribeRule = isRulesRevampEnabled && !isCategoryScopedCreate;
     const [shouldShowRuleTypes, setShouldShowRuleTypes] = useState(!canDescribeRule);
-    const [parseID, setParseID] = useState<string>();
+    const [generationID, setGenerationID] = useState<string>();
 
     const [submittedPrompt, setSubmittedPrompt] = useState<string>();
 
     // Set when the deterministic rule types cannot express the prompt, which an agent rule still can.
     const [canOfferAgentRule, setCanOfferAgentRule] = useState(false);
-    const [parsedRule] = useOnyx(ONYXKEYS.NVP_PARSED_POLICY_RULE);
-    const [isBuildingRule] = useOnyx(ONYXKEYS.IS_LOADING_PARSED_POLICY_RULE);
+    const [generatedRule] = useOnyx(ONYXKEYS.NVP_GENERATED_RULE);
+    const [isBuildingRule] = useOnyx(ONYXKEYS.IS_LOADING_GENERATED_RULE);
 
-    const seedDraftAndNavigate = (rule: ParsedPolicyRule) => {
+    const seedDraftAndNavigate = (rule: GeneratedRule) => {
         const draft = rule.rule ?? {};
 
-        if (rule.ruleType === CONST.PARSED_POLICY_RULE.RULE_TYPE.REQUIRE_FIELDS) {
+        if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS) {
             setDraftRequireFieldsRule(draft);
             Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID, undefined, true));
             return;
         }
 
-        if (rule.ruleType === CONST.PARSED_POLICY_RULE.RULE_TYPE.FLAG_FOR_REVIEW) {
+        if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW) {
             setDraftFlagForReviewRule(draft);
             Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID, undefined, true));
             return;
         }
 
-        if (rule.ruleType === CONST.PARSED_POLICY_RULE.RULE_TYPE.RESTRICT_CARD_SPEND) {
+        if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.RESTRICT_CARD_SPEND) {
             setDraftSpendRule(draft);
             Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
             return;
         }
 
-        if (rule.ruleType === CONST.PARSED_POLICY_RULE.RULE_TYPE.EXPENSE_DEFAULTS) {
+        if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.EXPENSE_DEFAULTS) {
             setDraftMerchantRule(draft);
             Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
             return;
@@ -104,27 +104,27 @@ function RulesNewPage({route}: RulesNewPageProps) {
         setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unintelligible'));
     };
 
-    const applyParsedRule = (rule: ParsedPolicyRule) => {
-        setParseID(undefined);
-        clearParsedPolicyRule();
+    const applyGeneratedRule = (rule: GeneratedRule) => {
+        setGenerationID(undefined);
+        clearGeneratedRule();
 
-        if (rule.state === CONST.PARSED_POLICY_RULE.STATE.RULE) {
+        if (rule.state === CONST.GENERATED_RULE.STATE.RULE) {
             seedDraftAndNavigate(rule);
             return;
         }
 
-        if (rule.state === CONST.PARSED_POLICY_RULE.STATE.UNSUPPORTED) {
+        if (rule.state === CONST.GENERATED_RULE.STATE.UNSUPPORTED) {
             setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unsupported', {area: rule.unsupportedArea ?? ''}));
             setCanOfferAgentRule(true);
             return;
         }
 
-        if (rule.state === CONST.PARSED_POLICY_RULE.STATE.MULTIPLE_RULES) {
+        if (rule.state === CONST.GENERATED_RULE.STATE.MULTIPLE_RULES) {
             setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.multipleRules'));
             return;
         }
 
-        if (rule.state === CONST.PARSED_POLICY_RULE.STATE.UNINTELLIGIBLE) {
+        if (rule.state === CONST.GENERATED_RULE.STATE.UNINTELLIGIBLE) {
             setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unintelligible'));
             return;
         }
@@ -133,20 +133,20 @@ function RulesNewPage({route}: RulesNewPageProps) {
     };
 
     useEffect(() => {
-        if (!parseID || parsedRule?.parseID !== parseID) {
+        if (!generationID || generatedRule?.generationID !== generationID) {
             return;
         }
-        applyParsedRule(parsedRule);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- applyParsedRule reads only what it is given
-    }, [parseID, parsedRule]);
+        applyGeneratedRule(generatedRule);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- applyGeneratedRule reads only what it is given
+    }, [generationID, generatedRule]);
 
     const describeRule = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM>) => {
         const prompt = values.prompt.trim();
         clearNewRulePromptError();
-        clearParsedPolicyRule();
+        clearGeneratedRule();
         setCanOfferAgentRule(false);
         setSubmittedPrompt(prompt);
-        setParseID(parsePolicyRule(policyID, prompt));
+        setGenerationID(generateRule(policyID, prompt));
     };
 
     // The prompt carries over so the admin does not retype it.

@@ -86,6 +86,7 @@ import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
+import type GeneratedRule from './GeneratedRule';
 import type GovernmentMileageRate from './GovernmentMileageRate';
 import type GpsDraftDetails from './GpsDraftDetails';
 import type HybridApp from './HybridApp';
@@ -120,7 +121,6 @@ import type OnyxInputOrEntry from './OnyxInputOrEntry';
 import type {AnyOnyxUpdatesFromServer, OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
 import type Pages from './Pages';
-import type ParsedPolicyRule from './ParsedPolicyRule';
 import type PendingConciergeResponse from './PendingConciergeResponse';
 import type {PendingContactAction} from './PendingContactAction';
 import type PersonalBankAccount from './PersonalBankAccount';
@@ -244,7 +244,7 @@ export type {
     Domain,
     Download,
     ExportDownload,
-    ParsedPolicyRule,
+    GeneratedRule,
     DuplicateWorkspace,
     CopyPolicySettingsNVP,
     CopyPolicySettings,

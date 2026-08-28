@@ -5,7 +5,7 @@ import type {
     DeletePolicyAgentRuleParams,
     GetAgentRuleSuggestionsParams,
     ImportMerchantRulesSpreadsheetParams,
-    ParsePolicyRuleParams,
+    GenerateRuleParams,
     UpdatePolicyAgentRuleParams,
 } from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
@@ -422,17 +422,17 @@ function deletePolicyCodingRule(policy: Policy, ruleID: string) {
 /**
  * Asks Concierge to turn a plain-English rule description into a structured rule.
  *
- * The answer arrives asynchronously on the returned parseID's Onyx key, since a background job does the work.
+ * The answer arrives asynchronously on the returned generationID's Onyx key, since a background job does the work.
  *
- * @returns the parseID to read the answer under
+ * @returns the generationID to read the answer under
  */
-function parsePolicyRule(policyID: string, prompt: string): string {
-    const parseID = NumberUtils.rand64();
+function generateRule(policyID: string, prompt: string): string {
+    const generationID = NumberUtils.rand64();
 
     const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_PARSED_POLICY_RULE,
+            key: ONYXKEYS.IS_LOADING_GENERATED_RULE,
             value: true,
         },
     ];
@@ -440,22 +440,22 @@ function parsePolicyRule(policyID: string, prompt: string): string {
     const failureData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_PARSED_POLICY_RULE,
+            key: ONYXKEYS.IS_LOADING_GENERATED_RULE,
             value: false,
         },
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.NVP_PARSED_POLICY_RULE,
-            value: {parseID, state: CONST.PARSED_POLICY_RULE.STATE.FAILED},
+            key: ONYXKEYS.NVP_GENERATED_RULE,
+            value: {generationID, state: CONST.GENERATED_RULE.STATE.FAILED},
         },
     ];
 
-    const parameters: ParsePolicyRuleParams = {policyID, parseID, prompt};
+    const parameters: GenerateRuleParams = {policyID, generationID, prompt};
 
     // Queueing the job is not the same as having the rule, so nothing here clears the loading flag.
-    API.write(WRITE_COMMANDS.PARSE_POLICY_RULE, parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.GENERATE_RULE, parameters, {optimisticData, failureData});
 
-    return parseID;
+    return generationID;
 }
 
 /**
@@ -471,8 +471,8 @@ function clearNewRulePromptError() {
     Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {errors: null, errorFields: null});
 }
 
-function clearParsedPolicyRule() {
-    Onyx.set(ONYXKEYS.NVP_PARSED_POLICY_RULE, null);
+function clearGeneratedRule() {
+    Onyx.set(ONYXKEYS.NVP_GENERATED_RULE, null);
 }
 
 function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: string) {
@@ -751,8 +751,8 @@ export {
     deletePolicyCodingRule,
     getTransactionsMatchingCodingRule,
     addPolicyAgentRule,
-    parsePolicyRule,
-    clearParsedPolicyRule,
+    generateRule,
+    clearGeneratedRule,
     setNewRulePromptError,
     clearNewRulePromptError,
     updatePolicyAgentRule,

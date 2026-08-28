@@ -478,10 +478,10 @@ const ONYXKEYS = {
     IS_LOADING_AGENT_RULE_SUGGESTIONS: 'isLoadingAgentRuleSuggestions',
 
     /** Whether the request asking Concierge to build a rule is in flight */
-    IS_LOADING_PARSED_POLICY_RULE: 'isLoadingParsedPolicyRule',
+    IS_LOADING_GENERATED_RULE: 'isLoadingGeneratedRule',
 
     /** The rule Concierge built from an admin's description, tagged with the attempt it belongs to */
-    NVP_PARSED_POLICY_RULE: 'nvp_parsedPolicyRule',
+    NVP_GENERATED_RULE: 'nvp_generatedRule',
 
     /** Is loading agent rule suggestions for the add-rule Suggestions tab? */
     IS_LOADING_AGENT_TEMPLATES: 'isLoadingAgentTemplates',
@@ -1702,8 +1702,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE]: boolean;
     [ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW]: boolean;
     [ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS]: boolean;
-    [ONYXKEYS.IS_LOADING_PARSED_POLICY_RULE]: boolean;
-    [ONYXKEYS.NVP_PARSED_POLICY_RULE]: OnyxTypes.ParsedPolicyRule;
+    [ONYXKEYS.IS_LOADING_GENERATED_RULE]: boolean;
+    [ONYXKEYS.NVP_GENERATED_RULE]: OnyxTypes.GeneratedRule;
     [ONYXKEYS.IS_LOADING_AGENT_TEMPLATES]: boolean;
     [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
     [ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED]: boolean;
