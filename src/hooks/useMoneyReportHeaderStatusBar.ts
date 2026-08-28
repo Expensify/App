@@ -6,8 +6,8 @@ import {isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import {
     allHavePendingRTERViolation,
-    getBrokenConnectionViolation,
     hasDuplicateTransactions,
+    isBrokenConnectionViolation,
     hasReceipt,
     isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
     isPending,
@@ -17,7 +17,9 @@ import {
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {CardList, TransactionViolation} from '@src/types/onyx';
 
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
@@ -38,6 +40,21 @@ type StatusBarResult = {
     shouldShowStatusBar: boolean;
     statusBarType: StatusBarType | undefined;
 };
+
+function shouldSuppressBrokenConnectionStatus(brokenConnectionViolations: TransactionViolation[], cardList: OnyxEntry<CardList>) {
+    return (
+        brokenConnectionViolations.length > 0 &&
+        brokenConnectionViolations.every((violation) => {
+            if (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 || violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return false;
+            }
+
+            const cardID = violation.data?.cardID;
+            const card = cardID ? cardList?.[cardID] : undefined;
+            return !!card && isPersonalCard(card);
+        })
+    );
+}
 
 function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportID: string | undefined): StatusBarResult {
     const {isOffline} = useNetwork();
@@ -123,18 +140,12 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
             return CONST.REPORT.STATUS_BAR_TYPE.DUPLICATES;
         }
         if (shouldShowBrokenConnectionViolation) {
-            // On a multi-expense report there is no single transaction, so look across every visible
-            // transaction's violations to find the broken connection used for personal-card suppression.
             const brokenConnectionViolations = transactionViolations.length
-                ? transactionViolations
-                : (visibleTransactions?.flatMap((t) => violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${t.transactionID}`] ?? []) ?? []);
-            const brokenConnectionError = getBrokenConnectionViolation(brokenConnectionViolations);
-            const cardID = brokenConnectionError?.data?.cardID;
-            const card = cardID ? cardList?.[cardID] : undefined;
+                ? transactionViolations.filter(isBrokenConnectionViolation)
+                : (visibleTransactions?.flatMap((t) => violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${t.transactionID}`] ?? []).filter(isBrokenConnectionViolation) ?? []);
 
-            // Only suppress the status bar for a personal card the current user actually holds. A company card the
-            // viewer doesn't own resolves to `undefined` here, and must still surface the broken/re-auth status.
-            if (!!card && isPersonalCard(card) && brokenConnectionError) {
+            // A report must retain a status if any violation needs an actionable or retry-later message.
+            if (shouldSuppressBrokenConnectionStatus(brokenConnectionViolations, cardList)) {
                 return undefined;
             }
             return CONST.REPORT.STATUS_BAR_TYPE.BROKEN_CONNECTION;
@@ -160,3 +171,4 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
 }
 
 export default useMoneyReportHeaderStatusBar;
+export {shouldSuppressBrokenConnectionStatus};
