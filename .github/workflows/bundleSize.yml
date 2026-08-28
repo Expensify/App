@@ -1,0 +1,129 @@
+# Measures the web bundle a pull request emits, and every measurement `main` needs to be compared against.
+#
+# This workflow only measures and uploads. It never comments: a `pull_request` run from a fork holds a
+# read-only token, and giving this job a write token would mean running a fork's build with that token in
+# scope. `bundleSizeComment.yml` follows this workflow and does the posting, from the default branch's code.
+#
+# Artifact upload works from a fork run because artifacts use the runner's own runtime token rather than
+# `GITHUB_TOKEN`, which is what makes the split possible at all.
+name: Bundle size
+# cspell:ignore argjson
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    # Everything that can change what `npm run build` emits: app sources, the bundler configuration, the
+    # assets it embeds, the dependency tree, and the patches applied to it. The measurement tooling itself
+    # is included so a change to how bytes are counted re-counts them.
+    paths:
+      - 'src/**'
+      - 'config/**'
+      - 'assets/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'patches/**'
+      - 'scripts/bundleSize.ts'
+      - '.github/workflows/bundleSize.yml'
+  push:
+    # A pull request is compared against the branch it merges into, so every branch that is a base for pull
+    # requests has to measure its own commits. `main` is that branch.
+    #
+    # Deliberately NOT path-filtered, unlike `pull_request` above. A filtered baseline branch leaves holes in
+    # the history - a commit touching only tests never builds - and every pull request whose merge base lands
+    # in a hole is then compared against an older ancestor, which charges it for whatever landed in between.
+    # The fallback still exists for a build that failed or has not finished, but it stops being the normal
+    # case. The price is one build per commit on this branch.
+    branches: [main]
+
+permissions:
+  contents: read
+
+# One measurement per pull request head is enough, so a superseded push is cancelled. A `main` commit is
+# never cancelled: its measurement is the baseline every later pull request is compared against, and the
+# grouping key is the commit itself so two `main` commits never contend.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  measure:
+    name: Measure
+    runs-on: ${{ github.repository_owner == 'Expensify' && 'blacksmith-8vcpu-ubuntu-2404' || 'ubuntu-latest' }}
+    timeout-minutes: 60
+    # Stated at the job rather than inherited. This is the job that builds a pull request's code, and it can
+    # do nothing but read.
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      # Exactly the command `buildWeb.yml` runs for a deploy, with no added flags: any bundler configuration
+      # change risks measuring a bundle that is not the bundle that ships. No `SENTRY_AUTH_TOKEN` is passed,
+      # so the source map upload 401s and the build still exits 0 - the same path a fork run takes.
+      # Neither this step nor the measurement is allowed to fail the job. A pull request that cannot be
+      # measured gets no comment, which is the honest outcome, and a red check nobody can act on is worse
+      # than a missing comment. Every step after this one is skipped unless both succeeded.
+      - name: Build web
+        id: build
+        continue-on-error: true
+        run: npm run build
+
+      # For a `pull_request` run, `actions/checkout` checks out the merge ref, so `git rev-parse HEAD` is the
+      # ephemeral merge commit. The head SHA is what the comment has to be keyed to.
+      - name: Measure
+        id: measure
+        if: steps.build.outcome == 'success'
+        continue-on-error: true
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node ./scripts/bundleSize.ts --out bundle-size.json --sha "$HEAD_SHA"
+
+      # Informational only, for reading a run back later. NOTHING here is trusted by the follower: a
+      # `pull_request` run uses the copy of this workflow on the pull request's own branch, so a fork decides
+      # what this file says, and a pull request number taken from it would let one repository post a comment
+      # on another repository's pull request. The follower resolves all of this from the API instead.
+      - name: Record what was measured
+        if: steps.measure.outcome == 'success'
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+          BASE_REF: ${{ github.event.pull_request.base.ref || '' }}
+        run: |
+          jq -n \
+            --argjson prNumber "${PR_NUMBER:-null}" \
+            --arg headSha "$HEAD_SHA" \
+            --arg baseSha "$BASE_SHA" \
+            --arg baseRef "$BASE_REF" \
+            --arg event "$GITHUB_EVENT_NAME" \
+            '{prNumber: $prNumber, headSha: $headSha, baseSha: $baseSha, baseRef: $baseRef, event: $event}' \
+            > bundle-size-meta.json
+          cat bundle-size-meta.json
+
+      # `main` measurements are baselines for every pull request opened afterwards, so they are kept for the
+      # maximum default retention. A pull request's own measurement is read once, minutes later.
+      - name: Upload measurement
+        if: steps.measure.outcome == 'success'
+        # v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: bundle-size
+          retention-days: ${{ github.event_name == 'push' && 90 || 7 }}
+          path: |
+            bundle-size.json
+            bundle-size-meta.json
+
+      - name: Summarize
+        if: steps.measure.outcome == 'success'
+        run: |
+          {
+            echo '## Bundle size measured'
+            echo
+            echo '```json'
+            cat bundle-size.json | jq 'del(.chunks)'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
