@@ -5923,6 +5923,30 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 label: 'Compte Expensify Card',
                 description: 'Choisissez où exporter les transactions Expensify Card.',
             },
+            autoSyncDescription: 'Synchronisez DualEntry et Expensify automatiquement, tous les jours. Les notes de frais se synchronisent en temps réel.',
+            accountingMethods: {
+                label: 'Méthode d’exportation',
+                description: 'Choisissez quand exporter les dépenses.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Comptabilité d’exercice',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Espèces',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Les dépenses hors poche seront exportées une fois l’approbation finale donnée',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Les dépenses engagées par les employés seront exportées une fois payées',
+                },
+            },
+            syncReimbursedReports: 'Synchroniser les notes de frais remboursées',
+            syncReimbursedReportsDescription: 'Lorsqu’une note de frais est payée par ACH, un paiement de facture sera généré dans ce compte.',
+            billPaymentAccount: {label: 'Compte de paiement des factures', description: 'Choisissez d’où payer les factures et nous créerons le paiement dans DualEntry.'},
+            syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
+            settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans DualEntry.'},
+            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyages',
+            travelInvoicingSettlementAccount: {
+                label: 'Compte de règlement de facturation de voyage',
+                description: 'Choisissez votre compte de règlement et nous créerons le paiement dans DualEntry.',
+            },
+            travelInvoicingPayableAccount: {label: 'Compte créditeur de facturation de voyages'},
         },
         type: {
             free: 'Gratuit',
@@ -7055,7 +7079,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 },
             },
             connections: {
-                syncStageName: (stage, integrationName = 'QuickBooks Online') => {
+                syncStageName: (stage: PolicyConnectionSyncStage, integrationName = 'QuickBooks Online') => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -7064,24 +7088,24 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                         case 'netSuiteSyncImportEmployees':
                         case 'intacctImportEmployees':
                         case 'quickbooksDesktopImportEmployees':
-                            return 'Importation d’employés';
+                            return 'Importation des employés';
                         case 'quickbooksOnlineImportAccounts':
                         case 'quickbooksDesktopImportAccounts':
                             return 'Importation de comptes';
                         case 'quickbooksOnlineImportClasses':
                         case 'quickbooksDesktopImportClasses':
-                            return 'Importation des classes';
+                            return 'Importation de classes';
                         case 'quickbooksOnlineImportLocations':
-                            return 'Importation de lieux';
+                            return 'Importation des emplacements';
                         case 'quickbooksOnlineImportProcessing':
                             return 'Traitement des données importées';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
                             return 'Synchronisation des notes de frais remboursées et des paiements de factures';
                         case 'quickbooksOnlineSyncTaxCodes':
-                            return 'Importation des codes de taxe';
+                            return 'Importation des codes fiscaux';
                         case 'quickbooksOnlineCheckConnection':
-                            return `Vérification de la connexion à ${integrationName}`;
+                            return `Vérification de la connexion ${integrationName}`;
                         case 'quickbooksOnlineImportMain':
                             return `Importation des données ${integrationName}`;
                         case 'startingImportXero':
@@ -7090,7 +7114,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                             return `Importation des données ${integrationName}`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
-                            return 'Importation de données QuickBooks Desktop';
+                            return 'Importation des données QuickBooks Desktop';
                         case 'quickbooksDesktopImportTitle':
                             return 'Importation du titre';
                         case 'quickbooksDesktopImportApproveCertificate':
@@ -7112,7 +7136,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                         case 'quickbooksOnlineSyncApplyCustomers':
                             return 'Mise à jour des clients/projets';
                         case 'quickbooksOnlineSyncApplyEmployees':
-                            return 'Mise à jour de la liste des personnes';
+                            return 'Mise à jour de la liste de personnes';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
                             return 'Mise à jour des champs de note de frais';
                         case 'jobDone':
@@ -7126,7 +7150,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                         case 'xeroSyncXeroReimbursedReports':
                             return 'Marquer les notes de frais Expensify comme remboursées';
                         case 'xeroSyncExpensifyReimbursedReports':
-                            return 'Marquer les factures et notes de débit Xero comme payées';
+                            return 'Marquer les factures et notes de frais Xero comme payées';
                         case 'xeroSyncImportTrackingCategories':
                             return 'Synchronisation des catégories de suivi';
                         case 'xeroSyncImportBankAccounts':
@@ -7177,31 +7201,31 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                         case 'quickbooksDesktopImportVendors':
                             return 'Importation de fournisseurs';
                         case 'intacctCheckConnection':
-                            return 'Vérification de la connexion à Sage Intacct';
+                            return 'Vérification de la connexion Sage Intacct';
                         case 'intacctImportDimensions':
                             return 'Importation des dimensions Sage Intacct';
                         case 'intacctImportTitle':
-                            return 'Importation des données Sage Intacct';
+                            return 'Importation de données Sage Intacct';
                         case 'financialForceSyncTitle':
                             return 'Synchronisation des données Certinia';
                         case 'financialForceSyncStep':
                             return 'Synchronisation de la connexion Certinia';
                         case 'financialForceSyncCategories':
-                            return 'Importation des catégories';
+                            return 'Importation de catégories';
                         case 'financialForceSyncTags':
-                            return 'Importation des tags';
+                            return 'Importation de tags';
                         case 'financialForceSyncVendors':
-                            return 'Importation des fournisseurs';
+                            return 'Importation de fournisseurs';
                         case 'financialForceSyncContacts':
-                            return 'Importation des contacts';
+                            return 'Importation de contacts';
                         case 'financialForceSyncCompanies':
-                            return 'Importation des entreprises';
+                            return 'Importation d’entreprises';
                         case 'financialForceSyncUsers':
                             return 'Importation des utilisateurs';
                         case 'financialForceSyncDimensions':
                             return 'Importation des dimensions';
                         case 'financialForceMarkAsReimbursed':
-                            return 'Marquage des notes de frais comme remboursées';
+                            return 'Marquer les notes de frais comme remboursées';
                         case 'rilletSyncTitle':
                             return 'Synchronisation des données Rillet';
                         case 'rilletSyncConnection':
@@ -7214,6 +7238,12 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                             return 'Initialisation de la connexion à DualEntry';
                         case 'dualEntrySyncImportData':
                             return 'Chargement des données';
+                        case 'dualEntrySyncPayments':
+                            return 'Synchronisation des paiements fournisseurs';
+                        case 'dualEntrySyncCardSettlements':
+                            return 'Synchronisation des règlements de carte';
+                        case 'dualEntrySyncTravelSettlements':
+                            return 'Synchronisation des règlements de voyage';
                         default: {
                             return `Traduction manquante pour l’étape : ${stage}`;
                         }

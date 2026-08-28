@@ -3,17 +3,19 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
-import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
-import {clearDualEntryErrorField, updateDualEntryExpensifyCardAccount} from '@libs/actions/connections/DualEntry';
-import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
+import {clearDualEntryErrorField, updateDualEntryTravelInvoicingSettlementsAccount} from '@libs/actions/connections/DualEntry';
+import {getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+import {getTravelBillingCardSettingsKey, getIsTravelBillingEnabled} from '@libs/TravelBillingUtils';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -31,35 +33,37 @@ type AccountListItem = ListItem & {
     value: DualEntryAccount['id'];
 };
 
-function DualEntryExpensifyCardAccountPage({policy}: WithPolicyConnectionsProps) {
+function DualEntryTravelInvoicingSettlementAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const policyID = policy?.id;
     const dualentryConfig = policy?.connections?.dualEntry?.config;
     const dualentryData = policy?.connections?.dualEntry?.data;
-    const expensifyCardAccountID = dualentryConfig?.export?.expensifyCardAccountID;
-    const allCardSettings = useExpensifyCardFeeds(policyID);
-    const isExpensifyCardsEnabled = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
-    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPORT.getRoute(policyID) : undefined;
+    const travelInvoicingSettlementsBankAccountID = dualentryConfig?.sync?.travelInvoicingSettlementsBankAccountID;
+    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_ADVANCED.getRoute(policyID) : undefined;
+
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
+    const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
+    const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
+    const syncTravelInvoicingSettlements = dualentryConfig?.sync?.syncTravelInvoicingSettlements ?? true;
+    const shouldBeBlocked = !isTravelBillingEnabled || !syncTravelInvoicingSettlements;
 
     const data: AccountListItem[] =
         dualentryData?.accounts
-            ?.filter(
-                (accountItem) =>
-                    accountItem.isActive && (accountItem.accountType === CONST.DUALENTRY_ACCOUNT_TYPE.CREDIT_CARD || accountItem.accountType === CONST.DUALENTRY_ACCOUNT_TYPE.BANK),
-            )
+            ?.filter((accountItem) => accountItem.isActive && accountItem.accountType === CONST.DUALENTRY_ACCOUNT_TYPE.BANK && accountItem.currency === CONST.CURRENCY.USD)
             .map((accountItem) => ({
                 value: accountItem.id,
                 text: `${accountItem.id} ${accountItem.name}`,
                 keyForList: accountItem.id,
-                isSelected: expensifyCardAccountID === accountItem.id,
+                isSelected: travelInvoicingSettlementsBankAccountID === accountItem.id,
             })) ?? [];
     const {filteredData, textInputOptions} = useSelectionListSearch(data);
 
     const headerContent = (
         <View>
-            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualEntry.expensifyCardAccount.description')}</Text>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualEntry.travelInvoicingSettlementAccount.description')}</Text>
         </View>
     );
 
@@ -74,9 +78,9 @@ function DualEntryExpensifyCardAccountPage({policy}: WithPolicyConnectionsProps)
         />
     );
 
-    const selectExpensifyCardAccount = (item: AccountListItem) => {
-        if (item.value !== expensifyCardAccountID && policyID) {
-            updateDualEntryExpensifyCardAccount(policyID, item.value, expensifyCardAccountID);
+    const setTravelInvoicingSettlementsAccount = (item: AccountListItem) => {
+        if (item.value !== travelInvoicingSettlementsBankAccountID && policyID) {
+            updateDualEntryTravelInvoicingSettlementsAccount(policyID, item.value, travelInvoicingSettlementsBankAccountID);
         }
         Navigation.goBack(backPath);
     };
@@ -86,24 +90,24 @@ function DualEntryExpensifyCardAccountPage({policy}: WithPolicyConnectionsProps)
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName="DualEntryExpensifyCardAccountPage"
-            title="workspace.dualEntry.expensifyCardAccount.label"
+            shouldBeBlocked={shouldBeBlocked}
+            displayName="DualEntryTravelInvoicingSettlementAccountPage"
+            title="workspace.dualEntry.travelInvoicingSettlementAccount.label"
             data={filteredData}
             textInputOptions={textInputOptions}
-            shouldBeBlocked={!isExpensifyCardsEnabled}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
-            onSelectRow={selectExpensifyCardAccount}
+            onSelectRow={setTravelInvoicingSettlementsAccount}
             shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={expensifyCardAccountID}
+            initiallyFocusedOptionKey={travelInvoicingSettlementsBankAccountID}
             onBackButtonPress={() => Navigation.goBack(backPath)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.DUALENTRY}
-            pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.EXPENSIFY_CARD_ACCOUNT_ID], dualentryConfig?.pendingFields)}
-            errors={getLatestErrorField(dualentryConfig, CONST.DUALENTRY_CONFIG.EXPENSIFY_CARD_ACCOUNT_ID)}
+            pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID], dualentryConfig?.pendingFields)}
+            errors={getLatestErrorField(dualentryConfig, CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => policyID && clearDualEntryErrorField(policyID, CONST.DUALENTRY_CONFIG.EXPENSIFY_CARD_ACCOUNT_ID)}
+            onClose={() => policyID && clearDualEntryErrorField(policyID, CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID)}
         />
     );
 }
 
-export default withPolicyConnections(DualEntryExpensifyCardAccountPage);
+export default withPolicyConnections(DualEntryTravelInvoicingSettlementAccountPage);

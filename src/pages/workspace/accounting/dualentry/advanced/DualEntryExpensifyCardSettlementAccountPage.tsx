@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearDualEntryErrorField, updateDualEntryExpensifyCardAccount} from '@libs/actions/connections/DualEntry';
+import {clearDualEntryErrorField, updateDualEntrySettlementsAccount} from '@libs/actions/connections/DualEntry';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -31,35 +31,35 @@ type AccountListItem = ListItem & {
     value: DualEntryAccount['id'];
 };
 
-function DualEntryExpensifyCardAccountPage({policy}: WithPolicyConnectionsProps) {
+function DualEntryExpensifyCardSettlementAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const policyID = policy?.id;
     const dualentryConfig = policy?.connections?.dualEntry?.config;
     const dualentryData = policy?.connections?.dualEntry?.data;
-    const expensifyCardAccountID = dualentryConfig?.export?.expensifyCardAccountID;
+    const settlementsBankAccountID = dualentryConfig?.sync?.settlementsBankAccountID;
+    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_ADVANCED.getRoute(policyID) : undefined;
+
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isExpensifyCardsEnabled = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
-    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPORT.getRoute(policyID) : undefined;
+    const syncExpensifyCardSettlements = dualentryConfig?.sync?.syncExpensifyCardSettlements ?? true;
+    const shouldBeBlocked = !isExpensifyCardsEnabled || !syncExpensifyCardSettlements;
 
     const data: AccountListItem[] =
         dualentryData?.accounts
-            ?.filter(
-                (accountItem) =>
-                    accountItem.isActive && (accountItem.accountType === CONST.DUALENTRY_ACCOUNT_TYPE.CREDIT_CARD || accountItem.accountType === CONST.DUALENTRY_ACCOUNT_TYPE.BANK),
-            )
+            ?.filter((accountItem) => accountItem.isActive && accountItem.accountType === CONST.DUALENTRY_ACCOUNT_TYPE.BANK && accountItem.currency === CONST.CURRENCY.USD)
             .map((accountItem) => ({
                 value: accountItem.id,
                 text: `${accountItem.id} ${accountItem.name}`,
                 keyForList: accountItem.id,
-                isSelected: expensifyCardAccountID === accountItem.id,
+                isSelected: settlementsBankAccountID === accountItem.id,
             })) ?? [];
     const {filteredData, textInputOptions} = useSelectionListSearch(data);
 
     const headerContent = (
         <View>
-            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualEntry.expensifyCardAccount.description')}</Text>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualEntry.settlementAccount.description')}</Text>
         </View>
     );
 
@@ -74,9 +74,9 @@ function DualEntryExpensifyCardAccountPage({policy}: WithPolicyConnectionsProps)
         />
     );
 
-    const selectExpensifyCardAccount = (item: AccountListItem) => {
-        if (item.value !== expensifyCardAccountID && policyID) {
-            updateDualEntryExpensifyCardAccount(policyID, item.value, expensifyCardAccountID);
+    const setSettlementsAccount = (item: AccountListItem) => {
+        if (item.value !== settlementsBankAccountID && policyID) {
+            updateDualEntrySettlementsAccount(policyID, item.value, settlementsBankAccountID);
         }
         Navigation.goBack(backPath);
     };
@@ -86,24 +86,24 @@ function DualEntryExpensifyCardAccountPage({policy}: WithPolicyConnectionsProps)
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName="DualEntryExpensifyCardAccountPage"
-            title="workspace.dualEntry.expensifyCardAccount.label"
+            shouldBeBlocked={shouldBeBlocked}
+            displayName="DualEntryExpensifyCardSettlementAccountPage"
+            title="workspace.dualEntry.settlementAccount.label"
             data={filteredData}
             textInputOptions={textInputOptions}
-            shouldBeBlocked={!isExpensifyCardsEnabled}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
-            onSelectRow={selectExpensifyCardAccount}
+            onSelectRow={setSettlementsAccount}
             shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={expensifyCardAccountID}
+            initiallyFocusedOptionKey={settlementsBankAccountID}
             onBackButtonPress={() => Navigation.goBack(backPath)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.DUALENTRY}
-            pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.EXPENSIFY_CARD_ACCOUNT_ID], dualentryConfig?.pendingFields)}
-            errors={getLatestErrorField(dualentryConfig, CONST.DUALENTRY_CONFIG.EXPENSIFY_CARD_ACCOUNT_ID)}
+            pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID], dualentryConfig?.pendingFields)}
+            errors={getLatestErrorField(dualentryConfig, CONST.DUALENTRY_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => policyID && clearDualEntryErrorField(policyID, CONST.DUALENTRY_CONFIG.EXPENSIFY_CARD_ACCOUNT_ID)}
+            onClose={() => policyID && clearDualEntryErrorField(policyID, CONST.DUALENTRY_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID)}
         />
     );
 }
 
-export default withPolicyConnections(DualEntryExpensifyCardAccountPage);
+export default withPolicyConnections(DualEntryExpensifyCardSettlementAccountPage);
