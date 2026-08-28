@@ -1026,8 +1026,8 @@ describe('getViolationsOnyxData', () => {
 
             const findOverLimit = (violations: TransactionViolation[]) => violations.find((violation) => violation.name === CONST.VIOLATIONS.OVER_LIMIT);
 
-            it('should not add overLimit violation when the nightly average equals the limit exactly', () => {
-                // 5 nights at exactly the limit per night
+            it('should add overLimit violation when the total amount exceeds the workspace limit, regardless of nightly average', () => {
+                // 5 nights: nightly average equals the limit, but the total is 5x over it
                 transaction.amount = -1000000;
                 transaction.receipt = {
                     hotelReservationStartDate: '2026-03-01',
@@ -1035,10 +1035,10 @@ describe('getViolationsOnyxData', () => {
                 };
                 policy.maxExpenseAmount = 200000;
 
-                expect(findOverLimit(getViolations())).toBeUndefined();
+                expect(findOverLimit(getViolations())).toBeDefined();
             });
 
-            it('should add overLimit violation with a single night for a one-night stay over the limit', () => {
+            it('should add overLimit violation for a one-night stay over the limit without a night count', () => {
                 transaction.amount = -200001;
                 transaction.receipt = {
                     hotelReservationStartDate: '2026-03-01',
@@ -1046,11 +1046,9 @@ describe('getViolationsOnyxData', () => {
                 };
                 policy.maxExpenseAmount = 200000;
 
-                expect(findOverLimit(getViolations())).toEqual(
-                    expect.objectContaining({
-                        data: expect.objectContaining({nights: 1}),
-                    }),
-                );
+                const overLimit = findOverLimit(getViolations());
+                expect(overLimit).toBeDefined();
+                expect(overLimit?.data?.nights).toBeUndefined();
             });
 
             it('should flag the full amount and omit the night count when the receipt has no reservation dates', () => {

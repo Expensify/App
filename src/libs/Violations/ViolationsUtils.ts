@@ -768,7 +768,7 @@ const ViolationsUtils = {
             typeof categoryOverLimit !== 'number' &&
             typeof overLimitAmount === 'number' &&
             isMaxExpenseAmountRuleEnabled(overLimitAmount) &&
-            amountForLimitCheck > overLimitAmount &&
+            expenseAmount > overLimitAmount &&
             isControlPolicy;
         // Ensure we are comparing amounts in the same currency
         const isSameCurrency = updatedTransaction.currency === currency;
@@ -880,7 +880,7 @@ const ViolationsUtils = {
                 data: {
                     amount: shouldCategoryShowOverLimitViolation ? categoryOverLimit : policy.maxExpenseAmount,
                     currency: policy.outputCurrency,
-                    ...(reservationNights > 0 ? {nights: reservationNights} : {}),
+                    ...(shouldCategoryShowOverLimitViolation && reservationNights > 0 ? {nights: reservationNights} : {}),
                 },
                 type: CONST.VIOLATION_TYPES.VIOLATION,
                 showInReview: true,
