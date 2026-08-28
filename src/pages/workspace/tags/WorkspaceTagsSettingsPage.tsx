@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearPolicyErrorField, getBillableExpensesPendingAction, toggleBillableExpenses} from '@libs/actions/Policy/Policy';
@@ -47,6 +48,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [getTagListsUtil(policyTags), isMultiLevelTagsUtil(policyTags)], [policyTags]);
     const isLoading = !getTagListsUtil(policyTags)?.at(0) || Object.keys(policyTags ?? {}).at(0) === 'undefined';
     const {isOffline} = useNetwork();
@@ -132,7 +134,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                                 <Switch
                                     isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
                                     accessibilityLabel={translate('workspace.tags.trackBillable')}
-                                    onToggle={() => toggleBillableExpenses(policy)}
+                                    onToggle={() => toggleBillableExpenses(policy, getReviewWorkspaceSettingsTaskCompletion())}
                                     disabled={!policy?.areTagsEnabled}
                                 />
                             </View>

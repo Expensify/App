@@ -153,6 +153,9 @@ type TransactionEditPermissionsParams = {
 
     parentReport: OnyxEntry<Report>;
 
+    /** Actions of the parent (money request) report, used by canEditMoneyRequest to check whether the report was forwarded since the last submit */
+    parentReportActions: OnyxEntry<ReportActions>;
+
     policy?: OnyxEntry<Policy>;
 
     transactionThreadReport?: OnyxEntry<Report>;
@@ -178,6 +181,7 @@ type TransactionEditPermissionsParams = {
 
 type GetIouParamsInput = {
     transactionID: string;
+    transaction: OnyxEntry<Transaction>;
     parentReport: OnyxEntry<Report>;
     parentReportAction: OnyxEntry<ReportAction>;
     transactionThreadReport: OnyxEntry<Report>;
@@ -212,6 +216,7 @@ type TransactionInlineEditParams = GetIouParamsInput & {
  */
 function getIouParamsForTransaction({
     transactionID,
+    transaction,
     parentReport,
     parentReportAction,
     transactionThreadReport,
@@ -230,7 +235,6 @@ function getIouParamsForTransaction({
     getCurrencyDecimals,
     getCurrencySymbol,
 }: GetIouParamsInput) {
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const isUnreportedExpense = !transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -267,6 +271,8 @@ function getIouParamsForTransaction({
     if (!resolvedTransactionThreadReport && resolvedParentReportAction && transaction) {
         resolvedTransactionThreadReport = createTransactionThreadReport({
             introSelected,
+            // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
+            conciergeChat: undefined,
             currentUserLogin: currentUserEmail,
             currentUserAccountID,
             betas: allBetas,
@@ -324,9 +330,7 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
 
 /** Updates the merchant of an expense from the Search results table or the Expense Report page. */
 function editTransactionMerchantInline(params: TransactionInlineEditParams, newMerchant: string) {
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
-
-    if (!isValidMerchant(newMerchant, transaction, params.parentReport)) {
+    if (!isValidMerchant(newMerchant, params.transaction, params.parentReport)) {
         return;
     }
 
@@ -417,6 +421,7 @@ function getTransactionEditPermissions({
     transaction,
     parentReportAction,
     parentReport,
+    parentReportActions,
     policy,
     transactionThreadReport,
     policyCategories,
@@ -450,7 +455,8 @@ function getTransactionEditPermissions({
     // Matches MoneyRequestView's canEdit.
     // For unreported expenses, parentReportAction may not be loaded; they are
     // always editable by the owner.
-    const canEdit = isUnreported || (isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived, parentReport, policy));
+    const canEdit =
+        isUnreported || (isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived, parentReport, policy, parentReportActions));
     if (!canEdit) {
         return NO_EDIT;
     }

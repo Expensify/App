@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -49,6 +49,7 @@ type WorkspaceMembersTableProps = {
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    headerComponent?: React.ReactElement;
 };
 
 /** Width the member cell's avatar and the space after it take before the name and email start. */
@@ -74,6 +75,7 @@ export default function WorkspaceMembersTable({
     shouldShowCustomField2Column,
     members,
     onRowSelectionChange,
+    headerComponent,
 }: WorkspaceMembersTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -336,6 +338,7 @@ export default function WorkspaceMembersTable({
             />
         );
     };
+    const tableHeaderComponent = composeTableListHeader(headerComponent, <Table.FilterBar label={translate('workspace.people.findMember')} />);
 
     return (
         <Table
@@ -345,6 +348,7 @@ export default function WorkspaceMembersTable({
             filters={filterConfig}
             selectedKeys={selectedKeys}
             selectionEnabled={canSelectMembers}
+            shouldPreserveSelectionOnSearch
             columns={workspaceMembersColumns}
             initialSortColumn="member"
             title={translate('common.members')}
@@ -355,7 +359,7 @@ export default function WorkspaceMembersTable({
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <Table.FilterBar label={translate('workspace.people.findMember')} />
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />

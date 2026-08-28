@@ -109,7 +109,8 @@ describe('BaseConnectToQuickbooksOnlineFlow', () => {
 
     it.each([
         ['QuickBooks Online in development', false, CONST.ENVIRONMENT.DEV, false],
-        ['Intuit Enterprise Suite outside development', true, CONST.ENVIRONMENT.PRODUCTION, false],
+        ['QuickBooks Online on staging', false, CONST.ENVIRONMENT.STAGING, false],
+        ['Intuit Enterprise Suite on production', true, CONST.ENVIRONMENT.PRODUCTION, false],
         ['Intuit Enterprise Suite reconnect after an authentication error', true, CONST.ENVIRONMENT.DEV, true],
     ])('connects to production immediately for %s', async (_caseName, isIntuitEnterpriseSuite, environment, isAuthError) => {
         setEnvironment(environment);
@@ -125,9 +126,22 @@ describe('BaseConnectToQuickbooksOnlineFlow', () => {
     });
 
     it.each([
+        ['development', CONST.ENVIRONMENT.DEV],
+        ['staging', CONST.ENVIRONMENT.STAGING],
+    ])('shows the connection options for Intuit Enterprise Suite on %s', async (_environmentName, environment) => {
+        setEnvironment(environment);
+        renderFlow({isIntuitEnterpriseSuite: true});
+
+        await waitFor(() => {
+            expect(mockPopoverMenu).toHaveBeenCalled();
+        });
+    });
+
+    it.each([
         ['production', 0, false],
         ['sandbox', 1, true],
-    ])('connects to %s once when selected for Intuit Enterprise Suite in development', async (_connectionName, itemIndex, isSandbox) => {
+    ])('connects to %s once when selected for Intuit Enterprise Suite on staging', async (_connectionName, itemIndex, isSandbox) => {
+        setEnvironment(CONST.ENVIRONMENT.STAGING);
         const onConnect = renderFlow({isIntuitEnterpriseSuite: true});
 
         await waitFor(() => {

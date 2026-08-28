@@ -124,7 +124,7 @@ const hasAccountingFeatureConnectionMock = jest.mocked(PolicyUtils.hasAccounting
 const useIsUberConnectedMock = jest.mocked(useIsPolicyConnectedToUberReceiptPartner);
 
 const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => undefined);
-const navigateToConciergeChatSpy = jest.spyOn(ReportActions, 'navigateToConciergeChat').mockImplementation(() => undefined);
+const navigateToConciergeChatSpy = jest.spyOn(ReportActions, 'navigateToConciergeChat').mockImplementation(() => Promise.resolve());
 
 function escapeRegExp(value: string): string {
     return value.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');

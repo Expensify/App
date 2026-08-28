@@ -32,7 +32,8 @@ export default function createRandomPolicy(index: number, type?: ValueOf<typeof 
         avatarURL: randAvatar(),
         isFromFullPolicy: randBoolean(),
         lastModified: randPastDate().toISOString(),
-        pendingAction: rand(Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
+        // Exclude DELETE from the random default: a policy pending deletion blocks report state transitions.
+        pendingAction: rand(Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION).filter((action) => action !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)),
         errors: {},
         customUnits: {},
         errorFields: {},

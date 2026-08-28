@@ -27,12 +27,12 @@ import React from 'react';
 
 import type {RecentlyAddedExpense} from './useRecentlyAddedData';
 
-import EmptyState from './EmptyState';
+import RecentlyAddedPlaceholder from './RecentlyAddedPlaceholder';
 import RecentlyAddedRow from './RecentlyAddedRow';
 import {useRecentlyAddedData} from './useRecentlyAddedData';
 
 function RecentlyAddedSection() {
-    const {transactions} = useRecentlyAddedData();
+    const {transactions, isAwaitingFirstResult} = useRecentlyAddedData();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -45,6 +45,8 @@ function RecentlyAddedSection() {
     const personalDetails = usePersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     const hasExpenses = transactions.length > 0;
@@ -55,7 +57,7 @@ function RecentlyAddedSection() {
         // resolving every sibling up front would create a thread for each multi-expense sibling on a single tap.
         // Instead, seed the cheap snapshot-derived descriptors and let the carousel resolve each sibling lazily,
         // one at a time, only when the user actually navigates to it.
-        const resolveContext = {introSelected, betas, currentUserEmail, currentUserAccountID, personalDetails};
+        const resolveContext = {introSelected, betas, conciergeChat, currentUserEmail, currentUserAccountID, personalDetails};
         const reportID = getReportIDToOpenForExpense(expense, resolveContext);
 
         const siblingTransactionIDs = transactions.map((sibling) => sibling.transactionID);
@@ -112,7 +114,9 @@ function RecentlyAddedSection() {
         <WidgetContainer
             title={translate('homePage.recentlyAddedSection.title')}
             titleRightContent={overflowMenu}
-            containerStyles={hasExpenses ? listBottomPadding : undefined}
+            // The skeleton stands in for the rows, so it needs their bottom padding to avoid a jump when they land.
+            // The empty state never had it, so it keeps its existing spacing.
+            containerStyles={hasExpenses || isAwaitingFirstResult ? listBottomPadding : undefined}
         >
             {hasExpenses ? (
                 transactions.map((expense, index) => (
@@ -126,7 +130,7 @@ function RecentlyAddedSection() {
                     />
                 ))
             ) : (
-                <EmptyState />
+                <RecentlyAddedPlaceholder shouldShowSkeleton={isAwaitingFirstResult} />
             )}
         </WidgetContainer>
     );

@@ -8,6 +8,7 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
 import useLocalize from '@hooks/useLocalize';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -69,6 +70,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
 
     const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const policyID = policy?.id;
 
     const [userSelectedFrequency, setUserSelectedFrequency] = useState<AutoReportingFrequencyKey | undefined>();
@@ -82,9 +84,9 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
         if (!policyID || !selectedFrequency) {
             return;
         }
-        setWorkspaceAutoReportingFrequency(policyID, selectedFrequency, policy?.autoReportingFrequency, policy?.harvesting);
+        setWorkspaceAutoReportingFrequency(policyID, selectedFrequency, policy?.autoReportingFrequency, policy?.harvesting, getReviewWorkspaceSettingsTaskCompletion());
         Navigation.goBack();
-    }, [policyID, policy?.autoReportingFrequency, policy?.harvesting, selectedFrequency]);
+    }, [policyID, policy?.autoReportingFrequency, policy?.harvesting, selectedFrequency, getReviewWorkspaceSettingsTaskCompletion]);
 
     const confirmButtonOptions = useMemo(
         () => ({

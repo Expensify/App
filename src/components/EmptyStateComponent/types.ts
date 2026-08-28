@@ -1,5 +1,6 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 
+import type CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ImageStyle} from 'expo-image';
@@ -16,11 +17,7 @@ type EmptyStateButton = {
     style?: StyleProp<ViewStyle>;
     innerStyles?: StyleProp<ViewStyle>;
     hoverStyles?: StyleProp<ViewStyle>;
-    dropDownOptions?: Array<
-        DropdownOption<
-            ValueOf<{readonly CREATE_NEW_EXPENSE: 'createNewExpense'; readonly TRACK_DISTANCE_EXPENSE: 'trackDistanceExpense'; readonly ADD_EXISTING_EXPENSE: 'addExistingExpense'}>
-        >
-    >;
+    dropDownOptions?: Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>>;
 };
 
 type EmptyStateComponentProps = {

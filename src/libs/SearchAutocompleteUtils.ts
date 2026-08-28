@@ -10,7 +10,7 @@ import type {SharedValue} from 'react-native-reanimated/lib/typescript/commonTyp
 
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
-import {getUserFriendlyValue, sanitizeSearchValue, stripSearchValueQuotes} from './SearchQueryUtils';
+import {getUserFriendlyValue} from './SearchQueryUtils';
 
 /**
  * Parses given query using the autocomplete parser.
@@ -23,20 +23,6 @@ function parseForAutocomplete(text: string) {
     } catch (e) {
         console.error(`Error when parsing autocomplete query"`, e);
     }
-}
-
-/**
- * Returns a value that survives a round trip through the parser under the given filter key. Quotes are only dropped
- * when the value cannot be read back as one value, because `from` and the other name filters carry them fine while
- * `workspace` and `in` do not. Only safe for a value that is swapped for an ID before the query is sent.
- */
-function getParsableSearchValue(filterKey: string, value: string) {
-    const ranges = parseForAutocomplete(`${filterKey}:${sanitizeSearchValue(value, true)}`)?.ranges ?? [];
-    if (ranges.length === 1 && ranges.at(0)?.value === value) {
-        return value;
-    }
-
-    return stripSearchValueQuotes(value);
 }
 
 /**
@@ -351,7 +337,6 @@ function getTrimmedUserSearchQueryPreservingComma(textInputValue: string, fieldK
 
 export {
     getAutocompleteCategories,
-    getParsableSearchValue,
     getAutocompleteQueryWithComma,
     getAutocompleteRecentCategories,
     getAutocompleteRecentTags,

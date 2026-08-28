@@ -608,7 +608,7 @@ describe('MoneyRequestView edit fields', () => {
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
                 reimbursable: false,
-                comment: {vendor: {externalID: 'v-1', isManuallySet: false}},
+                comment: {vendor: {externalID: 'v-1', wasManuallySet: false}},
             });
         });
         await waitForBatchedUpdatesWithAct();
@@ -639,7 +639,7 @@ describe('MoneyRequestView edit fields', () => {
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
                 reimbursable: false,
-                comment: {vendor: {externalID: 'xc1', isManuallySet: false}},
+                comment: {vendor: {externalID: 'xc1', wasManuallySet: false}},
             });
         });
         await waitForBatchedUpdatesWithAct();
@@ -672,7 +672,7 @@ describe('MoneyRequestView edit fields', () => {
             await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
                 reimbursable: false,
-                comment: {vendor: {externalID: 'stale-vendor-id', isManuallySet: false}},
+                comment: {vendor: {externalID: 'stale-vendor-id', wasManuallySet: false}},
             });
         });
         await waitForBatchedUpdatesWithAct();
@@ -709,7 +709,7 @@ describe('MoneyRequestView edit fields', () => {
                 // The vendor is gone from every synced list (e.g. it went inactive in Intacct), but its
                 // display name was persisted on the transaction at match/assign time, so the title must
                 // render the name — not the raw externalID.
-                comment: {vendor: {externalID: 'stale-vendor-id', name: 'Amazon', isManuallySet: false}},
+                comment: {vendor: {externalID: 'stale-vendor-id', name: 'Amazon', wasManuallySet: false}},
             });
         });
         await waitForBatchedUpdatesWithAct();
@@ -743,7 +743,7 @@ describe('MoneyRequestView edit fields', () => {
             await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
                 reimbursable: false,
-                comment: {vendor: {externalID: 'still-valid-vendor-id', isManuallySet: false}},
+                comment: {vendor: {externalID: 'still-valid-vendor-id', wasManuallySet: false}},
             });
         });
         await waitForBatchedUpdatesWithAct();
@@ -776,7 +776,7 @@ describe('MoneyRequestView edit fields', () => {
             await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
                 reimbursable: false,
-                comment: {vendor: {externalID: 'stale-vendor-id', isManuallySet: false}},
+                comment: {vendor: {externalID: 'stale-vendor-id', wasManuallySet: false}},
             });
         });
         await waitForBatchedUpdatesWithAct();

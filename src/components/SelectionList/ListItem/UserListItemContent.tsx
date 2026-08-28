@@ -3,7 +3,7 @@ import PolicyAvatar from '@components/Avatar/connected/PolicyAvatar';
 import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
-import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
+import {ListItemContext} from '@components/SelectionList/ListItemContext';
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import TextWithTooltip from '@components/TextWithTooltip';
 
@@ -52,7 +52,7 @@ type UserListItemContentProps<TItem extends ListItem> = {
 function UserListItemContent<TItem extends ListItem>({
     item,
     isFocused,
-    showTooltip,
+    showTooltip: shouldShowTooltip,
     isDisabled,
     shouldDisableHoverStyle,
     shouldDisableAccessibleGrouping,
@@ -134,23 +134,23 @@ function UserListItemContent<TItem extends ListItem>({
             role={shouldDisableAccessibleGrouping ? CONST.ROLE.BUTTON : undefined}
             style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
         >
-            {!!avatar && <AvatarTooltipsProvider isEnabled={showTooltip}>{avatar}</AvatarTooltipsProvider>}
+            {!!avatar && <AvatarTooltipsProvider isEnabled={shouldShowTooltip}>{avatar}</AvatarTooltipsProvider>}
             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
                 <TextWithTooltip
-                    shouldShowTooltip={showTooltip}
+                    shouldShowTooltip={shouldShowTooltip}
                     text={Str.isSMSLogin(item.text ?? '') ? formatPhoneNumber(item.text ?? '') : (item.text ?? '')}
                     style={[styles.optionDisplayName, styles.sidebarLinkText, item.isBold !== false && styles.sidebarLinkTextBold, styles.pre, item.alternateText ? styles.mb1 : null]}
                 />
                 {!!item.alternateText && (
                     <TextWithTooltip
-                        shouldShowTooltip={showTooltip}
+                        shouldShowTooltip={shouldShowTooltip}
                         text={Str.isSMSLogin(item.alternateText ?? '') ? formatPhoneNumber(item.alternateText ?? '') : (item.alternateText ?? '')}
                         style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                         forwardedFSClass={forwardedFSClass}
                     />
                 )}
             </View>
-            {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
+            {!!item.rightElement && <ListItemContext.Provider value={{isFocused, shouldShowTooltip}}>{item.rightElement}</ListItemContext.Provider>}
             {!!item.shouldShowRightCaret && (
                 <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, isDisabled && styles.cursorDisabled]}>
                     <Icon

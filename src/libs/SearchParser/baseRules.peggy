@@ -198,7 +198,11 @@ filterOperator
       return o;
   }
 
-alphanumeric "word" = chars:[^ ,\t\n\r\xA0]+ { return chars.join("").trim(); } //handle no-breaking space
+// A backslash only escapes the characters the grammar would otherwise consume. Anything else keeps the backslash
+// as a literal, so values already persisted in saved searches and shared URLs still parse the way they used to.
+escapedChar = "\\" c:[,"”“\\] { return c; }
+
+alphanumeric "word" = chars:(escapedChar / [^ ,\t\n\r\xA0])+ { return chars.join("").trim(); } //handle no-breaking space
 
 logicalAnd = _ { 
   isColumnsContext = false;
@@ -213,13 +217,14 @@ quotedString
   / simpleQuotedString
 
 simpleQuotedString "quote"
-  = start:[^ ,"”“\t\n\r\xA0]* ("“" / "\"" / "”") inner:[^"”“\r\n]* ("“" / "\"" / "”") end:[^ ,\t\n\r\xA0]* { //handle no-breaking space
+  = start:[^ ,"”“\t\n\r\xA0]* ("“" / "\"" / "”") inner:(escapedChar / [^"”“\r\n])* ("“" / "\"" / "”") end:[^ ,\t\n\r\xA0]* { //handle no-breaking space
       return [...start, '"', ...inner, '"', ...end].join("");
     }
 
 nestedQuotedString "quote"
   = start:[^ ,"”“\t\n\r\xA0]* ("“" / "\"" / "”")    // Opening quote
-    inner:([^"”“\r\n]
+    inner:(escapedChar
+    / [^"”“\r\n]
     / (!closingQuote "“" {return "“"}) / (!closingQuote "”" {return "”"}) / (!closingQuote "\"" {return "\""} )
     )*                                              // Allow anything inside, but exclude true closing quotes
     end:closingQuote                                // Detect the actual closing quote

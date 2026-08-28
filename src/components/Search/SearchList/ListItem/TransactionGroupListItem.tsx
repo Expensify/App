@@ -165,7 +165,6 @@ function TransactionGroupListItemImpl({
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
-            isOffline,
         });
     };
 
@@ -181,7 +180,6 @@ function TransactionGroupListItemImpl({
             offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
-            isOffline,
         });
     };
 
@@ -222,9 +220,8 @@ function TransactionGroupListItemImpl({
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
-            isOffline,
         });
-    }, [newTransactionID, isExpanded, groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading]);
+    }, [newTransactionID, isExpanded, groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.isLoading]);
 
     const wasScreenFocusedRef = useRef(isScreenFocused);
     useEffect(() => {
@@ -246,9 +243,8 @@ function TransactionGroupListItemImpl({
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
-            isOffline,
         });
-    }, [isScreenFocused, isExpanded, isExpenseReportType, groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading]);
+    }, [isScreenFocused, isExpanded, isExpenseReportType, groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.isLoading]);
 
     const handleToggle = () => {
         setIsExpanded((prev) => {

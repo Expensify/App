@@ -273,6 +273,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 icon: expensifyIcons.Trashcan,
                 text: translate('workspace.perDiem.deleteRates', {count: selectedSubRateKeys.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     const {action} = await showConfirmModal({
                         title: translate('workspace.perDiem.deletePerDiemRate'),
@@ -412,16 +413,14 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     />
                 )}
                 {!isLoading && (
-                    <>
-                        {hasVisibleSubRates && subtitleContent}
-                        <WorkspacePerDiemTable
-                            perDiemData={perDiemRows}
-                            selectionEnabled={canWritePerDiem}
-                            selectedKeys={selectedSubRateKeys}
-                            onRowSelectionChange={setSelectedSubRateKeys}
-                            emptyState={emptyState}
-                        />
-                    </>
+                    <WorkspacePerDiemTable
+                        perDiemData={perDiemRows}
+                        selectionEnabled={canWritePerDiem}
+                        selectedKeys={selectedSubRateKeys}
+                        onRowSelectionChange={setSelectedSubRateKeys}
+                        headerComponent={hasVisibleSubRates ? subtitleContent : undefined}
+                        emptyState={emptyState}
+                    />
                 )}
                 <DecisionModal
                     title={translate('common.downloadFailedTitle')}

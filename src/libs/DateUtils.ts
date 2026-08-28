@@ -419,6 +419,26 @@ function formatToLongDateWithWeekday(datetime: string | Date, locale: Locale): s
     return formatIntl(locale, 'FULL_DATE', toLocalDate(datetime));
 }
 
+/** @returns Sunday, July 9 (en) / domingo, 9 de julio (es) */
+function formatToLongDateWithWeekdayWithoutYear(datetime: Date | string, locale: Locale): string {
+    return formatIntl(locale, 'WEEKDAY_LONG_MONTH_DAY', toLocalDate(datetime));
+}
+
+/**
+ * The greeting key for an already timezone-adjusted date.
+ * Ranges: morning 4am to 12pm, afternoon 12pm to 5pm, evening 5pm to 4am.
+ */
+function getTimeOfDayGreetingKey(date: Date): 'goodMorning' | 'goodAfternoon' | 'goodEvening' {
+    const hour = date.getHours();
+    if (hour >= 4 && hour < 12) {
+        return 'goodMorning';
+    }
+    if (hour >= 12 && hour < 17) {
+        return 'goodAfternoon';
+    }
+    return 'goodEvening';
+}
+
 /** @returns Sunday (en) / domingo (es) */
 function formatToDayOfWeek(datetime: Date, locale: Locale): string {
     return formatIntl(locale, 'LONG_WEEKDAY', datetime);
@@ -1452,6 +1472,10 @@ function formatInTimeZoneWithFallback(date: Date | string | number, timeZone: st
 }
 
 /**
+ * param {SelectedTimezone} timeZone - also decides the marker
+ * returns {string} example: 11:10 PM
+ */
+/**
  * Converts a UTC datetime string to a date string (yyyy-MM-dd) in the target timezone.
  * @param utcDateTime - Datetime string in UTC format (yyyy-MM-dd HH:mm:ss or yyyy-MM-dd HH:mm:ss.SSS)
  * @param timeZone - Target timezone to display the date in
@@ -1561,6 +1585,25 @@ function isDateStringInMonth(dateString: string, year: number, month: number): b
     return datePart >= monthStart && datePart <= monthEnd;
 }
 
+/** Returns a month label, e.g. "September 2025". */
+function getFormattedMonthForSearch(year: number, month: number, locale: Locale): string {
+    return formatIntl(locale, 'LONG_MONTH_YEAR', new Date(year, month - 1, 1));
+}
+
+/**
+ * Not `Intl` with `{year: '2-digit'}`: ja and zh-hans return "25年", and the apostrophe would then render "’25年".
+ * The abbreviation is a typographic convention over plain digits, which every shipped locale writes the same way.
+ */
+function getShortYearSuffix(date: Date): string {
+    return `’${String(date.getFullYear()).slice(-2)}`;
+}
+
+/** Returns a compact month label, e.g. "Sep ’25". */
+function getShortFormattedMonthForSearch(year: number, month: number, locale: Locale): string {
+    const date = new Date(year, month - 1, 1);
+    return joinRange(formatIntl(locale, 'SHORT_MONTH', date), getShortYearSuffix(date), ' ');
+}
+
 /**
  * Returns a formatted date range.
  */
@@ -1575,6 +1618,22 @@ function getFormattedDateRangeForSearch(startDate: string, endDate: string, shou
         endFormat = 'MONTH_DAY';
     }
     return joinRange(formatIntl(locale, startFormat, start), formatIntl(locale, endFormat, end), ' - ');
+}
+
+/** Returns a compact date range, e.g. "Sep 1 - 7, ’25". */
+function getShortFormattedDateRangeForSearch(startDate: string, endDate: string, locale: Locale): string {
+    const start = parse(startDate, 'yyyy-MM-dd', new Date());
+    const end = parse(endDate, 'yyyy-MM-dd', new Date());
+    if (!isSameYear(start, end)) {
+        const startWithYear = joinRange(formatIntl(locale, 'MONTH_DAY', start), getShortYearSuffix(start), ', ');
+        return joinRange(startWithYear, joinRange(formatIntl(locale, 'MONTH_DAY', end), getShortYearSuffix(end), ', '), ' - ');
+    }
+    // Same shared-month placement as `getFormattedDateRange`, so the compact label is not month-first in a day-first locale.
+    const isDayFirst = isDayBeforeMonth(locale);
+    const sharesMonth = isSameMonth(start, end);
+    const startPart = sharesMonth && isDayFirst ? formatIntl(locale, 'DAY_ONLY', start) : formatIntl(locale, 'MONTH_DAY', start);
+    const endPart = sharesMonth && !isDayFirst ? formatIntl(locale, 'DAY_ONLY', end) : formatIntl(locale, 'MONTH_DAY', end);
+    return joinRange(joinRange(startPart, endPart, ' - '), getShortYearSuffix(end), ', ');
 }
 
 function getYearDateRange(year: number): {start: string; end: string} {
@@ -1616,6 +1675,13 @@ function isDate(arg: unknown): arg is Date {
     return Object.prototype.toString.call(arg) === '[object Date]';
 }
 
+/**
+ * Returns a compact quarter label, e.g. "Q3 ’25".
+ */
+function getShortFormattedQuarterForSearch(year: number, quarter: number): string {
+    return `Q${quarter} ${getShortYearSuffix(new Date(year, 0, 1))}`;
+}
+
 function getNextNthOfMonth(nth: number) {
     const now = new Date();
     const year = now.getFullYear();
@@ -1642,6 +1708,8 @@ registerDerivedIntlCache(() => {
 const DateUtils = {
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
+    formatToLongDateWithWeekdayWithoutYear,
+    getTimeOfDayGreetingKey,
     formatToLocalTime,
     formatToLongMonth,
     formatToReadableString,
@@ -1722,10 +1790,14 @@ const DateUtils = {
     getMonthDateRange,
     getWeekDateRange,
     isDateStringInMonth,
+    getFormattedMonthForSearch,
+    getShortFormattedMonthForSearch,
     getFormattedDateRangeForSearch,
+    getShortFormattedDateRangeForSearch,
     getYearDateRange,
     getQuarterDateRange,
     getFormattedQuarterForSearch,
+    getShortFormattedQuarterForSearch,
     getNextNthOfMonth,
 };
 

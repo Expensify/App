@@ -100,6 +100,14 @@ function renderAvatar(props: React.ComponentProps<typeof Avatar>) {
     );
 }
 
+function renderUserAvatar(props: React.ComponentProps<typeof UserAvatar>) {
+    return render(
+        <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider]}>
+            <UserAvatar {...props} />
+        </ComposeProviders>,
+    );
+}
+
 describe('Avatar', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -108,10 +116,9 @@ describe('Avatar', () => {
 
     describe('user avatar', () => {
         it('renders the Image branch for an uploaded URL source', async () => {
-            renderAvatar({
-                type: CONST.ICON_TYPE_AVATAR,
+            renderUserAvatar({
                 source: UPLOADED_AVATAR_URL,
-                avatarID: 1,
+                accountID: 1,
             });
 
             await waitForBatchedUpdates();
@@ -123,10 +130,9 @@ describe('Avatar', () => {
         });
 
         it('renders the Icon branch for a default catalog avatar URL', async () => {
-            renderAvatar({
-                type: CONST.ICON_TYPE_AVATAR,
+            renderUserAvatar({
                 source: DEFAULT_AVATAR_URL,
-                avatarID: 1,
+                accountID: 1,
             });
 
             await waitForBatchedUpdates();
@@ -136,9 +142,8 @@ describe('Avatar', () => {
         });
 
         it('renders the fallback Icon when no source is provided', async () => {
-            renderAvatar({
-                type: CONST.ICON_TYPE_AVATAR,
-                avatarID: 1,
+            renderUserAvatar({
+                accountID: 1,
             });
 
             await waitForBatchedUpdates();
@@ -148,10 +153,9 @@ describe('Avatar', () => {
         });
 
         it('switches from the Image branch to the fallback Icon when the image fails to load', async () => {
-            renderAvatar({
-                type: CONST.ICON_TYPE_AVATAR,
+            renderUserAvatar({
                 source: UPLOADED_AVATAR_URL,
-                avatarID: 1,
+                accountID: 1,
             });
 
             await waitForBatchedUpdates();
@@ -168,9 +172,8 @@ describe('Avatar', () => {
         });
 
         it('renders the custom fallback Icon when no source is provided', async () => {
-            renderAvatar({
-                type: CONST.ICON_TYPE_AVATAR,
-                avatarID: 1,
+            renderUserAvatar({
+                accountID: 1,
                 fallbackIcon: CustomFallbackIcon,
                 fallbackIconTestID: CUSTOM_FALLBACK_ICON_TEST_ID,
             });
@@ -183,10 +186,9 @@ describe('Avatar', () => {
         });
 
         it('switches from the Image branch to the custom fallback Icon when the image fails to load', async () => {
-            renderAvatar({
-                type: CONST.ICON_TYPE_AVATAR,
+            renderUserAvatar({
                 source: UPLOADED_AVATAR_URL,
-                avatarID: 1,
+                accountID: 1,
                 fallbackIcon: CustomFallbackIcon,
                 fallbackIconTestID: CUSTOM_FALLBACK_ICON_TEST_ID,
             });
@@ -207,10 +209,9 @@ describe('Avatar', () => {
         });
 
         it('renders locally drawn initials for a generated letter-avatar URL instead of fetching the image', async () => {
-            renderAvatar({
-                type: CONST.ICON_TYPE_AVATAR,
+            renderUserAvatar({
                 source: LETTER_AVATAR_URL,
-                avatarID: 1,
+                accountID: 1,
             });
 
             await waitForBatchedUpdates();
@@ -221,10 +222,9 @@ describe('Avatar', () => {
         });
 
         it('renders locally drawn initials for the small-size (_128) letter-avatar URL variant', async () => {
-            renderAvatar({
-                type: CONST.ICON_TYPE_AVATAR,
+            renderUserAvatar({
                 source: SMALL_LETTER_AVATAR_URL,
-                avatarID: 1,
+                accountID: 1,
             });
 
             await waitForBatchedUpdates();
@@ -304,15 +304,12 @@ describe('Avatar', () => {
     });
 
     describe('UserAvatar and WorkspaceAvatar', () => {
-        it('UserAvatar renders the same as the back-compat default for user avatars', async () => {
-            render(
-                <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider]}>
-                    <UserAvatar
-                        source={UPLOADED_AVATAR_URL}
-                        accountID={1}
-                    />
-                </ComposeProviders>,
-            );
+        it('the back-compat facade renders the user branch the same as UserAvatar', async () => {
+            renderAvatar({
+                type: CONST.ICON_TYPE_AVATAR,
+                source: UPLOADED_AVATAR_URL,
+                avatarID: 1,
+            });
 
             await waitForBatchedUpdates();
 

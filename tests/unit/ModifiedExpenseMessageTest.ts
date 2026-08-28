@@ -2313,7 +2313,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                     originalMessage: {
-                        vendor: {externalID: 'v-acme', isManuallySet: true},
+                        vendor: {externalID: 'v-acme', wasManuallySet: true},
                     },
                 };
 
@@ -2335,8 +2335,8 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                     originalMessage: {
-                        oldVendor: {externalID: 'v-acme', isManuallySet: false},
-                        vendor: {externalID: 'v-office', isManuallySet: true},
+                        oldVendor: {externalID: 'v-acme', wasManuallySet: false},
+                        vendor: {externalID: 'v-office', wasManuallySet: true},
                     },
                 };
 
@@ -2358,7 +2358,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                     originalMessage: {
-                        oldVendor: {externalID: 'v-acme', isManuallySet: true},
+                        oldVendor: {externalID: 'v-acme', wasManuallySet: true},
                     },
                 };
 
@@ -2380,7 +2380,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                     originalMessage: {
-                        vendor: {externalID: 'v-deleted', isManuallySet: false},
+                        vendor: {externalID: 'v-deleted', wasManuallySet: false},
                     },
                 };
 
@@ -2402,7 +2402,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                     originalMessage: {
-                        vendor: {externalID: 'v-deleted', name: 'Amazon', isManuallySet: false},
+                        vendor: {externalID: 'v-deleted', name: 'Amazon', wasManuallySet: false},
                     },
                 };
 
@@ -2449,7 +2449,7 @@ describe('ModifiedExpenseMessage', () => {
                         ...createRandomReportAction(1),
                         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                         originalMessage: {
-                            vendor: {externalID: 'xcAcme', isManuallySet: true},
+                            vendor: {externalID: 'xcAcme', wasManuallySet: true},
                         },
                     };
                     const result = getForReportAction({
@@ -2468,8 +2468,8 @@ describe('ModifiedExpenseMessage', () => {
                         ...createRandomReportAction(1),
                         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                         originalMessage: {
-                            oldVendor: {externalID: 'xcAcme', isManuallySet: false},
-                            vendor: {externalID: 'xcOffice', isManuallySet: true},
+                            oldVendor: {externalID: 'xcAcme', wasManuallySet: false},
+                            vendor: {externalID: 'xcOffice', wasManuallySet: true},
                         },
                     };
                     const result = getForReportAction({
@@ -2488,7 +2488,7 @@ describe('ModifiedExpenseMessage', () => {
                         ...createRandomReportAction(1),
                         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                         originalMessage: {
-                            vendor: {externalID: 'xcDeleted', isManuallySet: false},
+                            vendor: {externalID: 'xcDeleted', wasManuallySet: false},
                         },
                     };
                     const result = getForReportAction({

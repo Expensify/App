@@ -8,7 +8,6 @@ import android.app.Application
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.database.CursorWindow
-import android.os.Build
 import android.os.Bundle
 import android.os.Process
 import androidx.multidex.MultiDexApplication
@@ -54,13 +53,6 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         // here so Plaid can render in whichever orientation the device is actually in.
         registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    activity.setRecentsScreenshotEnabled(false)
-                    // Third-party activities (e.g. Plaid) don't set our TaskDescription, so their recents fallback card would be black.
-                    if (!activity.javaClass.name.startsWith("com.expensify.")) {
-                        MainActivity.applyTaskDescription(activity)
-                    }
-                }
                 if (activity.javaClass.name == "com.plaid.internal.link.LinkActivity") {
                     activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
                 }

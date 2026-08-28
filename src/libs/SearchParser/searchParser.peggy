@@ -219,7 +219,7 @@ defaultFilter
     }
 
 freeTextFilter
-  = _ value:(quotedString / [^ \t\r\n\xA0]+) _ {
+  = _ value:(quotedString / (escapedChar / [^ \t\r\n\xA0])+) _ {
       //handle no-breaking space
       let word;
       if (Array.isArray(value)) {

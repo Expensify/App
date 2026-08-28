@@ -63,13 +63,13 @@ const buildQBOWithVendorBillExportPolicy = (vendors: Array<{id: string; name: st
     });
 
 /** Xero policy whose supplier list scopes vendor matching to Xero (label flips vendor -> supplier). */
-const buildXeroPolicy = (contacts: Record<string, {id: string; name: string; email: string}>): Policy =>
+const buildXeroPolicy = (contacts: Record<string, {id: string; name: string; email: string}> | undefined): Policy =>
     createMock<Policy>({
         ...createRandomPolicy(0),
         connections: createMock<Connections>({
             [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
                 config: {isConfigured: true},
-                data: {contacts},
+                data: contacts === undefined ? {} : {contacts},
             },
         }),
     });
@@ -147,9 +147,16 @@ describe('Vendor matching on merchant rules', () => {
             expect(buildTableData(policy).at(0)?.ruleDescription).toContain('Update vendor to "Vendor unavailable"');
         });
 
-        it('falls back to the raw external ID while the list is not yet loaded', () => {
+        it('preserves the raw external ID while the active vendor list is not hydrated', () => {
             const policy = withCodingRules(buildQBOPolicy(undefined), {rule1: buildVendorRule('v-1')});
             expect(buildTableData(policy).at(0)?.ruleDescription).toContain('Update vendor to "v-1"');
+        });
+
+        it('renders "Vendor unavailable" when no matching integration remains', () => {
+            const policy = withCodingRules(createRandomPolicy(0), {rule1: buildVendorRule('v-1')});
+            const description = buildTableData(policy).at(0)?.ruleDescription;
+            expect(description).toContain('Update vendor to "Vendor unavailable"');
+            expect(description).not.toContain('"v-1"');
         });
 
         it('shows "Vendor unavailable" when the vendorID only resolves against a stale/inactive connection', () => {
@@ -179,6 +186,9 @@ describe('Vendor matching on merchant rules', () => {
 
             const missing = withCodingRules(buildXeroPolicy({}), {rule1: buildVendorRule('xc1')});
             expect(buildTableData(missing).at(0)?.ruleDescription).toContain('Update supplier to "Supplier unavailable"');
+
+            const pendingHydration = withCodingRules(buildXeroPolicy(undefined), {rule1: buildVendorRule('xc1')});
+            expect(buildTableData(pendingHydration).at(0)?.ruleDescription).toContain('Update supplier to "xc1"');
         });
     });
 
@@ -207,8 +217,14 @@ describe('Vendor matching on merchant rules', () => {
             expect(describeRule(buildQBOPolicy([]), 'v-1')).toContain('Update vendor to "Vendor unavailable"');
         });
 
-        it('falls back to the raw external ID while the list is not yet loaded and no other connection knows the vendor', () => {
+        it('preserves the raw external ID while the active vendor list is not hydrated', () => {
             expect(describeRule(buildQBOPolicy(undefined), 'v-1')).toContain('Update vendor to "v-1"');
+        });
+
+        it('renders "Vendor unavailable" when no matching integration remains', () => {
+            const description = describeRule(createRandomPolicy(0), 'v-1');
+            expect(description).toContain('Update vendor to "Vendor unavailable"');
+            expect(description).not.toContain('"v-1"');
         });
 
         it('resolves the historical vendor name when the workspace has switched its export mode away from vendor-matching mode', () => {
@@ -229,6 +245,9 @@ describe('Vendor matching on merchant rules', () => {
 
             const missing = buildXeroPolicy({});
             expect(describeRule(missing, 'xc1')).toContain('Update supplier to "Supplier unavailable"');
+
+            const pendingHydration = buildXeroPolicy(undefined);
+            expect(describeRule(pendingHydration, 'xc1')).toContain('Update supplier to "xc1"');
         });
     });
 

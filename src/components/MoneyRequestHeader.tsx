@@ -17,6 +17,7 @@ import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils
 import {isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {isSelfDM, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import {
+    getBrokenConnectionViolation,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate as isDuplicateTransactionUtils,
     isOnHold as isOnHoldTransactionUtils,
@@ -128,12 +129,14 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
             return {icon: getStatusIcon(icons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
         }
         if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
-            const brokenConnectionError = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);
+            const brokenConnectionError = getBrokenConnectionViolation(transactionViolations);
             const cardID = brokenConnectionError?.data?.cardID;
             const card = cardID ? cardList?.[cardID] : undefined;
-            const isBrokenPersonalCard = isPersonalCard(card);
 
-            if (isBrokenPersonalCard && brokenConnectionError) {
+            // Only suppress the status bar for a personal card the current user actually holds. A company card the
+            // viewer doesn't own resolves to `undefined` here (it isn't in their cardList), and must still surface
+            // the broken/re-auth status to admins and approvers.
+            if (!!card && isPersonalCard(card) && brokenConnectionError) {
                 return undefined;
             }
             return {

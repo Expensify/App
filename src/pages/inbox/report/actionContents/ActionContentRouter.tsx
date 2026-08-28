@@ -69,6 +69,7 @@ import ChatTransactionPreview from './ChatTransactionPreview';
 import ConciergeAutoMatchVendorContent from './ConciergeAutoMatchVendorContent';
 import ConfirmWhisperContent from './ConfirmWhisperContent';
 import FraudAlertContent from './FraudAlertContent';
+import HomeAddressRequiredContent from './HomeAddressRequiredContent';
 import IntegrationMessage from './IntegrationMessage';
 import IntegrationSyncFailedMessage from './IntegrationSyncFailedMessage';
 import JoinRequestContent from './JoinRequestContent';
@@ -513,6 +514,9 @@ function ActionContentRouter({
                 <RenderHTML html={`<comment><muted-text>${getChangedApproverActionMessage(translate, action)}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>
         );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED)) {
+        return <HomeAddressRequiredContent action={action} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT)) {
         const delegateSubmitMessage = getDelegateSubmitMessage(translate, action, currentUserEmail);
