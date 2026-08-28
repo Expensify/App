@@ -1136,6 +1136,28 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
     });
 
+    it('treats a shift+click on a group header as an ordinary header click, reaching no group between it and the last one', async () => {
+        const {result} = renderSelection();
+
+        // Given two collapsed groups, where the headers are the only rows carrying a checkbox
+        await act(async () => {
+            result.current.toggle(earlierGroup, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[EARLIER_GROUP_KEY]?.isSelected).toBe(true);
+
+        // When the second header is shift+clicked
+        await act(async () => {
+            result.current.toggle(categoryGroup, [], true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then it selects itself and nothing spans between the two, which is what design settled on
+        expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions[EARLIER_GROUP_KEY]?.isSelected).toBe(true);
+        expect(Object.keys(result.current.selectedTransactions).sort()).toEqual([EARLIER_GROUP_KEY, GROUP_KEY].sort());
+    });
+
     it('leaves a select-all-matching selection alone when a shift+click lands in it, since narrowing it would need exclusions for rows never on screen', async () => {
         const {result} = renderSelection();
         const [firstChild, secondChild] = loadedChildren;
