@@ -2,12 +2,12 @@ import * as API from '@libs/API';
 import type {AddPersonalPlaidCardParams, ImportPlaidAccountsParams, OpenPlaidBankAccountSelectorParams, OpenPlaidBankLoginParams} from '@libs/API/parameters';
 import type OpenPlaidCompanyCardLoginParams from '@libs/API/parameters/OpenPlaidCompanyCardLoginParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getCompanyCardFeed} from '@libs/CardUtils';
+import {getCardFeedWithoutDomainID} from '@libs/CardUtils';
 import getPlaidLinkTokenParameters from '@libs/getPlaidLinkTokenParameters';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeedWithDomainID, CardFeedWithNumber, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
+import type {CardFeedWithNumber, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
 
 import Onyx from 'react-native-onyx';
 
@@ -70,7 +70,7 @@ function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: Card
         country,
         domain,
         isPersonal,
-        feed: feed ? getCompanyCardFeed(feed) : undefined,
+        feed: feed ? getCardFeedWithoutDomainID(feed) : undefined,
         cardID,
     };
 
@@ -144,7 +144,7 @@ function openPlaidBankAccountSelector(publicToken: string, bankName: string, all
 
 function importPlaidAccounts(
     publicToken: string,
-    feed: CardFeedWithNumber | CardFeedWithDomainID,
+    feed: string,
     feedName: string,
     country: string,
     domainName: string,
@@ -154,7 +154,7 @@ function importPlaidAccounts(
 ) {
     const parameters: ImportPlaidAccountsParams = {
         publicToken,
-        feed: getCompanyCardFeed(feed),
+        feed: getCardFeedWithoutDomainID(feed),
         feedName,
         country,
         domainName,

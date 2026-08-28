@@ -1,5 +1,6 @@
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 
+import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -26,6 +27,12 @@ function AddExpenseActionButton() {
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const blockDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        policyID: policy?.id,
+        isDistanceRequest: true,
+        isManualDistanceRequest: lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+        isOdometerDistanceRequest: lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+    });
 
     return (
         <ButtonWithDropdownMenu
@@ -46,6 +53,7 @@ function AddExpenseActionButton() {
                 unreportedExpenseBackToReport: iouReport?.parentReportID,
                 lastDistanceExpenseType,
                 currentUserAccountID: currentUserDetails.accountID,
+                blockDistanceRequestIfNeeded,
             })}
             isSplitButton={false}
             anchorAlignment={{

@@ -11,13 +11,14 @@ import useInternationalBankAccountFormSubmit from '@hooks/useInternationalBankAc
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useShouldCollectInternationalDepositDetails from '@hooks/useShouldCollectInternationalDepositDetails';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
 
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
-import {getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
+import {getAccountDetailsFieldsMap, getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 
 import {fetchCorpayFields} from '@userActions/BankAccounts';
 
@@ -33,9 +34,11 @@ function BankAccountDetails({isEditing, onNext, onMove, formValues, fieldsMap}: 
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
+    const shouldCollectInternationalDepositDetails = useShouldCollectInternationalDepositDetails(formValues.bankCountry);
+    const accountDetailsFields = getAccountDetailsFieldsMap(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS], shouldCollectInternationalDepositDetails);
 
     const handleSubmit = useInternationalBankAccountFormSubmit({
-        fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS] ?? {}),
+        fieldIds: Object.keys(accountDetailsFields),
         onNext,
         shouldSaveDraft: true,
     });
@@ -53,9 +56,9 @@ function BankAccountDetails({isEditing, onNext, onMove, formValues, fieldsMap}: 
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
-            return getValidationErrors(values, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS], translate);
+            return getValidationErrors(values, accountDetailsFields, translate);
         },
-        [fieldsMap, translate],
+        [accountDetailsFields, translate],
     );
     const icons = useMemoizedLazyExpensifyIcons(['QuestionMark']);
 
@@ -88,7 +91,7 @@ function BankAccountDetails({isEditing, onNext, onMove, formValues, fieldsMap}: 
                         shouldShowFullPageOfflineView
                     />
                 </View>
-                {Object.values(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS] ?? {}).map((field) => {
+                {Object.values(accountDetailsFields).map((field) => {
                     const isValuePicker = (field.valueSet ?? []).length > 0;
                     return (
                         <View

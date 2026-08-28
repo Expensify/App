@@ -1,5 +1,6 @@
 import EmptyStateComponent from '@components/EmptyStateComponent';
 
+import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -44,6 +45,12 @@ function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report:
     const isReportArchived = isArchivedReport(reportNameValuePairs);
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus']);
     const canAddTransactionToReport = canAddTransaction(report, isReportArchived);
+    const blockDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        policyID: policy?.id,
+        isDistanceRequest: true,
+        isManualDistanceRequest: lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+        isOdometerDistanceRequest: lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+    });
     const isReportTeachersUnite = isTeachersUniteReport(report);
     const addExpenseDropdownOptions = [
         // Teachers Unite doesn't support reimbursement, so "Create expense" and "Track distance" are hidden for those reports.
@@ -75,6 +82,9 @@ function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report:
                           }
                           if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
                               Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                              return;
+                          }
+                          if (blockDistanceRequestIfNeeded()) {
                               return;
                           }
                           startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportId, draftTransactionIDs, lastDistanceExpenseType);

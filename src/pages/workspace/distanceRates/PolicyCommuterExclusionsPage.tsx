@@ -6,8 +6,11 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import TextLink from '@components/TextLink';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -35,7 +38,10 @@ import {View} from 'react-native';
 
 type PolicyCommuterExclusionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_COMMUTER_EXCLUSIONS>;
 
-type ExclusionOptionKey = typeof CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED | typeof CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE;
+type ExclusionOptionKey =
+    | typeof CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED
+    | typeof CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE
+    | typeof CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
 
 type ExclusionOption = {
     text: string;
@@ -56,6 +62,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         selector: (policy) => ({
             commuterExclusions: policy?.commuterExclusions,
             unit: getDistanceRateCustomUnit(policy)?.attributes?.unit,
+            hasWorkspaceAddress: !!policy?.address?.addressStreet?.trim(),
             pendingFields: policy?.pendingFields,
             errorFields: policy?.errorFields,
         }),
@@ -65,9 +72,12 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
     const existingCommuterExclusions = policyData?.commuterExclusions;
     const existingMethod = existingCommuterExclusions?.method;
 
-    const [selectedKey, setSelectedKey] = useState<ExclusionOptionKey>(
-        existingMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE ? CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE : CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED,
-    );
+    const initialSelectedKey: ExclusionOptionKey =
+        existingMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE || existingMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE
+            ? existingMethod
+            : CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED;
+    const [selectedKey, setSelectedKey] = useState<ExclusionOptionKey>(initialSelectedKey);
+    const {showConfirmModal, closeModal} = useConfirmModal();
     const [fixedDistanceInput, setFixedDistanceInput] = useState<string>(() => (existingCommuterExclusions?.fixedDistance != null ? String(existingCommuterExclusions.fixedDistance) : ''));
     const [inlineError, setInlineError] = useState<string>('');
 
@@ -78,10 +88,31 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         Navigation.goBack(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID));
     };
 
+    const goToWorkspaceOverview = () => {
+        closeModal();
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
+    };
+
     const onSelectRow = (item: ExclusionOption) => {
         if (item.keyForList === selectedKey) {
             return;
         }
+        if (item.keyForList === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && !policyData?.hasWorkspaceAddress) {
+            showConfirmModal({
+                title: translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.title'),
+                prompt: (
+                    <Text>
+                        {translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.promptStart')}
+                        <TextLink onPress={goToWorkspaceOverview}>{translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.linkText')}</TextLink>
+                        {translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.promptEnd')}
+                    </Text>
+                ),
+                confirmText: translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.cta'),
+                shouldShowCancelButton: false,
+            });
+            return;
+        }
+
         setSelectedKey(item.keyForList);
         setInlineError('');
     };
@@ -91,6 +122,19 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
             if (existingMethod) {
                 disablePolicyCommuterExclusions(policyID, existingCommuterExclusions);
             }
+            goBackToSettings();
+            return;
+        }
+
+        if (selectedKey === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE) {
+            if (!policyData?.hasWorkspaceAddress) {
+                return;
+            }
+            if (existingMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE) {
+                goBackToSettings();
+                return;
+            }
+            setPolicyCommuterExclusions(policyID, CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE, undefined, undefined, existingCommuterExclusions);
             goBackToSettings();
             return;
         }
@@ -152,6 +196,12 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
             alternateText: translate('workspace.distanceRates.commuterExclusions.optionDisabledHelp'),
             keyForList: CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED,
             isSelected: selectedKey === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED,
+        },
+        {
+            text: translate('workspace.distanceRates.commuterExclusions.optionHomeAndOfficeTitle'),
+            alternateText: translate('workspace.distanceRates.commuterExclusions.optionHomeAndOfficeHelp'),
+            keyForList: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
+            isSelected: selectedKey === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
         },
         {
             text: translate('workspace.distanceRates.commuterExclusions.optionFixedDistanceTitle'),

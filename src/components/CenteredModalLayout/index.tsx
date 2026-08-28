@@ -35,7 +35,7 @@ type CenteredModalLayoutProps = {
 
     /**
      * Whether the content wrapper should apply the bottom safe-area inset. Disable it when the children
-     * already handle the inset themselves (e.g. FeatureTrainingContent with `shouldUseScrollView`, whose
+     * already handle the inset themselves (e.g. FeatureTraining with `shouldUseScrollView`, whose
      * ScrollView content padding includes it), otherwise the inset is applied twice and renders as an
      * empty band under the content on devices with a bottom inset.
      */

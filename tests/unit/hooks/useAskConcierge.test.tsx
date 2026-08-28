@@ -3,6 +3,7 @@ import {renderHook} from '@testing-library/react-native';
 import useAskConcierge from '@components/Search/SearchRouter/useAskConcierge';
 
 import {addAttachmentWithComment, addComment} from '@userActions/Report';
+import {createTaskFromMarkdown} from '@userActions/Task';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
@@ -32,7 +33,7 @@ jest.mock('@hooks/useOpenConciergeAnywhere', () => ({
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
-    default: () => ({accountID: 1, timezone: {selected: 'Europe/Warsaw'}}),
+    default: () => ({accountID: 1, timezone: {selected: 'Europe/Warsaw'}, login: 'user@domain.com', email: 'user@domain.com', displayName: 'User', avatar: undefined}),
 }));
 
 jest.mock('@hooks/useDelegateAccountID', () => ({
@@ -45,8 +46,13 @@ jest.mock('@userActions/Report', () => ({
     addAttachmentWithComment: jest.fn(),
 }));
 
+jest.mock('@userActions/Task', () => ({
+    createTaskFromMarkdown: jest.fn(() => false),
+}));
+
 const mockAddComment = jest.mocked(addComment);
 const mockAddAttachmentWithComment = jest.mocked(addAttachmentWithComment);
+const mockCreateTaskFromMarkdown = jest.mocked(createTaskFromMarkdown);
 
 const CONCIERGE_REPORT = {reportID: CONCIERGE_REPORT_ID, reportName: 'Concierge'} as Report;
 const ADMINS_ROOM_REPORT = {reportID: ADMINS_ROOM_REPORT_ID, reportName: '#admins'} as Report;
@@ -136,6 +142,37 @@ describe('useAskConcierge', () => {
                     conciergeReportID: CONCIERGE_REPORT_ID,
                 }),
             );
+        });
+
+        it('creates a task instead of a comment when the message uses the `[] task` shorthand', async () => {
+            // Given a loaded Concierge report and text that the markdown task detection claims
+            await seedReports();
+            mockCreateTaskFromMarkdown.mockReturnValueOnce(true);
+            const {result} = renderAskConcierge({forceConcierge: true});
+            expect(result.current.shouldShowAskConcierge).toBe(true);
+
+            // When the shorthand is sent
+            result.current.askConcierge('  [] Buy milk  ');
+
+            // Then Concierge is still opened, the detection gets the trimmed text and the target report,
+            // and the text is not also posted as a plain comment
+            expect(mockOpenConciergeAnywhere).toHaveBeenCalledWith({forceConcierge: true});
+            expect(mockCreateTaskFromMarkdown).toHaveBeenCalledWith(expect.objectContaining({text: '[] Buy milk', parentReport: CONCIERGE_REPORT}));
+            expect(mockAddComment).not.toHaveBeenCalled();
+        });
+
+        it('falls back to a comment when the text is not the task shorthand', async () => {
+            // Given a loaded Concierge report and text the markdown task detection does not claim
+            await seedReports();
+            const {result} = renderAskConcierge({forceConcierge: true});
+            expect(result.current.shouldShowAskConcierge).toBe(true);
+
+            // When a plain message is sent
+            result.current.askConcierge('Where is my expense?');
+
+            // Then it is sent as a comment
+            expect(mockCreateTaskFromMarkdown).toHaveBeenCalled();
+            expect(mockAddComment).toHaveBeenCalledWith(expect.objectContaining({text: 'Where is my expense?'}));
         });
 
         it('does nothing for a whitespace-only message', async () => {

@@ -56,6 +56,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
 
+import useCommuterExclusionGuard from './useCommuterExclusionGuard';
 import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -290,6 +291,12 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         }
     };
 
+    const blockDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        policyID: policy?.id,
+        isDistanceRequest: true,
+        isManualDistanceRequest: lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+        isOdometerDistanceRequest: lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+    });
     const addExpenseDropdownOptions = getAddExpenseDropdownOptions({
         translate,
         icons: useMemoizedLazyExpensifyIcons(['Plus', 'ReceiptPlus', 'Location', 'Feed', 'ArrowRight']),
@@ -301,6 +308,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         ownerBillingGracePeriodEnd,
         lastDistanceExpenseType,
         currentUserAccountID: accountID,
+        blockDistanceRequestIfNeeded,
     });
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([

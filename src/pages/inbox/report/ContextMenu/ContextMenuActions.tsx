@@ -183,6 +183,7 @@ import {
     getIOUReportActionDisplayMessage,
     getMovedActionMessage,
     getMovedTransactionMessage,
+    parseMovedTransactionReportIDs,
     getPolicyChangeLogCopyMessage,
     getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
@@ -1167,7 +1168,14 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
                     setClipboardMessage(Parser.htmlToText(getUpdatedOwnershipMessage(translate, reportAction, policy) ?? ''));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-                    setClipboardMessage(getUnreportedTransactionMessage(translate, reportAction, reportAttributes));
+                    const {fromReportID} = parseMovedTransactionReportIDs(reportAction);
+                    setClipboardMessage(
+                        getUnreportedTransactionMessage({
+                            translate,
+                            fromReportID,
+                            derivedReportName: fromReportID ? reportAttributes?.[fromReportID]?.reportName : undefined,
+                        }),
+                    );
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
                     Clipboard.setString(getMarkedReimbursedMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
@@ -1378,7 +1386,15 @@ const ContextMenuActions: ContextMenuAction[] = [
                 ) {
                     setClipboardMessage(getDelegateSubmitMessage(translate, reportAction, currentUserPersonalDetails.email));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
-                    setClipboardMessage(getMovedTransactionMessage(translate, reportAction, reportAttributes));
+                    const {fromReportID, toReportID, displayReportID} = parseMovedTransactionReportIDs(reportAction);
+                    setClipboardMessage(
+                        getMovedTransactionMessage({
+                            translate,
+                            fromReportID,
+                            toReportID,
+                            derivedReportName: displayReportID ? reportAttributes?.[displayReportID]?.reportName : undefined,
+                        }),
+                    );
                 } else if (isMovedAction(reportAction)) {
                     setClipboardMessage(getMovedActionMessage(translate, reportAction, originalReport));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT)) {

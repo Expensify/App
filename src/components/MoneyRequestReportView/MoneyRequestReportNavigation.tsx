@@ -3,7 +3,6 @@ import {useSearchResultsContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 
 import useFilterPendingDeleteReports from '@hooks/useFilterPendingDeleteReports';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSections from '@hooks/useSearchSections';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,7 +21,6 @@ import type LastSearchParams from '@src/types/onyx/ReportNavigation';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useIsFocused} from '@react-navigation/native';
 import React, {startTransition, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -115,8 +113,6 @@ function MoneyRequestReportNavigationStandalone({onReportsChange}: MoneyRequestR
 
 function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersion, contextReports}: MoneyRequestReportNavigationContentProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const isFocused = useIsFocused();
 
     // Lightweight subscriptions only: the current search query and its loading flag. These never mount
     // the heavy useSearchSections subscription set, so the fast context path stays cheap.
@@ -155,7 +151,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
     const shouldDisplayNavigationArrows = effectiveAllReports.length > 1 && currentIndex !== -1 && !!lastSearchQuery?.queryJSON;
 
     useEffect(() => {
-        if (!isFocused || !lastSearchQuery?.queryJSON) {
+        if (!lastSearchQuery?.queryJSON) {
             return;
         }
 
@@ -185,7 +181,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             ...lastSearchQuery,
             previousLengthOfResults: effectiveAllReports.length,
         });
-    }, [isFocused, currentIndex, allReportsCount, effectiveAllReports.length, lastSearchQuery?.queryJSON, lastSearchQuery]);
+    }, [currentIndex, allReportsCount, effectiveAllReports.length, lastSearchQuery?.queryJSON, lastSearchQuery]);
 
     const goToReportId = (reportId?: string) => {
         if (!reportId) {
@@ -246,11 +242,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             {!shouldUseContextReports && <MoneyRequestReportNavigationStandalone onReportsChange={setStandaloneReports} />}
             {shouldDisplayNavigationArrows && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                    {!shouldDisplayNarrowVersion && (
-                        <Text style={[styles.mutedTextLabel, styles.textAlignRight, styles.mnw8]}>
-                            {translate('common.currentOfTotal', {current: currentIndex + 1, total: allReportsCount})}
-                        </Text>
-                    )}
+                    {!shouldDisplayNarrowVersion && <Text style={styles.mutedTextLabel}>{`${currentIndex + 1} of ${allReportsCount}`}</Text>}
                     <PrevNextButtons
                         isPrevButtonDisabled={hidePrevButton}
                         isNextButtonDisabled={hideNextButton}

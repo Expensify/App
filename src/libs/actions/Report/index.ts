@@ -8651,6 +8651,11 @@ function mergeReports({
     });
 }
 
+/** Saves the message the user is typing into the Concierge prompt box on the home page. */
+function saveConciergePromptDraft(draft: string | null) {
+    Onyx.set(ONYXKEYS.CONCIERGE_PROMPT_DRAFT, draft);
+}
+
 export type {Video, GuidedSetupData, GuidedSetupTask, TaskForParameters, IntroSelected, OpenReportActionParams};
 
 export {
@@ -8777,4 +8782,5 @@ export {
     getGuidedSetupDataForOpenReport,
     getReportChannelName,
     setViewingPublicRoomReportID,
+    saveConciergePromptDraft,
 };

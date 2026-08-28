@@ -12,6 +12,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import React from 'react';
 import {View} from 'react-native';
 
+import FeatureTraining from './FeatureTraining';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
 import Text from './Text';
@@ -60,39 +61,42 @@ function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducatio
 
     return (
         <FeatureTrainingModal
-            title={translate('iou.reject.educationalTitle')}
-            description={translate('iou.reject.educationalText')}
-            confirmText={translate('common.buttonConfirm')}
-            image={illustrations.ModalHoldOrReject}
-            contentFitImage="cover"
             width={variables.holdEducationModalWidth}
-            illustrationAspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
-            contentInnerContainerStyles={styles.mb5}
             modalInnerContainerStyle={styles.pt0}
-            illustrationOuterContainerStyle={styles.p0}
             shouldCloseOnConfirm={false}
             onClose={onClose}
             onConfirm={onConfirm}
             shouldUseScrollView
         >
-            <>
-                {menuSections.map((section) => (
-                    <View
-                        key={section.titleTranslationKey}
-                        style={[styles.flexRow, styles.alignItemsStart, styles.mt5]}
-                    >
-                        <Icon
-                            width={variables.menuIconSize}
-                            height={variables.menuIconSize}
-                            src={section.icon}
-                            additionalStyles={[styles.mr4]}
-                        />
-                        <View style={[styles.mb1, styles.flex1]}>
-                            <Text style={[styles.textStrong]}>{translate(section.titleTranslationKey)}</Text>
+            <FeatureTraining.Illustration
+                image={illustrations.ModalHoldOrReject}
+                contentFitImage="cover"
+                aspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
+                outerContainerStyle={styles.p0}
+            />
+            <FeatureTraining.Body>
+                <FeatureTraining.BodyText style={styles.mb5}>
+                    <FeatureTraining.Title>{translate('iou.reject.educationalTitle')}</FeatureTraining.Title>
+                    <FeatureTraining.Description>{translate('iou.reject.educationalText')}</FeatureTraining.Description>
+                    {menuSections.map((section) => (
+                        <View
+                            key={section.titleTranslationKey}
+                            style={[styles.flexRow, styles.alignItemsStart, styles.mt5]}
+                        >
+                            <Icon
+                                width={variables.menuIconSize}
+                                height={variables.menuIconSize}
+                                src={section.icon}
+                                additionalStyles={[styles.mr4]}
+                            />
+                            <View style={[styles.mb1, styles.flex1]}>
+                                <Text style={[styles.textStrong]}>{translate(section.titleTranslationKey)}</Text>
+                            </View>
                         </View>
-                    </View>
-                ))}
-            </>
+                    ))}
+                </FeatureTraining.BodyText>
+                <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
+            </FeatureTraining.Body>
         </FeatureTrainingModal>
     );
 }

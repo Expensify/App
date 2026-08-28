@@ -16,6 +16,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import getPlaidInstitutionID from '@libs/PlaidUtils';
 
 import {handleRestrictedEvent} from '@userActions/App';
 import {setPlaidEvent} from '@userActions/BankAccounts';
@@ -88,8 +89,8 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
 
     const handlePlaidLinkSuccess = ({publicToken, metadata}: {publicToken: string; metadata: PlaidLinkOnSuccessMetadata | LinkSuccessMetadata}) => {
         Log.info('[PlaidLink] Fix personal card success');
-        const plaidConnectedFeed = (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.id;
-        const plaidAccounts = metadata?.accounts;
+        const plaidConnectedFeed = getPlaidInstitutionID(metadata.institution);
+        const plaidAccounts = metadata.accounts;
         if (!plaidConnectedFeed || !plaidAccounts?.length) {
             return;
         }

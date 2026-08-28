@@ -145,6 +145,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getMovedActionMessage,
     getMovedTransactionMessage,
+    parseMovedTransactionReportIDs,
     getParentReport,
     getPolicyChangeLogCopyMessage,
     getPolicyChangeMessage,
@@ -636,11 +637,16 @@ function computeReportNameBasedOnReportAction({
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        return Parser.htmlToText(getUnreportedTransactionMessage(translate, parentReportAction, reportAttributes));
+        const {fromReportID} = parseMovedTransactionReportIDs(parentReportAction);
+        const reportName = fromReportID ? reportAttributes?.[fromReportID]?.reportName : undefined;
+        return Parser.htmlToText(getUnreportedTransactionMessage({translate, fromReportID, derivedReportName: reportName}));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
-        return Parser.htmlToText(getMovedTransactionMessage(translate, parentReportAction, reportAttributes));
+        const {fromReportID, toReportID, displayReportID} = parseMovedTransactionReportIDs(parentReportAction);
+        return Parser.htmlToText(
+            getMovedTransactionMessage({translate, fromReportID, toReportID, derivedReportName: displayReportID ? reportAttributes?.[displayReportID]?.reportName : undefined}),
+        );
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {

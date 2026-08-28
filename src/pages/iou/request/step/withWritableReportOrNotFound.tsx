@@ -22,6 +22,7 @@ import type {Report} from '@src/types/onyx';
 import type {ComponentType} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useEffect} from 'react';
 
 type WithWritableReportOrNotFoundOnyxProps = {
@@ -98,6 +99,7 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
 
@@ -110,7 +112,16 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
         if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
             return;
         }
-        openReport({reportID: route.params.reportID, introSelected, conciergeChat, betas, hasReportActions, currentUserAccountID});
+        openReport({
+            reportID: route.params.reportID,
+            introSelected,
+            conciergeChat,
+            betas,
+            hasReportActions,
+            currentUserAccountID,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

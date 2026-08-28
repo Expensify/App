@@ -927,8 +927,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 exportColumnLabels[column] = translate(getSearchColumnTranslationKey(column));
             }
 
+            // searchKey changes what the backend query matches (e.g. reconciliation includes Expensify Card cash back),
+            // so the export must send it exactly as search() does or the exported set differs from the viewed set.
             const jsonQuery = queryJSONToExport
-                ? serializeQueryJSONForBackend({...queryJSONToExport, columns: columnsToExport}, exactMatchFilterKeys)
+                ? serializeQueryJSONForBackend({...queryJSONToExport, columns: columnsToExport, searchKey: currentSearchKey}, exactMatchFilterKeys)
                 : (JSON.stringify(queryJSONToExport) ?? '');
 
             return {
