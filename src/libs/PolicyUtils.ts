@@ -104,6 +104,15 @@ function isArchivedPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
 }
 
 /**
+ * Whether the policy is archived or is optimistically pending deletion. Deleting a workspace
+ * archives it on the backend, but the optimistic data only sets pendingAction, so report state
+ * transitions must also treat a pending delete as archived while the request is in flight.
+ */
+function isArchivedOrPendingDeletePolicy(policy: OnyxInputOrEntry<Policy>): boolean {
+    return isArchivedPolicy(policy) || policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
+/**
  * Filter out the active policies, which will exclude policies with pending deletion
  * and policies the current user doesn't belong to.
  * These are policies that we can use to create reports with in NewDot.
@@ -3215,6 +3224,7 @@ export {
     arePolicyRulesEnabled,
     isPolicyFeatureEnabled,
     isPolicyFieldListEmpty,
+    isArchivedOrPendingDeletePolicy,
     isArchivedPolicy,
     getUberConnectionErrorDirectlyFromPolicy,
     isPolicyOwner,
