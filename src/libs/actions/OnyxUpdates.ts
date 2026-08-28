@@ -24,6 +24,12 @@ let lastUpdateIDAppliedToClient: number | undefined = 0;
 // applied so queued WRITE responses don't look like gaps; reset if the flush fails so recovery can kick in.
 let lastUpdateIDPendingFlush = 0;
 
+// Highest update ID accepted into the Pusher apply chain but not yet persisted. applyPusherOnyxUpdates serializes
+// every event through pusherEventsPromise, so the watermark trails an update the client already holds by p50 209ms
+// and p90 1.7s in production. Gap detection treats these as applied, otherwise the next event in the chain reads as
+// a gap and pauses the queue to refetch data we are in the middle of applying.
+let lastUpdateIDPendingApply = 0;
+
 function getEffectiveLastUpdateID(): number {
     return Math.max(lastUpdateIDAppliedToClient ?? 0, lastUpdateIDPendingFlush);
 }
@@ -38,10 +44,11 @@ Onyx.connectWithoutView({
     callback: (val) => {
         lastUpdateIDAppliedToClient = val;
 
-        // The persisted watermark is only ever cleared by Onyx.clear (sign-out), so drop the pending marker
+        // The persisted watermark is only ever cleared by Onyx.clear (sign-out), so drop the pending markers
         // too — a stale value from the previous session would mask real gaps after signing back in.
         if (val === undefined) {
             lastUpdateIDPendingFlush = 0;
+            lastUpdateIDPendingApply = 0;
         }
     },
 });
@@ -209,6 +216,10 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
                 return result;
             })
             .catch((error) => {
+                // The updates never landed, so stop counting them as applied — the next gap check then sees the
+                // missing range against the persisted watermark and triggers recovery.
+                lastUpdateIDPendingApply = 0;
+
                 if (shouldAdvanceLastUpdateID) {
                     Log.alert('[OnyxUpdateManagerError] Applying the updates failed, not advancing lastUpdateID so the client can recover on the next reconnect', {
                         type,
@@ -241,6 +252,9 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
         return advanceLastUpdateIDAfterApply(applyPromise);
     }
     if (type === CONST.ONYX_UPDATE_TYPES.PUSHER && updates) {
+        if (shouldAdvanceLastUpdateID) {
+            lastUpdateIDPendingApply = Math.max(lastUpdateIDPendingApply, Number(lastUpdateID));
+        }
         return advanceLastUpdateIDAfterApply(applyPusherOnyxUpdates(updates, Number(lastUpdateID)));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.AIRSHIP && updates) {
@@ -282,9 +296,10 @@ function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID}: DoesC
         return false;
     }
 
-    // Updates staged for the deferred WRITE flush count as applied here, otherwise the responses of queued
-    // WRITE requests would look like gaps until the flush runs and needlessly pause the queue to refetch.
-    const lastUpdateIDFromClient = Math.max(clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0, lastUpdateIDPendingFlush);
+    // Updates staged for the deferred WRITE flush, and Pusher updates still working through the apply chain, count
+    // as applied here. Otherwise the responses of queued WRITE requests, and the event chained on an update we are
+    // already applying, would look like gaps and needlessly pause the queue to refetch data the client already has.
+    const lastUpdateIDFromClient = Math.max(clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0, lastUpdateIDPendingFlush, lastUpdateIDPendingApply);
 
     // If we don't have any value in lastUpdateIDFromClient, this is the first time we're receiving anything, so we need to do a last reconnectApp
     if (!lastUpdateIDFromClient) {
