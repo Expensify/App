@@ -17,6 +17,14 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const mockShowConfirmModal = jest.fn();
+const mockRootState: ReturnType<typeof navigationRef.getRootState> = {
+    key: 'root',
+    index: 0,
+    routeNames: [],
+    routes: [],
+    type: 'stack',
+    stale: false,
+};
 
 jest.mock('@hooks/useConfirmModal', () => () => ({
     showConfirmModal: mockShowConfirmModal,
@@ -49,7 +57,7 @@ describe('useBlockDistanceRequest', () => {
         mockShowConfirmModal.mockResolvedValue({action: 'cancel'});
         jest.mocked(Navigation.navigate).mockClear();
         jest.mocked(swapBackgroundTabForRHPTarget).mockClear();
-        jest.spyOn(navigationRef, 'getRootState').mockReturnValue(undefined);
+        jest.spyOn(navigationRef, 'getRootState').mockReturnValue(mockRootState);
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -226,7 +234,7 @@ describe('useBlockDistanceRequest', () => {
             await Promise.resolve();
         });
         await waitFor(() => expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1)));
-        expect(swapBackgroundTabForRHPTarget).toHaveBeenCalledWith(undefined, ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
+        expect(swapBackgroundTabForRHPTarget).toHaveBeenCalledWith(mockRootState, ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
     });
 
     it('allows a distance request when the current home address is present', async () => {

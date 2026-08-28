@@ -6,6 +6,15 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
+const mockRootState: ReturnType<typeof navigationRef.getRootState> = {
+    key: 'root',
+    index: 0,
+    routeNames: [],
+    routes: [],
+    type: 'stack',
+    stale: false,
+};
+
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
@@ -26,12 +35,11 @@ describe('openPrivatePersonalDetailsPage', () => {
     });
 
     it('swaps the background tab before opening private personal details', () => {
-        const rootState = {routes: []};
-        jest.spyOn(navigationRef, 'getRootState').mockReturnValue(rootState);
+        jest.spyOn(navigationRef, 'getRootState').mockReturnValue(mockRootState);
 
         openPrivatePersonalDetailsPage(INPUT_IDS.ADDRESS_LINE_1);
 
-        expect(swapBackgroundTabForRHPTarget).toHaveBeenCalledWith(rootState, ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
+        expect(swapBackgroundTabForRHPTarget).toHaveBeenCalledWith(mockRootState, ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
     });
 });

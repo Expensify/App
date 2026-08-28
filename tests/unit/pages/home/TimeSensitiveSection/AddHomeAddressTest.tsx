@@ -8,6 +8,15 @@ import AddHomeAddress from '@src/pages/home/TimeSensitiveSection/items/AddHomeAd
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
+const mockRootState: ReturnType<typeof navigationRef.getRootState> = {
+    key: 'root',
+    index: 0,
+    routeNames: [],
+    routes: [],
+    type: 'stack',
+    stale: false,
+};
+
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
@@ -43,7 +52,7 @@ describe('AddHomeAddress', () => {
     beforeEach(() => {
         jest.mocked(Navigation.navigate).mockClear();
         jest.mocked(swapBackgroundTabForRHPTarget).mockClear();
-        jest.spyOn(navigationRef, 'getRootState').mockReturnValue(undefined);
+        jest.spyOn(navigationRef, 'getRootState').mockReturnValue(mockRootState);
     });
 
     afterEach(() => {
@@ -56,6 +65,6 @@ describe('AddHomeAddress', () => {
         fireEvent.press(screen.getByText('homePage.timeSensitiveSection.addHomeAddress.cta'));
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
-        expect(swapBackgroundTabForRHPTarget).toHaveBeenCalledWith(undefined, ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
+        expect(swapBackgroundTabForRHPTarget).toHaveBeenCalledWith(mockRootState, ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
     });
 });
