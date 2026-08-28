@@ -1,3 +1,5 @@
+import CardFeedIcon from '@components/CardFeedIcon';
+import FeedSelector from '@components/FeedSelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -5,19 +7,19 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
-import useDefaultFundID from '@hooks/useDefaultFundID';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReconciliationFundID from '@hooks/useReconciliationFundID';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {getAccountingIntegrationDisplayName, getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import {getCardSettings, getConnectionBankAccountsForReconciliation, isExpensifyCardFullySetUp} from '@libs/CardUtils';
+import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -26,6 +28,8 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
+import variables from '@styles/variables';
 
 import {toggleContinuousReconciliation} from '@userActions/Card';
 
@@ -51,24 +55,25 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const policyID = policy?.id;
     const {environmentURL} = useEnvironment();
 
-    // Reconciliation state is stored on the account that owns the card feed, which is the domain account for a
-    // domain-provisioned feed and the workspace account for a workspace-provisioned one. useDefaultFundID resolves that
-    // account using the feed the admin last selected, falling back to the domain linked to this policy and then to the
-    // workspace, so this page follows the same feed as the rest of the Expensify Card pages.
-    const effectiveDomainID = useDefaultFundID(policyID);
+    // Continuous Reconciliation is configured per card feed, and this workspace can sit on more than one: its own
+    // workspace-provisioned feed plus any domain or other-workspace feed that lists it as preferred or linked. The
+    // candidates are the feeds the admin may configure from here; the selected one comes from the route, defaulting to
+    // the feed useDefaultFundID resolves.
+    const {candidates, fundID: effectiveDomainID} = useReconciliationFundID(policyID);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${effectiveDomainID}`);
 
-    // The resolved feed can be owned by a domain or by another workspace acting as one, in which case toggling
-    // Continuous Reconciliation here also changes it for every other policy on that feed. Only say so when this
-    // workspace has a feed of its own that is being bypassed: a shared feed is the normal setup for a workspace
-    // with no feed of its own, so warning there would flag the common case rather than an ambiguous one.
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [workspaceCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
-    // A feed owned by another workspace reports a synthetic expensify-policy<policyID>.exfy domain, so resolve the
-    // owner through getDescriptionForPolicyDomainCard to show that workspace's name instead of the synthetic domain.
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const sharedFeedName = cardSettings?.domainName ? getDescriptionForPolicyDomainCard(cardSettings.domainName, policies) : undefined;
-    const isSharedFeedBypassingOwnFeed = !!sharedFeedName && effectiveDomainID !== workspaceAccountID && isExpensifyCardFullySetUp(policy, workspaceCardSettings);
+    const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const selectedFeedName = getExpensifyCardFeedDescription(cardSettings, policies, domains, effectiveDomainID, cardList);
+
+    // With a single candidate there is nothing to choose, so the selector is hidden. The feed can still be owned by a
+    // domain or another workspace, in which case toggling Continuous Reconciliation here also changes it for every
+    // other policy on that feed, so name the feed the setting will apply to.
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const shouldShowFeedSelector = candidates.length > 1;
+    const isFeedOwnedElsewhere = !!selectedFeedName && effectiveDomainID !== workspaceAccountID;
+    const shouldShowSharedFeedNote = !shouldShowFeedSelector && isFeedOwnedElsewhere;
 
     const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${effectiveDomainID}`, {
         selector: isExpensifyCardContinuousReconciliationEnabledSelector,
@@ -144,6 +149,30 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                     contentContainerStyle={styles.pb5}
                     addBottomSafeAreaPadding
                 >
+                    {shouldShowFeedSelector && (
+                        <View style={[styles.ph5, styles.pb3]}>
+                            <FeedSelector
+                                onFeedSelect={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_SELECT_FEED.path))}
+                                CardFeedIcon={
+                                    <CardFeedIcon
+                                        isExpensifyCardFeed
+                                        iconProps={{
+                                            height: variables.cardIconHeight,
+                                            width: variables.cardIconWidth,
+                                            additionalStyles: styles.cardIcon,
+                                        }}
+                                    />
+                                }
+                                feedName={translate('workspace.common.expensifyCard')}
+                                supportingText={selectedFeedName}
+                            />
+                        </View>
+                    )}
+                    {shouldShowFeedSelector && (
+                        <View style={[styles.renderHTML, styles.ph5, styles.pb3]}>
+                            <RenderHTML html={translate('workspace.accounting.continuousReconciliationFeedSelection')} />
+                        </View>
+                    )}
                     <ToggleSettingOptionRow
                         key={translate('workspace.accounting.continuousReconciliation')}
                         title={translate('workspace.accounting.continuousReconciliation')}
@@ -167,9 +196,9 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                             />
                         </View>
                     )}
-                    {isSharedFeedBypassingOwnFeed && (
+                    {shouldShowSharedFeedNote && (
                         <View style={[styles.renderHTML, styles.ph5, styles.mt2]}>
-                            <RenderHTML html={translate('workspace.accounting.continuousReconciliationSharedFeed', sharedFeedName)} />
+                            <RenderHTML html={translate('workspace.accounting.continuousReconciliationSharedFeed', selectedFeedName)} />
                         </View>
                     )}
                     <OfflineWithFeedback pendingAction={continuousReconciliationPendingAction}>

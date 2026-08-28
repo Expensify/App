@@ -4,11 +4,11 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 
-import useDefaultFundID from '@hooks/useDefaultFundID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReconciliationFundID from '@hooks/useReconciliationFundID';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
@@ -129,7 +129,10 @@ function ReconciliationAccountSettingsLayout({
 
 function ExpensifyCardDynamicReconciliation({policyID, domainName, bankAccountList, goBack, connectionName, connectionBankAccounts}: DynamicReconciliationProps) {
     const {translate} = useLocalize();
-    const defaultFundID = useDefaultFundID(policyID);
+
+    // The reconciliation pages carry their selected feed in the route, so this page configures the feed the admin
+    // picked rather than the one the Expensify Card pages last used.
+    const {fundID: defaultFundID} = useReconciliationFundID(policyID);
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const programKey = getCardProgramKey(cardSettings);
