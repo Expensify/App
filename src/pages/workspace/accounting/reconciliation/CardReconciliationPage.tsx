@@ -67,13 +67,11 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const selectedFeedName = getExpensifyCardFeedDescription(cardSettings, policies, domains, effectiveDomainID, cardList);
 
-    // With a single candidate there is nothing to choose, so the selector is hidden. The feed can still be owned by a
-    // domain or another workspace, in which case toggling Continuous Reconciliation here also changes it for every
-    // other policy on that feed, so name the feed the setting will apply to.
+    // Hide the selector only when the sole candidate is this workspace's own feed, where naming it would tell the admin
+    // nothing they do not already know. Any other case shows it, including a single feed owned by a domain or another
+    // workspace: the selector names the feed the toggle applies to, so that ambiguity needs no separate message.
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const shouldShowFeedSelector = candidates.length > 1;
-    const isFeedOwnedElsewhere = !!selectedFeedName && effectiveDomainID !== workspaceAccountID;
-    const shouldShowSharedFeedNote = !shouldShowFeedSelector && isFeedOwnedElsewhere;
+    const shouldShowFeedSelector = candidates.length > 1 || candidates.at(0)?.fundID !== workspaceAccountID;
 
     const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${effectiveDomainID}`, {
         selector: isExpensifyCardContinuousReconciliationEnabledSelector,
@@ -166,11 +164,9 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                                 feedName={translate('workspace.common.expensifyCard')}
                                 supportingText={selectedFeedName}
                             />
-                        </View>
-                    )}
-                    {shouldShowFeedSelector && (
-                        <View style={[styles.renderHTML, styles.ph5, styles.pb3]}>
-                            <RenderHTML html={translate('workspace.accounting.continuousReconciliationFeedSelection')} />
+                            <View style={[styles.renderHTML, styles.pt3]}>
+                                <RenderHTML html={translate('workspace.accounting.continuousReconciliationFeedSelection')} />
+                            </View>
                         </View>
                     )}
                     <ToggleSettingOptionRow
@@ -194,11 +190,6 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                                     getAccountingIntegrationDisplayName(policy, connectionName, translate),
                                 )}
                             />
-                        </View>
-                    )}
-                    {shouldShowSharedFeedNote && (
-                        <View style={[styles.renderHTML, styles.ph5, styles.mt2]}>
-                            <RenderHTML html={translate('workspace.accounting.continuousReconciliationSharedFeed', selectedFeedName)} />
                         </View>
                     )}
                     <OfflineWithFeedback pendingAction={continuousReconciliationPendingAction}>

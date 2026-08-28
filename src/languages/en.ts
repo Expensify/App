@@ -7325,8 +7325,6 @@ const translations = {
             enableContinuousReconciliation: (accountingAdvancedSettingsLink: string, connectionName: string) =>
                 `<muted-text-label>In order to enable Continuous Reconciliation, please enable <a href="${accountingAdvancedSettingsLink}">auto-sync</a> for ${connectionName}.</muted-text-label>`,
             continuousReconciliationFeedSelection: '<muted-text-label>Continuous Reconciliation is configured per card feed. Choose the feed above to configure it.</muted-text-label>',
-            continuousReconciliationSharedFeed: (feedName: string) =>
-                `<muted-text-label>This setting applies to the card feed <strong>${feedName}</strong>, which is shared with other workspaces, so turning it on or off here affects them too.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Choose the bank account that your Expensify Card payments will be reconciled against.',
                 chooseTravelInvoicingBankAccount: 'Choose the bank account that your Consolidated Travel Billing payments will be reconciled against.',
