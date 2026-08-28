@@ -163,6 +163,7 @@ import {
     canMemberWrite as canMemberWritePolicyUtils,
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasDynamicExternalWorkflow,
+    isArchivedOrPendingDeletePolicy,
     isExpensifyTeam,
     isGroupPolicyByType,
     isGroupPolicy as isGroupPolicyPolicyUtils,
@@ -13714,13 +13715,18 @@ function getReportPersonalDetailsParticipants(report: Report, personalDetailsPar
     };
 }
 
-function canRejectReportAction(report: Report, currentUserAccountID: number | undefined): boolean {
+function canRejectReportAction(report: Report, currentUserAccountID: number | undefined, policy: OnyxEntry<Policy>): boolean {
     const isReportBeingProcessed = isProcessingReport(report);
     const isIOU = isIOUReport(report);
     const isInvoice = isInvoiceReport(report);
     const isCurrentUserManager = !!currentUserAccountID && report?.managerID === currentUserAccountID;
 
     if (!isCurrentUserManager) {
+        return false;
+    }
+
+    // Rejecting changes the report state, which is blocked on archived or pending-delete policies.
+    if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 
@@ -13737,6 +13743,15 @@ function canRejectReportAction(report: Report, currentUserAccountID: number | un
     }
 
     return false;
+}
+
+/**
+ * Whether Pay is blocked by archived state. Expense reports key on the policy archived or pending-delete state,
+ * so reports archived for other reasons (e.g. the submitter was unshared from the policy) can still be paid.
+ * IOU and invoice reports have no policy archived state, so the passed report/chat archived flag blocks instead.
+ */
+function isPayBlockedByArchivedState(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>, isReportOrChatArchived: boolean): boolean {
+    return isExpenseReport(report) ? isArchivedOrPendingDeletePolicy(policy) : isReportOrChatArchived;
 }
 
 function hasReportBeenReopened(report: OnyxEntry<Report>, reportActions?: OnyxEntry<ReportActions> | ReportAction[]): boolean {
@@ -14691,6 +14706,7 @@ export {
     pushTransactionAutoSelectionsOnyxData,
     navigateOnDeleteExpense,
     canRejectReportAction,
+    isPayBlockedByArchivedState,
     hasReportBeenReopened,
     hasReportBeenRetracted,
     getNextApproverAccountID,

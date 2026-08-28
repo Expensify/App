@@ -84,6 +84,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const isAccountInSetupState = isBankAccountPartiallySetup(bankAccountState);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -400,6 +402,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                                     guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                                     betas,
                                     personalDetails,
+                                    conciergeChat,
                                 );
                             }}
                             html={translate('workflowsPayerPage.shareBankAccount.errorDescription', {
