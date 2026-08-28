@@ -36,7 +36,7 @@ function WorkspaceMCPPage({route}: WorkspaceMCPPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['ChatGPTSquare', 'ClaudeSquare', 'QuestionMark']);
+    const icons = useMemoizedLazyExpensifyIcons(['ChatGPTSquare', 'ClaudeSquare', 'CursorSquare', 'QuestionMark']);
     const policy = usePolicy(policyID);
 
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.mcp');
@@ -44,6 +44,7 @@ function WorkspaceMCPPage({route}: WorkspaceMCPPageProps) {
     const connectors = [
         {icon: icons.ChatGPTSquare, title: translate('workspace.mcp.chatgpt.title'), description: translate('workspace.mcp.chatgpt.subtitle'), url: CONST.CHATGPT_CONNECT_URL},
         {icon: icons.ClaudeSquare, title: translate('workspace.mcp.claude.title'), description: translate('workspace.mcp.claude.subtitle'), url: CONST.CLAUDE_MCP_HELP_URL},
+        {icon: icons.CursorSquare, title: translate('workspace.mcp.cursor.title'), description: translate('workspace.mcp.cursor.subtitle'), url: CONST.CURSOR_MCP_HELP_URL},
     ];
 
     return (
