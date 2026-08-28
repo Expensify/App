@@ -1242,7 +1242,7 @@ function getTransactionItemCommonFormattedProperties(
         formattedTo = temporaryGetDisplayNameOrDefault({passedPersonalDetails: getPersonalDetailsForAccountID(to?.accountID), translate, formatPhoneNumber});
     }
 
-    // formattedTotal is the Amount column's sort key, so it has to be signed exactly like the amount the row renders.
+    // formattedTotal is the Amount column's sort key and holds the same signed value the row displays.
     const formattedTotal = getTransactionDisplayAmount(transactionItem, report, policy);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = getTransactionMerchant(transactionItem);

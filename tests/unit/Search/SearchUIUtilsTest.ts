@@ -6408,7 +6408,6 @@ describe('SearchUIUtils', () => {
             });
 
             // Amounts are stored with the opposite sign, so these three rows render +$80.00, -$40.00 and +$10.00.
-            // Ordering them by magnitude instead puts the credit between the two expenses.
             function makeAmountSortData() {
                 const baseTransaction = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
                 return makeFilterTestData(
