@@ -70,14 +70,20 @@ function ImportFromFileStep() {
     // On Android, a link nested inline inside a <Text> becomes a ClickableSpan whose touch area is limited to the glyph bounds,
     // which makes it unreliable to tap (e.g. at the minimum device font size). Rendering each link as its own PressableWithoutFeedback
     // gives it a real native touch target, while splitting the plain copy into words keeps the paragraph flowing/wrapping naturally.
-    const createFileFeedHelpTextSegments: Array<{text: string; onPress?: () => void; role?: React.ComponentProps<typeof PressableWithoutFeedback>['role']}> = [
+    const createFileFeedHelpTextSegments: Array<{text: string; onPress?: () => void; role?: React.ComponentProps<typeof PressableWithoutFeedback>['role']; sentryLabel?: string}> = [
         {text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionStart')},
-        {text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.templateLink'), onPress: downloadTemplate, role: CONST.ROLE.BUTTON},
+        {
+            text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.templateLink'),
+            onPress: downloadTemplate,
+            role: CONST.ROLE.BUTTON,
+            sentryLabel: 'ImportFromFileStep-TemplateLink',
+        },
         {text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionMiddle')},
         {
             text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.helpGuideLink'),
             onPress: () => openLink(CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL, environmentURL),
             role: CONST.ROLE.LINK,
+            sentryLabel: 'ImportFromFileStep-HelpGuideLink',
         },
         {text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionEnd')},
     ];
@@ -117,6 +123,7 @@ function ImportFromFileStep() {
                                     <PressableWithoutFeedback
                                         role={segment.role}
                                         accessibilityLabel={segment.text}
+                                        sentryLabel={segment.sentryLabel}
                                         onPress={segment.onPress}
                                         style={styles.dInlineFlex}
                                     >
