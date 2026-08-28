@@ -51,6 +51,10 @@ type ImportSpreadsheetColumnsProps = {
     // An optional boolean indicating whether to show the dropdown menu.
     shouldShowDropdownMenu?: boolean;
 
+    // Whether each column may auto-detect its role from its header. Flows that compute the whole mapping in one
+    // coordinated pass (e.g. company cards) set this to false to avoid duplicate pre-selections.
+    shouldAutoDetectColumns?: boolean;
+
     customHeaderText?: string;
 
     /** An optional boolean indicating whether the import button should be disabled while offline. Defaults to true. */
@@ -67,6 +71,7 @@ function ImportSpreadsheetColumns({
     learnMoreLink,
     shouldShowColumnHeader = true,
     shouldShowDropdownMenu = true,
+    shouldAutoDetectColumns = true,
     customHeaderText,
     shouldDisableButtonWhenOffline = true,
 }: ImportSpreadsheetColumnsProps) {
@@ -114,6 +119,7 @@ function ImportSpreadsheetColumns({
                                 columnRoles={columnRoles}
                                 columnIndex={index}
                                 shouldShowDropdownMenu={shouldShowDropdownMenu}
+                                shouldAutoDetectColumn={shouldAutoDetectColumns}
                             />
                         );
                     })}

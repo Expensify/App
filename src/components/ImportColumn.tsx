@@ -3,6 +3,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setColumnName} from '@libs/actions/ImportSpreadsheet';
+import {findColumnName} from '@libs/importSpreadsheetUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -14,224 +15,6 @@ import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import Text from './Text';
-
-// cspell:disable
-function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
-    let attribute = '';
-    const formattedHeader = String(header).toLowerCase().trim().replaceAll(' ', '');
-    switch (formattedHeader) {
-        case 'email':
-        case 'emailaddress':
-        case 'emailaddresses':
-        case 'e-mail':
-        case 'e-mailaddress':
-        case 'e-mailaddresses':
-            attribute = CONST.CSV_IMPORT_COLUMNS.EMAIL;
-            break;
-
-        case 'category':
-        case 'categories':
-        case 'updatedcategory':
-            attribute = CONST.CSV_IMPORT_COLUMNS.CATEGORY;
-            break;
-
-        case 'updateddescription':
-            attribute = CONST.CSV_IMPORT_COLUMNS.COMMENT;
-            break;
-
-        case 'glcode':
-        case 'gl':
-            attribute = CONST.CSV_IMPORT_COLUMNS.GL_CODE;
-            break;
-
-        case 'tag':
-        case 'tags':
-        case 'project':
-        case 'projectcode':
-        case 'customer':
-        case 'name':
-            attribute = 'name';
-            break;
-
-        case 'submitto':
-        case 'submitsto':
-            attribute = CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO;
-            break;
-
-        case 'approveto':
-        case 'approvesto':
-            attribute = CONST.CSV_IMPORT_COLUMNS.APPROVE_TO;
-            break;
-
-        case 'payroll':
-        case 'payrollid':
-        case 'payrolls':
-        case 'payrol':
-        case 'customfield2':
-            attribute = CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2;
-            break;
-
-        case 'userid':
-        case 'customfield1':
-            attribute = CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_1;
-            break;
-
-        case 'role':
-            attribute = CONST.CSV_IMPORT_COLUMNS.ROLE;
-            break;
-
-        case 'total':
-        case 'threshold':
-        case 'reporttotal':
-        case 'reporttotalthreshold':
-        case 'approvallimit':
-            attribute = CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD;
-            break;
-
-        case 'alternate':
-        case 'alternateapprove':
-        case 'alternateapproveto':
-        case 'overlimitforwardsto':
-            attribute = CONST.CSV_IMPORT_COLUMNS.APPROVE_TO_ALTERNATE;
-
-            break;
-
-        case 'destination':
-            attribute = CONST.CSV_IMPORT_COLUMNS.DESTINATION;
-            break;
-
-        case 'subrate':
-            attribute = CONST.CSV_IMPORT_COLUMNS.SUBRATE;
-            break;
-
-        case 'amount':
-        case 'postedamount':
-        case 'posted_amount':
-            attribute = CONST.CSV_IMPORT_COLUMNS.AMOUNT;
-            break;
-
-        case 'cardnumber':
-        case 'card':
-        case 'number':
-            attribute = CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER;
-            break;
-
-        case 'currency':
-        case 'postedcurrency':
-        case 'posted_currency':
-            attribute = CONST.CSV_IMPORT_COLUMNS.CURRENCY;
-            break;
-
-        case 'posteddate':
-        case 'posted_date':
-        case 'postingdate':
-        case 'posting_date':
-            attribute = CONST.CSV_IMPORT_COLUMNS.POSTED_DATE;
-            break;
-
-        case 'date':
-        case 'transactiondate':
-        case 'transaction_date':
-            attribute = CONST.CSV_IMPORT_COLUMNS.DATE;
-            break;
-
-        case 'merchant':
-        case 'merchants':
-        case 'vendor':
-        case 'vendors':
-            attribute = CONST.CSV_IMPORT_COLUMNS.MERCHANT;
-            break;
-
-        case 'merchantis':
-            attribute = CONST.CSV_IMPORT_COLUMNS.MERCHANT_IS;
-            break;
-
-        case 'merchantcontains':
-            attribute = CONST.CSV_IMPORT_COLUMNS.MERCHANT_CONTAINS;
-            break;
-
-        case 'updatedmerchant':
-        case 'newmerchant':
-            attribute = CONST.CSV_IMPORT_COLUMNS.UPDATED_MERCHANT;
-            break;
-
-        case 'updatedtag':
-        case 'newtag':
-            attribute = CONST.CSV_IMPORT_COLUMNS.TAG;
-            break;
-
-        case 'reimbursable':
-        case 'reimburseable':
-            attribute = CONST.CSV_IMPORT_COLUMNS.REIMBURSABLE;
-            break;
-
-        case 'preferredmerchantname':
-        case 'preferredmerchant(vendor)name':
-        case 'preferredvendorname':
-            attribute = CONST.CSV_IMPORT_COLUMNS.MERCHANT_IS;
-            break;
-
-        case 'billable':
-            attribute = CONST.CSV_IMPORT_COLUMNS.BILLABLE;
-            break;
-
-        case 'rateid':
-            attribute = CONST.CSV_IMPORT_COLUMNS.RATE_ID;
-            break;
-
-        case 'enabled':
-        case 'enable':
-            attribute = CONST.CSV_IMPORT_COLUMNS.ENABLED;
-            break;
-
-        case 'receiptsrequired':
-        case 'requirereceiptsover':
-        case 'maxamountnoreceipt':
-            attribute = CONST.CSV_IMPORT_COLUMNS.MAX_AMOUNT_NO_RECEIPT;
-            break;
-
-        case 'itemisedreceiptrequirement':
-        case 'itemizedreceiptrequirement':
-        case 'requireitemizedreceiptsover':
-        case 'maxamountnoitemizedreceipt':
-            attribute = CONST.CSV_IMPORT_COLUMNS.MAX_AMOUNT_NO_ITEMIZED_RECEIPT;
-            break;
-
-        default:
-            break;
-    }
-
-    // A bare "Description" header is ambiguous across import flows (e.g. bank CSVs use it for the
-    // transaction descriptor), so it only auto-maps to the updated-description action in the merchant
-    // rules import, which is the only flow offering the MERCHANT_IS column role.
-    if (!attribute && formattedHeader === 'description' && columnRoles?.some((role) => role.value === CONST.CSV_IMPORT_COLUMNS.MERCHANT_IS)) {
-        attribute = CONST.CSV_IMPORT_COLUMNS.COMMENT;
-    }
-
-    // If the detected attribute isn't available in the current context but a semantic equivalent is,
-    // remap to it. This handles e.g. "Date" headers in company card imports where DATE is not a
-    // valid column role but POSTED_DATE is.
-    if (columnRoles && attribute) {
-        const isAvailable = columnRoles.some((role) => role.value === attribute);
-        if (!isAvailable) {
-            if (attribute === CONST.CSV_IMPORT_COLUMNS.DATE && columnRoles.some((role) => role.value === CONST.CSV_IMPORT_COLUMNS.POSTED_DATE)) {
-                return CONST.CSV_IMPORT_COLUMNS.POSTED_DATE;
-            }
-            if (attribute === CONST.CSV_IMPORT_COLUMNS.MERCHANT && columnRoles.some((role) => role.value === CONST.CSV_IMPORT_COLUMNS.UPDATED_MERCHANT)) {
-                return CONST.CSV_IMPORT_COLUMNS.UPDATED_MERCHANT;
-            }
-            // Only tag-like headers remap from NAME to TAG, so headers like "Name" or "Customer" stay
-            // unmapped in contexts without a NAME role instead of silently becoming a tag column.
-            if (attribute === CONST.CSV_IMPORT_COLUMNS.NAME && ['tag', 'tags'].includes(formattedHeader) && columnRoles.some((role) => role.value === CONST.CSV_IMPORT_COLUMNS.TAG)) {
-                return CONST.CSV_IMPORT_COLUMNS.TAG;
-            }
-            return '';
-        }
-    }
-
-    return attribute;
-}
-// cspell:enable
 
 type ColumnRole = {
     /** Translated text to be displayed */
@@ -262,9 +45,16 @@ type ImportColumnProps = {
 
     /** Whether to show the dropdown menu */
     shouldShowDropdownMenu?: boolean;
+
+    /**
+     * Whether this column may auto-detect its role from its header on mount. Flows that compute the whole mapping in a
+     * single coordinated pass (e.g. company cards) disable this so a property can never be pre-selected on more than
+     * one column.
+     */
+    shouldAutoDetectColumn?: boolean;
 };
 
-function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowDropdownMenu = true}: ImportColumnProps) {
+function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowDropdownMenu = true, shouldAutoDetectColumn = true}: ImportColumnProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
@@ -292,6 +82,10 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
     const selectedIndex = foundIndex !== -1 ? foundIndex : 0;
 
     useEffect(() => {
+        if (!shouldAutoDetectColumn) {
+            return;
+        }
+
         // Only run auto-detection once on mount
         if (hasAutoDetected.current) {
             return;
@@ -303,7 +97,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
 
         hasAutoDetected.current = true;
         setColumnName(columnIndex, autoDetectedColName);
-    }, [isMapped, autoDetectedColName, columnIndex]);
+    }, [isMapped, autoDetectedColName, columnIndex, shouldAutoDetectColumn]);
 
     const columnHeader = containsHeader ? column.at(0) : translate('spreadsheet.column', columnName);
 
