@@ -129,7 +129,7 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
             reportOptimisticData.set(currentRequestReportID, cleanupData ? {...cleanupData, invitedEmails} : undefined);
         }
 
-        const responseOnyxData = response?.onyxData ?? [];
+        const responseOnyxData: AnyOnyxUpdate[] = response?.onyxData ?? [];
         const optimisticAgentAccountIDMapping = responseOnyxData.find((onyxData) => onyxData.key === ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING)?.value;
         if (isRecord(optimisticAgentAccountIDMapping)) {
             for (const [optimisticAccountID, agentAccountIDValue] of Object.entries(optimisticAgentAccountIDMapping)) {
