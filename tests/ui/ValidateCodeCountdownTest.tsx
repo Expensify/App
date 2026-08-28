@@ -1,12 +1,13 @@
 import {act, render, screen} from '@testing-library/react-native';
 
 import ValidateCodeCountdown from '@components/ValidateCodeCountdown';
+import type {ValidateCodeCountdownHandle} from '@components/ValidateCodeCountdown/types';
 
 import CONST from '@src/CONST';
 
 import type ReactNative from 'react-native';
 
-import React from 'react';
+import React, {createRef} from 'react';
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -38,6 +39,18 @@ function suspendFor(milliseconds: number) {
     });
 }
 
+function renderCountdown(onCountdownFinish: () => void = jest.fn(), requestedAt?: number) {
+    const ref = createRef<ValidateCodeCountdownHandle>();
+    render(
+        <ValidateCodeCountdown
+            ref={ref}
+            requestedAt={requestedAt}
+            onCountdownFinish={onCountdownFinish}
+        />,
+    );
+    return ref;
+}
+
 describe('ValidateCodeCountdown', () => {
     beforeEach(() => {
         jest.useFakeTimers();
@@ -49,7 +62,7 @@ describe('ValidateCodeCountdown', () => {
     });
 
     it('reports the time that actually elapsed after the timer was starved of callbacks', () => {
-        render(<ValidateCodeCountdown onCountdownFinish={jest.fn()} />);
+        renderCountdown();
         expect(screen.getByText('00:30')).toBeOnTheScreen();
 
         tickSeconds(3);
@@ -62,22 +75,28 @@ describe('ValidateCodeCountdown', () => {
 
     it('finishes once the window has elapsed even if the callbacks never arrived', () => {
         const onCountdownFinish = jest.fn();
-        render(<ValidateCodeCountdown onCountdownFinish={onCountdownFinish} />);
+        renderCountdown(onCountdownFinish);
 
         suspendFor(CONST.REQUEST_CODE_DELAY * CONST.MILLISECONDS_PER_SECOND);
         expect(onCountdownFinish).toHaveBeenCalled();
     });
 
     it('keeps measuring from a persisted requestedAt when one is passed', () => {
-        render(
-            <ValidateCodeCountdown
-                requestedAt={BASE_TIME - 8 * CONST.MILLISECONDS_PER_SECOND}
-                onCountdownFinish={jest.fn()}
-            />,
-        );
+        renderCountdown(jest.fn(), BASE_TIME - 8 * CONST.MILLISECONDS_PER_SECOND);
         expect(screen.getByText('00:22')).toBeOnTheScreen();
 
         suspendFor(10 * CONST.MILLISECONDS_PER_SECOND);
         expect(screen.getByText('00:11')).toBeOnTheScreen();
+    });
+
+    it('measures from the resend time after the countdown is reset', () => {
+        const ref = renderCountdown();
+
+        tickSeconds(5);
+        act(() => ref.current?.resetCountdown());
+        expect(screen.getByText('00:30')).toBeOnTheScreen();
+
+        suspendFor(10 * CONST.MILLISECONDS_PER_SECOND);
+        expect(screen.getByText('00:19')).toBeOnTheScreen();
     });
 });
