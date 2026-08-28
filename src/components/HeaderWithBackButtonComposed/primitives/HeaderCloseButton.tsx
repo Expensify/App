@@ -3,7 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 
 import CONST from '@src/CONST';
 
-import HeaderTooltipIconButton from './HeaderTooltipIconButton';
+import HeaderIconButton from './HeaderIconButton';
 
 type HeaderCloseButtonProps = {
     /** Method to trigger when pressing the close button of the header. */
@@ -21,7 +21,7 @@ function HeaderCloseButton({onPress, iconFill}: HeaderCloseButtonProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
 
     return (
-        <HeaderTooltipIconButton
+        <HeaderIconButton
             tooltipText={translate('common.close')}
             onPress={onPress}
             iconSrc={icons.Close}

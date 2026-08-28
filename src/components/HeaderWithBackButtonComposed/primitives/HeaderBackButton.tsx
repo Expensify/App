@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 
 import {Keyboard} from 'react-native';
 
-import HeaderTooltipIconButton from './HeaderTooltipIconButton';
+import HeaderIconButton from './HeaderIconButton';
 
 type HeaderBackButtonProps = {
     /** Method to trigger when pressing the back button of the header. Defaults to `Navigation.goBack()`. */
@@ -29,7 +29,7 @@ function HeaderBackButton({onPress = () => Navigation.goBack(), iconFill, should
     const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
 
     return (
-        <HeaderTooltipIconButton
+        <HeaderIconButton
             ref={setBackButtonRef}
             tooltipText={translate('common.back')}
             onPress={() => {

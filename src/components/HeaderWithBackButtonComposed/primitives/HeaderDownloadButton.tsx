@@ -10,7 +10,7 @@ import getButtonState from '@libs/getButtonState';
 
 import CONST from '@src/CONST';
 
-import HeaderTooltipIconButton from './HeaderTooltipIconButton';
+import HeaderIconButton from './HeaderIconButton';
 
 type HeaderDownloadButtonProps = {
     /** Method to trigger when pressing the download button. */
@@ -35,7 +35,7 @@ function HeaderDownloadButton({onPress, isLoading = false, iconFill}: HeaderDown
     }
 
     return (
-        <HeaderTooltipIconButton
+        <HeaderIconButton
             tooltipText={translate('common.download')}
             onPress={(event) => {
                 // Blur to avoid overlapping a Growl notification with the Tooltip (#15271)

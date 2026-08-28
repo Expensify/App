@@ -4,7 +4,7 @@ import type {SvgProps} from 'react-native-svg';
 
 import React from 'react';
 
-import HeaderTooltipIconButton from './HeaderTooltipIconButton';
+import HeaderIconButton from './HeaderIconButton';
 
 type HeaderMenuItemButtonProps = {
     /** The single menu item to render as a plain icon button, in place of the full three-dots popover. */
@@ -17,7 +17,7 @@ type HeaderMenuItemButtonProps = {
  */
 function HeaderMenuItemButton({threeDotsMenuItem}: HeaderMenuItemButtonProps) {
     return (
-        <HeaderTooltipIconButton
+        <HeaderIconButton
             tooltipText={threeDotsMenuItem.text}
             onPress={threeDotsMenuItem.onSelected}
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- PopoverMenuItem.icon is typed as a generic component; header menu items always pass an SVG icon component.
