@@ -2,6 +2,7 @@ import useMerchantRuleSuggestion from '@hooks/useMerchantRuleSuggestion';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {dismissMerchantRuleSuggestion} from '@libs/actions/MerchantRuleSuggestion';
 import {setDraftMerchantRule} from '@libs/actions/User';
 import {getMerchantRuleDraftFromTransaction} from '@libs/MerchantRuleSuggestionUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -14,7 +15,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {ReactElement} from 'react';
 
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import {useProductTrainingContext} from './ProductTrainingContext';
@@ -40,6 +41,26 @@ function MerchantRuleSuggestionTooltipInner({reportID, policyID, transactionID, 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MERCHANT_RULE_SUGGESTION,
         !!suggestion,
+    );
+
+    const hasBeenShownRef = useRef(false);
+    useEffect(() => {
+        if (!shouldShowProductTrainingTooltip) {
+            return;
+        }
+        hasBeenShownRef.current = true;
+    }, [shouldShowProductTrainingTooltip]);
+
+    // The offer is about the edit the user just made, so it is consumed once they have seen it and moved on. Without
+    // this it would live in the RAM-only key untouched until dismissed, and re-appear on every return to the expense.
+    useEffect(
+        () => () => {
+            if (!hasBeenShownRef.current) {
+                return;
+            }
+            dismissMerchantRuleSuggestion();
+        },
+        [],
     );
 
     const createRule = () => {
