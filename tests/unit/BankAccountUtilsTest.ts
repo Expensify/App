@@ -18,6 +18,7 @@ import {
     isUserDOBVerificationRequired,
     PERSONAL_INFO_STEP,
     shouldShowInternationalDetailOnConfirmation,
+    showUnlockAlreadyRequestedModal,
 } from '@libs/BankAccountUtils';
 import type {KYBVerificationResponses} from '@libs/BankAccountUtils';
 
@@ -813,6 +814,21 @@ describe('BankAccountUtils', () => {
 
         it('does not disable SWIFT/BIC when swiftBicCode is empty', () => {
             expect(getDisabledInternationalBankAccountFields(iban, undefined).isSwiftCodeDisabled).toBe(false);
+        });
+    });
+
+    describe('showUnlockAlreadyRequestedModal', () => {
+        it('calls showConfirmModal with the unlock-already-requested content', () => {
+            const showConfirmModal = jest.fn();
+            const translate = (key: string) => key;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            showUnlockAlreadyRequestedModal(showConfirmModal as any, translate);
+            expect(showConfirmModal).toHaveBeenCalledWith({
+                title: 'bankAccount.unlockAlreadyRequestedTitle',
+                prompt: 'bankAccount.unlockAlreadyRequestedDescription',
+                confirmText: 'common.buttonConfirm',
+                shouldShowCancelButton: false,
+            });
         });
     });
 

@@ -2,6 +2,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import {pressLockedBankAccount} from '@libs/actions/BankAccounts';
 import {navigateToConciergeChat} from '@libs/actions/Report';
+import {showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
@@ -63,6 +64,10 @@ jest.mock('@libs/actions/BankAccounts', () => ({
 
 jest.mock('@libs/actions/Report', () => ({
     navigateToConciergeChat: jest.fn(),
+}));
+
+jest.mock('@libs/BankAccountUtils', () => ({
+    showUnlockAlreadyRequestedModal: jest.fn(),
 }));
 
 const ADMIN_ACCOUNT_ID = 12345;
@@ -302,6 +307,37 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
         }
     });
 
+    it('shows the already-requested modal and skips pressLockedBankAccount when the NVP is set', async () => {
+        await Onyx.set(ONYXKEYS.SESSION, {email: 'admin@example.com', accountID: ADMIN_ACCOUNT_ID});
+        await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+            id: POLICY_ID,
+            name: POLICY_NAME,
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            isPolicyExpenseChatEnabled: true,
+            achAccount: {
+                bankAccountID: LOCKED_BANK_ACCOUNT_ID,
+                accountNumber: 'XXXXXXXX1234',
+                routingNumber: '123456789',
+                addressName: 'Test Bank',
+                bankName: 'Test Bank',
+                reimburser: 'admin@example.com',
+                state: CONST.BANK_ACCOUNT.STATE.LOCKED,
+            },
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${LOCKED_BANK_ACCOUNT_ID}`, '2024-01-01T00:00:00.000Z');
+        await waitForBatchedUpdates();
+
+        renderTimeSensitiveSection();
+
+        const cta = screen.getByText('homePage.timeSensitiveSection.ctaFix');
+        fireEvent.press(cta);
+
+        expect(showUnlockAlreadyRequestedModal).toHaveBeenCalled();
+        expect(pressLockedBankAccount).not.toHaveBeenCalled();
+    });
+
     it('calls pressLockedBankAccount and navigates to Concierge when CTA is pressed', async () => {
         await Onyx.set(ONYXKEYS.SESSION, {email: 'admin@example.com', accountID: ADMIN_ACCOUNT_ID});
         await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
@@ -328,7 +364,7 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
         const cta = screen.getByText('homePage.timeSensitiveSection.ctaFix');
         fireEvent.press(cta);
 
-        expect(pressLockedBankAccount).toHaveBeenCalledWith(LOCKED_BANK_ACCOUNT_ID, expect.any(Function), CONCIERGE_REPORT_ID, undefined);
+        expect(pressLockedBankAccount).toHaveBeenCalledWith(LOCKED_BANK_ACCOUNT_ID, expect.any(Function), CONCIERGE_REPORT_ID, undefined, undefined);
         expect(navigateToConciergeChat).toHaveBeenCalledWith(CONCIERGE_REPORT_ID, undefined, ADMIN_ACCOUNT_ID, false, undefined);
     });
 });
