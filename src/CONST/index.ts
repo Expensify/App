@@ -187,6 +187,13 @@ type OnboardingInvite = ValueOf<typeof onboardingInviteTypes>;
 const EMAIL_WITH_OPTIONAL_DOMAIN =
     /(?=((?=[\w'#%+-]+(?:\.[\w'#%+-]+)*@?)[\w.'#%+-]{1,64}(?:@(?:(?=[a-z\d]+(?:-+[a-z\d]+)*\.)(?:[a-z\d-]{1,63}\.)+[a-z]{2,63}))?(?= |_|\b))(?<end>.*))\S{3,254}(?=\k<end>$)/;
 
+const RESERVATION_TYPE = {
+    CAR: 'car',
+    HOTEL: 'hotel',
+    FLIGHT: 'flight',
+    TRAIN: 'train',
+} as const;
+
 const EMAIL = {
     ACCOUNTING: 'accounting@expensify.com',
     ACCOUNTS_PAYABLE: 'accountspayable@expensify.com',
@@ -6801,17 +6808,18 @@ const CONST = {
         QA_AUTH_REDIRECT_FLOW: 'QA_AUTH_REDIRECT_FLOW',
     },
 
-    RESERVATION_TYPE: {
-        CAR: 'car',
-        HOTEL: 'hotel',
-        FLIGHT: 'flight',
-        TRAIN: 'train',
-    },
+    RESERVATION_TYPE,
 
     TRAVEL_NUDGE: {
         ORIGINATION: {
             CARD: 'card',
             MANUAL: 'manual',
+        },
+        // The travel-booking classifier's output. A superset of RESERVATION_TYPE. HOTEL_BLOCK has no counterpart in
+        // an actual Spotnana reservation, since a hotel block is by definition never booked through Expensify Travel.
+        TRAVEL_TYPE: {
+            ...RESERVATION_TYPE,
+            HOTEL_BLOCK: 'hotelBlock',
         },
     },
 
