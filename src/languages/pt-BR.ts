@@ -7263,6 +7263,9 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
         distanceRates: {
             oopsNotSoFast: 'Opa! Não tão rápido...',
             workspaceNeeds: 'Um workspace precisa de pelo menos uma taxa de distância ativada.',
+            requireMapOrGPSDescription: 'A entrada manual e do hodômetro será desativada.',
+            requireMapOrGPSLockedByCommuterExclusions:
+                'A opção Excluir deslocamentos exige dados de rota, portanto a distância do mapa ou do GPS sempre será obrigatória enquanto ela estiver ativada. Para alterar essa configuração, defina Excluir deslocamentos como “Não excluir deslocamentos”.',
             commuterExclusions: {
                 title: 'Excluir deslocamentos para o trabalho',
                 summaryDisabled: 'Sem exclusão de deslocamento',
@@ -8643,27 +8646,29 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 case 'tags':
                     return `${enabled ? 'ativado' : 'desativado'} tags`;
                 case 'workflows':
-                    return `Fluxos de trabalho ${enabled ? 'ativado' : 'desativado'}`;
+                    return `${enabled ? 'ativado' : 'desativado'} fluxos de trabalho`;
                 case 'distance rates':
-                    return `${enabled ? 'ativado' : 'desativado'} taxas de distância`;
+                    return `${enabled ? 'ativado' : 'desativado'} tarifas de distância`;
                 case 'accounting':
                     return `${enabled ? 'ativado' : 'desativado'} contabilidade`;
                 case 'Expensify Cards':
                     return `${enabled ? 'ativado' : 'desativado'} Cartões Expensify`;
                 case 'travel invoicing':
-                    return `${enabled ? 'ativado' : 'desativado'} Faturamento Consolidado de Viagens`;
+                    return `${enabled ? 'ativado' : 'desativado'} Faturamento Consolidado de Viagem`;
                 case 'company cards':
                     return `${enabled ? 'ativado' : 'desativado'} cartões corporativos`;
                 case 'invoicing':
-                    return `Faturamento de ${enabled ? 'ativado' : 'desativado'}`;
+                    return `Faturamento ${enabled ? 'ativado' : 'desativado'}`;
                 case 'per diem':
                     return `${enabled ? 'ativado' : 'desativado'} por dia`;
                 case 'receipt partners':
-                    return `${enabled ? 'ativado' : 'desativado'} parceiros de recibos`;
+                    return `Parceiros de recibos ${enabled ? 'ativado' : 'desativado'}`;
                 case 'rules':
                     return `Regras de ${enabled ? 'ativado' : 'desativado'}`;
                 case 'tax tracking':
-                    return `${enabled ? 'ativado' : 'desativado'} rastreamento de impostos`;
+                    return `rastreamento de impostos ${enabled ? 'ativado' : 'desativado'}`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'ativado' : 'desativado'} exige GPS ou entrada no mapa para taxas de distância`;
                 default:
                     return `${enabled ? 'ativado' : 'desativado'} ${featureName}`;
             }
@@ -9750,10 +9755,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         error: {
             selectSuggestedAddress: 'Selecione um endereço sugerido ou use a localização atual',
-            mapOrGpsDistanceRequired: {
-                title: 'Distância de mapa ou GPS obrigatória',
-                description: 'Este espaço de trabalho exige despesas de distância baseadas em mapa ou rastreadas por GPS.',
-            },
+            mapOrGpsDistanceRequired: {title: 'Exigir GPS ou inserção no mapa', description: 'Este espaço de trabalho exige despesas de distância baseadas em mapa ou rastreadas por GPS.'},
         },
         odometer: {
             startReading: 'Começar a ler',

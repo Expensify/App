@@ -7004,6 +7004,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         distanceRates: {
             oopsNotSoFast: '哎呀！先别急……',
             workspaceNeeds: '一个工作区至少需要一个已启用的距离费率。',
+            requireMapOrGPSDescription: '将禁用手动输入和里程表输入。',
+            requireMapOrGPSLockedByCommuterExclusions: '排除通勤需要路线数据，因此在其开启时始终需要地图或 GPS 距离。要更改此设置，请将“排除通勤”设为“不要排除通勤”。',
             commuterExclusions: {
                 title: '排除通勤',
                 summaryDisabled: '不排除通勤',
@@ -8327,7 +8329,7 @@ ${reportName}`,
                 case 'tags':
                     return `${enabled ? '已启用' : '已禁用'} 个标签`;
                 case 'workflows':
-                    return `${enabled ? '已启用' : '已禁用'} 个工作流程`;
+                    return `${enabled ? '已启用' : '已禁用'} 个工作流`;
                 case 'distance rates':
                     return `${enabled ? '已启用' : '已禁用'} 距离费率`;
                 case 'accounting':
@@ -8335,19 +8337,21 @@ ${reportName}`,
                 case 'Expensify Cards':
                     return `${enabled ? '已启用' : '已禁用'} Expensify 卡`;
                 case 'travel invoicing':
-                    return `${enabled ? '已启用' : '已禁用'} 合并差旅账单`;
+                    return `${enabled ? '已启用' : '已禁用'} 差旅费用汇总账单`;
                 case 'company cards':
                     return `${enabled ? '已启用' : '已禁用'} 张公司卡`;
                 case 'invoicing':
-                    return `${enabled ? '已启用' : '已禁用'} 开票`;
+                    return `${enabled ? '已启用' : '已禁用'} 开具发票`;
                 case 'per diem':
-                    return `每日津贴 ${enabled ? '已启用' : '已禁用'}`;
+                    return `${enabled ? '已启用' : '已禁用'} 每日津贴`;
                 case 'receipt partners':
                     return `${enabled ? '已启用' : '已禁用'} 个收据合作伙伴`;
                 case 'rules':
                     return `${enabled ? '已启用' : '已禁用'} 条规则`;
                 case 'tax tracking':
                     return `${enabled ? '已启用' : '已禁用'} 税务跟踪`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? '已开启' : '已关闭'} 需要使用 GPS 或地图输入来计算距离费率`;
                 default:
                     return `${enabled ? '已启用' : '已禁用'} ${featureName}`;
             }
@@ -9392,10 +9396,7 @@ ${reportName}`,
         },
         error: {
             selectSuggestedAddress: '请选择一个推荐地址或使用当前位置',
-            mapOrGpsDistanceRequired: {
-                title: '需要提供地图或 GPS 距离',
-                description: '此工作区要求里程报销必须基于地图或通过 GPS 进行轨迹跟踪。',
-            },
+            mapOrGpsDistanceRequired: {title: '需要 GPS 或地图输入', description: '此工作区要求里程报销必须基于地图或通过 GPS 进行轨迹跟踪。'},
         },
         odometer: {
             startReading: '开始阅读',

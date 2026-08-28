@@ -2,7 +2,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
-import {isCommuterExclusionEnabled} from '@libs/PolicyDistanceRatesUtils';
+import {isCommuterExclusionEnabled, isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,7 +21,7 @@ import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useThemeStyles from './useThemeStyles';
 
-type UseCommuterExclusionGuardParams = {
+type UseBlockDistanceRequestParams = {
     /** Policy ID to check by default */
     policyID?: string;
 
@@ -35,47 +35,52 @@ type UseCommuterExclusionGuardParams = {
     isDistanceRequest?: boolean;
 };
 
-type PolicyWithCommuterExclusions = {
-    method: NonNullable<Policy['commuterExclusions']>['method'];
+type PolicyRequiringMapOrGPS = {
+    /** Only set when commuter exclusions are configured, since the method is what decides the home address prompt */
+    commuterExclusionMethod?: NonNullable<Policy['commuterExclusions']>['method'];
     name: Policy['name'];
 };
 
-type PoliciesWithCommuterExclusions = Record<string, PolicyWithCommuterExclusions>;
+type PoliciesRequiringMapOrGPS = Record<string, PolicyRequiringMapOrGPS>;
 
-type CommuterExclusionGuardReason = 'mapOrGpsRequired' | 'homeAddressRequired';
+type BlockDistanceRequestReason = 'mapOrGpsRequired' | 'homeAddressRequired';
 
-const policiesWithCommuterExclusionsSelector = (policies: OnyxCollection<Policy>): PoliciesWithCommuterExclusions =>
-    Object.values(policies ?? {}).reduce<PoliciesWithCommuterExclusions>((acc, policy) => {
-        if (isCommuterExclusionEnabled(policy)) {
-            acc[policy.id] = {
-                method: policy.commuterExclusions.method,
-                name: policy.name,
-            };
+// Commuter exclusions are derived from the mapped route, so they require map or GPS on their own. The
+// `requireMapOrGPS` setting requires it without any exclusion configured, hence no method for those policies.
+const policiesRequiringMapOrGPSSelector = (policies: OnyxCollection<Policy>): PoliciesRequiringMapOrGPS =>
+    Object.values(policies ?? {}).reduce<PoliciesRequiringMapOrGPS>((acc, policy) => {
+        if (!policy?.id || !isMapOrGPSRequired(policy)) {
+            return acc;
         }
+
+        acc[policy.id] = {
+            commuterExclusionMethod: isCommuterExclusionEnabled(policy) ? policy.commuterExclusions.method : undefined,
+            name: policy.name,
+        };
         return acc;
     }, {});
 
 const hasHomeAddressSelector = (privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>) => !!getCurrentAddress(privatePersonalDetails)?.street?.trim();
 
 /**
- * Returns a guard function that blocks unsupported distance flows for policies with
- * commuter exclusions configured. Callers can pass an override policy ID when
- * checking a newly selected workspace before committing it.
+ * Returns a function that blocks unsupported distance flows for policies that require GPS or map entry,
+ * either through the `requireMapOrGPS` setting or through commuter exclusions. Callers can pass an override
+ * policy ID when checking a newly selected workspace before committing it.
  *
  * When a block occurs, it surfaces the relevant modal and returns true so callers
  * can early return.
  */
-function useCommuterExclusionGuard({policyID, isManualDistanceRequest = false, isOdometerDistanceRequest = false, isDistanceRequest = false}: UseCommuterExclusionGuardParams) {
+function useBlockDistanceRequest({policyID, isManualDistanceRequest = false, isOdometerDistanceRequest = false, isDistanceRequest = false}: UseBlockDistanceRequestParams) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
     const illustrations = useMemoizedLazyIllustrations(['HouseWithMap']);
-    const [policiesWithCommuterExclusions] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesWithCommuterExclusionsSelector});
+    const [policiesRequiringMapOrGPS] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesRequiringMapOrGPSSelector});
     const [hasHomeAddress] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {selector: hasHomeAddressSelector});
 
-    const getGuardReason = useCallback(
-        (policyIDToCheck: string | undefined): CommuterExclusionGuardReason | undefined => {
-            if (!policyIDToCheck || !policiesWithCommuterExclusions?.[policyIDToCheck]) {
+    const getBlockReason = useCallback(
+        (policyIDToCheck: string | undefined): BlockDistanceRequestReason | undefined => {
+            if (!policyIDToCheck || !policiesRequiringMapOrGPS?.[policyIDToCheck]) {
                 return;
             }
 
@@ -83,15 +88,15 @@ function useCommuterExclusionGuard({policyID, isManualDistanceRequest = false, i
                 return 'mapOrGpsRequired';
             }
 
-            if (isDistanceRequest && policiesWithCommuterExclusions[policyIDToCheck].method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && !hasHomeAddress) {
+            if (isDistanceRequest && policiesRequiringMapOrGPS[policyIDToCheck].commuterExclusionMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && !hasHomeAddress) {
                 return 'homeAddressRequired';
             }
         },
-        [hasHomeAddress, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, policiesWithCommuterExclusions],
+        [hasHomeAddress, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, policiesRequiringMapOrGPS],
     );
 
-    const showGuardModal = useCallback(
-        (reason: CommuterExclusionGuardReason, policyIDToCheck: string | undefined) => {
+    const showBlockModal = useCallback(
+        (reason: BlockDistanceRequestReason, policyIDToCheck: string | undefined) => {
             const baseModalProps = {
                 image: illustrations.HouseWithMap,
                 titleStyles: styles.textHeadline,
@@ -106,7 +111,7 @@ function useCommuterExclusionGuard({policyID, isManualDistanceRequest = false, i
                 showConfirmModal({
                     ...baseModalProps,
                     title: translate('iou.homeAddressRequired.title'),
-                    prompt: translate('iou.homeAddressRequired.prompt', {workspaceName: policyIDToCheck ? (policiesWithCommuterExclusions?.[policyIDToCheck]?.name ?? '') : ''}),
+                    prompt: translate('iou.homeAddressRequired.prompt', {workspaceName: policyIDToCheck ? (policiesRequiringMapOrGPS?.[policyIDToCheck]?.name ?? '') : ''}),
                     confirmText: translate('iou.homeAddressRequired.cta'),
                 }).then(({action: modalAction}) => {
                     if (modalAction !== ModalActions.CONFIRM) {
@@ -124,24 +129,24 @@ function useCommuterExclusionGuard({policyID, isManualDistanceRequest = false, i
                 confirmText: translate('common.buttonConfirm'),
             });
         },
-        [illustrations.HouseWithMap, policiesWithCommuterExclusions, showConfirmModal, styles, translate],
+        [illustrations.HouseWithMap, policiesRequiringMapOrGPS, showConfirmModal, styles, translate],
     );
 
     const blockDistanceRequestIfNeeded = useCallback(
         (...policyIDsToCheck: [string?]) => {
             const policyIDToCheck = policyIDsToCheck.length > 0 ? policyIDsToCheck[0] : policyID;
-            const reason = getGuardReason(policyIDToCheck);
+            const reason = getBlockReason(policyIDToCheck);
             if (!reason) {
                 return false;
             }
 
-            showGuardModal(reason, policyIDToCheck);
+            showBlockModal(reason, policyIDToCheck);
             return true;
         },
-        [getGuardReason, policyID, showGuardModal],
+        [getBlockReason, policyID, showBlockModal],
     );
 
     return blockDistanceRequestIfNeeded;
 }
 
-export default useCommuterExclusionGuard;
+export default useBlockDistanceRequest;

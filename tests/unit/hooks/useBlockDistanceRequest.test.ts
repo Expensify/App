@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 
-import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -22,7 +22,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyIllustrations: () => ({House: 'House', HouseWithMap: 'HouseWithMap'}),
 }));
 
-describe('useCommuterExclusionGuard', () => {
+describe('useBlockDistanceRequest', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -48,12 +48,31 @@ describe('useCommuterExclusionGuard', () => {
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() =>
-            useCommuterExclusionGuard({
+            useBlockDistanceRequest({
                 isManualDistanceRequest: true,
             }),
         );
 
         expect(result.current('policy_forced')).toBe(true);
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+    });
+
+    it('blocks selecting a workspace that requires GPS or map entry without commuter exclusions', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy_requires_map_or_gps`, {
+            id: 'policy_requires_map_or_gps',
+            name: 'Map or GPS required workspace',
+            areDistanceRatesEnabled: true,
+            requireMapOrGPS: true,
+        });
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() =>
+            useBlockDistanceRequest({
+                isOdometerDistanceRequest: true,
+            }),
+        );
+
+        expect(result.current('policy_requires_map_or_gps')).toBe(true);
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
     });
 
@@ -65,7 +84,7 @@ describe('useCommuterExclusionGuard', () => {
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() =>
-            useCommuterExclusionGuard({
+            useBlockDistanceRequest({
                 isManualDistanceRequest: true,
             }),
         );
@@ -87,7 +106,7 @@ describe('useCommuterExclusionGuard', () => {
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() =>
-            useCommuterExclusionGuard({
+            useBlockDistanceRequest({
                 policyID: 'policy_forced',
                 isManualDistanceRequest: true,
             }),
@@ -111,7 +130,7 @@ describe('useCommuterExclusionGuard', () => {
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() =>
-            useCommuterExclusionGuard({
+            useBlockDistanceRequest({
                 isManualDistanceRequest: true,
             }),
         );
@@ -133,7 +152,7 @@ describe('useCommuterExclusionGuard', () => {
         });
         await waitForBatchedUpdates();
 
-        const {result} = renderHook(() => useCommuterExclusionGuard({}));
+        const {result} = renderHook(() => useBlockDistanceRequest({}));
 
         expect(result.current('policy_forced')).toBe(false);
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
@@ -150,7 +169,7 @@ describe('useCommuterExclusionGuard', () => {
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() =>
-            useCommuterExclusionGuard({
+            useBlockDistanceRequest({
                 policyID: 'policy_home_and_office',
                 isDistanceRequest: true,
             }),
@@ -174,7 +193,7 @@ describe('useCommuterExclusionGuard', () => {
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() =>
-            useCommuterExclusionGuard({
+            useBlockDistanceRequest({
                 policyID: 'policy_home_and_office',
                 isDistanceRequest: true,
             }),
