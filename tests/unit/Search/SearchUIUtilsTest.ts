@@ -6406,6 +6406,36 @@ describe('SearchUIUtils', () => {
                 const item = sections.find((s) => s.transactionID === filterTestTxID);
                 expect(item?.formattedTotal).toBe(-5000);
             });
+
+            // Amounts are stored with the opposite sign, so these three rows render +$80.00, -$40.00 and +$10.00.
+            // Ordering them by magnitude instead puts the credit between the two expenses.
+            function makeAmountSortData() {
+                const baseTransaction = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                return makeFilterTestData(
+                    {type: CONST.REPORT.TYPE.IOU},
+                    {amount: -8000},
+                    {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}sort-credit`]: {...baseTransaction, transactionID: 'sort-credit', reportID: filterTestReportID, amount: 4000},
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}sort-small`]: {...baseTransaction, transactionID: 'sort-small', reportID: filterTestReportID, amount: -1000},
+                    },
+                );
+            }
+
+            function getAmountSortedIDs(sortOrder: SortOrder) {
+                const [sections] = callGetTransactionsSections(makeAmountSortData());
+                const rows = sections.filter((section) => [filterTestTxID, 'sort-credit', 'sort-small'].includes(section.transactionID));
+                expect(rows).toHaveLength(3);
+                const sorted = SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, rows, localeCompare, translateLocal, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, sortOrder);
+                return sorted.map((item) => ('transactionID' in item ? item.transactionID : undefined));
+            }
+
+            it('should rank a credit below every positive expense when sorting the Amount column descending', () => {
+                expect(getAmountSortedIDs(CONST.SEARCH.SORT_ORDER.DESC)).toEqual([filterTestTxID, 'sort-small', 'sort-credit']);
+            });
+
+            it('should rank a credit above every positive expense when sorting the Amount column ascending', () => {
+                expect(getAmountSortedIDs(CONST.SEARCH.SORT_ORDER.ASC)).toEqual(['sort-credit', 'sort-small', filterTestTxID]);
+            });
         });
 
         describe('getReportSections filtering and edge cases', () => {
