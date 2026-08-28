@@ -2780,7 +2780,6 @@ describe('actions/Report', () => {
         // Given a policy with harvesting is disabled
         const policy = {
             ...createRandomPolicy(Number(policyID)),
-            isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
             autoReporting: false,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
@@ -2869,7 +2868,6 @@ describe('actions/Report', () => {
         global.fetch = mockFetchData;
         const policy = {
             ...createRandomPolicy(Number(policyID)),
-            isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
             harvesting: {
                 enabled: false,
@@ -2902,7 +2900,6 @@ describe('actions/Report', () => {
         // Given a policy with harvesting is enabled
         const policy = {
             ...createRandomPolicy(Number(policyID)),
-            isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
             harvesting: {
@@ -2939,7 +2936,6 @@ describe('actions/Report', () => {
         // Given a policy with instant submission and approval disabled
         const policy: OnyxTypes.Policy = {
             ...createRandomPolicy(Number(policyID)),
-            isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
@@ -2983,7 +2979,6 @@ describe('actions/Report', () => {
 
         const policy = {
             ...createRandomPolicy(Number(policyID)),
-            isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
             autoReporting: false,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
@@ -4117,7 +4112,6 @@ describe('actions/Report', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 type: CONST.POLICY.TYPE.TEAM,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 employeeList: {
                     [adminEmail]: {
                         role: CONST.POLICY.ROLE.ADMIN,
@@ -4362,7 +4356,6 @@ describe('actions/Report', () => {
                 id: 'targetPolicy',
                 role: CONST.POLICY.ROLE.ADMIN,
                 type: CONST.POLICY.TYPE.TEAM,
-                isPolicyExpenseChatEnabled: true,
                 employeeList: {
                     [existingAdminEmail]: {email: existingAdminEmail, role: CONST.POLICY.ROLE.ADMIN},
                     [existingUserEmail]: {email: existingUserEmail, role: CONST.POLICY.ROLE.USER},
@@ -4654,7 +4647,6 @@ describe('actions/Report', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 type: CONST.POLICY.TYPE.TEAM,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 employeeList: {
                     'admin@test.com': {
                         role: CONST.POLICY.ROLE.ADMIN,

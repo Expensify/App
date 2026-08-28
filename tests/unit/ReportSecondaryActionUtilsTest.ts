@@ -104,7 +104,6 @@ const createQBOPolicy = (role: Policy['role'], autoSyncEnabled: boolean, exporte
     type: CONST.POLICY.TYPE.TEAM,
     owner: ADMIN_EMAIL,
     outputCurrency: CONST.CURRENCY.USD,
-    isPolicyExpenseChatEnabled: true,
     connections: createQBOConnections(autoSyncEnabled, exporter),
 });
 
@@ -251,7 +250,6 @@ describe('getSecondaryAction', () => {
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
             reimburser: designatedPayerEmail,
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             employeeList: {
                 [ADMIN_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN},
                 [designatedPayerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
@@ -2861,7 +2859,6 @@ describe('getSecondaryAction', () => {
             id: POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
-            isPolicyExpenseChatEnabled: true,
             employeeList: {
                 [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
                 [MANAGER_EMAIL]: {email: MANAGER_EMAIL, role: CONST.POLICY.ROLE.USER},
@@ -2907,7 +2904,6 @@ describe('getSecondaryAction', () => {
             id: POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
             role: CONST.POLICY.ROLE.ADMIN,
-            isPolicyExpenseChatEnabled: true,
             employeeList: {
                 [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
                 [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
@@ -2950,7 +2946,6 @@ describe('getSecondaryAction', () => {
         const newPolicy = createMock<Policy>({
             id: POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
             role: CONST.POLICY.ROLE.USER,
             employeeList: {
                 [MANAGER_EMAIL]: {email: MANAGER_EMAIL, role: CONST.POLICY.ROLE.USER},
@@ -3027,7 +3022,6 @@ describe('getSecondaryAction', () => {
             id: POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
             approver: APPROVER_EMAIL,
-            isPolicyExpenseChatEnabled: true,
             role: CONST.POLICY.ROLE.USER,
             employeeList: {
                 [APPROVER_EMAIL]: {email: APPROVER_EMAIL, role: CONST.POLICY.ROLE.USER},
@@ -3082,7 +3076,6 @@ describe('getSecondaryAction', () => {
             id: POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
             role: CONST.POLICY.ROLE.ADMIN,
-            isPolicyExpenseChatEnabled: true,
             employeeList: {
                 [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
                 [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
@@ -3182,7 +3175,6 @@ describe('getSecondaryAction', () => {
         const policy = createMock<Policy>({
             id: POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
             employeeList: {
                 [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
             },
@@ -4627,7 +4619,6 @@ describe('getSecondaryTransactionThreadActions', () => {
         const policy = createMock<Policy>({
             id: POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
             employeeList: {
                 [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
             },
@@ -4668,7 +4659,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             id: POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
-            isPolicyExpenseChatEnabled: true,
             employeeList: {
                 [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
                 [MANAGER_EMAIL]: {email: MANAGER_EMAIL, role: CONST.POLICY.ROLE.USER},
@@ -4725,7 +4715,6 @@ describe('getSecondaryTransactionThreadActions', () => {
         const policy = createMock<Policy>({
             id: POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: false,
             employeeList: {
                 [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
                 [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
@@ -4786,7 +4775,6 @@ describe('getSecondaryTransactionThreadActions', () => {
         const policy = createMock<Policy>({
             id: POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
             employeeList: {
                 [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
                 [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
@@ -4835,7 +4823,6 @@ describe('getSecondaryTransactionThreadActions', () => {
         const policy = createMock<Policy>({
             id: POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
             employeeList: {
                 [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
             },
@@ -4880,7 +4867,6 @@ describe('getSecondaryTransactionThreadActions', () => {
         const policy = createMock<Policy>({
             id: POLICY_ID,
             type: CONST.POLICY.TYPE.PERSONAL,
-            isPolicyExpenseChatEnabled: true,
             employeeList: {
                 [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
                 [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
@@ -4927,7 +4913,6 @@ describe('getSecondaryTransactionThreadActions', () => {
         const policy = createMock<Policy>({
             id: POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
             autoReporting: true,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
