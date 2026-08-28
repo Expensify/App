@@ -3895,7 +3895,9 @@ const ROUTES = {
     },
     RULES_CATEGORY_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/category-to-match',
-        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/category-to-match` as const,
+        // A category tax default has no ruleID, so editing one passes its category to keep the picker's way back.
+        getRoute: (policyID: string, ruleID?: string, categoryName?: string) =>
+            `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/category-to-match${categoryName ? `?categoryName=${encodeURIComponent(categoryName)}` : ''}` as const,
     },
     RULES_CATEGORY_TAX_EDIT: {
         route: 'workspaces/:policyID/rules/category-tax-rules/edit/:categoryName',

@@ -145,6 +145,8 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
     const {isLoading, startWithLoading} = usePressLoading();
     const isEditing = !!ruleID;
     const isEditingCategoryTaxRule = !!editCategoryTaxRuleFor;
+    // A category tax default is identified by its category rather than a ruleID, so neither flag alone covers "already saved".
+    const isEditingSavedRule = isEditing || isEditingCategoryTaxRule;
     const isInLandscapeMode = useIsInLandscapeMode();
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
@@ -159,6 +161,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
     const {showConfirmModal} = useConfirmModal();
     const [shouldUpdateMatchingTransactions, setShouldUpdateMatchingTransactions] = useState(false);
     const didInitializeCreateDraftRef = useRef(false);
+    const seededCategoryTaxRuleRef = useRef<string | undefined>(undefined);
 
     // The "Set vendor to" row gate below reads policy.connections (via hasVendorFeature and
     // isMatchingVendorListLoaded), which is empty on a non-active workspace until a page requiring
@@ -176,9 +179,12 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
     // Initialize the form with existing rule data (for edit mode), or a pre-scoped category for create
     useEffect(() => {
         if (isEditingCategoryTaxRule) {
-            if (!existingCategoryTaxID) {
+            // Seed once per rule. Re-seeding on every dep change would overwrite a category the admin picked in the
+            // picker with the one the route was opened on.
+            if (!existingCategoryTaxID || seededCategoryTaxRuleRef.current === editCategoryTaxRuleFor) {
                 return;
             }
+            seededCategoryTaxRuleRef.current = editCategoryTaxRuleFor;
             setDraftMerchantRule({categoriesToMatch: [editCategoryTaxRuleFor], tax: existingCategoryTaxID});
             return;
         }
@@ -280,8 +286,9 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
     // can carry that rate in before a category condition is added, so ignore it rather than let a save delete.
     const categoryTaxID = isCategoryRule && form?.tax === policy?.taxRates?.defaultExternalID ? undefined : form?.tax;
     const isMerchantConditionLocked = hasCategoryCondition;
-    // A category rule sets a tax rate, so with taxes off there is nothing for it to configure.
-    const isCategoryConditionLocked = isEditingCategoryTaxRule || hasMerchantCondition || !areTaxesEnabled;
+    // A category rule sets a tax rate, so with taxes off there is nothing for it to configure. A saved category rule
+    // stays editable: moving it to another category matches the merchant row, which can be changed too.
+    const isCategoryConditionLocked = hasMerchantCondition || !areTaxesEnabled;
 
     const showExplainer = (explainerTitleKey: TranslationPaths, explainerPromptKey: TranslationPaths) => {
         showConfirmModal({
@@ -292,15 +299,26 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
         });
     };
 
+    // The same lock reads differently once a rule is saved: an unsaved rule can be reset to swap its condition, while a
+    // saved one keeps the condition it was stored under, so the other type has to go in a rule of its own.
+    const showConditionLockedExplainer = (unsavedPromptKey: TranslationPaths, savedPromptKey: TranslationPaths) =>
+        showExplainer('workspace.rules.merchantRules.oneConditionPerRuleTitle', isEditingSavedRule ? savedPromptKey : unsavedPromptKey);
+
+    /**
+     * The category row locks for three separate reasons, so the explainer has to name the one that actually applies.
+     * A condition already set outranks taxes being off: it holds whether or not taxes are on, while turning taxes on
+     * would still leave the row locked.
+     */
     const showCategoryConditionExplainer = () => {
-        if (!areTaxesEnabled) {
-            showExplainer('workspace.rules.merchantRules.turnOnTaxesFirstTitle', 'workspace.rules.merchantRules.turnOnTaxesFirstPrompt');
+        if (hasMerchantCondition) {
+            showConditionLockedExplainer('workspace.rules.merchantRules.alreadyMatchesMerchantPrompt', 'workspace.rules.merchantRules.alreadyMatchesMerchantSavedPrompt');
             return;
         }
-        showExplainer('workspace.rules.merchantRules.oneConditionPerRuleTitle', 'workspace.rules.merchantRules.alreadyMatchesMerchantPrompt');
+        showExplainer('workspace.rules.merchantRules.turnOnTaxesFirstTitle', 'workspace.rules.merchantRules.turnOnTaxesFirstPrompt');
     };
 
-    const showMerchantConditionExplainer = () => showExplainer('workspace.rules.merchantRules.oneConditionPerRuleTitle', 'workspace.rules.merchantRules.alreadyMatchesCategoryPrompt');
+    const showMerchantConditionExplainer = () =>
+        showConditionLockedExplainer('workspace.rules.merchantRules.alreadyMatchesCategoryPrompt', 'workspace.rules.merchantRules.alreadyMatchesCategorySavedPrompt');
 
     const showCategoryOnlyTaxExplainer = () => showExplainer('workspace.rules.merchantRules.onlyTaxForCategoryRulesTitle', 'workspace.rules.merchantRules.onlyTaxForCategoryRulesPrompt');
 
@@ -309,7 +327,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
      * picker rather than after choosing, so the admin knows the cost before they commit to a category.
      */
     const openCategoryConditionPicker = () => {
-        const navigateToPicker = () => Navigation.navigate(ROUTES.RULES_CATEGORY_TO_MATCH.getRoute(policyID, ruleID));
+        const navigateToPicker = () => Navigation.navigate(ROUTES.RULES_CATEGORY_TO_MATCH.getRoute(policyID, ruleID, editCategoryTaxRuleFor));
 
         if (!hasIncompatibleCategoryRuleDefaults(form)) {
             navigateToPicker();
@@ -418,6 +436,11 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
         if (isCategoryRule) {
             if (!hasCategoryCondition || !categoryTaxID) {
                 return;
+            }
+            // Moving a saved rule to another category has to drop the old one first, or the workspace would end up with
+            // a default tax rate on both categories. The picker allows only one category while editing.
+            if (editCategoryTaxRuleFor && !categoriesToMatch.includes(editCategoryTaxRuleFor)) {
+                deletePolicyCategoryTax(policy, editCategoryTaxRuleFor);
             }
             // The command is per-category, so a bulk selection saves one rule for each category picked.
             setPolicyCategoryTaxes(policy, categoriesToMatch, categoryTaxID);
@@ -759,7 +782,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
                 <HeaderWithBackButton title={translate(isRulesRevampEnabled ? 'workspace.rules.merchantRules.expenseDefaultsTitle' : titleKey)}>
                     {/* Reset only makes sense while a condition is set, and only on an unsaved rule. Resetting a saved
                         rule would let it switch condition type, which the two storage shapes can't express as one edit. */}
-                    {canWriteRules && isRulesRevampEnabled && !isEditing && !isEditingCategoryTaxRule && (hasMerchantCondition || hasCategoryCondition) && (
+                    {canWriteRules && isRulesRevampEnabled && !isEditingSavedRule && (hasMerchantCondition || hasCategoryCondition) && (
                         <TextLink onPress={resetRule}>{translate('common.reset')}</TextLink>
                     )}
                 </HeaderWithBackButton>

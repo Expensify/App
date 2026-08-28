@@ -8106,6 +8106,8 @@ const translations = {
                 oneConditionPerRuleTitle: 'Only one condition per rule',
                 alreadyMatchesMerchantPrompt: 'This rule already matches on a merchant. Reset the rule to match on a category instead.',
                 alreadyMatchesCategoryPrompt: 'This rule already matches on a category. Reset the rule to match on a merchant instead.',
+                alreadyMatchesMerchantSavedPrompt: 'This rule matches on a merchant. Create a new rule to match on a category.',
+                alreadyMatchesCategorySavedPrompt: 'This rule matches on a category. Create a new rule to match on a merchant.',
                 turnOnTaxesFirstTitle: 'Turn on taxes first',
                 turnOnTaxesFirstPrompt: 'Category rules set a default tax rate. Turn on taxes in your workspace settings to use them.',
                 onlyTaxForCategoryRulesTitle: 'Only tax is available for category rules',

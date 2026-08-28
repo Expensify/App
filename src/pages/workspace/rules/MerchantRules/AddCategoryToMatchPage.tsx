@@ -46,7 +46,9 @@ type CategoryListItem = ListItem & {
 };
 
 function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
-    const {policyID} = route.params;
+    const {policyID, categoryName: editingCategoryName} = route.params;
+    // Editing a category tax default edits one rule, so its category is swapped rather than added to.
+    const isEditingCategoryTaxRule = !!editingCategoryName;
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
@@ -115,6 +117,12 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
     const [inputValue, setInputValue, filteredCategoryItems] = useSearchResults(sortedCategoryItems, filterCategory);
 
     const toggleCategory = (item: CategoryListItem) => {
+        // One rule holds one category, so editing replaces the selection instead of growing it. Saving several
+        // categories here would write a rule for each and leave the edited one behind.
+        if (isEditingCategoryTaxRule) {
+            setSelectedCategories([item.value]);
+            return;
+        }
         setSelectedCategories((prev) => (prev.includes(item.value) ? prev.filter((categoryName) => categoryName !== item.value) : [...prev, item.value]));
     };
 
@@ -131,9 +139,9 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
         setSelectedCategories((prev) => Array.from(new Set([...prev, ...visibleValues])));
     };
 
-    // The condition can only be chosen while creating a rule, so the way back is always the create page. Passing it
-    // explicitly, as every sibling picker does, keeps a deep link into this page from having nothing to pop to.
-    const backToRoute = ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
+    // Passing the way back explicitly, as every sibling picker does, keeps a deep link into this page from having
+    // nothing to pop to. A category tax default is addressed by its category rather than a ruleID.
+    const backToRoute = editingCategoryName ? ROUTES.RULES_CATEGORY_TAX_EDIT.getRoute(policyID, editingCategoryName) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
     const goBackToRule = () => Navigation.goBack(backToRoute);
     const goBackAfterSave = () => Navigation.goBack(backToRoute, {shouldSkipFocusRestore: true});
 
@@ -176,7 +184,7 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
                 </View>
             ) : (
                 <SelectionList
-                    canSelectMultiple
+                    canSelectMultiple={!isEditingCategoryTaxRule}
                     shouldUpdateFocusedIndex
                     ListItem={MultiSelectListItem}
                     data={filteredCategoryItems}
@@ -184,7 +192,7 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     onSelectRow={toggleCategory}
                     onSelectionButtonPress={toggleCategory}
-                    onSelectAll={filteredCategoryItems.length > 0 ? toggleSelectAll : undefined}
+                    onSelectAll={!isEditingCategoryTaxRule && filteredCategoryItems.length > 0 ? toggleSelectAll : undefined}
                     textInputOptions={{
                         value: inputValue,
                         label: translate('common.search'),

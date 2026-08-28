@@ -355,20 +355,14 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             </View>
         </View>
     );
+    // Kept outside the list so the bulk-actions button stays pinned above it: it reports how many rows are selected,
+    // which is useless if it scrolls away with the rows it is counting.
     const separateLineButtons =
         shouldDisplayButtonsInSeparateLine && !!headerButtons ? <View style={[styles.flexShrink0, styles.pl5, styles.pr5, styles.pb5, styles.w100]}>{headerButtons}</View> : null;
-    // On the table and agent tabs the selector is the list's own header, so the buttons have to travel with it to land
-    // below the tabs instead of above the whole list.
-    const listHeaderComponent = (
-        <>
-            {rulesTabSelector}
-            {separateLineButtons}
-        </>
-    );
     const sharedTableTabProps = {
         policyID,
         canWriteRules,
-        headerComponent: listHeaderComponent,
+        headerComponent: rulesTabSelector,
     };
 
     return (
@@ -394,8 +388,10 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 headerContent={!shouldDisplayButtonsInSeparateLine && headerButtons}
             >
                 <View style={[styles.flex1, styles.w100, styles.mnh0]}>
+                    {/* The table and agent tabs render the selector inside their own list, below these buttons, so
+                        General puts the buttons first too rather than being the one tab that reverses the order. */}
+                    {separateLineButtons}
                     {!isTableTab && !isAgentsTab && rulesTabSelector}
-                    {!isTableTab && !isAgentsTab && separateLineButtons}
                     <View
                         style={[
                             styles.flex1,
@@ -453,7 +449,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                     policyID={policyID}
                                     canWriteRules={canWriteRules}
                                     showReadOnlyModal={showReadOnlyModal}
-                                    headerComponent={listHeaderComponent}
+                                    headerComponent={rulesTabSelector}
                                 />
                             </View>
                         )}

@@ -1797,6 +1797,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_CATEGORY_TO_MATCH]: {
         policyID: string;
         ruleID: string;
+        categoryName?: string;
     };
     [SCREENS.WORKSPACE.RULES_CATEGORY_TAX_EDIT]: {
         policyID: string;
