@@ -275,6 +275,7 @@ import {
     getTransactionID,
     getWaypoints,
     hasMissingSmartscanFields as hasMissingSmartscanFieldsTransactionUtils,
+    hasMissingSmartscanFieldsForRBR,
     hasNoticeTypeViolation,
     hasReceipt as hasReceiptTransactionUtils,
     hasViolation,
@@ -5771,7 +5772,8 @@ function getReportActionWithMissingSmartscanFields(
         if (!wasActionTakenByCurrentUser(action, currentUserAccountID)) {
             return false;
         }
-        return hasMissingSmartscanFieldsTransactionUtils(transaction, iouReport);
+        // hasMissingSmartscanFieldsForRBR skips DELETE-pending transactions (see its doc).
+        return hasMissingSmartscanFieldsForRBR(transaction, iouReport);
     });
 }
 
@@ -11519,7 +11521,8 @@ function getReportActionWithSmartscanError(
 
         const transactionID = isSplitOrTrackAction ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        const isTransactionThreadError = isSplitOrTrackAction && hasMissingSmartscanFieldsTransactionUtils(transaction, report);
+        // hasMissingSmartscanFieldsForRBR skips DELETE-pending transactions (see its doc).
+        const isTransactionThreadError = isSplitOrTrackAction && hasMissingSmartscanFieldsForRBR(transaction, report);
 
         return isTransactionThreadError;
     });

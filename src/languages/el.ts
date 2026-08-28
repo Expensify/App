@@ -6186,6 +6186,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     category: 'Κατηγορία',
                     tag: 'Ετικέτα',
                     cardName: 'Όνομα κάρτας',
+                    uniqueID: 'Μοναδικό αναγνωριστικό',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Παρακαλούμε αντιστοιχίστε μια στήλη σε καθεμία από τις ιδιότητες: ${missingColumns}.`,
