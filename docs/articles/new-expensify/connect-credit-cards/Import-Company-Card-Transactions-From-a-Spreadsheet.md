@@ -51,6 +51,8 @@ If you don't map **Unique ID**, Expensify treats every row in the file as a new 
 
 For **Unique ID** to work, the values in that column must be unique within the file and stay the same for the same transaction across uploads. If the column repeats the same value on different transactions, Expensify treats them as the same transaction and skips the later ones.
 
+Each **Unique ID** value must also be at least 5 characters long. Expensify ignores anything shorter when it checks for transactions it has already imported, so rows with a very short **Unique ID** import again every time you re-upload the file. If your file numbers transactions with short values such as `1`, `2`, and `3`, map **Unique ID** to a longer reference column instead.
+
 You must map **Unique ID** yourself on every import. Unlike the other field mappings, it is never filled in for you.
 
 ---
@@ -136,6 +138,10 @@ Expensify deliberately doesn't restore a saved **Unique ID** mapping. The saved 
 ## What happens to rows with a blank Unique ID?
 
 Expensify imports them. A row with an empty **Unique ID** cell gets a generated ID instead, so it always imports and won't be matched against a later upload.
+
+## Is there a minimum length for Unique ID?
+
+Yes. A **Unique ID** value must be at least 5 characters long. Expensify ignores shorter values when it checks for transactions it has already imported, so those rows create duplicates on a re-upload even though **Unique ID** is mapped. Map **Unique ID** to a column with longer references, such as the bank's own transaction ID.
 
 ## Do imported company card transactions sync across web and mobile?
 
