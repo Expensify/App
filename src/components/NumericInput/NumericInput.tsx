@@ -1,14 +1,14 @@
-import {useNumberEditController} from '@components/NumberInput';
-import type {NumberInputRef} from '@components/NumberInput';
+import {useNumericInputController} from '@components/NumericInputController';
+import type {NumericInputRef} from '@components/NumericInputController';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import type {ForwardedRef, ReactNode} from 'react';
 
 import {useImperativeHandle} from 'react';
 
-import type {NumberComposerActionsContextValue, NumberComposerStateContextValue} from './context/types';
+import type {NumericInputActionsContextValue, NumericInputStateContextValue} from './context/types';
 
-import {NumberComposerActionsContext, NumberComposerStateContext} from './context';
+import {NumericInputActionsContext, NumericInputStateContext} from './context';
 
 /** The composed input displays only the magnitude; the minus sign is rendered separately. */
 const getMagnitude = (canonicalValue: string) => (canonicalValue.startsWith('-') ? canonicalValue.slice(1) : canonicalValue);
@@ -30,7 +30,7 @@ const getSignedValue = (displayText: string, previousCanonicalValue: string, all
     return displayText;
 };
 
-type NumberComposerProps = {
+type NumericInputProps = {
     /** The canonical signed value shared by composed primitives. Only a reset to an empty string re-initializes the editing state. */
     value?: string;
 
@@ -46,7 +46,7 @@ type NumberComposerProps = {
     /** Maximum number of integer digits accepted by the composer. */
     maxLength?: number;
 
-    /** Error supplied by FormProvider. Rendered by the `NumberComposer.Error` primitive wherever the composition places it. */
+    /** Error supplied by FormProvider. Rendered by the `NumericInput.Error` primitive wherever the composition places it. */
     errorText?: string;
 
     /** Form callback supplied by InputWrapper. */
@@ -59,13 +59,13 @@ type NumberComposerProps = {
     ref?: ForwardedRef<BaseTextInputRef>;
 
     /** Reference exposing the number editing imperative API. */
-    numberFormRef?: ForwardedRef<NumberInputRef>;
+    numericInputRef?: ForwardedRef<NumericInputRef>;
 
     children: ReactNode;
 };
 
-function NumberComposer({value = '', onInputChange, allowNegative = false, decimals = 0, maxLength, errorText, onBlur, onSubmitEditing, ref, numberFormRef, children}: NumberComposerProps) {
-    const controller = useNumberEditController({
+function NumericInput({value = '', onInputChange, allowNegative = false, decimals = 0, maxLength, errorText, onBlur, onSubmitEditing, ref, numericInputRef, children}: NumericInputProps) {
+    const controller = useNumericInputController({
         value,
         onInputChange,
         allowNegative,
@@ -76,7 +76,7 @@ function NumberComposer({value = '', onInputChange, allowNegative = false, decim
         toCanonicalValue: (displayText, previousCanonicalValue) => getSignedValue(displayText, previousCanonicalValue, allowNegative),
     });
 
-    useImperativeHandle(numberFormRef, () => ({
+    useImperativeHandle(numericInputRef, () => ({
         clearSelection: controller.clearSelection,
         getNumber: controller.getNumber,
         updateNumber: controller.updateNumber,
@@ -98,7 +98,7 @@ function NumberComposer({value = '', onInputChange, allowNegative = false, decim
         controller.setValue(currentValue.slice(1));
     };
 
-    const stateContextValue: NumberComposerStateContextValue = {
+    const stateContextValue: NumericInputStateContextValue = {
         value: controller.value,
         externalValue: controller.externalValue,
         formattedNumber: controller.formattedNumber,
@@ -108,7 +108,7 @@ function NumberComposer({value = '', onInputChange, allowNegative = false, decim
         errorText,
     };
 
-    const actionsContextValue: NumberComposerActionsContextValue = {
+    const actionsContextValue: NumericInputActionsContextValue = {
         setNumber: controller.setNumber,
         updateNumber: controller.updateNumber,
         getNumber: controller.getNumber,
@@ -123,10 +123,11 @@ function NumberComposer({value = '', onInputChange, allowNegative = false, decim
     };
 
     return (
-        <NumberComposerStateContext.Provider value={stateContextValue}>
-            <NumberComposerActionsContext.Provider value={actionsContextValue}>{children}</NumberComposerActionsContext.Provider>
-        </NumberComposerStateContext.Provider>
+        <NumericInputStateContext.Provider value={stateContextValue}>
+            <NumericInputActionsContext.Provider value={actionsContextValue}>{children}</NumericInputActionsContext.Provider>
+        </NumericInputStateContext.Provider>
     );
 }
 
-export default NumberComposer;
+export default NumericInput;
+export type {NumericInputProps};

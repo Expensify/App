@@ -2,8 +2,8 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import NumberComposer, {useNumberComposerActions} from '@components/NumberComposer';
-import type {NumberComposerRef, NumberComposerSymbolInputProps} from '@components/NumberComposer';
+import NumericInput, {useNumericInputActions} from '@components/NumericInput';
+import type {NumericInputRef, NumericSymbolInputProps} from '@components/NumericInput';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -34,11 +34,11 @@ type RootProps = {
     onBlur?: jest.Mock;
     onInputChange?: jest.Mock;
     ref?: React.Ref<BaseTextInputRef>;
-    numberFormRef?: React.Ref<NumberComposerRef>;
+    numericInputRef?: React.Ref<NumericInputRef>;
 };
 
 function SignControls() {
-    const {clearSign, toggleSign} = useNumberComposerActions();
+    const {clearSign, toggleSign} = useNumericInputActions();
 
     return (
         <>
@@ -58,21 +58,21 @@ function SignControls() {
     );
 }
 
-function renderSymbolInput(inputProps: Partial<NumberComposerSymbolInputProps> = {}, rootProps: RootProps = {}, extraChildren: React.ReactNode = null) {
+function renderSymbolInput(inputProps: Partial<NumericSymbolInputProps> = {}, rootProps: RootProps = {}, extraChildren: React.ReactNode = null) {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <NumberComposer {...rootProps}>
-                <NumberComposer.SymbolInput
+            <NumericInput {...rootProps}>
+                <NumericInput.SymbolInput
                     testID={INPUT_TEST_ID}
                     {...inputProps}
                 />
                 {extraChildren}
-            </NumberComposer>
+            </NumericInput>
         </ComposeProviders>,
     );
 }
 
-describe('NumberComposer.SymbolInput', () => {
+describe('NumericInput.SymbolInput', () => {
     afterEach(() => {
         jest.clearAllMocks();
     });
@@ -196,17 +196,17 @@ describe('NumberComposer.SymbolInput', () => {
     });
 
     it('strips decimals at mount when a signed value is invalid for the decimals prop', async () => {
-        const numberFormRef = React.createRef<NumberComposerRef>();
+        const numericInputRef = React.createRef<NumericInputRef>();
         const onInputChange = jest.fn();
 
         // Given a signed value mounted with more decimal places than the root allows
-        renderSymbolInput({}, {value: '-1.25', allowNegative: true, decimals: 0, numberFormRef, onInputChange});
+        renderSymbolInput({}, {value: '-1.25', allowNegative: true, decimals: 0, numericInputRef, onInputChange});
         await waitForBatchedUpdatesWithAct();
 
         // Then the decimals are stripped at mount, the sign is preserved, and the parent is notified
         expect(screen.getByDisplayValue('1')).toBeOnTheScreen();
         expect(screen.getByText('-')).toBeOnTheScreen();
-        expect(numberFormRef.current?.getNumber()).toBe('-1');
+        expect(numericInputRef.current?.getNumber()).toBe('-1');
         expect(onInputChange).toHaveBeenLastCalledWith('-1');
     });
 
@@ -228,30 +228,30 @@ describe('NumberComposer.SymbolInput', () => {
     });
 });
 
-describe('NumberComposer imperative API', () => {
+describe('NumericInput imperative API', () => {
     afterEach(() => {
         jest.clearAllMocks();
     });
 
     it('getNumber returns the canonical signed value and updateNumber stores it without notifying', async () => {
-        const numberFormRef = React.createRef<NumberComposerRef>();
+        const numericInputRef = React.createRef<NumericInputRef>();
         const onInputChange = jest.fn();
 
         // Given a SymbolInput with a signed value
-        renderSymbolInput({}, {value: '-10', allowNegative: true, decimals: 2, numberFormRef, onInputChange});
+        renderSymbolInput({}, {value: '-10', allowNegative: true, decimals: 2, numericInputRef, onInputChange});
         await waitForBatchedUpdatesWithAct();
 
-        expect(numberFormRef.current?.getNumber()).toBe('-10');
+        expect(numericInputRef.current?.getNumber()).toBe('-10');
 
         // When updateNumber pushes a signed value
         act(() => {
-            numberFormRef.current?.updateNumber('-25');
+            numericInputRef.current?.updateNumber('-25');
         });
         await waitForBatchedUpdatesWithAct();
 
         // Then the canonical value keeps its sign, the input renders the magnitude with the caret after it,
         // and onInputChange is not called
-        expect(numberFormRef.current?.getNumber()).toBe('-25');
+        expect(numericInputRef.current?.getNumber()).toBe('-25');
         expect(screen.getByText('-')).toBeOnTheScreen();
         expect(screen.getByDisplayValue('25')).toBeOnTheScreen();
         expect(screen.getByTestId(INPUT_TEST_ID).props.selection).toEqual({start: 2, end: 2});
@@ -259,38 +259,38 @@ describe('NumberComposer imperative API', () => {
     });
 
     it('updateNumber bypasses validation', async () => {
-        const numberFormRef = React.createRef<NumberComposerRef>();
+        const numericInputRef = React.createRef<NumericInputRef>();
 
         // Given a SymbolInput with zero decimal places
-        renderSymbolInput({}, {value: '10', decimals: 0, numberFormRef});
+        renderSymbolInput({}, {value: '10', decimals: 0, numericInputRef});
         await waitForBatchedUpdatesWithAct();
 
         // When updateNumber pushes a value that user input validation would reject
         act(() => {
-            numberFormRef.current?.updateNumber('12.345');
+            numericInputRef.current?.updateNumber('12.345');
         });
         await waitForBatchedUpdatesWithAct();
 
         // Then the value is stored as-is
-        expect(numberFormRef.current?.getNumber()).toBe('12.345');
+        expect(numericInputRef.current?.getNumber()).toBe('12.345');
         expect(screen.getByDisplayValue('12.345')).toBeOnTheScreen();
     });
 
     it('does not preserve a sign installed by updateNumber through edits when negative input is disabled', async () => {
-        const numberFormRef = React.createRef<NumberComposerRef>();
+        const numericInputRef = React.createRef<NumericInputRef>();
         const onInputChange = jest.fn();
 
         // Given negative input disabled and a signed value pushed through the updateNumber validation bypass
-        renderSymbolInput({}, {value: '5', decimals: 2, numberFormRef, onInputChange});
+        renderSymbolInput({}, {value: '5', decimals: 2, numericInputRef, onInputChange});
         await waitForBatchedUpdatesWithAct();
 
         act(() => {
-            numberFormRef.current?.updateNumber('-5');
+            numericInputRef.current?.updateNumber('-5');
         });
         await waitForBatchedUpdatesWithAct();
 
         // Then the bypassed value is stored as-is per the updateNumber contract
-        expect(numberFormRef.current?.getNumber()).toBe('-5');
+        expect(numericInputRef.current?.getNumber()).toBe('-5');
         expect(screen.getByText('-')).toBeOnTheScreen();
 
         // When the user edits the magnitude
@@ -298,16 +298,16 @@ describe('NumberComposer imperative API', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the sign is not re-attached because negative values are not allowed
-        expect(numberFormRef.current?.getNumber()).toBe('56');
+        expect(numericInputRef.current?.getNumber()).toBe('56');
         expect(onInputChange).toHaveBeenLastCalledWith('56');
         expect(screen.queryByText('-')).not.toBeOnTheScreen();
     });
 
     it('clearSelection collapses the selection onto its end', async () => {
-        const numberFormRef = React.createRef<NumberComposerRef>();
+        const numericInputRef = React.createRef<NumericInputRef>();
 
         // Given a SymbolInput with a range selection
-        renderSymbolInput({}, {value: '1234', decimals: 2, numberFormRef});
+        renderSymbolInput({}, {value: '1234', decimals: 2, numericInputRef});
         await waitForBatchedUpdatesWithAct();
 
         fireEvent(screen.getByTestId(INPUT_TEST_ID), 'selectionChange', {
@@ -319,7 +319,7 @@ describe('NumberComposer imperative API', () => {
 
         // When clearSelection is called imperatively
         act(() => {
-            numberFormRef.current?.clearSelection();
+            numericInputRef.current?.clearSelection();
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -328,17 +328,17 @@ describe('NumberComposer imperative API', () => {
     });
 });
 
-describe('NumberComposer sign ownership', () => {
+describe('NumericInput sign ownership', () => {
     afterEach(() => {
         jest.clearAllMocks();
     });
 
     it('clears the sign when backspace is pressed on an empty negative magnitude', async () => {
-        const numberFormRef = React.createRef<NumberComposerRef>();
+        const numericInputRef = React.createRef<NumericInputRef>();
         const onInputChange = jest.fn();
 
         // Given a lone negative sign (empty magnitude)
-        renderSymbolInput({}, {value: '-', allowNegative: true, decimals: 2, numberFormRef, onInputChange});
+        renderSymbolInput({}, {value: '-', allowNegative: true, decimals: 2, numericInputRef, onInputChange});
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByText('-')).toBeOnTheScreen();
@@ -348,16 +348,16 @@ describe('NumberComposer sign ownership', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the sign is cleared and the parent is notified
-        expect(numberFormRef.current?.getNumber()).toBe('');
+        expect(numericInputRef.current?.getNumber()).toBe('');
         expect(onInputChange).toHaveBeenLastCalledWith('');
         expect(screen.queryByText('-')).not.toBeOnTheScreen();
     });
 
     it('does not clear the value when backspace is pressed and the value is not negative', async () => {
-        const numberFormRef = React.createRef<NumberComposerRef>();
+        const numericInputRef = React.createRef<NumericInputRef>();
 
         // Given a non-negative value
-        renderSymbolInput({}, {value: '5', decimals: 2, numberFormRef});
+        renderSymbolInput({}, {value: '5', decimals: 2, numericInputRef});
         await waitForBatchedUpdatesWithAct();
 
         // When backspace is pressed
@@ -365,15 +365,15 @@ describe('NumberComposer sign ownership', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the value is unchanged
-        expect(numberFormRef.current?.getNumber()).toBe('5');
+        expect(numericInputRef.current?.getNumber()).toBe('5');
     });
 
     it('toggleSign flips the sign of a non-empty value and notifies the parent', async () => {
-        const numberFormRef = React.createRef<NumberComposerRef>();
+        const numericInputRef = React.createRef<NumericInputRef>();
         const onInputChange = jest.fn();
 
         // Given a positive value and the sign controls
-        renderSymbolInput({}, {value: '5', allowNegative: true, decimals: 2, numberFormRef, onInputChange}, <SignControls />);
+        renderSymbolInput({}, {value: '5', allowNegative: true, decimals: 2, numericInputRef, onInputChange}, <SignControls />);
         await waitForBatchedUpdatesWithAct();
 
         // When the sign is toggled
@@ -381,7 +381,7 @@ describe('NumberComposer sign ownership', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the canonical value flips negative, the magnitude stays, and the parent is notified
-        expect(numberFormRef.current?.getNumber()).toBe('-5');
+        expect(numericInputRef.current?.getNumber()).toBe('-5');
         expect(onInputChange).toHaveBeenLastCalledWith('-5');
         expect(screen.getByText('-')).toBeOnTheScreen();
         expect(screen.getByDisplayValue('5')).toBeOnTheScreen();
@@ -391,17 +391,17 @@ describe('NumberComposer sign ownership', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the canonical value flips back
-        expect(numberFormRef.current?.getNumber()).toBe('5');
+        expect(numericInputRef.current?.getNumber()).toBe('5');
         expect(onInputChange).toHaveBeenLastCalledWith('5');
         expect(screen.queryByText('-')).not.toBeOnTheScreen();
     });
 
     it('clearSign removes only the sign, keeping the magnitude, and notifies the parent', async () => {
-        const numberFormRef = React.createRef<NumberComposerRef>();
+        const numericInputRef = React.createRef<NumericInputRef>();
         const onInputChange = jest.fn();
 
         // Given a negative value and the sign controls
-        renderSymbolInput({}, {value: '-5', allowNegative: true, decimals: 2, numberFormRef, onInputChange}, <SignControls />);
+        renderSymbolInput({}, {value: '-5', allowNegative: true, decimals: 2, numericInputRef, onInputChange}, <SignControls />);
         await waitForBatchedUpdatesWithAct();
 
         // When the sign is cleared
@@ -409,7 +409,7 @@ describe('NumberComposer sign ownership', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then only the sign is removed and the parent is notified
-        expect(numberFormRef.current?.getNumber()).toBe('5');
+        expect(numericInputRef.current?.getNumber()).toBe('5');
         expect(onInputChange).toHaveBeenLastCalledWith('5');
         expect(screen.queryByText('-')).not.toBeOnTheScreen();
         expect(screen.getByDisplayValue('5')).toBeOnTheScreen();
@@ -419,16 +419,16 @@ describe('NumberComposer sign ownership', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then nothing changes and the parent is not notified again
-        expect(numberFormRef.current?.getNumber()).toBe('5');
+        expect(numericInputRef.current?.getNumber()).toBe('5');
         expect(onInputChange).toHaveBeenCalledTimes(1);
     });
 
     it('toggleSign on an empty value places the caret after the minus so the next digit becomes negative', async () => {
-        const numberFormRef = React.createRef<NumberComposerRef>();
+        const numericInputRef = React.createRef<NumericInputRef>();
         const onInputChange = jest.fn();
 
         // Given an empty value and the sign controls
-        renderSymbolInput({}, {allowNegative: true, decimals: 2, numberFormRef, onInputChange}, <SignControls />);
+        renderSymbolInput({}, {allowNegative: true, decimals: 2, numericInputRef, onInputChange}, <SignControls />);
         await waitForBatchedUpdatesWithAct();
 
         // When the sign is toggled
@@ -436,7 +436,7 @@ describe('NumberComposer sign ownership', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the canonical value is a lone minus, rendered separately, with the caret on the empty magnitude
-        expect(numberFormRef.current?.getNumber()).toBe('-');
+        expect(numericInputRef.current?.getNumber()).toBe('-');
         expect(screen.getByText('-')).toBeOnTheScreen();
         expect(screen.getByTestId(INPUT_TEST_ID).props.selection).toEqual({start: 0, end: 0});
 
@@ -446,12 +446,12 @@ describe('NumberComposer sign ownership', () => {
 
         // Then the digit becomes a negative amount and the caret follows it
         expect(onInputChange).toHaveBeenLastCalledWith('-5');
-        expect(numberFormRef.current?.getNumber()).toBe('-5');
+        expect(numericInputRef.current?.getNumber()).toBe('-5');
         expect(screen.getByTestId(INPUT_TEST_ID).props.selection).toEqual({start: 1, end: 1});
     });
 });
 
-describe('NumberComposer external value synchronization', () => {
+describe('NumericInput external value synchronization', () => {
     afterEach(() => {
         jest.clearAllMocks();
     });
@@ -469,13 +469,13 @@ describe('NumberComposer external value synchronization', () => {
         // When the root value resets externally to an empty string
         rerender(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                <NumberComposer
+                <NumericInput
                     value=""
                     allowNegative
                     decimals={2}
                 >
-                    <NumberComposer.SymbolInput testID={INPUT_TEST_ID} />
-                </NumberComposer>
+                    <NumericInput.SymbolInput testID={INPUT_TEST_ID} />
+                </NumericInput>
             </ComposeProviders>,
         );
         await waitForBatchedUpdatesWithAct();
@@ -494,12 +494,12 @@ describe('NumberComposer external value synchronization', () => {
         // When the root value changes externally to "12"
         rerender(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                <NumberComposer
+                <NumericInput
                     value="12"
                     decimals={2}
                 >
-                    <NumberComposer.SymbolInput testID={INPUT_TEST_ID} />
-                </NumberComposer>
+                    <NumericInput.SymbolInput testID={INPUT_TEST_ID} />
+                </NumericInput>
             </ComposeProviders>,
         );
         await waitForBatchedUpdatesWithAct();

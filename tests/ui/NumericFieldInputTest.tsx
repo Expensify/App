@@ -2,8 +2,8 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import NumberForm from '@components/NumberForm';
-import type {NumberFormRef, NumberFormTextInputProps} from '@components/NumberForm';
+import NumericField from '@components/NumericField';
+import type {NumericFieldRef, NumericTextInputProps} from '@components/NumericField';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -33,15 +33,15 @@ type RootProps = {
     onInputChange?: jest.Mock;
     onSubmitEditing?: jest.Mock;
     ref?: React.Ref<BaseTextInputRef>;
-    numberFormRef?: React.Ref<NumberFormRef>;
+    numericInputRef?: React.Ref<NumericFieldRef>;
 };
 
-function renderTextInput(inputProps: Partial<NumberFormTextInputProps> = {}, rootProps: RootProps = {}) {
+function renderTextInput(inputProps: Partial<NumericTextInputProps> = {}, rootProps: RootProps = {}) {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <NumberForm {...rootProps}>
-                <NumberForm.TextInput {...inputProps} />
-            </NumberForm>
+            <NumericField {...rootProps}>
+                <NumericField.TextInput {...inputProps} />
+            </NumericField>
         </ComposeProviders>,
     );
 }
@@ -50,7 +50,7 @@ const INPUT_TEST_ID = 'number-form-input';
 
 // The root re-initializes its editing state only when the external value resets to an empty string (matching
 // NumberWithSymbolForm); the reset must also collapse the selection so the caret cannot outlive the cleared text.
-describe('NumberForm external reset handling', () => {
+describe('NumericField external reset handling', () => {
     afterEach(() => {
         jest.clearAllMocks();
     });
@@ -72,12 +72,12 @@ describe('NumberForm external reset handling', () => {
         // When the root value resets externally to an empty string
         rerender(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                <NumberForm
+                <NumericField
                     value=""
                     decimals={2}
                 >
-                    <NumberForm.TextInput testID={INPUT_TEST_ID} />
-                </NumberForm>
+                    <NumericField.TextInput testID={INPUT_TEST_ID} />
+                </NumericField>
             </ComposeProviders>,
         );
         await waitForBatchedUpdatesWithAct();
@@ -95,12 +95,12 @@ describe('NumberForm external reset handling', () => {
         // When the root value changes externally to "12"
         rerender(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                <NumberForm
+                <NumericField
                     value="12"
                     decimals={2}
                 >
-                    <NumberForm.TextInput testID={INPUT_TEST_ID} />
-                </NumberForm>
+                    <NumericField.TextInput testID={INPUT_TEST_ID} />
+                </NumericField>
             </ComposeProviders>,
         );
         await waitForBatchedUpdatesWithAct();
@@ -110,7 +110,7 @@ describe('NumberForm external reset handling', () => {
     });
 });
 
-describe('NumberForm navigation focus selection handling', () => {
+describe('NumericField navigation focus selection handling', () => {
     afterEach(() => {
         jest.clearAllMocks();
         mockUseIsFocused.mockReturnValue(true);
@@ -133,9 +133,9 @@ describe('NumberForm navigation focus selection handling', () => {
         mockUseIsFocused.mockReturnValue(false);
         rerender(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                <NumberForm value="1234">
-                    <NumberForm.TextInput testID={INPUT_TEST_ID} />
-                </NumberForm>
+                <NumericField value="1234">
+                    <NumericField.TextInput testID={INPUT_TEST_ID} />
+                </NumericField>
             </ComposeProviders>,
         );
         await waitForBatchedUpdatesWithAct();
@@ -143,9 +143,9 @@ describe('NumberForm navigation focus selection handling', () => {
         mockUseIsFocused.mockReturnValue(true);
         rerender(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                <NumberForm value="1234">
-                    <NumberForm.TextInput testID={INPUT_TEST_ID} />
-                </NumberForm>
+                <NumericField value="1234">
+                    <NumericField.TextInput testID={INPUT_TEST_ID} />
+                </NumericField>
             </ComposeProviders>,
         );
         await waitForBatchedUpdatesWithAct();
@@ -155,7 +155,7 @@ describe('NumberForm navigation focus selection handling', () => {
     });
 });
 
-describe('NumberForm.TextInput', () => {
+describe('NumericField.TextInput', () => {
     afterEach(() => {
         jest.clearAllMocks();
     });
@@ -277,13 +277,13 @@ describe('NumberForm.TextInput', () => {
         // When the decimals prop changes to zero
         rerender(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                <NumberForm
+                <NumericField
                     value="1.25"
                     decimals={0}
                     onInputChange={onInputChange}
                 >
-                    <NumberForm.TextInput testID={INPUT_TEST_ID} />
-                </NumberForm>
+                    <NumericField.TextInput testID={INPUT_TEST_ID} />
+                </NumericField>
             </ComposeProviders>,
         );
         await waitForBatchedUpdatesWithAct();
@@ -324,23 +324,23 @@ describe('NumberForm.TextInput', () => {
     });
 
     it('exposes the imperative number API without notifying the root on updateNumber', async () => {
-        const numberFormRef = React.createRef<NumberFormRef>();
+        const numericInputRef = React.createRef<NumericFieldRef>();
         const onInputChange = jest.fn();
 
-        // Given a TextInput with value "10" and a numberFormRef
-        renderTextInput({}, {value: '10', numberFormRef, onInputChange});
+        // Given a TextInput with value "10" and a numericInputRef
+        renderTextInput({}, {value: '10', numericInputRef, onInputChange});
         await waitForBatchedUpdatesWithAct();
 
-        expect(numberFormRef.current?.getNumber()).toBe('10');
+        expect(numericInputRef.current?.getNumber()).toBe('10');
 
         // When updateNumber is called imperatively
         act(() => {
-            numberFormRef.current?.updateNumber('25');
+            numericInputRef.current?.updateNumber('25');
         });
         await waitForBatchedUpdatesWithAct();
 
         // Then the value updates in the ref and the input without notifying onInputChange
-        expect(numberFormRef.current?.getNumber()).toBe('25');
+        expect(numericInputRef.current?.getNumber()).toBe('25');
         expect(onInputChange).not.toHaveBeenCalled();
         expect(screen.getByDisplayValue('25')).toBeOnTheScreen();
     });
@@ -366,10 +366,10 @@ describe('NumberForm.TextInput', () => {
     });
 
     it('collapses the selection onto its end when clearSelection is called', async () => {
-        const numberFormRef = React.createRef<NumberFormRef>();
+        const numericInputRef = React.createRef<NumericFieldRef>();
 
         // Given a TextInput with a range selection
-        renderTextInput({testID: INPUT_TEST_ID}, {value: '1234', decimals: 2, numberFormRef});
+        renderTextInput({testID: INPUT_TEST_ID}, {value: '1234', decimals: 2, numericInputRef});
         await waitForBatchedUpdatesWithAct();
 
         fireEvent(screen.getByTestId(INPUT_TEST_ID), 'selectionChange', {
@@ -381,7 +381,7 @@ describe('NumberForm.TextInput', () => {
 
         // When clearSelection is called imperatively
         act(() => {
-            numberFormRef.current?.clearSelection();
+            numericInputRef.current?.clearSelection();
         });
         await waitForBatchedUpdatesWithAct();
 

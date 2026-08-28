@@ -1,6 +1,6 @@
-import {useNumberComposerActions, useNumberComposerState} from '@components/NumberComposer/context';
-import type {NumberComposerSymbolInputProps} from '@components/NumberComposer/types';
-import type {NumberInputKeyPressEvent} from '@components/NumberInput';
+import {useNumericInputActions, useNumericInputState} from '@components/NumericInput/context';
+import type {NumericSymbolInputProps} from '@components/NumericInput/types';
+import type {NumericInputKeyPressEvent} from '@components/NumericInputController';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextInputWithSymbol from '@components/TextInputWithSymbol';
 
@@ -21,7 +21,7 @@ import {useRef} from 'react';
  * Renders a numeric input with a symbol beside it. The root owns the canonical signed value; this input displays the
  * magnitude and the minus sign is rendered separately.
  */
-function NumberComposerSymbolInput({
+function NumericSymbolInput({
     symbol = '',
     position = 'prefix',
     hideSymbol = false,
@@ -56,19 +56,19 @@ function NumberComposerSymbolInput({
     symbolTextStyle,
     negativeSymbolStyle,
     shouldUseDynamicFontSize = false,
-}: NumberComposerSymbolInputProps) {
+}: NumericSymbolInputProps) {
     const {numberFormat} = useLocalize();
     const {setMouseDown, setMouseUp} = useMouseActions();
     const StyleUtils = useStyleUtils();
-    const {formattedNumber, isNegative, selection} = useNumberComposerState();
-    const {clearSign, handleBlur, handleKeyPress, handleSelectionChange, inputRef, setNumber} = useNumberComposerActions();
+    const {formattedNumber, isNegative, selection} = useNumericInputState();
+    const {clearSign, handleBlur, handleKeyPress, handleSelectionChange, inputRef, setNumber} = useNumericInputActions();
     const textInput = useRef<BaseTextInputRef | null>(null);
 
     const inputPosition = position === 'suffix' ? CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX : CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX;
 
     const dynamicAmountStyle = shouldUseDynamicFontSize ? StyleUtils.getAmountInputFontSize(formattedNumber.length + (hideSymbol ? 0 : symbol.length) + (isNegative ? 1 : 0)) : undefined;
 
-    const handleInputKeyPress = (event: NumberInputKeyPressEvent) => {
+    const handleInputKeyPress = (event: NumericInputKeyPressEvent) => {
         const key = event.nativeEvent.key.toLowerCase();
 
         if (!textInput.current?.value && key === 'backspace' && isNegative) {
@@ -141,4 +141,4 @@ function NumberComposerSymbolInput({
     );
 }
 
-export default NumberComposerSymbolInput;
+export default NumericSymbolInput;

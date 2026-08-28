@@ -1,21 +1,23 @@
-import type {NumberInputBaseProps, NumberInputRef} from '@components/NumberInput';
+import type {NumericInputBaseProps, NumericInputRef as NumericInputControllerRef} from '@components/NumericInputController';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-/** NumberComposer exposes the same imperative editing contract as NumberForm. */
-type NumberComposerRef = NumberInputRef;
+type NumericInputRef = NumericInputControllerRef;
 
-type NumberComposerSymbolInputProps = NumberInputBaseProps &
+type NumericSymbolInputProps = NumericInputBaseProps &
     Pick<BaseTextInputProps, 'onPress' | 'prefixCharacter' | 'prefixStyle' | 'shouldAllowFocusInLandscapeMode'> & {
-        /** Whether the symbol can be pressed. Prefer the Composer currency control for new compositions. */
+        /** Whether the symbol can be pressed. Prefer a dedicated currency control for new compositions. */
         isSymbolPressable?: boolean;
 
-        /** Called when the inline symbol is pressed. Prefer the Composer currency control for new compositions. */
+        /** Called when the inline symbol is pressed. Prefer a dedicated currency control for new compositions. */
         onSymbolButtonPress?: () => void;
 
         /** Whether the input grows with its content. */
         autoGrow?: boolean;
+
+        /** Whether to use dynamic font sizing based on the displayed value length. */
+        shouldUseDynamicFontSize?: boolean;
 
         /** Hide the focused appearance of the symbol input. */
         hideFocusedState?: boolean;
@@ -30,9 +32,9 @@ type NumberComposerSymbolInputProps = NumberInputBaseProps &
         negativeSymbolStyle?: StyleProp<TextStyle>;
     };
 
-type NumberComposerErrorProps = {
+type NumericErrorProps = {
     /** Style applied to the message container, appended to the primitive's defaults. */
     style?: StyleProp<ViewStyle>;
 };
 
-export type {NumberComposerErrorProps, NumberComposerRef, NumberComposerSymbolInputProps};
+export type {NumericErrorProps, NumericInputRef, NumericSymbolInputProps};

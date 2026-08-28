@@ -13,8 +13,8 @@ import React from 'react';
 import type {NumberWithSymbolFormRef} from './NumberWithSymbolForm';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
-import NumberForm from './NumberForm';
 import NumberWithSymbolForm from './NumberWithSymbolForm';
+import NumericField from './NumericField';
 
 type AmountFormProps = {
     /** Amount supplied by the FormProvider */
@@ -112,22 +112,22 @@ function AmountForm({
     const decimals = decimalsProp ?? getCurrencyDecimals(currency);
     const symbol = getLocalizedCurrencySymbol(preferredLocale, currency) ?? '';
 
-    // Use the new composable NumberForm for the standard text-input path as part of the NumberWithSymbolForm migration.
-    // Keep the legacy component for currency-button variants until those additional controls are supported by NumberForm.
+    // Use the new composable NumericField for the standard text-input path as part of the NumberWithSymbolForm migration.
+    // Keep the legacy component for currency-button variants until those additional controls are supported by NumericField.
     if (displayAsTextInput && !shouldShowCurrencyButton) {
         return (
-            <NumberForm
+            <NumericField
                 value={value ?? ''}
                 onInputChange={onInputChange}
                 decimals={decimals}
                 maxLength={amountMaxLength}
                 errorText={errorText}
                 ref={ref}
-                numberFormRef={numberFormRef}
+                numericInputRef={numberFormRef}
                 onBlur={onBlur}
                 onSubmitEditing={onSubmitEditing}
             >
-                <NumberForm.TextInput
+                <NumericField.TextInput
                     symbol={symbol}
                     position="prefix"
                     hideSymbol={hideCurrencySymbol}
@@ -140,7 +140,7 @@ function AmountForm({
                     onFocus={onFocus}
                     prefixStyle={styles.colorMuted}
                 />
-            </NumberForm>
+            </NumericField>
         );
     }
 

@@ -2,7 +2,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import NumberComposer from '@components/NumberComposer';
+import NumericInput from '@components/NumericInput';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import type ShouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually/types';
@@ -37,23 +37,23 @@ function getInput() {
 function renderSymbolInput(onInputChange: jest.Mock, value = '-12') {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <NumberComposer
+            <NumericInput
                 value={value}
                 allowNegative
                 decimals={2}
                 onInputChange={onInputChange}
             >
-                <NumberComposer.SymbolInput testID={INPUT_TEST_ID} />
-            </NumberComposer>
+                <NumericInput.SymbolInput testID={INPUT_TEST_ID} />
+            </NumericInput>
         </ComposeProviders>,
     );
 }
 
-// The Composer instantiates the same shared controller as NumberForm but edits the displayed magnitude of a signed
+// The Composer instantiates the same shared controller as NumericField but edits the displayed magnitude of a signed
 // canonical value. This suite pins the native selection-guard lifecycle under that projection: the stale selection
 // event emitted in the same batch as a change is dropped, and a selection change arriving after the commit still
-// moves the caret (see the guard lifecycle comment in useNumberEditController).
-describe('NumberComposer.SymbolInput native selection guard', () => {
+// moves the caret (see the guard lifecycle comment in useNumericInputController).
+describe('NumericInput.SymbolInput native selection guard', () => {
     afterEach(() => {
         jest.clearAllMocks();
     });

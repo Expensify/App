@@ -1,6 +1,6 @@
-import {useNumberFormActions, useNumberFormState} from '@components/NumberForm/context';
-import type {NumberFormTextInputProps} from '@components/NumberForm/types';
-import type {NumberInputKeyPressEvent} from '@components/NumberInput';
+import {useNumericFieldActions, useNumericFieldState} from '@components/NumericField/context';
+import type {NumericTextInputProps} from '@components/NumericField/types';
+import type {NumericInputKeyPressEvent} from '@components/NumericInputController';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 
@@ -11,9 +11,9 @@ import CONST from '@src/CONST';
 import type {BlurEvent, TextInputSelectionChangeEvent} from 'react-native';
 
 /**
- * Primitive text input rendered within a NumberForm root, connected to form context.
+ * Primitive text input rendered within a NumericField root, connected to form context.
  */
-function NumberFormTextInput({
+function NumericTextInput({
     symbol = '',
     position = 'prefix',
     hideSymbol = false,
@@ -41,15 +41,15 @@ function NumberFormTextInput({
     testID,
     touchableInputWrapperStyle,
     style,
-}: NumberFormTextInputProps) {
-    const {errorText, formattedNumber, selection} = useNumberFormState();
-    const {handleBlur, handleKeyPress, handleSelectionChange, inputRef, onSubmitEditing, setNumber} = useNumberFormActions();
+}: NumericTextInputProps) {
+    const {errorText, formattedNumber, selection} = useNumericFieldState();
+    const {handleBlur, handleKeyPress, handleSelectionChange, inputRef, onSubmitEditing, setNumber} = useNumericFieldActions();
 
     const isSuffix = position === 'suffix';
     const prefixCharacter = !hideSymbol && !isSuffix ? symbol : '';
     const suffixCharacter = !hideSymbol && isSuffix ? symbol : '';
 
-    const handleInputKeyPress = (event: NumberInputKeyPressEvent) => {
+    const handleInputKeyPress = (event: NumericInputKeyPressEvent) => {
         handleKeyPress(event);
         onKeyPress?.(event);
     };
@@ -102,4 +102,4 @@ function NumberFormTextInput({
     );
 }
 
-export default NumberFormTextInput;
+export default NumericTextInput;

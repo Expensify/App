@@ -1,10 +1,10 @@
-import type {NumberInputKeyPressEvent, NumberInputSelection} from '@components/NumberInput/types';
+import type {NumericInputKeyPressEvent, NumericInputSelection} from '@components/NumericInputController/types';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import type {ForwardedRef} from 'react';
 import type {BlurEvent} from 'react-native';
 
-type NumberComposerStateContextValue = {
+type NumericFieldStateContextValue = {
     /** The canonical signed value owned by the root. */
     value: string;
 
@@ -14,27 +14,27 @@ type NumberComposerStateContextValue = {
      */
     externalValue: string;
 
-    /** The text the composed input displays: the magnitude rendered with locale digits. The minus is rendered separately. */
+    /** The text the composed input displays: the canonical value rendered with locale digits. */
     formattedNumber: string;
 
     /** Whether the canonical value is negative. */
     isNegative: boolean;
 
-    /** The selection to render, clamped to the displayed magnitude. */
-    selection: NumberInputSelection;
+    /** The selection to render, clamped to the displayed text. */
+    selection: NumericInputSelection;
 
     /** Whether negative values are allowed. */
     allowNegative: boolean;
 
-    /** Error supplied by FormProvider. Rendered by the `NumberComposer.Error` primitive wherever the composition places it. */
+    /** Error supplied by FormProvider. Rendered inline by the text input, which owns the label and error slots. */
     errorText?: string;
 };
 
-type NumberComposerActionsContextValue = {
-    /** Normalizes, validates, and commits the magnitude displayed by the composed input, preserving the sign. */
+type NumericFieldActionsContextValue = {
+    /** Normalizes, validates, and commits the text displayed by the composed input. */
     setNumber: (text: string) => void;
 
-    /** Replaces the canonical signed value without validation or notification and moves the caret to the end of the magnitude. */
+    /** Replaces the canonical value without validation or notification and moves the caret to the end. */
     updateNumber: (value: string) => void;
 
     /** Returns the canonical signed value. */
@@ -43,17 +43,11 @@ type NumberComposerActionsContextValue = {
     /** Collapses the selection onto its end. */
     clearSelection: () => void;
 
-    /** Toggles the sign of the canonical value and notifies the parent. The displayed magnitude does not change. */
-    toggleSign: () => void;
-
-    /** Removes the negative sign from the canonical value, keeping the magnitude, and notifies the parent. */
-    clearSign: () => void;
-
     /** Applies a native selection change, dropping the stale event emitted alongside a manual update. */
     handleSelectionChange: (selectionStart: number, selectionEnd: number) => void;
 
     /** Tracks forward-delete key presses. */
-    handleKeyPress: (event: NumberInputKeyPressEvent) => void;
+    handleKeyPress: (event: NumericInputKeyPressEvent) => void;
 
     /** Forwards blur to the root (InputWrapper) callback. */
     handleBlur: (event: BlurEvent) => void;
@@ -65,4 +59,4 @@ type NumberComposerActionsContextValue = {
     inputRef?: ForwardedRef<BaseTextInputRef>;
 };
 
-export type {NumberComposerActionsContextValue, NumberComposerStateContextValue};
+export type {NumericFieldActionsContextValue, NumericFieldStateContextValue};

@@ -1,6 +1,6 @@
 import FormHelpMessage from '@components/FormHelpMessage';
-import {useNumberComposerState} from '@components/NumberComposer/context';
-import type {NumberComposerErrorProps} from '@components/NumberComposer/types';
+import {useNumericInputState} from '@components/NumericInput/context';
+import type {NumericErrorProps} from '@components/NumericInput/types';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -9,9 +9,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
  * number-pad layouts position it differently: the portrait layout pins it to the bottom of the number view, while the
  * landscape layout lets it flow under the controls.
  */
-function NumberComposerError({style}: NumberComposerErrorProps) {
+function NumericError({style}: NumericErrorProps) {
     const styles = useThemeStyles();
-    const {errorText} = useNumberComposerState();
+    const {errorText} = useNumericInputState();
 
     if (!errorText) {
         return null;
@@ -26,4 +26,4 @@ function NumberComposerError({style}: NumberComposerErrorProps) {
     );
 }
 
-export default NumberComposerError;
+export default NumericError;
