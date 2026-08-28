@@ -22,7 +22,10 @@ describe('trackAuthenticationError', () => {
         });
 
         // Then it lands in Sentry logs and never in the error stream
-        expect(Sentry.logger.warn).toHaveBeenCalledWith('[Authentication] network_retry', expect.objectContaining({command: 'OpenApp', errorMessage: 'Unable to retry Authenticate request'}));
+        expect(Sentry.logger.warn).toHaveBeenCalledWith(
+            '[Authentication] network_retry',
+            expect.objectContaining({command: 'OpenApp', errorMessage: 'Unable to retry Authenticate request'}),
+        );
         expect(Sentry.captureException).not.toHaveBeenCalled();
     });
 
