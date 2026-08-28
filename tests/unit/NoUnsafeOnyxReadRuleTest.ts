@@ -128,6 +128,9 @@ describe('no-unsafe-onyx-read', () => {
             `${ONYX_IMPORT} async function submit() { Onyx.update(operations); await waitForBatchedUpdates(); return Onyx.get(key); }`,
             `${ONYX_IMPORT} async function submit() { const promises = [Onyx.merge(keyA, value), Onyx.merge(keyB, value)]; await Promise.all(promises); return Onyx.get(keyA); }`,
 
+            // The write's own await finishes before the read starts, even when the read is inside a second one.
+            `${ONYX_IMPORT} async function submit() { await Promise.all([Onyx.merge(keyA, value), Onyx.merge(keyB, value)]); return await Promise.all([Onyx.get(keyA), Onyx.get(keyB)]); }`,
+
             `${ONYX_IMPORT} function write() { Onyx.merge(key, value); } function read() { return Onyx.get(key); }`,
             `${ONYX_IMPORT} function submit() { Onyx.merge(key, value); setTimeout(() => Onyx.get(key), 0); }`,
             `${ONYX_IMPORT} function submit() { Onyx.merge(key, value).then(() => Onyx.get(key)); }`,
@@ -300,6 +303,14 @@ describe('no-unsafe-onyx-read', () => {
             // An async function that forgot the await, and a promise that is created but not awaited.
             {code: `${ONYX_IMPORT} async function submit() { Onyx.merge(key, value); return Onyx.get(key); }`, errors: READ_AFTER_WRITE_ERRORS},
             {code: `${ONYX_IMPORT} async function submit() { Promise.all([Onyx.update(operations)]); return Onyx.get(key); }`, errors: READ_AFTER_WRITE_ERRORS},
+
+            // The read shares the write's await rather than following it, so the await defers nothing between
+            // them: the read is called in the write's tick and only its delivery waits.
+            {code: `${ONYX_IMPORT} async function submit() { return await Promise.all([Onyx.merge(key, value), Onyx.get(key)]); }`, errors: READ_AFTER_WRITE_ERRORS},
+            {
+                code: `${ONYX_IMPORT} async function submit() { const [, draft] = await Promise.all([Onyx.merge(keyA, value), Onyx.get(keyA)]); return draft; }`,
+                errors: READ_AFTER_WRITE_ERRORS,
+            },
 
             // An await that does not separate the two: it comes after the read, so the read still runs in the
             // write's tick, and one inside the read's own arguments is evaluated before the read itself.

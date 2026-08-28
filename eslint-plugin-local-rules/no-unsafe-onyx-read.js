@@ -268,21 +268,35 @@ function getEnclosingBody(ancestors) {
     return null;
 }
 
-/** Only a syntactic `await` counts, reached through expressions such as `Promise.all([...])`. */
-function isAwaited(ancestors) {
+/**
+ * The `await` a call is written under, reached through expressions such as `Promise.all([...])`, or
+ * `null` when there is none. Only a syntactic `await` counts.
+ */
+function getEnclosingAwait(ancestors) {
     for (let index = ancestors.length - 1; index >= 0; index--) {
         const ancestor = ancestors[index];
 
         if (ancestor.type === 'AwaitExpression') {
-            return true;
+            return ancestor;
         }
 
         if (isFunctionNode(ancestor) || ancestor.type.endsWith('Statement') || ancestor.type.endsWith('Declaration')) {
-            return false;
+            return null;
         }
     }
 
-    return false;
+    return null;
+}
+
+/**
+ * Whether the write's own `await` finishes before the read starts. It does not when the read sits inside
+ * that same awaited expression: `await Promise.all([Onyx.merge(key, value), OnyxUtils.get(key)])` calls
+ * the read in the write's tick, so the await it shares defers nothing between them.
+ */
+function isAwaitedBeforeRead(write, read) {
+    const awaitNode = getEnclosingAwait(write.ancestors);
+
+    return !!awaitNode && read.node.range.at(0) >= awaitNode.range.at(1);
 }
 
 /**
@@ -682,7 +696,7 @@ function create(context) {
                             // The read's text starts after the write call's, so it also runs after it. Containment is
                             // the case this excludes: a read passed as an argument to the write runs before it.
                             read.node.range.at(0) >= write.node.range.at(1) &&
-                            !isAwaited(write.ancestors) &&
+                            !isAwaitedBeforeRead(write, read) &&
                             !isSeparatedByAwait(awaits, write, read) &&
                             !areMutuallyExclusive(write, read) &&
                             !exitsBeforeRead(write, read) &&
