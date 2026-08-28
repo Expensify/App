@@ -21,8 +21,11 @@ type MerchantRuleSuggestion = {
     /** The edited field, used to pre-seed the rule */
     field: MerchantRuleSuggestionField;
 
-    /** Whether the user dismissed the tooltip for this expense */
-    isDismissed?: boolean;
+    /**
+     * Expenses whose callout the user dismissed this session. Kept alongside the current offer rather than replaced
+     * with it, so dismissing one expense survives a later edit on any expense, including that same one.
+     */
+    dismissedTransactionIDs?: string[];
 
     /**
      * Whether the user took the offer and is now in the rule creation flow. The rule page reads this to return to the

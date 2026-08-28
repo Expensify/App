@@ -44,13 +44,16 @@ function useMerchantRuleSuggestion(reportID: string | undefined, policyID: strin
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(storedSuggestion?.transactionID)}`);
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
 
-    // A screen hosts this expense when it renders the expense itself (the caller passes the transaction), when it is
-    // the expense's own transaction thread, or when it is a report listing the expense. Asking the report which
-    // transactions it holds is authoritative, unlike the reports that happened to be in scope during the edit.
+    // The callout belongs on the expense detail view, so a screen hosts it when it renders the expense itself (the
+    // caller passes the transaction), when it is the expense's own transaction thread, or when it is a report holding
+    // only that expense — which renders the expense detail view rather than a list. A report listing several expenses
+    // shows no expense detail, so it is not a host. Asking the report which transactions it holds is authoritative,
+    // unlike the reports that happened to be in scope during the edit.
     const reportTransactions = useReportTransactions(reportID);
-    const isHostingReport =
-        !!reportID && (reportID === storedSuggestion?.reportIDs.at(0) || reportTransactions.some((reportTransaction) => reportTransaction.transactionID === storedSuggestion?.transactionID));
-    const isForThisExpenseView = !!storedSuggestion && !storedSuggestion.isDismissed && ((!!transactionID && transactionID === storedSuggestion.transactionID) || isHostingReport);
+    const isOneExpenseReportForSuggestion = reportTransactions.length === 1 && reportTransactions.at(0)?.transactionID === storedSuggestion?.transactionID;
+    const isHostingReport = !!reportID && (reportID === storedSuggestion?.reportIDs.at(0) || isOneExpenseReportForSuggestion);
+    const isDismissed = !!storedSuggestion?.transactionID && !!storedSuggestion.dismissedTransactionIDs?.includes(storedSuggestion.transactionID);
+    const isForThisExpenseView = !!storedSuggestion && !isDismissed && ((!!transactionID && transactionID === storedSuggestion.transactionID) || isHostingReport);
     // Only workspace admins can create merchant rules, so nobody else should be offered one
     const canCreateMerchantRule = isPolicyAdmin(policy, currentUserLogin) && canWriteRules && arePolicyRulesEnabled(policy, policyCategories, isBetaEnabled(CONST.BETAS.RULES_REVAMP));
     const suggestion = isForThisExpenseView && canCreateMerchantRule ? storedSuggestion : undefined;

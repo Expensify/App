@@ -108,7 +108,7 @@ function MerchantRuleSuggestionTooltip({reportID, policyID, transactionID, child
 
     // Nothing is stored for most of a session, so skip the inner component (and its heavy hooks, which subscribe to the
     // policy, its categories, the transaction and the report's transactions) until an edit is waiting to be offered.
-    if (!storedSuggestion || storedSuggestion.isDismissed) {
+    if (!storedSuggestion?.transactionID || storedSuggestion.dismissedTransactionIDs?.includes(storedSuggestion.transactionID)) {
         return children;
     }
 

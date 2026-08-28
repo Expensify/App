@@ -1,7 +1,19 @@
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {MerchantRuleSuggestion} from '@src/types/onyx';
 import type {MerchantRuleSuggestionField} from '@src/types/onyx/MerchantRuleSuggestion';
 
 import Onyx from 'react-native-onyx';
+
+// The product training registry calls `onHideTooltip` with no arguments, so the dismissal below has to resolve the
+// expense being offered on its own. This is action-only state, never read during render, so `Onyx.connectWithoutView`
+// is appropriate. Components read the same key with `useOnyx`.
+let merchantRuleSuggestion: MerchantRuleSuggestion | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION,
+    callback: (value) => {
+        merchantRuleSuggestion = value;
+    },
+});
 
 /**
  * Records that a merchant-rule-governed field was edited on an expense, so the expense detail view can offer to turn
@@ -10,7 +22,8 @@ import Onyx from 'react-native-onyx';
  *
  * The record is RAM-only, so it never outlives the session. This deliberately does not use `dismissProductTraining`
  * like the other product training elements: that NVP dismisses an element account-wide and permanently, while this
- * callout is scoped to one expense and is meant to surface again on a later edit.
+ * callout is dismissed per expense and is meant to surface again on another expense, or on the same one in a later
+ * session.
  *
  * Written for every user; whether the tooltip renders is decided by `useMerchantRuleSuggestion` and the tooltip's
  * `shouldShow`, which require workspace admin rights.
@@ -20,16 +33,29 @@ function trackMerchantRuleSuggestion(transactionID: string | undefined, field: M
         return;
     }
 
-    Onyx.set(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {
+    // Merged rather than set so the session's dismissals survive: an expense the user has already dismissed must stay
+    // dismissed even after they edit it again. `isCreatingRule` belongs to the offer being replaced, so it is cleared.
+    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {
         transactionID,
         reportIDs: reportIDs.filter((reportID): reportID is string => !!reportID),
         field,
+        isCreatingRule: null,
     });
 }
 
-/** Dismisses the "Create a rule" tooltip for the expense currently offering it. */
+/**
+ * Dismisses the "Create a rule" callout for the expense currently offering it, for the rest of the session. Editing a
+ * different expense still surfaces the callout there, and a new session offers this expense again.
+ */
 function dismissMerchantRuleSuggestion() {
-    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {isDismissed: true});
+    const transactionID = merchantRuleSuggestion?.transactionID;
+    if (!transactionID) {
+        return;
+    }
+
+    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {
+        dismissedTransactionIDs: [...new Set([...(merchantRuleSuggestion?.dismissedTransactionIDs ?? []), transactionID])],
+    });
 }
 
 /**
