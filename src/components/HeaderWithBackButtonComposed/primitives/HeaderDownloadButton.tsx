@@ -36,7 +36,7 @@ function HeaderDownloadButton({onPress, isLoading = false, iconFill}: HeaderDown
 
     return (
         <HeaderTooltipIconButton
-            text={translate('common.download')}
+            tooltipText={translate('common.download')}
             onPress={(event) => {
                 // Blur to avoid overlapping a Growl notification with the Tooltip (#15271)
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- web-only DOM interop to blur the pressable

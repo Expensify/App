@@ -31,7 +31,7 @@ function HeaderBackButton({onPress = () => Navigation.goBack(), iconFill, should
     return (
         <HeaderTooltipIconButton
             ref={setBackButtonRef}
-            text={translate('common.back')}
+            tooltipText={translate('common.back')}
             onPress={() => {
                 if (Keyboard.isVisible()) {
                     Keyboard.dismiss();

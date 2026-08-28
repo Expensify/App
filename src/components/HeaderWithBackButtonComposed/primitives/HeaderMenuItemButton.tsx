@@ -18,7 +18,7 @@ type HeaderMenuItemButtonProps = {
 function HeaderMenuItemButton({threeDotsMenuItem}: HeaderMenuItemButtonProps) {
     return (
         <HeaderTooltipIconButton
-            text={threeDotsMenuItem.text}
+            tooltipText={threeDotsMenuItem.text}
             onPress={threeDotsMenuItem.onSelected}
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- PopoverMenuItem.icon is typed as a generic component; header menu items always pass an SVG icon component.
             iconSrc={threeDotsMenuItem.icon as React.FC<SvgProps>}

@@ -13,7 +13,7 @@ import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
 type HeaderTooltipIconButtonProps = {
     /** Tooltip text, also used as the accessibility label. */
-    text: string;
+    tooltipText: string;
 
     /** Method to trigger when pressing the button. */
     onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
@@ -38,18 +38,18 @@ type HeaderTooltipIconButtonProps = {
 };
 
 /** Shared shape for the header's icon buttons: Tooltip, Pressable and Icon. Callers own their own onPress wrapping, loading states and fill logic. This only renders the common skeleton. */
-function HeaderTooltipIconButton({text, onPress, iconSrc, iconFill, sentryLabel, style, id, ref}: HeaderTooltipIconButtonProps) {
+function HeaderTooltipIconButton({tooltipText, onPress, iconSrc, iconFill, sentryLabel, style, id, ref}: HeaderTooltipIconButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
     return (
-        <Tooltip text={text}>
+        <Tooltip text={tooltipText}>
             <PressableWithoutFeedback
                 ref={ref}
                 onPress={onPress}
                 style={[styles.touchableButtonImage, style]}
                 role={CONST.ROLE.BUTTON}
-                accessibilityLabel={text}
+                accessibilityLabel={tooltipText}
                 id={id}
                 sentryLabel={sentryLabel}
             >

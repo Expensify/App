@@ -21,7 +21,7 @@ function HeaderCloseButton({onPress, iconFill}: HeaderCloseButtonProps) {
 
     return (
         <HeaderTooltipIconButton
-            text={translate('common.close')}
+            tooltipText={translate('common.close')}
             onPress={onPress}
             iconSrc={icons.Close}
             iconFill={iconFill}
