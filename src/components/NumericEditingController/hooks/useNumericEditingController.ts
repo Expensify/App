@@ -1,4 +1,4 @@
-import type {NumberInputKeyPressEvent, NumberInputSelection} from '@components/NumberInput/types';
+import type {NumericEditingKeyPressEvent, NumericEditingSelection} from '@components/NumericEditingController/types';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 
 import useLocalize from '@hooks/useLocalize';
@@ -34,7 +34,7 @@ type UseNumberEditControllerParams = {
     /** Blur callback forwarded by the form. */
     onBlur?: BaseTextInputProps['onBlur'];
 
-    /** Maps a canonical value to displayed text (e.g. NumberComposer separating the minus). Defaults to identity. */
+    /** Maps a canonical value to displayed text (e.g. NumericEditing separating the minus). Defaults to identity. */
     toDisplayText?: (canonicalValue: string) => string;
 
     /** Maps validated display text back to the canonical value. Defaults to identity. */
@@ -45,13 +45,13 @@ const toDisplayTextDefault = (canonicalValue: string) => canonicalValue;
 const toCanonicalValueDefault = (displayText: string) => displayText;
 
 /** Returns the new selection based on length delta. */
-const getNewSelection = (oldSelection: NumberInputSelection, previousLength: number, newLength: number): NumberInputSelection => {
+const getNewSelection = (oldSelection: NumericEditingSelection, previousLength: number, newLength: number): NumericEditingSelection => {
     const cursorPosition = oldSelection.end + (newLength - previousLength);
     return {start: cursorPosition, end: cursorPosition};
 };
 
 /** Controller managing numeric input state, formatting, validation, and cursor selection. */
-function useNumberEditController({
+function useNumericEditingController({
     value: externalValueProp,
     onInputChange,
     allowNegative = false,
@@ -70,7 +70,7 @@ function useNumberEditController({
     const [currentValue, setCurrentValue] = useState(externalValue);
     const [previousExternalValue, setPreviousExternalValue] = useState(externalValue);
     const [previousIsFocused, setPreviousIsFocused] = useState(isFocused);
-    const [selection, setSelection] = useState<NumberInputSelection>({start: initialDisplayLength, end: initialDisplayLength});
+    const [selection, setSelection] = useState<NumericEditingSelection>({start: initialDisplayLength, end: initialDisplayLength});
 
     // Synchronously tracks the latest committed value across batched state updates.
     const committedValueRef = useRef(externalValue);
@@ -190,7 +190,7 @@ function useNumberEditController({
     };
 
     /** Detects forward-delete key press or keyboard shortcut. */
-    const handleKeyPress = (event: NumberInputKeyPressEvent) => {
+    const handleKeyPress = (event: NumericEditingKeyPressEvent) => {
         const key = event.nativeEvent.key.toLowerCase();
 
         if (isMobileSafari() && key === CONST.PLATFORM_SPECIFIC_KEYS.CTRL.DEFAULT) {
@@ -252,4 +252,4 @@ function useNumberEditController({
     };
 }
 
-export default useNumberEditController;
+export default useNumericEditingController;

@@ -1,10 +1,10 @@
-import type {NumberInputKeyPressEvent, NumberInputSelection} from '@components/NumberInput/types';
+import type {NumericEditingKeyPressEvent, NumericEditingSelection} from '@components/NumericEditingController/types';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import type {ForwardedRef} from 'react';
 import type {BlurEvent} from 'react-native';
 
-type NumberFormStateContextValue = {
+type NumericFieldStateContextValue = {
     /** The canonical signed value owned by the root. */
     value: string;
 
@@ -21,7 +21,7 @@ type NumberFormStateContextValue = {
     isNegative: boolean;
 
     /** The selection to render, clamped to the displayed text. */
-    selection: NumberInputSelection;
+    selection: NumericEditingSelection;
 
     /** Whether negative values are allowed. */
     allowNegative: boolean;
@@ -30,7 +30,7 @@ type NumberFormStateContextValue = {
     errorText?: string;
 };
 
-type NumberFormActionsContextValue = {
+type NumericFieldActionsContextValue = {
     /** Normalizes, validates, and commits the text displayed by the composed input. */
     setNumber: (text: string) => void;
 
@@ -47,7 +47,7 @@ type NumberFormActionsContextValue = {
     handleSelectionChange: (selectionStart: number, selectionEnd: number) => void;
 
     /** Tracks forward-delete key presses. */
-    handleKeyPress: (event: NumberInputKeyPressEvent) => void;
+    handleKeyPress: (event: NumericEditingKeyPressEvent) => void;
 
     /** Forwards blur to the root (InputWrapper) callback. */
     handleBlur: (event: BlurEvent) => void;
@@ -59,4 +59,4 @@ type NumberFormActionsContextValue = {
     inputRef?: ForwardedRef<BaseTextInputRef>;
 };
 
-export type {NumberFormActionsContextValue, NumberFormStateContextValue};
+export type {NumericFieldActionsContextValue, NumericFieldStateContextValue};

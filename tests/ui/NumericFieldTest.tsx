@@ -2,7 +2,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import NumberForm, {useNumberFormActions, useNumberFormState} from '@components/NumberForm';
+import NumericField, {useNumericFieldActions, useNumericFieldState} from '@components/NumericField';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
@@ -22,11 +22,11 @@ jest.mock('@react-navigation/native', () => ({
     })),
 }));
 
-type NumberFormProps = React.ComponentProps<typeof NumberForm>;
+type NumericFieldProps = React.ComponentProps<typeof NumericField>;
 
 function ContextReadout() {
-    const {value, allowNegative, errorText} = useNumberFormState();
-    const {setNumber, updateNumber, handleBlur} = useNumberFormActions();
+    const {value, allowNegative, errorText} = useNumericFieldState();
+    const {setNumber, updateNumber, handleBlur} = useNumericFieldActions();
 
     return (
         <View>
@@ -72,18 +72,18 @@ function renderWithProviders(children: React.ReactNode) {
     return render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>);
 }
 
-describe('NumberForm', () => {
+describe('NumericField', () => {
     const onInputChange = jest.fn();
     const onBlur = jest.fn();
 
-    const renderNumberForm = (props: Partial<NumberFormProps> = {}, children: React.ReactNode = <ContextReadout />) =>
+    const renderNumericField = (props: Partial<NumericFieldProps> = {}, children: React.ReactNode = <ContextReadout />) =>
         renderWithProviders(
-            <NumberForm
+            <NumericField
                 onInputChange={onInputChange}
                 {...props}
             >
                 {children}
-            </NumberForm>,
+            </NumericField>,
         );
 
     afterEach(() => {
@@ -92,18 +92,18 @@ describe('NumberForm', () => {
 
     describe('rendering', () => {
         it('renders children', () => {
-            // Given a NumberForm with a child element
-            renderNumberForm({}, <Text testID="child">hello</Text>);
+            // Given a NumericField with a child element
+            renderNumericField({}, <Text testID="child">hello</Text>);
 
             // Then the child is rendered
             expect(screen.getByTestId('child')).toBeOnTheScreen();
         });
     });
 
-    describe('NumberFormContext', () => {
+    describe('NumericFieldContext', () => {
         it('provides default state: empty value and none negative mode', () => {
-            // Given a NumberForm with no value or mode props
-            renderNumberForm();
+            // Given a NumericField with no value or mode props
+            renderNumericField();
 
             // Then the context exposes an empty value, negative input disabled, and no error
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('');
@@ -112,8 +112,8 @@ describe('NumberForm', () => {
         });
 
         it('propagates value, allowNegative, and errorText from props', () => {
-            // Given a NumberForm with value, allowNegative, and errorText props
-            renderNumberForm({
+            // Given a NumericField with value, allowNegative, and errorText props
+            renderNumericField({
                 value: '12.50',
                 allowNegative: true,
                 decimals: 2,
@@ -127,8 +127,8 @@ describe('NumberForm', () => {
         });
 
         it('forwards blur to the root onBlur through handleBlur', () => {
-            // Given a NumberForm with an onBlur callback
-            renderNumberForm({onBlur});
+            // Given a NumericField with an onBlur callback
+            renderNumericField({onBlur});
 
             // When the child input blurs
             fireEvent(screen.getByTestId('ctx-triggerBlur'), 'blur');
@@ -140,20 +140,20 @@ describe('NumberForm', () => {
 
     describe('external value synchronization', () => {
         it('re-initializes the editing state when the value prop resets to an empty string', () => {
-            // Given a NumberForm controlled with value "10"
-            const {rerender} = renderNumberForm({value: '10'});
+            // Given a NumericField controlled with value "10"
+            const {rerender} = renderNumericField({value: '10'});
 
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('10');
 
             // When the parent rerenders with an empty value
             rerender(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                    <NumberForm
+                    <NumericField
                         value=""
                         onInputChange={onInputChange}
                     >
                         <ContextReadout />
-                    </NumberForm>
+                    </NumericField>
                 </ComposeProviders>,
             );
 
@@ -162,20 +162,20 @@ describe('NumberForm', () => {
         });
 
         it('ignores an external change to another non-empty value, matching NumberWithSymbolForm', () => {
-            // Given a NumberForm controlled with value "10"
-            const {rerender} = renderNumberForm({value: '10'});
+            // Given a NumericField controlled with value "10"
+            const {rerender} = renderNumericField({value: '10'});
 
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('10');
 
             // When the parent rerenders with value "20"
             rerender(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                    <NumberForm
+                    <NumericField
                         value="20"
                         onInputChange={onInputChange}
                     >
                         <ContextReadout />
-                    </NumberForm>
+                    </NumericField>
                 </ComposeProviders>,
             );
 
@@ -184,20 +184,20 @@ describe('NumberForm', () => {
         });
 
         it('does not overwrite a local edit when the parent rerenders with the same external value', () => {
-            // Given a NumberForm controlled with value "10" and a local edit to "7"
-            const {rerender} = renderNumberForm({value: '10'});
+            // Given a NumericField controlled with value "10" and a local edit to "7"
+            const {rerender} = renderNumericField({value: '10'});
 
             fireEvent.press(screen.getByTestId('ctx-setNumber'));
 
             // When the parent rerenders with the same external value "10"
             rerender(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                    <NumberForm
+                    <NumericField
                         value="10"
                         onInputChange={onInputChange}
                     >
                         <ContextReadout />
-                    </NumberForm>
+                    </NumericField>
                 </ComposeProviders>,
             );
 
@@ -208,8 +208,8 @@ describe('NumberForm', () => {
 
     describe('value updates', () => {
         it('updates context and notifies the parent when setNumber is called', () => {
-            // Given an uncontrolled NumberForm
-            renderNumberForm();
+            // Given an uncontrolled NumericField
+            renderNumericField();
 
             // When setNumber is called from a child
             fireEvent.press(screen.getByTestId('ctx-setNumber'));
@@ -221,8 +221,8 @@ describe('NumberForm', () => {
         });
 
         it('updates context without notifying the parent when updateNumber is called', () => {
-            // Given an uncontrolled NumberForm
-            renderNumberForm();
+            // Given an uncontrolled NumericField
+            renderNumericField();
 
             // When updateNumber is called
             fireEvent.press(screen.getByTestId('ctx-updateNumber'));
@@ -233,8 +233,8 @@ describe('NumberForm', () => {
         });
 
         it('commits the last value when setNumber is called more than once before a render', () => {
-            // Given a NumberForm with value "1"
-            renderNumberForm({value: '1'});
+            // Given a NumericField with value "1"
+            renderNumericField({value: '1'});
 
             // When setNumber is called twice before the next render
             fireEvent.press(screen.getByTestId('ctx-setNumbersRapidly'));

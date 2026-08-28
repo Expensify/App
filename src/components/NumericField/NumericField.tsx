@@ -1,16 +1,16 @@
-import {useNumberEditController} from '@components/NumberInput';
-import type {NumberInputRef} from '@components/NumberInput';
+import {useNumericEditingController} from '@components/NumericEditingController';
+import type {NumericEditingRef} from '@components/NumericEditingController';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import type {ForwardedRef, ReactNode} from 'react';
 
 import {useImperativeHandle} from 'react';
 
-import type {NumberFormActionsContextValue, NumberFormStateContextValue} from './context/types';
+import type {NumericFieldActionsContextValue, NumericFieldStateContextValue} from './context/types';
 
-import {NumberFormActionsContext, NumberFormStateContext} from './context';
+import {NumericFieldActionsContext, NumericFieldStateContext} from './context';
 
-type NumberFormProps = {
+type NumericFieldProps = {
     /** The canonical number value shared by composed primitives. Only a reset to an empty string re-initializes the editing state. */
     value?: string;
 
@@ -39,21 +39,21 @@ type NumberFormProps = {
     ref?: ForwardedRef<BaseTextInputRef>;
 
     /** Reference exposing the number editing imperative API. */
-    numberFormRef?: ForwardedRef<NumberInputRef>;
+    numericEditingRef?: ForwardedRef<NumericEditingRef>;
 
     children: ReactNode;
 };
 
-function NumberForm({value = '', onInputChange, allowNegative = false, decimals = 0, maxLength, errorText, onBlur, onSubmitEditing, ref, numberFormRef, children}: NumberFormProps) {
-    const controller = useNumberEditController({value, onInputChange, allowNegative, decimals, maxLength, onBlur});
+function NumericField({value = '', onInputChange, allowNegative = false, decimals = 0, maxLength, errorText, onBlur, onSubmitEditing, ref, numericEditingRef, children}: NumericFieldProps) {
+    const controller = useNumericEditingController({value, onInputChange, allowNegative, decimals, maxLength, onBlur});
 
-    useImperativeHandle(numberFormRef, () => ({
+    useImperativeHandle(numericEditingRef, () => ({
         clearSelection: controller.clearSelection,
         getNumber: controller.getNumber,
         updateNumber: controller.updateNumber,
     }));
 
-    const stateContextValue: NumberFormStateContextValue = {
+    const stateContextValue: NumericFieldStateContextValue = {
         value: controller.value,
         externalValue: controller.externalValue,
         formattedNumber: controller.formattedNumber,
@@ -63,7 +63,7 @@ function NumberForm({value = '', onInputChange, allowNegative = false, decimals 
         errorText,
     };
 
-    const actionsContextValue: NumberFormActionsContextValue = {
+    const actionsContextValue: NumericFieldActionsContextValue = {
         setNumber: controller.setNumber,
         updateNumber: controller.updateNumber,
         getNumber: controller.getNumber,
@@ -76,10 +76,10 @@ function NumberForm({value = '', onInputChange, allowNegative = false, decimals 
     };
 
     return (
-        <NumberFormStateContext.Provider value={stateContextValue}>
-            <NumberFormActionsContext.Provider value={actionsContextValue}>{children}</NumberFormActionsContext.Provider>
-        </NumberFormStateContext.Provider>
+        <NumericFieldStateContext.Provider value={stateContextValue}>
+            <NumericFieldActionsContext.Provider value={actionsContextValue}>{children}</NumericFieldActionsContext.Provider>
+        </NumericFieldStateContext.Provider>
     );
 }
 
-export default NumberForm;
+export default NumericField;

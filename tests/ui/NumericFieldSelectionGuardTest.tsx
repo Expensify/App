@@ -2,8 +2,8 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import NumberForm from '@components/NumberForm';
-import type {NumberFormRef} from '@components/NumberForm';
+import NumericField from '@components/NumericField';
+import type {NumericFieldRef} from '@components/NumericField';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import type ShouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually/types';
@@ -35,17 +35,17 @@ function getInput() {
     return screen.getByTestId(INPUT_TEST_ID);
 }
 
-function renderTextInput(onInputChange: jest.Mock, numberFormRef?: React.Ref<NumberFormRef>, value = '12') {
+function renderTextInput(onInputChange: jest.Mock, numericEditingRef?: React.Ref<NumericFieldRef>, value = '12') {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <NumberForm
+            <NumericField
                 value={value}
                 decimals={2}
                 onInputChange={onInputChange}
-                numberFormRef={numberFormRef}
+                numericEditingRef={numericEditingRef}
             >
-                <NumberForm.TextInput testID={INPUT_TEST_ID} />
-            </NumberForm>
+                <NumericField.TextInput testID={INPUT_TEST_ID} />
+            </NumericField>
         </ComposeProviders>,
     );
 }
@@ -54,7 +54,7 @@ function renderTextInput(onInputChange: jest.Mock, numberFormRef?: React.Ref<Num
 // NumberWithSymbolFormTest does. It pins the legacy `setNewNumber` lifecycle: setNumber raises the flag, the input lowers
 // it again once the update commits, so only the stale selection event native emits in the same batch as the change is
 // dropped - a selection change arriving later still moves the caret.
-describe('NumberForm.TextInput native selection guard', () => {
+describe('NumericField.TextInput native selection guard', () => {
     afterEach(() => {
         jest.clearAllMocks();
         mockUseIsFocused.mockReturnValue(true);
@@ -121,15 +121,15 @@ describe('NumberForm.TextInput native selection guard', () => {
 
     it('does not leave the guard set when updateNumber receives the current value', async () => {
         const onInputChange = jest.fn();
-        const numberFormRef = React.createRef<NumberFormRef>();
+        const numericEditingRef = React.createRef<NumericFieldRef>();
 
-        // Given a TextInput with value "12" and a numberFormRef
-        renderTextInput(onInputChange, numberFormRef);
+        // Given a TextInput with value "12" and a numericEditingRef
+        renderTextInput(onInputChange, numericEditingRef);
         await waitForBatchedUpdatesWithAct();
 
         // When updateNumber is called with the same value "12"
         act(() => {
-            numberFormRef.current?.updateNumber('12');
+            numericEditingRef.current?.updateNumber('12');
         });
         await waitForBatchedUpdatesWithAct();
 

@@ -3,32 +3,32 @@ import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/B
 import type {ForwardedRef} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 
-type NumberInputPosition = 'prefix' | 'suffix';
+type NumericEditingPosition = 'prefix' | 'suffix';
 
-type NumberInputRef = {
+type NumericEditingRef = {
     clearSelection: () => void;
     updateNumber: (newNumber: string) => void;
     getNumber: () => string;
 };
 
-type NumberInputKeyPressEvent = {
+type NumericEditingKeyPressEvent = {
     nativeEvent: {
         key: string;
         ctrlKey?: boolean;
     };
 };
 
-type NumberInputSelection = {
+type NumericEditingSelection = {
     start: number;
     end: number;
 };
 
-type NumberInputBaseProps = {
+type NumericEditingBaseProps = {
     /** Symbol displayed next to the number. */
     symbol?: string;
 
     /** Position of the symbol relative to the number. */
-    position?: NumberInputPosition;
+    position?: NumericEditingPosition;
 
     /** Whether the symbol should be hidden. */
     hideSymbol?: boolean;
@@ -40,7 +40,7 @@ type NumberInputBaseProps = {
     ref?: ForwardedRef<BaseTextInputRef>;
 
     /** Callback for keyboard events received by the numeric input. */
-    onKeyPress?: (event: NumberInputKeyPressEvent) => void;
+    onKeyPress?: (event: NumericEditingKeyPressEvent) => void;
 } & Pick<
     BaseTextInputProps,
     | 'accessibilityLabel'
@@ -61,4 +61,4 @@ type NumberInputBaseProps = {
     | 'touchableInputWrapperStyle'
 >;
 
-export type {NumberInputBaseProps, NumberInputKeyPressEvent, NumberInputRef, NumberInputSelection};
+export type {NumericEditingBaseProps, NumericEditingKeyPressEvent, NumericEditingRef, NumericEditingSelection};

@@ -15,7 +15,7 @@ type BaseTextInputWithSymbolProps = {
 
     /**
      * Whether locale digits are converted and a leading zero is padded before `onChangeAmount` is called.
-     * Defaults to `false` because consumers such as NumberForm normalize the raw text themselves; enabling this
+     * Defaults to `false` because consumers such as NumericField normalize the raw text themselves; enabling this
      * twice would swap the decimal and group separators back in locales where they are inverted.
      * Only the deprecated NumberWithSymbolForm should set this to `true`.
      */
