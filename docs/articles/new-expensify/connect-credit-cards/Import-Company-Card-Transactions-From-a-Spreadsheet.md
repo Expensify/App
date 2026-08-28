@@ -28,13 +28,14 @@ Only **Workspace Admins** can import transactions for company cards.
 3. Click on **Add cards**.
  - If you already have a company card feed set up, click the feed name to see **Add cards**.
 4. Choose **Import transactions from file**.
-5. Select **Company card layout name**, then enter a name for the card feed on the page that opens and click **Save**.
-6. To see an example of the recommended column structure and formatting, click **Download our template**.
-7. Click **Next**.
-8. Choose the CSV, TXT, XLS, or XLSX file you want to upload.
-9. Set your field mappings, mapping either a **Card number** or a **Card name**, along with **Date**, **Merchant**, **Amount**, and **Currency**.
-10. Assign cards to Workspace members based on the transactions in the file.
-11. Click **Import**.
+5. Select **Company card layout name**.
+6. Enter a name for the card feed on the page that opens.
+7. Click **Save**.
+8. Click **Next**.
+9. Choose the CSV, TXT, XLS, or XLSX file you want to upload.
+10. Set your field mappings, mapping either a **Card number** or a **Card name**, along with **Date**, **Merchant**, **Amount**, and **Currency**.
+11. Assign cards to Workspace members based on the transactions in the file.
+12. Click **Import**.
 
 You must map at least one card-identity column — a **Card number** or a **Card name** — so each transaction can be grouped under a card.
 
