@@ -54,6 +54,27 @@ describe('useVacationDelegatePersonalDetails', () => {
         renderHook(() => useVacationDelegatePersonalDetails('Jane@Example.com'));
 
         expect(mockUsePersonalDetailByLogin).toHaveBeenCalledWith(EMAIL_DELEGATE);
+        // Emails have no SMS form, so the second subscription is skipped.
+        expect(mockUsePersonalDetailByLogin).toHaveBeenCalledWith(undefined);
+    });
+
+    // Invite options store a raw E.164 login, while SearchForUsers writes personal details under the
+    // canonical SMS login. The hook has to subscribe to both or the fetched record never hydrates.
+    it('returns personal details keyed by the SMS login when the delegate is stored as raw E.164', () => {
+        const personalDetails: PersonalDetails = {
+            accountID: 43,
+            login: PHONE_DELEGATE_WITH_SMS_DOMAIN,
+            displayName: 'Jane Doe',
+            avatar: 'phone-avatar',
+        };
+        mockUsePersonalDetailByLogin.mockImplementation((lookupLogin) => (lookupLogin === PHONE_DELEGATE_WITH_SMS_DOMAIN ? personalDetails : undefined));
+
+        const {result} = renderHook(() => useVacationDelegatePersonalDetails(PHONE_DELEGATE_RAW));
+
+        expect(mockUsePersonalDetailByLogin).toHaveBeenCalledWith(PHONE_DELEGATE_RAW);
+        expect(mockUsePersonalDetailByLogin).toHaveBeenCalledWith(PHONE_DELEGATE_WITH_SMS_DOMAIN);
+        expect(result.current).toBe(personalDetails);
+        expect(mockSearchUserInServer).not.toHaveBeenCalled();
     });
 
     // Bug #89578 — after a cache clear only the login survives, so the details have to be fetched again.
