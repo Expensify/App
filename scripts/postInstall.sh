@@ -30,3 +30,8 @@ rm -rf "$ROOT_DIR/web/static"
 
 # Apply packages using patch-package
 bun scripts/applyPatches.ts
+
+# `@typescript/old` (pulled in by `@typescript/typescript6`) also ships a `tsc` bin.
+# npm's last-writer-wins linking can point `node_modules/.bin/tsc` at TypeScript 6.
+# Force the TypeScript 7 native compiler so a bare `npx tsc` matches `npm run typecheck`.
+ln -sfn ../typescript/bin/tsc "$ROOT_DIR/node_modules/.bin/tsc"
