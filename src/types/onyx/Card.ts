@@ -19,12 +19,12 @@ type CardStatusChanges = {
     status: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>;
 };
 
-/** Model of a digital wallet addition waiting for the cardholder to confirm it */
+/** A wallet addition waiting for the cardholder to confirm */
 type PendingDigitalWalletApproval = {
-    /** The wallet that requested the card, as the card provider names it */
+    /** Wallet that requested the card, as the card provider names it */
     walletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>;
 
-    /** Last four digits of the card being added, which is what the cardholder confirmed over the phone */
+    /** Last four digits the cardholder confirmed over the phone */
     cardLastFourDigits?: string;
 };
 

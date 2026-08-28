@@ -61,6 +61,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
         shouldShowReviewCardFraud,
         shouldShowAddVirtualCardPersonalDetails,
         shouldShowConfirmDigitalWalletAddition,
+        hasExpensifyCard,
         cardsNeedingShippingAddress,
         cardsNeedingActivation,
         cardsWithFraud,
@@ -68,9 +69,11 @@ function useTimeSensitiveItems(): React.ReactNode[] {
         cardsPendingDigitalWalletApproval,
     } = useTimeSensitiveCards();
 
-    // Whether a digital wallet addition is still waiting on the cardholder is only knowable by asking the card provider,
-    // so refresh whenever Home is focused rather than only on first mount
+    // Only cardholders can have a pending wallet addition. Refresh on Home focus so new ones still show up.
     useFocusEffect(() => {
+        if (!hasExpensifyCard) {
+            return;
+        }
         getExpensifyCardPendingWalletApproval();
     });
     const {shouldShowFixFailedBilling} = useTimeSensitiveBilling();
@@ -254,7 +257,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 14: A digital wallet addition the cardholder verified over the phone is waiting on them
+    // Priority 14: Confirm a digital wallet addition
     if (shouldShowConfirmDigitalWalletAddition) {
         for (const card of cardsPendingDigitalWalletApproval) {
             items.push(

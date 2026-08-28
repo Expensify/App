@@ -4767,13 +4767,10 @@ const CONST = {
             INDIVIDUAL: 'individual',
             NONE: 'none',
         },
-        // Wallets that request a digital token, as the card provider names them. Google Wallet is reported as ANDROID_PAY.
         WALLET_PROVIDER: {
             APPLE_PAY: 'APPLE_PAY',
             ANDROID_PAY: 'ANDROID_PAY',
         },
-        // Reason the magic code is sent for, so the email says what the code approves. Lives here until it is added to
-        // expensify-common's VALIDATE_CODE_REASONS alongside the other card reasons.
         APPROVE_DIGITAL_WALLET_VALIDATE_CODE_REASON: 'approve_digital_wallet',
         VERIFICATION_STATE: {
             LOADING: 'loading',

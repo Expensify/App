@@ -15,7 +15,7 @@ import type {Card} from '@src/types/onyx';
 import React from 'react';
 
 type ConfirmDigitalWalletAdditionProps = {
-    /** The Expensify Card whose digital wallet addition is awaiting the cardholder's confirmation */
+    /** The card waiting for wallet addition confirmation */
     card: Card;
 };
 

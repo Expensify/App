@@ -1,7 +1,9 @@
+import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
 import Button from '@components/ButtonComposed';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LoadingIndicator from '@components/LoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -21,11 +23,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type AddCardToDigitalWalletPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_ADD_TO_DIGITAL_WALLET>;
@@ -45,7 +50,7 @@ function AddCardToDigitalWalletPage({
     const illustrations = useMemoizedLazyIllustrations(['CardIntoWallet', 'ThumbsUpStars', 'CardDenied']);
     const primaryLogin = usePrimaryContactMethod();
 
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
     const card = cardList?.[cardID];
     const validateError = getLatestErrorMessageField(card);
     const latestErrorMessage = getLatestErrorMessage(card);
@@ -55,17 +60,21 @@ function AddCardToDigitalWalletPage({
 
     const pendingApproval = card?.nameValuePairs?.pendingDigitalWalletApproval;
 
-    // The digits the cardholder confirmed over the phone, falling back to the card's own last four
+    // Last four digits the cardholder confirmed, or the card's own last four
     const lastFourDigits = pendingApproval?.cardLastFourDigits ?? card?.lastFourPAN ?? '';
 
     const currentWalletName = translate(`addCardToDigitalWallet.${getWalletProviderNameKey(pendingApproval?.walletProvider)}`);
     const walletName = submittedRequest?.walletName ?? currentWalletName;
 
-    // The backend clears the pending approval once it resolves the request, so that's when we know the answer landed
+    // The backend drops the pending approval after the request is resolved
     const hasPendingApproval = isCardPendingDigitalWalletApproval(card);
     const submittedAnswer = submittedRequest?.answer;
     const isResolvingRequest = !!submittedAnswer && !!card?.isLoading;
     const isRequestResolved = !!submittedAnswer && !hasPendingApproval && !card?.isLoading;
+
+    useEffect(() => {
+        clearCardListErrors(Number(cardID));
+    }, [cardID]);
 
     const denyRequest = () => {
         setSubmittedRequest({answer: 'deny', walletName: currentWalletName});
@@ -76,6 +85,14 @@ function AddCardToDigitalWalletPage({
         setSubmittedRequest({answer: 'approve', walletName: currentWalletName});
         approveDigitalWalletCardAddition(Number(cardID), true, validateCode);
     };
+
+    if (!card && isLoadingOnyxValue(cardListMetadata)) {
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+    }
+
+    if (!card || (!hasPendingApproval && !submittedRequest)) {
+        return <NotFoundPage />;
+    }
 
     if (isVerifying && !isRequestResolved) {
         return (
@@ -149,22 +166,22 @@ function AddCardToDigitalWalletPage({
                     </View>
                 ) : (
                     <>
-                        <Button
+                        <ButtonDisabledWhenOffline
                             variant={CONST.BUTTON_VARIANT.DANGER}
                             size={CONST.BUTTON_SIZE.LARGE}
                             style={styles.flex1}
                             onPress={denyRequest}
                         >
                             <Button.Text>{translate('addCardToDigitalWallet.deny')}</Button.Text>
-                        </Button>
-                        <Button
+                        </ButtonDisabledWhenOffline>
+                        <ButtonDisabledWhenOffline
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             size={CONST.BUTTON_SIZE.LARGE}
                             style={styles.flex1}
                             onPress={() => setIsVerifying(true)}
                         >
                             <Button.Text>{translate('addCardToDigitalWallet.confirm')}</Button.Text>
-                        </Button>
+                        </ButtonDisabledWhenOffline>
                     </>
                 )}
             </FixedFooter>

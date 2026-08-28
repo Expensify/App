@@ -1681,17 +1681,12 @@ function isCardPendingActivate(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
 }
 
-/**
- * Whether a digital wallet addition for this card is waiting for the cardholder to confirm or deny it. The backend only
- * reports this once they verified the addition over the phone with the card network.
- */
+/** True when this card has a wallet addition waiting for the cardholder to confirm or deny. */
 function isCardPendingDigitalWalletApproval(card?: Card) {
     return !!card?.nameValuePairs?.pendingDigitalWalletApproval;
 }
 
-/**
- * The card provider reports Google Wallet as ANDROID_PAY, and doesn't always tell us which wallet asked.
- */
+/** Maps the card provider's wallet name. Google Wallet comes back as ANDROID_PAY. */
 function getWalletProviderNameKey(walletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>): 'appleWallet' | 'googleWallet' | 'digitalWallet' {
     if (walletProvider === CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY) {
         return 'appleWallet';
