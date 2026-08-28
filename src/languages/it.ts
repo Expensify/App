@@ -10,14 +10,13 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
+import startsWithVowel from '@libs/StringUtils/startsWithVowel';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
@@ -932,6 +931,13 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: 'Solo amministratori',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal in un altro account',
+        emailLabel: 'Indirizzo email',
+        reasonLabel: 'Motivo accesso assistenza',
+        reasonHint: 'Nessun ticket recente trovato per questo account.',
+        login: 'Accedi',
+    },
     sidebarScreen: {
         buttonFind: 'Trova qualcosa...',
         buttonMySettings: 'Le mie impostazioni',
@@ -974,6 +980,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Portafoglio',
             },
             validateAccount: {title: 'Conferma il tuo account', subtitle: 'Account', cta: 'Conferma'},
+            addHomeAddress: {title: 'Aggiungi il tuo indirizzo di casa per il tracciamento delle distanze', subtitle: 'Account', cta: 'Aggiungi indirizzo'},
             fixFailedBilling: {title: 'Non abbiamo potuto addebitare la carta salvata nel profilo', subtitle: 'Abbonamento'},
             unlockBankAccount: {
                 workspaceTitle: 'Il conto bancario della tua azienda è stato bloccato',
@@ -1123,6 +1130,13 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateMessage: 'Creane una o trascina qui una ricevuta',
         },
         insightsSection: {chartUnavailable: 'Grafico non disponibile', notEnoughData: 'Non abbiamo ancora abbastanza dati per compilare questo grafico'},
+        conciergePrompt: {
+            goodMorning: ({name}: {name?: string}) => (name ? `Buongiorno, ${name}.` : 'Buongiorno.'),
+            goodAfternoon: ({name}: {name?: string}) => (name ? `Buon pomeriggio, ${name}.` : 'Buon pomeriggio.'),
+            goodEvening: ({name}: {name?: string}) => (name ? `Buonasera, ${name}.` : 'Buona sera.'),
+            inputPlaceholder: 'Chiedi a Concierge di analizzare le tue spese o chiedi supporto',
+            inputPlaceholderMobile: 'Chiedi qualsiasi cosa a Concierge',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -1278,6 +1292,14 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Crea nota spese tempo',
     },
     iou: {
+        homeAddressRequired: {
+            title: "L'indirizzo di casa è obbligatorio",
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `Prima di registrare la distanza, devi aggiungere il tuo indirizzo di casa al tuo profilo privato. ${workspaceName} usa questo indirizzo per le detrazioni per pendolarismo.`
+                    : 'Prima di poter registrare la distanza, devi aggiungere il tuo indirizzo di casa al tuo profilo privato. Questo spazio di lavoro utilizza questo indirizzo per le detrazioni per i pendolari.',
+            cta: 'Aggiungi indirizzo di casa',
+        },
         amount: 'Importo',
         percent: 'Percentuale',
         date: 'Data',
@@ -1515,8 +1537,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'carta' : 'conto bancario';
             return isCurrentUser
-                ? `. Il denaro è in arrivo sul tuo ${creditBankAccount ? `conto bancario che termina con ${creditBankAccount}` : 'conto'} (pagato tramite ${paymentMethod}). Questo potrebbe richiedere fino a 10 giorni lavorativi.`
-                : `. Il denaro è in arrivo sul conto bancario di ${submitterLogin}${creditBankAccount ? ` che termina con ${creditBankAccount}` : ''} (pagato tramite ${paymentMethod}). Potrebbero volerci fino a 10 giorni lavorativi.`;
+                ? `. Il denaro è in arrivo sul tuo ${creditBankAccount ? `conto bancario che termina con ${creditBankAccount}` : 'conto'} (pagato tramite ${paymentMethod}). In genere richiede 4-5 giorni lavorativi.`
+                : `. Il denaro è in arrivo sul conto bancario di ${submitterLogin}${creditBankAccount ? ` che termina con ${creditBankAccount}` : ''} (pagato tramite ${paymentMethod}). In genere richiede 4-5 giorni lavorativi.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` con accredito diretto (ACH)${creditBankAccount ? ` al conto bancario che termina con ${creditBankAccount}.` : '. '}${expectedDate ? `Il rimborso dovrebbe essere completato entro il ${expectedDate}.` : 'In genere richiede 4-5 giorni lavorativi.'}`,
@@ -1533,7 +1555,7 @@ const translations: TranslationDeepObject<typeof en> = {
         basedOnAI: 'in base all’attività precedente',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `in base alle <a href="${rulesLink}">regole dello spazio di lavoro</a>` : 'in base alle regole della workspace'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `per ${comment}` : 'spesa'}`,
-        invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Report fattura n. ${linkedReportID}`,
+        invoiceReportName: ({linkedReportID}: OriginalMessageReportPreview) => `Report fattura n. ${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} inviato${comment ? `per ${comment}` : ''}`,
         movedFromPersonalSpace: (reportName?: string, workspaceName?: string) => `ha spostato la spesa dallo spazio personale a ${workspaceName ?? `chatta con ${reportName}`}`,
         movedToPersonalSpace: 'ha spostato la spesa nello spazio personale',
@@ -1598,6 +1620,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Abilita portafoglio',
         hold: 'Metti in attesa',
         sendToSomeone: 'Invia a qualcuno',
+        submitToEmployer: 'Invia al mio datore di lavoro',
         unhold: 'Rimuovi blocco',
         holdExpense: () => ({
             one: 'Metti in sospeso la spesa',
@@ -1855,7 +1878,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pageTitle: 'Seleziona i dettagli che vuoi mantenere:',
             noDifferences: 'Nessuna differenza trovata tra le transazioni',
             pleaseSelectError: ({field}: {field: string}) => {
-                const article = StringUtils.startsWithVowel(field) ? 'un' : 'a';
+                const article = startsWithVowel(field) ? 'un' : 'a';
                 return `Seleziona ${article} ${field}`;
             },
             pleaseSelectAttendees: 'Seleziona i partecipanti',
@@ -3119,7 +3142,13 @@ ${amount} per ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Tieniti al passo vedendo solo le chat non lette o quelle che richiedono la tua attenzione. Non preoccuparti, puoi cambiare questa impostazione in qualsiasi momento nelle <a href="${priorityModePageUrl}">impostazioni</a>.`,
     },
-    inboxTabs: {all: 'Tutti', todo: 'Attività da fare', unread: 'Non letti'},
+    inboxTabs: {
+        all: 'Tutti',
+        todo: 'Attività da fare',
+        unread: 'Non letti',
+        markAllAsRead: 'Segna tutto come letto',
+        markAllAsReadConfirmationPrompt: 'Vuoi davvero segnare tutte le chat come lette?',
+    },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `in ${policyName}`,
         generatingPDF: 'Genera PDF',
@@ -3599,7 +3628,8 @@ ${amount} per ${merchant} - ${date}`,
         legalName: 'Nome legale',
         legalFirstName: 'Nome legale di battesimo',
         legalLastName: 'Cognome legale',
-        address: 'Indirizzo',
+        address: 'Indirizzo di casa',
+        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} utilizza questo indirizzo per le esclusioni pendolari.`,
         error: {
             dateShouldBeBefore: (dateString: string) => `La data deve essere precedente a ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `La data deve essere successiva a ${dateString}`,
@@ -3720,6 +3750,11 @@ ${amount} per ${merchant} - ${date}`,
         thisBankAccount: 'Questo conto bancario sarà utilizzato per i pagamenti aziendali nel tuo spazio di lavoro',
         accountNumber: 'Numero di conto',
         routingNumber: 'Numero di instradamento',
+        internationalBankAccountDetails: 'Dati del conto bancario internazionale',
+        internationalBankAccountDetailsTitle: 'Quali sono i dati del tuo conto internazionale?',
+        internationalBankAccountDetailsSubtitle: 'Uno dei tuoi spazi di lavoro richiede i dati del conto internazionale per elaborare i rimborsi',
+        iban: 'IBAN',
+        swiftBicCode: 'Codice SWIFT/BIC',
         chooseAnAccountBelow: 'Scegli un account qui sotto',
         addBankAccount: 'Aggiungi conto bancario',
         chooseAnAccount: 'Scegli un account',
@@ -3769,6 +3804,8 @@ ${amount} per ${merchant} - ${date}`,
             restrictedBusiness: 'Conferma che l’azienda non sia nell’elenco delle attività soggette a restrizioni',
             routingNumber: 'Inserisci un numero di instradamento valido',
             accountNumber: 'Inserisci un numero di conto valido',
+            iban: 'Inserisci un IBAN valido',
+            swiftCode: 'Inserisci un codice SWIFT/BIC valido',
             routingAndAccountNumberCannotBeSame: 'I numeri di routing e di conto non possono coincidere',
             companyType: 'Seleziona un tipo di azienda valido',
             tooManyAttempts: 'A causa di un numero elevato di tentativi di accesso, questa opzione è stata disabilitata per 24 ore. Riprova più tardi o inserisci invece i dati manualmente.',
@@ -4538,6 +4575,9 @@ ${amount} per ${merchant} - ${date}`,
             workflows: 'Flussi di lavoro',
             workspace: 'Spazio di lavoro',
             findWorkspace: 'Trova spazio di lavoro',
+            active: 'Attivo',
+            archived: 'Archiviato',
+            workspaceStatus: 'Stato dello spazio di lavoro',
             findRoom: 'Trova stanza',
             edit: 'Modifica spazio di lavoro',
             enabled: 'Abilitato',
@@ -5864,10 +5904,16 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             addNewCard: {
                 other: 'Altro',
                 fileImport: 'Importa transazioni da file',
-                createFileFeedHelpText: `<muted-text>Segui questa <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">guida di supporto</a> per importare le spese della carta aziendale!</muted-text>`,
+                createFileFeedHelpText: {
+                    instructionStart: 'Nella pagina successiva, caricherai un CSV delle transazioni della tua carta. ',
+                    templateLink: 'Scarica il nostro modello',
+                    instructionMiddle: ' oppure consulta la nostra ',
+                    helpGuideLink: 'guida di supporto',
+                    instructionEnd: ' prima di caricarlo.',
+                },
                 companyCardLayoutName: 'Nome layout carta aziendale',
                 cardLayoutNameRequired: 'Il nome del layout della carta aziendale è obbligatorio',
-                useAdvancedFields: 'Usa i campi avanzati (non consigliato)',
+                downloadTemplate: 'Scarica il nostro modello',
                 cardProviders: {
                     gl1025: 'Carte Corporate American Express',
                     cdf: 'Carte Commerciali Mastercard',
@@ -5956,9 +6002,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     currency: 'Valuta',
                     ignore: 'Ignora',
                     originalTransactionDate: 'Data originale della transazione',
-                    originalAmount: 'Importo originale',
-                    originalCurrency: 'Valuta originale',
-                    comment: 'Commento',
+                    originalAmount: 'Importo dell’acquisto',
+                    originalCurrency: 'Valuta dell’acquisto',
+                    comment: 'Descrizione',
                     category: 'Categoria',
                     tag: 'Tag',
                 },
@@ -6046,6 +6092,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             currentBalanceDescription: 'Il saldo attuale è la somma di tutte le transazioni contabilizzate della Carta Expensify che si sono verificate dalla data dell’ultima liquidazione.',
             balanceWillBeSettledOn: (settlementDate: string) => `Il saldo sarà regolato il ${settlementDate}`,
             settleBalance: 'Saldo da saldare',
+            settleBalanceConfirmationTitle: 'Saldare il saldo?',
+            settleBalanceConfirmationPrompt:
+                'Questa operazione salderà il tuo saldo attuale il giorno lavorativo successivo. Una volta completata, l’importo verrà aggiunto nuovamente al tuo limite rimanente.',
             cardLimit: 'Limite carta',
             remaining: 'Rimanente',
             remainingLimit: 'Limite rimanente',
@@ -6216,6 +6265,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                         title: 'Aggiungi nomi di viaggi alle spese',
                         subtitle: 'Aggiungi automaticamente i nomi dei viaggi alle descrizioni delle spese per i viaggi prenotati in Expensify.',
                     },
+                    codingSync: {
+                        title: 'Sincronizza la codifica con Expensify Travel',
+                        subtitle:
+                            'Invia le categorie, i tag e i campi di rendiconto di questo spazio di lavoro a Expensify Travel così che chi viaggia li compili al momento della prenotazione.',
+                    },
                 },
                 travelInvoicing: {
                     travelBookingSection: {
@@ -6291,6 +6345,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                         spend: 'Controlli di spesa e limiti personalizzati',
                     },
                     ctaTitle: 'Emetti nuova carta',
+                    existingFeedTitle: 'Gestisci le tue Carte Expensify',
+                    viewCards: 'Mostra carte',
                 },
             },
             companyCards: {
@@ -7198,11 +7254,25 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                 summaryDisabled: 'Nessuna esclusione per il tragitto',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Escludi ${distance} ${unit} per rimborso`,
                 optionDisabledTitle: 'Non escludere gli spostamenti casa-lavoro',
-                optionDisabledHelp: 'Non è applicata alcuna esclusione per il tragitto casa-lavoro.',
+                optionDisabledHelp: 'Nessun tragitto casa-lavoro viene rimosso dalle richieste.',
                 optionFixedDistanceTitle: 'Escludi una distanza fissa per richiesta',
                 optionFixedDistanceHelp: 'Detrai la stessa distanza del tragitto casa-lavoro da ogni richiesta. Ideale per chi invia una richiesta per ogni giorno lavorativo.',
                 distanceLabel: 'Distanza',
-                errors: {distanceMustBePositive: 'La distanza deve essere un numero intero positivo.', distanceTooLarge: 'La distanza è troppo grande.'},
+                summaryHomeAndOffice: 'Usa gli indirizzi di casa e ufficio',
+                optionHomeAndOfficeTitle: 'Calcola per casa e ufficio',
+                optionHomeAndOfficeHelp: 'Usa l’indirizzo di casa del membro, la modalità di lavoro e l’assegnazione all’ufficio per calcolare le esclusioni sul tragitto casa‑lavoro.',
+                workspaceAddressRequired: {
+                    title: 'Non così in fretta...',
+                    promptStart: 'Non puoi abilitare l’impostazione di calcolo per casa e ufficio finché non aggiungi prima una sede dell’ufficio in',
+                    linkText: 'Panoramica',
+                    promptEnd: '.',
+                    cta: 'Ricevuto',
+                },
+                errors: {
+                    distanceMustBePositive: 'La distanza deve essere un numero intero positivo.',
+                    invalidAddress: 'Inserisci un indirizzo valido',
+                    distanceTooLarge: 'La distanza è troppo grande.',
+                },
             },
             distance: 'Distanza',
             centrallyManage: 'Gestisci centralmente le tariffe, monitora in miglia o chilometri e imposta una categoria predefinita.',
@@ -7297,6 +7367,9 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             yourWorkspace: `La tua area di lavoro è impostata su una valuta non supportata. Visualizza l’<a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">elenco delle valute supportate</a>.`,
             chooseAnExisting: 'Scegli un conto bancario esistente per pagare le spese oppure aggiungine uno nuovo.',
             changeBankAccount: 'Cambia conto bancario',
+            updateCurrencyForExpensifyCard: 'La Carta Expensify è disponibile per l’emissione in USD. Aggiorna questo workspace in USD oppure usa un altro workspace.',
+            updateCurrencyForExpensifyCardTitle: 'Ottieni la Carta Expensify',
+            euUkUpdateCurrencyForExpensifyCard: 'La Carta Expensify è disponibile in USD, GBP ed EUR. Aggiorna questo workspace a una valuta supportata oppure usa un altro workspace.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Trasferisci proprietario',
@@ -9948,6 +10021,19 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Impossibile abbinare automaticamente la ricevuta a causa di un problema di connessione bancaria.';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
+                if (isPersonalCard) {
+                    if (!connectionLink) {
+                        return 'Impossibile abbinare automaticamente la ricevuta perché la connessione bancaria deve essere ri-autenticata.';
+                    }
+                    return isMarkAsCash
+                        ? `Impossibile abbinare automaticamente la ricevuta perché la connessione bancaria deve essere ri-autenticata. Contrassegna come contanti per ignorare oppure <a href="${connectionLink}">riconnettiti</a> per abbinare la ricevuta.`
+                        : `Impossibile abbinare automaticamente la ricevuta perché la connessione bancaria deve essere ri-autenticata. <a href="${connectionLink}">Riconnettiti</a> per abbinare la ricevuta.`;
+                }
+                return isAdmin
+                    ? `La connessione bancaria deve essere ri-autenticata. <a href="${companyCardPageURL}">Riconnetti per abbinare la ricevuta</a>`
+                    : 'La connessione bancaria deve essere ri-autenticata. Chiedi a un amministratore di riconnetterla per abbinare la ricevuta.';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return 'Impossibile abbinare automaticamente la ricevuta a causa di un problema di connessione bancaria.';
@@ -9970,6 +10056,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Ricevuta in sospeso a causa di un collegamento bancario interrotto. Risolvi il problema in <a href="${workspaceCompanyCardRoute}">Carte aziendali</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Ricevuta in sospeso a causa di un collegamento bancario interrotto. Chiedi a un amministratore dello spazio di lavoro di risolvere il problema.',
+        adminReauthConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>Ricevuta in sospeso perché la connessione bancaria deve essere ri-autenticata. Risolvi il problema in <a href="${workspaceCompanyCardRoute}">Carte aziendali</a>.</muted-text-label>`,
+        memberReauthConnectionError:
+            'Ricevuta in sospeso perché la connessione bancaria deve essere ri-autenticata. Chiedi a un amministratore dello spazio di lavoro di risolvere il problema.',
         markAsCashToIgnore: 'Segna come contante da ignorare e richiedi il pagamento.',
         smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
             if (missingFields.length > 0) {
@@ -10166,6 +10256,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             title: 'Pagamento',
             subtitle: 'Aggiungi una carta per pagare il tuo abbonamento Expensify.',
             addCardButton: 'Aggiungi carta di pagamento',
+            addPaymentCardTitle: 'Aggiungi una carta di pagamento',
+            addCard: 'Aggiungi carta',
             cardInfo: (name: string, expiration: string, currency: string) => `Nome: ${name}, Scadenza: ${expiration}, Valuta: ${currency}`,
             cardNextPayment: (nextPaymentDate: string) => `La tua prossima data di pagamento è ${nextPaymentDate}.`,
             cardEnding: (cardNumber: string) => `Carta che termina con ${cardNumber}`,

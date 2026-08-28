@@ -234,7 +234,10 @@ function WorkspaceReportFieldsPage({
                     />
                 )}
                 {!isLoading && (
-                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <ScrollView
+                        addBottomSafeAreaPadding
+                        contentContainerStyle={[styles.flexGrow1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}
+                    >
                         <Section
                             isCentralPane
                             renderTitle={renderReportTitle}
