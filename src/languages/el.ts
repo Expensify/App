@@ -4846,7 +4846,7 @@ ${amount} για ${merchant} - ${date}`,
         mcp: {
             connectors: 'Συνδέσεις',
             connectorsSubtitle: 'Συνδέστε έναν βοηθό AI με τον λογαριασμό σας στο Expensify.',
-            helpPrompt: 'Χρειάζεστε βοήθεια για τη σύνδεση του Claude ή άλλων βοηθών AI; ',
+            helpPrompt: 'Χρειάζεστε βοήθεια για τη σύνδεση άλλων βοηθών AI; ',
             helpLink: 'Διαβάστε τον οδηγό μας.',
             chatgpt: {
                 title: 'ChatGPT',

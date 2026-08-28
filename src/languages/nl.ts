@@ -4740,7 +4740,7 @@ ${amount} voor ${merchant} - ${date}`,
         mcp: {
             connectors: 'Connectoren',
             connectorsSubtitle: 'Verbind een AI-assistent met je Expensify-account.',
-            helpPrompt: 'Hulp nodig bij het verbinden van Claude of andere AI-assistenten? ',
+            helpPrompt: 'Hulp nodig bij het verbinden van andere AI-assistenten? ',
             helpLink: 'Lees onze handleiding.',
             chatgpt: {
                 title: 'ChatGPT',

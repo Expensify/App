@@ -4583,7 +4583,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         mcp: {
             connectors: '连接器',
             connectorsSubtitle: '将 AI 助手连接到您的 Expensify 账户。',
-            helpPrompt: '需要帮助连接 Claude 或其他 AI 助手吗？',
+            helpPrompt: '需要帮助连接其他 AI 助手吗？',
             helpLink: '阅读我们的指南。',
             chatgpt: {
                 title: 'ChatGPT',

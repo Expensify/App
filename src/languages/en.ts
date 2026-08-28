@@ -4890,7 +4890,7 @@ const translations = {
         mcp: {
             connectors: 'Connectors',
             connectorsSubtitle: 'Connect an AI assistant to your Expensify account.',
-            helpPrompt: 'Need help connecting Claude or other AI assistants? ',
+            helpPrompt: 'Need help connecting other AI assistants? ',
             helpLink: 'Read our guide.',
             chatgpt: {
                 title: 'ChatGPT',
