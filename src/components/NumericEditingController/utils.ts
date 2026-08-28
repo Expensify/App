@@ -1,10 +1,11 @@
-import type {NumericEditingKeyPressEvent, NumericEditingSelection} from '@components/NumericEditingController/types';
 
 import {isMobileSafari} from '@libs/Browser';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import {addLeadingZero, replaceAllDigits, replaceCommasWithPeriod, stripCommaFromAmount, stripSpacesFromAmount} from '@libs/MoneyRequestUtils';
 
 import CONST from '@src/CONST';
+
+import type {NumericEditingKeyPressEvent, NumericEditingSelection} from './types';
 
 type NormalizeNumericInputOptions = {
     fromLocaleDigit: (digit: string) => string;
