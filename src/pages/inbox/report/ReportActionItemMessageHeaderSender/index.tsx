@@ -9,7 +9,7 @@ import React, {useMemo} from 'react';
 
 import type ReportActionItemMessageHeaderSenderProps from './types';
 
-function ReportActionItemMessageHeaderSender({fragmentText, accountID, delegateAccountID, actorIcon, isSingleLine, shouldShowTooltip}: ReportActionItemMessageHeaderSenderProps) {
+function ReportActionItemMessageHeaderSender({fragmentText, accountID, delegateAccountID, actorIcon, isSingleLine, shouldShowTooltip, style}: ReportActionItemMessageHeaderSenderProps) {
     const styles = useThemeStyles();
     const processedTextArray = useMemo(() => splitTextWithEmojis(fragmentText), [fragmentText]);
 
@@ -22,7 +22,7 @@ function ReportActionItemMessageHeaderSender({fragmentText, accountID, delegateA
         >
             <Text
                 numberOfLines={isSingleLine ? 1 : undefined}
-                style={[styles.chatItemMessageHeaderSender, isSingleLine ? styles.pre : styles.preWrap]}
+                style={[styles.chatItemMessageHeaderSender, isSingleLine ? styles.pre : styles.preWrap, style]}
             >
                 {processedTextArray.length !== 0 ? getProcessedText(processedTextArray, styles.emojisWithTextFontSize) : fragmentText}
             </Text>

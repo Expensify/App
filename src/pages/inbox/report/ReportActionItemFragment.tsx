@@ -1,4 +1,5 @@
 import RenderHTML from '@components/RenderHTML';
+import {useTemporarySystemMessageTypography} from '@components/TemporarySystemMessageTypographyContext';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -110,6 +111,8 @@ function ReportActionItemFragment({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const temporaryTypography = useTemporarySystemMessageTypography();
+    const temporaryTypographyStyle = temporaryTypography === 'micro' ? styles.textMicroSupporting : undefined;
 
     switch (fragment?.type) {
         case 'COMMENT': {
@@ -148,7 +151,7 @@ function ReportActionItemFragment({
                     styleAsMuted={!!actionName && MUTED_ACTIONS.includes(actionName)}
                     iouMessage={iouMessage}
                     displayAsGroup={displayAsGroup}
-                    style={style}
+                    style={[style, temporaryTypographyStyle]}
                 />
             );
         }
@@ -157,7 +160,7 @@ function ReportActionItemFragment({
                 return (
                     <Text
                         numberOfLines={isSingleLine ? 1 : undefined}
-                        style={[styles.chatItemMessage, styles.colorMuted]}
+                        style={[styles.chatItemMessage, styles.colorMuted, temporaryTypographyStyle]}
                     >
                         {isFragmentContainingDisplayName ? convertToLTR(fragment?.text ?? '') : fragment?.text}
                     </Text>
@@ -168,7 +171,7 @@ function ReportActionItemFragment({
                 return (
                     <Text
                         numberOfLines={isSingleLine ? 1 : undefined}
-                        style={[styles.chatItemMessage]}
+                        style={[styles.chatItemMessage, temporaryTypographyStyle]}
                     >
                         {isFragmentContainingDisplayName ? convertToLTR(fragment?.text ?? '') : fragment?.text}
                     </Text>
@@ -183,6 +186,7 @@ function ReportActionItemFragment({
                     actorIcon={actorIcon}
                     isSingleLine={isSingleLine}
                     shouldShowTooltip={shouldShowTooltip}
+                    style={temporaryTypographyStyle}
                 />
             );
         }

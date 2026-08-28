@@ -1,3 +1,4 @@
+import {useTemporarySystemMessageTypography} from '@components/TemporarySystemMessageTypographyContext';
 import Text from '@components/Text';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -23,6 +24,8 @@ function ReportActionItemBasicMessage({message, children}: ReportActionItemBasic
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const messageContainsCustomEmojiWithText = useMemo(() => containsCustomEmoji(message) && !containsOnlyCustomEmoji(message), [message]);
     const selectableStyle = !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone;
+    const temporaryTypography = useTemporarySystemMessageTypography();
+    const temporaryTypographyStyle = temporaryTypography === 'micro' ? styles.textMicroSupporting : undefined;
 
     return (
         <View>
@@ -30,11 +33,11 @@ function ReportActionItemBasicMessage({message, children}: ReportActionItemBasic
                 (messageContainsCustomEmojiWithText ? (
                     <TextWithEmojiFragment
                         message={Str.htmlDecode(message)}
-                        style={[styles.chatItemMessage, styles.colorMuted, selectableStyle]}
+                        style={[styles.chatItemMessage, styles.colorMuted, selectableStyle, temporaryTypographyStyle]}
                         alignCustomEmoji
                     />
                 ) : (
-                    <Text style={[styles.chatItemMessage, styles.colorMuted, selectableStyle]}>{Str.htmlDecode(message)}</Text>
+                    <Text style={[styles.chatItemMessage, styles.colorMuted, selectableStyle, temporaryTypographyStyle]}>{Str.htmlDecode(message)}</Text>
                 ))}
             {children}
         </View>

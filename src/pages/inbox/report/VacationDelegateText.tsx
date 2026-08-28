@@ -8,6 +8,7 @@ import {getManagerOnVacation, getOriginalMessage, getSubmittedTo, getVacationer}
 
 import type * as OnyxTypes from '@src/types/onyx';
 
+import type {StyleProp, TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
@@ -15,9 +16,12 @@ import React from 'react';
 type VacationDelegateTextProps = {
     /** The action whose vacation context drives the labels. */
     action: OnyxEntry<OnyxTypes.ReportAction>;
+
+    /** Typography style supplied by the system-message layout. */
+    textStyle?: StyleProp<TextStyle>;
 };
 
-function VacationDelegateText({action}: VacationDelegateTextProps) {
+function VacationDelegateText({action, textStyle}: VacationDelegateTextProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetailsByLogin = usePersonalDetailsByLogin();
@@ -35,12 +39,14 @@ function VacationDelegateText({action}: VacationDelegateTextProps) {
     return (
         <>
             {!!vacationer && !!submittedTo && (
-                <Text style={[styles.chatDelegateMessage]}>
+                <Text style={[styles.chatDelegateMessage, textStyle]}>
                     {translate('statusPage.toAsVacationDelegate', submittedToDetails?.displayName ?? submittedTo ?? '', vacationDelegateDetailsForSubmit?.displayName ?? vacationer ?? '')}
                 </Text>
             )}
             {!!managerOnVacation && !isAutomaticAction && (
-                <Text style={[styles.chatDelegateMessage]}>{translate('statusPage.asVacationDelegate', vacationDelegateDetailsForApprove?.displayName ?? managerOnVacation ?? '')}</Text>
+                <Text style={[styles.chatDelegateMessage, textStyle]}>
+                    {translate('statusPage.asVacationDelegate', vacationDelegateDetailsForApprove?.displayName ?? managerOnVacation ?? '')}
+                </Text>
             )}
         </>
     );

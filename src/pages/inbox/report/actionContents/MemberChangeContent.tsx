@@ -1,3 +1,5 @@
+import {useTemporarySystemMessageTypography} from '@components/TemporarySystemMessageTypographyContext';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
@@ -25,6 +27,7 @@ type MemberChangeContentProps = {
 function MemberChangeContent({action}: MemberChangeContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const temporaryTypography = useTemporarySystemMessageTypography();
     const memberChangeLogReportActionMessage = isMemberChangeAction(action) ? getOriginalMessage(action) : undefined;
     const [actorDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(action.actorAccountID)});
     const [targetAccountDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsListSelector(memberChangeLogReportActionMessage?.targetAccountIDs)});
@@ -36,7 +39,7 @@ function MemberChangeContent({action}: MemberChangeContentProps) {
     return (
         <View style={[styles.chatItemMessage]}>
             <TextCommentFragment
-                style={undefined}
+                style={temporaryTypography === 'micro' ? styles.textMicroSupporting : undefined}
                 fragment={fragment}
                 source=""
                 displayAsGroup={false}

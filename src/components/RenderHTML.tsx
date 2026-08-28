@@ -14,6 +14,7 @@ import ConciergeLinkRenderer from './HTMLEngineProvider/HTMLRenderers/ConciergeL
 import OLRenderer from './HTMLEngineProvider/HTMLRenderers/OLRenderer';
 import SparklesIconRenderer from './HTMLEngineProvider/HTMLRenderers/SparklesIconRenderer';
 import ULRenderer from './HTMLEngineProvider/HTMLRenderers/ULRenderer';
+import {useTemporarySystemMessageTypography} from './TemporarySystemMessageTypographyContext';
 
 type LinkPressHandler = NonNullable<RenderersProps['a']>['onPress'];
 type ConciergeLinkPressHandler = () => void;
@@ -45,6 +46,7 @@ type RenderHTMLProps = {
 // The provider is available at src/components/HTMLEngineProvider/
 function RenderHTML({html: htmlParam, onLinkPress, onConciergeLinkPress, isSelectable}: RenderHTMLProps) {
     const hasTextAncestor = useHasTextAncestor();
+    const temporarySystemMessageTypography = useTemporarySystemMessageTypography();
     if (__DEV__ && hasTextAncestor) {
         throw new Error('RenderHTML must not be rendered inside a <Text> component, as it will break the layout on iOS. Render it as a sibling instead.');
     }
@@ -52,8 +54,10 @@ function RenderHTML({html: htmlParam, onLinkPress, onConciergeLinkPress, isSelec
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const html = useMemo(() => {
+        const typographyAlignedHTML =
+            temporarySystemMessageTypography === 'micro' ? htmlParam.replaceAll('<muted-text>', '<muted-text-micro>').replaceAll('</muted-text>', '</muted-text-micro>') : htmlParam;
         return (
-            Parser.replace(htmlParam, {shouldEscapeText: false, filterRules: ['emoji']})
+            Parser.replace(typographyAlignedHTML, {shouldEscapeText: false, filterRules: ['emoji']})
                 // Escape brackets when pasting a link, since unescaped [] can break Markdown link syntax
                 .replaceAll(RE_BRACKET_ESCAPE, (m) => (m.at(7) === '1' ? '[' : ']'))
                 // Remove double <emoji> tag if exists and keep the outermost tag (always the original tag).
@@ -61,7 +65,7 @@ function RenderHTML({html: htmlParam, onLinkPress, onConciergeLinkPress, isSelec
                 // Strip orphaned <br/> tags inside <ul> and <ol> that would render as extra empty items
                 .replaceAll(RE_BR_CLEANUP, '$1$2')
         );
-    }, [htmlParam]);
+    }, [htmlParam, temporarySystemMessageTypography]);
 
     const renderersProps = useMemo(() => {
         return {

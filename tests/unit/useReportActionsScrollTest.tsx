@@ -22,6 +22,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 const REPORT_ID = '1';
 const LINKED_ACTION_ID = '777';
 const UNREAD_ACTION_ID = '888';
+const UNREAD_SUMMARY_ACTION_ID = '999';
 const NEWEST_CREATED = '2023-09-12 16:27:35.124';
 
 // Run animation frames synchronously so the autoscroll callbacks settle within the test.
@@ -301,6 +302,18 @@ describe('useReportActionsScroll', () => {
             });
 
             expect(result.current.initialScrollKey).toBe(UNREAD_ACTION_ID);
+        });
+
+        it('uses the rendered summary as the initial scroll target when the unread action is collapsed', async () => {
+            const {result} = await renderScroll({
+                unreadMarkerReportActionID: UNREAD_ACTION_ID,
+                unreadMarkerReportActionIDForInitialScroll: UNREAD_SUMMARY_ACTION_ID,
+                sortedVisibleReportActions: [makeAction('1'), makeAction(UNREAD_ACTION_ID)],
+                renderedVisibleReportActions: [makeAction('1'), makeAction(UNREAD_SUMMARY_ACTION_ID)],
+            });
+
+            expect(result.current.initialScrollKey).toBe(UNREAD_SUMMARY_ACTION_ID);
+            expect(result.current.initialScrollIndex).toBe(1);
         });
 
         it('suppresses the initial scroll key for an aligned-to-top CREATED anchor action', async () => {
