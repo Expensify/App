@@ -8,7 +8,7 @@ import * as PersistedRequests from '@userActions/PersistedRequests';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
-import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
+import type {AnyOnyxUpdate, AnyRequest} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -90,6 +90,21 @@ function getRestoredPersonalDetails(
     return {[settledAccountID]: {accountID: settledAccountID, login: invitedEmail}};
 }
 
+function updateRequestAgentAccountID(request: AnyRequest, optimisticAccountID: string, agentAccountID: number) {
+    const updatedRequest = clone(request);
+    if (updatedRequest.data?.agentAccountID === Number(optimisticAccountID)) {
+        updatedRequest.data = {...updatedRequest.data, agentAccountID};
+        updatedRequest.optimisticData = deepReplaceKeysAndValues(updatedRequest.optimisticData, optimisticAccountID, String(agentAccountID));
+        updatedRequest.successData = deepReplaceKeysAndValues(updatedRequest.successData, optimisticAccountID, String(agentAccountID));
+        updatedRequest.failureData = deepReplaceKeysAndValues(updatedRequest.failureData, optimisticAccountID, String(agentAccountID));
+    } else if (updatedRequest.data?.optimisticAccountID === optimisticAccountID) {
+        updatedRequest.successData = updatedRequest.successData?.map((update) =>
+            update.key === ONYXKEYS.PERSONAL_DETAILS_LIST ? deepReplaceKeysAndValues(update, optimisticAccountID, String(agentAccountID)) : update,
+        );
+    }
+    return updatedRequest;
+}
+
 /**
  * This middleware checks for the presence of a field called preexistingReportID in the response.
  * If present, that means that the client passed an optimistic reportID with the request that the server did not use.
@@ -115,6 +130,48 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
         }
 
         const responseOnyxData = response?.onyxData ?? [];
+        const optimisticAgentAccountIDMapping = responseOnyxData.find((onyxData) => onyxData.key === ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING)?.value;
+        if (isRecord(optimisticAgentAccountIDMapping)) {
+            for (const [optimisticAccountID, agentAccountIDValue] of Object.entries(optimisticAgentAccountIDMapping)) {
+                const agentAccountID = Number(agentAccountIDValue);
+                const optimisticPersonalDetail = allPersonalDetails?.[Number(optimisticAccountID)];
+                if (!agentAccountID || !optimisticPersonalDetail) {
+                    continue;
+                }
+
+                responseOnyxData.push(
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            [agentAccountID]: {...optimisticPersonalDetail, accountID: agentAccountID, isOptimisticPersonalDetail: null},
+                            [optimisticAccountID]: null,
+                        },
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${agentAccountID}`,
+                        value: {prompt: request.data?.prompt},
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`,
+                        value: null,
+                    },
+                );
+
+                const ongoingRequest = PersistedRequests.getOngoingRequest();
+                if (ongoingRequest?.data?.agentAccountID === Number(optimisticAccountID) || ongoingRequest?.data?.optimisticAccountID === optimisticAccountID) {
+                    PersistedRequests.updateOngoingRequest(updateRequestAgentAccountID(ongoingRequest, optimisticAccountID, agentAccountID));
+                }
+                for (const [index, persistedRequest] of PersistedRequests.getAll().entries()) {
+                    if (persistedRequest.data?.agentAccountID !== Number(optimisticAccountID)) {
+                        continue;
+                    }
+                    PersistedRequests.update(index, updateRequestAgentAccountID(persistedRequest, optimisticAccountID, agentAccountID));
+                }
+            }
+        }
         for (const onyxData of responseOnyxData) {
             const key = onyxData.key;
             if (!key?.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
