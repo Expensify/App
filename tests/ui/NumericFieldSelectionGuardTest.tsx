@@ -51,9 +51,9 @@ function renderTextInput(onInputChange: jest.Mock, numericEditingRef?: React.Ref
 }
 
 // `shouldIgnoreSelectionWhenUpdatedManually` is `true` on native only, so this suite mocks it for the whole file the way
-// NumberWithSymbolFormTest does. It pins the legacy `setNewNumber` lifecycle: setNumber raises the flag, the input lowers
-// it again once the update commits, so only the stale selection event native emits in the same batch as the change is
-// dropped - a selection change arriving later still moves the caret.
+// NumberWithSymbolFormTest does. It pins the legacy `setFormattedNumber` lifecycle: a manual update raises the flag and
+// only the next native selection event consumes it, however late it arrives (native always echoes one after a controlled
+// update). This keeps the caret stable even when the stale event lands after the update has committed.
 describe('NumericField.TextInput native selection guard', () => {
     afterEach(() => {
         jest.clearAllMocks();
@@ -79,7 +79,7 @@ describe('NumericField.TextInput native selection guard', () => {
         expect(getInput().props.selection).toEqual({start: 3, end: 3});
     });
 
-    it('applies a selection change that arrives after the change has committed', async () => {
+    it('drops the stale selection event even when it arrives after the change has committed', async () => {
         const onInputChange = jest.fn();
 
         // Given a TextInput with value "12"
@@ -92,15 +92,22 @@ describe('NumericField.TextInput native selection guard', () => {
 
         expect(getInput().props.selection).toEqual({start: 3, end: 3});
 
-        // When a selection change arrives after the update has committed
+        // When the stale selection event arrives only after the update has committed (async native delivery)
         fireEvent(getInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
         await waitForBatchedUpdatesWithAct();
 
-        // Then the selection is applied
-        expect(getInput().props.selection).toEqual({start: 0, end: 0});
+        // Then it is still dropped and the caret stays at the manual position
+        expect(getInput().props.selection).toEqual({start: 3, end: 3});
+
+        // When the next selection event arrives (the native echo of the applied update, or a user tap)
+        fireEvent(getInput(), 'selectionChange', {nativeEvent: {selection: {start: 1, end: 1}}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it is applied
+        expect(getInput().props.selection).toEqual({start: 1, end: 1});
     });
 
-    it('does not leave the guard set when setNumber receives the current value', async () => {
+    it('consumes the guard with the first selection event when setNumber receives the current value', async () => {
         const onInputChange = jest.fn();
 
         // Given a TextInput with value "12"
@@ -111,15 +118,18 @@ describe('NumericField.TextInput native selection guard', () => {
         fireEvent.changeText(getInput(), '12');
         await waitForBatchedUpdatesWithAct();
 
-        // When a selection change arrives afterward
+        // Then the first selection event afterward is dropped as the stale one for that update
         fireEvent(getInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
         await waitForBatchedUpdatesWithAct();
+        expect(getInput().props.selection).toEqual({start: 2, end: 2});
 
-        // Then the selection is applied because the guard was not left set
+        // And the next selection event is applied because the guard was consumed
+        fireEvent(getInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
+        await waitForBatchedUpdatesWithAct();
         expect(getInput().props.selection).toEqual({start: 0, end: 0});
     });
 
-    it('does not leave the guard set when updateNumber receives the current value', async () => {
+    it('consumes the guard with the first selection event when updateNumber receives the current value', async () => {
         const onInputChange = jest.fn();
         const numericEditingRef = React.createRef<NumericFieldRef>();
 
@@ -133,11 +143,14 @@ describe('NumericField.TextInput native selection guard', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // When a selection change arrives afterward
+        // Then the first selection event afterward is dropped as the stale one for that update
         fireEvent(getInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
         await waitForBatchedUpdatesWithAct();
+        expect(getInput().props.selection).toEqual({start: 2, end: 2});
 
-        // Then the selection is applied and onInputChange is not called
+        // And the next selection event is applied without onInputChange being called
+        fireEvent(getInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
+        await waitForBatchedUpdatesWithAct();
         expect(getInput().props.selection).toEqual({start: 0, end: 0});
         expect(onInputChange).not.toHaveBeenCalled();
     });

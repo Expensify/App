@@ -26,7 +26,8 @@ function useNumericSelection({displayText}: UseNumericSelectionParams) {
 
     // Bounds early native selection events to the pending text.
     const pendingDisplayTextRef = useRef<string | undefined>(undefined);
-    // Ignores stale events after manual selection updates.
+    // Ignores the stale event native emits for a manual selection update. Consumed only by the next native
+    // selection event, however late it arrives - native always echoes one after a controlled update.
     const willSelectionBeUpdatedManually = useRef(false);
     // Ignores the rejected-input event to preserve the caret.
     const willSelectionBeRestoredAfterInvalidInput = useRef(false);
@@ -100,8 +101,9 @@ function useNumericSelection({displayText}: UseNumericSelectionParams) {
     };
 
     useLayoutEffect(() => {
-        // Clear guards after the armed selection commits.
-        willSelectionBeUpdatedManually.current = false;
+        // Clear the reject guard after the armed selection commits, so it cannot eat a later legit event when the
+        // rejected input produced no native selection event. The manual-update guard is intentionally NOT cleared
+        // here: on native the stale event can arrive after the commit, so only handleNativeSelectionChange consumes it.
         willSelectionBeRestoredAfterInvalidInput.current = false;
     }, [selection]);
 

@@ -190,11 +190,27 @@ describe('useNumericSelection', () => {
             expect(result.current.selection).toEqual({start: 3, end: 3});
         });
 
-        it('applies an event arriving after the manual update committed', () => {
+        it('drops the stale event even when it arrives after the manual update committed', () => {
             const {result} = renderSelection('12');
 
             act(() => {
                 result.current.syncAfterEdit({previousText: '12', nextText: '123'});
+            });
+            act(() => {
+                result.current.handleNativeSelectionChange(0, 0);
+            });
+
+            expect(result.current.selection).toEqual({start: 3, end: 3});
+        });
+
+        it('applies the event following the dropped stale one', () => {
+            const {result} = renderSelection('12');
+
+            act(() => {
+                result.current.syncAfterEdit({previousText: '12', nextText: '123'});
+            });
+            act(() => {
+                result.current.handleNativeSelectionChange(0, 0);
             });
             act(() => {
                 result.current.handleNativeSelectionChange(1, 1);
