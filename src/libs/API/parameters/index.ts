@@ -65,7 +65,6 @@ export type {default as UpdateDualEntryExporterParams} from './UpdateDualEntryEx
 export type {default as UpdateDualEntryExportDateParams} from './UpdateDualEntryExportDateParams';
 export type {default as UpdateDualEntryDefaultVendorParams} from './UpdateDualEntryDefaultVendorParams';
 export type {default as UpdateDualEntryCreditCardAccountParams} from './UpdateDualEntryCreditCardAccountParams';
-export type {default as UpdateDualEntryExpensifyCardAccountParams} from './UpdateDualEntryExpensifyCardAccountParams';
 export type {default as UpdateDualEntryExportToMultipleAccountsParams} from './UpdateDualEntryExportToMultipleAccountsParams';
 export type {default as UpdateDualEntryCardProgramAccountParams} from './UpdateDualEntryCardProgramAccountParams';
 export type {default as UpdateDualEntryAutoSyncParams} from './UpdateDualEntryAutoSyncParams';

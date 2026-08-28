@@ -6028,10 +6028,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 label: 'Λογαριασμός εταιρικής κάρτας',
                 description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.',
             },
-            expensifyCardAccount: {
-                label: 'Λογαριασμός Expensify Card',
-                description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές της Expensify Card.',
-            },
             exportToMultipleAccounts: 'Ρυθμίστε την εξαγωγή σε πολλούς λογαριασμούς',
             cardProgramAccount: {
                 label: 'Λογαριασμός προγράμματος κάρτας',

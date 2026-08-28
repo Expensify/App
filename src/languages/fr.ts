@@ -5926,10 +5926,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 label: 'Compte de carte d’entreprise',
                 description: 'Choisissez où exporter les transactions de carte d’entreprise.',
             },
-            expensifyCardAccount: {
-                label: 'Compte Expensify Card',
-                description: 'Choisissez où exporter les transactions Expensify Card.',
-            },
             exportToMultipleAccounts: 'Configurer l’export vers plusieurs comptes',
             cardProgramAccount: {
                 label: 'Compte de programme de carte',

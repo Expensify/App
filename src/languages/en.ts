@@ -6018,10 +6018,6 @@ const translations = {
                 label: 'Company card account',
                 description: 'Choose where to export company card transactions.',
             },
-            expensifyCardAccount: {
-                label: 'Expensify Card account',
-                description: 'Choose where to export Expensify Card transactions.',
-            },
             exportToMultipleAccounts: 'Configure exporting to multiple accounts',
             cardProgramAccount: {
                 label: 'Card program account',

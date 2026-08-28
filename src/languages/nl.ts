@@ -5877,10 +5877,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 label: 'Bedrijfskaartrekening',
                 description: 'Kies waar je transacties van bedrijfskaarten naartoe wilt exporteren.',
             },
-            expensifyCardAccount: {
-                label: 'Expensify Card-account',
-                description: 'Kies waar je Expensify Card-transacties naartoe wilt exporteren.',
-            },
             exportToMultipleAccounts: 'Export naar meerdere rekeningen instellen',
             cardProgramAccount: {
                 label: 'Kaartprogramma-account',

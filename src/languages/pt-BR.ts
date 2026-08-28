@@ -5877,10 +5877,6 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 label: 'Conta de cartão corporativo',
                 description: 'Escolha para onde exportar as transações do cartão corporativo.',
             },
-            expensifyCardAccount: {
-                label: 'Conta do Expensify Card',
-                description: 'Escolha para onde exportar as transações do Expensify Card.',
-            },
             exportToMultipleAccounts: 'Configurar exportação para várias contas',
             cardProgramAccount: {
                 label: 'Conta do programa de cartão',

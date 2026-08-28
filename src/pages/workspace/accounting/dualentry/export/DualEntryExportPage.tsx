@@ -7,13 +7,11 @@ import Text from '@components/Text';
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsLists from '@hooks/useCardsLists';
-import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDualEntryErrorField, updateDualEntryExportToMultipleAccounts} from '@libs/actions/connections/DualEntry';
 import {getCardsCustomExportPendingAction, areCardsCustomExportInErrorFields, findMatchingCards, getCardsUsingCustomExportCount} from '@libs/CardFeedUtils';
-import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
@@ -44,10 +42,6 @@ function DualEntryExportPage({policy}: WithPolicyConnectionsProps) {
     const defaultCompanyCardVendor = dualentryData?.vendors?.find((vendor) => vendor.id === dualentryConfig?.export?.defaultVendorID);
     const companyCardAccountID = dualentryConfig?.export?.creditCardAccountID;
     const companyCardAccount = dualentryData?.accounts?.find((account) => account.id === companyCardAccountID);
-    const expensifyCardAccountID = dualentryConfig?.export?.expensifyCardAccountID;
-    const expensifyCardAccount = dualentryData?.accounts?.find((account) => account.id === expensifyCardAccountID);
-    const allCardSettings = useExpensifyCardFeeds(policyID);
-    const isExpensifyCardsEnabled = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
     const exportToMultipleAccounts = dualentryConfig?.export?.exportToMultipleAccounts ?? false;
     const cardProgramsUsingCustomAccountsCount = Object.keys(dualentryConfig?.export?.cardProgramAccounts ?? {}).filter(
         (cardFeed) => findMatchingCards(cardFeeds ?? {}, cardLists, cardFeed as CardFeedWithNumber).length > 0,
@@ -136,19 +130,6 @@ function DualEntryExportPage({policy}: WithPolicyConnectionsProps) {
                     }
                 />
             </OfflineWithFeedback>
-            {isExpensifyCardsEnabled && (
-                <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.EXPENSIFY_CARD_ACCOUNT_ID], dualentryConfig?.pendingFields)}>
-                    <MenuItemWithTopDescription
-                        title={expensifyCardAccount ? `${expensifyCardAccount?.id} ${expensifyCardAccount?.name}` : undefined}
-                        description={translate('workspace.dualEntry.expensifyCardAccount.label')}
-                        onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPENSIFY_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
-                        shouldShowRightIcon
-                        brickRoadIndicator={
-                            areSettingsInErrorFields([CONST.DUALENTRY_CONFIG.EXPENSIFY_CARD_ACCOUNT_ID], dualentryConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
-                        }
-                    />
-                </OfflineWithFeedback>
-            )}
             {hasActiveCards && (
                 <>
                     <ToggleSettingOptionRow

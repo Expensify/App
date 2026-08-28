@@ -8,7 +8,6 @@ import type {
     UpdateDualEntryCreditCardAccountParams,
     UpdateDualEntryDefaultVendorParams,
     UpdateDualEntryEnableNewCategoriesParams,
-    UpdateDualEntryExpensifyCardAccountParams,
     UpdateDualEntryExportDateParams,
     UpdateDualEntryExporterParams,
     UpdateDualEntryExportToMultipleAccountsParams,
@@ -672,19 +671,6 @@ function updateDualEntryCreditCardAccount(policyID: string, creditCardAccountID:
     write(WRITE_COMMANDS.UPDATE_DUALENTRY_CREDIT_CARD_ACCOUNT, parameters, onyxData);
 }
 
-function updateDualEntryExpensifyCardAccount(
-    policyID: string,
-    expensifyCardAccountID: DualEntryExport['expensifyCardAccountID'],
-    oldExpensifyCardAccountID?: DualEntryExport['expensifyCardAccountID'],
-) {
-    const onyxData = prepareDualEntryExportOnyxData(policyID, CONST.DUALENTRY_CONFIG.EXPENSIFY_CARD_ACCOUNT_ID, expensifyCardAccountID, oldExpensifyCardAccountID ?? null);
-    const parameters: UpdateDualEntryExpensifyCardAccountParams = {
-        policyID,
-        creditCardAccountID: expensifyCardAccountID,
-    };
-    write(WRITE_COMMANDS.UPDATE_DUALENTRY_EXPENSIFY_CARD_ACCOUNT, parameters, onyxData);
-}
-
 function updateDualEntryAutoSync(policyID: string, enabled: DualEntryAutoSync['enabled'], oldEnabled?: DualEntryAutoSync['enabled']) {
     const onyxData = prepareDualEntryAutoSyncOnyxData(policyID, enabled, oldEnabled ?? null);
     const parameters: UpdateDualEntryAutoSyncParams = {
@@ -827,7 +813,6 @@ export {
     updateDualEntryExportDate,
     updateDualEntryDefaultVendor,
     updateDualEntryCreditCardAccount,
-    updateDualEntryExpensifyCardAccount,
     updateDualEntryAutoSync,
     updateDualEntryAccountingMethod,
     updateDualEntrySyncReimbursedReports,

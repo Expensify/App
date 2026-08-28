@@ -699,7 +699,6 @@ const SCREENS = {
             DUALENTRY_PREFERRED_EXPORTER: 'Policy_Accounting_DualEntry_Preferred_Exporter',
             DUALENTRY_VENDOR_BILL_DATE: 'Policy_Accounting_DualEntry_Vendor_Bill_Date',
             DUALENTRY_COMPANY_CARD_ACCOUNT: 'Policy_Accounting_DualEntry_Company_Card_Account',
-            DUALENTRY_EXPENSIFY_CARD_ACCOUNT: 'Policy_Accounting_DualEntry_Expensify_Card_Account',
             DUALENTRY_DEFAULT_COMPANY_CARD_VENDOR: 'Policy_Accounting_DualEntry_Default_Company_Card_Vendor',
             DUALENTRY_CARD_PROGRAM_ACCOUNT: 'Policy_Accounting_DualEntry_Card_Program_Account',
             DUALENTRY_CARD_PROGRAM_ACCOUNT_SELECTOR: 'Policy_Accounting_DualEntry_Card_Program_Account_Selector',

@@ -5902,10 +5902,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 label: 'Konto karty firmowej',
                 description: 'Wybierz miejsce eksportu transakcji z kart firmowych.',
             },
-            expensifyCardAccount: {
-                label: 'Konto karty Expensify',
-                description: 'Wybierz miejsce eksportu transakcji kartą Expensify.',
-            },
             exportToMultipleAccounts: 'Skonfiguruj eksport do wielu kont',
             cardProgramAccount: {
                 label: 'Konto programu kartowego',

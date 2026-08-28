@@ -5675,10 +5675,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 label: '公司卡账户',
                 description: '选择公司卡交易的导出位置。',
             },
-            expensifyCardAccount: {
-                label: 'Expensify Card 账户',
-                description: '选择 Expensify Card 交易的导出位置。',
-            },
             exportToMultipleAccounts: '配置导出到多个账户',
             cardProgramAccount: {
                 label: '卡计划账户',

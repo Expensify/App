@@ -5917,10 +5917,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 label: 'Firmenkartenkonto',
                 description: 'Wählen Sie aus, wohin die Firmenkartentransaktionen exportiert werden sollen.',
             },
-            expensifyCardAccount: {
-                label: 'Expensify Card-Konto',
-                description: 'Wählen Sie aus, wohin die Expensify Card-Transaktionen exportiert werden sollen.',
-            },
             exportToMultipleAccounts: 'Export in mehrere Konten konfigurieren',
             cardProgramAccount: {
                 label: 'Kartenprogramm-Konto',

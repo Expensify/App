@@ -542,7 +542,6 @@ const WRITE_COMMANDS = {
     UPDATE_DUALENTRY_EXPORT_DATE: 'UpdateDualEntryExportDate',
     UPDATE_DUALENTRY_DEFAULT_VENDOR: 'UpdateDualEntryDefaultVendor',
     UPDATE_DUALENTRY_CREDIT_CARD_ACCOUNT: 'UpdateDualEntryCreditCardAccount',
-    UPDATE_DUALENTRY_EXPENSIFY_CARD_ACCOUNT: 'UpdateDualEntryExpensifyCardAccount',
     UPDATE_DUALENTRY_EXPORT_TO_MULTIPLE_ACCOUNTS: 'UpdateDualEntryExportToMultipleAccounts',
     UPDATE_DUALENTRY_CARD_PROGRAM_ACCOUNT: 'UpdateDualEntryCardProgramAccount',
     UPDATE_DUALENTRY_AUTO_SYNC: 'UpdateDualEntryAutoSync',
@@ -1201,7 +1200,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_DUALENTRY_EXPORT_DATE]: Parameters.UpdateDualEntryExportDateParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_DEFAULT_VENDOR]: Parameters.UpdateDualEntryDefaultVendorParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_CREDIT_CARD_ACCOUNT]: Parameters.UpdateDualEntryCreditCardAccountParams;
-    [WRITE_COMMANDS.UPDATE_DUALENTRY_EXPENSIFY_CARD_ACCOUNT]: Parameters.UpdateDualEntryExpensifyCardAccountParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_EXPORT_TO_MULTIPLE_ACCOUNTS]: Parameters.UpdateDualEntryExportToMultipleAccountsParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_CARD_PROGRAM_ACCOUNT]: Parameters.UpdateDualEntryCardProgramAccountParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_AUTO_SYNC]: Parameters.UpdateDualEntryAutoSyncParams;

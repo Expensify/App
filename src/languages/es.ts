@@ -5810,10 +5810,6 @@ ${amount} para ${merchant} - ${date}`,
                 label: 'Cuenta de tarjeta de empresa',
                 description: 'Elige dónde exportar las transacciones de las tarjetas de la empresa.',
             },
-            expensifyCardAccount: {
-                label: 'Cuenta de la Tarjeta Expensify',
-                description: 'Elige dónde exportar las transacciones de la Tarjeta Expensify.',
-            },
             exportToMultipleAccounts: 'Configura la exportación a varias cuentas',
             cardProgramAccount: {
                 label: 'Cuenta del programa de tarjetas',
