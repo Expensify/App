@@ -42,6 +42,7 @@ const WRAPPER_IMPORT = "import OnyxUtils from '@libs/OnyxUtils';";
 const RENDER_ERRORS = [{messageId: 'noOnyxGetInRender'}];
 const MODULE_SCOPE_ERRORS = [{messageId: 'noOnyxReadAtModuleScope'}];
 const READ_AFTER_WRITE_ERRORS = [{messageId: 'noOnyxReadAfterWrite'}];
+const READ_AFTER_WRITE_IN_LOOP_ERRORS = [{messageId: 'noOnyxReadAfterWriteInLoop'}];
 const DIRECT_ERRORS = [{messageId: 'noDirectOnyxGet'}];
 const MUTATION_ERRORS = [{messageId: 'noMutatedOnyxRead'}];
 
@@ -82,6 +83,7 @@ describe('no-unsafe-onyx-read', () => {
             `${ONYX_IMPORT} function Row() { const onPress = async () => { await save(); return Onyx.get(key); }; return <View onPress={onPress} />; }`,
 
             `${ONYX_IMPORT} function Row() { const onPress = useCallback(() => Onyx.get(key), []); return <View onPress={onPress} />; }`,
+            `${ONYX_IMPORT} function Row() { const [v] = useReducer((state, action) => Onyx.get(key), 0); return <View v={v} />; }`,
             `${ONYX_IMPORT} function Row() { useEffect(() => { use(Onyx.get(key)); }, []); return <View />; }`,
             `${ONYX_IMPORT} function Row() { useLayoutEffect(() => { use(Onyx.get(key)); }, []); return <View />; }`,
             `${ONYX_UTILS_IMPORT} function useThing() { return () => OnyxUtils.get(key); }`,
@@ -129,8 +131,28 @@ describe('no-unsafe-onyx-read', () => {
             `${ONYX_IMPORT} async function submit() { Onyx.update(operations); await waitForBatchedUpdates(); return Onyx.get(key); }`,
             `${ONYX_IMPORT} async function submit() { const promises = [Onyx.merge(keyA, value), Onyx.merge(keyB, value)]; await Promise.all(promises); return Onyx.get(keyA); }`,
 
+            // An await that runs on every path from the write, whether it is written beside them or shares their
+            // branch. A `do` body runs at least once, so an await inside one is unconditional too.
+            `${ONYX_IMPORT} async function submit() { if (x) { Onyx.merge(key, value); await flush(); return Onyx.get(key); } return null; }`,
+            `${ONYX_IMPORT} async function submit() { Onyx.merge(key, value); try { await flush(); } catch (error) {} return Onyx.get(key); }`,
+            `${ONYX_IMPORT} async function submit() { Onyx.merge(key, value); do { await flush(); } while (more()); return Onyx.get(key); }`,
+
             // The write's own await finishes before the read starts, even when the read is inside a second one.
             `${ONYX_IMPORT} async function submit() { await Promise.all([Onyx.merge(keyA, value), Onyx.merge(keyB, value)]); return await Promise.all([Onyx.get(keyA), Onyx.get(keyB)]); }`,
+
+
+            // Bodies that run once have no repeat edge, so reading before the write is the fix, not a finding.
+            `${ONYX_IMPORT} function submit() { const draft = Onyx.get(key); Onyx.merge(key, draft); }`,
+            `${ONYX_IMPORT} function submit() { (() => { const draft = Onyx.get(key); Onyx.merge(key, draft); })(); }`,
+            `${ONYX_IMPORT} function submit() { new Promise((resolve) => { const draft = Onyx.get(key); Onyx.merge(key, draft); resolve(); }); }`,
+            `${ONYX_IMPORT} function submit(items) { for (const item of items) { Onyx.get(key); } Onyx.merge(key, value); }`,
+
+            // A statement loop orders its passes, so an await in the body lands before the next read.
+            `${ONYX_IMPORT} async function submit(items) { for (const item of items) { const draft = Onyx.get(key); await Onyx.merge(key, item); } }`,
+            `${ONYX_IMPORT} async function submit(items) { for (const item of items) { await flush(); const draft = Onyx.get(key); Onyx.merge(key, item); } }`,
+
+            // Each pass gets a task of its own, so the repeat does not put the two in one tick.
+            `${ONYX_IMPORT} function submit(items) { items.forEach((item) => setTimeout(() => { const draft = Onyx.get(key); Onyx.merge(key, item); }, 0)); }`,
 
             `${ONYX_IMPORT} function write() { Onyx.merge(key, value); } function read() { return Onyx.get(key); }`,
             `${ONYX_IMPORT} function submit() { Onyx.merge(key, value); setTimeout(() => Onyx.get(key), 0); }`,
@@ -199,8 +221,12 @@ describe('no-unsafe-onyx-read', () => {
             {code: `${ONYX_IMPORT} function Row() { return <Text>{Onyx.get(key)}</Text>; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} function Row() { return <View style={Onyx.get(key)} />; }`, errors: RENDER_ERRORS},
 
-            // useMemo runs during render, unlike useCallback.
+            // useMemo runs during render, unlike useCallback, and so does a lazy initializer, in the one
+            // argument position that holds it.
             {code: `${ONYX_IMPORT} function Row() { const value = useMemo(() => Onyx.get(key), []); return <View value={value} />; }`, errors: RENDER_ERRORS},
+            {code: `${ONYX_IMPORT} function Row() { const value = React.useMemo(() => Onyx.get(key), []); return <View value={value} />; }`, errors: RENDER_ERRORS},
+            {code: `${ONYX_IMPORT} function Row() { const [value] = useState(() => Onyx.get(key)); return <View value={value} />; }`, errors: RENDER_ERRORS},
+            {code: `${ONYX_IMPORT} function Row() { const [value] = useReducer(reducer, key, (k) => Onyx.get(k)); return <View value={value} />; }`, errors: RENDER_ERRORS},
 
             // Function boundaries that defer nothing: an IIFE, a synchronous array callback, and a Promise
             // executor, which runs while the constructor is still on the stack.
@@ -330,10 +356,62 @@ describe('no-unsafe-onyx-read', () => {
             {code: `${ONYX_IMPORT} async function submit() { Onyx.merge(key, value); const draft = Onyx.get(key); await flush(); return draft; }`, errors: READ_AFTER_WRITE_ERRORS},
             {code: `${ONYX_IMPORT} async function submit() { Onyx.merge(key, value); return Onyx.get(await resolveKey()); }`, errors: READ_AFTER_WRITE_ERRORS},
 
+            // An await that only runs when a condition holds: the path that skips it reaches the read in the
+            // write's own tick. A loop body can be entered zero times, which makes it one of those paths.
+            {code: `${ONYX_IMPORT} async function submit() { Onyx.merge(key, value); if (shouldFlush) { await flush(); } return Onyx.get(key); }`, errors: READ_AFTER_WRITE_ERRORS},
+            {code: `${ONYX_IMPORT} async function submit() { Onyx.merge(key, value); shouldFlush && (await flush()); return Onyx.get(key); }`, errors: READ_AFTER_WRITE_ERRORS},
+            {code: `${ONYX_IMPORT} async function submit() { Onyx.merge(key, value); shouldFlush ? await flush() : noop(); return Onyx.get(key); }`, errors: READ_AFTER_WRITE_ERRORS},
+            {
+                code: `${ONYX_IMPORT} async function submit() { Onyx.merge(key, value); for (const each of keys) { await flush(each); } return Onyx.get(key); }`,
+                errors: READ_AFTER_WRITE_ERRORS,
+            },
+            {
+                code: `${ONYX_IMPORT} async function submit() { Onyx.merge(key, value); switch (mode) { case 1: await flush(); break; default: break; } return Onyx.get(key); }`,
+                errors: READ_AFTER_WRITE_ERRORS,
+            },
+            {
+                code: `${ONYX_IMPORT} async function submit() { Onyx.merge(key, value); try { risky(); } catch (error) { await flush(); } return Onyx.get(key); }`,
+                errors: READ_AFTER_WRITE_ERRORS,
+            },
+
             // The await is in a nested body, so it suspends that callback rather than the body holding the write.
             {
                 code: `${ONYX_IMPORT} function submit() { Onyx.merge(key, value); keys.forEach(async (each) => { await flush(); }); return Onyx.get(key); }`,
                 errors: READ_AFTER_WRITE_ERRORS,
+            },
+
+            // A repeat edge reaches the read from the previous pass's write, however early in the body it sits.
+            {
+                code: `${ONYX_IMPORT} function submit(items) { for (const item of items) { const draft = Onyx.get(key); Onyx.merge(key, item); } }`,
+                errors: READ_AFTER_WRITE_IN_LOOP_ERRORS,
+            },
+            {
+                code: `${ONYX_IMPORT} function submit() { while (more()) { const draft = Onyx.get(key); Onyx.merge(key, next()); } }`,
+                errors: READ_AFTER_WRITE_IN_LOOP_ERRORS,
+            },
+            {
+                code: `${ONYX_IMPORT} function submit(rows) { for (const row of rows) { const draft = Onyx.get(key); for (const cell of row) { Onyx.merge(key, cell); } } }`,
+                errors: READ_AFTER_WRITE_IN_LOOP_ERRORS,
+            },
+            {
+                code: `${ONYX_IMPORT} function submit(items) { items.forEach((item) => { const draft = Onyx.get(key); Onyx.merge(key, item); }); }`,
+                errors: READ_AFTER_WRITE_IN_LOOP_ERRORS,
+            },
+            {
+                code: `${ONYX_IMPORT} function submit(items) { return items.map((item) => { const draft = Onyx.get(key); Onyx.merge(key, item); return draft; }); }`,
+                errors: READ_AFTER_WRITE_IN_LOOP_ERRORS,
+            },
+
+            // An array method does not await its callback, so the passes overlap and the await orders nothing.
+            {
+                code: `${ONYX_IMPORT} function submit(items) { items.forEach(async (item) => { const draft = Onyx.get(key); await Onyx.merge(key, item); }); }`,
+                errors: READ_AFTER_WRITE_IN_LOOP_ERRORS,
+            },
+
+            // The write's pass reaches the read again, so a conditional await in the body does not separate them.
+            {
+                code: `${ONYX_IMPORT} async function submit(items) { for (const item of items) { const draft = Onyx.get(key); Onyx.merge(key, item); if (x) { await flush(); } } }`,
+                errors: READ_AFTER_WRITE_IN_LOOP_ERRORS,
             },
 
             {code: `${ONYX_IMPORT} const {get} = Onyx; function submit() { Onyx.merge(key, value); return get(key); }`, errors: READ_AFTER_WRITE_ERRORS},

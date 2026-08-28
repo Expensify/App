@@ -23,8 +23,16 @@ const MUTATING_ARRAY_METHODS = new Set(['push', 'pop', 'shift', 'unshift', 'spli
 /** Array methods whose callback runs in the caller's own tick, so the boundary defers nothing. */
 const SYNCHRONOUS_CALLBACK_METHODS = new Set(['map', 'filter', 'reduce', 'reduceRight', 'forEach', 'find', 'findIndex', 'findLast', 'findLastIndex', 'flatMap', 'some', 'every', 'sort']);
 
-/** Hooks whose callback runs during render, unlike useCallback and useEffect. */
-const RENDER_TIME_HOOK_NAMES = new Set(['useMemo']);
+/**
+ * Hook argument positions whose function runs during render, unlike useCallback and useEffect. The
+ * position matters: `useReducer`'s reducer runs on dispatch while its third argument is the lazy
+ * initializer, and a lazy initializer runs on the render path even though it only runs once.
+ */
+const RENDER_TIME_HOOK_ARGUMENTS = new Map([
+    ['useMemo', new Set([0])],
+    ['useState', new Set([0])],
+    ['useReducer', new Set([2])],
+]);
 
 /** Calls that wrap a component without deferring it, so their callback argument is still a render body. */
 const COMPONENT_WRAPPER_NAMES = new Set(['memo', 'forwardRef']);
@@ -68,6 +76,9 @@ const meta = {
         noOnyxReadAfterWrite:
             'Do not read Onyx after writing it in the same tick. Onyx.get() samples the cache when it is called and the Promise only defers delivery, so awaiting the read cannot wait for a pending write. Which writes land before returning is version-dependent and a set inside update() is deferred either way, so no write is exempt here.\n\n' +
             'Do all of the reads before the first write, or await the write before reading. Reads of keys the tick has not written are always current.',
+        noOnyxReadAfterWriteInLoop:
+            'Do not read Onyx in a body that repeats and also writes it. The next pass calls this read in the same tick as the write the previous pass queued, so it resolves to the value from before that write however early in the body the read sits. An array method such as forEach is this shape too: it does not await its callback, so awaiting the write inside one does not order the passes.\n\n' +
+            'Read every key once before the loop and write once after it, or, in a statement loop only, await the write inside the body.',
         noDirectOnyxGet:
             "Do not read Onyx straight from the library. {{readSurface}} is this repo's read surface and refuses the Search snapshot keys, which src/hooks/useOnyx.ts redirects to snapshot_<hash> in a way the library cannot see. Reading around it returns live data where the component would have seen the snapshot.\n\n" +
             'Import the wrapper from {{readSurface}} and call its get() instead.',
@@ -140,6 +151,20 @@ function getStaticPropertyName(memberExpression) {
     return getStaticName(memberExpression.property, memberExpression.computed);
 }
 
+/** The render-time argument positions of a call, keyed by callee name so `React.useMemo` matches too. */
+function getRenderTimeArgumentIndices(callee) {
+    if (callee.type === 'Identifier') {
+        return RENDER_TIME_HOOK_ARGUMENTS.get(callee.name) ?? null;
+    }
+
+    if (callee.type === 'MemberExpression') {
+        const propertyName = getStaticPropertyName(callee);
+        return propertyName ? RENDER_TIME_HOOK_ARGUMENTS.get(propertyName) ?? null : null;
+    }
+
+    return null;
+}
+
 function matchesCalleeName(callee, names) {
     if (callee.type === 'Identifier') {
         return names.has(callee.name);
@@ -194,7 +219,11 @@ function classifyFunctionBoundary(functionNode, parent) {
         }
 
         if (parent.arguments.includes(functionNode)) {
-            if (matchesCalleeName(parent.callee, COMPONENT_WRAPPER_NAMES) || matchesCalleeName(parent.callee, RENDER_TIME_HOOK_NAMES)) {
+            if (matchesCalleeName(parent.callee, COMPONENT_WRAPPER_NAMES)) {
+                return RENDER;
+            }
+
+            if (getRenderTimeArgumentIndices(parent.callee)?.has(parent.arguments.indexOf(functionNode))) {
                 return RENDER;
             }
 
@@ -309,12 +338,64 @@ function isAwaitedBeforeRead(write, read) {
 }
 
 /**
+ * Whether `child` only runs when a condition holds: an `if` or ternary branch, the right side of a
+ * short-circuit, a `switch` case, a `catch` body, or a loop body, which can be entered zero times. A
+ * `do` body always runs once, and a `try` block runs whenever the statement is reached.
+ */
+function isConditionalEdge(parent, child) {
+    switch (parent.type) {
+        case 'IfStatement':
+        case 'ConditionalExpression':
+            return parent.consequent === child || parent.alternate === child;
+        case 'LogicalExpression':
+            return parent.right === child;
+        case 'SwitchCase':
+        case 'CatchClause':
+            return true;
+        case 'ForStatement':
+        case 'ForInStatement':
+        case 'ForOfStatement':
+        case 'WhileStatement':
+            return parent.body === child;
+        default:
+            return false;
+    }
+}
+
+/**
+ * Whether the `await` runs on every path the read is on, which is what makes it a separator. The walk
+ * outwards stops at the first node the read is also inside, since from there the two share their
+ * conditions: an `await` in the same `if` body as the read is unconditional relative to it.
+ */
+function isUnconditionalAwait(awaitEntry, read) {
+    const readAncestors = new Set(read.ancestors);
+    const chain = awaitEntry.ancestors;
+
+    for (let index = chain.length - 1; index >= 0; index--) {
+        const node = chain[index];
+
+        if (readAncestors.has(node)) {
+            return true;
+        }
+
+        if (isConditionalEdge(node, chain[index + 1] ?? awaitEntry.node)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
  * An `await` ends the write's tick: the read resumes in a later one, after the queued write has had its
  * turn. `await waitForBatchedUpdates()` in tests is this shape, and so is awaiting the write's promise
- * indirectly, through a handle taken earlier in the body.
+ * indirectly, through a handle taken earlier in the body. A conditional `await` is not this: the path
+ * that skips it still reaches the read in the write's own tick.
  */
 function isSeparatedByAwait(awaits, write, read) {
-    return awaits.some((awaitNode) => awaitNode.range.at(0) >= write.node.range.at(1) && awaitNode.range.at(1) <= read.node.range.at(0));
+    return awaits.some(
+        (awaitEntry) => awaitEntry.node.range.at(0) >= write.node.range.at(1) && awaitEntry.node.range.at(1) <= read.node.range.at(0) && isUnconditionalAwait(awaitEntry, read),
+    );
 }
 
 /**
@@ -382,6 +463,78 @@ function isProvablyDifferentKey(writeCall, readCall) {
     const readSegments = readPath.split('.');
 
     return writeSegments.length === readSegments.length && writeSegments.slice(0, -1).join('.') === readSegments.slice(0, -1).join('.');
+}
+
+const LOOP_TYPES = new Set(['ForStatement', 'ForInStatement', 'ForOfStatement', 'WhileStatement', 'DoWhileStatement']);
+
+/**
+ * A callback an array method calls once per element, so its body repeats. The other synchronous
+ * boundaries, an IIFE and a Promise executor, run once and have no repeat edge.
+ */
+function isRepeatingCallback(functionNode, parent) {
+    return (
+        parent?.type === 'CallExpression' &&
+        parent.arguments.includes(functionNode) &&
+        parent.callee.type === 'MemberExpression' &&
+        matchesCalleeName(parent.callee, SYNCHRONOUS_CALLBACK_METHODS)
+    );
+}
+
+/**
+ * The innermost body both calls sit in that runs more than once, whose repeat edge can therefore run the
+ * write before the read even where the read is written first. A `while` and a `forEach` callback differ
+ * in one way that matters downstream: passes of a loop are ordered, so an `await` in one lands before the
+ * next begins, while an array method does not await its callback and so overlaps the passes instead.
+ *
+ * The search stops at the body holding the calls, since a repeat outside it repeats the deferral too:
+ * `items.forEach((item) => setTimeout(() => {...}, 0))` gives each pass a task of its own.
+ */
+function getSharedRepeatEdge(write, read, body) {
+    const readAncestors = new Set(read.ancestors);
+
+    for (let index = write.ancestors.length - 1; index >= 0; index--) {
+        const ancestor = write.ancestors[index];
+
+        if (ancestor === body) {
+            return null;
+        }
+
+        if (!readAncestors.has(ancestor)) {
+            continue;
+        }
+
+        if (LOOP_TYPES.has(ancestor.type)) {
+            return {node: ancestor, isLoop: true};
+        }
+
+        if (isFunctionNode(ancestor) && isRepeatingCallback(ancestor, write.ancestors[index - 1] ?? null)) {
+            return {node: ancestor, isLoop: false};
+        }
+    }
+
+    return null;
+}
+
+function isWithin(node, container) {
+    return node.range.at(0) >= container.range.at(0) && node.range.at(1) <= container.range.at(1);
+}
+
+/**
+ * Whether the back edge crosses an `await`, which ends the tick before the next pass reaches the read.
+ * Awaiting the write itself counts, and so does any unconditional `await` the rest of the pass reaches,
+ * whether it sits after the write or ahead of the read.
+ */
+function isSeparatedAcrossBackEdge(awaits, write, read, loop) {
+    if (getEnclosingAwait(write.ancestors)) {
+        return true;
+    }
+
+    return awaits.some(
+        (awaitEntry) =>
+            isWithin(awaitEntry.node, loop) &&
+            (awaitEntry.node.range.at(0) >= write.node.range.at(1) || awaitEntry.node.range.at(1) <= read.node.range.at(0)) &&
+            isUnconditionalAwait(awaitEntry, read),
+    );
 }
 
 function getRootIdentifier(node) {
@@ -638,14 +791,15 @@ function create(context) {
             reportIfCacheOwned(node, node.argument, sourceCode.getScope(node));
         },
         AwaitExpression(node) {
-            const body = getAwaitingBody(sourceCode.getAncestors(node));
+            const ancestors = sourceCode.getAncestors(node);
+            const body = getAwaitingBody(ancestors);
 
             if (!body) {
                 return;
             }
 
             const calls = callsByBody.get(body) ?? {reads: [], writes: [], awaits: []};
-            calls.awaits.push(node);
+            calls.awaits.push({node, ancestors});
             callsByBody.set(body, calls);
         },
         CallExpression(node) {
@@ -698,7 +852,7 @@ function create(context) {
         },
         // Reported here rather than on the read, because a read is only a finding once the whole body is known.
         'Program:exit': function reportReadsAfterWrites() {
-            for (const {reads, writes, awaits} of callsByBody.values()) {
+            for (const [body, {reads, writes, awaits}] of callsByBody.entries()) {
                 for (const read of reads) {
                     const precedingWrite = writes.find(
                         (write) =>
@@ -712,13 +866,37 @@ function create(context) {
                             !isProvablyDifferentKey(write.node, read.node),
                     );
 
-                    if (!precedingWrite) {
+                    if (precedingWrite) {
+                        context.report({
+                            node: read.node,
+                            messageId: 'noOnyxReadAfterWrite',
+                        });
+                        continue;
+                    }
+
+                    // A write later in the same loop body reaches this read on the next pass. Mutual exclusivity
+                    // is still an exemption here, even though one branch per pass does not hold across passes:
+                    // which branch a pass takes is not decidable, so reporting it would be noise.
+                    const loopCarriedWrite = writes.find((write) => {
+                        const edge = read.node.range.at(0) < write.node.range.at(1) ? getSharedRepeatEdge(write, read, body) : null;
+
+                        return (
+                            !!edge &&
+                            // Only a loop orders its passes, so only a loop can have an `await` between them.
+                            (!edge.isLoop || !isSeparatedAcrossBackEdge(awaits, write, read, edge.node)) &&
+                            !areMutuallyExclusive(write, read) &&
+                            !exitsBeforeRead(write, read) &&
+                            !isProvablyDifferentKey(write.node, read.node)
+                        );
+                    });
+
+                    if (!loopCarriedWrite) {
                         continue;
                     }
 
                     context.report({
                         node: read.node,
-                        messageId: 'noOnyxReadAfterWrite',
+                        messageId: 'noOnyxReadAfterWriteInLoop',
                     });
                 }
             }
