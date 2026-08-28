@@ -1103,9 +1103,7 @@
 "../../src/pages/settings/Wallet/InternationalDepositAccount/utils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Wallet/PaymentMethodList.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../src/pages/settings/Wallet/PersonalCardDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/settings/Wallet/PersonalCards/FixPersonalCardConnectionPage/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Wallet/PersonalCards/FixPersonalCardConnectionPage/useFixPersonalCardConnection.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/settings/Wallet/PersonalCards/steps/PlaidConnectionStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/pages/settings/Wallet/PersonalCards/steps/SelectCountryStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Wallet/PersonalCards/steps/SelectCountryStep.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/settings/Wallet/PersonalCards/upgrade/PersonalCardUpgradePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1234,7 +1232,6 @@
 "../../src/pages/workspace/companyCards/WorkspaceVerifyWorkAccountPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/companyCards/WorkspaceVerifyWorkAccountPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/companyCards/addNew/DynamicAddNewCardPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/pages/workspace/companyCards/addNew/PlaidConnectionStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../src/pages/workspace/companyCards/addNew/SelectCountryStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/set-state-in-effect"	1
