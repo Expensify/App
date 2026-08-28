@@ -1,35 +1,42 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
-import type {LinkSuccessMetadata} from 'react-native-plaid-link-sdk';
-import type {WebViewNavigation} from 'react-native-webview';
-import {WebView} from 'react-native-webview';
-import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link/src/types';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import PlaidLink from '@components/PlaidLink';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import getUAForWebView from '@libs/getUAForWebView';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import getPlaidInstitutionID from '@libs/PlaidUtils';
+
 import {handleRestrictedEvent} from '@userActions/App';
 import {setPlaidEvent} from '@userActions/BankAccounts';
 import {updatePersonalCardConnection} from '@userActions/PersonalCards';
 import {addPersonalPlaidCard, openPlaidCompanyCardLogin} from '@userActions/Plaid';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {LinkSuccessMetadata} from 'react-native-plaid-link-sdk';
+import type {WebViewNavigation} from 'react-native-webview';
+import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link/src/types';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+import {WebView} from 'react-native-webview';
+
 import useFixPersonalCardConnection from './useFixPersonalCardConnection';
 
 type FixPersonalCardConnectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_FIX_CONNECTION>;
@@ -59,19 +66,9 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
     const plaidErrors = plaidData?.errors;
     const plaidDataErrorMessage = !isEmptyObject(plaidErrors) ? (Object.values(plaidErrors).at(0) ?? '') : '';
 
-    const activityReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'FixPersonalCardConnectionPage',
-        isConnectionCompleted,
-    };
-    const renderLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'FixPersonalCardConnectionPage',
-    };
     const renderLoading = () => (
         <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-            <ActivityIndicator
-                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={renderLoadingReasonAttributes}
-            />
+            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
         </View>
     );
 
@@ -92,8 +89,8 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
 
     const handlePlaidLinkSuccess = ({publicToken, metadata}: {publicToken: string; metadata: PlaidLinkOnSuccessMetadata | LinkSuccessMetadata}) => {
         Log.info('[PlaidLink] Fix personal card success');
-        const plaidConnectedFeed = (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.id;
-        const plaidAccounts = metadata?.accounts;
+        const plaidConnectedFeed = getPlaidInstitutionID(metadata.institution);
+        const plaidAccounts = metadata.accounts;
         if (!plaidConnectedFeed || !plaidAccounts?.length) {
             return;
         }
@@ -140,7 +137,6 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
             <ActivityIndicator
                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                 style={styles.flex1}
-                reasonAttributes={renderLoadingReasonAttributes}
             />
         );
     };
@@ -178,7 +174,6 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}
-                        reasonAttributes={activityReasonAttributes}
                     />
                 )}
             </FullPageOfflineBlockingView>

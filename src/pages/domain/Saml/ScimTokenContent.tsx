@@ -1,13 +1,18 @@
-import React, {useState} from 'react';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CopyableTextField from '@components/Domain/CopyableTextField';
 import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getScimToken} from '@libs/actions/Domain';
 import type {ScimTokenWithState} from '@libs/actions/ScimToken/ScimTokenUtils';
 import {ScimTokenState} from '@libs/actions/ScimToken/ScimTokenUtils';
+
+import CONST from '@src/CONST';
+
+import React, {useState} from 'react';
 
 type ScimTokenContentProps = {
     /** The domain name associated with the SCIM token. */
@@ -30,12 +35,13 @@ function ScimTokenContent({domainName}: ScimTokenContentProps) {
     if (!oktaScimToken || oktaScimToken.state === ScimTokenState.LOADING) {
         return (
             <Button
-                text={translate('domain.samlConfigurationDetails.revealToken')}
                 style={styles.alignSelfStart}
                 onPress={fetchOktaScimToken}
                 isLoading={oktaScimToken?.state === ScimTokenState.LOADING}
                 isDisabled={isOffline}
-            />
+            >
+                <Button.Text>{translate('domain.samlConfigurationDetails.revealToken')}</Button.Text>
+            </Button>
         );
     }
 
@@ -45,7 +51,7 @@ function ScimTokenContent({domainName}: ScimTokenContentProps) {
             <FormHelpMessageRowWithRetryButton
                 message={oktaScimToken.error}
                 onRetry={fetchOktaScimToken}
-                isButtonSmall
+                size={CONST.BUTTON_SIZE.SMALL}
             />
         );
     }

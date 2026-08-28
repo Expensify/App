@@ -1,7 +1,10 @@
-import React from 'react';
 import OnboardingWrapper from '@components/OnboardingWrapper';
-import BaseOnboardingPrivateDomain from './BaseOnboardingPrivateDomain';
+
+import React from 'react';
+
 import type {OnboardingPrivateDomainProps} from './types';
+
+import BaseOnboardingPrivateDomain from './BaseOnboardingPrivateDomain';
 
 function OnboardingPrivateDomain(props: OnboardingPrivateDomainProps) {
     return (

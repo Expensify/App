@@ -1,12 +1,10 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -14,9 +12,16 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
+
 import Navigation from '@navigation/Navigation';
+
 import {navigateToConciergeChat} from '@userActions/Report';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React from 'react';
+import {View} from 'react-native';
 
 function Finish() {
     const styles = useThemeStyles();

@@ -1,6 +1,8 @@
-import * as core from '@actions/core';
 import * as versionUpdater from '@github/libs/versionUpdater';
+
 import bumpVersion from '@scripts/bumpVersion';
+
+import * as core from '@actions/core';
 
 async function run() {
     try {
@@ -20,7 +22,7 @@ async function run() {
     }
 }
 
-if (require.main === module) {
+if (import.meta.main) {
     run();
 }
 

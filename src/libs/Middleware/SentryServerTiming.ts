@@ -1,7 +1,11 @@
-import type {SpanAttributes} from '@sentry/core';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {readUpdateIDFrom} from '@libs/actions/RequestConflictUtils';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {cancelSpan, endSpanWithAttributes, startSpan} from '@libs/telemetry/activeSpans';
+
 import CONST from '@src/CONST';
+
+import type {SpanAttributes} from '@sentry/core';
+
 import type Middleware from './types';
 
 /**
@@ -36,6 +40,11 @@ const TRACKED_COMMAND_GROUPS: TrackedCommandGroup[] = [
         spanOp: CONST.TELEMETRY.SPAN_EXPENSE_SERVER_RESPONSE,
         spanName: 'expense-server-response',
     },
+    {
+        commands: new Set<string>([SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES]),
+        spanOp: CONST.TELEMETRY.SPAN_RECONNECT_SERVER_RESPONSE,
+        spanName: 'reconnect-server-response',
+    },
 ];
 
 /**
@@ -43,6 +52,19 @@ const TRACKED_COMMAND_GROUPS: TrackedCommandGroup[] = [
  */
 function findTrackedGroup(command: string): TrackedCommandGroup | undefined {
     return TRACKED_COMMAND_GROUPS.find((group) => group.commands.has(command));
+}
+
+function readUpdateID(value: unknown): number | undefined {
+    const updateID = value === null || value === '' ? Number.NaN : Number(value);
+    return Number.isFinite(updateID) ? updateID : undefined;
+}
+
+function didResponseAdvance(updateIDFrom: number | undefined, lastUpdateID: number | string | undefined): boolean | undefined {
+    const responseUpdateID = readUpdateID(lastUpdateID);
+    if (updateIDFrom === undefined || responseUpdateID === undefined) {
+        return undefined;
+    }
+    return responseUpdateID > updateIDFrom;
 }
 
 /**
@@ -57,12 +79,15 @@ const SentryServerTiming: Middleware = (response, request) => {
         return response;
     }
 
+    const updateIDFrom = readUpdateIDFrom(request.data);
     const spanId = `${group.spanOp}_${request.requestIndex}`;
     startSpan(spanId, {
         name: group.spanName,
         op: group.spanOp,
         attributes: {
             [CONST.TELEMETRY.ATTRIBUTE_COMMAND]: request.command,
+            [CONST.TELEMETRY.ATTRIBUTE_UPDATE_ID_FROM]: updateIDFrom,
+            [CONST.TELEMETRY.ATTRIBUTE_UPDATE_ID_TO]: readUpdateID(request.data?.updateIDTo),
         },
     });
 
@@ -70,6 +95,7 @@ const SentryServerTiming: Middleware = (response, request) => {
         .then((data) => {
             const attributes: SpanAttributes = {
                 [CONST.TELEMETRY.ATTRIBUTE_JSON_CODE]: data?.jsonCode,
+                [CONST.TELEMETRY.ATTRIBUTE_RESPONSE_ADVANCED]: didResponseAdvance(updateIDFrom, data?.lastUpdateID),
             };
             endSpanWithAttributes(spanId, attributes);
             return data;

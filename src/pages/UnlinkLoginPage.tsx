@@ -1,15 +1,21 @@
-import React, {useEffect} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
-import Navigation from '@libs/Navigation/Navigation';
+
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import type {PublicScreensParamList} from '@navigation/types';
+
 import {unlinkLogin} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useEffect} from 'react';
 
 type UnlinkLoginPageProps = PlatformStackScreenProps<PublicScreensParamList, typeof SCREENS.UNLINK_LOGIN>;
 
@@ -31,13 +37,32 @@ function UnlinkLoginPage({route}: UnlinkLoginPageProps) {
             return;
         }
 
-        Navigation.goBack();
+        if (navigationRef.current?.canGoBack()) {
+            Navigation.goBack();
+            return;
+        }
+
+        // A tab opened from the unlink email has UNLINK_LOGIN as its only public root route, so bare goBack()
+        // no-ops and this loader never unmounts. Reset to TAB_NAVIGATOR (which hosts the public SignInPage) so
+        // the unlink result renders.
+        let ignore = false;
+        Navigation.isNavigationReady().then(() => {
+            // Bail if the effect re-ran before this resolved, so a stale callback can't reset the stack
+            // out from under the new state.
+            if (ignore) {
+                return;
+            }
+            navigationRef.reset({
+                index: 0,
+                routes: [{name: NAVIGATORS.TAB_NAVIGATOR}],
+            });
+        });
+        return () => {
+            ignore = true;
+        };
     }, [prevIsLoading, account?.isLoading]);
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'UnlinkLoginPage',
-    };
-    return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+    return <FullScreenLoadingIndicator />;
 }
 
 export default UnlinkLoginPage;

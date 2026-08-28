@@ -1,20 +1,25 @@
-import React, {useEffect} from 'react';
 import ActivityIndicator from '@components/ActivityIndicator';
 import CopyableTextField from '@components/Domain/CopyableTextField';
 import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import TextPicker from '@components/TextPicker';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getSamlSettings, setSamlIdentity} from '@libs/actions/Domain';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import StringUtils from '@libs/StringUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useEffect} from 'react';
+
 import ScimTokenContent from './ScimTokenContent';
 
 type SamlConfigurationDetailsSectionContentProps = {
@@ -42,17 +47,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
     }, [accountID, domainName]);
 
     if (samlMetadata?.isLoading || isLoadingOnyxValue(samlMetadataResults)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'SamlConfigurationDetailsSectionContent.loading',
-            isSamlMetadataLoading: !!samlMetadata?.isLoading,
-            isLoadingOnyxValue: isLoadingOnyxValue(samlMetadataResults),
-        };
-        return (
-            <ActivityIndicator
-                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={reasonAttributes}
-            />
-        );
+        return <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />;
     }
 
     if (samlMetadata?.errors) {

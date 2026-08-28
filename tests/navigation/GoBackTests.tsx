@@ -1,13 +1,18 @@
 import {act, render} from '@testing-library/react-native';
-import React from 'react';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import React from 'react';
+
 import TestNavigationContainer from '../utils/TestNavigationContainer';
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
@@ -15,8 +20,8 @@ jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 
 jest.mock('@pages/inbox/sidebar/NavigationTabBarAvatar');
 
-const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
-const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
+const mockedGetIsNarrowLayout = jest.mocked(getIsNarrowLayout);
+const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 const mockedPolicyID = 'test-policy';
 const mockedBackToRoute = '/test';
 describe('Go back on the narrow layout', () => {
@@ -630,5 +635,100 @@ describe('Go back on the wide layout', () => {
             policyID: mockedPolicyID,
             backTo: mockedBackToRoute,
         });
+    });
+});
+
+describe('Go back with nothing to pop', () => {
+    beforeEach(() => {
+        mockedGetIsNarrowLayout.mockReturnValue(false);
+        mockedUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: false});
+    });
+
+    it('Should stay put when the only root route is already the tab navigator', () => {
+        // Given a stack whose only route is the tab navigator, which is the public sign in root
+        render(
+            <TestNavigationContainer
+                initialState={{
+                    index: 0,
+                    routes: [{name: NAVIGATORS.TAB_NAVIGATOR}],
+                }}
+            />,
+        );
+
+        const navigationContainer = navigationRef.current;
+        if (!navigationContainer) {
+            throw new Error('Navigation container is not ready');
+        }
+        // The key identifies the mounted screen. A reset assigns a new one, which remounts SignInPage.
+        const keyBefore = navigationContainer.getRootState().routes.at(0)?.key;
+        const resetSpy = jest.spyOn(navigationContainer, 'reset');
+
+        // When going back without a fallback route
+        act(() => {
+            Navigation.goBack();
+        });
+
+        // Then the same route instance is still mounted, so SignInPage keeps the email and magic code the user entered
+        const rootState = navigationRef.current?.getRootState();
+        expect(rootState?.routes.length).toBe(1);
+        expect(rootState?.routes.at(0)?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
+        expect(rootState?.routes.at(0)?.key).toBe(keyBefore);
+        expect(resetSpy).not.toHaveBeenCalled();
+        resetSpy.mockRestore();
+    });
+
+    it('Should stay put when the root state is not available', () => {
+        // Given an initialized navigation whose root state cannot be read yet
+        render(
+            <TestNavigationContainer
+                initialState={{
+                    index: 0,
+                    routes: [{name: SCREENS.VALIDATE_LOGIN, params: {accountID: '1', validateCode: '1'}}],
+                }}
+            />,
+        );
+
+        const navigationContainer = navigationRef.current;
+        if (!navigationContainer) {
+            throw new Error('Navigation container is not ready');
+        }
+        const resetSpy = jest.spyOn(navigationContainer, 'reset');
+        // getRootState() is typed as always returning a state, but it resolves to undefined before the container is
+        // ready, which is the branch under test.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const getRootStateSpy = jest.spyOn(navigationContainer, 'getRootState').mockReturnValue(undefined as unknown as ReturnType<typeof navigationContainer.getRootState>);
+
+        // When going back without a fallback route
+        act(() => {
+            Navigation.goBack();
+        });
+
+        // Then nothing is reset, because there is no state to reset
+        expect(resetSpy).not.toHaveBeenCalled();
+
+        getRootStateSpy.mockRestore();
+        resetSpy.mockRestore();
+    });
+
+    it('Should reset to the tab navigator when the only root route is reachable by link', () => {
+        // Given a stack whose only route is a link entry screen, which is how /v/ and /u/ are opened
+        render(
+            <TestNavigationContainer
+                initialState={{
+                    index: 0,
+                    routes: [{name: SCREENS.VALIDATE_LOGIN, params: {accountID: '1', validateCode: '1'}}],
+                }}
+            />,
+        );
+
+        // When going back without a fallback route
+        act(() => {
+            Navigation.goBack();
+        });
+
+        // Then the stranded route is replaced by the app root instead of the press doing nothing
+        const rootState = navigationRef.current?.getRootState();
+        expect(rootState?.routes.length).toBe(1);
+        expect(rootState?.routes.at(0)?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
     });
 });

@@ -1,12 +1,15 @@
-import * as core from '@actions/core';
-import {context} from '@actions/github';
-import {RequestError} from '@octokit/request-error';
-import type {PullRequestEvent, PullRequestSynchronizeEvent} from '@octokit/webhooks-types';
 import {getJSONInput} from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GitHubUtils from '@github/libs/GithubUtils';
+
 import Git from '@scripts/utils/Git';
 import type {FileDiff} from '@scripts/utils/Git';
+
+import type {PullRequestEvent, PullRequestSynchronizeEvent} from '@octokit/webhooks-types';
+
+import * as core from '@actions/core';
+import {context} from '@actions/github';
+import {RequestError} from '@octokit/request-error';
 
 /**
  * Main function to check all specified files
@@ -163,7 +166,7 @@ async function run(): Promise<void> {
     core.setOutput('HAS_CHANGES', changedFiles.length > 0);
 }
 
-if (require.main === module) {
+if (import.meta.main) {
     run().catch((error) => {
         console.error('Action failed:', error);
         core.setFailed(error instanceof Error ? error.message : String(error));

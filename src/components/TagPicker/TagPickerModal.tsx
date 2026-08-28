@@ -1,14 +1,19 @@
-import React, {useRef} from 'react';
-import {View} from 'react-native';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
+
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getTagList} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useRef} from 'react';
+import {View} from 'react-native';
+
 import TagPicker from '.';
 
 const popoverDimensions = {
@@ -37,6 +42,9 @@ type TagPickerModalProps = {
     /** Whether the policy has dependent tags */
     hasDependentTags?: boolean;
 
+    /** Optional override for whether to show GL codes under each tag */
+    shouldShowGLCode?: boolean;
+
     /** Called when the user confirms a tag selection */
     onSelected?: (tag: string) => void;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
@@ -49,6 +57,7 @@ function TagPickerModal({
     selectedTag = '',
     transactionTag,
     hasDependentTags,
+    shouldShowGLCode,
     onSelected,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     shouldMeasureAnchorPositionFromTop = false,
@@ -95,7 +104,9 @@ function TagPickerModal({
                     selectedTag={selectedTag}
                     transactionTag={transactionTag}
                     hasDependentTags={hasDependentTags}
+                    shouldShowGLCode={shouldShowGLCode}
                     onSubmit={handleTagSelected}
+                    shouldAutoFocusSearchInput
                 />
             </View>
         </PopoverWithMeasuredContent>

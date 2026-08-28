@@ -1,7 +1,9 @@
-import {isValid, parse} from 'date-fns';
 import DateUtils from '@libs/DateUtils';
+
 import CONST from '@src/CONST';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
+
+import {isValid, parse} from 'date-fns';
 
 const AS_OF_LABEL_PATTERN = /^As of:\s*(.+)$/i;
 const CHART_DISPLAY_FORMAT = `MMM d, yyyy 'at' ${CONST.DATE.LOCAL_TIME_FORMAT}`;

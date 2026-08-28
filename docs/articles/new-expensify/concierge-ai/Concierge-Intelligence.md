@@ -4,7 +4,6 @@ description: Learn how Concierge uses context, AI, and automation to understand 
 keywords: Concierge Intelligence, how Concierge works, AI context, multi-modal agent, contextual chatbot, Expensify support AI, Concierge automation
 order: 2
 ---
-<div id="new-expensify" markdown="1">
 
 Concierge isn’t just smart—it’s context-aware, multi-skilled, and built to help you get more done with less effort. This guide explains how Concierge works, what makes it intelligent, and how to get the most out of it.
 
@@ -112,7 +111,7 @@ In Expensify, "multi-modal" means Concierge can handle multiple functions—supp
 
 ## How does Concierge know when to escalate to a human?
 
-If the model is unsure, detects missing context, or encounters something outside its capabilities (e.g., Workspace reconfiguration), it uses fallback logic to escalate. You can also manually escalate by saying “Talk to a human.”
+If the model is unsure, detects missing context, or encounters something outside its capabilities, it uses fallback logic to escalate. You can also manually escalate by saying “Talk to a human.”
 
 ## Is Concierge really reading my data?
 
@@ -129,5 +128,3 @@ Yes—and that’s by design. Because it’s context-aware, asking “Is this re
 ## Can I test how Concierge behaves in different modes?
 
 Absolutely. Try sending the same question in different contexts (a report, a Workspace chat, a DM) and you’ll see how Concierge tailors its response to match.
-
-</div>

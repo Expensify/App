@@ -1,11 +1,21 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import useOnyx from '@hooks/useOnyx';
+import type useStyleUtils from '@hooks/useStyleUtils';
+
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import EditAgentPage from '@pages/settings/Agents/EditAgentPage';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
+
+import createMock from '../../../utils/createMock';
+
+type ParsableStyle = Parameters<ReturnType<typeof useStyleUtils>['parseStyleFromFunction']>[0];
 
 jest.mock('@userActions/Agent', () => ({
     deleteAgent: jest.fn(),
@@ -38,8 +48,8 @@ jest.mock('@hooks/useStyleUtils', () =>
                 {
                     get: (_, prop) => {
                         if (prop === 'parseStyleFromFunction') {
-                            return (style: unknown) =>
-                                typeof style === 'function' ? (style as (mockState: Record<string, boolean>) => unknown)({pressed: false, focused: false, hovered: false}) : style;
+                            return (style: ParsableStyle) =>
+                                typeof style === 'function' ? style({pressed: false, focused: false, hovered: false, isScreenReaderActive: false, isDisabled: false}) : style;
                         }
                         return jest.fn(() => ({}));
                     },
@@ -105,6 +115,10 @@ jest.mock('@components/MenuItem', () => {
     return MockMenuItem;
 });
 
+jest.mock('@components/MenuItem/presets/MenuItemAction', () => {
+    return ({title}: {title: string}) => title ?? null;
+});
+
 jest.mock('@components/MenuItemWithTopDescription', () => {
     function MockMenuItemWithTopDescription({title, description}: {title: string; description: string}) {
         return `${description}::${title}`;
@@ -145,8 +159,8 @@ const TEST_ACCOUNT_ID = 12345;
 type EditAgentPageRoute = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT>['route'];
 type EditAgentPageNavigation = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT>['navigation'];
 
-const mockRoute = {params: {accountID: TEST_ACCOUNT_ID}} as EditAgentPageRoute;
-const mockNavigation = {} as EditAgentPageNavigation;
+const mockRoute = createMock<EditAgentPageRoute>({params: {accountID: TEST_ACCOUNT_ID}});
+const mockNavigation = createMock<EditAgentPageNavigation>({});
 
 describe('EditAgentPage', () => {
     beforeEach(() => {

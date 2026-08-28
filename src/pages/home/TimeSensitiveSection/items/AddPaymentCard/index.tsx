@@ -1,9 +1,14 @@
-import React from 'react';
 import BaseWidgetItem from '@components/BaseWidgetItem';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
+
 import navigateToSubscriptionPayment from '@pages/home/common/navigateToSubscriptionPayment';
+
+import CONST from '@src/CONST';
+
+import React from 'react';
 
 function AddPaymentCard() {
     const {translate} = useLocalize();
@@ -19,7 +24,7 @@ function AddPaymentCard() {
             subtitle={translate('homePage.timeSensitiveSection.addPaymentCard.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.addPaymentCard.cta')}
             onCtaPress={navigateToSubscriptionPayment}
-            buttonProps={{success: true}}
+            buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />
     );
 }

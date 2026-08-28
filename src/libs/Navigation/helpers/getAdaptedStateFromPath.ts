@@ -1,22 +1,36 @@
-import type {NavigationState, PartialState, getStateFromPath as RNGetStateFromPath, Route} from '@react-navigation/native';
-import pick from 'lodash/pick';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
-import {RHP_TO_DOMAIN, RHP_TO_HOME, RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
-import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
+import {
+    RHP_TO_DOMAIN,
+    RHP_TO_HOME,
+    RHP_TO_SEARCH,
+    RHP_TO_SEARCH_DEEPLINK,
+    RHP_TO_SETTINGS,
+    RHP_TO_SIDEBAR,
+    RHP_TO_WORKSPACE,
+    RHP_TO_WORKSPACES_LIST,
+} from '@libs/Navigation/linkingConfig/RELATIONS';
+import type {NavigationPartialRoute, NavigationRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {getSearchParamFromPath} from '@libs/Url';
-import CONST from '@src/CONST';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as RoutePath} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Screen} from '@src/SCREENS';
+
+import type {NavigationState, PartialState, getStateFromPath as RNGetStateFromPath, Route} from '@react-navigation/native';
+
+import pick from 'lodash/pick';
+
+import buildTabNavigatorNestedState from './buildTabNavigatorNestedState';
 import findAllMatchingDynamicSuffixes from './dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getDynamicRouteAdaptedState from './dynamicRoutesUtils/getDynamicRouteAdaptedState';
 import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import isDynamicRouteScreen from './dynamicRoutesUtils/isDynamicRouteScreen';
 import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
+import getDefaultDeeplinkSearchQuery from './getDefaultDeeplinkSearchQuery';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
 import getStateFromPath from './getStateFromPath';
@@ -31,16 +45,12 @@ type GetAdaptedStateFromPath = (...args: [...Parameters<typeof RNGetStateFromPat
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({routes, index: routes.length - 1});
 
-/** All tab routes derived from the shared TAB_SCREENS constant. */
-const TAB_NAVIGATOR_ROUTES: NavigationPartialRoute[] = TAB_SCREENS.map((name) => ({name}));
-
 /**
- * Screens that are registered in PublicScreens (unauthenticated navigator) and should not
- * have TabNavigator prepended, because when the user is unauthenticated TabNavigator does
- * not exist in the navigator tree and the RESET action would fail.
+ * Standalone full-screen public pages registered in PublicScreens (unauthenticated navigator) that
+ * should NOT have TabNavigator prepended — they render on their own, with no tab navigator underneath.
  *
- * Keep in sync with the screens registered in PublicScreens.tsx (excluding SCREENS.HOME,
- * which doubles as the authenticated home tab, and navigator entries).
+ * Keep in sync with the screens registered in PublicScreens.tsx (excluding TAB_NAVIGATOR, which hosts
+ * the SignInPage at the root, and the other navigator entries).
  */
 const PUBLIC_SCREENS = new Set<string>([
     SCREENS.VALIDATE_LOGIN,
@@ -56,45 +66,29 @@ const PUBLIC_SCREENS = new Set<string>([
  * Tab navigators require all routes in the state for proper rendering.
  */
 function getTabNavigatorState(selectedTabRoute: NavigationPartialRoute): NavigationPartialRoute {
-    const tabIndex = TAB_NAVIGATOR_ROUTES.findIndex((r) => r.name === selectedTabRoute.name);
-    const index = tabIndex >= 0 ? tabIndex : 0;
-
-    const routes = TAB_NAVIGATOR_ROUTES.map((route, i) => {
-        if (i === index && selectedTabRoute.state) {
-            return {...route, state: selectedTabRoute.state, params: selectedTabRoute.params};
-        }
-        return {...route};
-    });
-
-    return {name: NAVIGATORS.TAB_NAVIGATOR, state: {routes, index}};
+    return {
+        name: NAVIGATORS.TAB_NAVIGATOR,
+        state: buildTabNavigatorNestedState(selectedTabRoute),
+    };
 }
 
-function isRouteWithBackToParam(route: NavigationPartialRoute): route is Route<string, {backTo: string}> {
+function isRouteWithBackToParam(route: NavigationRoute): route is Route<string, {backTo: string}> {
     return route.params !== undefined && 'backTo' in route.params && typeof route.params.backTo === 'string';
 }
 
-function isRouteWithReportID(route: NavigationPartialRoute): route is Route<string, {reportID: string}> {
+function isRouteWithReportID(route: NavigationRoute): route is Route<string, {reportID: string}> {
     return route.params !== undefined && 'reportID' in route.params && typeof route.params.reportID === 'string';
 }
 
 /**
- * Get the appropriate screen name for RHP_TO_SEARCH lookup.
- * Split tabs (amount, percentage, date) are nested routes within SPLIT_EXPENSE/SPLIT_EXPENSE_SEARCH.
- * When a split tab route is accessed from search context (path contains '/search'),
- * we use SPLIT_EXPENSE_SEARCH for the mapping lookup instead of the tab name.
+ * @param route - The (focused) route to find a full screen route for.
+ * @param isDeeplink - Whether the state is being built from a path (deeplink / browser refresh / cold
+ *   load) as opposed to in-app navigation. When true, deeplink-only relations (e.g. RHP_TO_SEARCH_DEEPLINK)
+ *   are also considered so an RHP can get a sensible default fullscreen underneath it. In-app callers
+ *   (linkTo, swapBackgroundTabForRHPTarget) leave this false so the same RHP can open over any fullscreen
+ *   without changing the page currently underneath.
  */
-function getSearchScreenNameForRoute(route: NavigationPartialRoute): string {
-    const splitTabNames = Object.values(CONST.TAB.SPLIT) as string[];
-    const isSplitTabRoute = splitTabNames.includes(route.name);
-
-    if (isSplitTabRoute && route.path?.includes('/search')) {
-        return SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_SEARCH;
-    }
-
-    return route.name;
-}
-
-function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
+function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) {
     const isDynamicScreen = isDynamicRouteScreen(route.name as Screen);
 
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
@@ -123,12 +117,16 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
             return undefined;
         }
         // If not, get the matching full screen route for the back to state.
-        return getMatchingFullScreenRoute(focusedStateForBackToRoute);
+        return getMatchingFullScreenRoute(focusedStateForBackToRoute, isDeeplink);
     }
 
-    const routeNameForLookup = getSearchScreenNameForRoute(route);
-    if (RHP_TO_SEARCH[routeNameForLookup]) {
-        const paramsFromRoute = getParamsFromRoute(RHP_TO_SEARCH[routeNameForLookup]);
+    // Deeplink-only relations provide a default search screen underneath the RHP when the state is
+    // built from a path. They are ignored for in-app navigation so the RHP can open over any fullscreen.
+    const matchingSearchScreen = RHP_TO_SEARCH[route.name];
+    const matchingDeeplinkSearchScreen = isDeeplink ? RHP_TO_SEARCH_DEEPLINK[route.name] : undefined;
+    const resolvedSearchScreen = matchingSearchScreen ?? matchingDeeplinkSearchScreen;
+    if (resolvedSearchScreen) {
+        const paramsFromRoute = getParamsFromRoute(resolvedSearchScreen);
         const copiedParams = paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : {};
         let queryParam: Record<string, string> = {};
         if (route.path) {
@@ -138,8 +136,16 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
             }
         }
 
+        // Deeplink-only defaults (e.g. create flows) land on SCREENS.SEARCH.ROOT, which carries no path
+        // params and no `q`. Without an explicit query, SearchQueryProvider falls back to the previous
+        // defined query and can reveal a stale search when the RHP closes. Seed the canned expenses query
+        // so these deeplinks resolve to Spend > Expenses.
+        if (!queryParam.q && !matchingSearchScreen && matchingDeeplinkSearchScreen) {
+            queryParam = {q: getDefaultDeeplinkSearchQuery()};
+        }
+
         const searchRoute = {
-            name: RHP_TO_SEARCH[routeNameForLookup],
+            name: resolvedSearchScreen,
             params: Object.keys({...copiedParams, ...queryParam}).length > 0 ? {...copiedParams, ...queryParam} : undefined,
         };
         const searchState = getRoutesWithIndex([searchRoute]);
@@ -235,9 +241,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     if (route.path) {
         const allSuffixMatches = findAllMatchingDynamicSuffixes(route.path);
         for (const suffixMatch of allSuffixMatches) {
-            // Strip the suffix from the URL. For parametric routes we pass both the actual URL
-            // suffix and the registered pattern so query params can be resolved correctly.
-            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, suffixMatch.actualSuffix, suffixMatch.pattern);
+            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(suffixMatch.pathUsedForMatching, suffixMatch.actualSuffix, suffixMatch.pattern);
 
             if (!pathWithoutDynamicSuffix) {
                 continue;
@@ -265,7 +269,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
             }
 
             // Recursively find the matching full screen route for the focused dynamic route
-            return getMatchingFullScreenRoute(focusedRouteUnderDynamicRoute);
+            return getMatchingFullScreenRoute(focusedRouteUnderDynamicRoute, isDeeplink);
         }
     }
 
@@ -276,7 +280,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
 // It is the reports split navigator with report. If the reportID is defined in the focused route, we want to use it for the default report.
 // This is separated from getMatchingFullScreenRoute because we want to use it only for the initial state.
 // We don't want to make this route mandatory e.g. after deep linking or opening a specific flow.
-function getDefaultFullScreenRoute(route?: NavigationPartialRoute) {
+function getDefaultFullScreenRoute(route?: NavigationRoute) {
     if (route && isRouteWithReportID(route)) {
         const reportID = route.params.reportID;
 
@@ -299,7 +303,9 @@ function getOnboardingAdaptedState(state: PartialState<NavigationState>): Partia
     }
 
     const routes = [];
-    routes.push({name: onboardingRoute.name === SCREENS.ONBOARDING.WORKSPACES ? SCREENS.ONBOARDING.PERSONAL_DETAILS : SCREENS.ONBOARDING.PURPOSE});
+    routes.push({
+        name: onboardingRoute.name === SCREENS.ONBOARDING.WORKSPACES ? SCREENS.ONBOARDING.PERSONAL_DETAILS : SCREENS.ONBOARDING.PURPOSE,
+    });
     if (onboardingRoute.name === SCREENS.ONBOARDING.ACCOUNTING) {
         routes.push({name: SCREENS.ONBOARDING.EMPLOYEES});
     }
@@ -309,11 +315,25 @@ function getOnboardingAdaptedState(state: PartialState<NavigationState>): Partia
 }
 
 function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamList>>): GetAdaptedStateReturnType {
-    const fullScreenRoute = state.routes.find((route) => isFullScreenName(route.name));
+    let currentState = state;
+    const fullScreenRoute = currentState.routes.find((route) => isFullScreenName(route.name));
 
-    // If TAB_NAVIGATOR contains WORKSPACE_NAVIGATOR, ensure WORKSPACES_LIST is in its nested state
     if (fullScreenRoute?.name === NAVIGATORS.TAB_NAVIGATOR) {
-        const tabState = fullScreenRoute.state as PartialState<NavigationState> | undefined;
+        let tabState = fullScreenRoute.state as PartialState<NavigationState> | undefined;
+
+        // RN's getStateFromPath emits only the tab matched by the path, so the TAB_NAVIGATOR strip may be sparse.
+        // Rebuild the full strip around the active tab — consumers (e.g. REPLACE_FULLSCREEN_UNDER_RHP) expect every tab to be present.
+        // Only the active tab's nested state is carried over; any other tabs in a sparse strip are placeholders without state.
+        if (tabState?.routes && tabState.routes.length < TAB_SCREENS.length) {
+            const activeTabRoute = tabState.routes.at(tabState.index ?? tabState.routes.length - 1);
+            if (activeTabRoute) {
+                tabState = getTabNavigatorState(activeTabRoute as NavigationPartialRoute).state;
+                const normalizedRoutes = currentState.routes.map((r) => (r === fullScreenRoute ? {...r, state: tabState} : r));
+                currentState = {...currentState, routes: normalizedRoutes};
+            }
+        }
+
+        // If TAB_NAVIGATOR contains WORKSPACE_NAVIGATOR, ensure WORKSPACES_LIST is in its nested state
         const wsNavRoute = tabState?.routes?.find((r) => r.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
         if (wsNavRoute) {
             const wsNavState = wsNavRoute.state as PartialState<NavigationState> | undefined;
@@ -324,8 +344,11 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
                 const updatedWsNavRoute = {...wsNavRoute, state: updatedNestedState};
                 const updatedTabRoutes = (tabState?.routes ?? []).map((r) => (r.name === NAVIGATORS.WORKSPACE_NAVIGATOR ? updatedWsNavRoute : r)) as NavigationPartialRoute[];
                 const updatedTabState = {...tabState, routes: updatedTabRoutes};
-                const updatedFullScreenRoute = {...fullScreenRoute, state: updatedTabState};
-                const updatedRoutes = state.routes.map((r) => (r.name === NAVIGATORS.TAB_NAVIGATOR ? updatedFullScreenRoute : r)) as NavigationPartialRoute[];
+                const updatedFullScreenRoute = {
+                    ...fullScreenRoute,
+                    state: updatedTabState,
+                };
+                const updatedRoutes = currentState.routes.map((r) => (r.name === NAVIGATORS.TAB_NAVIGATOR ? updatedFullScreenRoute : r)) as NavigationPartialRoute[];
                 return getRoutesWithIndex(updatedRoutes);
             }
         }
@@ -333,11 +356,10 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
 
     // If there is no full screen route in the root, we want to add it.
     if (!fullScreenRoute) {
-        const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
+        const focusedRoute = findFocusedRouteWithOnyxTabGuard(currentState);
 
-        let currentState = state;
         if (focusedRoute?.path && isDynamicRouteScreen(focusedRoute.name as Screen)) {
-            currentState = getDynamicRouteAdaptedState(state, focusedRoute.path) as PartialState<NavigationState<RootNavigatorParamList>>;
+            currentState = getDynamicRouteAdaptedState(currentState, focusedRoute.path) as PartialState<NavigationState<RootNavigatorParamList>>;
 
             // getDynamicRouteAdaptedState may have already resolved the full screen route.
             // In that case, skip the default full screen route injection below - the state is already complete.
@@ -348,7 +370,9 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
         }
 
         if (focusedRoute) {
-            const matchingRootRoute = getMatchingFullScreenRoute(focusedRoute);
+            // getAdaptedState only runs when building navigation state from a path
+            // (deeplink / browser refresh / cold load), so deeplink-only relations apply here.
+            const matchingRootRoute = getMatchingFullScreenRoute(focusedRoute, true);
 
             // If there is a matching root route, add it to the state.
             if (matchingRootRoute) {
@@ -388,7 +412,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
         return getRoutesWithIndex([defaultFullScreenRoute, ...currentState.routes]);
     }
 
-    return state;
+    return currentState;
 }
 
 /**
@@ -407,17 +431,6 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
     let normalizedPath = !path.startsWith('/') ? `/${path}` : path;
     normalizedPath = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
-
-    // Bing search results still link to /signin when searching for “Expensify”, but the /signin route no longer exists in our repo, so we redirect it to the home page to avoid showing a Not Found page.
-    if (normalizedPath === CONST.SIGNIN_ROUTE) {
-        normalizedPath = '/';
-    }
-
-    // PublicScreens registers SCREENS.HOME ('Home') without a path mapping, so React Navigation derives `/Home` as the URL.
-    // The authenticated config maps SCREENS.HOME to lowercase 'home', and the case-sensitive mismatch falls to NOT_FOUND.
-    if (normalizedPath === `/${SCREENS.HOME}`) {
-        normalizedPath = '/';
-    }
 
     const state = getStateFromPath(normalizedPath as RoutePath) as PartialState<NavigationState<RootNavigatorParamList>>;
     if (shouldReplacePathInNestedState) {

@@ -1,15 +1,22 @@
-import React from 'react';
-import {View} from 'react-native';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getIntegrationIcon} from '@libs/ReportUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import EmployeesSeeTagsAsText from './EmployeesSeeTagsAsText/index';
 import Icon from './Icon';
 import Text from './Text';
@@ -29,7 +36,7 @@ type ImportedFromAccountingSoftwareProps = {
     /** The translated text for the "imported from" message */
     translatedText: string;
 
-    /** The custom tag name */
+    /** The custom tag name if applicable */
     customTagName?: string;
 
     /** Whether we are displaying  tags */
@@ -41,8 +48,20 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare', 'CertiniaSquare', 'GustoSquare']);
-    const icon = getIntegrationIcon(connectedIntegration, expensifyIcons);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'XeroSquare',
+        'QBOSquare',
+        'IntuitSquare',
+        'NetSuiteSquare',
+        'IntacctSquare',
+        'QBDSquare',
+        'CertiniaSquare',
+        'RilletSquare',
+        'DualEntrySquare',
+        'GustoSquare',
+    ]);
+    const icon = getIntegrationIcon(connectedIntegration, expensifyIcons, policy);
 
     if (!customTagName && shouldShow) {
         return null;
@@ -64,7 +83,7 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
                             src={icon}
                             height={variables.iconSizeMedium}
                             width={variables.iconSizeMedium}
-                            additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.SMALLER, ''), styles.appBG]}
+                            additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.X_SMALL, ''), styles.appBG]}
                         />
                     ) : undefined
                 }

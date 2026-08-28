@@ -1,24 +1,33 @@
-import {format} from 'date-fns';
-import React from 'react';
-import {View} from 'react-native';
 import DatePicker from '@components/DatePicker';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setMoneyRequestCreated, updateDistanceRateOnExpenseDateChange} from '@libs/actions/IOU/MoneyRequest';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatReportUtil} from '@libs/ReportUtils';
+
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MoneyRequestDateForm';
+
+import {format} from 'date-fns';
+import React from 'react';
+import {View} from 'react-native';
+
 import {dateStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -49,6 +58,7 @@ function DateField({
     reportID,
     reportActionID,
 }: DateFieldProps) {
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {isEditingSplitBill} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -60,6 +70,7 @@ function DateField({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const policy = usePolicy(report?.policyID);
+    const personalPolicy = usePersonalPolicy();
 
     const dateState = useTransactionSelector(transactionID, dateStateSelector);
     const transaction = useTransactionSelector(transactionID, (t) => t);
@@ -86,7 +97,7 @@ function DateField({
         }
 
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {created: newDate});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {created: newDate}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 
@@ -103,6 +114,9 @@ function DateField({
                 policy,
                 policyForTrackExpense,
                 lastSelectedDistanceRates,
+                isDraft: shouldUseTransactionDraft(action),
+                personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                getCurrencyDecimals,
             });
         }
     };
@@ -137,7 +151,7 @@ function DateField({
                     return;
                 }
 
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, reportActionID)));
             }}
             disabled={didConfirm}
             interactive={!isReadOnly}

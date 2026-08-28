@@ -1,21 +1,37 @@
-import type {MaterialTopTabNavigationEventMap} from '@react-navigation/material-top-tabs';
-import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
-import type {EventMapCore, NavigationState, ParamListBase, ScreenListeners} from '@react-navigation/native';
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {TabSelectorProps} from '@components/TabSelector/types';
+
+import useConfirmModal from '@hooks/useConfirmModal';
+import getDiscardChangesModalConfig from '@hooks/useDiscardChangesConfirmation/getDiscardChangesModalConfig';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import Growl from '@libs/Growl';
+import Log from '@libs/Log';
+
 import Tab from '@userActions/Tab';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import {defaultScreenOptions} from './OnyxTabNavigatorConfig';
+
+import type {MaterialTopTabNavigationEventMap} from '@react-navigation/material-top-tabs';
+import type {EventArg, EventMapCore, NavigationProp, NavigationState, ParamListBase, ScreenListeners} from '@react-navigation/native';
+
+import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
+import {TabActions, useRoute} from '@react-navigation/native';
+import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+
+import type {RegisterTabSwitchGuard, TabSwitchGuard} from './TabSwitchGuardContext';
+
+import {backBehavior, defaultScreenOptions, pagerContainerStyle} from './OnyxTabNavigatorConfig';
+import TabSwitchGuardContext from './TabSwitchGuardContext';
 
 type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = ChildrenProps & {
     /** ID of the tab component to be saved in onyx */
@@ -55,6 +71,11 @@ type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = Child
 
     /** Whether tabs should have equal width */
     equalWidth?: boolean;
+
+    /** Whether a tab switch that gets bounced back to the tab it came from should be re-applied once (see #98240).
+     * Opt-in, because it makes a tab switch that another part of the app deliberately undoes stick instead.
+     */
+    shouldReapplyInterruptedTabPress?: boolean;
 };
 
 const TopTab = createMaterialTopTabNavigator<ParamListBase, string>();
@@ -62,6 +83,13 @@ const TopTab = createMaterialTopTabNavigator<ParamListBase, string>();
 // The TabFocusTrapContext is to collect the focus trap container element of each tab screen.
 // This provider is placed in the OnyxTabNavigator component and the consumer is in the TabScreenWithFocusTrapWrapper component.
 const TabFocusTrapContext = React.createContext<(tabName: string, containerElement: HTMLElement | null) => void>(() => {});
+
+const cancelQueuedTabSwitch = (frameID: number | undefined) => {
+    if (frameID === undefined) {
+        return;
+    }
+    cancelAnimationFrame(frameID);
+};
 
 const getTabNames = (children: React.ReactNode): string[] => {
     const result: string[] = [];
@@ -97,6 +125,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     lazyLoadEnabled = false,
     onTabSelect,
     equalWidth = false,
+    shouldReapplyInterruptedTabPress = false,
     ...rest
 }: OnyxTabNavigatorProps<TTabName>) {
     const styles = useThemeStyles();
@@ -105,23 +134,24 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     const [focusTrapContainerElementMapping, setFocusTrapContainerElementMapping] = useState<Record<string, HTMLElement>>({});
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`);
 
-    const tabNames = useMemo(() => getTabNames(children), [children]);
+    const pressedTabRef = useRef<{from: string | undefined; to: string; armedAt: number} | undefined>(undefined);
+    // Frame handle of a queued re-apply jump, so it can be dropped when it is superseded by a newer press or by unmount.
+    const reapplyFrameRef = useRef<number | undefined>(undefined);
+
+    const tabNames = getTabNames(children);
 
     const validInitialTab = selectedTab && tabNames.includes(selectedTab) ? selectedTab : defaultSelectedTab;
 
     const LazyPlaceholder = useCallback(() => {
         return (
             <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100]}>
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    reasonAttributes={{context: 'OnyxTabNavigator.LazyPlaceholder'}}
-                />
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
             </View>
         );
     }, [styles.fullScreenLoading, styles.w100]);
 
     // This callback is used to register the focus trap container element of each available tab screen
-    const setTabFocusTrapContainerElement = useCallback((tabName: string, containerElement: HTMLElement | null) => {
+    const setTabFocusTrapContainerElement = (tabName: string, containerElement: HTMLElement | null) => {
         setFocusTrapContainerElementMapping((prevMapping) => {
             const resultMapping = {...prevMapping};
             if (containerElement) {
@@ -131,7 +161,93 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
             }
             return resultMapping;
         });
-    }, []);
+    };
+
+    const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
+    // Tab-switch discard guards, keyed by tab name. Tab screens register via `useDiscardChangesConfirmation`.
+    const guardsRef = useRef<Map<string, TabSwitchGuard>>(new Map());
+    const isDiscardModalOpenRef = useRef(false);
+
+    const registerTabGuard: RegisterTabSwitchGuard = (guard) => {
+        guardsRef.current.set(guard.tabName, guard);
+        return () => {
+            // Only clear if this exact guard is still registered, so a re-registration from another mount isn't wiped.
+            if (guardsRef.current.get(guard.tabName) !== guard) {
+                return;
+            }
+            guardsRef.current.delete(guard.tabName);
+        };
+    };
+
+    // Records a tab switch that is about to be dispatched, so the `state` listener can re-apply it if it gets bounced back.
+    const armTabSwitch = (from: string | undefined, to: string | undefined) => {
+        if (!shouldReapplyInterruptedTabPress) {
+            return;
+        }
+        // A newer switch supersedes a re-apply that hasn't been dispatched yet, otherwise the queued jump would override it.
+        cancelQueuedTabSwitch(reapplyFrameRef.current);
+        pressedTabRef.current = to && to !== from ? {from, to, armedAt: Date.now()} : undefined;
+    };
+
+    const reapplyTabSwitchIfInterrupted = (navigation: NavigationProp<ParamListBase>, newSelectedTab: string | undefined) => {
+        const pressedTab = pressedTabRef.current;
+        if (!pressedTab || !newSelectedTab) {
+            return;
+        }
+        const isSwitchInFlight = Date.now() - pressedTab.armedAt <= CONST.ANIMATED_TRANSITION;
+        if (!isSwitchInFlight || newSelectedTab !== pressedTab.to) {
+            pressedTabRef.current = undefined;
+        }
+        if (isSwitchInFlight && newSelectedTab === pressedTab.from) {
+            cancelQueuedTabSwitch(reapplyFrameRef.current);
+            reapplyFrameRef.current = requestAnimationFrame(() => {
+                reapplyFrameRef.current = undefined;
+                navigation.dispatch(TabActions.jumpTo(pressedTab.to));
+            });
+        }
+    };
+
+    const handleTabPress = (navigation: NavigationProp<ParamListBase>, event: EventArg<'tabPress', true, undefined>) => {
+        if (isDiscardModalOpenRef.current) {
+            event.preventDefault();
+            return;
+        }
+        const navState = navigation.getState();
+        const currentRouteName = navState.routes.at(navState.index)?.name;
+        const guard = currentRouteName ? guardsRef.current.get(currentRouteName) : undefined;
+        if (!guard || !guard.getHasUnsavedChanges()) {
+            return;
+        }
+        const targetRoute = navState.routes.find((tabRoute) => tabRoute.key === event.target);
+        if (!targetRoute || targetRoute.name === currentRouteName) {
+            return;
+        }
+        event.preventDefault();
+        isDiscardModalOpenRef.current = true;
+        showConfirmModal({
+            ...getDiscardChangesModalConfig(translate),
+            shouldIgnoreBackHandlerDuringTransition: true,
+        }).then((result) => {
+            isDiscardModalOpenRef.current = false;
+            if (result.action !== ModalActions.CONFIRM) {
+                guard.onCancel?.();
+                return;
+            }
+            // User confirmed: always jump to the target tab, even if onDiscard fails, rather than stranding them with no feedback.
+            Promise.resolve()
+                .then(() => guard.onDiscard())
+                .catch((error: unknown) => {
+                    Log.warn('[OnyxTabNavigator] Failed to run tab-switch onDiscard callback', {error});
+                    Growl.error(translate('common.genericErrorMessage'));
+                })
+                .then(() => {
+                    // This jump replaces the press we prevented above, so it needs the same bounce-back protection.
+                    armTabSwitch(currentRouteName, targetRoute.name);
+                    navigation.dispatch(TabActions.jumpTo(targetRoute.name));
+                });
+        });
+    };
 
     /**
      * This is a TabBar wrapper component that includes the focus trap container element callback.
@@ -151,6 +267,14 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
         [TabBar, onTabBarFocusTrapContainerElementChanged, shouldShowLabelWhenInactive, equalWidth],
     );
 
+    // Keep the generic type casts outside the nested screenListeners callback because OXC cannot hoist
+    // type-parameter references while outlining that callback.
+    const persistSelectedTab = Tab.setSelectedTab as (tabID: string, tabName: string) => void;
+    const notifyTabSelected = onTabSelected as (newTabName: string | undefined) => void;
+
+    // Drop a queued re-apply jump on unmount so it isn't dispatched into a navigator that no longer exists.
+    useEffect(() => () => cancelQueuedTabSwitch(reapplyFrameRef.current), []);
+
     // If the selected tab changes, we need to update the focus trap container element of the active tab
     useEffect(() => {
         onActiveTabFocusTrapContainerElementChanged?.(selectedTab ? focusTrapContainerElementMapping[selectedTab] : null);
@@ -161,46 +285,69 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     }
 
     return (
-        <TabFocusTrapContext.Provider value={setTabFocusTrapContainerElement}>
-            <TopTab.Navigator
-                {...rest}
-                id={id}
-                initialRouteName={validInitialTab}
-                backBehavior="initialRoute"
-                keyboardDismissMode="none"
-                tabBar={TabBarWithFocusTrapInclusion}
-                onTabSelect={onTabSelect}
-                screenListeners={{
-                    state: (e) => {
-                        const event = e as unknown as EventMapCore<NavigationState>['state'];
-                        const state = event.data.state;
-                        const index = state.index;
-                        const routeNames = state.routeNames;
-                        if (isFirstMountRef.current) {
-                            onTabSelect?.({index});
-                            isFirstMountRef.current = false;
-                        }
-                        const newSelectedTab = routeNames.at(index);
-                        if (selectedTab === newSelectedTab) {
-                            return;
-                        }
-                        if (newSelectedTab) {
-                            Tab.setSelectedTab<TTabName>(id, newSelectedTab as TTabName);
-                        }
-                        onTabSelected(newSelectedTab as TTabName);
-                    },
-                    ...(screenListeners ?? {}),
-                }}
-                screenOptions={{
-                    ...defaultScreenOptions,
-                    swipeEnabled: false,
-                    lazy: lazyLoadEnabled,
-                    lazyPlaceholder: LazyPlaceholder,
-                }}
-            >
-                {children}
-            </TopTab.Navigator>
-        </TabFocusTrapContext.Provider>
+        <TabSwitchGuardContext.Provider value={registerTabGuard}>
+            <TabFocusTrapContext.Provider value={setTabFocusTrapContainerElement}>
+                <TopTab.Navigator
+                    {...rest}
+                    style={pagerContainerStyle}
+                    id={id}
+                    initialRouteName={validInitialTab}
+                    backBehavior={backBehavior}
+                    keyboardDismissMode="none"
+                    tabBar={TabBarWithFocusTrapInclusion}
+                    onTabSelect={onTabSelect}
+                    screenListeners={({navigation}: {navigation: NavigationProp<ParamListBase>}) => {
+                        const callerListeners = screenListeners ?? {};
+                        return {
+                            ...callerListeners,
+                            state: (e) => {
+                                callerListeners.state?.(e);
+                                const event = e as unknown as EventMapCore<NavigationState>['state'];
+                                const state = event.data.state;
+                                const index = state.index;
+                                const routeNames = state.routeNames;
+                                if (isFirstMountRef.current) {
+                                    onTabSelect?.({index});
+                                    isFirstMountRef.current = false;
+                                }
+                                const newSelectedTab = routeNames.at(index);
+                                reapplyTabSwitchIfInterrupted(navigation, newSelectedTab);
+                                if (selectedTab === newSelectedTab) {
+                                    return;
+                                }
+                                if (newSelectedTab) {
+                                    persistSelectedTab(id, newSelectedTab);
+                                }
+                                notifyTabSelected(newSelectedTab);
+                            },
+                            tabPress: (e) => {
+                                // Let a caller's own tabPress run first; if it blocked the switch, don't also run the guard.
+                                callerListeners.tabPress?.(e);
+                                if (e.defaultPrevented) {
+                                    return;
+                                }
+                                handleTabPress(navigation, e);
+                                if (e.defaultPrevented) {
+                                    return;
+                                }
+                                const navState = navigation.getState();
+                                const pressedTabName = navState.routes.find((tabRoute) => tabRoute.key === e.target)?.name;
+                                const currentTabName = navState.routes.at(navState.index)?.name;
+                                armTabSwitch(currentTabName, pressedTabName);
+                            },
+                        };
+                    }}
+                    screenOptions={{
+                        ...defaultScreenOptions,
+                        swipeEnabled: false,
+                        lazy: lazyLoadEnabled,
+                        lazyPlaceholder: LazyPlaceholder,
+                    }}
+                >
+                    {children}
+                </TopTab.Navigator>
+            </TabFocusTrapContext.Provider>
+        </TabSwitchGuardContext.Provider>
     );
 }
 
@@ -225,12 +372,9 @@ function TabScreenWithFocusTrapWrapper({children}: {children?: React.ReactNode})
     const route = useRoute();
     const styles = useThemeStyles();
     const setTabContainerElement = useContext(TabFocusTrapContext);
-    const handleContainerElementChanged = useCallback(
-        (element: HTMLElement | null) => {
-            setTabContainerElement(route.name, element);
-        },
-        [setTabContainerElement, route.name],
-    );
+    const handleContainerElementChanged = (element: HTMLElement | null) => {
+        setTabContainerElement(route.name, element);
+    };
 
     return (
         <FocusTrapContainerElement

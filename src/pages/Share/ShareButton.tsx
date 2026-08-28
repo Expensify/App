@@ -1,8 +1,12 @@
-import React from 'react';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
+import React from 'react';
 
 type ShareButtonProps = {
     onPress: () => void;
@@ -15,12 +19,13 @@ function ShareButton({onPress}: ShareButtonProps) {
     return (
         <FixedFooter style={[styles.pt4]}>
             <Button
-                success
-                large
-                text={translate('common.share')}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
                 style={styles.w100}
                 onPress={onPress}
-            />
+            >
+                <Button.Text>{translate('common.share')}</Button.Text>
+            </Button>
         </FixedFooter>
     );
 }

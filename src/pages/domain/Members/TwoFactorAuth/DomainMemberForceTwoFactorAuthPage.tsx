@@ -1,15 +1,20 @@
-import {domainMemberSettingsSelector} from '@selectors/Domain';
-import {personalDetailsSelector} from '@selectors/PersonalDetails';
-import React, {useEffect} from 'react';
 import useOnyx from '@hooks/useOnyx';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import BaseDomainRequireTwoFactorAuthPage from '@pages/domain/BaseDomainRequireTwoFactorAuthPage';
+
 import {setTwoFactorAuthExemptEmailForDomain} from '@userActions/Domain';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import {domainMemberSettingsSelector} from '@selectors/Domain';
+import {personalDetailsSelector} from '@selectors/PersonalDetails';
+import React, {useEffect} from 'react';
 
 type DomainMemberForceTwoFactorAuthPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBER_FORCE_TWO_FACTOR_AUTH>;
 

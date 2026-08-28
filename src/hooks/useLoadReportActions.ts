@@ -1,7 +1,10 @@
-import {useIsFocused} from '@react-navigation/native';
 import {getNewerActions, getOlderActions} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
+
+import {useIsFocused} from '@react-navigation/native';
+
 import useNetwork from './useNetwork';
 
 type UseLoadReportActionsArguments = {
@@ -136,6 +139,8 @@ function useLoadReportActions({
     return {
         loadOlderChats,
         loadNewerChats,
+        // The exact cursor `loadOlderChats` sends, which is not always the end of the rendered chain.
+        currentReportOldestActionID: currentReportOldestAction?.reportActionID,
     };
 }
 

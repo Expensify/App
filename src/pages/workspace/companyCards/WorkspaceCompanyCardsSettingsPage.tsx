@@ -1,14 +1,13 @@
-import {isUserValidatedSelector} from '@selectors/Account';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -18,28 +17,27 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {deleteWorkspaceCompanyCardFeed, setAddNewCompanyCardStepAndData, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
 import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getSelectedFeed, isCSVUploadFeed, isDirectFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {startCardFeedRefresh} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
-const ADVANCED_CSV_COLUMNS = new Set<string>([
-    CONST.CSV_IMPORT_COLUMNS.ORIGINAL_TRANSACTION_DATE,
-    CONST.CSV_IMPORT_COLUMNS.ORIGINAL_AMOUNT,
-    CONST.CSV_IMPORT_COLUMNS.ORIGINAL_CURRENCY,
-    CONST.CSV_IMPORT_COLUMNS.COMMENT,
-    CONST.CSV_IMPORT_COLUMNS.CATEGORY,
-    CONST.CSV_IMPORT_COLUMNS.TAG,
-]);
+import {isUserValidatedSelector} from '@selectors/Account';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 
 type WorkspaceCompanyCardsSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS>;
 
@@ -74,8 +72,6 @@ function WorkspaceCompanyCardsSettingsPage({
     const isPending = !!selectedFeedData?.pending;
     const isDirectFeedType = isDirectFeed(feed);
     const isCsvFeed = isCSVUploadFeed(feed);
-    const storedMappings = selectedFeedData?.uploadLayoutSettings?.columnMappings;
-    const hadAdvancedFields = !!storedMappings && Object.keys(storedMappings).some((col) => ADVANCED_CSV_COLUMNS.has(col));
 
     const statementCloseDate = useMemo(() => {
         if (!selectedFeedData?.statementPeriodEndDay) {
@@ -190,7 +186,7 @@ function WorkspaceCompanyCardsSettingsPage({
                             />
                         )}
                         {isCsvFeed && (
-                            <MenuItem
+                            <MenuItemAction
                                 icon={icons.Table}
                                 title={translate('spreadsheet.importSpreadsheet')}
                                 onPress={() => {
@@ -198,15 +194,15 @@ function WorkspaceCompanyCardsSettingsPage({
                                         data: {
                                             layoutType: feed,
                                             companyCardLayoutName: selectedFeedData?.customFeedName ?? feedName ?? '',
-                                            useAdvancedFields: hadAdvancedFields,
                                             existingInstanceID: selectedFeedData?.uploadLayoutSettings?.instanceID ?? null,
+                                            domainAccountID: domainOrWorkspaceAccountID,
                                         },
                                     });
                                     Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_IMPORT_SPREADSHEET.getRoute(policyID));
                                 }}
                             />
                         )}
-                        <MenuItem
+                        <MenuItemAction
                             icon={icons.Trashcan}
                             title={translate('workspace.moreFeatures.companyCards.removeCardFeed')}
                             onPress={() => {

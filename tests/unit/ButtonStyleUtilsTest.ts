@@ -1,28 +1,13 @@
 import CONST from '@src/CONST';
-import type {ThemeStyles} from '@src/styles';
-import type {ThemeColors} from '@src/styles/theme/types';
+import createThemeStyles from '@src/styles';
+import {defaultTheme} from '@src/styles/theme';
 import createStyleUtils from '@src/styles/utils';
+import variables from '@src/styles/variables';
 
-const mockTheme = {} as ThemeColors;
+const mockTheme = defaultTheme;
+const mockStyles = createThemeStyles(defaultTheme);
 
-const mockStyles = {
-    buttonExtraSmall: {height: 28},
-    buttonSmall: {height: 32},
-    buttonMedium: {height: 40},
-    buttonLarge: {height: 48},
-    ph0: {paddingHorizontal: 0},
-    pl2: {paddingLeft: 8},
-    pr2: {paddingRight: 8},
-    pl3: {paddingLeft: 12},
-    pr3: {paddingRight: 12},
-    pl4: {paddingLeft: 16},
-    pr4: {paddingRight: 16},
-    buttonSuccess: {backgroundColor: 'green'},
-    buttonDanger: {backgroundColor: 'red'},
-    buttonOpacityDisabled: {opacity: 0.5},
-} as unknown as ThemeStyles;
-
-const {getButtonSizeStyle, getButtonPaddingStyle, getButtonStyleWithIcon, getButtonVariantStyles} = createStyleUtils(mockTheme, mockStyles);
+const {getButtonSizeStyle, getButtonPaddingStyle, getButtonStyleWithIcon, getButtonVariantStyles, getReportTableColumnStyles} = createStyleUtils(mockTheme, mockStyles);
 
 describe('getButtonSizeStyle', () => {
     it.each([
@@ -86,5 +71,11 @@ describe('getButtonVariantStyles', () => {
             success: [mockStyles.buttonOpacityDisabled],
             danger: [mockStyles.buttonOpacityDisabled],
         });
+    });
+});
+
+describe('getReportTableColumnStyles - First approved column width', () => {
+    it('uses a fixed wide width (fits the long header and a past-year date, so no year-based widening)', () => {
+        expect(getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED)).toEqual({width: variables.w102});
     });
 });

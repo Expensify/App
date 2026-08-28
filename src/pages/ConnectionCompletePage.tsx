@@ -1,12 +1,15 @@
-import React from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function ConnectionCompletePage() {
     const theme = useTheme();
@@ -23,7 +26,7 @@ function ConnectionCompletePage() {
                         src={icons.ConnectionComplete}
                     />
                 </View>
-                <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('connectionComplete.title')}</Text>
+                <Text style={[styles.textHeadline, styles.textAlignCenter]}>{translate('connectionComplete.title')}</Text>
                 <View style={[styles.mt2, styles.mb2, {maxWidth: 280}]}>
                     <Text style={styles.textAlignCenter}>{translate('connectionComplete.supportingText')}</Text>
                 </View>

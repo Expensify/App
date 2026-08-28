@@ -1,10 +1,14 @@
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+
+import getKeyboardHeight from '@libs/getKeyboardHeight';
+
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
 import type {ReactElement, RefObject} from 'react';
+
 import React, {createContext, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {KeyboardEvents, useKeyboardHandler} from 'react-native-keyboard-controller';
 import {scheduleOnRN} from 'react-native-worklets';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
-import getKeyboardHeight from '@libs/getKeyboardHeight';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type KeyboardStateContextValue = {
     /** Whether the keyboard is open */
@@ -46,6 +50,8 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
         const keyboardDidHideListener = KeyboardEvents.addListener('keyboardDidHide', () => {
             setKeyboardHeight(0);
             setIsKeyboardActive(false);
+            // Sometimes 'keyboardWillHide' is not called (popover closed when keyboard is open), in this case we don't want stale keyboardActiveHeight value
+            setKeyboardActiveHeight(0);
         });
         const keyboardWillShowListener = KeyboardEvents.addListener('keyboardWillShow', (e) => {
             setIsKeyboardActive(true);

@@ -1,11 +1,10 @@
-import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearReportFieldKeyErrors} from '@libs/actions/Report';
 import {resolveReportFieldValue} from '@libs/Formula';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -17,16 +16,22 @@ import {
     getReportFieldMaps,
     isGroupPolicyExpenseReport as isGroupPolicyExpenseReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
-    isReportFieldDisabled,
     isReportFieldDisabledForUser,
-    isReportFieldOfTypeTitle,
     shouldHideSingleReportField,
 } from '@libs/ReportUtils';
+
 import type {ThemeStyles} from '@styles/index';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, PolicyReportField, Report, ReportViolationName} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 
 type MoneyRequestViewReportFieldsProps = {
     /** The report currently being looked at */
@@ -34,9 +39,6 @@ type MoneyRequestViewReportFieldsProps = {
 
     /** Policy that the report belongs to */
     policy: OnyxEntry<Policy>;
-
-    /** Indicates whether the IOU report is a combined report */
-    isCombinedReport?: boolean;
 
     /** Indicates whether we have any pending actions from parent component */
     pendingAction?: PendingAction;
@@ -74,7 +76,6 @@ function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEnt
                 shouldGreyOutWhenDisabled={false}
                 numberOfLinesTitle={0}
                 interactive={!reportField.isFieldDisabled}
-                shouldStackHorizontally={false}
                 onSecondaryInteraction={() => {}}
                 titleWithTooltips={[]}
                 brickRoadIndicator={reportField.violation ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
@@ -83,9 +84,10 @@ function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEnt
         </OfflineWithFeedback>
     );
 }
-function MoneyRequestViewReportFields({report, policy, isCombinedReport = false, pendingAction}: MoneyRequestViewReportFieldsProps) {
+function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequestViewReportFieldsProps) {
     const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const sortedPolicyReportFields = useMemo<EnrichedPolicyReportField[]>((): EnrichedPolicyReportField[] => {
         const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {});
@@ -96,7 +98,7 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
             .filter((reportField) => !shouldHideSingleReportField(reportField))
             .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
             .map((field): EnrichedPolicyReportField => {
-                const fieldValue = resolveReportFieldValue(field, report, policy, fieldValues, fieldsByName);
+                const fieldValue = resolveReportFieldValue(field, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
                 const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy, currentUserAccountID);
                 const isDeletedFormulaField = field.type === CONST.REPORT_FIELD_TYPES.FORMULA && field.deletable;
                 const fieldKey = getReportFieldKey(field.fieldID);
@@ -113,16 +115,12 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
                     violationTranslation,
                 };
             });
-    }, [policy, report, currentUserAccountID]);
+    }, [policy, report, currentUserAccountID, getCurrencyDecimals]);
 
-    const enabledReportFields = sortedPolicyReportFields.filter(
-        (reportField) => !isReportFieldDisabled(report, reportField, policy) || reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA,
-    );
-    const isOnlyTitleFieldEnabled = enabledReportFields.length === 1 && isReportFieldOfTypeTitle(enabledReportFields.at(0));
-    const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report);
+    const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report, policy?.type);
     const isInvoiceReport = isInvoiceReportUtils(report);
 
-    const shouldDisplayReportFields = (isGroupPolicyExpenseReport || isInvoiceReport) && !!policy?.areReportFieldsEnabled && (!isOnlyTitleFieldEnabled || !isCombinedReport);
+    const shouldDisplayReportFields = (isGroupPolicyExpenseReport || isInvoiceReport) && !!policy?.areReportFieldsEnabled;
 
     if (!shouldDisplayReportFields || !sortedPolicyReportFields.length) {
         return null;

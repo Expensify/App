@@ -1,17 +1,22 @@
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {getFeedOptions} from '@libs/SearchUIUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function useFilterFeedData(value: string[] | undefined) {
     const {translate, localeCompare} = useLocalize();
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [expensifyCardSettings] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS);
 
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
 
-    const feedOptions = getFeedOptions(allFeeds, personalAndWorkspaceCards, translate, localeCompare, feedKeysWithCards);
+    const feedOptions = getFeedOptions(allFeeds, personalAndWorkspaceCards, translate, localeCompare, feedKeysWithCards, policies, domains, expensifyCardSettings);
     const feedValue = value ? feedOptions.filter((option) => value.includes(option.value)) : [];
     return {feedOptions, feedValue};
 }

@@ -1,7 +1,5 @@
-import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
-import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
 import type {
@@ -20,13 +18,13 @@ import fileDownload from '@libs/fileDownload';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import Parser from '@libs/Parser';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import {getDefaultApprover, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+
 import * as FormActions from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ImportedSpreadsheetMemberData, InvitedEmailsToAccountIDs, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions} from '@src/types/onyx';
@@ -37,8 +35,15 @@ import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participant} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {createPolicyExpenseChats} from './Policy';
+
+import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
 import type {CurrentUser} from './Policy';
+
+import {createPolicyExpenseChats} from './Policy';
 
 type WorkspaceMembersRoleData = {
     email: string;
@@ -58,7 +63,6 @@ function hasPolicyAdminsRoomsAccess(role: string | undefined): boolean {
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
     callback: (actions) => (allReportActions = actions),
 });
 
@@ -156,15 +160,28 @@ function buildRoomMembersOnyxData(
 /**
  * Updates the import spreadsheet data according to the result of the import
  */
-function getImportMembersFinalModal(addedMembersLength: number, updatedMembersLength: number): ImportFinalModal {
-    return {
-        titleKey: 'spreadsheet.importSuccessfulTitle',
-        promptKey: 'spreadsheet.importMembersSuccessfulDescription',
-        promptKeyParams: {
-            added: addedMembersLength,
-            updated: updatedMembersLength,
-        },
-    };
+/**
+ * Picks the right translation key for an import result. The four cases (neither, added only, updated
+ * only, both) live here rather than in the translation files so each key carries a single `count` and
+ * can be pluralized per locale -- a translation function receiving two independent counts cannot be.
+ */
+function getImportMembersFinalModal(addedMembersLength: number, updatedMembersLength: number, shouldShowMemberRolePermissionWarning = false): ImportFinalModal {
+    const titleKey = 'spreadsheet.importSuccessfulTitle' as const;
+    const warning = shouldShowMemberRolePermissionWarning ? ({pendingMessageKey: 'spreadsheet.importMembersRolePermissionWarning'} as const) : {};
+
+    if (!addedMembersLength && !updatedMembersLength) {
+        return {titleKey, promptKey: 'spreadsheet.importMembersNoneAddedOrUpdated', ...warning};
+    }
+
+    if (addedMembersLength && updatedMembersLength) {
+        return {titleKey, promptKey: 'spreadsheet.importMembersAddedAndUpdated', promptKeyParams: {added: addedMembersLength, updated: updatedMembersLength}, ...warning};
+    }
+
+    if (addedMembersLength) {
+        return {titleKey, promptKey: 'spreadsheet.importMembersAdded', promptKeyParams: {count: addedMembersLength}, ...warning};
+    }
+
+    return {titleKey, promptKey: 'spreadsheet.importMembersUpdated', promptKeyParams: {count: updatedMembersLength}, ...warning};
 }
 
 /**
@@ -370,18 +387,24 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
     const failureMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     // Handles the case when there are multiple logins for the same account.
     // Currently, the only known case where this happens is when a user gets invited
-    // with their secondary login.
-    // This happens because we only have the secondary login when
-    // we're inviting the user, but the backend always returns the primary login,
+    // with their secondary login. This happens because we only have the secondary login
+    // when we're inviting the user, but the backend always returns the primary login,
     // so we end up with both stored in Onyx.
+    // policy.primaryLoginsInvited records that secondary -> primary mapping, so we only expand
+    // to the login paired with a selected member. We must NOT use "missing personal details" as the
+    // signal, because that would sweep in every other member whose details aren't loaded and delete them too.
     const selectedMemberEmailsWithDuplicates: string[] = [...selectedMemberEmails];
-    for (const employeeEmail of Object.keys(policy?.employeeList ?? {})) {
-        const personalDetails = getPersonalDetailByEmail(employeeEmail);
-        // If we don't have the personal details, it means it's a secondary login
-        if (personalDetails) {
-            continue;
+    const primaryLoginsInvited = policy?.primaryLoginsInvited ?? {};
+    const employeeList = policy?.employeeList ?? {};
+    for (const [secondaryLogin, primaryLogin] of Object.entries(primaryLoginsInvited)) {
+        // If the selected member is the secondary login, also remove its primary login (and vice versa),
+        // but only when the paired login actually exists in the employeeList.
+        if (selectedMemberEmails.includes(secondaryLogin) && primaryLogin in employeeList && !selectedMemberEmailsWithDuplicates.includes(primaryLogin)) {
+            selectedMemberEmailsWithDuplicates.push(primaryLogin);
         }
-        selectedMemberEmailsWithDuplicates.push(employeeEmail);
+        if (selectedMemberEmails.includes(primaryLogin) && secondaryLogin in employeeList && !selectedMemberEmailsWithDuplicates.includes(secondaryLogin)) {
+            selectedMemberEmailsWithDuplicates.push(secondaryLogin);
+        }
     }
 
     for (const email of selectedMemberEmailsWithDuplicates) {
@@ -805,15 +828,14 @@ function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {
 
 function buildAddMembersToWorkspaceOnyxData(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
+    newPersonalDetailsOnyxData: OnyxData<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>,
     policy: Policy,
     policyMemberAccountIDs: number[],
     role: string,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     currentUser: CurrentUser,
+    reportActionsList: OnyxCollection<ReportActions> | undefined,
     approverEmail?: string,
     policyExpenseChatNotificationPreference?: NotificationPreference,
-    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
-    reportActionsList?: OnyxCollection<ReportActions>,
 ) {
     const policyID = policy.id;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
@@ -822,19 +844,38 @@ function buildAddMembersToWorkspaceOnyxData(
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
     // Submit workspaces enforce the editor role for all invited members regardless of the requested role.
-    // Gating is on the policy type — the SUBMIT_2026 beta only controls whether a Submit workspace can be created.
     const effectiveRole = isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : role;
-
-    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, accountIDs);
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
 
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, accountIDs);
     const adminRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, hasPolicyAdminsRoomsAccess(effectiveRole) ? accountIDs : []);
     const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(policyID, [...policyMemberAccountIDs, ...accountIDs], currentUser.accountID);
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
 
+    const doesPersonalDetailExistByAccountID: Record<number, boolean> = {};
+    const newPersonalDetailAccountIDs = new Set<number>();
+    for (const update of newPersonalDetailsOnyxData.optimisticData ?? []) {
+        if (update.key !== ONYXKEYS.PERSONAL_DETAILS_LIST) {
+            continue;
+        }
+
+        for (const accountID of Object.keys(update.value ?? {})) {
+            newPersonalDetailAccountIDs.add(Number(accountID));
+        }
+    }
+
+    for (const accountID of accountIDs) {
+        doesPersonalDetailExistByAccountID[accountID] = !newPersonalDetailAccountIDs.has(accountID);
+    }
+
     // create onyx data for policy expense chats for each new member
-    const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, currentUser, reportActionsList, undefined, policyExpenseChatNotificationPreference);
+    const membersChats = createPolicyExpenseChats({
+        policyID,
+        invitedEmailsToAccountIDs,
+        currentUser,
+        reportActionsList,
+        notificationPreference: policyExpenseChatNotificationPreference,
+        doesPersonalDetailExistByAccountID,
+    });
 
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
@@ -940,11 +981,11 @@ function buildAddMembersToWorkspaceOnyxData(
  */
 function addMembersToWorkspace(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
+    newPersonalDetailsOnyxData: OnyxData<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>,
     welcomeNote: string,
     policy: OnyxEntry<Policy>,
     policyMemberAccountIDs: number[],
     role: string,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     currentUser: CurrentUser,
     reportActionsList: OnyxCollection<ReportActions>,
     approverEmail?: string,
@@ -957,14 +998,13 @@ function addMembersToWorkspace(
     // the effective role so the optimistic data and API params stay in sync.
     const {effectiveRole, optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins} = buildAddMembersToWorkspaceOnyxData(
         invitedEmailsToAccountIDs,
+        newPersonalDetailsOnyxData,
         policy,
         policyMemberAccountIDs,
         role,
-        formatPhoneNumber,
         currentUser,
-        approverEmail,
-        undefined,
         reportActionsList,
+        approverEmail,
     );
 
     const params: AddMembersToWorkspaceParams = {
@@ -993,7 +1033,7 @@ type PolicyMember = {
     overLimitForwardsTo?: string;
 };
 
-async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[]): Promise<ImportFinalModal> {
+async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[], shouldShowMemberRolePermissionWarning = false): Promise<ImportFinalModal> {
     if (!policy?.id) {
         Log.warn('importPolicyMembers called without a valid policy');
         return getImportFailedFinalModal();
@@ -1022,7 +1062,7 @@ async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMem
         },
         {added: 0, updated: 0},
     );
-    const importFinalModal = getImportMembersFinalModal(added, updated);
+    const importFinalModal = getImportMembersFinalModal(added, updated, shouldShowMemberRolePermissionWarning);
 
     const shouldUpdateApprovalMode = members.some((member) => !!member.submitsTo || !!member.forwardsTo || !!member.overLimitForwardsTo || !!member.approvalLimit) && isControlPolicy(policy);
 
@@ -1407,8 +1447,8 @@ function clearInviteDraft(policyID: string) {
     FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
 }
 
-function setImportedSpreadsheetMemberData(memberData: ImportedSpreadsheetMemberData[]) {
-    Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, memberData);
+function setImportedSpreadsheetMemberData(memberData: ImportedSpreadsheetMemberData[], shouldShowMemberRolePermissionWarning = false) {
+    return Promise.all([Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, memberData), Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {shouldShowMemberRolePermissionWarning})]);
 }
 
 function setImportedSpreadsheetMemberRole(role: ValueOf<typeof CONST.POLICY.ROLE>) {

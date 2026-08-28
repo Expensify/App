@@ -1,6 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -9,15 +6,25 @@ import RadioButton from '@components/RadioButton';
 import type {ExpenseReportListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import UserInfoAndActionButtonRow from '@components/Search/SearchList/ListItem/UserInfoAndActionButtonRow';
 import TransactionItemRow from '@components/TransactionItemRow';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+
 import variables from '@styles/variables';
+
 import {createTransactionThreadReport} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type DuplicateTransactionItemProps = {
     transaction: OnyxEntry<Transaction>;
@@ -37,6 +44,8 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const action = Object.values(reportActions ?? {})?.find((reportAction) => {
         const iouTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
@@ -64,12 +73,14 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
 
         const transactionThreadReport = createTransactionThreadReport({
             introSelected,
+            conciergeChat,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
             currentUserAccountID: currentUserPersonalDetails.accountID,
             betas,
             iouReport: report,
             iouReportAction: action,
             transaction,
+            personalDetails,
         });
         if (!transactionThreadReport?.reportID) {
             return;

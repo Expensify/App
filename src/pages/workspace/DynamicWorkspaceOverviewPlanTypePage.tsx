@@ -1,9 +1,5 @@
-import {format} from 'date-fns';
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -11,22 +7,36 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import OpenWorkspacePlanPage from '@libs/actions/Policy/Plan';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import CardSectionUtils from '@pages/settings/Subscription/CardSection/utils';
 import type {PersonalPolicyTypeExcludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
+
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {ValueOf} from 'type-fest';
+
+import {format} from 'date-fns';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
+import type {WithPolicyProps} from './withPolicy';
+
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicy from './withPolicy';
-import type {WithPolicyProps} from './withPolicy';
 
 type WorkspacePlanTypeItem = {
     value: ValueOf<typeof CONST.POLICY.TYPE>;
@@ -38,7 +48,7 @@ type WorkspacePlanTypeItem = {
 function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
     const [currentPlan, setCurrentPlan] = useState(policy?.type);
     const policyID = policy?.id;
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const privateSubscription = usePrivateSubscription();
@@ -80,7 +90,9 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
 
     const isControl = policy?.type === CONST.POLICY.TYPE.CORPORATE;
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
-    const autoRenewalDate = privateSubscription?.endDate ? format(privateSubscription.endDate, CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT) : CardSectionUtils.getNextBillingDate();
+    const autoRenewalDate = privateSubscription?.endDate
+        ? format(privateSubscription.endDate, CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT, {locale: dateFnsLocale})
+        : CardSectionUtils.getNextBillingDate(dateFnsLocale);
 
     /** If user has the annual Control plan and their first billing cycle is completed, they cannot downgrade the Workspace plan to Collect. */
     const isPlanTypeLocked = isControl && isAnnual && !policy.canDowngrade;
@@ -98,21 +110,21 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
         // still pick Team/Corporate. Route any selection from a Submit policy to the
         // upgrade screen — the polished Submit-specific upgrade UX ships in #87263.
         if (policyID && policy?.type === CONST.POLICY.TYPE.SUBMIT && (currentPlan === CONST.POLICY.TYPE.TEAM || currentPlan === CONST.POLICY.TYPE.CORPORATE)) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, undefined, undefined, currentPlan));
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, undefined, undefined, undefined, currentPlan));
             return;
         }
 
         if (policyID && policy?.type === CONST.POLICY.TYPE.TEAM && currentPlan === CONST.POLICY.TYPE.CORPORATE) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, undefined, undefined, currentPlan));
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, undefined, undefined, undefined, currentPlan));
             return;
         }
 
         if (policyID && policy?.type === CONST.POLICY.TYPE.CORPORATE && currentPlan === CONST.POLICY.TYPE.TEAM) {
             if (isSubscriptionTypeOfInvoicing(privateSubscription?.type)) {
-                Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SUBSCRIPTION_DOWNGRADE_BLOCKED.path));
                 return;
             }
-            Navigation.navigate(ROUTES.WORKSPACE_DOWNGRADE.getRoute(policyID));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_DOWNGRADE.path));
             return;
         }
 
@@ -134,10 +146,7 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                 <HeaderWithBackButton title={translate('workspace.common.planType')} />
                 {policy?.isLoading ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={{context: 'WorkspaceOverviewPlanTypePage'}}
-                        />
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                     </View>
                 ) : (
                     <>
@@ -174,12 +183,13 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                             addBottomSafeAreaPadding
                             footerContent={
                                 <Button
-                                    success
-                                    large
-                                    text={isPlanTypeLocked ? translate('common.buttonConfirm') : translate('common.save')}
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                    size={CONST.BUTTON_SIZE.LARGE}
                                     style={styles.mt6}
                                     onPress={handleUpdatePlan}
-                                />
+                                >
+                                    <Button.Text>{isPlanTypeLocked ? translate('common.buttonConfirm') : translate('common.save')}</Button.Text>
+                                </Button>
                             }
                         />
                     </>

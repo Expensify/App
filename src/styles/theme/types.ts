@@ -1,9 +1,11 @@
-import type {ValueOf} from 'type-fest';
 import type {NavBarButtonStyle} from '@libs/NavBarManager/types';
-import type CONST from '@src/CONST';
-import type {ColorScheme, StatusBarStyle} from '..';
 
-type Color = string;
+import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
+import type {ColorScheme, StatusBarStyle} from '..';
+import type {Color} from './colors';
 
 type ThemePreference = ValueOf<typeof CONST.THEME>;
 type ThemePreferenceWithoutSystem = Exclude<ThemePreference, typeof CONST.THEME.SYSTEM | typeof CONST.THEME.SYSTEM_CONTRAST>;
@@ -33,8 +35,11 @@ type ThemeColors = {
     syntax: Color;
     link: Color;
     linkHover: Color;
+    linkReversed: Color;
     buttonDefaultBG: Color;
     buttonHoveredBG: Color;
+    /** Hover background for buttons rendered on an inverse-colored surface (e.g. the growl notification). */
+    buttonHoveredBGReversed: Color;
     buttonPressedBG: Color;
     buttonSuccessText: Color;
     buttonDangerText: Color;
@@ -137,6 +142,9 @@ type ThemeColors = {
     navigationBarButtonsStyle: NavBarButtonStyle;
     translucentNavigationBarBackgroundColor: Color;
     colorScheme: ColorScheme;
+
+    /** Whether this is a high-contrast theme (light-contrast / dark-contrast). Used to underline links for WCAG 1.4.1. */
+    isHighContrast?: boolean;
 };
 
 export {type ThemePreferenceWithoutSystem, type ThemeColors, type Color};

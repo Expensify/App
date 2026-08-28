@@ -1,7 +1,10 @@
-import type {ValueOf} from 'type-fest';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+
+import type {ValueOf} from 'type-fest';
+
 import type {Errors, OnyxValueWithOfflineFeedback, PendingAction, PendingFields} from './OnyxCommon';
 
 /**
@@ -158,6 +161,11 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
      * List of original approvers in the workflow
      */
     originalApprovers: Approver[];
+
+    /**
+     * Email of the member whose workflow this edit session belongs to.
+     */
+    memberEmail?: string;
 
     /**
      * Whether the user is in the initial creation flow

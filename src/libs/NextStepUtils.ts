@@ -1,25 +1,22 @@
-import {addMonths, format, isPast, setDate} from 'date-fns';
-import {Str} from 'expensify-common';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {IntroSelected, Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
-import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import EmailUtils from './EmailUtils';
-import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
-import isTrackOnboardingChoice from './OnboardingUtils';
-import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
+
+import type {Locale as DateFnsLocale} from 'date-fns';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
+import {Str} from 'expensify-common';
+
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
+import {getOriginalMessage, isDynamicExternalWorkflowApproveFailedAction} from './ReportActionsUtils';
 import {
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
-    getPersonalDetailsForAccountID,
     isExpenseReport,
     isInvoiceReport,
     isOpenExpenseReport,
@@ -28,15 +25,6 @@ import {
     shouldShowMarkAsDone,
 } from './ReportUtils';
 import {hasSubmissionBlockingViolations} from './TransactionUtils';
-
-let introSelected: OnyxEntry<IntroSelected>;
-// eslint-disable-next-line rulesdir/no-onyx-connect -- NextStepUtils is a pure utility called from action files that cannot use hooks
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (value) => {
-        introSelected = value;
-    },
-});
 
 type BuildNextStepNewParams = {
     report: OnyxEntry<Report>;
@@ -55,11 +43,29 @@ type BuildNextStepNewParams = {
      * This is necessary in the case where report actions are not yet updated to determine the bypass action.
      */
     bypassNextApproverID?: number;
+    isTrackIntentUser: boolean | undefined;
+    translate?: LocaleContextProps['translate'];
 };
 
-function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContextProps['translate'], currentUserAccountID: number): string {
+type GetReportNextStepParams = {
+    moneyRequestReport: OnyxEntry<Report>;
+    moneyRequestReportOwnerLogin: string | undefined;
+    transactions: Array<OnyxEntry<Transaction>>;
+    policy: OnyxEntry<Policy>;
+    transactionViolations: OnyxCollection<TransactionViolations>;
+    currentUserEmail: string;
+    currentUserAccountID: number;
+};
+
+function buildNextStepMessage(
+    nextStep: ReportNextStep,
+    translate: LocaleContextProps['translate'],
+    dateFnsLocale: DateFnsLocale | undefined,
+    currentUserAccountID: number,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): string {
     // Escape actor name to prevent HTML injection since this will be rendered as HTML
-    const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '');
+    const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber, translate}) ?? '');
     let actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
     if (nextStep.actorAccountID === currentUserAccountID) {
         actorType = CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER;
@@ -76,11 +82,19 @@ function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContext
         etaType = CONST.NEXT_STEP.ETA_TYPE.KEY;
     } else if (nextStep.eta?.dateTime) {
         const formatString = nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT ? CONST.DATE.ORDINAL_DAY_OF_MONTH : CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY;
-        eta = format(new Date(nextStep.eta.dateTime), formatString);
+        // `eta.dateTime` is a date-only string (yyyy-MM-dd). Native `new Date(...)` parses it as UTC midnight,
+        // which shifts the day back by one when formatted in a UTC-negative timezone. `parseISO` parses it as
+        // local midnight so the rendered day matches the day set in the workspace settings.
+        eta = format(parseISO(nextStep.eta.dateTime), formatString, {locale: dateFnsLocale});
         etaType = CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
     }
 
-    return `<next-step>${translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType)}</next-step>`;
+    const requiredDepositCurrency = nextStep.requiredDepositCurrency ? Str.htmlEncode(nextStep.requiredDepositCurrency) : undefined;
+    const message =
+        nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT
+            ? translate('nextStep.message.waitingForSubmitterAccount', actor, actorType, eta, etaType, requiredDepositCurrency)
+            : translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType);
+    return `<next-step>${message}</next-step>`;
 }
 
 function doesReportContainTransactions(report: OnyxEntry<Report>): boolean {
@@ -101,6 +115,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
         isReopen,
         isRejectedReport: isRejectedReportParam,
         bypassNextApproverID,
+        isTrackIntentUser,
     } = params;
 
     if (!isExpenseReport(report)) {
@@ -114,7 +129,6 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
     const hasTransactions = doesReportContainTransactions(report);
     const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, isUnapprove);
     const reimburserAccountID = getReimburserAccountID(policy);
-    const hasValidAccount = !!policy?.achAccount?.accountNumber || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     const nextStepFixOrPayExpense: ReportNextStep = {
@@ -152,7 +166,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             }
             if (isReopen) {
                 nextStep = {
-                    messageKey: shouldShowMarkAsDone({isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice), report, policy})
+                    messageKey: shouldShowMarkAsDone({isTrackIntentUser, report, policy})
                         ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE
                         : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -216,7 +230,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             if (hasTransactions && !policy?.harvesting?.enabled) {
                 nextStep = {
                     messageKey: shouldShowMarkAsDone({
-                        isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
+                        isTrackIntentUser,
                         report,
                         policy,
                     })
@@ -273,7 +287,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
 
             // Self review
             nextStep = {
-                messageKey: hasValidAccount ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT,
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                 actorAccountID: reimburserAccountID,
             };
@@ -287,71 +301,11 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
     return nextStep;
 }
 
-function parseMessage(messages: Message[] | undefined, currentUserEmail: string) {
-    let nextStepHTML = '';
-    if (messages) {
-        for (const [index, part] of messages.entries()) {
-            const isEmail = Str.isValidEmail(part.text);
-            let tagType = part.type ?? 'span';
-            let content = Str.safeEscape(part.text);
-
-            const previousPart = index !== 0 ? messages.at(index - 1) : undefined;
-            const nextPart = messages.at(index + 1);
-
-            if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
-                content = nextPart?.text === `'s` ? 'your' : 'you';
-                tagType = content === 'your' ? 'span' : 'strong';
-            } else if (part.text === `'s` && (previousPart?.text === currentUserEmail || previousPart?.clickToCopyText === currentUserEmail)) {
-                content = '';
-            } else if (isEmail) {
-                tagType = 'next-step-email';
-                content = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(content);
-            }
-
-            nextStepHTML += `<${tagType}>${content}</${tagType}>`;
-        }
-    }
-
-    const formattedHtml = nextStepHTML.replaceAll('%expenses', 'expenses').replaceAll('%Expenses', 'Expenses').replaceAll('%tobe', 'are');
-
-    return `<next-step>${formattedHtml}</next-step>`;
-}
-
-/**
- * @private
- */
-function getNextApproverDisplayName(report: OnyxEntry<Report>, isUnapprove?: boolean) {
-    const approverAccountID = getNextApproverAccountID(report, isUnapprove);
-
-    return getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? getPersonalDetailsForAccountID(approverAccountID).login;
-}
-
-function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
-    const optimisticNextStep: ReportNextStepDeprecated = {
-        type: 'alert',
+function buildOptimisticNextStepForPreventSelfApprovalsEnabled(): ReportNextStep {
+    return {
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF,
         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-        message: [
-            {
-                text: "Oops! Looks like you're submitting to ",
-            },
-            {
-                text: 'yourself',
-                type: 'next-step-email',
-            },
-            {
-                text: '. Approving your own reports is ',
-            },
-            {
-                text: 'forbidden',
-                type: 'next-step-email',
-            },
-            {
-                text: ' by your workspace. Please submit this report to someone else or contact your admin to change the person you submit to.',
-            },
-        ],
     };
-
-    return optimisticNextStep;
 }
 
 function buildOptimisticFixIssueNextStep(ownerAccountID: number): ReportNextStep {
@@ -362,29 +316,7 @@ function buildOptimisticFixIssueNextStep(ownerAccountID: number): ReportNextStep
     };
 }
 
-function buildOptimisticNextStepForStrictPolicyRuleViolations() {
-    const optimisticNextStep: ReportNextStepDeprecated = {
-        type: 'alert',
-        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-        message: [
-            {
-                text: 'Waiting for you to fix the issues. Your admins have restricted submission of expenses with violations.',
-            },
-        ],
-    };
-
-    return optimisticNextStep;
-}
-
-function getReportNextStep(
-    currentNextStep: ReportNextStepDeprecated | undefined,
-    moneyRequestReport: OnyxEntry<Report>,
-    transactions: Array<OnyxEntry<Transaction>>,
-    policy: OnyxEntry<Policy>,
-    transactionViolations: OnyxCollection<TransactionViolations>,
-    currentUserEmail: string,
-    currentUserAccountID: number,
-) {
+function getReportNextStep({moneyRequestReport, moneyRequestReportOwnerLogin, transactions, policy, transactionViolations, currentUserEmail, currentUserAccountID}: GetReportNextStepParams) {
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
     const shouldShowNoFurtherAction =
         reimbursableSpend === 0 &&
@@ -395,7 +327,9 @@ function getReportNextStep(
         isOpenExpenseReport(moneyRequestReport) &&
         transactions.length > 0 &&
         transactions.every(
-            (transaction) => !!transaction && hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, policy),
+            (transaction) =>
+                !!transaction &&
+                hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, moneyRequestReportOwnerLogin, policy),
         )
     ) {
         // eslint-disable-next-line rulesdir/no-default-id-values -- actorAccountID can be -1 for unspecified owner
@@ -410,464 +344,34 @@ function getReportNextStep(
     }
 
     if (shouldShowNoFurtherAction) {
-        return buildNextStepNew({
-            report: moneyRequestReport,
-            policy,
-            currentUserAccountIDParam: currentUserAccountID,
-            currentUserEmailParam: currentUserEmail,
-            hasViolations: false,
-            isASAPSubmitBetaEnabled: false,
-            predictedNextStatus: moneyRequestReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
-        });
+        return {
+            messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+            icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+        };
     }
 
-    return currentNextStep;
-}
-function buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(iconFill?: string) {
-    const optimisticNextStep: ReportNextStepDeprecated = {
-        type: 'alert',
-        icon: CONST.NEXT_STEP.ICONS.DOT_INDICATOR,
-        iconFill,
-        message: [
-            {
-                text: "This report can't be submitted. Please review the comments to resolve.",
-                type: 'alert-text',
-            },
-        ],
-    };
-
-    return optimisticNextStep;
-}
-
-function buildOptimisticNextStepForDynamicExternalWorkflowApproveError(iconFill?: string) {
-    const optimisticNextStep: ReportNextStepDeprecated = {
-        type: 'alert',
-        icon: CONST.NEXT_STEP.ICONS.DOT_INDICATOR,
-        iconFill,
-        message: [
-            {
-                text: "This report can't be approved. Please review the comments to resolve.",
-                type: 'alert-text',
-            },
-        ],
-    };
-
-    return optimisticNextStep;
-}
-
-function buildOptimisticNextStepForDEWOffline() {
-    const optimisticNextStep: ReportNextStepDeprecated = {
-        type: 'neutral',
-        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-        message: [
-            {
-                text: 'Waiting for you to come back online to determine next steps.',
-            },
-        ],
-    };
-
-    return optimisticNextStep;
+    return moneyRequestReport?.nextStep;
 }
 
 /**
- * Generates an optimistic nextStep based on a current report status and other properties.
- * Need to rename this function and remove the buildNextStep function above after migrating to this function
- * @deprecated This function will be removed soon. You should still use it though but also use buildOptimisticNextStep in parallel.
+ * Whether to show the DEW approve-error next step.
+ * Only manual approve failures (`automaticAction` false/absent) for the current approver should show it.
+ * Auto-approval blocks keep the normal workflow next step.
  */
-function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDeprecated | null {
-    const {
-        report,
-        policy,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        predictedNextStatus,
-        shouldFixViolations,
-        isUnapprove,
-        isReopen,
-        isRejectedReport,
-        bypassNextApproverID,
-    } = params;
-
-    if (!isExpenseReport(report)) {
-        return null;
+function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: OnyxEntry<ReportAction>, hasDEWApproveFailed: boolean, isCurrentUserTheApprover: boolean): boolean {
+    if (!hasDEWApproveFailed || !isCurrentUserTheApprover || !isDynamicExternalWorkflowApproveFailedAction(reportAction)) {
+        return false;
     }
 
-    const {ownerAccountID = -1} = report ?? {};
-    const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
-    const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
-    const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
-    const [policyOwnerPersonalDetails, ownerPersonalDetails] = getPersonalDetailsByIDs({
-        accountIDs: [policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, ownerAccountID],
-        currentUserAccountID: currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID,
-        shouldChangeUserDisplayName: true,
-    });
-    const hasTransactions = doesReportContainTransactions(report);
-    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
-
-    const ownerDisplayName =
-        ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
-    const policyOwnerDisplayName =
-        policyOwnerPersonalDetails?.displayName ??
-        policyOwnerPersonalDetails?.login ??
-        getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
-    const nextApproverDisplayName = bypassNextApproverID
-        ? (getDisplayNameForParticipant({accountID: bypassNextApproverID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? getPersonalDetailsForAccountID(bypassNextApproverID).login)
-        : getNextApproverDisplayName(report, isUnapprove);
-    const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, isUnapprove);
-    const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
-
-    const reimburserAccountID = getReimburserAccountID(policy);
-    const type: ReportNextStepDeprecated['type'] = 'neutral';
-    let optimisticNextStep: ReportNextStepDeprecated | null;
-
-    const nextStepPayExpense = {
-        type,
-        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-        message: [
-            {
-                text: 'Waiting for ',
-            },
-            ownerAccountID === -1 || !policy?.ownerAccountID
-                ? {
-                      text: 'an admin',
-                  }
-                : {
-                      text: shouldShowFixMessage ? ownerDisplayName : policyOwnerDisplayName,
-                      type: 'strong',
-                      clickToCopyText: (shouldShowFixMessage ? ownerAccountID : policy?.ownerAccountID) === currentUserAccountIDParam ? (currentUserEmailParam ?? '') : '',
-                  },
-            {
-                text: ' to ',
-            },
-            ...(shouldShowFixMessage ? [{text: 'fix the issues'}] : [{text: 'pay'}, {text: ' %expenses.'}]),
-        ],
-    };
-
-    const noActionRequired = {
-        icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
-        type,
-        message: [
-            {
-                text: 'No further action required!',
-            },
-        ],
-    };
-
-    switch (predictedNextStatus) {
-        // Generates an optimistic nextStep once a report has been opened
-        case CONST.REPORT.STATUS_NUM.OPEN:
-            {
-                const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice), report, policy});
-
-                if (isRejectedReport) {
-                    optimisticNextStep = {
-                        type,
-                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                        message: [
-                            {
-                                text: 'This report was rejected. Waiting on ',
-                            },
-                            {
-                                text: `${ownerDisplayName}`,
-                                type: 'strong',
-                                clickToCopyText: ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
-                            },
-                            {
-                                text: ' to fix the issues and manually resubmit.',
-                            },
-                        ],
-                    };
-                    break;
-                }
-                if ((isASAPSubmitBetaEnabled && hasViolations && isInstantSubmitEnabled) || shouldFixViolations) {
-                    optimisticNextStep = {
-                        type,
-                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                        message: [
-                            {
-                                text: 'Waiting for ',
-                            },
-                            {
-                                text: `${ownerDisplayName}`,
-                                type: 'strong',
-                                clickToCopyText: ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
-                            },
-                            {
-                                text: ' to ',
-                            },
-                            {
-                                text: 'fix the issues',
-                            },
-                        ],
-                    };
-                    break;
-                }
-                if (isReopen) {
-                    optimisticNextStep = {
-                        type,
-                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                        message: [
-                            {
-                                text: 'Waiting for ',
-                            },
-                            {
-                                text: `${ownerDisplayName}`,
-                                type: 'strong',
-                                clickToCopyText: ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
-                            },
-                            {
-                                text: ' to ',
-                            },
-                            {
-                                text: shouldShowMarkAsDoneCopy ? 'mark this as done' : 'submit',
-                            },
-                            {
-                                text: shouldShowMarkAsDoneCopy ? '.' : ' %expenses.',
-                            },
-                        ],
-                    };
-                    break;
-                }
-
-                // Self review
-                let actionText = 'add';
-                if (hasTransactions) {
-                    actionText = shouldShowMarkAsDoneCopy ? 'mark this as done' : 'submit';
-                }
-                optimisticNextStep = {
-                    type,
-                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                    message: [
-                        {
-                            text: 'Waiting for ',
-                        },
-                        {
-                            text: `${ownerDisplayName}`,
-                            type: 'strong',
-                            clickToCopyText: ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
-                        },
-                        {
-                            text: ' to ',
-                        },
-                        {
-                            text: actionText,
-                        },
-                        {
-                            text: hasTransactions && shouldShowMarkAsDoneCopy ? '.' : ' %expenses.',
-                        },
-                    ],
-                };
-
-                // Scheduled submit enabled
-                if (policy?.harvesting?.enabled && hasTransactions) {
-                    optimisticNextStep.message = [
-                        {
-                            text: 'Waiting for ',
-                        },
-                        {
-                            text: `${ownerDisplayName}`,
-                            type: 'strong',
-                            clickToCopyText: ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
-                        },
-                        {
-                            text: `'s`,
-                            type: 'strong',
-                        },
-                        {
-                            text: ' %expenses to automatically submit',
-                        },
-                    ];
-                    let harvestingSuffix = '';
-
-                    if (autoReportingFrequency) {
-                        const currentDate = new Date();
-                        let autoSubmissionDate = '';
-                        let monthlyText = '';
-
-                        if (policy?.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
-                            monthlyText = 'on the last day of the month';
-                        } else if (policy?.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
-                            monthlyText = 'on the last business day of the month';
-                        } else if (policy?.autoReportingOffset !== undefined) {
-                            autoSubmissionDate = format(setDate(currentDate, policy?.autoReportingOffset), CONST.DATE.ORDINAL_DAY_OF_MONTH);
-                        }
-
-                        const harvestingSuffixes: Record<DeepValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, string> = {
-                            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: 'later today',
-                            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: 'on Sunday',
-                            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: 'on the 1st and 16th of each month',
-                            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: autoSubmissionDate ? `on the ${autoSubmissionDate} of each month` : monthlyText,
-                            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'at the end of their trip',
-                            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: '',
-                            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: '',
-                        };
-
-                        if (harvestingSuffixes[autoReportingFrequency]) {
-                            harvestingSuffix = `${harvestingSuffixes[autoReportingFrequency]}`;
-                        }
-                    }
-
-                    optimisticNextStep.message.push({
-                        text: ` ${harvestingSuffix}`,
-                    });
-                }
-
-                // Manual submission
-                if (hasTransactions && !policy?.harvesting?.enabled) {
-                    optimisticNextStep.message = [
-                        {
-                            text: 'Waiting for ',
-                        },
-                        {
-                            text: `${ownerDisplayName}`,
-                            type: 'strong',
-                            clickToCopyText: ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
-                        },
-                        {
-                            text: ' to ',
-                        },
-                        {
-                            text: shouldShowMarkAsDoneCopy ? 'mark this as done' : 'submit',
-                        },
-                        {
-                            text: shouldShowMarkAsDoneCopy ? '.' : ' %expenses.',
-                        },
-                    ];
-                }
-            }
-            break;
-
-        // Generates an optimistic nextStep once a report has been submitted
-        case CONST.REPORT.STATUS_NUM.SUBMITTED: {
-            if (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
-                optimisticNextStep = reimbursableSpend === 0 ? noActionRequired : nextStepPayExpense;
-                break;
-            }
-            // Another owner
-            optimisticNextStep = {
-                type,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-            };
-            // We want to show pending approval next step for cases where the policy has approvals enabled
-            const policyApprovalMode = getApprovalWorkflow(policy);
-            if ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policyApprovalMode)) {
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: nextApproverDisplayName,
-                        type: 'strong',
-                        clickToCopyText: approvers.at(0),
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'approve',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
-            } else {
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    isPayer(currentUserAccountIDParam, currentUserEmailParam, report, undefined)
-                        ? {
-                              text: `you`,
-                              type: 'strong',
-                          }
-                        : {
-                              text: `an admin`,
-                          },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'pay',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
-            }
-
-            break;
-        }
-
-        // Generates an optimistic nextStep once a report has been closed for example in the case of Submit and Close approval flow
-        case CONST.REPORT.STATUS_NUM.CLOSED:
-            optimisticNextStep = noActionRequired;
-
-            break;
-
-        // Generates an optimistic nextStep once a report has been paid
-        case CONST.REPORT.STATUS_NUM.REIMBURSED:
-            optimisticNextStep = noActionRequired;
-
-            break;
-
-        // Generates an optimistic nextStep once a report has been approved
-        case CONST.REPORT.STATUS_NUM.APPROVED: {
-            if (isInvoiceReport(report) || !isPayer(currentUserAccountIDParam, currentUserEmailParam, report, undefined) || reimbursableSpend === 0) {
-                optimisticNextStep = noActionRequired;
-
-                break;
-            }
-            // Self review
-            let payerMessage: Message;
-            if (isPayer(currentUserAccountIDParam, currentUserEmailParam, report, undefined)) {
-                payerMessage = {text: 'you', type: 'strong'};
-            } else if (reimburserAccountID === -1) {
-                payerMessage = {text: 'an admin'};
-            } else {
-                payerMessage = {text: getDisplayNameForParticipant({accountID: reimburserAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}), type: 'strong'};
-            }
-
-            optimisticNextStep = {
-                type,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    payerMessage,
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'pay',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ],
-            };
-            break;
-        }
-
-        // Resets a nextStep
-        default:
-            optimisticNextStep = null;
-    }
-
-    return optimisticNextStep;
+    const {automaticAction} = getOriginalMessage(reportAction) ?? {};
+    return !automaticAction;
 }
 
 export {
     getReportNextStep,
     buildNextStepMessage,
     buildOptimisticNextStep,
-    parseMessage,
-    buildOptimisticNextStepForStrictPolicyRuleViolations,
-    buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
-    buildOptimisticNextStepForDynamicExternalWorkflowApproveError,
-    buildOptimisticNextStepForDEWOffline,
+    buildOptimisticFixIssueNextStep,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
-    buildNextStepNew,
+    shouldShowDynamicExternalWorkflowApproveErrorNextStep,
 };

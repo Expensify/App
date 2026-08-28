@@ -1,13 +1,13 @@
 import {fireEvent, screen} from '@testing-library/react-native';
-import {Str} from 'expensify-common';
-import {Linking} from 'react-native';
-import Onyx from 'react-native-onyx';
-import type {ConnectOptions, OnyxEntry, OnyxKey} from 'react-native-onyx/dist/types';
+
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
+import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate} from '@libs/Localize';
+import {format as formatNumber} from '@libs/NumberFormatUtils';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -16,12 +16,24 @@ import * as Session from '@src/libs/actions/Session';
 import HttpUtils from '@src/libs/HttpUtils';
 import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import appSetup from '@src/setup';
-import type {Response as OnyxResponse, PersonalDetails, Report, StripeCustomerID} from '@src/types/onyx';
+import type {CurrencyList, Response as OnyxResponse, PersonalDetails, Report, StripeCustomerID} from '@src/types/onyx';
+import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {ConnectOptions, OnyxEntry, OnyxKey} from 'react-native-onyx/dist/types';
+
+import {Str} from 'expensify-common';
+import {Linking} from 'react-native';
+import Onyx from 'react-native-onyx';
+
+import currencyListFixture from '../unit/currencyList.json';
+import createMock from './createMock';
+import {isObject} from './typeGuards';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
-type MockFetch = jest.MockedFn<typeof fetch> & {
+type MockFetch = jest.Mock<ReturnType<typeof fetch>, Parameters<typeof fetch>> & {
     pause: () => void;
     fail: () => void;
     succeed: () => void;
@@ -31,10 +43,20 @@ type MockFetch = jest.MockedFn<typeof fetch> & {
 
 type ConnectionCallback<TKey extends OnyxKey> = NonNullable<ConnectOptions<TKey>['callback']>;
 type ConnectionCallbackParams<TKey extends OnyxKey> = Parameters<ConnectionCallback<TKey>>;
+type APIWriteOnyxData = OnyxData<OnyxKey>;
+type APIWriteDataType = keyof Pick<APIWriteOnyxData, 'failureData' | 'optimisticData' | 'successData'>;
+type ProductionAPIWriteOnyxUpdate = NonNullable<APIWriteOnyxData[APIWriteDataType]>[number];
+type APIWriteOnyxKey = Extract<ProductionAPIWriteOnyxUpdate['key'], string>;
+type APIWriteOnyxUpdate<TKey extends string = APIWriteOnyxKey> = {
+    key: TKey;
+    onyxMethod: ProductionAPIWriteOnyxUpdate['onyxMethod'];
+    value?: unknown;
+};
+type APIWriteOnyxUpdateWithObjectValue<TKey extends string = APIWriteOnyxKey> = Omit<APIWriteOnyxUpdate<TKey>, 'value'> & {value: Record<PropertyKey, unknown>};
 
 type QueueItem = {
-    resolve: (value: Partial<Response> | PromiseLike<Partial<Response>>) => void;
-    input: RequestInfo;
+    resolve: (value: Response | PromiseLike<Response>) => void;
+    input: Parameters<typeof fetch>[0];
     options?: RequestInit;
 };
 
@@ -53,9 +75,17 @@ const STRIPE_CUSTOMER_ID: OnyxEntry<StripeCustomerID> = {
     status: 'authentication_required',
 };
 
-function setupApp() {
+const anyArray: unknown = expect.any(Array);
+const anyObject: unknown = expect.any(Object);
+const anyString: unknown = expect.any(String);
+
+/**
+ * Boots the app on the Inbox by default, since most tests rely on the reports sidebar.
+ * Pass `initialUrl` when the test needs a different screen, e.g. `https://new.expensify.com/` for Home.
+ */
+function setupApp(initialUrl = `https://new.expensify.com/${ROUTES.INBOX}`) {
     beforeAll(() => {
-        Linking.setInitialURL('https://new.expensify.com/');
+        Linking.setInitialURL(initialUrl);
         appSetup();
 
         // Connect to Pusher
@@ -89,11 +119,76 @@ function getOnyxData<TKey extends OnyxKey>(options: ConnectOptions<TKey>) {
             ...options,
             callback: (...params: ConnectionCallbackParams<TKey>) => {
                 Onyx.disconnect(connectionID);
-                (options.callback as (...args: ConnectionCallbackParams<TKey>) => void)?.(...params);
+                options.callback?.(...params);
                 resolve();
             },
         });
     });
+}
+
+function getRequiredWriteCall(calls: unknown, callIndex = -1): [unknown, Record<PropertyKey, unknown>, Record<PropertyKey, unknown>] {
+    if (!Array.isArray(calls)) {
+        throw new Error('Expected API.write mock calls.');
+    }
+
+    const call: unknown = calls.at(callIndex);
+    if (!Array.isArray(call)) {
+        throw new Error(`Expected API.write call ${callIndex}.`);
+    }
+
+    const parameters: unknown = call.at(1);
+    const onyxData: unknown = call.at(2);
+    if (!isObject(parameters) || !isObject(onyxData)) {
+        throw new Error(`Expected API.write call ${callIndex} to include parameters and Onyx data.`);
+    }
+
+    return [call.at(0), parameters, onyxData];
+}
+
+function getRequiredOnyxUpdates(onyxData: Record<PropertyKey, unknown>, dataType: APIWriteDataType): unknown[] {
+    const updates = onyxData[dataType];
+    if (!Array.isArray(updates)) {
+        throw new Error(`Expected API.write Onyx data to include ${dataType}.`);
+    }
+    return updates;
+}
+
+function isMatchingOnyxUpdate<TKey extends string>(candidate: unknown, key: TKey, onyxMethod: APIWriteOnyxUpdate['onyxMethod']): candidate is APIWriteOnyxUpdate<TKey> {
+    return isObject(candidate) && candidate.key === key && candidate.onyxMethod === onyxMethod;
+}
+
+function getRequiredOnyxUpdate<TKey extends string>(
+    onyxData: Record<PropertyKey, unknown>,
+    dataType: APIWriteDataType,
+    key: TKey,
+    onyxMethod: APIWriteOnyxUpdate['onyxMethod'],
+    requireObjectValue: true,
+): APIWriteOnyxUpdateWithObjectValue<TKey>;
+function getRequiredOnyxUpdate<TKey extends string>(
+    onyxData: Record<PropertyKey, unknown>,
+    dataType: APIWriteDataType,
+    key: TKey,
+    onyxMethod: APIWriteOnyxUpdate['onyxMethod'],
+    requireObjectValue?: false,
+): APIWriteOnyxUpdate<TKey>;
+function getRequiredOnyxUpdate<TKey extends string>(
+    onyxData: Record<PropertyKey, unknown>,
+    dataType: APIWriteDataType,
+    key: TKey,
+    onyxMethod: APIWriteOnyxUpdate['onyxMethod'],
+    requireObjectValue = false,
+): APIWriteOnyxUpdate<TKey> {
+    const update = getRequiredOnyxUpdates(onyxData, dataType).find((candidate) => isMatchingOnyxUpdate(candidate, key, onyxMethod));
+    if (!update) {
+        throw new Error(`Expected API.write ${dataType} to include a ${onyxMethod} update for ${key}.`);
+    }
+
+    const value: unknown = update.value;
+    if (requireObjectValue && !isObject(value)) {
+        throw new Error(`Expected API.write ${dataType} update for ${key} to include an object value.`);
+    }
+
+    return update;
 }
 
 /**
@@ -187,7 +282,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                 // Return a Promise that resolves with the mocked response
                 return Promise.resolve(mockedResponse);
             });
-            Session.signIn(password, undefined);
+            Session.signIn(password, undefined, undefined, login, undefined);
             return waitForBatchedUpdates();
         })
         .then(() => {
@@ -224,13 +319,13 @@ function createGlobalFetchMock(mockResponse?: Partial<Response>): MockFetch {
     let isPaused = false;
     let shouldFail = false;
 
-    const getResponse = (input: RequestInfo, options?: RequestInit): Partial<Response> =>
+    const getResponse = (input: Parameters<typeof fetch>[0], options?: RequestInit): Response =>
         shouldFail
-            ? {
+            ? createMock<Response>({
                   ok: true,
                   json: () => Promise.resolve({jsonCode: 400}),
-              }
-            : {
+              })
+            : createMock<Response>({
                   ok: true,
                   json: async () => {
                       const commandMatch = typeof input === 'string' ? input.match(/https:\/\/www.expensify.com.dev\/api\/(\w+)\?/) : null;
@@ -245,16 +340,34 @@ function createGlobalFetchMock(mockResponse?: Partial<Response>): MockFetch {
                       return Promise.resolve({jsonCode: 200});
                   },
                   ...mockResponse,
-              };
+              });
 
-    const mockFetch = jest.fn().mockImplementation((input: RequestInfo, options?: RequestInit) => {
-        if (!isPaused) {
-            return Promise.resolve(getResponse(input, options));
-        }
-        return new Promise((resolve) => {
-            queue.push({resolve, input, options});
-        });
-    }) as MockFetch;
+    const mockFetch = Object.assign(
+        jest.fn<ReturnType<typeof fetch>, Parameters<typeof fetch>>().mockImplementation((input: Parameters<typeof fetch>[0], options: Parameters<typeof fetch>[1]) => {
+            if (!isPaused) {
+                return Promise.resolve(getResponse(input, options));
+            }
+            return new Promise<Response>((resolve) => {
+                queue.push({resolve, input, options});
+            });
+        }),
+        {
+            pause: () => (isPaused = true),
+            resume: () => {
+                isPaused = false;
+                for (const {resolve, input} of queue) {
+                    resolve(getResponse(input));
+                }
+                return waitForBatchedUpdates();
+            },
+            fail: () => (shouldFail = true),
+            succeed: () => (shouldFail = false),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            mockAPICommand: <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse<any>): void => {
+                responses.set(command, responseHandler);
+            },
+        },
+    );
 
     const baseMockReset = mockFetch.mockReset.bind(mockFetch);
     mockFetch.mockReset = () => {
@@ -266,24 +379,10 @@ function createGlobalFetchMock(mockResponse?: Partial<Response>): MockFetch {
         return mockFetch;
     };
 
-    mockFetch.pause = () => (isPaused = true);
-    mockFetch.resume = () => {
-        isPaused = false;
-        for (const {resolve, input} of queue) {
-            resolve(getResponse(input));
-        }
-        return waitForBatchedUpdates();
-    };
-    mockFetch.fail = () => (shouldFail = true);
-    mockFetch.succeed = () => (shouldFail = false);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mockFetch.mockAPICommand = <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse<any>): void => {
-        responses.set(command, responseHandler);
-    };
     return mockFetch;
 }
 
-function getGlobalFetchMock(mockResponse?: Partial<Response>): typeof fetch {
+function getGlobalFetchMock(mockResponse?: Partial<Response>): MockFetch {
     return createGlobalFetchMock(mockResponse);
 }
 
@@ -291,17 +390,20 @@ function setupGlobalFetchMock(): MockFetch {
     const mockFetch = getGlobalFetchMock();
     const originalFetch = global.fetch;
 
-    global.fetch = mockFetch as unknown as typeof global.fetch;
+    global.fetch = mockFetch;
 
     afterAll(() => {
         global.fetch = originalFetch;
     });
 
-    return mockFetch as MockFetch;
+    return mockFetch;
 }
 
 function getFetchMockCalls(commandName: ApiCommand) {
-    return (global.fetch as MockFetch).mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${commandName}?`);
+    if (!jest.isMockFunction(global.fetch)) {
+        throw new Error('Expected global.fetch to be a Jest mock function.');
+    }
+    return jest.mocked(global.fetch).mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${commandName}?`);
 }
 
 /**
@@ -317,7 +419,7 @@ function expectAPICommandToHaveBeenCalled(commandName: ApiCommand, expectedCalls
 function expectAPICommandToHaveBeenCalledWith<TCommand extends ApiCommand>(commandName: TCommand, callIndex: number, expectedParams: ApiRequestCommandParameters[TCommand]) {
     const call = getFetchMockCalls(commandName).at(callIndex);
     expect(call).toBeTruthy();
-    const body = (call?.at(1) as RequestInit)?.body;
+    const body = call?.[1]?.body;
     const params = body instanceof FormData ? Object.fromEntries(body) : {};
     expect(params).toEqual(expect.objectContaining(expectedParams));
 }
@@ -366,6 +468,43 @@ function translateLocal<TPath extends TranslationPaths>(phrase: TPath, ...parame
     return translate(currentLocale, phrase, ...parameters);
 }
 
+// Static currency list fixture — the same one initCurrencyListContext seeds into Onyx — so the
+// local helpers below resolve real per-currency decimals without depending on Onyx state.
+const testCurrencyList = currencyListFixture as CurrencyList;
+
+/**
+ * A local version of useCurrencyListActions().getCurrencyDecimals for tests that call lib
+ * functions directly and need to inject the decimals resolver without the full app context.
+ */
+function getCurrencyDecimalsLocal(currencyCode: string | undefined): number {
+    return testCurrencyList?.[currencyCode ?? '']?.decimals ?? CONST.DEFAULT_CURRENCY_DECIMALS;
+}
+
+/**
+ * A local version of useCurrencyListActions().getCurrencySymbol for tests that call lib
+ * functions directly and need to inject the symbol resolver without the full app context.
+ */
+function getCurrencySymbolLocal(currencyCode: string | undefined): string | undefined {
+    return testCurrencyList?.[currencyCode ?? '']?.symbol;
+}
+
+/**
+ * A local version of useCurrencyListActions().convertToDisplayString for tests that call lib
+ * functions directly and need to inject the currency formatter without the full app context.
+ * Mirrors the implementation in CurrencyListContextProvider, pinned to the `en` locale.
+ */
+function convertToDisplayString(amountInCents: number | undefined, currencyCode: string | undefined): string {
+    const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
+    const decimals = getCurrencyDecimalsLocal(sanitizedCurrency);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents ?? 0, decimals);
+    return formatNumber(CONST.LOCALES.EN, convertedAmount, {
+        style: 'currency',
+        currency: sanitizedCurrency,
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: 2,
+    });
+}
+
 function getNavigateToChatHintRegex(): RegExp {
     const hintTextPrefix = translateLocal('accessibilityHints.navigatesToChat');
     return new RegExp(hintTextPrefix, 'i');
@@ -390,15 +529,24 @@ function localeCompare(a: string, b: string): number {
     return customCollator.compare(a, b);
 }
 
-export type {MockFetch, FormData};
+export type {MockFetch};
 export {
+    anyArray,
+    anyObject,
+    anyString,
     translateLocal,
+    convertToDisplayString,
+    getCurrencyDecimalsLocal,
+    getCurrencySymbolLocal,
     assertFormDataMatchesObject,
     buildPersonalDetails,
     buildTestReportComment,
     getFetchMockCalls,
     getGlobalFetchMock,
     createGlobalFetchMock,
+    getRequiredOnyxUpdate,
+    getRequiredOnyxUpdates,
+    getRequiredWriteCall,
     setPersonalDetails,
     signInWithTestUser,
     signOutTestUser,

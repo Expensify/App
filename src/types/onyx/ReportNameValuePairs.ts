@@ -1,7 +1,9 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+
+import type {ValueOf} from 'type-fest';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /**

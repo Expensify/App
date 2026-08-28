@@ -1,13 +1,13 @@
 ---
 title: How to Export Reports
-description: Learn how to export reports to CSV or download them as PDFs.
-keywords: [New Expensify, export reports, CSV export, PDF download, download report, report export template, bulk export reports, report data]
-internalScope: Audience is all members. Covers exporting reports to CSV using export templates (individually and in bulk), and downloading individual reports as PDF. Does not cover exporting individual expenses from the Expenses page (see Export-Expenses.md), exporting to an accounting integration, or company card reconciliation.
+description: Learn how to export reports to CSV, download them as PDFs, or download their receipts.
+keywords: [New Expensify, export reports, CSV export, PDF download, download report, download receipts, download receipts for multiple reports, report receipts, receipt zip, report export template, bulk export reports, bulk PDF download, report data]
+internalScope: Audience is all members. Covers exporting reports to CSV using export templates (individually and in bulk), downloading reports as PDF (individually and in bulk), and downloading the receipts on a report (individually and in bulk). Does not cover exporting individual expenses from the Expenses page (see Export-Expenses.md), exporting to an accounting integration, or company card reconciliation.
 ---
 
 # How to export reports 
 
-Export reports to a CSV file using export templates, and download individual reports as PDFs.
+Export reports to a CSV file using export templates, and download reports as PDFs.
 
 If you’re trying to export a specific type of data, use the guides below:
 
@@ -35,6 +35,19 @@ You'll receive the exported CSV file in a message from Concierge.
 
 You'll receive the exported CSV file in a message from Concierge.
 
+## How to export the columns currently displayed using Export current view
+
+Use **Export current view** to download a CSV that matches the columns currently shown on the **Reports** page, instead of a fixed export template.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
+2. Select **Display**, then select **Edit columns** to choose which columns appear on the page.
+3. Select the checkbox next to each report you want to export, or use the top checkbox to select all.
+4. Select **Selected** at the top.
+5. Select **Export**.
+6. Select **Export current view**.
+
+The CSV uses the same columns displayed on the page.
+
 ## What export templates can I choose from? 
 
 Expensify offers pre-built export templates, or you can build your own custom export template. All available templates will appear in the menu when you export a report. 
@@ -46,14 +59,50 @@ Expensify offers pre-built export templates, or you can build your own custom ex
 
 **Note** Currently, it's not possible to build custom export templates on New Expensify, they can only be created on Expensify Classic. However, once built they will be available on New Expensify when exporting reports. [Learn how to build a custom export template in Expensify Classic](/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#create-a-custom-export-template).  
 
-## How to download a report as a PDF
+## How to download a single report as a PDF
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**. 
 2. Open the report you want to download.
 3. Select **More**.
 4. Select **Download as PDF**.
 
-The PDF includes all expenses, attached receipts, and report notes. PDF downloads are only available for individual reports - they cannot be downloaded in bulk.
+The PDF includes all expenses, attached receipts, and report notes.
+
+For reports on a Submit workspace, the PDF also includes an **Approve or Pay** button and QR code that let your approver open and approve the report online.
+
+## How to download multiple reports as PDFs
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**. 
+2. Select the checkbox next to each report you want to download, or use the top checkbox to select all.
+3. Select **Selected** at the top.
+4. Select **Download as PDF**.
+5. Wait for the files to finish preparing, then select **Download file** to save them to your device. You can also select **Send me the file when it's ready** to have Concierge send the files to you in a chat message instead.
+
+Each report downloads as its own PDF, including all expenses, attached receipts, and report notes.
+
+## How to download the receipts on a report
+
+You can download every receipt attached to a report in a single ZIP file.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
+2. Open the report whose receipts you want to download.
+3. Select **More**.
+4. Select **Download receipts**.
+5. Wait for the files to finish preparing. The zip file downloads automatically when it's ready. If it doesn't, select **Download file** to save it to your device.
+
+**Note:** **Download receipts** only appears when at least one expense on the report has a receipt.
+
+## How to download the receipts on multiple reports
+
+You can download the receipts on several reports at once in a single ZIP file.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
+2. Select the checkbox next to each report whose receipts you want to download, or use the top checkbox to select all.
+3. Select **Selected** at the top.
+4. Select **Download receipts**.
+5. Wait for the files to finish preparing. The zip file downloads automatically when it's ready. If it doesn't, select **Download file** to save it to your device.
+
+**Note:** **Download receipts** only appears when at least one selected report has an expense with a receipt.
 
 ---
 
@@ -63,6 +112,18 @@ The PDF includes all expenses, attached receipts, and report notes. PDF download
 
 For the Basic Export template, the file downloads directly to your device. For all other templates, Concierge sends the file to you in a direct message. Open your Concierge chat in the **Inbox** to find it.
 
+## What happens if some reports fail to download as PDFs?
+
+When you download multiple reports as PDFs, a message tells you how many of the selected reports were exported. If any reports could not be generated, open your Concierge chat in the **Inbox** to see which reports failed.
+
+## Why don't I see Download receipts on a report?
+
+**Download receipts** only appears when at least one expense has a receipt attached. In a single report's **More** menu, it appears when that report has an expense with a receipt. When you select multiple reports and open **Selected**, it appears only if at least one selected report has an expense with a receipt. If none of the expenses have receipts, the option is hidden.
+
+## What happens if some receipts fail to download?
+
+When you download the receipts on a report, a message tells you how many of the receipts were exported successfully. If some receipts couldn't be included, the zip file still contains the ones that did download.
+
 ## What is the difference between expense-level and report-level export templates?
 
 - **Expense-level templates** (Basic Export, All Data - Expense Level Export) create one row per expense. Use these when you need detailed data for each individual expense.
@@ -70,7 +131,7 @@ For the Basic Export template, the file downloads directly to your device. For a
 
 ## Can I customize which columns appear in the CSV export?
 
-If your Workspace Admin has created custom export templates, you can select one during export. Otherwise, columns follow the selected default template.
+Yes. Select **Export current view** to download a CSV that matches the columns currently shown on the **Reports** page. Adjust which columns appear by selecting **Display** > **Edit columns**. You can also select a custom export template during export, if your Workspace Admin has created one.
 
 ## The data looks wrong in Excel. How can I fix it?
 
@@ -85,3 +146,9 @@ Excel may remove leading zeros automatically. To prevent this:
 1. Open Excel and go to **File** > **Import**.
 2. Select your CSV file.
 3. Set the relevant columns to **Text** format.
+
+## What type of receipts can be downloaded? 
+
+You can download PDF receipts and receipt image files. You can't download eReceipts or receipts created from a map.
+
+If you select **Download receipts** for a report that doesn't contain any downloadable receipts, you'll see the message **No receipts to download**. 

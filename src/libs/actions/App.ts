@@ -1,26 +1,23 @@
-// Issue - https://github.com/Expensify/App/issues/26719
-import {findFocusedRoute} from '@react-navigation/native';
-import {Str} from 'expensify-common';
-import type {AppStateStatus} from 'react-native';
-import {AppState} from 'react-native';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
 import {getLastFullReconnectTimeToRecord} from '@libs/FullReconnectUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
+import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationReveal';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import isTrackOnboardingChoice from '@libs/OnboardingUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import {cancelAllSpans, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {logReceiptQueueSnapshot} from '@libs/telemetry/ReceiptObservability';
+
 import CONST from '@src/CONST';
 import getPathFromState from '@src/libs/Navigation/helpers/getPathFromState';
 import type {OnyxKey} from '@src/ONYXKEYS';
@@ -30,6 +27,16 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {AppStateStatus} from 'react-native';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+// Issue - https://github.com/Expensify/App/issues/26719
+import {findFocusedRoute} from '@react-navigation/native';
+import {Str} from 'expensify-common';
+import {AppState} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
@@ -93,26 +100,20 @@ Onyx.connectWithoutView({
     },
 });
 
-// The server's cutoff for a full reconnect (see subscribeToFullReconnect). We read it only when
-// building reconnectApp's data, never in a component, so connectWithoutView is correct here. Do not
-// copy this into a component: use useOnyx there so the UI updates when the value changes.
-let serverReconnectCutoff = '';
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE,
-    callback: (value) => {
-        serverReconnectCutoff = value ?? '';
-    },
-});
-
-// allReports is used in the "ForOpenOrReconnect" functions and is not directly associated with the View,
-// so retrieving it using Onyx.connectWithoutView is correct.
-// If this variable is ever needed for use in React components, it should be retrieved using useOnyx.
+// allReports and allPolicies are used in the "ForOpenOrReconnect" functions and are not directly associated with the View,
+// so retrieving them using Onyx.connectWithoutView is correct.
 let allReports: OnyxCollection<OnyxTypes.Report>;
+let allPolicies: OnyxCollection<OnyxTypes.Policy>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
+    },
+});
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    callback: (value) => {
+        allPolicies = value;
     },
 });
 
@@ -158,7 +159,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
     ONYXKEYS.STASHED_SESSION,
     ONYXKEYS.STASHED_CREDENTIALS,
-
+    ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW,
     // Preserve IS_USING_IMPORTED_STATE so that when the app restarts (especially in HybridApp mode),
     // we know if we're in imported state mode and should skip API calls that would cause infinite loading
     ONYXKEYS.IS_USING_IMPORTED_STATE,
@@ -183,15 +184,6 @@ Onyx.connectWithoutView({
         });
     },
 });
-
-let resolveIsReadyPromise: () => void;
-const isReadyToOpenApp = new Promise<void>((resolve) => {
-    resolveIsReadyPromise = resolve;
-});
-
-function confirmReadyToOpenApp() {
-    resolveIsReadyPromise();
-}
 
 function getNonOptimisticPolicyIDs(policies: OnyxCollection<OnyxTypes.Policy>): string[] {
     const result: string[] = [];
@@ -287,12 +279,14 @@ AppState.addEventListener('change', (nextAppState) => {
     if (nextAppState.match(/inactive|background/) && appState === 'active') {
         Log.info('App going to background', false, {previousState: appState, nextState: nextAppState});
         Log.info('Flushing logs as app is going inactive', true, {}, true);
+        logReceiptQueueSnapshot('background');
         saveCurrentPathBeforeBackground();
     }
 
     if (nextAppState === 'active' && appState?.match(/inactive|background/)) {
         Log.info('App coming to foreground', false, {previousState: appState, nextState: nextAppState});
         Log.info('Cancelling telemetry spans as app is coming to foreground', false, {previousState: appState, nextState: nextAppState});
+        logReceiptQueueSnapshot('foreground');
         cancelAllSpans();
     }
     appState = nextAppState;
@@ -301,30 +295,11 @@ AppState.addEventListener('change', (nextAppState) => {
 /**
  * Gets the policy params that are passed to the server in the OpenApp and ReconnectApp API commands. This includes a full list of policy IDs the client knows about as well as when they were last modified.
  */
-function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrReconnect> {
-    return new Promise((resolve) => {
-        isReadyToOpenApp.then(() => {
-            // Using Onyx.connectWithoutView is appropriate here because the data retrieved is not directly bound to the View
-            // and each time the getPolicyParamsForOpenOrReconnect function is called,
-            // connectWithoutView will fetch the latest data from Onyx.
-            const connection = Onyx.connectWithoutView({
-                key: ONYXKEYS.COLLECTION.POLICY,
-                waitForCollectionCallback: true,
-                callback: (policies) => {
-                    Onyx.disconnect(connection);
-                    resolve({policyIDList: getNonOptimisticPolicyIDs(policies)});
-                },
-            });
-        });
-    });
+function getPolicyParamsForOpenOrReconnect(): PolicyParamsForOpenOrReconnect {
+    return {policyIDList: getNonOptimisticPolicyIDs(allPolicies)};
 }
 
-type OnyxDataForOpenOrReconnectKeys =
-    | typeof ONYXKEYS.COLLECTION.REPORT
-    | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
-    | typeof ONYXKEYS.HAS_LOADED_APP
-    | typeof ONYXKEYS.IS_LOADING_APP
-    | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME;
+type OnyxDataForOpenOrReconnectKeys = typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.IS_LOADING_REPORT_DATA | typeof ONYXKEYS.HAS_LOADED_APP | typeof ONYXKEYS.IS_LOADING_APP;
 
 /**
  * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
@@ -334,6 +309,7 @@ function getOnyxDataForOpenOrReconnect(
     isFullReconnect = false,
     shouldKeepPublicRooms = false,
     allReportsWithDraftComments?: Record<string, string | undefined>,
+    shouldClearAppLoading = false,
 ): OnyxData<OnyxDataForOpenOrReconnectKeys> {
     let commandName: string;
     if (isOpenApp) {
@@ -345,13 +321,7 @@ function getOnyxDataForOpenOrReconnect(
     }
     Log.info(`[App] isLoadingReportData set to true`, false, {command: commandName});
 
-    const result: OnyxData<
-        | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
-        | typeof ONYXKEYS.HAS_LOADED_APP
-        | typeof ONYXKEYS.IS_LOADING_APP
-        | typeof ONYXKEYS.COLLECTION.REPORT
-        | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME
-    > = {
+    const result: OnyxData<OnyxDataForOpenOrReconnectKeys> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -382,20 +352,20 @@ function getOnyxDataForOpenOrReconnect(
             key: ONYXKEYS.IS_LOADING_APP,
             value: true,
         });
+    }
 
+    // Clear IS_LOADING_APP in finallyData for OpenApp and ReconnectApp, not just OpenApp. The optimistic `true`
+    // above persists immediately, while finallyData for write commands is held in memory until the sequential
+    // queue flushes (see QueuedOnyxUpdates), so an interrupted session can leave `true` persisted with no OpenApp
+    // left to clear it — once HAS_LOADED_APP is set, the app only ever runs ReconnectApp. Having ReconnectApp also
+    // clear the flag makes it self-healing. Callers outside that family (GetMissingOnyxMessages) must not clear
+    // it: they run as side-effect requests outside the sequential queue, so they could race a legitimate in-flight
+    // OpenApp and drop the loading gate before its data lands.
+    if (isOpenApp || shouldClearAppLoading) {
         result.finallyData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_APP,
             value: false,
-        });
-    }
-
-    if (isOpenApp || isFullReconnect) {
-        // Record this reconnect so subscribeToFullReconnect stops asking for another one.
-        result.successData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LAST_FULL_RECONNECT_TIME,
-            value: getLastFullReconnectTimeToRecord(serverReconnectCutoff),
         });
     }
 
@@ -441,8 +411,9 @@ function getOnyxDataForOpenOrReconnect(
  * @param shouldKeepPublicRooms - Whether to keep public rooms in Onyx
  * @param allReportsWithDraftComments - All reports with draft comments
  * @param forceRun - Force run even when using imported state (used when exiting imported state mode)
+ * @param shouldDedupeWithInFlight - Pass false when the response has to reflect state an in-flight OpenApp could not have seen.
  */
-function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Record<string, string | undefined>, forceRun = false) {
+function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Record<string, string | undefined>, forceRun = false, shouldDedupeWithInFlight = true) {
     // Don't make API calls when using imported state to avoid infinite loading
     // The imported state already contains all the data, so we just need to mark the app as loaded
     // Exception: When forceRun is true (exiting imported state), always make the API call
@@ -463,21 +434,22 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
         });
     }
 
-    return getPolicyParamsForOpenOrReconnect()
-        .then((policyParams: PolicyParamsForOpenOrReconnect) => {
-            const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
-            return API.writeWithNoDuplicatesConflictAction(
-                WRITE_COMMANDS.OPEN_APP,
-                params,
-                getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),
-            );
-        })
-        .finally(() => {
-            if (!bootsplashSpan) {
-                return;
-            }
-            endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
-        });
+    const params: OpenAppParams = {...getPolicyParamsForOpenOrReconnect(), enablePriorityModeFilter: true};
+
+    // Preservation adds successData an in-flight OpenApp knows nothing about, so this call cannot be dropped.
+    const hasPreservationData = shouldKeepPublicRooms || !!allReportsWithDraftComments;
+    const openAppPromise = API.writeWithNoDuplicatesOpenAppConflictAction(
+        params,
+        getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),
+        shouldDedupeWithInFlight && !hasPreservationData,
+    ).finally(() => {
+        if (!bootsplashSpan) {
+            return;
+        }
+        endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
+    });
+
+    return openAppPromise;
 }
 
 /**
@@ -511,26 +483,35 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
         }
 
         console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
-        getPolicyParamsForOpenOrReconnect()
-            .then((policyParams) => {
-                const params: ReconnectAppParams = policyParams;
+        const params: ReconnectAppParams = getPolicyParamsForOpenOrReconnect();
 
-                // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
-                // Otherwise, a full set of app data will be returned.
-                if (updateIDFrom) {
-                    params.updateIDFrom = updateIDFrom;
-                }
+        // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
+        // Otherwise, a full set of app data will be returned.
+        if (updateIDFrom) {
+            params.updateIDFrom = updateIDFrom;
+        }
 
-                const isFullReconnect = !updateIDFrom;
-                return API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded));
-            })
-            .finally(() => {
-                if (!bootsplashSpan) {
-                    return;
-                }
-                endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
-            });
+        const isFullReconnect = !updateIDFrom;
+        const reconnectAppPromise = API.writeWithNoDuplicatesReconnectConflictAction(
+            WRITE_COMMANDS.RECONNECT_APP,
+            params,
+            getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded, undefined, true),
+        ).finally(() => {
+            if (!bootsplashSpan) {
+                return;
+            }
+            endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
+        });
+
+        return reconnectAppPromise;
     });
+}
+
+/**
+ * Fires asynchronous requests to load more data that is required by the App but not returned in OpenApp/ReconnectApp
+ */
+function loadPostDataForOpenOrReconnect() {
+    API.read(READ_COMMANDS.SEARCH_FOR_TODOS, null);
 }
 
 /**
@@ -539,8 +520,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
  * cutoff by the time the response lands, so subscribeToFullReconnect does not fire a second reconnect.
  */
 function triggerFullReconnect(cutoff: string) {
-    Onyx.merge(ONYXKEYS.LAST_FULL_RECONNECT_TIME, getLastFullReconnectTimeToRecord(cutoff));
-    reconnectApp();
+    Onyx.merge(ONYXKEYS.LAST_FULL_RECONNECT_TIME, getLastFullReconnectTimeToRecord(cutoff)).then(() => reconnectApp());
 }
 
 /**
@@ -550,15 +530,42 @@ function triggerFullReconnect(cutoff: string) {
  */
 function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxTypes.Response<OnyxDataForOpenOrReconnectKeys>> {
     console.debug(`[OnyxUpdates] Executing last reconnect app with promise`);
-    return getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-        const params: ReconnectAppParams = {...policyParams};
+    const params: ReconnectAppParams = getPolicyParamsForOpenOrReconnect();
 
-        // It is SUPER BAD FORM to return promises from action methods.
-        // DO NOT FOLLOW THIS PATTERN!!!!!
-        // It was absolutely necessary in order to not break the app while migrating to the new reliable updates pattern. This method will be removed
-        // as soon as we have everyone migrated to the reliableUpdate beta.
+    // It is SUPER BAD FORM to return promises from action methods.
+    // DO NOT FOLLOW THIS PATTERN!!!!!
+    // It was absolutely necessary in order to not break the app while migrating to the new reliable updates pattern. This method will be removed
+    // as soon as we have everyone migrated to the reliableUpdate beta.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, true));
+}
+
+/**
+ * Incremental ReconnectApp as a side-effect request (bypasses the paused queue) so the pause watchdog can
+ * close the update gap before unpausing. Must not clear IS_LOADING_APP — outside the queue it could race an
+ * in-flight OpenApp (see getOnyxDataForOpenOrReconnect).
+ */
+function reconnectAppWithSideEffects(updateIDFrom = 0): Promise<void | OnyxTypes.Response<OnyxDataForOpenOrReconnectKeys>> {
+    // Mirror reconnectApp's guards — an incremental reconnect assumes base app state that isn't there yet.
+    // hasLoadedApp is undefined until Onyx hydrates, so reading it before hasLoadedAppPromise settles would treat a
+    // loaded app as unloaded and fire a full openApp instead.
+    return hasLoadedAppPromise.then(() => {
+        if (!hasLoadedApp) {
+            openApp();
+            return Promise.resolve();
+        }
+        if (isUsingImportedState) {
+            return Promise.resolve();
+        }
+
+        const params: ReconnectAppParams = getPolicyParamsForOpenOrReconnect();
+        if (updateIDFrom) {
+            params.updateIDFrom = updateIDFrom;
+        }
+
+        // The watchdog must await the gap closing; same justified exception as the sibling functions above.
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, true));
+        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, !updateIDFrom));
     });
 }
 
@@ -598,6 +605,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
     routeToNavigateAfterCreate?: Route;
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
     activePolicy: OnyxEntry<OnyxTypes.Policy>;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     shouldCreateControlPolicy?: boolean;
@@ -624,6 +632,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         routeToNavigateAfterCreate,
         lastUsedPaymentMethod,
         activePolicy,
+        conciergeChat,
         currentUserAccountIDParam,
         currentUserEmailParam,
         shouldCreateControlPolicy,
@@ -662,6 +671,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             lastUsedPaymentMethod,
             introSelected,
             activePolicy,
+            conciergeChat,
             currentUserAccountIDParam,
             currentUserEmailParam,
             allReportsParam: allReports,
@@ -685,6 +695,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
                 return;
             }
 
+            WorkspaceCreationReveal.beginRevealUnderRHP();
             Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
         } else {
             Navigation.navigate(routeToNavigate, {forceReplace: true});
@@ -703,6 +714,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         file,
         lastUsedPaymentMethod,
         activePolicy,
+        conciergeChat,
         currentUserAccountIDParam,
         currentUserEmailParam,
         shouldCreateControlPolicy,
@@ -731,6 +743,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         lastUsedPaymentMethod,
         introSelected,
         activePolicy,
+        conciergeChat,
         currentUserAccountIDParam,
         currentUserEmailParam,
         allReportsParam: allReports,
@@ -752,6 +765,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy: OnyxEntry<OnyxTypes.Policy>;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     allReportsParam: OnyxCollection<OnyxTypes.Report>;
@@ -775,6 +789,7 @@ function savePolicyDraftByNewWorkspace({
     lastUsedPaymentMethod,
     introSelected,
     activePolicy,
+    conciergeChat,
     currentUserAccountIDParam,
     currentUserEmailParam,
     allReportsParam,
@@ -796,6 +811,7 @@ function savePolicyDraftByNewWorkspace({
         lastUsedPaymentMethod,
         introSelected,
         activePolicy,
+        conciergeChat,
         currentUserAccountIDParam,
         currentUserEmailParam,
         allReportsParam,
@@ -833,6 +849,7 @@ function setUpPoliciesAndNavigate(
     hasActiveAdminPolicies: boolean,
     lastWorkspaceNumber: number | undefined,
     translate: LocalizedTranslate,
+    conciergeChat: OnyxEntry<OnyxTypes.Report>,
 ) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
@@ -862,6 +879,7 @@ function setUpPoliciesAndNavigate(
             transitionFromOldDot: true,
             makeMeAdmin,
             activePolicy,
+            conciergeChat,
             currentUserAccountIDParam: currentSessionData.accountID ?? CONST.DEFAULT_NUMBER_ID,
             currentUserEmailParam: currentSessionData.email ?? '',
             isSelfTourViewed,
@@ -982,11 +1000,12 @@ export {
     openApp,
     setAppLoading,
     reconnectApp,
+    loadPostDataForOpenOrReconnect,
     triggerFullReconnect,
-    confirmReadyToOpenApp,
     handleRestrictedEvent,
     getMissingOnyxUpdates,
     finalReconnectAppAfterActivatingReliableUpdates,
+    reconnectAppWithSideEffects,
     createWorkspaceWithPolicyDraftAndNavigateToIt,
     updateLastVisitedPath,
     createWorkspaceWithPolicyDraft,

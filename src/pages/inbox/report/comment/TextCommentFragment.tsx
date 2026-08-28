@@ -1,14 +1,12 @@
-import {Str} from 'expensify-common';
-import isEmpty from 'lodash/isEmpty';
-import React, {useEffect} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
 import {useEnvironmentActions} from '@components/EnvironmentContextProvider';
 import Text from '@components/Text';
 import ZeroWidthView from '@components/ZeroWidthView';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmojis as containsOnlyEmojisUtil, splitTextWithEmojis} from '@libs/EmojiUtils';
@@ -16,10 +14,19 @@ import hydrateEmojiHtml from '@libs/hydrateEmojiHtml';
 import Parser from '@libs/Parser';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 import type {Message} from '@src/types/onyx/ReportAction';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
+import {Str} from 'expensify-common';
+import isEmpty from 'lodash/isEmpty';
+import {View} from 'react-native';
+
 import RenderCommentHTML from './RenderCommentHTML';
 import shouldRenderAsText from './shouldRenderAsText';
 import TextWithEmojiFragment from './TextWithEmojiFragment';
@@ -63,12 +70,12 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
 
     const processedTextArray = splitTextWithEmojis(message);
 
-    useEffect(() => {
+    const endSendMessageVisibleSpanOnLayout = () => {
         if (!reportActionID) {
             return;
         }
-        endSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${reportActionID}`);
-    }, [reportActionID]);
+        endSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}`);
+    };
 
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
     // on native, we render it as text, not as html
@@ -102,16 +109,27 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
         htmlWithTag = adjustExpensifyLinksForEnv(getHtmlWithAttachmentID(htmlWithTag, reportActionID));
 
         return (
-            <RenderCommentHTML
-                containsOnlyEmojis={containsOnlyEmojis}
-                source={source}
-                html={htmlWithTag}
-            />
+            <View onLayout={endSendMessageVisibleSpanOnLayout}>
+                <RenderCommentHTML
+                    containsOnlyEmojis={containsOnlyEmojis}
+                    source={source}
+                    html={htmlWithTag}
+                />
+            </View>
         );
     }
 
     return (
-        <Text style={[containsOnlyEmojis && styles.onlyEmojisText, styles.ltr, style, !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone]}>
+        <Text
+            onLayout={endSendMessageVisibleSpanOnLayout}
+            style={[
+                containsOnlyEmojis && styles.onlyEmojisText,
+                styles.ltr,
+                style,
+                !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
+                styles.overflowVisible,
+            ]}
+        >
             <ZeroWidthView
                 text={text}
                 displayAsGroup={displayAsGroup}

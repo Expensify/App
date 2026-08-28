@@ -1,21 +1,28 @@
-import React from 'react';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
 import type {ButtonComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import SearchAdvancedFiltersPopup from '@components/Search/FilterDropdowns/SearchAdvancedFiltersPopup';
 import type {SearchQueryJSON} from '@components/Search/types';
+
 import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchFilterSync from '@hooks/useSearchFilterSync';
+import useSearchFilterSync, {shouldDeferSearchFilterSync} from '@hooks/useSearchFilterSync';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 type SearchAdvancedFiltersButtonProp = {
     queryJSON: SearchQueryJSON;
@@ -28,8 +35,12 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- advanced filters page is only rendered on the small screen
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter']);
+    const {isOffline} = useNetwork();
     const filterFormValues = useFilterFormValues(queryJSON);
-    useSearchFilterSync(queryJSON, filterFormValues);
+    const [areCategoriesLoaded] = useOnyx(ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED);
+    const [isLoadingCategories] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA);
+    const shouldDeferFilterSync = shouldDeferSearchFilterSync(queryJSON, areCategoriesLoaded, isLoadingCategories, isOffline);
+    useSearchFilterSync(queryJSON, filterFormValues, shouldDeferFilterSync);
 
     if (isSmallScreenWidth) {
         return (
@@ -39,12 +50,12 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
                 style={[styles.searchActionsBar(true)]}
                 hoverStyle={styles.buttonHoveredBG}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
-                onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute())}
+                onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS)}
             >
                 <Icon
                     src={expensifyIcons.Filter}
                     fill={theme.icon}
-                    small
+                    size={CONST.ICON_SIZE.SMALL}
                 />
             </PressableWithFeedback>
         );
@@ -64,21 +75,22 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
                   <Icon
                       src={expensifyIcons.Filter}
                       fill={theme.icon}
-                      extraSmall
+                      size={CONST.ICON_SIZE.EXTRA_SMALL}
                   />
               </PressableWithFeedback>
           )
         : ({onPress, ref, isExpanded}: ButtonComponentProps) => (
               <Button
                   ref={ref}
-                  small
+                  size={CONST.BUTTON_SIZE.SMALL}
                   accessibilityLabel={translate('search.filtersHeader')}
-                  text={translate('search.filtersHeader')}
-                  icon={expensifyIcons.Filter}
                   onPress={onPress}
                   innerStyles={isExpanded ? styles.buttonDefaultHovered : undefined}
                   sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
-              />
+              >
+                  <Button.Icon src={expensifyIcons.Filter} />
+                  <Button.Text>{translate('search.filtersHeader')}</Button.Text>
+              </Button>
           );
 
     const filtersPopup = () => <SearchAdvancedFiltersPopup queryJSON={queryJSON} />;

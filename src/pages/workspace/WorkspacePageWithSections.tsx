@@ -1,14 +1,10 @@
-import {useIsFocused} from '@react-navigation/native';
-import type {ReactNode} from 'react';
-import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
+
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsWorkspacesTabFocused from '@hooks/useIsWorkspacesTabFocused';
@@ -17,19 +13,29 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openWorkspaceView} from '@libs/actions/BankAccounts';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import Navigation from '@libs/Navigation/Navigation';
 import {canEditWorkspaceSettings, canMemberRead, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import type {PolicyFeature} from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ReactNode} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
+
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
@@ -170,10 +176,20 @@ function WorkspacePageWithSections({
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
 
+    const prevPolicyID = usePrevious(policyID);
+    const [deletedPolicyID, setDeletedPolicyID] = useState<string | undefined>(undefined);
+    if (deletedPolicyID !== policyID && (isPendingDelete || (prevIsPendingDelete && isEmptyObject(policy) && prevPolicyID === policyID))) {
+        setDeletedPolicyID(policyID);
+    }
+    const hasWorkspaceBeenDeleted = deletedPolicyID !== undefined && deletedPolicyID === policyID;
+
     const shouldShow = useMemo(() => {
-        // Suppress the not-found view when the user has moved away from the workspace flow (e.g. switched
-        // to another tab and the workspace was deleted from another device) so the view doesn't bleed
-        // through over the active tab. Stays true when an RHP is open on top of a workspace screen.
+        // Keep the not-found view suppressed after the workspace is deleted so it doesn't flash during the exit animation.
+        if (hasWorkspaceBeenDeleted) {
+            return false;
+        }
+
+        // Don't show the not-found view when the user is outside the workspace flow (e.g. on another tab).
         if (!isWorkspacesTabFocused) {
             return false;
         }
@@ -189,7 +205,7 @@ function WorkspacePageWithSections({
         const shouldShowPolicyOrFeature = hasAccessToPolicyFeature ?? shouldShowPolicy;
         return (!isEmptyObject(policy) && !canShowPage) || (!shouldShowPolicyOrFeature && !(isPendingDelete && !prevIsPendingDelete));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentUserLogin, hasAccessToPolicyFeature, isWorkspacesTabFocused, policy, shouldShowNonAdmin, shouldShowPolicy]);
+    }, [currentUserLogin, hasAccessToPolicyFeature, hasWorkspaceBeenDeleted, isWorkspacesTabFocused, policy, shouldShowNonAdmin, shouldShowPolicy]);
 
     const handleOnBackButtonPress = () => {
         if (shouldShow) {
@@ -244,16 +260,7 @@ function WorkspacePageWithSections({
                 </HeaderWithBackButton>
                 {!isOffline && (isLoading || shouldShowInitialLoading) && shouldShowLoading && isFocused ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={
-                                {
-                                    context: 'WorkspacePageWithSections',
-                                    isLoading,
-                                    shouldShowInitialLoading,
-                                } satisfies SkeletonSpanReasonAttributes
-                            }
-                        />
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                     </View>
                 ) : (
                     <>

@@ -1,18 +1,24 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 
 type WorkspaceAdminRestrictedActionProps = {
     policyID: string;
@@ -57,11 +63,12 @@ function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActi
                     </Text>
                 </View>
                 <Button
-                    text={translate('workspace.restrictedAction.chatInAdmins')}
                     onPress={openAdminsReport}
-                    success
-                    large
-                />
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.Text>{translate('workspace.restrictedAction.chatInAdmins')}</Button.Text>
+                </Button>
             </ScrollView>
         </ScreenWrapper>
     );

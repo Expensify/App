@@ -1,16 +1,20 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import {isReportOpenOrUnsubmitted} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
+import type {OnyxCollection} from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
+
 describe('isReportOpenOrUnsubmitted', () => {
-    const createReport = (reportID: string, stateNum: number, statusNum: number): Report =>
-        ({
+    const createReport = (reportID: string, stateNum: NonNullable<Report['stateNum']>, statusNum: NonNullable<Report['statusNum']>): Report =>
+        createMock<Report>({
             reportID,
             stateNum,
             statusNum,
-        }) as Report;
+        });
 
     const createReportsCollection = (reports: Report[]): OnyxCollection<Report> => {
         const collection: OnyxCollection<Report> = {};

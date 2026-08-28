@@ -1,11 +1,5 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
-import {isBefore} from 'date-fns';
-import debounce from 'lodash/debounce';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {OnyxKey} from 'react-native-onyx/dist/types';
-import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import type {
@@ -15,6 +9,7 @@ import type {
     GetStatementPDFParams,
     PusherPingParams,
     RequestContactMethodValidateCodeParams,
+    ResendValidateCodeParams,
     RevokeDeviceParams,
     SetContactMethodAsDefaultParams,
     SetNameValuePairParams,
@@ -33,6 +28,7 @@ import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type Platform from '@libs/getPlatform/types';
 import Log from '@libs/Log';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import {getIsOffline} from '@libs/NetworkState';
@@ -46,11 +42,12 @@ import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getLoginKey} from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {ExpenseRuleForm, MerchantRuleForm, SpendRuleForm} from '@src/types/form';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {ExpenseRuleForm, FlagForReviewRuleForm, MerchantRuleForm, MerchantTypeRuleForm, RequireFieldsRuleForm, SpendRuleForm} from '@src/types/form';
 import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -60,6 +57,16 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
+
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxKey} from 'react-native-onyx/dist/types';
+import type {ValueOf} from 'type-fest';
+
+import HybridAppModule from '@expensify/react-native-hybrid-app';
+import {isBefore} from 'date-fns';
+import debounce from 'lodash/debounce';
+import Onyx from 'react-native-onyx';
+
 import {reconnectApp} from './App';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import {getDeviceInfoWithID} from './Device';
@@ -199,12 +206,12 @@ function closeAccount(reason: string) {
 /**
  * Resend a validation link to a given login
  */
-function resendValidateCode(login: string) {
-    sessionResendValidateCode(login);
+function resendValidateCode(reasonParams: ResendValidateCodeParams, login: string) {
+    sessionResendValidateCode(reasonParams, login);
 }
 
 /**
- * Requests a new validate code be sent for the passed contact method
+ * Requests a new validateCode be sent for the passed contact method
  *
  * @param contactMethod - the new contact method that the user is trying to verify
  */
@@ -348,7 +355,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
     const parameters: DeleteContactMethodParams = {partnerUserID: contactMethod};
 
     API.write(WRITE_COMMANDS.DELETE_CONTACT_METHOD, parameters, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+    Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, backTo));
 }
 
 /**
@@ -375,15 +382,6 @@ function clearValidateCodeActionError(fieldName: string) {
         errorFields: {
             [fieldName]: null,
         },
-    });
-}
-
-/**
- * Reset validateCodeSent on validate action code.
- */
-function resetValidateActionCodeSent() {
-    Onyx.merge(ONYXKEYS.VALIDATE_ACTION_CODE, {
-        validateCodeSent: false,
     });
 }
 
@@ -483,16 +481,11 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             value: {isLoading: false},
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE | typeof ONYXKEYS.PENDING_CONTACT_ACTION | typeof ONYXKEYS.LOGINS>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.PENDING_CONTACT_ACTION | typeof ONYXKEYS.LOGINS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {isLoading: false},
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.VALIDATE_ACTION_CODE,
-            value: {validateCodeSent: null},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -521,15 +514,16 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
 }
 
 /**
- * Requests a magic code to verify current user
+ * Requests a validateCode to verify current user
  */
-function requestValidateCodeAction() {
+function requestValidateCodeAction(params?: ResendValidateCodeParams) {
+    const requestedAt = Date.now();
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_ACTION_CODE,
             value: {
-                validateCodeSent: false,
+                lastValidateCodeRequestedAt: requestedAt,
                 isLoading: true,
                 pendingFields: {
                     actionVerified: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -546,7 +540,6 @@ function requestValidateCodeAction() {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_ACTION_CODE,
             value: {
-                validateCodeSent: true,
                 isLoading: false,
                 errorFields: {
                     actionVerified: null,
@@ -563,7 +556,7 @@ function requestValidateCodeAction() {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_ACTION_CODE,
             value: {
-                validateCodeSent: null,
+                lastValidateCodeRequestedAt: null,
                 isLoading: false,
                 errorFields: {
                     actionVerified: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.requestContactMethodValidateCode'),
@@ -575,13 +568,13 @@ function requestValidateCodeAction() {
         },
     ];
 
-    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, params ?? null, {optimisticData, successData, failureData});
 }
 
 /**
  * Validates a secondary login / contact method
  */
-function validateSecondaryLogin(contactMethod: string, validateCode: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], shouldResetActionCode?: boolean) {
+function validateSecondaryLogin(contactMethod: string, validateCode: string) {
     const loginKey = getExpensifyLoginKey(contactMethod);
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS | typeof ONYXKEYS.ACCOUNT>> = [
         {
@@ -608,7 +601,7 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string, for
             },
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGINS,
@@ -634,7 +627,7 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string, for
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGINS,
@@ -656,19 +649,6 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string, for
             value: {isLoading: false},
         },
     ];
-
-    // Sometimes we will also need to reset the validateCodeSent of ONYXKEYS.VALIDATE_ACTION_CODE in order to receive the magic code next time we open the ValidateCodeActionModal.
-    if (shouldResetActionCode) {
-        const optimisticResetActionCode = {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.VALIDATE_ACTION_CODE,
-            value: {
-                validateCodeSent: null,
-            },
-        };
-        successData.push(optimisticResetActionCode);
-        failureData.push(optimisticResetActionCode);
-    }
 
     getDeviceInfoWithID().then((deviceInfo) => {
         const parameters: ValidateSecondaryLoginParams = {partnerUserID: contactMethod, validateCode, deviceInfo};
@@ -697,6 +677,7 @@ function triggerNotifications<TKey extends OnyxKey>(
     onyxUpdates: Array<OnyxServerUpdate<TKey>>,
     currentUserAccountID: number,
     currentUserEmail: string,
+    topmostOneTransactionThreadReportID: string | undefined,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
     for (const update of onyxUpdates) {
@@ -710,7 +691,7 @@ function triggerNotifications<TKey extends OnyxKey>(
         for (const action of reportActions) {
             if (action) {
                 // They aren't connected to a UI anywhere, it's OK to use currentUserEmail
-                showReportActionNotification(reportID, action, currentUserAccountID, currentUserEmail, reportAttributes);
+                showReportActionNotification(reportID, action, topmostOneTransactionThreadReportID, currentUserAccountID, currentUserEmail, reportAttributes);
             }
         }
     }
@@ -817,7 +798,6 @@ function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServe
     });
 }
 
-let pongHasBeenMissed = false;
 let lastPingSentTimestamp = Date.now();
 let lastPongReceivedTimestamp = Date.now();
 function subscribeToPusherPong(currentUserAccountID: number) {
@@ -830,33 +810,21 @@ function subscribeToPusherPong(currentUserAccountID: number) {
         Log.info(`[Pusher PINGPONG] Received a PONG event from the server`, false, pushJSON);
         lastPongReceivedTimestamp = Date.now();
 
-        // Calculate the latency between the client and the server
         const pongEvent = pushJSON as PingPongEvent;
         const latency = Date.now() - Number(pongEvent.pingTimestamp);
         Log.info(`[Pusher PINGPONG] The event took ${latency} ms`);
-
-        // When any PONG event comes in, reset this flag so that checkForLatePongReplies will resume looking for missed PONGs
-        pongHasBeenMissed = false;
     });
 }
 
-// Specify how long between each PING event to the server
 const PING_INTERVAL_LENGTH_IN_SECONDS = 30;
 
-// Specify how long between each check for missing PONG events
-const CHECK_LATE_PONG_INTERVAL_LENGTH_IN_SECONDS = 60;
-
-// Specify how long before a PING event is considered to be missing a PONG event in order to put the application in offline mode
-const NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS = 2 * PING_INTERVAL_LENGTH_IN_SECONDS;
+const MISSING_PONG_THRESHOLD_IN_SECONDS = 2 * PING_INTERVAL_LENGTH_IN_SECONDS;
 
 function pingPusher() {
     if (getIsOffline()) {
         Log.info('[Pusher PINGPONG] Skipping PING because the client is offline');
         return;
     }
-    // Send a PING event to the server with a specific ID and timestamp
-    // The server will respond with a PONG event with the same ID and timestamp
-    // Then we can calculate the latency between the client and the server (or if the server never replies)
     const pingID = NumberUtils.rand64();
     const pingTimestamp = Date.now();
 
@@ -868,38 +836,20 @@ function pingPusher() {
     lastPingSentTimestamp = pingTimestamp;
 
     const parameters: PusherPingParams = {pingID, pingTimestamp};
-    API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.PUSHER_PING, parameters);
+
+    // The heartbeat is a probe, not a user's write, so it must not be persisted to disk, retried, or hold the
+    // head of the queue while a real write waits behind it. The Logging middleware already logs any failure.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.PUSHER_PING, parameters).catch(() => {});
     Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${pingTimestamp}`);
-}
 
-function checkForLatePongReplies() {
-    if (getIsOffline()) {
-        Log.info('[Pusher PINGPONG] Skipping checkForLatePongReplies because the client is offline');
-        return;
-    }
-
-    if (pongHasBeenMissed) {
-        Log.info(`[Pusher PINGPONG] Skipped checking for late PONG events because a PONG has already been missed`);
-        return;
-    }
-
-    Log.info(`[Pusher PINGPONG] Checking for late PONG events`);
-    const timeSinceLastPongReceived = Date.now() - lastPongReceivedTimestamp;
-
-    // If the time since the last pong was received is more than 2 * PING_INTERVAL_LENGTH_IN_SECONDS, then record it in the logs
-    if (timeSinceLastPongReceived > NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS * 1000) {
-        Log.info(`[Pusher PINGPONG] The server has not replied to the PING event in ${timeSinceLastPongReceived} ms so going offline`);
-
-        // When going offline, reset the pingpong state so that when the network reconnects, the client will start fresh
-        lastPingSentTimestamp = Date.now();
-        pongHasBeenMissed = true;
-    } else {
-        Log.info(`[Pusher PINGPONG] Last PONG event was ${timeSinceLastPongReceived} ms ago so not going offline`);
+    const timeSinceLastPongReceived = pingTimestamp - lastPongReceivedTimestamp;
+    if (timeSinceLastPongReceived > MISSING_PONG_THRESHOLD_IN_SECONDS * 1000) {
+        Log.info(`[Pusher PINGPONG] The server has not sent a PONG in ${timeSinceLastPongReceived} ms, leaving recovery to the Pusher SDK`);
     }
 }
 
 let pingPusherIntervalID: ReturnType<typeof setInterval>;
-let checkForLatePongRepliesIntervalID: ReturnType<typeof setInterval>;
 function initializePusherPingPong(currentUserAccountID: number) {
     // Only run the ping pong from the leader client
     if (!ActiveClientManager.isClientTheLeader()) {
@@ -908,6 +858,8 @@ function initializePusherPingPong(currentUserAccountID: number) {
     }
 
     Log.info(`[Pusher PINGPONG] Starting Pusher PING PONG and pinging every ${PING_INTERVAL_LENGTH_IN_SECONDS} seconds`);
+
+    lastPongReceivedTimestamp = Date.now();
 
     // Subscribe to the pong event from Pusher. Unfortunately, there is no way of knowing when the client is actually subscribed
     // so there could be a little delay before the client is actually listening to this event.
@@ -918,30 +870,25 @@ function initializePusherPingPong(currentUserAccountID: number) {
         clearInterval(pingPusherIntervalID);
     }
 
-    // Send a ping to pusher on a regular interval
     pingPusherIntervalID = setInterval(pingPusher, PING_INTERVAL_LENGTH_IN_SECONDS * 1000);
-
-    // Delay the start of this by double the length of PING_INTERVAL_LENGTH_IN_SECONDS to give a chance for the first
-    // events to be sent and received
-    setTimeout(() => {
-        // If things are initializing again (which is fine because it will reinitialize each time Pusher authenticates), clear the old intervals
-        if (checkForLatePongRepliesIntervalID) {
-            clearInterval(checkForLatePongRepliesIntervalID);
-        }
-        // Check for any missing pong events on a regular interval
-        checkForLatePongRepliesIntervalID = setInterval(checkForLatePongReplies, CHECK_LATE_PONG_INTERVAL_LENGTH_IN_SECONDS * 1000);
-    }, PING_INTERVAL_LENGTH_IN_SECONDS * 2);
 }
 
 /**
  * Handles the newest events from Pusher where a single mega multipleEvents contains
  * an array of singular events all in one event
  */
-function subscribeToUserEvents(currentUserAccountID: number, currentUserEmail: string, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
+function subscribeToUserEvents(
+    currentUserAccountID: number,
+    currentUserEmail: string,
+    getTopmostOneTransactionThreadReportID: () => string | undefined,
+    getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined,
+) {
     // If we don't have the user's accountID yet (because the app isn't fully setup yet) we can't subscribe so return early
     if (!currentUserAccountID) {
         return;
     }
+
+    PusherUtils.onPrivateUserChannelResubscribe(currentUserAccountID.toString());
 
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
@@ -992,7 +939,7 @@ function subscribeToUserEvents(currentUserAccountID: number, currentUserEmail: s
             }
 
             const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
-                triggerNotifications(pushJSON, currentUserAccountID, currentUserEmail, getReportAttributes?.());
+                triggerNotifications(pushJSON, currentUserAccountID, currentUserEmail, getTopmostOneTransactionThreadReportID(), getReportAttributes?.());
             });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
@@ -1231,7 +1178,7 @@ function setContactMethodAsDefault(
         failureData,
     });
     if (!skipNavigation) {
-        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, backTo));
     }
 }
 
@@ -1381,12 +1328,56 @@ function setNameValuePair<TKey extends OnyxKey>(name: TKey, value: SetNameValueP
     });
 }
 
+function dismissMarketingWindow(updateKey: string) {
+    const optimisticData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW,
+            value: updateKey,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.DISMISS_MARKETING_WINDOW, {updateKey}, {optimisticData});
+}
+
 /**
  * Dismiss the Auto-Submit explanation modal
  * @param shouldDismiss Whether the user selected "Don't show again"
  */
 function dismissASAPSubmitExplanation(shouldDismiss: boolean) {
     Onyx.merge(ONYXKEYS.NVP_DISMISSED_ASAP_SUBMIT_EXPLANATION, shouldDismiss);
+}
+
+/**
+ * Persist that the user has seen the Submit plan migration in-product modal so it is never shown again.
+ *
+ * The Onyx key is prefixed with `nvp_`, but the backend NVP name is unprefixed (`submitMigrationModalShown`),
+ * so we can't reuse the generic `setNameValuePair` (which sends the prefixed Onyx key as the API `name`).
+ * Instead we send the unprefixed backend name while still storing the value under the prefixed Onyx key.
+ */
+function setSubmitMigrationModalShown() {
+    const optimisticData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN,
+            value: true,
+        },
+    ];
+
+    const failureData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN,
+            value: false,
+        },
+    ];
+
+    const parameters: SetNameValuePairParams = {
+        name: CONST.SUBMIT_MIGRATION_MODAL_SHOWN_NVP_NAME,
+        value: true,
+    };
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {optimisticData, failureData});
 }
 
 function requestRefund() {
@@ -1555,6 +1546,7 @@ function requestUnlockAccount(accountID: number) {
 type RespondToProactiveAppReviewParams = {
     response: 'positive' | 'negative' | 'skip';
     optimisticReportActionID?: string;
+    policyID: string | undefined;
 };
 
 /**
@@ -1566,10 +1558,11 @@ function respondToProactiveAppReview(
     userEmail: string | undefined,
     userAccountID: number,
     delegateAccountID: number | undefined,
+    policyID: string | undefined,
     message?: string,
     conciergeChatReportID?: string,
 ) {
-    const params: RespondToProactiveAppReviewParams = {response};
+    const params: RespondToProactiveAppReviewParams = {response, policyID};
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.NVP_APP_REVIEW>> = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.NVP_APP_REVIEW>> = [];
@@ -1662,13 +1655,12 @@ function respondToProactiveAppReview(
  *
  * This handles the complete flow for verifying a secondary login:
  * 1. Verifies the validation code entered by the user
- * 2. On success, stores the validate code to allow adding the new email
+ * 2. On success, stores the validateCode to allow adding the new email
  * 3. On failure, updates the state to reflect the failed verification
  *
  * @param validateCode - The validation code entered by the user
  */
 function verifyAddSecondaryLoginCode(validateCode: string) {
-    resetValidateActionCodeSent();
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PENDING_CONTACT_ACTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1784,6 +1776,29 @@ function deleteExpenseRules(expenseRules: ExpenseRule[], selectedRuleKeys: strin
         successData,
         failureData,
     });
+}
+
+function clearExpenseRuleErrors(expenseRules: ExpenseRule[], selectedRuleKey: string, getKeyForRule: (rule: ExpenseRule) => string) {
+    const ruleIndex = expenseRules.findIndex((rule, index) => `${getKeyForRule(rule)}-${index}` === selectedRuleKey);
+
+    if (ruleIndex === -1) {
+        return;
+    }
+
+    const updatedExpenseRules = [...expenseRules];
+    const rule = updatedExpenseRules.at(ruleIndex);
+
+    if (!rule) {
+        return;
+    }
+
+    updatedExpenseRules[ruleIndex] = {
+        ...rule,
+        pendingAction: null,
+        errors: undefined,
+    };
+
+    Onyx.set(ONYXKEYS.NVP_EXPENSE_RULES, updatedExpenseRules);
 }
 
 function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, existingRuleKey: string | undefined, getKeyForRule: (rule: ExpenseRule) => string) {
@@ -1920,6 +1935,42 @@ function clearDraftSpendRule() {
     Onyx.set(ONYXKEYS.FORMS.SPEND_RULE_FORM, null);
 }
 
+function setDraftRequireFieldsRule(ruleData: Partial<RequireFieldsRuleForm>) {
+    Onyx.set(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM, ruleData);
+}
+
+function updateDraftRequireFieldsRule(ruleData: Partial<RequireFieldsRuleForm>) {
+    Onyx.merge(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM, ruleData);
+}
+
+function clearDraftRequireFieldsRule() {
+    Onyx.set(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM, null);
+}
+
+function setDraftFlagForReviewRule(ruleData: Partial<FlagForReviewRuleForm>) {
+    Onyx.set(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM, ruleData);
+}
+
+function updateDraftFlagForReviewRule(ruleData: Partial<FlagForReviewRuleForm>) {
+    Onyx.merge(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM, ruleData);
+}
+
+function clearDraftFlagForReviewRule() {
+    Onyx.set(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM, null);
+}
+
+function setDraftMerchantTypeRule(ruleData: Partial<MerchantTypeRuleForm>) {
+    Onyx.set(ONYXKEYS.FORMS.MERCHANT_TYPE_RULE_FORM, ruleData);
+}
+
+function updateDraftMerchantTypeRule(ruleData: Partial<MerchantTypeRuleForm>) {
+    Onyx.merge(ONYXKEYS.FORMS.MERCHANT_TYPE_RULE_FORM, ruleData);
+}
+
+function clearDraftMerchantTypeRule() {
+    Onyx.set(ONYXKEYS.FORMS.MERCHANT_TYPE_RULE_FORM, null);
+}
+
 export {
     revokeDevice,
     clearRevokeError,
@@ -1956,13 +2007,13 @@ export {
     clearDraftCustomStatus,
     requestRefund,
     setNameValuePair,
+    setSubmitMigrationModalShown,
     clearUnvalidatedNewContactMethodAction,
     clearPendingContactActionErrors,
     requestValidateCodeAction,
     clearValidateCodeActionError,
     setIsDebugModeEnabled,
     setShouldShowBranchNameInTitle,
-    resetValidateActionCodeSent,
     lockAccount,
     requestUnlockAccount,
     respondToProactiveAppReview,
@@ -1973,14 +2024,25 @@ export {
     clearDraftRule,
     saveExpenseRule,
     deleteExpenseRules,
+    clearExpenseRuleErrors,
     setDraftMerchantRule,
     updateDraftMerchantRule,
     clearDraftMerchantRule,
     setDraftSpendRule,
     updateDraftSpendRule,
     clearDraftSpendRule,
+    setDraftRequireFieldsRule,
+    updateDraftRequireFieldsRule,
+    clearDraftRequireFieldsRule,
+    setDraftFlagForReviewRule,
+    updateDraftFlagForReviewRule,
+    clearDraftFlagForReviewRule,
+    setDraftMerchantTypeRule,
+    updateDraftMerchantTypeRule,
+    clearDraftMerchantTypeRule,
     openTroubleshootSettingsPage,
     openMultifactorAuthenticationRevokePage,
+    dismissMarketingWindow,
 };
 
 export {type LockAccountOnyxKey};

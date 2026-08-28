@@ -1,6 +1,3 @@
-import type {ReactNode} from 'react';
-import React, {useRef, useState} from 'react';
-import type {GestureResponderEvent, LayoutChangeEvent, View} from 'react-native';
 import Hoverable from '@components/Hoverable';
 import {useLHNTooltipContext} from '@components/LHNOptionsList/LHNTooltipContext';
 import useLHNRowProductTrainingTooltip from '@components/LHNOptionsList/OptionRowLHN/useLHNRowProductTrainingTooltip';
@@ -8,18 +5,28 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 import getActionBadgeText from '@components/utils/getActionBadgeText';
 import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
 import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DomUtils from '@libs/DomUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import type {OptionData} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
+
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {ReactNode} from 'react';
+import type {GestureResponderEvent, LayoutChangeEvent, View} from 'react-native';
+
+import React, {useRef, useState} from 'react';
 
 type PressableProps = {
     /** Option data for the row. Source of accessibility text and the report ID used by press/context-menu actions. */
@@ -44,10 +51,10 @@ type PressableProps = {
     children: ReactNode;
 
     /** Whether to show the "Mark as Done" state for this row. */
-    isMarkAsDone?: boolean;
+    shouldShowMarkAsDoneCopy?: boolean;
 };
 
-function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverIn, onHoverOut, children, isMarkAsDone}: PressableProps) {
+function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverIn, onHoverOut, children, shouldShowMarkAsDoneCopy}: PressableProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -61,7 +68,7 @@ function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverI
 
     const reportID = optionItem.reportID;
     const brickRoadIndicator = optionItem.brickRoadIndicator;
-    const actionBadgeText = getActionBadgeText(optionItem.actionBadge, translate, isMarkAsDone);
+    const actionBadgeText = getActionBadgeText(optionItem.actionBadge, translate, shouldShowMarkAsDoneCopy);
 
     let accessibilityLabelForBadge = '';
     if (brickRoadIndicator) {
@@ -152,7 +159,7 @@ function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverI
                     }}
                     withoutFocusOnSecondaryInteraction
                     activeOpacity={variables.pressDimValue}
-                    opacityAnimationDuration={0}
+                    opacityAnimationDuration={variables.instantAnimationDuration}
                     style={[
                         styles.flexRow,
                         styles.alignItemsCenter,

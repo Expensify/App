@@ -1,7 +1,13 @@
 import {renderHook} from '@testing-library/react-native';
+
 import Parser from '@libs/Parser';
 import {getReportActionHtml} from '@libs/ReportActionsUtils';
+
 import useDraftMessageVideoAttributeCache, {draftMessageVideoAttributeCache} from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
+
+import type {ReportAction} from '@src/types/onyx';
+
+import createMock from '../../utils/createMock';
 
 jest.mock('@libs/ReportActionsUtils', () => ({
     getReportActionHtml: jest.fn(),
@@ -23,7 +29,7 @@ describe('useDraftMessageVideoAttributeCache', () => {
     });
 
     it('should cache video attributes from the original message html when editing', () => {
-        const reportAction = {reportActionID: '1'} as never;
+        const reportAction = createMock<ReportAction>({reportActionID: '1'});
         mockGetReportActionHtml.mockReturnValue('<video src="https://example.com/video.mp4" data-name="v.mp4">v.mp4</video>');
 
         htmlToMarkdownSpy.mockImplementation((_html, extras) => {
@@ -48,7 +54,7 @@ describe('useDraftMessageVideoAttributeCache', () => {
     });
 
     it('should not call updateDraftMessage when edit is in progress', () => {
-        const reportAction = {reportActionID: '1'} as never;
+        const reportAction = createMock<ReportAction>({reportActionID: '1'});
         mockGetReportActionHtml.mockReturnValue('<video src="https://example.com/video.mp4" data-name="v.mp4">v.mp4</video>');
         htmlToMarkdownSpy.mockImplementation((_html, extras) => {
             extras?.cacheVideoAttributes?.('https://example.com/video.mp4', ' data-name="v.mp4"');

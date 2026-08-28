@@ -1,24 +1,30 @@
-import React from 'react';
-import type {TextInput} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
+
+import type {TextInput} from 'react-native';
+
+import React from 'react';
 
 type DistanceManualTabContentProps = {
     currentDistance: number | undefined;
     distanceUnit: Unit;
     onSubmit: () => void;
     manualFormError: string;
-    onInputChange: () => void;
+    onInputChange: (value: string) => void;
     manualTextInputRef: React.RefObject<BaseTextInputRef | null>;
     manualNumberFormRef: React.RefObject<NumberWithSymbolFormRef | null>;
 };
@@ -55,17 +61,16 @@ function DistanceManualTabContent({currentDistance, distanceUnit, onSubmit, manu
             accessibilityLabel={`${translate('common.distance')} (${translate(`common.${distanceUnit}`)})`}
             footer={
                 <Button
-                    success
-                    allowBubble={false}
-                    pressOnEnter
-                    medium={isExtraSmallScreenHeight}
-                    large={!isExtraSmallScreenHeight}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100, canUseTouchScreen() ? styles.mt5 : styles.mt0]}
                     onPress={onSubmit}
-                    text={translate('common.save')}
                     testID="next-button"
                     sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_MANUAL_NEXT_BUTTON}
-                />
+                >
+                    <Button.KeyboardShortcut allowBubble={false} />
+                    <Button.Text>{translate('common.save')}</Button.Text>
+                </Button>
             }
         />
     );

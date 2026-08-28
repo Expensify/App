@@ -1,14 +1,18 @@
-import React from 'react';
-import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import getActionBadgeText from '@components/utils/getActionBadgeText';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {OptionData} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type InfoBadgeProps = {
     /** Brick road indicator for the row. The badge only renders when this equals INFO. */
@@ -17,10 +21,10 @@ type InfoBadgeProps = {
     /** Action badge key used to derive the badge label. */
     actionBadge: OptionData['actionBadge'];
     /** Whether to show the "Mark as Done" state for this row. */
-    isMarkAsDone?: boolean;
+    shouldShowMarkAsDoneCopy?: boolean;
 };
 
-function InfoBadge({brickRoadIndicator, actionBadge, isMarkAsDone}: InfoBadgeProps) {
+function InfoBadge({brickRoadIndicator, actionBadge, shouldShowMarkAsDoneCopy}: InfoBadgeProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -30,7 +34,7 @@ function InfoBadge({brickRoadIndicator, actionBadge, isMarkAsDone}: InfoBadgePro
         return null;
     }
 
-    const actionBadgeText = getActionBadgeText(actionBadge, translate, isMarkAsDone);
+    const actionBadgeText = getActionBadgeText(actionBadge, translate, shouldShowMarkAsDoneCopy);
 
     if (actionBadgeText) {
         return (

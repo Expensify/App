@@ -1,10 +1,16 @@
-import React from 'react';
 import BaseWidgetItem from '@components/BaseWidgetItem';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import colors from '@styles/theme/colors';
+
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 type EnterSignerInfoProps = {
     /** The policy ID that owns the bank account requiring signer info */
@@ -34,7 +40,7 @@ function EnterSignerInfo({policyID, bankAccountID, bankAccountLastFour}: EnterSi
             subtitle={translate('homePage.timeSensitiveSection.enterSignerInfo.subtitle', {bankAccountLastFour})}
             ctaText={translate('homePage.forYouSection.begin')}
             onCtaPress={handleCtaPress}
-            buttonProps={{success: true}}
+            buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />
     );
 }

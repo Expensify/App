@@ -1,10 +1,12 @@
+import type CONST from '@src/CONST';
+import type {AnyOnyxUpdatesFromServer, ReportUserIsTyping} from '@src/types/onyx';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
 import type {PusherChannel} from '@pusher/pusher-websocket-react-native';
 import type PusherClass from 'pusher-js/with-encryption';
 import type {Channel, ChannelAuthorizerGenerator} from 'pusher-js/with-encryption';
 import type {LiteralUnion, ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
-import type {AnyOnyxUpdatesFromServer, ReportUserIsTyping} from '@src/types/onyx';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
 import type TYPE from './EventType';
 
 type SocketEventName = LiteralUnion<'error' | 'connected' | 'disconnected' | 'state_change', string>;
@@ -110,13 +112,9 @@ type PusherSubscription = Promise<void> & {
 
 type PusherModule = {
     init: (args: Args) => Promise<void>;
-    subscribe: <EventName extends PusherEventName>(
-        channelName: string,
-        eventName?: EventName,
-        eventCallback?: (data: EventData<EventName>) => void,
-        onResubscribe?: () => void,
-    ) => PusherSubscription;
+    subscribe: <EventName extends PusherEventName>(channelName: string, eventName?: EventName, eventCallback?: (data: EventData<EventName>) => void) => PusherSubscription;
     unsubscribe: (channelName: string, eventName?: PusherEventName) => void;
+    onChannelResubscribe: (channelName: string, callback: () => void) => () => void;
     getChannel: (channelName: string) => Channel | PusherChannel | undefined;
     isSubscribed: (channelName: string) => boolean;
     isAlreadySubscribing: (channelName: string) => boolean;

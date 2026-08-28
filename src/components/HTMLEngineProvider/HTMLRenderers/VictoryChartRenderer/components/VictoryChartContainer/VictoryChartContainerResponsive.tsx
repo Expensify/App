@@ -1,10 +1,15 @@
-import React, {useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
-import {View} from 'react-native';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import computeChartScale from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeChartScale';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {LayoutChangeEvent} from 'react-native';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import type {VictoryChartContainerLayout} from './types';
+
 import VictoryChartContainerFixed from './VictoryChartContainerFixed';
 
 function VictoryChartContainerResponsive({children}: {children: React.ReactNode}) {
@@ -28,7 +33,7 @@ function VictoryChartContainerResponsive({children}: {children: React.ReactNode}
         mw100: styles.mw100,
     };
 
-    const layout: VictoryChartContainerLayout = hasDesignDimensions && designHeight ? {kind: 'scaled', designHeight, scale} : {kind: 'fluid'};
+    const layout: VictoryChartContainerLayout = designWidth && designHeight ? {kind: 'scaled', designWidth, designHeight, scale} : {kind: 'fluid'};
 
     if (!hasDesignDimensions) {
         return (

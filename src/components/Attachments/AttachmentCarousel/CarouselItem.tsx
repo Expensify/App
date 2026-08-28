@@ -1,20 +1,25 @@
-import React, {useContext, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import AttachmentView from '@components/Attachments/AttachmentView';
 import type {Attachment} from '@components/Attachments/types';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useContext, useState} from 'react';
+import {View} from 'react-native';
 
 type CarouselItemProps = {
     /** Attachment required information such as the source and file name */
@@ -43,8 +48,10 @@ function CarouselItem({item, onPress, isFocused, isModalHovered, reportID}: Caro
 
     const renderButton = (style: StyleProp<ViewStyle>) => (
         <Button
-            small
+            size={CONST.BUTTON_SIZE.SMALL}
             style={style}
+            // Restores the 12px horizontal padding from the legacy implementation.
+            innerStyles={styles.ph3}
             onPress={() => setIsHidden(!isHidden)}
             testID="moderationButton"
             sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.MODERATION_BUTTON}
@@ -95,6 +102,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered, reportID}: Caro
                     reportActionID={item.reportActionID}
                     isHovered={isModalHovered}
                     isFocused={isFocused}
+                    isUsedInAttachmentModal
                     duration={item.duration}
                     fallbackSource={icons.AttachmentNotFound}
                     reportID={reportID}

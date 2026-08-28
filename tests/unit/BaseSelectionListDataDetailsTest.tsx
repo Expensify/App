@@ -1,9 +1,12 @@
-import type * as ReactNavigation from '@react-navigation/native';
 import {render, screen} from '@testing-library/react-native';
-import React from 'react';
+
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
+
+import type * as ReactNavigation from '@react-navigation/native';
+
+import React from 'react';
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
@@ -18,10 +21,6 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('@hooks/useLocalize', () => () => ({
     translate: (key: string) => key,
 }));
-
-function getSelectAllCheckboxCheckedState() {
-    return (screen.getByTestId('selection-list-select-all-checkbox').props as {accessibilityState: {checked: boolean | 'mixed'}}).accessibilityState.checked;
-}
 
 function renderSelectionList(data: ListItem[], onSelectAll?: () => void) {
     return render(
@@ -47,7 +46,7 @@ describe('BaseSelectionList dataDetails', () => {
 
             renderSelectionList(data, () => {});
 
-            expect(getSelectAllCheckboxCheckedState()).toBe(true);
+            expect(screen.getByTestId('selection-list-select-all-checkbox').props).toMatchObject({accessibilityState: {checked: true}});
         });
 
         it('should show someSelected (indeterminate) when only some selectable items are selected', () => {
@@ -59,7 +58,7 @@ describe('BaseSelectionList dataDetails', () => {
 
             renderSelectionList(data, () => {});
 
-            expect(getSelectAllCheckboxCheckedState()).toBe('mixed');
+            expect(screen.getByTestId('selection-list-select-all-checkbox').props).toMatchObject({accessibilityState: {checked: 'mixed'}});
         });
 
         it('should not show allSelected when no selectable items are selected even with disabled+selected items', () => {
@@ -71,7 +70,7 @@ describe('BaseSelectionList dataDetails', () => {
 
             renderSelectionList(data, () => {});
 
-            expect(getSelectAllCheckboxCheckedState()).toBe(false);
+            expect(screen.getByTestId('selection-list-select-all-checkbox').props).toMatchObject({accessibilityState: {checked: false}});
         });
     });
 });

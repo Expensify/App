@@ -1,14 +1,19 @@
-import React, {useEffect, useMemo, useState} from 'react';
 import ScrollView from '@components/ScrollView';
+
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React, {useEffect, useMemo, useState} from 'react';
+
+import type {TabSelectorBaseProps} from './types';
+
 import getBackgroundColor from './getBackground';
 import getOpacity from './getOpacity';
 import {useTabSelectorActions, useTabSelectorState} from './TabSelectorContext';
 import TabSelectorItem from './TabSelectorItem';
-import type {TabSelectorBaseProps} from './types';
 
 /**
  * Navigation-agnostic tab selector UI that renders a row of TabSelectorItem components.
@@ -17,7 +22,7 @@ import type {TabSelectorBaseProps} from './types';
  * (getOpacity / getBackgroundColor). It is reused by both navigation-based TabSelector and
  * inline tab selectors like SplitExpensePage.
  */
-function TabSelectorBase({
+function TabSelectorBase<K extends string = string>({
     tabs,
     activeTabKey,
     onTabPress = () => {},
@@ -27,7 +32,7 @@ function TabSelectorBase({
     shouldShowLabelWhenInactive = true,
     equalWidth = false,
     contentContainerStyles,
-}: TabSelectorBaseProps) {
+}: TabSelectorBaseProps<K>) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -99,6 +104,10 @@ function TabSelectorBase({
                 });
 
                 const handlePress = () => {
+                    if (tab.isDisabled) {
+                        tab.disabledAction?.();
+                        return;
+                    }
                     if (isActive) {
                         onActiveTabPress(tab.key);
                         return;
@@ -111,10 +120,13 @@ function TabSelectorBase({
                     <TabSelectorItem
                         tabKey={tab.key}
                         key={tab.key}
+                        tabRef={tab.tabRef}
                         icon={tab.icon}
                         title={tab.title}
                         onPress={handlePress}
-                        onLongPress={onLongTabPress ? () => onLongTabPress(tab.key) : undefined}
+                        // Only wire the secondary interaction for tabs that opt in. Otherwise every tab would
+                        // suppress the native browser right-click menu on web (see PressableWithSecondaryInteraction).
+                        onLongPress={onLongTabPress && tab.shouldEnableLongPress ? () => onLongTabPress(tab.key) : undefined}
                         activeOpacity={activeOpacity}
                         inactiveOpacity={inactiveOpacity}
                         backgroundColor={backgroundColor}
@@ -128,6 +140,7 @@ function TabSelectorBase({
                         badgeStyles={tab.badgeStyles}
                         pendingAction={tab.pendingAction}
                         isDisabled={tab.isDisabled}
+                        disabledAction={tab.disabledAction}
                     />
                 );
             })}

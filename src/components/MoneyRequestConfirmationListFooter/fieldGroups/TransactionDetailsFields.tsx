@@ -1,5 +1,3 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import AmountField from '@components/MoneyRequestConfirmationList/sections/AmountField';
 import DescriptionField from '@components/MoneyRequestConfirmationList/sections/DescriptionField';
@@ -8,8 +6,15 @@ import MerchantField from '@components/MoneyRequestConfirmationList/sections/Mer
 import RateField from '@components/MoneyRequestConfirmationList/sections/RateField';
 import TimeFields from '@components/MoneyRequestConfirmationList/sections/TimeFields';
 import type {AmountDisplay, DistanceData, ErrorState, RequiredFlags} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
 import type {FieldVisibility} from './fieldVisibility';
 
 type TransactionDetailsFieldsProps = {
@@ -43,9 +48,6 @@ type TransactionDetailsFieldsProps = {
     /** Per-field visibility decisions resolved by `computeFieldVisibility` */
     fieldVisibility: Pick<FieldVisibility, 'amount' | 'distance' | 'rate' | 'merchant' | 'time'>;
 
-    /** Triggers submit from inline inputs */
-    onSubmitForm?: () => void;
-
     /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
     isParticipantPickerVisible: boolean;
 };
@@ -61,7 +63,6 @@ function TransactionDetailsFields({
     iouCurrencyCode,
     isCompactMode,
     fieldVisibility,
-    onSubmitForm,
     isParticipantPickerVisible,
 }: TransactionDetailsFieldsProps) {
     const {
@@ -135,7 +136,6 @@ function TransactionDetailsFields({
                 reportID={reportID}
                 reportActionID={reportActionID}
                 policy={policy}
-                onSubmitForm={onSubmitForm}
             />
 
             {fieldVisibility.distance && (
@@ -143,7 +143,6 @@ function TransactionDetailsFields({
                     hasRoute={distanceData.hasRoute}
                     distance={distanceData.distance}
                     unit={distanceData.unit}
-                    rate={distanceData.rate}
                     isManualDistanceRequest={isManualDistanceRequest}
                     isOdometerDistanceRequest={isOdometerDistanceRequest}
                     isGPSDistanceRequest={isGPSDistanceRequest}
@@ -154,6 +153,7 @@ function TransactionDetailsFields({
                     iouType={iouType}
                     reportID={reportID}
                     reportActionID={reportActionID}
+                    customUnit={distanceData.customUnit}
                 />
             )}
 
@@ -162,7 +162,9 @@ function TransactionDetailsFields({
                     distanceRateName={distanceData.distanceRateName}
                     distanceRateCurrency={distanceData.distanceRateCurrency}
                     unit={distanceData.unit}
-                    rate={distanceData.rate}
+                    mileageRate={distanceData.mileageRate}
+                    expenseDate={distanceData.expenseDate}
+                    customUnitRateID={distanceData.customUnitRateID}
                     didConfirm={didConfirm}
                     isReadOnly={isReadOnly}
                     isPolicyExpenseChat={isPolicyExpenseChat}

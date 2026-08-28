@@ -1,12 +1,17 @@
-import React from 'react';
 import BaseWidgetItem from '@components/BaseWidgetItem';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import colors from '@styles/theme/colors';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PolicyConnectionName} from '@src/types/onyx/Policy';
+
+import React from 'react';
 
 type FixPolicyConnectionProps = {
     /** The connection name that has an error */
@@ -42,7 +47,7 @@ function FixPolicyConnection({connectionName, policyID, policyName, integrationN
             subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
             onCtaPress={() => Navigation.navigate(fixRoute)}
-            buttonProps={{danger: true}}
+            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
         />
     );
 }

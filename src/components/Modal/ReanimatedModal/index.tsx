@@ -1,22 +1,29 @@
-import noop from 'lodash/noop';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeEventSubscription, ViewStyle} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {BackHandler, InteractionManager, Modal, StyleSheet, View} from 'react-native';
-import {LayoutAnimationConfig} from 'react-native-reanimated';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import getPlatform from '@libs/getPlatform';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {NativeEventSubscription, ViewStyle} from 'react-native';
+
+import noop from 'lodash/noop';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {BackHandler, Modal, StyleSheet, View} from 'react-native';
+import {LayoutAnimationConfig} from 'react-native-reanimated';
+
+import type ReanimatedModalProps from './types';
+
 import Backdrop from './Backdrop';
 import Container from './Container';
-import type ReanimatedModalProps from './types';
 
 function ReanimatedModal({
     testID,
@@ -51,6 +58,7 @@ function ReanimatedModal({
     shouldIgnoreBackHandlerDuringTransition = false,
     shouldEnableNewFocusManagement,
     shouldReturnFocus,
+    launcherRef,
     ...props
 }: ReanimatedModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
@@ -59,8 +67,8 @@ function ReanimatedModal({
     const {windowWidth, windowHeight} = useWindowDimensions();
 
     const backHandlerListener = useRef<NativeEventSubscription | null>(null);
-    const handleRef = useRef<number | undefined>(undefined);
     const transitionHandleRef = useRef<TransitionHandle | null>(null);
+    const containerRef = useRef<View | null>(null);
 
     const styles = useThemeStyles();
 
@@ -103,10 +111,6 @@ function ReanimatedModal({
 
     useEffect(
         () => () => {
-            if (handleRef.current) {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                InteractionManager.clearInteractionHandle(handleRef.current);
-            }
             if (transitionHandleRef.current) {
                 TransitionTracker.endTransition(transitionHandleRef.current);
                 transitionHandleRef.current = null;
@@ -121,8 +125,6 @@ function ReanimatedModal({
 
     useEffect(() => {
         if (isVisible && !isContainerOpen && !isTransitioning) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            handleRef.current = InteractionManager.createInteractionHandle();
             transitionHandleRef.current = TransitionTracker.startTransition();
             onModalWillShow();
 
@@ -130,11 +132,15 @@ function ReanimatedModal({
             setIsVisibleState(true);
             setIsTransitioning(true);
         } else if (!isVisible && isContainerOpen && !isTransitioning) {
-            handleRef.current = InteractionManager.createInteractionHandle();
             transitionHandleRef.current = TransitionTracker.startTransition();
             onModalWillHide();
 
-            blurActiveElement();
+            // Only drop focus that is inside this modal, because its content is about to unmount. By now the focus trap may
+            // have already returned focus to the launcher that opened us, which sits outside; blurring that would
+            // silently undo the return (visible on Escape, where focus-trap deactivates before we close).
+            // The containment test lives in the web implementation: this file also runs on native, where `HTMLElement`
+            // and `document` are undeclared and referencing them throws.
+            blurActiveElement(containerRef.current);
             setIsVisibleState(false);
             setIsTransitioning(true);
         }
@@ -148,10 +154,6 @@ function ReanimatedModal({
     const onOpenCallBack = useCallback(() => {
         setIsTransitioning(false);
         setIsContainerOpen(true);
-        if (handleRef.current) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.clearInteractionHandle(handleRef.current);
-        }
         if (transitionHandleRef.current) {
             TransitionTracker.endTransition(transitionHandleRef.current);
             transitionHandleRef.current = null;
@@ -162,9 +164,6 @@ function ReanimatedModal({
     const onCloseCallBack = useCallback(() => {
         setIsTransitioning(false);
         setIsContainerOpen(false);
-        if (handleRef.current) {
-            InteractionManager.clearInteractionHandle(handleRef.current);
-        }
         if (transitionHandleRef.current) {
             TransitionTracker.endTransition(transitionHandleRef.current);
             transitionHandleRef.current = null;
@@ -184,6 +183,7 @@ function ReanimatedModal({
 
     const containerView = (
         <Container
+            ref={containerRef}
             pointerEvents="box-none"
             animationInTiming={animationInTiming}
             animationOutTiming={animationOutTiming}
@@ -260,6 +260,7 @@ function ReanimatedModal({
                         initialFocus={initialFocus}
                         shouldReturnFocus={shouldReturnFocus ?? !shouldEnableNewFocusManagement}
                         shouldPreventScroll={shouldPreventScrollOnFocus}
+                        launcherRef={launcherRef}
                     >
                         {isVisibleState && containerView}
                     </FocusTrapForModal>

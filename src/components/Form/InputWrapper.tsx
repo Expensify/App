@@ -1,15 +1,20 @@
-import type {ComponentPropsWithoutRef, ComponentType, ForwardedRef} from 'react';
-import React, {useContext} from 'react';
-import type {SubmitBehavior} from 'react-native';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
 import type RoomNameInputProps from '@components/RoomNameInput/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import FormContext from './FormContext';
+
+import type {ComponentPropsWithoutRef, ComponentType, ForwardedRef} from 'react';
+import type {SubmitBehavior} from 'react-native';
+
+import React, {useContext} from 'react';
+
 import type {InputComponentBaseProps, InputComponentValueProps, ValidInputs, ValueTypeKey} from './types';
+
+import FormContext from './FormContext';
 
 type TextInputBasedComponents = Set<ComponentType<BaseTextInputProps> | ComponentType<RoomNameInputProps>>;
 
@@ -26,10 +31,11 @@ function computeComponentSpecificRegistrationParams({
     shouldSubmitForm,
     multiline,
     autoGrowHeight,
+    autoGrowSingleLine,
     submitBehavior,
 }: InputComponentBaseProps): ComputedComponentSpecificRegistrationParams {
     if (textInputBasedComponents.has(InputComponent)) {
-        const isEffectivelyMultiline = !!multiline || !!autoGrowHeight;
+        const isEffectivelyMultiline = !!multiline || !!autoGrowHeight || !!autoGrowSingleLine;
 
         // If the user can use the hardware keyboard, they have access to an alternative way of inserting a new line
         // (like a Shift+Enter keyboard shortcut). For simplicity, we assume that when there's no touch screen, it's a
@@ -39,7 +45,9 @@ function computeComponentSpecificRegistrationParams({
         // We want to avoid a situation when the user can't insert a new line. For single-line inputs, it's not a problem and we
         // force-enable form submission. For multi-line inputs, ensure that it was requested to enable form submission for this specific
         // input and that alternative ways exist to add a new line.
-        const shouldReallySubmitForm = isEffectivelyMultiline ? !!shouldSubmitForm && canUseHardwareKeyboard : true;
+        // `autoGrowSingleLine` inputs only render as multi-line so their value can wrap - a new line is never a valid
+        // value there, so nothing has to be reserved for inserting one and the return key always submits.
+        const shouldReallySubmitForm = !!autoGrowSingleLine || (isEffectivelyMultiline ? !!shouldSubmitForm && canUseHardwareKeyboard : true);
 
         return {
             // There are inputs that don't have onBlur methods, to simulate the behavior of onBlur in e.g. checkbox, we had to

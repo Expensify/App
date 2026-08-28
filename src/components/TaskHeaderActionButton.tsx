@@ -1,6 +1,3 @@
-import {delegateEmailSelector} from '@selectors/Account';
-import React from 'react';
-import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useLocalize from '@hooks/useLocalize';
@@ -9,14 +6,22 @@ import useParentReport from '@hooks/useParentReport';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canWriteInReport, isCompletedTaskReport} from '@libs/ReportUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
+
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask, completeTask, reopenTask} from '@userActions/Task';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import Button from './Button';
+
+import {delegateEmailSelector} from '@selectors/Account';
+import React from 'react';
+import {View} from 'react-native';
+
+import Button from './ButtonComposed';
 
 type TaskHeaderActionButtonProps = {
     /** The report currently being looked at */
@@ -41,9 +46,8 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
             <Button
-                success
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 isDisabled={!isTaskActionable}
-                text={translate(isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
                 onPress={callFunctionIfActionIsAllowed(() => {
                     // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
                     if (isActiveTaskEditRoute(report.reportID)) {
@@ -57,7 +61,9 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
                 })}
                 style={styles.flex1}
                 sentryLabel={CONST.SENTRY_LABEL.TASK.HEADER_ACTION_BUTTON}
-            />
+            >
+                <Button.Text>{translate(isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}</Button.Text>
+            </Button>
         </View>
     );
 }

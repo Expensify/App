@@ -25,8 +25,7 @@
  *   filters={filterConfig}
  *   isItemInFilter={filterFn}
  * >
- *   <Table.SearchBar />
- *   <Table.FilterButtons />
+ *   <Table.FilterBar />
  *   <Table.Header />
  *   <Table.Body />
  * </Table>
@@ -34,13 +33,17 @@
  *
  * See README.md in this directory for full documentation.
  */
+import composeTableListHeader from './composeTableListHeader';
 import TableComponent from './Table';
 import TableBody from './TableBody';
 import TableContext from './TableContext';
-import TableFilterButtons from './TableFilterButtons';
+import TableEmptyState from './TableEmptyStates/TableEmptyState';
+import TableNoResultsState from './TableEmptyStates/TableNoResultsState';
+import TableFilterBar from './TableFilterBar';
 import TableHeader from './TableHeader';
+import TableListHeader from './TableListHeader';
+import TableLoadingState from './TableLoadingState';
 import TableRow from './TableRow';
-import TableSearchBar from './TableSearchBar';
 
 /**
  * Table compound component with attached sub-components.
@@ -48,9 +51,13 @@ import TableSearchBar from './TableSearchBar';
  * Sub-components:
  * - `Table.Context` - The React context (for advanced usage)
  * - `Table.Header` - Sortable column headers
+ * - `Table.ListHeader` - Content that scrolls with the table rows
  * - `Table.Body` - Data rows using FlashList
- * - `Table.FilterButtons` - Dropdown filter buttons
- * - `Table.SearchBar` - Search input
+ * - `Table.FilterBar` - Search input & filter bar
+ * - `Table.Row` - A single row in the table
+ * - `Table.EmptyState` - Renders when the table has no rows
+ * - `Table.NoResultsState` - Renders when the table has rows, but the user has filtered all of them out
+ * - `Table.LoadingState` - Renders a loading indicator when the table is loading its data
  */
 const Table = Object.assign(TableComponent, {
     /** The React context for accessing table state directly. */
@@ -59,18 +66,28 @@ const Table = Object.assign(TableComponent, {
     /** Renders sortable column headers. */
     Header: TableHeader,
 
+    /** Content that scrolls with the table rows. */
+    ListHeader: TableListHeader,
+
     /** Renders data rows using FlashList. */
     Body: TableBody,
 
-    /** Renders dropdown filter buttons. */
-    FilterButtons: TableFilterButtons,
-
-    /** Renders a search input. */
-    SearchBar: TableSearchBar,
-
     /** Renders a row in the table */
     Row: TableRow,
+
+    /** The filter bar with a searchbar/filters menu */
+    FilterBar: TableFilterBar,
+
+    /** Renders when the table has no rows */
+    EmptyState: TableEmptyState,
+
+    /** Renders when the table has rows, but the user has filtered all of them out */
+    NoResultsState: TableNoResultsState,
+
+    /** Renders a loading indicator when the table is loading its data */
+    LoadingState: TableLoadingState,
 });
 
 export default Table;
+export {composeTableListHeader};
 export type * from './types';

@@ -1,27 +1,33 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef} from '@components/Form/types';
 import Text from '@components/Text';
 import UploadFile from '@components/UploadFile';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+
 import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import getNeededDocumentsStatusForSignerInfo from '@pages/ReimbursementAccount/utils/getNeededDocumentsStatusForSignerInfo';
 import WhyLink from '@pages/ReimbursementAccount/WhyLink';
+
 import {clearErrorFields, clearErrors, setDraftValues, setErrorFields} from '@userActions/FormActions';
 import {openExternalLink} from '@userActions/Link';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 type UploadDocumentsProps = SubPageProps;
 
@@ -64,7 +70,6 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const STEP_FIELDS: Array<FormOnyxKeys<'reimbursementAccount'>> = [COPY_OF_ID, ADDRESS_PROOF, PROOF_OF_DIRECTORS, CODICE_FISCALE];
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        setIsPDSandFSGDownloadedTouched(true);
         return getFieldRequiredErrors(values, STEP_FIELDS, translate);
     };
 
@@ -104,7 +109,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
         setErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[inputID]: {onUpload: error}});
     };
 
-    const handleDownload = () => {
+    const downloadPDSAndFSG = () => {
         openExternalLink(`${environmentUrl}/pdfs/PDSAndFSG.pdf`);
         setIsPDSandFSGDownloadedTouched(true);
         setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[signerInfoKeys.DOWNLOADED_PDS_AND_FSG]: true});
@@ -116,6 +121,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             onSubmit={handleSubmitWithDownload}
+            onBeforeSubmit={() => setIsPDSandFSGDownloadedTouched(true)}
             validate={validate}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.mb0]}
@@ -235,10 +241,9 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
             {isDocumentNeededStatus.isPRDAndFSGNeeded && (
                 <View style={[styles.alignItemsStart]}>
                     <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.PDSandFSG')}</Text>
-                    <Button
-                        onPress={handleDownload}
-                        text={translate('common.download')}
-                    />
+                    <Button onPress={downloadPDSAndFSG}>
+                        <Button.Text>{translate('common.download')}</Button.Text>
+                    </Button>
                     {!isPDSandFSGDownloaded && isPDSandFSGDownloadedTouched && (
                         <DotIndicatorMessage
                             style={[styles.formError, styles.mt3]}

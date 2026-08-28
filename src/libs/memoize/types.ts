@@ -1,4 +1,5 @@
 import type TakeFirst from '@src/types/utils/TupleOperations';
+
 import type {Cache} from './cache/types';
 import type MemoizeStats from './stats';
 

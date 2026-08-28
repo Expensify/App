@@ -1,13 +1,18 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {BankAccountList, Policy, Report, ReportMetadata, Transaction, TransactionViolation} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
 import {
     arePaymentsEnabled,
+    canMemberWrite,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
+    isArchivedOrPendingDeletePolicy,
+    isGroupPolicy,
     isPreferredExporter,
     isSubmitterApproveBlockedOnSubmitWorkspace,
 } from './PolicyUtils';
@@ -25,23 +30,26 @@ import {
     isInvoiceReport,
     isIOUReport,
     isOpenReport,
+    isPayBlockedByArchivedState,
     isPayer,
     isProcessingReport,
     isReportApproved,
     isSettled,
 } from './ReportUtils';
-import {hasSmartScanFailedWithMissingFields, hasSubmissionBlockingViolations, isPending, isScanning} from './TransactionUtils';
+import {hasOnlyPendingCardTransactions, hasSmartScanFailedWithMissingFields, hasSubmissionBlockingViolations, isPending, isScanning} from './TransactionUtils';
 
 function canSubmit(
     report: Report,
-    isReportArchived: boolean,
     currentUserAccountID: number,
     currentUserEmail: string,
+    ownerLogin: string | undefined,
     violations?: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
     transactions?: Transaction[],
 ) {
-    if (isReportArchived) {
+    // State transitions are blocked only on archived or pending-delete policies. Reports archived for other reasons
+    // (e.g. the submitter was unshared from the policy) can still move through the workflow.
+    if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 
@@ -55,11 +63,15 @@ function canSubmit(
         return false;
     }
 
-    if (transactions?.some((transaction) => hasSubmissionBlockingViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
+    if (hasOnlyPendingCardTransactions(transactions ?? [])) {
         return false;
     }
 
-    const submitToAccountID = getSubmitToAccountID(policy, report);
+    if (transactions?.some((transaction) => hasSubmissionBlockingViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, ownerLogin, policy))) {
+        return false;
+    }
+
+    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin);
 
     if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
         return false;
@@ -69,6 +81,10 @@ function canSubmit(
 }
 
 function canApprove(report: Report, currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy, transactions?: Transaction[]) {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
+        return false;
+    }
+
     if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report.ownerAccountID, currentUserAccountID)) {
         return false;
     }
@@ -114,12 +130,20 @@ function canPay(
     policy?: Policy,
     invoiceReceiverPolicy?: Policy,
 ) {
-    if (isReportArchived) {
+    const isExpense = isExpenseReport(report);
+
+    if (isPayBlockedByArchivedState(report, policy, isReportArchived)) {
         return false;
     }
 
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, false);
-    const isExpense = isExpenseReport(report);
+
+    // The admin pay path is for workspace expense reports. Personal policies should only offer Pay to the actual payer.
+    const canPayReport =
+        isReportPayer ||
+        (isGroupPolicy(policy) &&
+            policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
+            canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
     const isPaymentsEnabled = arePaymentsEnabled(policy);
     const isProcessing = isProcessingReport(report);
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
@@ -136,7 +160,7 @@ function canPay(
 
     if (
         isExpense &&
-        isReportPayer &&
+        canPayReport &&
         isPaymentsEnabled &&
         isReportFinished &&
         (reimbursableSpend !== 0 || (nonReimbursableSpend !== 0 && hasOnlyNonReimbursableTransactions(report?.reportID, transactions)))
@@ -150,7 +174,7 @@ function canPay(
 
     const isIOU = isIOUReport(report);
 
-    if (isIOU && isReportPayer && !isReimbursed && reimbursableSpend > 0) {
+    if (isIOU && canPayReport && !isReimbursed && reimbursableSpend > 0) {
         return true;
     }
 
@@ -213,6 +237,7 @@ function getReportPreviewAction({
     isDEWSubmitPending,
     violationsData,
     reportMetadata,
+    ownerLogin,
 }: {
     isReportArchived: boolean;
     currentUserAccountID: number;
@@ -228,6 +253,7 @@ function getReportPreviewAction({
     isDEWSubmitPending?: boolean;
     violationsData?: OnyxCollection<TransactionViolation[]>;
     reportMetadata: OnyxEntry<ReportMetadata>;
+    ownerLogin: string | undefined;
 }): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
@@ -250,7 +276,7 @@ function getReportPreviewAction({
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
 
-    if (canSubmit(report, isReportArchived, currentUserAccountID, currentUserLogin, violationsData, policy, transactions)) {
+    if (canSubmit(report, currentUserAccountID, currentUserLogin, ownerLogin, violationsData, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, currentUserAccountID, reportMetadata, policy, transactions)) {

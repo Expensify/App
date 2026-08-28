@@ -1,26 +1,35 @@
-import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {applySavedColumnMappings} from '@libs/actions/ImportSpreadsheet';
-import importTransactionsFromCSV from '@libs/actions/ImportTransactions';
+import importTransactionsFromCSV, {getExistingCardImportSettings} from '@libs/actions/ImportTransactions';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {CardList} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {cardByIdSelector} from '@selectors/Card';
+import {accountIDSelector} from '@selectors/Session';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 type TransactionsImportedPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.TRANSACTIONS_IMPORTED>;
 
@@ -30,6 +39,9 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [savedColumnLayouts] = useOnyx(ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST);
     const [accountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const cardSelector = useCallback((cardList: OnyxEntry<CardList>) => (existingCardID ? cardByIdSelector(String(existingCardID))(cardList) : undefined), [existingCardID]);
+    const [existingCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardSelector});
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [isImporting, setIsImporting] = useState(false);
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const hasAppliedSavedMappings = useRef(false);
@@ -118,7 +130,9 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
         // If existingCardID is provided, add transactions to that card instead of creating a new one
         const cardIDNumber = existingCardID ? Number(existingCardID) : undefined;
         const previouslySavedLayout = cardIDNumber && savedColumnLayouts ? savedColumnLayouts[String(cardIDNumber)] : undefined;
-        const importFinalModal = await importTransactionsFromCSV(spreadsheet, accountID, cardIDNumber, previouslySavedLayout);
+        // Re-uploading a file to an existing card skips the settings step, so keep the configuration the card was imported with
+        const existingCardSettings = cardIDNumber ? getExistingCardImportSettings(existingCard, previouslySavedLayout, customCardNames?.[String(cardIDNumber)]) : undefined;
+        const importFinalModal = await importTransactionsFromCSV(spreadsheet, accountID, cardIDNumber, previouslySavedLayout, existingCardSettings);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
         if (!didShowImportFinalModal) {
             setIsImporting(false);

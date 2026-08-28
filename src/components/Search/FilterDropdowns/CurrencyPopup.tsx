@@ -1,0 +1,68 @@
+import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
+
+import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
+
+import {getCurrencyOptions} from '@libs/SearchUIUtils';
+
+import React from 'react';
+
+import SingleSelectPopup from './SingleSelectPopup';
+
+type CurrencyPopupProps = {
+    /** The label to show when in an overlay on mobile */
+    label?: string;
+
+    /** Function to call when the back button is pressed */
+    onBackButtonPress?: () => void;
+
+    /** Function to call to close the overlay */
+    closeOverlay: () => void;
+
+    /** Function to call when a currency is selected */
+    onChange: (item: SingleSelectItem<string> | undefined) => void;
+
+    /** The currently selected currency code */
+    value?: string;
+
+    /** The currency code to select when reset is clicked */
+    defaultValue?: string;
+
+    /** Search input placeholder */
+    searchPlaceholder?: string;
+
+    /** Whether the currency list should be visible */
+    shouldShowList?: boolean;
+
+    /** Whether the popover keeps a fixed height instead of growing with its content */
+    shouldUseFixedPopoverHeight?: boolean;
+};
+
+/**
+ * Searchable single-select currency picker popup, used by the Search footer's total-spend currency selector
+ * and the Display filter's group-currency picker.
+ */
+function CurrencyPopup({label, onBackButtonPress, onChange, closeOverlay, value, defaultValue, searchPlaceholder, shouldShowList, shouldUseFixedPopoverHeight}: CurrencyPopupProps) {
+    const {currencyList} = useCurrencyListState();
+    const {getCurrencySymbol} = useCurrencyListActions();
+
+    const currencyOptions = getCurrencyOptions(currencyList, getCurrencySymbol);
+    const currencyValue = currencyOptions.find((option) => option.value === value);
+
+    return (
+        <SingleSelectPopup
+            items={currencyOptions}
+            value={currencyValue}
+            label={label}
+            onBackButtonPress={onBackButtonPress}
+            closeOverlay={closeOverlay}
+            onChange={onChange}
+            isSearchable
+            searchPlaceholder={searchPlaceholder}
+            defaultValue={defaultValue}
+            shouldShowList={shouldShowList}
+            shouldUseFixedPopoverHeight={shouldUseFixedPopoverHeight}
+        />
+    );
+}
+
+export default CurrencyPopup;

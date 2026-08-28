@@ -1,11 +1,16 @@
-import React from 'react';
 import Badge from '@components/Badge';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
-import SelectableListItem from './SelectableListItem';
+
+import React from 'react';
+
 import type {ListItem, TravelDomainListItemProps} from './types';
+
+import SelectableListItem from './SelectableListItem';
 
 /**
  * A text row with a left-side checkbox and an optional "Recommended" badge. Used in the
@@ -48,13 +53,7 @@ function TravelDomainListItem<TItem extends ListItem>({
             <TextWithTooltip
                 shouldShowTooltip={showTooltip}
                 text={item.text ?? ''}
-                style={[
-                    styles.flex1,
-                    styles.optionDisplayName,
-                    isFocusVisible ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                    item.isBold !== false && styles.sidebarLinkTextBold,
-                    styles.pre,
-                ]}
+                style={[styles.flex1, styles.optionDisplayName, styles.sidebarLinkText, item.isBold !== false && styles.sidebarLinkTextBold, styles.pre]}
             />
         </SelectableListItem>
     );

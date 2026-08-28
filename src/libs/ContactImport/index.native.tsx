@@ -1,8 +1,11 @@
-import {CONTACT_FIELDS, ContactsNitroModule} from '@expensify/nitro-utils';
-import type {Contact} from '@expensify/nitro-utils';
-import {RESULTS} from 'react-native-permissions';
-import type {PermissionStatus} from 'react-native-permissions';
 import {getContactPermission} from '@libs/ContactPermission';
+
+import type {Contact} from '@expensify/nitro-utils';
+import type {PermissionStatus} from 'react-native-permissions';
+
+import {CONTACT_FIELDS, ContactsNitroModule} from '@expensify/nitro-utils';
+import {RESULTS} from 'react-native-permissions';
+
 import type {ContactImportResult} from './types';
 
 function contactImport(): Promise<ContactImportResult> {

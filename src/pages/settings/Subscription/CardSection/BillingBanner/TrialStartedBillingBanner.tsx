@@ -1,9 +1,13 @@
-import React from 'react';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {calculateRemainingFreeTrialDays, doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+
 import BillingBanner from './BillingBanner';
 
 function TrialStartedBillingBanner() {
@@ -14,7 +18,7 @@ function TrialStartedBillingBanner() {
     const subtitle = !doesUserHavePaymentCardAdded(userBillingFundID) ? translate('subscription.billingBanner.trialStarted.subtitle') : '';
     return (
         <BillingBanner
-            title={translate('subscription.billingBanner.trialStarted.title', calculateRemainingFreeTrialDays(lastDayFreeTrial))}
+            title={translate('subscription.billingBanner.trialStarted.title', {count: calculateRemainingFreeTrialDays(lastDayFreeTrial)})}
             subtitle={subtitle}
             icon={illustrations.TreasureChest}
         />

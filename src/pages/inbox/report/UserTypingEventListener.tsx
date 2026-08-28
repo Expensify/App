@@ -1,15 +1,19 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import {useEffect, useRef} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
+
 import {subscribeToReportTypingEvents, unsubscribeFromReportChannel} from '@userActions/Report';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useEffect, useRef} from 'react';
 
 type UserTypingEventListenerProps = {
     /** The report currently being looked at */

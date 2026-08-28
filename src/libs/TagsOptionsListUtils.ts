@@ -1,12 +1,23 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {Policy, PolicyTag, PolicyTagLists, PolicyTags, Transaction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import type {Option} from './OptionsListUtils';
+
 import {insertTagIntoTransactionTagsString} from './IOUUtils';
 import {hasEnabledOptions} from './OptionsListUtils';
-import type {Option} from './OptionsListUtils';
-import {getCleanedTagName, getTagList, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils} from './PolicyUtils';
+import {
+    getCleanedTagName,
+    getGLCodeFromPolicyTag,
+    getTagList,
+    getTagLists,
+    hasDependentTags as hasDependentTagsPolicyUtils,
+    isMultiLevelTags as isMultiLevelTagsPolicyUtils,
+} from './PolicyUtils';
 import tokenizedSearch from './tokenizedSearch';
 import {getTagArrayFromName, getTagForDisplay} from './TransactionUtils';
 
@@ -16,6 +27,10 @@ type SelectedTagOption = {
     isSelected?: boolean;
     accountID: number | undefined;
     pendingAction?: PendingAction;
+};
+
+type TagOptionInput = Pick<PolicyTag, 'name' | 'enabled' | 'pendingAction'> & {
+    glCode?: string;
 };
 
 type TagOption = Option & {
@@ -45,12 +60,14 @@ type UpdatedTransactionTagParams = {
  *
  * @param tags - an initial tag array
  */
-function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled' | 'pendingAction'>>, selectedOptions?: SelectedTagOption[]): TagOption[] {
+function getTagsOptions(tags: TagOptionInput[], selectedOptions?: SelectedTagOption[], shouldShowGLCode = false): TagOption[] {
     return tags.map((tag) => {
         // This is to remove unnecessary escaping backslash in tag name sent from backend.
         const cleanedName = getCleanedTagName(tag.name);
+        const glCode = tag.glCode ?? '';
         return {
             text: cleanedName,
+            ...(shouldShowGLCode && glCode ? {alternateText: glCode} : {}),
             keyForList: tag.name,
             searchText: tag.name,
             tooltipText: cleanedName,
@@ -72,6 +89,7 @@ function getTagListSections({
     searchValue = '',
     maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
     translate,
+    shouldShowGLCode = false,
 }: {
     tags: PolicyTags | Array<SelectedTagOption | PolicyTag>;
     localeCompare: LocaleContextProps['localeCompare'];
@@ -80,23 +98,32 @@ function getTagListSections({
     searchValue?: string;
     maxRecentReportsToShow?: number;
     translate: LocalizedTranslate;
+    shouldShowGLCode?: boolean;
 }) {
     const tagSections = [];
     const sortedTags = sortTags(tags, localeCompare);
+    const tagByName = new Map(sortedTags.map((tag) => [tag.name, tag]));
+    const withGLCode = (tag: SelectedTagOption | PolicyTag): TagOptionInput => {
+        if (!shouldShowGLCode) {
+            return tag;
+        }
+        const fullTag = 'GL Code' in tag ? tag : tagByName.get(tag.name);
+        return {...tag, glCode: getGLCodeFromPolicyTag(fullTag)};
+    };
 
     const selectedOptionNames = new Set(selectedOptions.map((selectedOption) => selectedOption.name));
-    const enabledTags = sortedTags.filter((tag) => tag.enabled);
+    const enabledTags = sortedTags.filter((tag) => tag.enabled).map(withGLCode);
     const enabledTagsNames = new Set(enabledTags.map((tag) => tag.name));
     const enabledTagsWithoutSelectedOptions = enabledTags.filter((tag) => !selectedOptionNames.has(tag.name));
-    const selectedTagsWithDisabledState: SelectedTagOption[] = [];
+    const selectedTagsWithDisabledState: TagOptionInput[] = [];
     const numberOfTags = enabledTags.length;
 
     for (const tag of selectedOptions) {
         if (enabledTagsNames.has(tag.name)) {
-            selectedTagsWithDisabledState.push({...tag, enabled: true});
+            selectedTagsWithDisabledState.push(withGLCode({...tag, enabled: true}));
             continue;
         }
-        selectedTagsWithDisabledState.push({...tag, enabled: false});
+        selectedTagsWithDisabledState.push(withGLCode({...tag, enabled: false}));
     }
 
     // If all tags are disabled but there's a previously selected tag, show only the selected tag
@@ -105,7 +132,7 @@ function getTagListSections({
             // "Selected" section
             title: '',
             sectionIndex: 0,
-            data: getTagsOptions(selectedTagsWithDisabledState, selectedOptions),
+            data: getTagsOptions(selectedTagsWithDisabledState, selectedOptions, shouldShowGLCode),
         });
 
         return tagSections;
@@ -113,15 +140,15 @@ function getTagListSections({
 
     if (searchValue) {
         const tagsForSearch = [
-            ...tokenizedSearch(selectedTagsWithDisabledState, searchValue, (tag) => [getCleanedTagName(tag.name)]),
-            ...tokenizedSearch(enabledTagsWithoutSelectedOptions, searchValue, (tag) => [getCleanedTagName(tag.name)]),
+            ...tokenizedSearch(selectedTagsWithDisabledState, searchValue, (tag) => (shouldShowGLCode ? [getCleanedTagName(tag.name), tag.glCode ?? ''] : [getCleanedTagName(tag.name)])),
+            ...tokenizedSearch(enabledTagsWithoutSelectedOptions, searchValue, (tag) => (shouldShowGLCode ? [getCleanedTagName(tag.name), tag.glCode ?? ''] : [getCleanedTagName(tag.name)])),
         ];
 
         tagSections.push({
             // "Search" section
             title: '',
             sectionIndex: 1,
-            data: getTagsOptions(tagsForSearch, selectedOptions),
+            data: getTagsOptions(tagsForSearch, selectedOptions, shouldShowGLCode),
         });
 
         return tagSections;
@@ -132,7 +159,7 @@ function getTagListSections({
             // "All" section when items amount less than the threshold
             title: '',
             sectionIndex: 2,
-            data: getTagsOptions([...selectedTagsWithDisabledState, ...enabledTagsWithoutSelectedOptions], selectedOptions),
+            data: getTagsOptions([...selectedTagsWithDisabledState, ...enabledTagsWithoutSelectedOptions], selectedOptions, shouldShowGLCode),
         });
 
         return tagSections;
@@ -140,17 +167,20 @@ function getTagListSections({
 
     const filteredRecentlyUsedTags = recentlyUsedTags
         .filter((recentlyUsedTag) => {
-            const tagObject = sortedTags.find((tag) => tag.name === recentlyUsedTag);
+            const tagObject = tagByName.get(recentlyUsedTag);
             return !!tagObject?.enabled && !selectedOptionNames.has(recentlyUsedTag) && tagObject?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         })
-        .map((tag) => ({name: tag, enabled: true}));
+        .map((tagName) => {
+            const tagObject = tagByName.get(tagName);
+            return withGLCode(tagObject ?? {name: tagName, enabled: true});
+        });
 
     if (selectedOptions.length) {
         tagSections.push({
             // "Selected" section
             title: '',
             sectionIndex: 3,
-            data: getTagsOptions(selectedTagsWithDisabledState, selectedOptions),
+            data: getTagsOptions(selectedTagsWithDisabledState, selectedOptions, shouldShowGLCode),
         });
     }
 
@@ -161,7 +191,7 @@ function getTagListSections({
             // "Recent" section
             title: translate('common.recent'),
             sectionIndex: 4,
-            data: getTagsOptions(cutRecentlyUsedTags, selectedOptions),
+            data: getTagsOptions(cutRecentlyUsedTags, selectedOptions, shouldShowGLCode),
         });
     }
 
@@ -169,7 +199,7 @@ function getTagListSections({
         // "All" section when items amount more than the threshold
         title: translate('common.all'),
         sectionIndex: 5,
-        data: getTagsOptions(enabledTagsWithoutSelectedOptions, selectedOptions),
+        data: getTagsOptions(enabledTagsWithoutSelectedOptions, selectedOptions, shouldShowGLCode),
     });
 
     return tagSections;
@@ -213,7 +243,7 @@ function getTagVisibility({
     const policyTagLists = getTagLists(policyTags);
 
     return policyTagLists.map(({tags, required}, index) => {
-        const isTagRequired = required || !!policy?.requiresTag;
+        const isTagRequired = isMultilevelTags && !hasDependentTags ? (required ?? true) : required || !!policy?.requiresTag;
         let shouldShow = false;
 
         if (shouldShowTags) {
@@ -304,19 +334,17 @@ function getUpdatedTransactionTag({transactionTag, selectedTagName, currentTag, 
             tagParts.splice(tagListIndex, tagParts.length - tagListIndex, selectedTagName);
 
             const policyTagLists = getTagLists(policyTags);
-            // Auto-select subsequent tags if there is only one enabled tag
+            // Auto-selects the next level when the selected parent leaves exactly one enabled option.
             for (let i = tagListIndex + 1; i < policyTagLists.length; i++) {
                 const availableNextLevelTags = getTagList(policyTags, i);
-                const enabledTags = Object.values(availableNextLevelTags.tags).filter((tag) => tag.enabled);
+                const enabledTags = getEnabledTags(availableNextLevelTags.tags, tagParts.join(':'), i);
 
                 if (enabledTags.length === 1) {
-                    // If there is only one enabled tag, we can auto-select it.
                     const firstTag = enabledTags.at(0);
                     if (firstTag) {
                         tagParts.push(firstTag.name);
                     }
                 } else {
-                    // If there are no enabled tags or more than one, stop auto-selecting.
                     break;
                 }
             }

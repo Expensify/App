@@ -1,16 +1,28 @@
-import React from 'react';
-import type {TNode} from 'react-native-render-html';
-import {HTMLContentModel, useAmbientTRenderEngine} from 'react-native-render-html';
-import {Pie} from 'victory-native';
+import {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
+import {POLAR_CONTAINER_HEIGHT_RATIO} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import parseShiftedLineSegmentNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/shiftedLineSegmentParser';
 import parseVictoryLabelNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/victoryLabelParser';
 import type {PolarChartData} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import computePieLabelLayout, {
+    computeLabelBlockHeight,
+    computeSliceAngles,
+    computeTextRadiusBySide,
+} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computePieLabelLayout';
+import type {PieSliceValue} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computePieLabelLayout';
 import convertAngleToArcLength from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/convertAngleToArcLength';
 import {parseAttributeAsNumber, parseAttributeAsStringArray} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseComponent from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseComponent';
 import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
+
 import useTheme from '@hooks/useTheme';
+
+import type {TNode} from 'react-native-render-html';
+
+import React, {useMemo} from 'react';
+import {HTMLContentModel, useAmbientTRenderEngine} from 'react-native-render-html';
+import {Pie} from 'victory-native';
+
 import VictoryChartPieLabel from './VictoryChartPieLabel';
 
 type VictoryChartPieProps = {tnode: TNode};
@@ -18,13 +30,23 @@ type VictoryChartPieProps = {tnode: TNode};
 // Victory Chart's 0° angle is equivalent to 270° in Victory Native
 const START_ANGLE = 270;
 
-/** Alternating multipliers for pie slice label distance (base `labelradius` from HTML). */
-const EVEN_SLICE_LABEL_RADIUS_FACTOR = 1;
-const ODD_SLICE_LABEL_RADIUS_FACTOR = 0.8;
+// The chart title sits at y=40 and the "As of:" subtitle at y=62 (~11px font) — keep label blocks
+// below that, with a small buffer, so a label stacked at the very top of a column can't overlap it.
+const TITLE_SAFE_TOP = 75;
+
+// The title/subtitle are left-aligned at the same x the left column's labels end at, so add padding to the left column labels so a label
+// stacked right at TITLE_SAFE_TOP reads as cramped against them even without overlapping.
+const LEFT_COLUMN_TOP_PADDING = 24;
+
+// The title/subtitle sit x=32 from the left edge, so every other label uses that same distance from
+// its nearest edge (bottom, left, or right) for a consistent margin - instead of a label stacked at
+// the very bottom of a column, or a long label in a column's text, rendering flush against the edge.
+const EDGE_PADDING = 32;
 
 function VictoryChartPie({tnode}: VictoryChartPieProps) {
-    const {data, chartContainerStyles} = useVictoryChartContext();
+    const {data, chartContainerStyles, chartContentStyles} = useVictoryChartContext();
     const theme = useTheme();
+    const typefaces = useChartTypefaces();
     const renderEngine = useAmbientTRenderEngine();
     const labelComponentNode = parseComponent(tnode.attributes.labelcomponent, renderEngine, 'victorylabel', HTMLContentModel.textual);
     const baseLabelItem = labelComponentNode ? parseVictoryLabelNode(labelComponentNode).labelItems?.at(0) : undefined;
@@ -33,6 +55,7 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
     const innerRadius = parseAttributeAsNumber(tnode.attributes.innerradius);
     const padAngle = parseAttributeAsNumber(tnode.attributes.padangle);
     const radius = parseAttributeAsNumber(tnode.attributes.radius);
+    const effectiveLabelRadius = labelRadius ?? radius;
     const size = radius ? radius * 2 : undefined;
     const angularStrokeWidth = padAngle && radius ? 2 * convertAngleToArcLength(padAngle, radius) : 0;
     const resolvedBgColor = resolveChartThemeColor(typeof chartContainerStyles.backgroundColor === 'string' ? chartContainerStyles.backgroundColor : undefined, theme);
@@ -43,19 +66,45 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
     const labelIndicatorStroke = resolveChartThemeColor(labelIndicatorStyles?.stroke, theme);
     const labelIndicatorInnerOffset = parseAttributeAsNumber(tnode.attributes.labelindicatorinneroffset);
     const labelIndicatorOuterOffset = parseAttributeAsNumber(tnode.attributes.labelindicatorouteroffset);
-    const perSliceData = Object.values(data)
-        .map((entry) => (entry as PolarChartData).label)
-        .reduce(
-            (slicesData, dataLabel, index) => {
-                // eslint-disable-next-line no-param-reassign
-                slicesData[dataLabel] = {
-                    customLabel: pieLabels?.[index],
-                    customLabelRadius: labelRadius ? labelRadius * (index % 2 === 0 ? EVEN_SLICE_LABEL_RADIUS_FACTOR : ODD_SLICE_LABEL_RADIUS_FACTOR) : undefined,
-                };
-                return slicesData;
-            },
-            {} as Record<string, {customLabelRadius: number | undefined; customLabel: string | undefined}>,
-        );
+
+    const customLabelByDataLabel: Record<string, string | undefined> = {};
+    const sliceValues: PieSliceValue[] = [];
+
+    for (const [index, entry] of Object.values(data).entries()) {
+        const polarEntry = entry as PolarChartData;
+        const dataLabel = String(polarEntry.label);
+        customLabelByDataLabel[dataLabel] = pieLabels?.[index];
+        sliceValues.push({label: dataLabel, value: polarEntry.value});
+    }
+
+    const resolvedLabelLayout = useMemo(() => {
+        if (!baseLabelItem || !effectiveLabelRadius) {
+            return {};
+        }
+
+        const slices = computeSliceAngles(sliceValues, START_ANGLE);
+        const rowHeight = computeLabelBlockHeight(baseLabelItem, typefaces);
+        const designHeight = typeof chartContentStyles.height === 'number' ? chartContentStyles.height : undefined;
+        const designWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : undefined;
+        const bottom = designHeight ? Math.min(designHeight * (POLAR_CONTAINER_HEIGHT_RATIO - 0.5) - rowHeight / 2 - EDGE_PADDING, effectiveLabelRadius) : effectiveLabelRadius;
+        const topFor = (titleSafeTop: number) =>
+            designHeight ? Math.max(-Math.min(designHeight / 2, effectiveLabelRadius), titleSafeTop + rowHeight / 2 - designHeight / 2) : -effectiveLabelRadius;
+        const plotBounds = {
+            left: {top: topFor(TITLE_SAFE_TOP + LEFT_COLUMN_TOP_PADDING), bottom},
+            right: {top: topFor(TITLE_SAFE_TOP), bottom},
+        };
+        const textRadius = computeTextRadiusBySide({
+            slices,
+            getText: (label) => customLabelByDataLabel[label] ?? label,
+            baseLabelItem,
+            typefaces,
+            labelRadius: effectiveLabelRadius,
+            designWidth,
+            edgePadding: EDGE_PADDING,
+        });
+
+        return computePieLabelLayout({slices, rowHeight, labelRadius: effectiveLabelRadius, textRadius, plotBounds});
+    }, [sliceValues, baseLabelItem, effectiveLabelRadius, typefaces, chartContentStyles.height, chartContentStyles.width, customLabelByDataLabel]);
 
     return (
         <Pie.Chart
@@ -63,32 +112,41 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
             innerRadius={innerRadius}
             size={size}
         >
-            {({slice}) => (
-                <>
-                    <Pie.Slice>
-                        {!!baseLabelItem && (
-                            <VictoryChartPieLabel
-                                slice={slice}
-                                baseLabelItem={baseLabelItem}
-                                label={perSliceData[slice.label].customLabel ?? slice.label}
-                                labelRadius={perSliceData[slice.label].customLabelRadius}
-                                labelIndicatorXShift={labelIndicatorXShift}
-                                labelIndicatorYShift={labelIndicatorYShift}
-                                labelIndicatorStroke={labelIndicatorStroke}
-                                labelIndicatorStrokeWidth={labelIndicatorStrokeWidth}
-                                labelIndicatorInnerOffset={labelIndicatorInnerOffset}
-                                labelIndicatorOuterOffset={labelIndicatorOuterOffset}
-                            />
-                        )}
-                    </Pie.Slice>
-                    <Pie.SliceAngularInset
-                        angularInset={{
-                            angularStrokeWidth,
-                            angularStrokeColor,
-                        }}
-                    />
-                </>
-            )}
+            {({slice}) => {
+                const resolvedLabel = resolvedLabelLayout[slice.label];
+
+                return (
+                    <>
+                        <Pie.Slice>
+                            {!!baseLabelItem && !!resolvedLabel && (
+                                <VictoryChartPieLabel
+                                    slice={slice}
+                                    baseLabelItem={baseLabelItem}
+                                    label={customLabelByDataLabel[slice.label] ?? slice.label}
+                                    resolvedLabel={{
+                                        x: slice.center.x + resolvedLabel.relativeX,
+                                        y: slice.center.y + resolvedLabel.relativeY,
+                                        textAnchor: resolvedLabel.textAnchor,
+                                        midAngle: resolvedLabel.midAngle,
+                                    }}
+                                    labelIndicatorXShift={labelIndicatorXShift}
+                                    labelIndicatorYShift={labelIndicatorYShift}
+                                    labelIndicatorStroke={labelIndicatorStroke}
+                                    labelIndicatorStrokeWidth={labelIndicatorStrokeWidth}
+                                    labelIndicatorInnerOffset={labelIndicatorInnerOffset}
+                                    labelIndicatorOuterOffset={labelIndicatorOuterOffset}
+                                />
+                            )}
+                        </Pie.Slice>
+                        <Pie.SliceAngularInset
+                            angularInset={{
+                                angularStrokeWidth,
+                                angularStrokeColor,
+                            }}
+                        />
+                    </>
+                );
+            }}
         </Pie.Chart>
     );
 }

@@ -1,18 +1,22 @@
-import Onyx from 'react-native-onyx';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {isQuickActionAllowed} from '@libs/QuickActionUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
+
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock the PolicyUtils module
 jest.mock('@libs/PolicyUtils');
 
-const mockedPolicyUtils = PolicyUtils as jest.Mocked<typeof PolicyUtils>;
+const mockedPolicyUtils = jest.mocked(PolicyUtils);
 
 describe('QuickActionUtils', () => {
     describe('isQuickActionAllowed', () => {
@@ -147,30 +151,33 @@ describe('QuickActionUtils', () => {
                     },
                 };
                 mockedPolicyUtils.getPerDiemCustomUnit.mockReturnValue(perDiemCustomUnit);
-                const policy = {
+                const policy = createMock<Policy>({
                     id: '1',
                     arePerDiemRatesEnabled: true,
                     customUnits: {
                         ABCDEF: perDiemCustomUnit,
                     },
-                } as unknown as Policy;
+                });
                 mockedPolicyUtils.isControlPolicy.mockReturnValue(true);
+                mockedPolicyUtils.isPerDiemEnabled.mockReturnValue(true);
 
                 expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(true);
             });
             it("should not allow per diem action when policy doesn't have per diem rates", () => {
                 mockedPolicyUtils.getPerDiemCustomUnit.mockReturnValue(undefined);
-                const policy = {
+                const policy = createMock<Policy>({
                     id: '1',
                     arePerDiemRatesEnabled: true,
-                } as unknown as Policy;
+                });
                 expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(false);
             });
             it("should not allow per diem action when policy doesn't have per diem enabled", () => {
-                const policy = {
+                mockedPolicyUtils.isControlPolicy.mockReturnValue(true);
+                mockedPolicyUtils.isPerDiemEnabled.mockReturnValue(false);
+                const policy = createMock<Policy>({
                     id: '1',
                     arePerDiemRatesEnabled: false,
-                } as unknown as Policy;
+                });
                 expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(false);
             });
             it('should not allow per diem action when policy is not a control workspace', () => {
@@ -187,13 +194,13 @@ describe('QuickActionUtils', () => {
                 };
                 mockedPolicyUtils.isControlPolicy.mockReturnValue(false);
                 mockedPolicyUtils.getPerDiemCustomUnit.mockReturnValue(perDiemCustomUnit);
-                const policy = {
+                const policy = createMock<Policy>({
                     id: '1',
                     arePerDiemRatesEnabled: true,
                     customUnits: {
                         ABCDEF: perDiemCustomUnit,
                     },
-                } as unknown as Policy;
+                });
 
                 expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(false);
             });
@@ -213,10 +220,10 @@ describe('QuickActionUtils', () => {
                             policyID: '1',
                             ownerAccountID: 1,
                         },
-                        {
+                        createMock<Policy>({
                             id: '1',
                             units: {time: {enabled: true, rate: 1}},
-                        } as Policy,
+                        }),
                         false,
                         [CONST.BETAS.ALL],
                         false,
@@ -236,9 +243,9 @@ describe('QuickActionUtils', () => {
                             policyID: '1',
                             ownerAccountID: 1,
                         },
-                        {
+                        createMock<Policy>({
                             id: '1',
-                        } as Policy,
+                        }),
                         false,
                         [CONST.BETAS.ALL],
                         false,

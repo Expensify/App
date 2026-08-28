@@ -1,7 +1,9 @@
+import type CONST from '@src/CONST';
+
 import type {LinkAccount} from 'react-native-plaid-link-sdk';
 import type {PlaidAccount} from 'react-plaid-link';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Company card feed name */
@@ -220,12 +222,30 @@ type CardFeedsStatusByDomainID = Record<number, CardFeedsStatus>;
  */
 type WorkspaceCardFeedsStatus = Record<CardFeedWithNumber, CardFeedsStatus>;
 
+/** A single travel billing provisioning error for a workspace member */
+type TravelBillingProvisioningError = {
+    /** Account ID of the member whose card provisioning failed */
+    accountID: number;
+
+    /** Email of the member whose card provisioning failed */
+    email: string;
+
+    /** Whether the scheduled retry has already re-attempted this member */
+    retried?: boolean;
+};
+
+/** Travel billing provisioning errors keyed by the failed member's account ID */
+type TravelBillingProvisioningErrors = Record<string, TravelBillingProvisioningError>;
+
 /** Card feeds model, including domain settings */
 type CardFeeds = {
     /** Feed settings */
     settings: {
         /** User-friendly feed nicknames */
         companyCardNicknames?: Partial<Record<CardFeedWithNumber, string>>;
+
+        /** Custom card names by card ID */
+        companyCardCustomNames?: Record<string, string>;
 
         /** Company cards feeds */
         companyCards?: Partial<Record<CardFeedWithNumber, CustomCardFeedData>>;
@@ -248,10 +268,10 @@ type CardFeeds = {
         /** List of member emails exempt from the domain's 2FA requirement */
         twoFactorAuthExemptEmails?: string[];
 
-        /** Travel invoicing provisioning data */
+        /** Travel billing provisioning data. The key keeps the legacy spelling because the backend sends it. */
         travelInvoicing?: {
-            /** Provisioning errors for workspace members */
-            errors?: string[];
+            /** Provisioning errors keyed by the failed member's account ID */
+            errors?: TravelBillingProvisioningErrors;
         };
     };
 } & CardFeedsStatus &
@@ -287,7 +307,7 @@ type AddNewCardFeedData = {
     publicToken?: string;
 
     /** Feed from Plaid connection */
-    plaidConnectedFeed?: CardFeedWithNumber;
+    plaidConnectedFeed?: string;
 
     /** Feed name from Plaid connection */
     plaidConnectedFeedName?: string;
@@ -298,11 +318,11 @@ type AddNewCardFeedData = {
     /** Identifier for the CSV layout template */
     layoutType?: string;
 
-    /** Whether to use advanced fields in the CSV layout */
-    useAdvancedFields?: boolean;
-
     /** Existing instance ID when editing a CSV feed */
     existingInstanceID?: string;
+
+    /** Account that owns the CSV feed being edited */
+    domainAccountID?: number;
 
     /** Plaid accounts */
     plaidAccounts?: LinkAccount[] | PlaidAccount[];
@@ -370,4 +390,5 @@ export type {
     DomainSettings,
     CombinedCardFeed,
     CombinedCardFeeds,
+    TravelBillingProvisioningErrors,
 };

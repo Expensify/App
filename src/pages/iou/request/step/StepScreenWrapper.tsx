@@ -1,14 +1,19 @@
-import React from 'react';
-import type {ReactNode} from 'react';
-import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {ScreenWrapperChildrenProps} from '@components/ScreenWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+
 import callOrReturn from '@src/types/utils/callOrReturn';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type StepScreenWrapperProps = {
     /** The title to show in the header (should be translated already) */

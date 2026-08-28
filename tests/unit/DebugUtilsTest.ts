@@ -1,22 +1,28 @@
 import {renderHook} from '@testing-library/react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import DateUtils from '@libs/DateUtils';
 import type {ObjectType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
+import {getObjectKeys} from '@libs/ObjectUtils';
 import {getAllReportErrors} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
-import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {chatReportR14932} from '../../__mocks__/reportData/reports';
-import type ReportActionName from '../../src/types/onyx/ReportActionName';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 
 const MOCK_REPORT: Report = {
     ...createRandomReport(0, undefined),
@@ -509,7 +515,7 @@ describe('DebugUtils', () => {
     });
 
     describe('validateReportDraftProperty', () => {
-        describe.each(Object.keys(MOCK_REPORT) as Array<keyof Report>)('%s', (key) => {
+        describe.each(getObjectKeys(MOCK_REPORT))('%s', (key) => {
             describe('is undefined', () => {
                 it(`${DebugUtils.REPORT_REQUIRED_PROPERTIES.includes(key) ? 'throws SyntaxError' : 'does not throw SyntaxError'}`, () => {
                     if (DebugUtils.REPORT_REQUIRED_PROPERTIES.includes(key)) {
@@ -558,7 +564,7 @@ describe('DebugUtils', () => {
     });
 
     describe('validateReportActionDraftProperty', () => {
-        describe.each(Object.keys(MOCK_REPORT_ACTION) as Array<keyof ReportAction>)('%s', (key) => {
+        describe.each(getObjectKeys(MOCK_REPORT_ACTION))('%s', (key) => {
             it(`${DebugUtils.REPORT_ACTION_REQUIRED_PROPERTIES.includes(key) ? "throws SyntaxError when 'undefined'" : 'does not throw SyntaxError when "undefined"'}`, () => {
                 if (DebugUtils.REPORT_ACTION_REQUIRED_PROPERTIES.includes(key)) {
                     expect(() => {
@@ -601,7 +607,7 @@ describe('DebugUtils', () => {
     });
 
     describe('validateTransactionDraftProperty', () => {
-        describe.each(Object.keys(MOCK_TRANSACTION) as Array<keyof Transaction>)('%s', (key) => {
+        describe.each(getObjectKeys(MOCK_TRANSACTION))('%s', (key) => {
             it(`${DebugUtils.TRANSACTION_REQUIRED_PROPERTIES.includes(key) ? "throws SyntaxError when 'undefined'" : 'does not throw SyntaxError when "undefined"'}`, () => {
                 if (DebugUtils.TRANSACTION_REQUIRED_PROPERTIES.includes(key)) {
                     expect(() => {
@@ -651,9 +657,9 @@ describe('DebugUtils', () => {
         });
 
         it('throws SyntaxError when property is not a valid number', () => {
-            const reportAction: ReportAction = {
+            const reportAction = {
                 ...MOCK_REPORT_ACTION,
-                accountID: '2' as unknown as number,
+                accountID: '2',
             };
             const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
@@ -669,9 +675,9 @@ describe('DebugUtils', () => {
         });
 
         it('throws SyntaxError when property is not a valid date', () => {
-            const reportAction: ReportAction = {
+            const reportAction = {
                 ...MOCK_REPORT_ACTION,
-                created: 2 as unknown as string,
+                created: 2,
             };
             const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
@@ -687,9 +693,9 @@ describe('DebugUtils', () => {
         });
 
         it('throws SyntaxError when property is not a valid boolean', () => {
-            const reportAction: ReportAction = {
+            const reportAction = {
                 ...MOCK_REPORT_ACTION,
-                isLoading: 2 as unknown as boolean,
+                isLoading: 2,
             };
             const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
@@ -705,9 +711,9 @@ describe('DebugUtils', () => {
         });
 
         it('throws SyntaxError when property is missing', () => {
-            const reportAction: ReportAction = {
+            const reportAction = {
                 ...MOCK_REPORT_ACTION,
-                actionName: undefined as unknown as ReportActionName,
+                actionName: undefined,
             };
             const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
@@ -744,6 +750,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBeNull();
         });
@@ -755,6 +762,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: 'Hello world!',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasDraftComment');
         });
@@ -769,6 +777,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasGBR');
         });
@@ -782,6 +791,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.pinnedByUser');
         });
@@ -799,6 +809,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasAddWorkspaceRoomErrors');
         });
@@ -824,6 +835,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isUnread');
         });
@@ -842,6 +854,7 @@ describe('DebugUtils', () => {
                 isReportArchived: isReportArchived.current,
                 doesReportHaveViolations: false,
                 draftComment: '',
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isArchived');
         });
@@ -855,6 +868,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isSelfDM');
         });
@@ -865,6 +879,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isFocused');
         });
@@ -924,6 +939,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: true,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -983,6 +999,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: true,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -994,6 +1011,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -1014,15 +1032,16 @@ describe('DebugUtils', () => {
         it('returns correct reason when report has a join request', async () => {
             const MOCK_REPORT_ACTIONS = {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                '0': {
+                '0': createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>>({
                     reportActionID: '0',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
                     created: '2024-08-08 19:70:44.171',
+                    // @ts-expect-error -- persisted join requests can contain an empty choice.
                     message: {
-                        choice: '' as JoinWorkspaceResolution,
+                        choice: '',
                         policyID: '0',
                     },
-                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>,
+                }),
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, MOCK_REPORT_ACTIONS);
             const {reason} =
@@ -1095,21 +1114,22 @@ describe('DebugUtils', () => {
         it('returns the report action which is a join request', async () => {
             const MOCK_REPORT_ACTIONS = {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                '0': {
+                '0': createMock<ReportAction<'CREATED'>>({
                     reportActionID: '0',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     created: '2024-08-08 18:70:44.171',
-                } as ReportAction<'CREATED'>,
+                }),
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                '1': {
+                '1': createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>>({
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
                     created: '2024-08-08 19:70:44.171',
+                    // @ts-expect-error -- persisted join requests can contain an empty choice.
                     message: {
-                        choice: '' as JoinWorkspaceResolution,
+                        choice: '',
                         policyID: '0',
                     },
-                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>,
+                }),
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, MOCK_REPORT_ACTIONS);
             const {reportAction} =
@@ -1186,8 +1206,11 @@ describe('DebugUtils', () => {
                     email: RORY_EMAIL,
                 },
             });
-            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            const {reportAction} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`] as Report, RORY_EMAIL, 12345) ?? {};
+            const report = MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`];
+            if (!report) {
+                throw new Error('Expected the report fixture to be present');
+            }
+            const {reportAction} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, RORY_EMAIL, 12345) ?? {};
             expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
         });
         it('returns undefined report action when report has no GBR', () => {
@@ -1229,6 +1252,7 @@ describe('DebugUtils', () => {
                         false,
                         {},
                         false,
+                        RORY_ACCOUNT_ID,
                     ) ?? {};
                 expect(reportAction).toBeUndefined();
             });
@@ -1276,24 +1300,17 @@ describe('DebugUtils', () => {
                     },
                 });
                 const transactionForTest: OnyxCollection<Transaction> = {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: createMock<Transaction>({
                         amount: 100,
                         created: '',
                         modifiedCreated: '',
-                    } as Transaction,
+                    }),
                 };
-                const {reportAction} =
-                    DebugUtils.getReasonAndReportActionForRBRInLHNRow(
-                        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                        MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`] as Report,
-                        chatReportR14932,
-                        undefined,
-                        transactionForTest,
-                        undefined,
-                        false,
-                        {},
-                        false,
-                    ) ?? {};
+                const report = MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`];
+                if (!report) {
+                    throw new Error('Expected the report fixture to be present');
+                }
+                const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, chatReportR14932, undefined, transactionForTest, undefined, false, {}, false, 12345) ?? {};
                 expect(reportAction).toBe(undefined);
             });
             describe('There is a report action with smart scan errors', () => {
@@ -1301,41 +1318,41 @@ describe('DebugUtils', () => {
                     const MOCK_CHAT_REPORT: Report = {
                         reportID: '1',
                         type: CONST.REPORT.TYPE.CHAT,
-                        ownerAccountID: 12345,
+                        ownerAccountID: RORY_ACCOUNT_ID,
                     };
                     const MOCK_IOU_REPORT: Report = {
                         reportID: '2',
                         type: CONST.REPORT.TYPE.IOU,
                         statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                        ownerAccountID: 12345,
+                        ownerAccountID: RORY_ACCOUNT_ID,
                     };
                     const MOCK_CHAT_REPORT_ACTIONS: ReportActions = {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '0': {
+                        '0': createMock<ReportAction<'CREATED'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                             reportActionID: '0',
                             created: '2024-08-08 18:20:44.171',
-                        } as ReportAction<'CREATED'>,
+                        }),
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '1': {
+                        '1': createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                             reportActionID: '3',
                             message: {
                                 linkedReportID: '2',
                             },
                             actorAccountID: 1,
-                        } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>,
+                        }),
                     };
                     const MOCK_IOU_REPORT_ACTIONS = {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '1': {
+                        '1': createMock<ReportAction<'IOU'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                             reportActionID: '1',
                             message: {
                                 IOUTransactionID: '1',
                             },
-                            actorAccountID: 12345,
-                        } as ReportAction<'IOU'>,
+                            actorAccountID: RORY_ACCOUNT_ID,
+                        }),
                     };
                     await Onyx.multiSet({
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
@@ -1348,17 +1365,17 @@ describe('DebugUtils', () => {
                         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: MOCK_CHAT_REPORT_ACTIONS,
                         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2` as const]: MOCK_IOU_REPORT_ACTIONS,
                         [ONYXKEYS.SESSION]: {
-                            accountID: 12345,
+                            accountID: RORY_ACCOUNT_ID,
                         },
                     });
                     const mockTransactions: OnyxCollection<Transaction> = {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: createMock<Transaction>({
                             amount: 100,
                             created: '',
                             modifiedCreated: '',
-                        } as Transaction,
+                        }),
                     };
-                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, mockTransactions);
+                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, mockTransactions, RORY_ACCOUNT_ID);
                     const {reportAction} =
                         DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                             MOCK_CHAT_REPORT,
@@ -1369,6 +1386,7 @@ describe('DebugUtils', () => {
                             false,
                             reportErrors,
                             false,
+                            RORY_ACCOUNT_ID,
                         ) ?? {};
                     expect(reportAction).toMatchObject(MOCK_CHAT_REPORT_ACTIONS['1']);
                 });
@@ -1385,31 +1403,31 @@ describe('DebugUtils', () => {
                     };
                     const MOCK_REPORT_ACTIONS: ReportActions = {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '0': {
+                        '0': createMock<ReportAction<'CREATED'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                             reportActionID: '0',
                             created: '2024-08-08 18:20:44.171',
-                        } as ReportAction<'CREATED'>,
+                        }),
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '1': {
+                        '1': createMock<ReportAction<'IOU'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                             reportActionID: '1',
                             message: {
                                 IOUTransactionID: '2',
                             },
                             actorAccountID: 1,
-                        } as ReportAction<'IOU'>,
+                        }),
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '2': {
+                        '2': createMock<ReportAction<'IOU'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                             reportActionID: '2',
                             message: {
                                 IOUTransactionID: '1',
                             },
                             actorAccountID: 1,
-                        } as ReportAction<'IOU'>,
+                        }),
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '3': {
+                        '3': createMock<ReportAction<'IOU'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                             reportActionID: '3',
                             message: {
@@ -1417,7 +1435,7 @@ describe('DebugUtils', () => {
                                 type: CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
                             },
                             actorAccountID: 1,
-                        } as ReportAction<'IOU'>,
+                        }),
                     };
                     await Onyx.multiSet({
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
@@ -1433,16 +1451,25 @@ describe('DebugUtils', () => {
                         },
                     });
                     const mockTransactions: OnyxCollection<Transaction> = {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: createMock<Transaction>({
                             amount: 100,
                             created: '',
                             modifiedCreated: '',
-                        } as Transaction,
+                        }),
                     };
-                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, mockTransactions);
+                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, mockTransactions, RORY_ACCOUNT_ID);
                     const {reportAction} =
-                        DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, chatReportR14932, MOCK_REPORT_ACTIONS, mockTransactions, undefined, false, reportErrors, false) ??
-                        {};
+                        DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+                            MOCK_CHAT_REPORT,
+                            chatReportR14932,
+                            MOCK_REPORT_ACTIONS,
+                            mockTransactions,
+                            undefined,
+                            false,
+                            reportErrors,
+                            false,
+                            12345,
+                        ) ?? {};
                     expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                 });
             });
@@ -1488,7 +1515,7 @@ describe('DebugUtils', () => {
                         ],
                     },
                 };
-                const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, sharedAllTransactions);
+                const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, sharedAllTransactions, RORY_ACCOUNT_ID);
                 const {reportAction} =
                     DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                         {
@@ -1501,6 +1528,7 @@ describe('DebugUtils', () => {
                         false,
                         reportErrors,
                         false,
+                        RORY_ACCOUNT_ID,
                     ) ?? {};
                 expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
             });
@@ -1527,10 +1555,19 @@ describe('DebugUtils', () => {
                     },
                 };
 
-                const reportErrors = getAllReportErrors(mockedReport, mockedReportActions, sharedAllTransactions);
+                const reportErrors = getAllReportErrors(mockedReport, mockedReportActions, sharedAllTransactions, RORY_ACCOUNT_ID);
                 const {reason} =
-                    DebugUtils.getReasonAndReportActionForRBRInLHNRow(mockedReport, chatReportR14932, mockedReportActions, sharedAllTransactions, undefined, false, reportErrors, false) ??
-                    {};
+                    DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+                        mockedReport,
+                        chatReportR14932,
+                        mockedReportActions,
+                        sharedAllTransactions,
+                        undefined,
+                        false,
+                        reportErrors,
+                        false,
+                        RORY_ACCOUNT_ID,
+                    ) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasErrors');
             });
             it('returns correct reason when there are violations', () => {
@@ -1546,6 +1583,7 @@ describe('DebugUtils', () => {
                         true,
                         {},
                         false,
+                        RORY_ACCOUNT_ID,
                     ) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasViolations');
             });
@@ -1562,6 +1600,7 @@ describe('DebugUtils', () => {
                         true,
                         {},
                         false,
+                        RORY_ACCOUNT_ID,
                         true,
                     ) ?? {};
                 expect(reason).toBe(undefined);
@@ -1611,14 +1650,14 @@ describe('DebugUtils', () => {
                     ],
                 });
                 const violationTransactions: OnyxCollection<Transaction> = {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: createMock<Transaction>({
                         transactionID: '1',
                         amount: 10,
                         modifiedAmount: 10,
                         reportID: '1',
-                    } as Transaction,
+                    }),
                 };
-                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, chatReportR14932, {}, violationTransactions, transactionViolations, false, {}, false) ?? {};
+                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, chatReportR14932, {}, violationTransactions, transactionViolations, false, {}, false, 1234) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasTransactionThreadViolations');
             });
             it('forwards isOffline through to SidebarUtils so the live IOU transaction-thread receipt error surfaces only when isOffline=false excludes the deleted pending-delete action', () => {
@@ -1635,7 +1674,7 @@ describe('DebugUtils', () => {
                 const deletedTransactionID = 'tx-debug-deleted';
                 const OFFLINE_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '1': {
+                    '1': createMock<ReportAction>({
                         reportActionID: '1',
                         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                         actorAccountID: 12345,
@@ -1647,9 +1686,9 @@ describe('DebugUtils', () => {
                             amount: 10,
                             currency: CONST.CURRENCY.USD,
                         },
-                    } as ReportAction,
+                    }),
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '2': {
+                    '2': createMock<ReportAction>({
                         reportActionID: '2',
                         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                         actorAccountID: 12345,
@@ -1662,20 +1701,20 @@ describe('DebugUtils', () => {
                             amount: 20,
                             currency: CONST.CURRENCY.USD,
                         },
-                    } as ReportAction,
+                    }),
                 };
                 const OFFLINE_TRANSACTIONS: OnyxCollection<Transaction> = {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${liveTransactionID}`]: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${liveTransactionID}`]: createMock<Transaction>({
                         transactionID: liveTransactionID,
                         amount: 10,
                         errors: {
                             someErrorKey: {error: CONST.IOU.RECEIPT_ERROR},
                         },
-                    } as unknown as Transaction,
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransactionID}`]: {
+                    }),
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransactionID}`]: createMock<Transaction>({
                         transactionID: deletedTransactionID,
                         amount: 20,
-                    } as unknown as Transaction,
+                    }),
                 };
 
                 const offline = DebugUtils.getReasonAndReportActionForRBRInLHNRow(
@@ -1687,6 +1726,7 @@ describe('DebugUtils', () => {
                     false,
                     {},
                     true,
+                    12345,
                 );
                 const online = DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                     OFFLINE_EXPENSE_REPORT,
@@ -1697,6 +1737,7 @@ describe('DebugUtils', () => {
                     false,
                     {},
                     false,
+                    12345,
                 );
 
                 // Online: deleted pending-delete is skipped → 1 IOU thread → receipt error surfaces.

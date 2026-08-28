@@ -1,22 +1,32 @@
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
+
+import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+
 import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU/MoneyRequest';
 import {clearSubrates} from '@libs/actions/IOU/PerDiem';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy, Report, Session, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -63,8 +73,8 @@ type UseReportSelectionActionsParams = {
     /** ID of the user's personal policy — used by `removeFromReport` to look up the personal-policy tag list. */
     personalPolicyID: string | undefined;
 
-    /** Optional route to return to instead of the default back navigation. */
-    backTo: Route | undefined;
+    /** Path of the screen this dynamic route was opened from (the dynamic base path, i.e. the current URL without the suffix). */
+    backPath: Route;
 
     /** Caller-provided back-navigation handler — `handleRegularReportSelection` calls this before scheduling the change. */
     handleGoBack: () => void;
@@ -95,17 +105,25 @@ function useReportSelectionActions({
     action,
     reportIDFromRoute,
     personalPolicyID,
-    backTo,
+    backPath,
     handleGoBack,
 }: UseReportSelectionActionsParams): UseReportSelectionActionsResult {
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const {removeTransaction} = useSearchSelectionActions();
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
+    const reports = useChangeTransactionsReportReports(transaction ? [transaction] : [], undefined);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const delegateAccountID = useDelegateAccountID();
+    const {getCurrencyDecimals} = useCurrencyListActions();
+
+    const targetTransactionIDs = transaction?.transactionID ? [transaction.transactionID] : [];
+    const targetTransactions = transaction ? [transaction] : [];
 
     const buildParticipants = (report: OnyxEntry<Report>) => [
         {
@@ -146,27 +164,27 @@ function useReportSelectionActions({
         // Clear subrates, and update customUnitID if policy changed for per diem transactions
         if (policyChanged && isPerDiemTransaction) {
             setCustomUnitID(transaction.transactionID, newCustomUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
-            setCustomUnitRateID(transaction.transactionID, undefined, transaction, newPolicy);
+            // personalPolicyOutputCurrency is intentionally omitted: no customUnitRateID is passed, so setCustomUnitRateID never resolves a rate and the currency is never read.
+            setCustomUnitRateID(transaction.transactionID, undefined, transaction, newPolicy, false, undefined);
             clearSubrates(transaction.transactionID);
 
             const newChatReportID = reportOrDraftReportFromValue?.chatReportID ?? reportIDFromRoute;
-            const destinationRoute = ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, newChatReportID);
+            const destinationRoute = createDynamicRoute(
+                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path,
+                ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, transactionID, newChatReportID),
+            );
             Navigation.goBack(destinationRoute, {compareParams: false});
             return;
         }
 
         if (isNewManualExpenseFlowEnabled) {
-            Navigation.goBack(backTo);
+            Navigation.goBack(backPath);
             return;
         }
 
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportOrDraftReportFromValue?.chatReportID);
-        // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
-        if (backTo) {
-            Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
-        } else {
-            Navigation.navigate(iouConfirmationPageRoute);
-        }
+        // `goBack` replaces the current route when the confirmation screen isn't on the stack.
+        Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
     };
 
     const handleRegularReportSelection = (item: TransactionGroupListItem, report: OnyxEntry<Report>) => {
@@ -175,8 +193,9 @@ function useReportSelectionActions({
         }
 
         handleGoBack();
-        InteractionManager.runAfterInteractions(() => {
-            Navigation.setNavigationActionToMicrotaskQueue(() => {
+        TransitionTracker.runAfterTransitions({
+            waitForUpcomingTransition: true,
+            callback: () => {
                 const participants = buildParticipants(report);
 
                 setTransactionReport(
@@ -190,23 +209,28 @@ function useReportSelectionActions({
 
                 if (isEditing) {
                     const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
+                    const reportsForCall = report?.reportID ? {[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report, ...reports} : reports;
                     changeTransactionsReport({
-                        transactionIDs: [transaction.transactionID],
+                        transactionIDs: targetTransactionIDs,
                         isASAPSubmitBetaEnabled,
                         accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         email: session?.email ?? '',
                         newReport: report,
                         policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
-                        reportNextStep: undefined,
                         policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-                        allTransactions,
                         policyTagList,
+                        transactions: targetTransactions,
                         allTransactionViolation: transactionViolations,
-                        allReports,
+                        reports: reportsForCall,
+                        isTrackIntentUser,
+                        personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
+                        selfDMReportActions,
+                        delegateAccountID,
+                        getCurrencyDecimals,
                     });
                     removeTransaction(transaction.transactionID);
                 }
-            });
+            },
         });
     };
 
@@ -214,21 +238,27 @@ function useReportSelectionActions({
         if (!transaction) {
             return;
         }
-        Navigation.dismissToSuperWideRHP();
-        InteractionManager.runAfterInteractions(() => {
-            const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
-            changeTransactionsReport({
-                transactionIDs: [transaction.transactionID],
-                isASAPSubmitBetaEnabled,
-                accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                email: session?.email ?? '',
-                policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
-                allTransactions,
-                policyTagList,
-                allTransactionViolation: transactionViolations,
-                allReports,
-            });
-            removeTransaction(transaction.transactionID);
+        Navigation.dismissToSuperWideRHP({
+            afterTransition: () => {
+                const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
+                changeTransactionsReport({
+                    transactionIDs: targetTransactionIDs,
+                    isASAPSubmitBetaEnabled,
+                    accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    email: session?.email ?? '',
+                    policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
+                    policyTagList,
+                    transactions: targetTransactions,
+                    allTransactionViolation: transactionViolations,
+                    reports,
+                    isTrackIntentUser,
+                    personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
+                    selfDMReportActions,
+                    delegateAccountID,
+                    getCurrencyDecimals,
+                });
+                removeTransaction(transaction.transactionID);
+            },
         });
     };
 

@@ -1,8 +1,11 @@
-import {useEffect} from 'react';
 import useAutoUpdateTimezone from '@hooks/useAutoUpdateTimezone';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+
 import {clearCustomStatus, clearDraftCustomStatus} from '@userActions/User';
+
 import CONST from '@src/CONST';
+
+import {useEffect} from 'react';
 
 /**
  * Component that does not render anything and owns the timezone auto-update logic and

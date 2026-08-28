@@ -1,6 +1,3 @@
-import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -11,6 +8,7 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -18,17 +16,26 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {assignReportToMe} from '@libs/actions/IOU/ReportWorkflow';
 import {openBulkChangeApproverPage} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport} from '@libs/ReportUtils';
+
 import {APPROVER_TYPE} from '@pages/DynamicReportChangeApproverPage';
 import type {ApproverType} from '@pages/DynamicReportChangeApproverPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 type SelectedReportRef = {reportID: string | undefined};
 
@@ -66,7 +73,7 @@ function shouldAutoApplyApprover({
 export {shouldAutoApplyApprover};
 
 function SearchChangeApproverPage() {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -75,7 +82,6 @@ function SearchChangeApproverPage() {
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {selectedReports} = useSearchSelectionContext();
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
@@ -94,6 +100,7 @@ function SearchChangeApproverPage() {
         return reports;
     };
     const [onyxReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: getOnyxReports});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const hasAutoAppliedRef = useRef(false);
     // Set when navigating to WORKSPACE_UPGRADE; prevents the auto-close in useLayoutEffect from
@@ -166,8 +173,7 @@ function SearchChangeApproverPage() {
 
             if (report.managerID !== currentUserDetails.accountID) {
                 const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
-                const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${selectedReport.reportID}`];
-                assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep);
+                assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber);
             }
         }
 
@@ -265,19 +271,16 @@ function SearchChangeApproverPage() {
     const listHeader =
         selectedPolicies.length === 1 ? (
             <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
-                <RenderHTML html={translate('iou.changeApprover.header', `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(selectedPolicies.at(0)?.id)}`)} />
+                <RenderHTML
+                    html={translate('iou.changeApprover.header', `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(selectedPolicies.at(0)?.id, CONST.TAB.WORKFLOWS.APPROVALS)}`)}
+                />
             </View>
         ) : (
             <Text style={[styles.ph5, styles.mb5]}>{translate('iou.changeApprover.bulkSubtitle')}</Text>
         );
 
     if (!isOffline && isLoadingBulkChangeApproverPage) {
-        return (
-            <FullScreenLoadingIndicator
-                shouldUseGoBackButton
-                reasonAttributes={{context: 'SearchChangeApproverPage'}}
-            />
-        );
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     return (

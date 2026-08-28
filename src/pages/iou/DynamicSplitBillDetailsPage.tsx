@@ -1,5 +1,3 @@
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -7,6 +5,9 @@ import {ImageBehaviorContextProvider} from '@components/Image/ImageBehaviorConte
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar';
 import ScreenWrapper from '@components/ScreenWrapper';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -14,10 +15,14 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportTransactions from '@hooks/useReportTransactions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {completeSplitBill, setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
+import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
@@ -26,9 +31,12 @@ import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils
 import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {areRequiredFieldsEmpty, hasReceipt, isDistanceRequest as isDistanceRequestUtil, isMapDistanceRequest as isMapDistanceRequestUtil, isScanning} from '@libs/TransactionUtils';
+
 import withReportAndReportActionOrNotFound from '@pages/inbox/report/withReportAndReportActionOrNotFound';
 import type {WithReportAndReportActionOrNotFoundProps} from '@pages/inbox/report/withReportAndReportActionOrNotFound';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -36,11 +44,16 @@ import type SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
+
 type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps & PlatformStackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT>;
 
 function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const theme = useTheme();
     const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptScan']);
@@ -60,17 +73,27 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const privateIsArchived = useReportIsArchived(reportID);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
     let participants: Array<Participant | OptionData>;
     if (isPolicyExpenseChat(report)) {
         participants = [
-            getParticipantsOption({accountID: participantAccountIDs.at(0), selected: true, reportID: ''}, personalDetails),
-            getPolicyExpenseReportOption({...report, selected: true, reportID}, privateIsArchived, personalDetails, report, policy, reportAttributesDerived),
+            getParticipantsOption({accountID: participantAccountIDs.at(0), selected: true, reportID: ''}, personalDetails, translate),
+            getPolicyExpenseReportOption(
+                {...report, selected: true, reportID},
+                privateIsArchived,
+                personalDetails,
+                report,
+                policy,
+                {translate, dateFnsLocale},
+                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                reportAttributesDerived,
+            ),
         ];
     } else {
-        participants = participantAccountIDs.map((accountID) => getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails));
+        participants = participantAccountIDs.map((accountID) => getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails, translate));
     }
     const actorAccountID = reportAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const payeePersonalDetails = personalDetails?.[actorAccountID];
@@ -84,22 +107,46 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const [isConfirmed, setIsConfirmed] = useState(false);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const delegateAccountID = useDelegateAccountID();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const chatReportTransactions = useReportTransactions(reportID);
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
-        completeSplitBill(
-            reportID,
+        completeSplitBill({
+            getCurrencyDecimals,
+            chatReportID: reportID,
             reportAction,
-            draftTransaction,
-            session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            updatedTransaction: draftTransaction,
+            sessionAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             isASAPSubmitBetaEnabled,
             quickAction,
             transactionViolations,
             betas,
             personalDetails,
-            session?.email,
-        );
-    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations, betas, personalDetails]);
+            delegateAccountID,
+            isTrackIntentUser,
+            sessionEmail: session?.email,
+            formatPhoneNumber,
+        });
+        cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
+        dismissModalAndOpenReportInInboxTab(reportID, undefined, chatReportTransactions.length > 0);
+    }, [
+        chatReportTransactions.length,
+        reportID,
+        reportAction,
+        draftTransaction,
+        session?.accountID,
+        session?.email,
+        isASAPSubmitBetaEnabled,
+        quickAction,
+        transactionViolations,
+        betas,
+        personalDetails,
+        delegateAccountID,
+        isTrackIntentUser,
+        formatPhoneNumber,
+        getCurrencyDecimals,
+    ]);
 
     return (
         <ScreenWrapper testID="DynamicSplitBillDetailsPage">
@@ -146,7 +193,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
                                 policyID={isPolicyExpenseChat(report) ? report?.policyID : undefined}
                                 action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}
                                 onToggleBillable={(billable) => {
-                                    setDraftSplitTransaction(transaction?.transactionID, draftTransaction, {billable});
+                                    setDraftSplitTransaction(transaction?.transactionID, draftTransaction, {billable}, getCurrencyDecimals, getCurrencySymbol);
                                 }}
                                 isConfirmed={isConfirmed}
                             />

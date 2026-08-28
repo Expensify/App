@@ -54,7 +54,7 @@ Export settings determine how Expensify sends data to Xero.
 - **Export out-of-pocket expenses as** – All out-of-pocket expenses are exported as purchase bills (not editable).
 - **Purchase bill date** – Choose to use the date of the last expense, submitted date, or export date.
 - **Export invoices as** – All invoices export as sales invoices (not editable).
-- **Export travel invoicing expenses as** – If Travel Invoicing is enabled, travel expenses export as bank transactions. Click to select the **Travel payable account** where travel expenses will post in Xero.
+- **Export Consolidated Travel Billing expenses as** – If Consolidated Travel Billing is enabled, travel expenses export as bank transactions. Click to select the **Travel payable account** where travel expenses will post in Xero.
 - **Export company card expenses as** – All company card expenses are exported as bank transactions (not editable).
 - **Xero bank account** – Select the account to post non-reimbursable expenses.
 
@@ -75,6 +75,7 @@ Advanced settings control sync frequency and automation.
 - **Sync reimbursed reports**—Mark reimbursed reports in Expensify as Paid in Xero. This requires selecting a Xero reimbursement account.
 - **Xero bill payment account** – Required if **Sync reimbursed reports** is enabled.
 - **Xero invoice collections account** – Select the account where paid invoices appear.
+- **Sync Consolidated Travel Billing settlements** – If [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) is enabled, turn on this toggle to continuously reconcile settlements through Xero. When enabled, select a **Reconciliation account** to match your settlement account. Auto-sync must be enabled to use this setting.
 
 ---
 

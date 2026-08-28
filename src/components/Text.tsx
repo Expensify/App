@@ -1,15 +1,23 @@
-import type {ForwardedRef} from 'react';
-import React, {useContext, useMemo} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {Platform, Text as RNText, StyleSheet} from 'react-native';
-import type {TextProps as RNTextProps, TextStyle} from 'react-native';
 import useTheme from '@hooks/useTheme';
+
 import {containsOnlyCustomEmoji} from '@libs/EmojiUtils';
+
+import type {TextVariant} from '@styles/typography';
+import {textVariants} from '@styles/typography';
 import type {FontUtilsType} from '@styles/utils/FontUtils';
 import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import type {ForwardedRef} from 'react';
+import type {TextProps as RNTextProps, TextStyle} from 'react-native';
+
+import React, {useContext, useMemo} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {Platform, Text as RNText, StyleSheet} from 'react-native';
+
 import {CustomStylesForChildrenContext} from './CustomStylesForChildrenProvider';
 
 type TextProps = RNTextProps &
@@ -17,7 +25,14 @@ type TextProps = RNTextProps &
         /** The color of the text */
         color?: string;
 
-        /** The size of the text */
+        /** Semantic type style from src/styles/typography.ts. Sets font family, size, and line height */
+        variant?: TextVariant;
+
+        /**
+         * The size of the text
+         *
+         * @deprecated Pass `variant` or a `styles.text*` style instead of a raw size
+         */
         fontSize?: number;
 
         /** The alignment of the text */
@@ -36,7 +51,18 @@ type TextProps = RNTextProps &
         ref?: ForwardedRef<RNText>;
     };
 
-function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', children, family = 'EXP_NEUE', style = {}, shouldUseDefaultLineHeight = true, ref, ...props}: TextProps) {
+function Text({
+    color,
+    variant,
+    fontSize = variables.fontSizeNormal,
+    textAlign = 'left',
+    children,
+    family = 'EXP_NEUE',
+    style = {},
+    shouldUseDefaultLineHeight = true,
+    ref,
+    ...props
+}: TextProps) {
     const theme = useTheme();
     const customStyle = useContext(CustomStylesForChildrenContext);
 
@@ -45,6 +71,7 @@ function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', c
         fontSize,
         textAlign,
         ...FontUtils.fontFamily.platform[family],
+        ...(variant ? textVariants[variant] : undefined),
         ...StyleSheet.flatten(style),
         ...StyleSheet.flatten(customStyle),
     };

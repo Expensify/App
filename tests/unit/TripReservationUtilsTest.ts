@@ -1,7 +1,9 @@
 /* cspell:disable */
 import {formatTransitLocationLabel, getAirReservations, getPNRReservationDataFromTripReport, getReservationsFromTripReport, isPnrCancelled} from '@libs/TripReservationUtils';
+
 import CONST from '@src/CONST';
 import type {Pnr, TripData} from '@src/types/onyx/TripData';
+
 import {airReservationPnrData, airReservationTravelers} from '../data/TripAirReservationData';
 import {createRandomReport} from '../utils/collections/reports';
 
@@ -2694,12 +2696,24 @@ describe('TripReservationUtils', () => {
 
     describe('rail shortName sanitization', () => {
         it('should drop a URN-formatted code from rail shortName', () => {
-            const railPnrWithUrnCodes = JSON.parse(JSON.stringify(railPnr)) as typeof railPnr;
-            const leg = railPnrWithUrnCodes.data.railPnr?.legInfos.at(0);
-            if (leg) {
-                leg.originInfo.code = 'urn:trainline:public:nloc:at000408';
-                leg.destinationInfo.code = 'urn:trainline:public:nloc:at001685';
-            }
+            const firstLeg = asDefined(railPnrData.legInfos.at(0));
+            const railPnrWithUrnCodes: Pnr = {
+                ...railPnr,
+                data: {
+                    ...railPnr.data,
+                    railPnr: {
+                        ...railPnrData,
+                        legInfos: [
+                            {
+                                ...firstLeg,
+                                originInfo: {...firstLeg.originInfo, code: 'urn:trainline:public:nloc:at000408'},
+                                destinationInfo: {...firstLeg.destinationInfo, code: 'urn:trainline:public:nloc:at001685'},
+                            },
+                            ...railPnrData.legInfos.slice(1),
+                        ],
+                    },
+                },
+            };
 
             const report = createRandomReport(1, undefined);
             report.tripData = {

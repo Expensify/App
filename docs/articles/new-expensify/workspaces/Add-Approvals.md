@@ -1,10 +1,12 @@
 ---
 title: Add Approvals
 description: Require report approvals in your Expensify workspace, including setting approval thresholds and over-limit approvers.
-keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, reassign approver, automatic approver reassignment, change approver workflow, automatic approval, approval audit, category approver, tag approver, category rules, tag rules]
+keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, reassign approver, automatic approver reassignment, change approver workflow, automatic approval, approval audit, category approver, tag approver, category rules, tag rules, invite member to approval workflow, invite new user approval workflow]
 ---
 
 Each Expensify workspace can be configured to require additional approvals for reports before payments are authorized. When approvals are enabled, admins can set a default approval workflow for all members or create custom workflows for individual members.
+
+**Note:** Workspace Admins and People Admins can enable and configure approval workflows, including default and custom workflows, over-limit approvers, and approver assignment.
 
 Once a member submits a report, it must be approved by each person in their workflow before it can be paid. You can also add an additional approver that is only required when a report exceeds a specific dollar amount.
 
@@ -48,8 +50,8 @@ Set up default or custom approval workflows to route expenses through one or mor
 
 1. Navigate to **Workspaces > [Workspace Name] > Workflows**.
 2. Under **Approvals**, click **Add approval workflow**.
-3. Choose the member whose expenses should have a custom workflow.
-4. Click **Next**.
+3. On the **Expenses from** page, choose the member whose expenses should have a custom workflow. To route expenses from someone who isn't a workspace member yet, type their email address and select them from the list.
+4. Click **Next**. If you selected someone who isn't a workspace member, the **Invite new member** screen appears. Click **Invite** to add them to the workspace and continue.
 5. Select the first approver for their expenses.
 6. (Optional) Set an additional approval when a report exceeds a specific amount:
  - Enter a dollar amount in the Report amount field.
@@ -73,7 +75,7 @@ You can update or remove approval workflows at any time as your team or process 
 3. Select a new member or deselect one to remove them.
 4. Click **Save**.
 
-**Note:** When you change an approver in a workflow, any reports currently pending approval with the previous approver are automatically reassigned to the new approver. A system message will appear in the report confirming the reassignment.
+**Note:** When you change an approver in a workflow, any Outstanding reports assigned to the approver you replaced are reassigned to the new approver. A system message appears in the report confirming the reassignment. Reports are also reassigned when you remove an approver from the workspace or shorten an approval chain. Some reports are intentionally excluded — see the FAQ below for the full list of triggers and exclusions.
 
 ## Delete a Workflow
 
@@ -129,13 +131,40 @@ Category and Tag approvers are added to the approval chain — they don't replac
 
 No. Each employee can only be assigned one approval workflow per workspace.
 
+## Why did adding an approver to one workflow change other members' workflows?
+
+Approval routing is built from per-approver relationships, not separate paths for each submitter. When you place someone *after* an approver in a workflow, you're defining who that approver forwards their approvals to — and that applies to **every** report they approve, not just one submitter's.
+
+For example, if Joe is the first approver for several members and you set up a workflow of **John → Joe → Jane**, you're telling Expensify that "Joe forwards to Jane." Because Joe also approves for other members, their reports will now route to Jane after Joe approves them too.
+
+This is why you may see the following warning when editing a workflow:
+
+> This member already belongs to another approval workflow. Any updates here will reflect there too.
+
+Deleting and recreating the workflow won't change this, because the limitation is tied to the shared approver's forwarding rather than to any one submitter's workflow.
+
+To keep a second-level approver limited to a single submitter, that submitter's first approver must be unique to their chain — that is, not shared as an approver for any other member. If your goal is instead to add an extra review step only when a report exceeds a certain amount, use the workflow-specific over-limit **Additional approver** (set in the **Report amount** field), which applies only to that workflow.
+
 ## How can I assign custom approval workflows to specific members?
 
 You’ll need to be on the Control plan, as this feature isn’t available on Collect.
 
 ## What happens to pending reports when I change an approver?
 
-Any reports currently awaiting approval from the previous approver are automatically reassigned to the new approver. A system message appears in the report indicating the approver was reassigned via a workflow update.
+Outstanding reports are automatically reassigned to the new approver, with no prompt or confirmation required. A system message appears in each report indicating the approver was reassigned. This applies to reports that are already in the approval process, not just new reports, and it happens in these situations:
+
+- **You change an approver in a workflow:** reports pending with the previous approver move to the new approver.
+- **You remove an approver from the workspace:** if you remove a member who is an approver on pending reports, those reports are reassigned to the **workspace owner**.
+- **You shorten an approval chain:** if you remove a downstream approver from a chain, reports already partway through move to the appropriate remaining approver. For example, in an Alice → Bob → Claire chain where Bob has already approved and you remove Claire, the report returns to Bob for final approval.
+- **The workflow changes through an integration:** the same reassignment happens when the workflow changes through an HR integration such as Gusto or TriNet, or through a bulk member update. In that case, the report's system message indicates the change came from the integration rather than from a specific person.
+
+## Are there cases where reports are not automatically reassigned?
+
+Yes. Reports are not automatically reassigned in these cases:
+
+- **The current approver is a Category or Tag approver:** reports awaiting a Category or Tag approver are not reassigned. Those approval steps run before, and take precedence over, the workspace approval workflow.
+- ​**The report already moved past the approver you changed:** If it's further along the approval chain, it stays where it is.
+- **​You changed the default workspace approver, but the employee has their own approver set:**​ Employees with a specific approver aren't affected by default-approver changes; only employees using the default are.
 
 ## What happens when a report exceeds the over-limit threshold?
 

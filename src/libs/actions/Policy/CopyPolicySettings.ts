@@ -1,17 +1,23 @@
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {write} from '@libs/API';
 import type {CopyPolicySettingsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
 import {generateHexadecimalValue} from '@libs/NumberUtils';
+import {categoryHasAnyRequireFieldsRule} from '@libs/RequireFieldsRulesUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CopyPolicySettings as CopyPolicySettingsState, Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
-import type {CustomUnit} from '@src/types/onyx/Policy';
+import type {CopyPolicySettings as CopyPolicySettingsState, Policy, PolicyCategories, PolicyTagLists, PolicyCategory} from '@src/types/onyx';
+import type {CustomUnit, PolicyFeatureName} from '@src/types/onyx/Policy';
+
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 type Part =
     | 'overview'
+    | 'currency'
     | 'members'
     | 'reports'
     | 'accounting'
@@ -29,11 +35,12 @@ type Part =
     | 'receiptPartners';
 
 const PARTS_TO_POLICY_FIELDS = {
-    overview: ['outputCurrency', 'address', 'description'],
+    overview: ['address', 'description'],
+    currency: ['outputCurrency'],
     members: ['employeeList'],
     reports: ['fieldList', 'areReportFieldsEnabled'],
     accounting: ['connections', 'areConnectionsEnabled'],
-    categories: ['areCategoriesEnabled'],
+    categories: ['areCategoriesEnabled', 'requiresCategory'],
     tags: ['areTagsEnabled'],
     taxes: ['tax', 'taxRates'],
     // achAccount is intentionally excluded — the backend remaps bankAccountID per-caller
@@ -46,12 +53,17 @@ const PARTS_TO_POLICY_FIELDS = {
         'maxExpenseAmountNoReceipt',
         'maxExpenseAmountNoItemizedReceipt',
         'defaultBillable',
+        'defaultReimbursable',
         'prohibitedExpenses',
         'eReceipts',
         'isAttendeeTrackingEnabled',
         'preventSelfApproval',
+        'disabledFields',
+        'glCodes',
+        'showTagGLCodes',
         'shouldShowAutoApprovalOptions',
         'shouldShowAutoReimbursementLimitOption',
+        'customRules',
     ],
     codingRules: ['rules'],
     distanceRates: ['areDistanceRatesEnabled', 'customUnits'],
@@ -67,6 +79,32 @@ const PARTS_TO_POLICY_FIELDS = {
 
 type PolicyFieldsForPart = (typeof PARTS_TO_POLICY_FIELDS)[Part][number];
 
+/**
+ * Maps each copy-settings part to the policy feature it enables. This carries no plan judgment - it
+ * only relates a part to its feature name so `canPolicyAccessFeature` can decide which features a
+ * given target can't access. Parts with no plan/feature gate (e.g. overview, members) are omitted.
+ *
+ * This is intentionally separate from `PARTS_TO_POLICY_FIELDS`: that map lists every Onyx field a
+ * part copies, where the feature toggle isn't reliably identifiable (e.g. `codingRules` copies the
+ * `rules` field, not the `areRulesEnabled` feature; `timeTracking`/`receiptPartners` copy no fields).
+ */
+const PART_TO_POLICY_FEATURE: Partial<Record<Part, PolicyFeatureName>> = {
+    reports: CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED,
+    accounting: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
+    categories: CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED,
+    tags: CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED,
+    taxes: CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED,
+    workflows: CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,
+    rules: CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
+    codingRules: CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
+    distanceRates: CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
+    perDiem: CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
+    invoices: CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED,
+    travel: CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED,
+    timeTracking: CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED,
+    receiptPartners: CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
+};
+
 function setCopyPolicySettingsData(data: Partial<CopyPolicySettingsState>): Promise<void> {
     return Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, data);
 }
@@ -75,8 +113,8 @@ function clearCopyPolicySettings(): void {
     Onyx.set(ONYXKEYS.COPY_POLICY_SETTINGS, {});
 }
 
-function requestCopyPolicySettingsNotification(): void {
-    write(WRITE_COMMANDS.COPY_POLICY_SETTINGS_NOTIFY, {});
+function requestCopyPolicySettingsNotification(shouldOnlyNotifyOnFailure = false): void {
+    write(WRITE_COMMANDS.COPY_POLICY_SETTINGS_NOTIFY, {shouldOnlyNotifyOnFailure});
 }
 
 function findCustomUnitByName(policy: Policy | undefined, unitName: string): CustomUnit | undefined {
@@ -180,6 +218,64 @@ function buildTravelSettingsPatch(sourcePolicy: Policy, targetPolicy: Policy): P
 }
 
 /**
+ * The category fields the backend copies for Flag for review and Field requirements rules.
+ */
+const CATEGORY_RULE_FIELDS = [
+    'maxExpenseAmount',
+    'expenseLimitType',
+    'maxAmountNoReceipt',
+    'maxAmountNoItemizedReceipt',
+    'areCommentsRequired',
+    'areAttendeesRequired',
+    'commentHint',
+] as const satisfies ReadonlyArray<keyof PolicyCategory>;
+
+/**
+ * Returns the categories patch to merge onto a target when `rules` is copied without `categories`.
+ */
+function buildCategoryRulesPatch(sourceCategories: PolicyCategories, targetCategories: PolicyCategories): PolicyCategories | undefined {
+    const patch: PolicyCategories = {};
+
+    for (const sourceCategory of Object.values(sourceCategories)) {
+        if (sourceCategory.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        const targetCategory = targetCategories[sourceCategory.name];
+        if (!targetCategory || targetCategory.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+
+        // expenseLimitType and commentHint can be set without a rule existing, so gate on the rule predicates
+        // themselves - otherwise a category carrying no rule would still patch (and force-enable) the target.
+        if (!hasExplicitFlagAmount(sourceCategory.maxExpenseAmount) && !categoryHasAnyRequireFieldsRule(sourceCategory) && !sourceCategory.commentHint) {
+            continue;
+        }
+
+        const categoryPatch: Partial<PolicyCategory> = {};
+        for (const field of CATEGORY_RULE_FIELDS) {
+            if (sourceCategory[field] === undefined || sourceCategory.pendingFields?.[field] === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                continue;
+            }
+            // The CATEGORY_RULE_FIELDS values are typed as keyof PolicyCategory, so this assignment is safe.
+            (categoryPatch as Record<string, unknown>)[field] = sourceCategory[field];
+        }
+        if (Object.keys(categoryPatch).length === 0) {
+            continue;
+        }
+
+        // The Rules page hides disabled categories, so rules copied onto a disabled target category would be
+        // invisible - enable it so the copy is actually usable.
+        patch[sourceCategory.name] = {
+            ...targetCategory,
+            ...categoryPatch,
+            ...(sourceCategory.enabled && !targetCategory.enabled ? {enabled: true} : {}),
+        };
+    }
+
+    return Object.keys(patch).length > 0 ? patch : undefined;
+}
+
+/**
  * Returns the partial Policy patch derived from the selected `parts`, excluding fields whose
  * mapping is handled separately (customUnits, timeTracking, receiptPartners, categories, tags collection keys).
  */
@@ -253,6 +349,7 @@ function buildCopyPolicySettingsData(
     const isTimeTrackingSelected = parts.includes('timeTracking');
     const isReceiptPartnersSelected = parts.includes('receiptPartners');
     const isCodingRulesSelected = parts.includes('codingRules');
+    const isRulesSelected = parts.includes('rules');
     const isTravelSelected = parts.includes('travel');
     const timeTrackingPendingFields = isTimeTrackingSelected
         ? {
@@ -362,6 +459,26 @@ function buildCopyPolicySettingsData(
             });
         }
 
+        // When categories are copied too, the SET above already carries the source's category rules across.
+        if (isRulesSelected && !isCategoriesSelected) {
+            const targetCategoriesKey = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicy.id}` as const;
+            const previousCategories = allPolicyCategories?.[targetCategoriesKey];
+            const categoryRulesPatch = previousCategories ? buildCategoryRulesPatch(sourceCategories, previousCategories) : undefined;
+            // We should only copy when there's matched target category
+            if (previousCategories && categoryRulesPatch) {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: targetCategoriesKey,
+                    value: categoryRulesPatch,
+                });
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: targetCategoriesKey,
+                    value: previousCategories,
+                });
+            }
+        }
+
         if (isTagsSelected) {
             const targetTagsKey = `${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicy.id}` as const;
             const previousTags = allPolicyTags?.[targetTagsKey] ?? {};
@@ -440,5 +557,5 @@ function copyPolicySettings(
     write(WRITE_COMMANDS.COPY_POLICY_SETTINGS, params, {optimisticData, successData, failureData});
 }
 
-export {setCopyPolicySettingsData, clearCopyPolicySettings, requestCopyPolicySettingsNotification, buildCopyPolicySettingsData, copyPolicySettings};
+export {setCopyPolicySettingsData, clearCopyPolicySettings, requestCopyPolicySettingsNotification, buildCopyPolicySettingsData, copyPolicySettings, PART_TO_POLICY_FEATURE};
 export type {Part};

@@ -1,17 +1,23 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return -- jest factory mocks use CommonJS require() which returns untyped modules */
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import {createTransactionThreadReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
+
 import RecentlyAddedSection from '@pages/home/RecentlyAddedSection';
 import {useRecentlyAddedData} from '@pages/home/RecentlyAddedSection/useRecentlyAddedData';
+
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -33,11 +39,10 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-jest.mock('@hooks/usePopoverPosition', () =>
-    jest.fn(() => ({
-        calculatePopoverPosition: jest.fn(() => Promise.resolve({horizontal: 0, vertical: 0, width: 0, height: 0})),
-    })),
-);
+jest.mock('@hooks/usePopoverPosition', () => {
+    const calculatePopoverPosition = jest.fn(() => Promise.resolve({horizontal: 0, vertical: 0, width: 0, height: 0}));
+    return jest.fn(() => ({calculatePopoverPosition}));
+});
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -182,7 +187,7 @@ describe('RecentlyAddedSection', () => {
 
     beforeEach(async () => {
         setWideLayout();
-        mockUseRecentlyAddedData.mockReturnValue({transactions: []});
+        mockUseRecentlyAddedData.mockReturnValue({transactions: [], isAwaitingFirstResult: false});
         await act(async () => {
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {accountID: ACCOUNT_ID, email: 'test@example.com'},
@@ -202,7 +207,7 @@ describe('RecentlyAddedSection', () => {
 
     describe('empty state', () => {
         it('renders the empty state and no rows when there are no expenses', async () => {
-            mockUseRecentlyAddedData.mockReturnValue({transactions: []});
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [], isAwaitingFirstResult: false});
 
             renderRecentlyAddedSection();
             await waitForBatchedUpdatesWithAct();
@@ -212,7 +217,7 @@ describe('RecentlyAddedSection', () => {
         });
 
         it('renders empty-state copy from the recentlyAddedSection namespace', async () => {
-            mockUseRecentlyAddedData.mockReturnValue({transactions: []});
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [], isAwaitingFirstResult: false});
 
             renderRecentlyAddedSection();
             await waitForBatchedUpdatesWithAct();
@@ -221,18 +226,79 @@ describe('RecentlyAddedSection', () => {
         });
 
         it('does not render the overflow menu in the empty state', async () => {
-            mockUseRecentlyAddedData.mockReturnValue({transactions: []});
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [], isAwaitingFirstResult: false});
 
             renderRecentlyAddedSection();
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.queryByTestId('recentlyAddedOverflowMenu')).not.toBeOnTheScreen();
         });
+
+        it('shows the skeleton instead of claiming there are no expenses while a result may still arrive', async () => {
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [], isAwaitingFirstResult: true});
+
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('recentlyAddedSkeleton')).toBeOnTheScreen();
+            expect(screen.queryByTestId('recentlyAddedEmptyState')).not.toBeOnTheScreen();
+            expect(screen.queryByText('homePage.recentlyAddedSection.emptyStateMessage')).not.toBeOnTheScreen();
+        });
+
+        it('shows the empty state, not an endless skeleton, once the outcome is settled', async () => {
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [], isAwaitingFirstResult: false});
+
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('recentlyAddedEmptyState')).toBeOnTheScreen();
+            expect(screen.queryByTestId('recentlyAddedSkeleton')).not.toBeOnTheScreen();
+        });
+
+        it('keeps rendering rows while a refresh is still in flight', async () => {
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1], isAwaitingFirstResult: true});
+
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('recentlyAddedRow-t1')).toBeOnTheScreen();
+            expect(screen.queryByTestId('recentlyAddedEmptyState')).not.toBeOnTheScreen();
+            expect(screen.queryByTestId('recentlyAddedSkeleton')).not.toBeOnTheScreen();
+        });
+    });
+
+    describe('anonymous user', () => {
+        it('hides the entire section (including the empty state) for guests', async () => {
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [], isAwaitingFirstResult: false});
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('recentlyAddedEmptyState')).not.toBeOnTheScreen();
+            expect(screen.queryByText('homePage.recentlyAddedSection.title')).not.toBeOnTheScreen();
+        });
+
+        it('still hides the section for guests even when expenses are present', async () => {
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1], isAwaitingFirstResult: false});
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('recentlyAddedRow-t1')).not.toBeOnTheScreen();
+        });
     });
 
     describe('rows', () => {
         it('renders one row per expense with the merchant name', async () => {
-            mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1, ROW_2]});
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1, ROW_2], isAwaitingFirstResult: false});
 
             renderRecentlyAddedSection();
             await waitForBatchedUpdatesWithAct();
@@ -248,7 +314,7 @@ describe('RecentlyAddedSection', () => {
     describe('row navigation to the expense RHP on Home', () => {
         it('navigates to SEARCH_REPORT with backTo Home on wide layout', async () => {
             setWideLayout();
-            mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1]});
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1], isAwaitingFirstResult: false});
 
             renderRecentlyAddedSection();
             await waitForBatchedUpdatesWithAct();
@@ -262,7 +328,7 @@ describe('RecentlyAddedSection', () => {
 
         it('navigates to SEARCH_REPORT with backTo Home on narrow layout (carousel available on both layouts)', async () => {
             setNarrowLayout();
-            mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1]});
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1], isAwaitingFirstResult: false});
 
             renderRecentlyAddedSection();
             await waitForBatchedUpdatesWithAct();
@@ -291,7 +357,7 @@ describe('RecentlyAddedSection', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            mockUseRecentlyAddedData.mockReturnValue({transactions: [{...ROW_1, reportID: parentReportID}]});
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [{...ROW_1, reportID: parentReportID}], isAwaitingFirstResult: false});
 
             renderRecentlyAddedSection();
             await waitForBatchedUpdatesWithAct();
@@ -303,15 +369,18 @@ describe('RecentlyAddedSection', () => {
             expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo: ROUTES.HOME}));
         });
 
-        it('opens the parent report directly for an expense in a one-transaction report', async () => {
+        it('opens (creating if needed) the transaction thread for an expense in a one-transaction report, not the parent report', async () => {
             setWideLayout();
             const parentReportID = 'report_single';
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {reportID: parentReportID, type: CONST.REPORT.TYPE.EXPENSE, transactionCount: 1});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    a1: {reportActionID: 'a1', actionName: CONST.REPORT.ACTIONS.TYPE.IOU, originalMessage: {IOUTransactionID: 't1'}},
+                });
             });
             await waitForBatchedUpdatesWithAct();
 
-            mockUseRecentlyAddedData.mockReturnValue({transactions: [{...ROW_1, reportID: parentReportID}]});
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [{...ROW_1, reportID: parentReportID}], isAwaitingFirstResult: false});
 
             renderRecentlyAddedSection();
             await waitForBatchedUpdatesWithAct();
@@ -319,13 +388,14 @@ describe('RecentlyAddedSection', () => {
             fireEvent.press(screen.getByTestId('recentlyAddedRow-t1'));
             await waitForBatchedUpdatesWithAct();
 
+            expect(mockCreateTransactionThreadReport).toHaveBeenCalledTimes(1);
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, backTo: ROUTES.HOME}));
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: 'created_thread_report', backTo: ROUTES.HOME}));
         });
 
         it('seeds the prev/next carousel with the IDs and a lazy descriptor for every recently added expense', async () => {
             setWideLayout();
-            mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1, ROW_2]});
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1, ROW_2], isAwaitingFirstResult: false});
 
             renderRecentlyAddedSection();
             await waitForBatchedUpdatesWithAct();
@@ -379,6 +449,7 @@ describe('RecentlyAddedSection', () => {
                     {...ROW_1, reportID: parentReportID},
                     {...ROW_2, reportID: parentReportID},
                 ],
+                isAwaitingFirstResult: false,
             });
 
             renderRecentlyAddedSection();
@@ -395,7 +466,7 @@ describe('RecentlyAddedSection', () => {
 
     describe('overflow menu', () => {
         it('renders the ellipsis overflow menu when there are expenses', async () => {
-            mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1]});
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1], isAwaitingFirstResult: false});
 
             renderRecentlyAddedSection();
             await waitForBatchedUpdatesWithAct();
@@ -404,7 +475,7 @@ describe('RecentlyAddedSection', () => {
         });
 
         it('routes to the Expenses page (SEARCH_ROOT) when the overflow menu action is selected', async () => {
-            mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1]});
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1], isAwaitingFirstResult: false});
 
             renderRecentlyAddedSection();
             await waitForBatchedUpdatesWithAct();

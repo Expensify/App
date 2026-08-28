@@ -1,21 +1,26 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useTimeSensitiveLockedBankAccount from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveLockedBankAccount';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccount, BankAccountList} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
+
+import Onyx from 'react-native-onyx';
+
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const PRIMARY_LOGIN = 'user@example.com';
 const OTHER_LOGIN = 'other@example.com';
 
 function makePolicy(overrides: Partial<Policy> & {id: string}): Policy {
-    return {
+    return createMock<Policy>({
         ...overrides,
         name: overrides.name ?? `Policy ${overrides.id}`,
-    } as Policy;
+    });
 }
 
 function makeBankAccount(bankAccountID: number, state: string, type?: string): BankAccount {
@@ -222,7 +227,7 @@ describe('useTimeSensitiveLockedBankAccount', () => {
 
     it('handles nullish entries inside BANK_ACCOUNT_LIST without throwing', async () => {
         // Simulate a partially cleared Onyx collection where an entry is null
-        const bankAccountList = {'999': null} as unknown as BankAccountList;
+        const bankAccountList = {'999': null};
         await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
         await waitForBatchedUpdates();
 

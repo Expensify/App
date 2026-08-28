@@ -1,7 +1,5 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -9,11 +7,19 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {enableExpensifyCard} from '@libs/actions/Policy/Policy';
 import {navigateToExpensifyCardPage} from '@libs/PolicyUtils';
+
 import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
+
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 
 type WorkspaceCompanyCardExpensifyCardPromotionBannerProps = {
     policy: OnyxEntry<Policy>;
@@ -48,18 +54,23 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy, canWriteCompa
     }, [policyID, areExpensifyCardsEnabled]);
 
     const rightComponent = useMemo(() => {
-        const smallScreenStyle = shouldUseNarrowLayout && !isInLandscapeMode ? [styles.flex0, styles.flexBasis100, styles.maxWidth100Percentage, styles.justifyContentCenter] : [];
+        const shouldDisplayActionInSeparateLine = shouldUseNarrowLayout && !isInLandscapeMode;
+        const smallScreenStyle = shouldDisplayActionInSeparateLine ? [styles.flex0, styles.mnw100, styles.maxWidth100Percentage, styles.justifyContentCenter] : [];
         return (
-            <View style={[styles.flexRow, styles.gap2, smallScreenStyle]}>
+            <View
+                key={shouldDisplayActionInSeparateLine ? 'separate-line' : 'inline'}
+                style={[styles.flexRow, styles.gap2, smallScreenStyle]}
+            >
                 <Button
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={canUseLearnMore ? handleLearnMore : onReadOnlyAction}
                     style={shouldUseNarrowLayout && !isInLandscapeMode && styles.flex1}
                     innerStyles={!canUseLearnMore ? styles.buttonOpacityDisabled : undefined}
                     hoverStyles={!canUseLearnMore ? styles.buttonOpacityDisabled : undefined}
-                    text={translate('workspace.moreFeatures.companyCards.expensifyCardBannerLearnMoreButton')}
                     accessibilityLabel={`${translate('workspace.moreFeatures.companyCards.expensifyCardBannerLearnMoreButton')}, ${translate('workspace.moreFeatures.companyCards.expensifyCardBannerTitle')}`}
-                />
+                >
+                    <Button.Text>{translate('workspace.moreFeatures.companyCards.expensifyCardBannerLearnMoreButton')}</Button.Text>
+                </Button>
             </View>
         );
     }, [styles, shouldUseNarrowLayout, isInLandscapeMode, translate, canUseLearnMore, handleLearnMore, onReadOnlyAction]);

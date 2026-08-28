@@ -1,24 +1,28 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
 import {getActiveScreenInRoute, isNavigatingToReportActionWithinSameReport, isSwitchingTabsWithinTabNavigator, shouldChangeToMatchingFullScreen} from '@libs/Navigation/helpers/linkTo';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-function makeRootState(routes: Array<{name: string; key?: string}>): NavigationState<RootNavigatorParamList> {
-    return {
+import type {NavigationState, PartialState} from '@react-navigation/native';
+
+import createMock from '../utils/createMock';
+
+function makeRootState(routes: Array<{name: keyof RootNavigatorParamList; key?: string}>): NavigationState<RootNavigatorParamList> {
+    return createMock<NavigationState<RootNavigatorParamList>>({
         routes: routes.map((r, i) => ({name: r.name, key: r.key ?? `k-${i}`, params: undefined})),
         index: routes.length - 1,
         key: 'root',
         routeNames: routes.map((r) => r.name),
         stale: false,
         type: 'stack',
-    } as unknown as NavigationState<RootNavigatorParamList>;
+    });
 }
 
-function makePartialState(routes: Array<{name: string}>): PartialState<NavigationState<RootNavigatorParamList>> {
-    return {
+function makePartialState(routes: Array<{name: keyof RootNavigatorParamList}>): PartialState<NavigationState<RootNavigatorParamList>> {
+    return createMock<PartialState<NavigationState<RootNavigatorParamList>>>({
         routes: routes.map((r) => ({name: r.name})),
-    } as PartialState<NavigationState<RootNavigatorParamList>>;
+    });
 }
 
 describe('isSwitchingTabsWithinTabNavigator', () => {
@@ -49,7 +53,7 @@ describe('isSwitchingTabsWithinTabNavigator', () => {
 
     it('returns false when target state has no routes', () => {
         const current = makeRootState([{name: NAVIGATORS.TAB_NAVIGATOR}]);
-        const target = {routes: undefined} as unknown as PartialState<NavigationState<RootNavigatorParamList>>;
+        const target = createMock<PartialState<NavigationState<RootNavigatorParamList>>>({routes: undefined});
         expect(isSwitchingTabsWithinTabNavigator(current, target)).toBe(false);
     });
 });

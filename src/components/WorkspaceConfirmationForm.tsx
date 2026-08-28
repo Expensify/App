@@ -1,14 +1,10 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports -- Type import needed for ref typing; no wrapper available
-import type {ScrollView as RNScrollView} from 'react-native';
-import {View} from 'react-native';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceConfirmationAvatar from '@hooks/useWorkspaceConfirmationAvatar';
+
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
@@ -16,28 +12,36 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {getDefaultWorkspacePlanType, getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
+import type {PolicyType} from '@src/types/form/WorkspaceConfirmationForm';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+// eslint-disable-next-line no-restricted-imports -- Type import needed for ref typing; no wrapper available
+import type {ScrollView as RNScrollView} from 'react-native';
+
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {FormInputErrors, FormOnyxValues} from './Form/types';
+
+import WorkspaceAvatar from './Avatar/WorkspaceAvatar';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
 import CurrencySelector from './CurrencySelector';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from './Form/types';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
-import PlanTypeSelector from './PlanTypeSelector';
 import ScrollView from './ScrollView';
 import Switch from './Switch';
 import Text from './Text';
 import TextInput from './TextInput';
-
-type PolicyType = typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE;
 
 type WorkspaceConfirmationSubmitFunctionParams = {
     name: string;
@@ -64,9 +68,18 @@ type WorkspaceConfirmationFormProps = {
 
     /** Whether bottom safe area padding should be added */
     addBottomSafeAreaPadding?: boolean;
+
+    /** Whether the submit button should display a loading spinner (e.g. while the new workspace is revealed) */
+    isLoading?: boolean;
 };
 
-function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButtonPress = () => Navigation.goBack(), addBottomSafeAreaPadding = true}: WorkspaceConfirmationFormProps) {
+function WorkspaceConfirmationForm({
+    onSubmit,
+    policyOwnerEmail = '',
+    onBackButtonPress = () => Navigation.goBack(),
+    addBottomSafeAreaPadding = true,
+    isLoading = false,
+}: WorkspaceConfirmationFormProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Camera', 'ImageCropSquareMask']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -122,15 +135,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
 
     const userCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
 
-    const isMemberOfControlWorkspace = useMemo(() => {
-        if (!policies) {
-            return false;
-        }
-        return Object.values(policies).some((policy) => policy?.type === CONST.POLICY.TYPE.CORPORATE);
-    }, [policies]);
-
-    const defaultPlanType = isMemberOfControlWorkspace ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
-    const userPlanType = draftValues?.planType ?? defaultPlanType;
+    const userPlanType = draftValues?.planType ?? getDefaultWorkspacePlanType(policies);
     const defaultOwner = (policyOwnerEmail || session?.email) ?? '';
 
     const userOwner = draftValues?.owner ?? defaultOwner;
@@ -155,12 +160,14 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
 
     const stashedLocalAvatarImage = workspaceAvatar?.avatarUri ?? undefined;
 
-    const DefaultAvatar = useWorkspaceConfirmationAvatar({
-        policyID,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
-        source: stashedLocalAvatarImage || getDefaultWorkspaceAvatar(workspaceNameFirstCharacter),
-        name: workspaceNameFirstCharacter,
-    });
+    const workspaceAvatarNode = (
+        <WorkspaceAvatar
+            source={stashedLocalAvatarImage}
+            size={CONST.AVATAR_SIZE.XXXX_LARGE}
+            name={workspaceNameFirstCharacter}
+            avatarID={policyID ?? CONST.DEFAULT_NUMBER_ID}
+        />
+    );
 
     return (
         <>
@@ -184,8 +191,8 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                 </View>
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
-                    avatarID={policyID}
                     source={stashedLocalAvatarImage}
+                    avatar={workspaceAvatarNode}
                     onImageSelected={(image) => {
                         setAvatarFile(image);
                         setWorkspaceAvatar({avatarUri: image.uri ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
@@ -194,13 +201,9 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                         setAvatarFile(undefined);
                         setWorkspaceAvatar({avatarUri: null, avatarFileName: null, avatarFileType: null});
                     }}
-                    size={CONST.AVATAR_SIZE.X_LARGE}
-                    avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
                     editIcon={icons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
-                    type={CONST.ICON_TYPE_WORKSPACE}
                     style={[styles.w100, styles.alignItemsCenter, styles.mv4, styles.mb6, styles.alignSelfCenter, styles.ph5]}
-                    DefaultAvatar={DefaultAvatar}
                     editorMaskImage={icons.ImageCropSquareMask}
                 />
                 <FormProvider
@@ -208,12 +211,13 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                     submitButtonText={translate('common.confirm')}
                     style={[styles.flexGrow1, styles.ph5]}
                     scrollContextEnabled
+                    isLoading={isLoading}
                     validate={validate}
                     onSubmit={(val) => {
                         onSubmit({
                             name: val[INPUT_IDS.NAME],
                             currency: val[INPUT_IDS.CURRENCY],
-                            planType: isApprovedAccountant ? (val[INPUT_IDS.PLAN_TYPE] as PolicyType) : undefined,
+                            planType: isApprovedAccountant ? val[INPUT_IDS.PLAN_TYPE] : undefined,
                             owner: isApprovedAccountant ? val[INPUT_IDS.OWNER] : '',
                             makeMeAdmin: isApprovedAccountant && isOwnerDifferentFromCurrentUser ? makeMeAdmin : false,
                             avatarFile,
@@ -251,21 +255,27 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                                 label={translate('workspace.editor.currencyInputLabel')}
                                 value={userCurrency}
                                 shouldShowCurrencySymbol
-                                currencySelectorRoute={ROUTES.WORKSPACE_CURRENCY_SELECTION}
+                                useWorkspaceConfirmationCurrencySelector
                             />
                         </View>
                         {isApprovedAccountant && (
                             <>
-                                <View style={[styles.mhn5]}>
+                                <View style={styles.mhn5}>
                                     <InputWrapper
-                                        InputComponent={PlanTypeSelector}
+                                        InputComponent={MenuItemWithTopDescription}
                                         inputID={INPUT_IDS.PLAN_TYPE}
-                                        label={translate('workspace.common.planType')}
-                                        defaultValue={userPlanType}
+                                        description={translate('workspace.common.planType')}
+                                        title={getUserFriendlyWorkspaceType(userPlanType, translate)}
+                                        interactive
+                                        shouldShowRightIcon
+                                        onPress={() => {
+                                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION_PLAN_TYPE.path));
+                                        }}
+                                        value={userPlanType}
                                     />
                                 </View>
 
-                                <View style={[styles.mhn5]}>
+                                <View style={styles.mhn5}>
                                     <InputWrapper
                                         InputComponent={MenuItemWithTopDescription}
                                         inputID={INPUT_IDS.OWNER}
@@ -281,7 +291,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                                 </View>
 
                                 {isOwnerDifferentFromCurrentUser && (
-                                    <View style={[styles.mhn5]}>
+                                    <View style={styles.mhn5}>
                                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph5, styles.pv3]}>
                                             <View style={styles.flex1}>
                                                 <Text style={[styles.textNormal]}>{translate('workspace.common.keepMeAsAdmin')}</Text>

@@ -1,21 +1,27 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportName} from '@libs/ReportNameUtils';
 import {generateReportID, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
 import {createOutstandingReportsForPolicySelector, reportFieldTransactionStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -49,10 +55,9 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
-    const reportAttributes = useReportAttributes();
     const policyID = selectedParticipants?.at(0)?.policyID;
-    const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: createOutstandingReportsForPolicySelector(policyID)}, [policyID]);
-    const archivedReportsIDSet = useArchivedReportsIDSet();
+    const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: createOutstandingReportsForPolicySelector(policyID)});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
     // Self-resolved narrow slice of the transaction; replaces the previously prop-drilled `transaction` object.
     const transactionState = useTransactionSelector(transactionID, reportFieldTransactionStateSelector);
@@ -72,11 +77,12 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
      * We need to check if the transaction report exists first in order to prevent the outstanding reports from being used.
      * Also we need to check if transaction report exists in outstanding reports in order to show a correct report name.
      */
-    const shouldUseTransactionReport = (!!transactionReportEntry && isReportOutstanding(transactionReportEntry, policyID, archivedReportsIDSet, false)) || isUnreported;
+    const transactionReportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${transactionReportID}`];
+    const shouldUseTransactionReport = (!!transactionReportEntry && isReportOutstanding(transactionReportEntry, policyID, transactionReportNameValuePair, false)) || isUnreported;
 
     const ownerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
 
-    const availableOutstandingReports = getOutstandingReportsForUser(policyID, ownerAccountID, archivedReportsIDSet, outstandingReportsForPolicy ?? {}, false).sort((a, b) =>
+    const availableOutstandingReports = getOutstandingReportsForUser(policyID, ownerAccountID, reportNameValuePairs, outstandingReportsForPolicy ?? {}, false).sort((a, b) =>
         localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''),
     );
 
@@ -102,8 +108,10 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
         return [reportIDToUse, reportToUse ?? undefined] as const;
     })();
 
+    const derivedReportName = useDerivedReportNameByReportID(selectedReportID);
+
     const reportName = (() => {
-        const name = getReportName(selectedReport, reportAttributes);
+        const name = getReportName(selectedReport, derivedReportName);
         if (!name) {
             return isUnreported ? translate('common.none') : translate('iou.newReport');
         }
@@ -126,7 +134,7 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
                 if (!transactionID || !selectedReportID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, selectedReportID, Navigation.getActiveRoute(), reportActionID));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, selectedReportID, reportActionID)));
             }}
             interactive={shouldReportBeEditable}
             shouldRenderAsHTML

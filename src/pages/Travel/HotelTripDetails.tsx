@@ -1,16 +1,21 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import UserPills from '@components/UserPills';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
 import StringUtils from '@libs/StringUtils';
+
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import React from 'react';
 
 type HotelTripDetailsProps = {
     reservation: Reservation;
@@ -19,7 +24,7 @@ type HotelTripDetailsProps = {
 
 function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
 
     const cancellationMapping: Record<string, string> = {
         [CONST.CANCELLATION_POLICY.UNKNOWN]: translate('travel.hotelDetails.cancellationPolicies.unknown'),
@@ -28,10 +33,10 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
         [CONST.CANCELLATION_POLICY.PARTIALLY_REFUNDABLE]: translate('travel.hotelDetails.cancellationPolicies.partiallyRefundable'),
     };
 
-    const checkInDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
-    const checkOutDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
+    const checkInDate = DateUtils.getFormattedTransportDateAndHour(translate, dateFnsLocale, new Date(reservation.start.date));
+    const checkOutDate = DateUtils.getFormattedTransportDateAndHour(translate, dateFnsLocale, new Date(reservation.end.date));
     const cancellationText = reservation.cancellationDeadline
-        ? `${translate('travel.hotelDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(new Date(reservation.cancellationDeadline))}`
+        ? `${translate('travel.hotelDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(translate, dateFnsLocale, reservation.cancellationDeadline)}`
         : cancellationMapping[reservation.cancellationPolicy ?? CONST.CANCELLATION_POLICY.UNKNOWN];
 
     const displayName = personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name;

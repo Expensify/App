@@ -1,10 +1,12 @@
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeedErrors, CardFeedErrorState} from '@src/types/onyx/DerivedValues';
+
 import useOnyx from './useOnyx';
 
 const DEFAULT_CARD_FEED_ERROR_STATE: CardFeedErrorState = {
     shouldShowRBR: false,
     isFeedConnectionBroken: false,
+    shouldPromptBrokenConnection: false,
     hasFeedErrors: false,
     hasWorkspaceErrors: false,
 };

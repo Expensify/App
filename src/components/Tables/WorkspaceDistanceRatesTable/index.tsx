@@ -1,24 +1,38 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useMemo} from 'react';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import Navigation from '@libs/Navigation/Navigation';
 import {getRateStatus} from '@libs/PolicyDistanceRatesUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
-import WorkspaceDistanceRatesTableRow from './WorkspaceDistanceRatesTableRow';
+import ROUTES from '@src/ROUTES';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React, {useMemo} from 'react';
+
 import type {DistanceRateTableItemData} from './WorkspaceDistanceRatesTableRow';
+
+import WorkspaceDistanceRatesTableRow from './WorkspaceDistanceRatesTableRow';
 
 type DistanceRatesTableColumnKey = 'status' | 'name' | 'rate' | 'startDate' | 'endDate' | 'enabled' | 'actions';
 
 type WorkspaceDistanceRatesTableProps = {
     ratesData: DistanceRateTableItemData[];
+    policyID: string;
     selectionEnabled: boolean;
     selectedKeys: string[];
+    canWriteDistanceRates: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    headerComponent?: React.ReactElement;
 };
 
 const STATUS_ORDER: Record<string, number> = {
@@ -28,9 +42,10 @@ const STATUS_ORDER: Record<string, number> = {
     [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: 3,
 };
 
-function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys, onRowSelectionChange}: WorkspaceDistanceRatesTableProps) {
+function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, selectedKeys, canWriteDistanceRates, onRowSelectionChange, headerComponent}: WorkspaceDistanceRatesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
@@ -97,6 +112,20 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
         return matchingItems.length > 0;
     };
 
+    const emptyStateButtons = canWriteDistanceRates
+        ? [
+              {
+                  icon: icons.Plus,
+                  buttonText: translate('workspace.distanceRates.addRate'),
+
+                  success: true,
+                  buttonAction: () => {
+                      Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID));
+                  },
+              },
+          ]
+        : undefined;
+
     const statusLabels = useMemo(
         () => ({
             [CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE]: translate('workspace.distanceRates.statusActive'),
@@ -118,8 +147,8 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
         />
     );
 
-    const isEmpty = ratesData.length === 0;
-    const shouldShowSearchBar = ratesData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.distanceRates.findRate')} />;
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (
         <Table
@@ -136,13 +165,15 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
             narrowLayoutSortColumn="name"
             title={translate('workspace.common.distanceRates')}
         >
-            {!isEmpty && (
-                <>
-                    {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.distanceRates.findRate')} />}
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
+            <Table.EmptyState
+                title={translate('workspace.distanceRates.emptyRates.title')}
+                subtitle={translate('workspace.distanceRates.emptyRates.subtitle')}
+                buttons={emptyStateButtons}
+            />
+            <Table.NoResultsState />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }

@@ -1,16 +1,20 @@
-import React from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Accessibility from '@libs/Accessibility';
+
 import variables from '@styles/variables';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type JustSignedInModalProps = {
     /** Whether the 2FA is needed to get fully authenticated. */
@@ -43,7 +47,7 @@ function JustSignedInModal({is2FARequired}: JustSignedInModalProps) {
                         />
                     )}
                 </View>
-                <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>
+                <Text style={[styles.textHeadline, styles.textAlignCenter]}>
                     {translate(is2FARequired ? 'validateCodeModal.tfaRequiredTitle' : 'validateCodeModal.successfulSignInTitle')}
                 </Text>
                 <View style={[styles.mt2, styles.mb2]}>

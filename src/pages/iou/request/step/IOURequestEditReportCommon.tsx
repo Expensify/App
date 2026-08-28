@@ -1,5 +1,3 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -7,7 +5,10 @@ import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -17,17 +18,24 @@ import useOutstandingReports from '@hooks/useOutstandingReports';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
+
 import Navigation from '@libs/Navigation/Navigation';
-import {canSubmitPerDiemExpenseFromWorkspace, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useMemo, useState} from 'react';
+
 import StepScreenWrapper from './StepScreenWrapper';
 
 type TransactionGroupListItem = ListItem & {
@@ -38,6 +46,8 @@ type TransactionGroupListItem = ListItem & {
 type Props = {
     backTo: Route | undefined;
     transactionIDs?: string[];
+    isManualDistanceRequest: boolean;
+    isOdometerDistanceRequest: boolean;
     selectedReportID?: string;
     selectedPolicyID?: string;
     transactionPolicyID?: string;
@@ -50,11 +60,14 @@ type Props = {
     createReport?: () => void;
     isPerDiemRequest: boolean;
     isTimeRequest?: boolean;
+    isUnreportedManagedCardTransaction?: boolean;
 };
 
 function IOURequestEditReportCommon({
     backTo,
     transactionIDs,
+    isManualDistanceRequest,
+    isOdometerDistanceRequest,
     selectReport,
     selectedReportID,
     selectedPolicyID,
@@ -67,10 +80,11 @@ function IOURequestEditReportCommon({
     createReport,
     isPerDiemRequest,
     isTimeRequest = false,
+    isUnreportedManagedCardTransaction = false,
 }: Props) {
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document']);
     const {inputCallbackRef} = useAutoFocusInput();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -94,9 +108,14 @@ function IOURequestEditReportCommon({
     // Use the caller-provided transactionPolicyID so that the "Create report" button shows the correct workspace.
     // Each caller is responsible for passing the appropriate policyID (e.g., selectedReport?.policyID ?? transactionPolicyID).
     // When no transactionPolicyID is provided (e.g., from IOURequestEditReport), the hook falls back to the user's default workspace.
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, isTimeRequest, transactionPolicyID);
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, isTimeRequest, transactionPolicyID, isUnreportedManagedCardTransaction);
 
     const [perDiemWarningModalVisible, setPerDiemWarningModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+    });
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const isSelectedReportUnreported = useMemo(() => !!(isUnreported ?? selectedReportID === CONST.REPORT.UNREPORTED_REPORT_ID), [isUnreported, selectedReportID]);
@@ -166,10 +185,22 @@ function IOURequestEditReportCommon({
                     isSelected: report.reportID === selectedReportID,
                     policyID: report.policyID,
                     reportID: report.reportID,
-                    icons: getIconsForExpenseReport(report, personalDetails, policy),
+                    icons: getIconsForExpenseReport(report, personalDetails, policy, formatPhoneNumber, translate),
                 };
             });
-    }, [debouncedSearchValue, outstandingReports, selectedReportID, personalDetails, localeCompare, allPolicies, currentUserPersonalDetails.accountID, isPerDiemRequest, isTimeRequest]);
+    }, [
+        debouncedSearchValue,
+        outstandingReports,
+        selectedReportID,
+        personalDetails,
+        localeCompare,
+        allPolicies,
+        currentUserPersonalDetails.accountID,
+        isPerDiemRequest,
+        isTimeRequest,
+        translate,
+        formatPhoneNumber,
+    ]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -188,7 +219,7 @@ function IOURequestEditReportCommon({
 
             const destinationPolicy = selectedReportPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReportPolicyID}`] : undefined;
 
-            if (!destinationPolicy?.arePerDiemRatesEnabled || !destinationPolicy?.customUnits || isEmptyObject(destinationPolicy.customUnits)) {
+            if (!isPerDiemEnabled(destinationPolicy) || !destinationPolicy?.customUnits || isEmptyObject(destinationPolicy.customUnits)) {
                 return false;
             }
 
@@ -227,6 +258,9 @@ function IOURequestEditReportCommon({
             navigateBack();
             return;
         }
+        if (blockDistanceRequestIfNeeded(item.policyID)) {
+            return;
+        }
         const itemPolicy = item.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] : undefined;
         if (
             item?.policyID &&
@@ -234,6 +268,25 @@ function IOURequestEditReportCommon({
             shouldRestrictUserBillableActions(itemPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)
         ) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID));
+            return;
+        }
+
+        // Reports can only hold up to CONST.REPORT.MAX_TRANSACTIONS transactions. The backend rejects a move that would push
+        // the destination past the limit, so prevent it up front with an explanatory warning instead of failing silently.
+        // Only count expenses that will actually be added to the destination: the move action skips transactions that are
+        // already in the destination report (see changeTransactionsReport in Transaction.ts), so a bulk selection that
+        // includes expenses already in that report must not inflate the projected count (e.g. moving 5 new expenses into a
+        // report that already holds 490 lands at 495, even if 15 of the selected expenses are already there).
+        const destinationReport = outstandingReports.find((report) => report?.reportID === item.value);
+        const numberOfTransactionsToMove =
+            transactionIDs?.filter((transactionID) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID !== item.value).length ?? 1;
+        if ((destinationReport?.transactionCount ?? 0) + numberOfTransactionsToMove > CONST.REPORT.MAX_TRANSACTIONS) {
+            showConfirmModal({
+                title: translate('iou.moveExpenses'),
+                prompt: translate('iou.moveExpensesMaxTransactionsError'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
             return;
         }
 
@@ -245,11 +298,14 @@ function IOURequestEditReportCommon({
     };
 
     const handleCreateReport = useCallback(() => {
+        if (blockDistanceRequestIfNeeded(policyForMovingExpenses?.id)) {
+            return;
+        }
         if (!validatePerDiemMove(policyForMovingExpenses?.id)) {
             return;
         }
         createReport?.();
-    }, [validatePerDiemMove, policyForMovingExpenses?.id, createReport]);
+    }, [blockDistanceRequestIfNeeded, validatePerDiemMove, policyForMovingExpenses?.id, createReport]);
 
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions.length, translate]);
 

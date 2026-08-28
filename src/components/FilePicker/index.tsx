@@ -1,5 +1,7 @@
-import React, {useRef} from 'react';
 import Visibility from '@libs/Visibility';
+
+import React, {useRef} from 'react';
+
 import type FilePickerProps from './types';
 
 /**

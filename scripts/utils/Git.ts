@@ -1,11 +1,14 @@
+import CONST from '@github/libs/CONST';
+import GitHubUtils from '@github/libs/GithubUtils';
+
+import type {ExecSyncOptionsWithStringEncoding, ExecOptions as ExecWithCallbackOptions} from 'child_process';
+
 import {context} from '@actions/github';
 import {exec as execWithCallback, execSync as originalExecSync} from 'child_process';
-import type {ExecSyncOptionsWithStringEncoding, ExecOptions as ExecWithCallbackOptions} from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import {promisify} from 'util';
-import CONST from '@github/libs/CONST';
-import GitHubUtils from '@github/libs/GithubUtils';
+
 import {error as logError, warn as logWarn} from './Logger';
 
 type ExecOptions = Omit<ExecWithCallbackOptions, 'encoding'> & {cwd?: ExecWithCallbackOptions['cwd']};
@@ -26,6 +29,7 @@ type ExecSyncOptions = Omit<ExecSyncOptionsWithStringEncoding, 'encoding' | 'cwd
 
 function execSync(command: string, options?: ExecSyncOptions) {
     const optionsWithEncoding: ExecSyncOptionsWithStringEncoding = {
+        maxBuffer: 1024 * 1024 * 200, // Large diffs (e.g. bundled action output) can exceed Node's 1MB default.
         ...options,
         encoding: 'utf8',
         cwd: process.cwd(),
@@ -35,7 +39,7 @@ function execSync(command: string, options?: ExecSyncOptions) {
 }
 
 const IS_CI = process.env.CI === 'true';
-const GITHUB_BASE_REF = process.env.GITHUB_BASE_REF as string | undefined;
+const GITHUB_BASE_REF = process.env.GITHUB_BASE_REF;
 
 /**
  * Represents a single changed line in a git diff.
@@ -406,7 +410,9 @@ class Git {
 
         try {
             console.log(`🔄 Fetching missing ref: ${ref}`);
-            await exec(`git fetch ${remote} ${ref} --no-tags --depth=1 --quiet`);
+            // Only shallow-fetch in CI; a local --depth=1 fetch would convert a full clone into a shallow one.
+            const depthArg = IS_CI ? '--depth=1' : '';
+            await exec(`git fetch ${remote} ${ref} --no-tags --quiet ${depthArg}`);
 
             // Verify the ref is now available
             if (!this.isValidRef(ref)) {
@@ -422,7 +428,9 @@ class Git {
 
         // Fetch the main branch from the specified remote (or locally) to ensure it's available
         if (IS_CI || remote) {
-            await exec(`git fetch ${remote ?? 'origin'} ${baseRefName} --no-tags --depth=1`);
+            // Only shallow-fetch in CI; a local --depth=1 fetch would convert a full clone into a shallow one.
+            const depthArg = IS_CI ? '--depth=1' : '';
+            await exec(`git fetch ${remote ?? 'origin'} ${baseRefName} --no-tags ${depthArg}`);
         }
 
         // In CI, use a simpler approach - just use the remote main branch directly

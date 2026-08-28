@@ -1,7 +1,10 @@
-import React from 'react';
 import type {ReactNode} from 'react';
-import PressResponderContext from './PressResponderContext';
+
+import React from 'react';
+
 import type {PressResponderContextValue} from './PressResponderContext';
+
+import PressResponderContext from './PressResponderContext';
 
 type PressResponderProps = PressResponderContextValue & {
     children: ReactNode;

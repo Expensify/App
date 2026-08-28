@@ -1,13 +1,23 @@
-import type * as ReactNavigation from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
-import React from 'react';
+
 import SelectionList from '@components/SelectionList';
-import useOnyx from '@hooks/useOnyx';
+
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
+
 import SelectCountryStep from '@pages/workspace/companyCards/addNew/SelectCountryStep';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {AddNewCompanyCardFeed} from '@src/types/onyx';
+
+import type * as ReactNavigation from '@react-navigation/native';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockUseState = React.useState;
 const mockAllCountries = CONST.ALL_COUNTRIES;
@@ -45,14 +55,13 @@ jest.mock('@hooks/useLocalize', () =>
         translate: (key: string) => {
             if (key.startsWith('allCountries.')) {
                 const countryISO = key.split('.').at(-1) ?? '';
-                return mockAllCountries[countryISO as keyof typeof mockAllCountries] ?? key;
+                return Object.entries(mockAllCountries).find(([countryCode]) => countryCode === countryISO)?.[1] ?? key;
             }
 
             return key;
         },
     })),
 );
-jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@hooks/usePolicy', () => jest.fn(() => ({outputCurrency: 'USD'})));
 jest.mock('@hooks/useThemeStyles', () =>
     jest.fn(() => ({
@@ -78,28 +87,35 @@ jest.mock('@userActions/CompanyCards', () => ({
 
 describe('SelectCountryStep', () => {
     const mockedSelectionList = jest.mocked(SelectionList);
-    const mockedUseOnyx = jest.mocked(useOnyx);
 
-    let addNewCardCountry: string | undefined;
+    const setAddNewCardCountry = async (country: string | undefined) => {
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, createMock<AddNewCompanyCardFeed>({data: {selectedCountry: country}}));
+        });
+        await waitForBatchedUpdatesWithAct();
+    };
 
-    beforeEach(() => {
-        addNewCardCountry = undefined;
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
         mockedSelectionList.mockClear();
-        mockedUseOnyx.mockImplementation((key) => {
-            if (key === ONYXKEYS.COUNTRY) {
-                return ['US', jest.fn()] as never;
-            }
+        await act(async () => {
+            await Onyx.clear();
+            await Onyx.merge(ONYXKEYS.COUNTRY, 'US');
+        });
+        await setAddNewCardCountry(undefined);
+    });
 
-            if (key === ONYXKEYS.ADD_NEW_COMPANY_CARD) {
-                return [{data: {selectedCountry: addNewCardCountry}}, jest.fn()] as never;
-            }
-
-            return [undefined, jest.fn()] as never;
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
         });
     });
 
-    it('pins the saved country to the top on reopen and disables focus-driven scroll', () => {
-        addNewCardCountry = 'US';
+    it('pins the saved country to the top on reopen and disables focus-driven scroll', async () => {
+        await setAddNewCardCountry('US');
 
         render(<SelectCountryStep policyID="policyID" />);
 
@@ -116,8 +132,8 @@ describe('SelectCountryStep', () => {
         expect(selectionListProps?.shouldUpdateFocusedIndex).toBe(true);
     });
 
-    it('keeps the initially pinned country at the top while the live selection changes during the same mount', () => {
-        addNewCardCountry = 'US';
+    it('keeps the initially pinned country at the top while the live selection changes during the same mount', async () => {
+        await setAddNewCardCountry('US');
 
         render(<SelectCountryStep policyID="policyID" />);
 
@@ -150,8 +166,8 @@ describe('SelectCountryStep', () => {
         );
     });
 
-    it('keeps natural filtered ordering while search is active', () => {
-        addNewCardCountry = 'US';
+    it('keeps natural filtered ordering while search is active', async () => {
+        await setAddNewCardCountry('US');
 
         render(<SelectCountryStep policyID="policyID" />);
 
@@ -169,9 +185,9 @@ describe('SelectCountryStep', () => {
                 .map((countryISO) => ({
                     value: countryISO,
                     keyForList: countryISO,
-                    text: CONST.ALL_COUNTRIES[countryISO as keyof typeof CONST.ALL_COUNTRIES],
+                    text: Object.entries(CONST.ALL_COUNTRIES).find(([countryCode]) => countryCode === countryISO)?.[1] ?? countryISO,
                     isSelected: false,
-                    searchValue: StringUtils.sanitizeString(`${countryISO}${CONST.ALL_COUNTRIES[countryISO as keyof typeof CONST.ALL_COUNTRIES]}`),
+                    searchValue: StringUtils.sanitizeString(`${countryISO}${Object.entries(CONST.ALL_COUNTRIES).find(([countryCode]) => countryCode === countryISO)?.[1] ?? countryISO}`),
                 })),
         );
 

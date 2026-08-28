@@ -1,10 +1,15 @@
-import React from 'react';
 import ListCheckbox from '@components/SelectionList/components/ListCheckbox';
 import ListRadioButton from '@components/SelectionList/components/ListRadioButton';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
-import BaseListItem from './BaseListItem';
+
+import React from 'react';
+
 import type {ListItem, SelectableListItemProps} from './types';
+
+import BaseListItem from './BaseListItem';
 
 /**
  * Extends BaseListItem with a selection button (checkbox for multi-select, radio for single-select).
@@ -37,12 +42,14 @@ function SelectableListItem<TItem extends ListItem>({
             rightHandSideComponent={
                 selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT ? (
                     <>
-                        <ButtonComponent
-                            item={item}
-                            onSelectRow={onSelectionButtonPress ?? onSelectRow}
-                            disabled={!!isDisabled || !!item.isDisabledCheckbox}
-                            style={styles.ml3}
-                        />
+                        {!item.shouldHideSelectionButton && (
+                            <ButtonComponent
+                                item={item}
+                                onSelectRow={onSelectionButtonPress ?? onSelectRow}
+                                disabled={!!isDisabled || !!item.isDisabledCheckbox}
+                                style={styles.ml3}
+                            />
+                        )}
                         {typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent}
                     </>
                 ) : (
@@ -53,12 +60,14 @@ function SelectableListItem<TItem extends ListItem>({
             {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.LEFT
                 ? (hovered: boolean) => (
                       <>
-                          <ButtonComponent
-                              item={item}
-                              onSelectRow={onSelectionButtonPress ?? onSelectRow}
-                              disabled={!!isDisabled || item.isDisabledCheckbox}
-                              style={styles.mr3}
-                          />
+                          {!item.shouldHideSelectionButton && (
+                              <ButtonComponent
+                                  item={item}
+                                  onSelectRow={onSelectionButtonPress ?? onSelectRow}
+                                  disabled={!!isDisabled || item.isDisabledCheckbox}
+                                  style={styles.mr3}
+                              />
+                          )}
                           {typeof children === 'function' ? children(hovered) : children}
                       </>
                   )

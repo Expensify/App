@@ -1,15 +1,12 @@
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {MeasureInWindowOnSuccessCallback, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
-import {useFocusedInputHandler} from 'react-native-keyboard-controller';
-import {useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
+
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import Composer from '@components/Composer';
 import type {ComposerRef, TextSelection} from '@components/Composer/types';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
+
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -20,6 +17,7 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearActive, isActive as isEmojiPickerActive} from '@libs/actions/EmojiPickerAction';
 import {composerFocusKeepFocusOn} from '@libs/actions/InputFocus';
 import {clearAllReportActionDrafts, saveReportActionDraft} from '@libs/actions/Report';
@@ -33,17 +31,28 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {isDeletedAction} from '@libs/ReportActionsUtils';
 import {chatIncludesConcierge, isArchivedNonExpenseReport} from '@libs/ReportUtils';
+
 import {isBlockedFromConcierge} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 // eslint-disable-next-line no-restricted-imports
 import findNodeHandle from '@src/utils/findNodeHandle';
+
+import type {MeasureInWindowOnSuccessCallback, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
+
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {useFocusedInputHandler} from 'react-native-keyboard-controller';
+import {useSharedValue} from 'react-native-reanimated';
+
+import type {SuggestionsRef} from './ReportActionCompose/ReportActionCompose';
+
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import getCursorPosition from './ReportActionCompose/getCursorPosition';
 import getScrollPosition from './ReportActionCompose/getScrollPosition';
 import MessageEditCancelButton from './ReportActionCompose/MessageEditCancelButton';
-import type {SuggestionsRef} from './ReportActionCompose/ReportActionCompose';
 import SubmitDraftButton from './ReportActionCompose/SubmitDraftButton';
 import Suggestions from './ReportActionCompose/Suggestions';
 import useDebouncedCommentMaxLengthValidation from './ReportActionCompose/useDebouncedCommentMaxLengthValidation';
@@ -82,6 +91,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
     const index = useContext(ReportActionIndexContext);
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(originalReportID)}`);
     const blockedFromConcierge = useBlockedFromConcierge();
@@ -236,9 +246,9 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
             setEditingMessage(newDraft);
 
             // We want to escape the draft message to differentiate the HTML from the report action and the HTML the user drafted.
-            saveDraft(reportID, action, newDraft);
+            saveDraft(reportID, action, reportActions, newDraft);
         },
-        [action, preferredLocale, preferredSkinTone, raiseIsScrollLayoutTriggered, reportID, selection.end, setEditingMessage, setSelection, saveDraft],
+        [action, preferredLocale, preferredSkinTone, raiseIsScrollLayoutTriggered, reportID, reportActions, selection.end, setEditingMessage, setSelection, saveDraft],
     );
 
     useEffect(() => {
@@ -406,9 +416,9 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
                     <MessageEditCancelButton
                         testID={CONST.COMPOSER.TEST_ID.MESSAGE_EDIT_CANCEL_INLINE}
                         onCancel={deleteDraft}
-                        style={[styles.justifyContentEnd, styles.mb1]}
+                        style={styles.messageEditCancelButtonWrapper}
                     />
-                    <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
+                    <View style={StyleUtils.getContainerComposeStyles()}>
                         <Composer
                             multiline
                             ref={(el) => {
@@ -432,8 +442,8 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
                                     ReportActionComposeFocusManager.editComposerRef.current = composerRef.current;
                                 }
 
-                                if (isMobileChrome() && reportScrollManager.ref?.current) {
-                                    reportScrollManager.ref.current.scrollToIndex({index, animated: false});
+                                if (isMobileChrome()) {
+                                    reportScrollManager.scrollToIndex(index, {animated: false});
                                 }
 
                                 // Clear active report action when another action gets focused

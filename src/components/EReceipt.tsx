@@ -1,6 +1,3 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useEReceipt from '@hooks/useEReceipt';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -10,18 +7,28 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getCardDescription, getCompanyCardDescription} from '@libs/CardUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTransactionDetails} from '@libs/ReportUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {SvgProps} from 'react-native-svg';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
+import type {TransactionListItemType} from './Search/SearchList/ListItem/types';
+
 import EReceiptBody from './EReceiptBody';
 import Icon from './Icon';
 import ImageSVG from './ImageSVG';
-import type {TransactionListItemType} from './Search/SearchList/ListItem/types';
 import Text from './Text';
 
 type OverrideThemeProps = {
@@ -69,7 +76,7 @@ const backgroundImageMinWidth: number = variables.eReceiptBackgroundImageMinWidt
 function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false, overrideTheme}: EReceiptProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
@@ -93,7 +100,7 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false, 
         created: transactionDate,
         cardID: transactionCardID,
         cardName: transactionCardName,
-    } = getTransactionDetails(transactionItem ?? transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT) ?? {};
+    } = getTransactionDetails(transactionItem ?? transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT, undefined, false, false, undefined, dateFnsLocale) ?? {};
     const formattedAmount = convertToDisplayString(transactionAmount, transactionCurrency);
     const currency = getCurrencySymbol(transactionCurrency ?? '');
     const amount = currency ? formattedAmount.replace(currency, '') : formattedAmount;

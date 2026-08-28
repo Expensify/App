@@ -1,23 +1,23 @@
-import React from 'react';
-import {View} from 'react-native';
-import Icon from '@components/Icon';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import ReceiptCell from '@components/TransactionItemRow/DataCells/ReceiptCell';
 import TypeCell from '@components/TransactionItemRow/DataCells/TypeCell';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import DateUtils from '@libs/DateUtils';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import type {RecentlyAddedExpense} from './useRecentlyAddedData';
 
-/** Width of the date column, shared with the section's column header so labels line up with the values. */
-const DATE_COLUMN_WIDTH = 72;
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import DateUtils from '@libs/DateUtils';
+
+import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {RecentlyAddedExpense} from './useRecentlyAddedData';
 
 type RecentlyAddedRowProps = {
     /** The expense to render */
@@ -31,110 +31,90 @@ type RecentlyAddedRowProps = {
 
     /** Whether the hovered receipt preview may be shown. Becomes false once the screen blurs so the preview is dismissed after opening an expense. */
     shouldShowReceiptPreview: boolean;
+
+    /** Horizontal padding that aligns the row content with the widget title while the full-width pressable spans the whole widget */
+    rowStyle: StyleProp<ViewStyle>;
 };
 
-function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowReceiptPreview}: RecentlyAddedRowProps) {
+function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowReceiptPreview, rowStyle}: RecentlyAddedRowProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
-    const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {convertToDisplayString} = useCurrencyListActions();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const {dateFnsLocale} = useLocalize();
 
-    const formattedDate = DateUtils.formatWithUTCTimeZone(expense.created, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+    const formattedDate = DateUtils.formatWithUTCTimeZone(
+        expense.created,
+        DateUtils.doesDateBelongToAPastYear(expense.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+        dateFnsLocale,
+    );
 
     const formattedAmount = convertToDisplayString(expense.amount, expense.currency);
 
-    const thumbnail = (
-        <ReceiptCell
-            transactionItem={expense.transaction}
-            isSelected={false}
-            shouldUseNarrowLayout={shouldUseNarrowLayout}
-            shouldShowPreview={shouldShowReceiptPreview}
-        />
-    );
-
-    // Mirror the Your spend rows: the arrow is dimmed at rest and reaches full opacity once the row is hovered.
-    const renderArrow = (hovered: boolean) => (
-        <View style={!hovered && styles.opacitySemiTransparent}>
-            <Icon
-                src={icons.ArrowRight}
-                fill={theme.icon}
-                width={variables.iconSizeNormal}
-                height={variables.iconSizeNormal}
+    // The row always uses the stacked ("mobile") layout because it lives in the narrow right column on web/desktop
+    // too: a thumbnail, then the merchant + amount on the first line and the date + type underneath. This mirrors the
+    // Your spend transaction rows.
+    const rowContent = (
+        <>
+            <ReceiptCell
+                transactionItem={expense.transaction}
+                isSelected={false}
+                shouldUseNarrowLayout
+                shouldShowPreview={shouldShowReceiptPreview}
             />
-        </View>
-    );
-
-    // On narrow (mobile) layout the row mirrors the Spend transaction rows: a stacked layout with the
-    // merchant and amount on the first line and the date underneath, instead of the wide table columns.
-    const renderRowContent = (hovered: boolean) =>
-        shouldUseNarrowLayout ? (
-            <>
-                {thumbnail}
-                <View style={[styles.flex1, styles.flexColumn, styles.gap1]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
-                        <Text
-                            numberOfLines={1}
-                            style={styles.flexShrink1}
-                        >
-                            {expense.merchant}
-                        </Text>
-                        <Text>{formattedAmount}</Text>
-                    </View>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
-                        <Text
-                            numberOfLines={1}
-                            style={styles.mutedNormalTextLabel}
-                        >
-                            {formattedDate}
-                        </Text>
-                        <TypeCell
-                            transactionItem={expense.transaction}
-                            shouldShowTooltip={false}
-                            shouldUseNarrowLayout
-                        />
-                    </View>
+            <View style={[styles.flex1, styles.flexColumn, styles.gap1]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                    <Text
+                        numberOfLines={1}
+                        style={styles.flexShrink1}
+                    >
+                        {expense.merchant}
+                    </Text>
+                    <Text>{formattedAmount}</Text>
                 </View>
-            </>
-        ) : (
-            <>
-                {thumbnail}
-                <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                    <Text
+                        numberOfLines={1}
+                        style={styles.mutedNormalTextLabel}
+                    >
+                        {formattedDate}
+                    </Text>
                     <TypeCell
                         transactionItem={expense.transaction}
                         shouldShowTooltip={false}
-                        shouldUseNarrowLayout={false}
+                        shouldUseNarrowLayout
                     />
                 </View>
-                <View style={StyleUtils.getWidthStyle(DATE_COLUMN_WIDTH)}>
-                    <Text numberOfLines={1}>{formattedDate}</Text>
-                </View>
-                <Text
-                    numberOfLines={1}
-                    style={styles.flex1}
-                >
-                    {expense.merchant}
-                </Text>
-                <Text>{formattedAmount}</Text>
-                {renderArrow(hovered)}
-            </>
-        );
+            </View>
+        </>
+    );
+
+    // A pending-delete expense is on its way out, so its row must not navigate anywhere (offline it stays
+    // visible with strikethrough; online OfflineWithFeedback hides it entirely).
+    const isPendingDelete = expense.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     return (
-        <PressableWithFeedback
-            testID={`recentlyAddedRow-${expense.transactionID}`}
-            accessibilityLabel={expense.merchant}
-            sentryLabel="RecentlyAddedRow"
-            onPress={onPress}
-            wrapperStyle={styles.w100}
-            hoverStyle={styles.hoveredComponentBG}
-            style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, styles.ph3, styles.w100, shouldShowSeparator && styles.borderBottom]}
-        >
-            {({hovered}) => renderRowContent(hovered)}
-        </PressableWithFeedback>
+        <OfflineWithFeedback pendingAction={expense.pendingAction}>
+            <PressableWithFeedback
+                testID={`recentlyAddedRow-${expense.transactionID}`}
+                accessibilityLabel={expense.merchant}
+                sentryLabel="RecentlyAddedRow"
+                onPress={isPendingDelete ? () => {} : onPress}
+                wrapperStyle={styles.w100}
+                hoverStyle={styles.hoveredComponentBG}
+                style={[
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    styles.gap3,
+                    styles.pv3,
+                    styles.w100,
+                    rowStyle,
+                    shouldShowSeparator && styles.borderBottom,
+                    isPendingDelete && styles.cursorDefault,
+                ]}
+            >
+                {rowContent}
+            </PressableWithFeedback>
+        </OfflineWithFeedback>
     );
 }
 
 export default RecentlyAddedRow;
-export {DATE_COLUMN_WIDTH};

@@ -1,20 +1,28 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
+
+import SCREENS from '@src/SCREENS';
 import type {ReportAction} from '@src/types/onyx';
 
-const mockRemoveDraftTransactionsByIDs = jest.fn();
+import type HybridAppModuleType from '@expensify/react-native-hybrid-app/src/types';
+
+import createMock from '../utils/createMock';
+
+// Target-local mock: the owned Jest environment has no ReactNativeHybridApp module, which Navigation/Log loads during initialization.
+jest.mock('@expensify/react-native-hybrid-app', () => {
+    return {
+        __esModule: true,
+        default: {
+            isHybridApp: jest.fn<ReturnType<HybridAppModuleType['isHybridApp']>, Parameters<HybridAppModuleType['isHybridApp']>>(() => false),
+        },
+    };
+});
+
+const mockRemoveDraftTransactionsByIDs = jest.fn<void, [string[] | undefined]>();
 
 jest.mock('@libs/actions/TransactionEdit', () => ({
-    removeDraftTransactionsByIDs: (ids: string[] | undefined) => mockRemoveDraftTransactionsByIDs(ids) as void,
-}));
-
-jest.mock('react-native', () => ({
-    InteractionManager: {
-        runAfterInteractions: (callback: () => void) => {
-            callback();
-            return {then: (cb: () => void) => cb(), cancel: jest.fn()};
-        },
+    removeDraftTransactionsByIDs: (ids: string[] | undefined) => {
+        mockRemoveDraftTransactionsByIDs(ids);
     },
 }));
 
@@ -28,7 +36,7 @@ describe('cleanupAfterExpenseCreate', () => {
         jest.clearAllMocks();
     });
 
-    it('should remove draft transactions via InteractionManager when draftTransactionIDs is provided', () => {
+    it('should remove draft transactions when draftTransactionIDs is provided', () => {
         cleanupAfterExpenseCreate({
             draftTransactionIDs: ['txn-1', 'txn-2'],
         });
@@ -47,8 +55,8 @@ describe('cleanupAfterExpenseCreate', () => {
     });
 
     it('should pop the linked child report screen when linkedTrackedExpenseReportAction has a childReportID and the route is found', () => {
-        (Navigation.getReportRouteByID as jest.Mock).mockReturnValue({key: 'rhp-key-123'});
-        const linkedTrackedExpenseReportAction = {childReportID: 'child-report-456'} as OnyxEntry<ReportAction>;
+        jest.mocked(Navigation.getReportRouteByID).mockReturnValue({name: SCREENS.REPORT, key: 'rhp-key-123'});
+        const linkedTrackedExpenseReportAction = createMock<ReportAction>({childReportID: 'child-report-456'});
 
         cleanupAfterExpenseCreate({
             draftTransactionIDs: [],
@@ -68,9 +76,9 @@ describe('cleanupAfterExpenseCreate', () => {
         expect(Navigation.removeScreenByKey).not.toHaveBeenCalled();
     });
 
-    it('should NOT call removeScreenByKey when getReportRouteByID returns undefined', () => {
-        (Navigation.getReportRouteByID as jest.Mock).mockReturnValue(undefined);
-        const linkedTrackedExpenseReportAction = {childReportID: 'child-report-456'} as OnyxEntry<ReportAction>;
+    it('should NOT call removeScreenByKey when getReportRouteByID returns null', () => {
+        jest.mocked(Navigation.getReportRouteByID).mockReturnValue(null);
+        const linkedTrackedExpenseReportAction = createMock<ReportAction>({childReportID: 'child-report-456'});
 
         cleanupAfterExpenseCreate({
             draftTransactionIDs: [],

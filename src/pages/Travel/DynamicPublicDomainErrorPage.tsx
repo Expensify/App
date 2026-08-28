@@ -1,19 +1,26 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
+import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import type {StackScreenProps} from '@react-navigation/stack';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type DynamicPublicDomainErrorPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DYNAMIC_PUBLIC_DOMAIN_ERROR>;
 
@@ -43,12 +50,13 @@ function DynamicPublicDomainErrorPage({route}: DynamicPublicDomainErrorPageProps
                 </View>
                 <FixedFooter>
                     <Button
-                        success
-                        large
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100]}
                         onPress={() => Navigation.closeRHPFlow()}
-                        text={translate('common.buttonConfirm')}
-                    />
+                    >
+                        <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

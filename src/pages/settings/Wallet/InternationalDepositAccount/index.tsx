@@ -1,14 +1,20 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
+import useLoadDepositAccountSetup from '@hooks/useLoadDepositAccountSetup';
 import useOnyx from '@hooks/useOnyx';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalBankAccount} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
 import InternationalDepositAccountContent from './InternationalDepositAccountContent';
 
 type InternationalDepositAccountProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.ADD_BANK_ACCOUNT>;
@@ -24,11 +30,16 @@ function InternationalDepositAccount({route}: InternationalDepositAccountProps) 
     const [isAccountLoading, isLoadingMetadata] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: isLoadingPersonalBankAccountSelector});
     const backTo = route.params?.backTo;
 
-    const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, corpayFieldsMetadata, bankAccountListMetadata, draftValuesMetadata, countryMetadata, isLoadingMetadata);
+    // The reimbursement countries drive which steps the flow shows and where it starts, so gate the content until
+    // they load to keep the substep hooks from initializing with stale/empty data.
+    const isLoadingDepositAccountSetup = useLoadDepositAccountSetup();
+
+    const isLoading =
+        isLoadingDepositAccountSetup ||
+        isLoadingOnyxValue(privatePersonalDetailsMetadata, corpayFieldsMetadata, bankAccountListMetadata, draftValuesMetadata, countryMetadata, isLoadingMetadata);
 
     if (isLoading) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'InternationalDepositAccount', isLoading};
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

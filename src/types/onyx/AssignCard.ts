@@ -1,8 +1,11 @@
+import type CONST from '@src/CONST';
+
 import type {LinkAccount} from 'react-native-plaid-link-sdk';
 import type {PlaidAccount} from 'react-plaid-link';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+
 import type {CardFeedWithNumber} from './CardFeeds';
+import type {Errors} from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 
 /** Assign card flow steps */
@@ -44,6 +47,12 @@ type AssignCardData = {
      */
     customCardName: string;
 
+    /**
+     * Whether the user has manually edited the custom card name in CardNameStep.
+     * When true, the name is preserved instead of being recomputed from the selected assignee.
+     */
+    isCustomCardNameEdited: boolean;
+
     /** The transaction start date of the card */
     startDate: string;
 
@@ -51,7 +60,7 @@ type AssignCardData = {
     dateOption: string;
 
     /** Bank ID for Plaid */
-    institutionId?: CardFeedWithNumber;
+    institutionId?: string;
 
     /** Access token for Plaid bank */
     plaidAccessToken?: string;
@@ -88,6 +97,9 @@ type AssignCard = {
 
     /** Whether the feed connection is currently being refreshed */
     isRefreshing?: boolean;
+
+    /** Errors while assigning a card */
+    errors: Errors;
 };
 
 export type {AssignCard, AssignCardStep, AssignCardData};

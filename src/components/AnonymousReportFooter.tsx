@@ -1,16 +1,22 @@
-import React from 'react';
-import {View} from 'react-native';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import variables from '@styles/variables';
+
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import AvatarWithDisplayName from './AvatarWithDisplayName';
-import Button from './Button';
+import Button from './ButtonComposed';
 import ExpensifyWordmark from './ExpensifyWordmark';
 import Text from './Text';
 
@@ -46,12 +52,13 @@ function AnonymousReportFooter({reportID}: AnonymousReportFooterProps) {
                 </View>
                 <View style={[styles.anonymousRoomFooterSignInButton]}>
                     <Button
-                        success
-                        text={translate('common.signIn')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={() => {
                             signOutAndRedirectToSignIn();
                         }}
-                    />
+                    >
+                        <Button.Text>{translate('common.signIn')}</Button.Text>
+                    </Button>
                 </View>
             </View>
         </View>

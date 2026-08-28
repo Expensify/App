@@ -1,21 +1,22 @@
-import React, {useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import AttachmentPicker from '@components/AttachmentPicker';
-import Avatar from '@components/Avatar';
-import AvatarCropModal from '@components/AvatarCropModal/AvatarCropModal';
-import Button from '@components/Button';
-import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import FixedFooter from '@components/FixedFooter';
+import UserAvatar from '@components/Avatar/UserAvatar';
+import AvatarPageFooter from '@components/AvatarPageFooter';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
+import useAvatarCrop from '@hooks/useAvatarCrop';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import type {AgentAvatarID} from '@libs/Avatars/AgentAvatarCatalog';
 import {validateAvatarImage} from '@libs/AvatarUtils';
@@ -24,7 +25,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import {updateAgentAvatar} from '@userActions/Agent';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,6 +35,9 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import React, {useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type EditAgentAvatarPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT_AVATAR>;
 
@@ -56,7 +62,9 @@ type EditAgentAvatarContentProps = {
 function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPresetID}: EditAgentAvatarContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['Upload']);
+    const presetAvatarSize = StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.X_LARGE);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
 
@@ -69,15 +77,12 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
 
     const [selectedBotAvatar, setSelectedBotAvatar] = useState<AgentAvatarID | null>(() => initialBotAvatar);
     const [imageData, setImageData] = useState<ImageData>(EMPTY_IMAGE_DATA);
-    const [cropImageData, setCropImageData] = useState<ImageData>(EMPTY_IMAGE_DATA);
-    const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false);
     const [errorData, setErrorData] = useState<{validationError: TranslationPaths | null; phraseParam: Record<string, unknown>}>({validationError: null, phraseParam: {}});
 
-    const isSavingRef = useRef(false);
     const isDirty = selectedBotAvatar !== initialBotAvatar || imageData.uri !== '';
 
-    useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => !isSavingRef.current && isDirty,
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => isDirty,
     });
 
     let previewSource: AvatarSource = personalDetails?.avatar ?? '';
@@ -87,27 +92,6 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
         previewSource = imageData.uri;
     }
 
-    const showAvatarCropModal = (image: FileObject) => {
-        validateAvatarImage(image)
-            .then((result) => {
-                if (!result.isValid) {
-                    setErrorData({validationError: result.errorKey ?? null, phraseParam: result.errorParams ?? {}});
-                    return;
-                }
-                setIsAvatarCropModalOpen(true);
-                setErrorData({validationError: null, phraseParam: {}});
-                setCropImageData({
-                    uri: image.uri ?? '',
-                    name: image.name ?? '',
-                    type: image.type ?? '',
-                    file: null,
-                });
-            })
-            .catch(() => {
-                setErrorData({validationError: 'attachmentPicker.errorWhileSelectingCorruptedAttachment', phraseParam: {}});
-            });
-    };
-
     const onImageSelected = (file: File | CustomRNImageManipulatorResult) => {
         setSelectedBotAvatar(null);
         setImageData({
@@ -116,14 +100,30 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
             file,
             type: '',
         });
-        setIsAvatarCropModalOpen(false);
+    };
+
+    const {openCropper} = useAvatarCrop({buttonLabelKey: 'avatarPage.upload', onCropped: onImageSelected});
+
+    const showAvatarCropModal = (image: FileObject) => {
+        validateAvatarImage(image)
+            .then((result) => {
+                if (!result.isValid) {
+                    setErrorData({validationError: result.errorKey ?? null, phraseParam: result.errorParams ?? {}});
+                    return;
+                }
+                setErrorData({validationError: null, phraseParam: {}});
+                openCropper(image);
+            })
+            .catch(() => {
+                setErrorData({validationError: 'attachmentPicker.errorWhileSelectingCorruptedAttachment', phraseParam: {}});
+            });
     };
 
     const handleSave = () => {
         if (!isDirty) {
             return;
         }
-        isSavingRef.current = true;
+        suppressDiscardPrompt();
 
         if (imageData.file) {
             if (onSave) {
@@ -162,13 +162,12 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                 keyboardShouldPersistTaps="handled"
             >
                 <View style={[styles.flexColumn, styles.gap5, styles.alignItemsCenter, styles.pb10]}>
-                    <Avatar
-                        containerStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
-                        imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
+                    <UserAvatar
+                        containerStyles={styles.alignSelfCenter}
+                        imageStyles={styles.alignSelfCenter}
                         source={previewSource}
-                        avatarID={accountID}
-                        size={CONST.AVATAR_SIZE.X_LARGE}
-                        type={CONST.ICON_TYPE_AVATAR}
+                        accountID={accountID}
+                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
                     />
                     <AttachmentPicker
                         type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
@@ -176,16 +175,16 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                     >
                         {({openPicker}) => (
                             <Button
-                                icon={icons.Upload}
-                                text={translate('avatarPage.uploadPhoto')}
                                 accessibilityLabel={translate('avatarPage.uploadPhoto')}
-                                isDisabled={isAvatarCropModalOpen}
                                 onPress={() => {
                                     openPicker({
                                         onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
                                     });
                                 }}
-                            />
+                            >
+                                <Button.Icon src={icons.Upload} />
+                                <Button.Text>{translate('avatarPage.uploadPhoto')}</Button.Text>
+                            </Button>
                         )}
                     </AttachmentPicker>
                 </View>
@@ -207,49 +206,25 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                                     }}
                                     style={[styles.avatarSelectorWrapper, isSelected && styles.avatarSelected]}
                                 >
-                                    <Avatar
-                                        type={CONST.ICON_TYPE_AVATAR}
-                                        source={local}
-                                        size={CONST.AVATAR_SIZE.MEDIUM}
-                                        containerStyles={styles.avatarSelectorContainer}
-                                    />
+                                    <View style={styles.avatarSelectorContainer}>
+                                        <Icon
+                                            src={local}
+                                            width={presetAvatarSize}
+                                            height={presetAvatarSize}
+                                            additionalStyles={StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.X_LARGE, CONST.ICON_TYPE_AVATAR)}
+                                        />
+                                    </View>
                                 </PressableWithFeedback>
                             );
                         })}
                     </View>
                 </View>
             </ScrollView>
-            <FixedFooter style={styles.mtAuto}>
-                {!!errorData.validationError && (
-                    <DotIndicatorMessage
-                        style={styles.mv5}
-                        messages={{validationError: translate(errorData.validationError, errorData.phraseParam as never)}}
-                        type="error"
-                    />
-                )}
-                <Button
-                    large
-                    success
-                    text={translate('common.save')}
-                    isDisabled={!isDirty}
-                    onPress={handleSave}
-                    pressOnEnter
-                />
-            </FixedFooter>
-            <AvatarCropModal
-                onClose={() => {
-                    if (!isAvatarCropModalOpen) {
-                        return;
-                    }
-                    setCropImageData(EMPTY_IMAGE_DATA);
-                    setIsAvatarCropModalOpen(false);
-                }}
-                isVisible={isAvatarCropModalOpen}
-                onSave={onImageSelected}
-                imageUri={cropImageData.uri}
-                imageName={cropImageData.name}
-                imageType={cropImageData.type}
-                buttonLabel={translate('avatarPage.upload')}
+            <AvatarPageFooter
+                validationError={errorData.validationError}
+                phraseParam={errorData.phraseParam}
+                isDirty={isDirty}
+                onSave={handleSave}
             />
         </ScreenWrapper>
     );

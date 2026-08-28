@@ -1,7 +1,3 @@
-import {policyIDsWithEmptyReportsSelector} from '@selectors/Report';
-import {accountIDSelector} from '@selectors/Session';
-import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,40 +6,57 @@ import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
+import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCreateNewReport from '@hooks/useCreateNewReport';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionsByID from '@hooks/useTransactionsByID';
+
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
-import {canSubmitPerDiemExpenseFromWorkspace, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, getGroupPoliciesWhereReportCanBeCreated, isPolicyAdmin} from '@libs/PolicyUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {buildTransactionsByReportID} from '@libs/TodosUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
+
 import isRHPOnSearchMoneyRequestReportPage from '@navigation/helpers/isRHPOnSearchMoneyRequestReportPage';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
+
 import {changeTransactionsReport} from '@userActions/Transaction';
 import {setNameValuePair} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {policyIDsWithEmptyReportsSelector} from '@selectors/Report';
+import {accountIDSelector} from '@selectors/Session';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 type WorkspaceListItem = {
     text: string;
-    policyID?: string;
+    policyID: string;
     isPolicyAdmin?: boolean;
 } & ListItem;
 
@@ -53,14 +66,12 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const {isMovingExpenses} = route.params ?? {};
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path);
     const {isOffline} = useNetwork();
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
     const {selectedTransactions, selectedTransactionIDs} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const isRHPOnReportInSearch = isRHPOnSearchMoneyRequestReportPage();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -73,24 +84,30 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
+    const personalPolicy = usePersonalPolicy();
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
+    const selectedTransactionsKeys = Object.keys(selectedTransactions);
+    const transactionIDs = selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs;
+    const [transactions] = useTransactionsByID(transactionIDs);
+    const reports = useChangeTransactionsReportReports(transactions, undefined);
+
+    const isAppLoadPending = useIsAppLoadPending();
+    const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
     const [pendingPolicySelection, setPendingPolicySelection] = useState<{policy: WorkspaceListItem; shouldShowEmptyReportConfirmation: boolean} | null>(null);
 
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
-    const [todos] = useOnyx(ONYXKEYS.DERIVED.TODOS);
-    const transactionsByReportID = todos?.transactionsByReportID;
+    const transactionsByReportID = buildTransactionsByReportID(allTransactions);
 
-    const policiesWithEmptyReportsForAccountSelector = useMemo(
-        () => policyIDsWithEmptyReportsSelector(accountID, transactionsByReportID ?? {}, !!hasDismissedEmptyReportsConfirmation),
-        [accountID, transactionsByReportID, hasDismissedEmptyReportsConfirmation],
-    );
+    const policiesWithEmptyReportsForAccountSelector = policyIDsWithEmptyReportsSelector(accountID, transactionsByReportID, !!hasDismissedEmptyReportsConfirmation);
     const [policiesWithEmptyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policiesWithEmptyReportsForAccountSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const navigateToNewReport = (optimisticReportID: string) => {
         if (isRHPOnReportInSearch) {
@@ -109,25 +126,31 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
 
     const createReport = (policyID: string, shouldDismissEmptyReportsConfirmation?: boolean) => {
         const optimisticReport = createNewReport(policyID, shouldDismissEmptyReportsConfirmation);
-        const selectedTransactionsKeys = Object.keys(selectedTransactions);
 
         if (isMovingExpenses && (!!selectedTransactionsKeys.length || !!selectedTransactionIDs.length)) {
-            const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
+            const reportsForCall = {
+                ...reports,
+                [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: {...optimisticReport, transactionCount: 0, unheldNonReimbursableTotal: 0},
+            };
             setNavigationActionToMicrotaskQueue(() => {
                 changeTransactionsReport({
-                    transactionIDs: selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs,
+                    transactionIDs,
                     isASAPSubmitBetaEnabled,
                     accountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     email: currentUserPersonalDetails?.email ?? '',
                     newReport: optimisticReport,
                     policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
-                    reportNextStep,
                     policyCategories: undefined,
-                    allTransactions,
                     policyTagList,
+                    transactions,
                     allTransactionViolation: transactionViolations,
-                    allReports,
+                    reports: reportsForCall,
+                    isTrackIntentUser,
+                    personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                    selfDMReportActions,
+                    delegateAccountID,
+                    getCurrencyDecimals,
                 });
 
                 // eslint-disable-next-line rulesdir/no-default-id-values
@@ -178,7 +201,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
             return;
         }
 
-        const policyForRestriction = policy.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`] : undefined;
+        const policyForRestriction = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`];
         if (
             policyForRestriction &&
             shouldRestrictUserBillableActions(policyForRestriction, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed, currentUserPersonalDetails.accountID)
@@ -199,42 +222,22 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
         });
     };
 
-    const hasPerDiemTransactions =
-        selectedTransactionIDs &&
-        selectedTransactionIDs.length > 0 &&
-        allTransactions &&
-        selectedTransactionIDs.some((transactionID) => {
-            const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-            return transaction && isPerDiemRequest(transaction);
-        });
+    const hasPerDiemTransactions = transactions.length > 0 && transactions.some(isPerDiemRequest);
 
     let usersWorkspaces: WorkspaceListItem[] = [];
     if (policies && !isEmptyObject(policies)) {
         const result = [];
         let index = 0;
-        for (const policy of Object.values(policies)) {
-            if (
-                policy?.isJoinRequestPending ||
-                !policy?.isPolicyExpenseChatEnabled ||
-                !shouldShowPolicy(policy, false, currentUserPersonalDetails?.login) ||
-                (hasPerDiemTransactions && !canSubmitPerDiemExpenseFromWorkspace(policy))
-            ) {
+        const eligiblePolicies = getGroupPoliciesWhereReportCanBeCreated(policies, currentUserPersonalDetails?.login);
+        for (const policy of eligiblePolicies) {
+            if (hasPerDiemTransactions && !canSubmitPerDiemExpenseFromWorkspace(policy)) {
                 continue;
             }
 
             result.push({
-                text: policy?.name ?? '',
-                policyID: policy?.id,
-                icons: [
-                    {
-                        source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name),
-                        fallbackIcon: icons.FallbackWorkspaceAvatar,
-                        name: policy?.name,
-                        type: CONST.ICON_TYPE_WORKSPACE,
-                        id: policy?.id,
-                    },
-                ],
-                keyForList: `${policy?.id}-${index}`,
+                text: policy.name,
+                policyID: policy.id,
+                keyForList: `${policy.id}-${index}`,
                 isPolicyAdmin: isPolicyAdmin(policy),
                 shouldSyncFocus: true,
             });
@@ -268,10 +271,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     />
                     {shouldShowLoadingIndicator ? (
                         <View style={[styles.flex1, styles.fullScreenLoading]}>
-                            <ActivityIndicator
-                                size="large"
-                                reasonAttributes={{context: 'DynamicNewReportWorkspaceSelectionPage', isLoadingApp: !!isLoadingApp}}
-                            />
+                            <ActivityIndicator size="large" />
                         </View>
                     ) : (
                         <>

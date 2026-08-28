@@ -1,7 +1,9 @@
-import {rand, randAvatar, randBoolean, randCurrencyCode, randEmail, randPastDate, randWord} from '@ngneat/falso';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
+
+import type {ValueOf} from 'type-fest';
+
+import {rand, randAvatar, randBoolean, randCurrencyCode, randEmail, randPastDate, randWord} from '@ngneat/falso';
 
 export default function createRandomPolicy(index: number, type?: ValueOf<typeof CONST.POLICY.TYPE>, name?: string): Policy {
     return {
@@ -30,7 +32,8 @@ export default function createRandomPolicy(index: number, type?: ValueOf<typeof 
         avatarURL: randAvatar(),
         isFromFullPolicy: randBoolean(),
         lastModified: randPastDate().toISOString(),
-        pendingAction: rand(Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
+        // Exclude DELETE from the random default: a policy pending deletion blocks report state transitions.
+        pendingAction: rand(Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION).filter((action) => action !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)),
         errors: {},
         customUnits: {},
         errorFields: {},

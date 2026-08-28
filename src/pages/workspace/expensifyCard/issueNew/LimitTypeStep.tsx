@@ -1,27 +1,39 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
+import Icon from '@components/Icon';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import ValuePicker from '@components/ValuePicker';
+
+import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {getDefaultExpensifyCardLimitType} from '@libs/CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
-import {getApprovalWorkflow, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
+import {canMemberRead, getApprovalWorkflow, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {CardLimitType} from '@src/types/onyx/Card';
 import KeyboardUtils from '@src/utils/keyboard';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {emailSelector} from '@selectors/Session';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 type LimitTypeStepProps = {
     // The policy that the card will be issued under
@@ -36,11 +48,20 @@ type LimitTypeStepProps = {
 
 function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
 
     const policyID = policy?.id;
     const formRef = useRef<FormRef | null>(null);
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+
+    // Only link to the Workflows page when the current user can actually read it. Card admins without Workflows
+    // access would otherwise be dropped onto the Not Found page. When they lack access, render plain (non-linked) text.
+    const canReadWorkflows = canMemberRead(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
 
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const defaultType = getDefaultExpensifyCardLimitType(policy);
@@ -48,7 +69,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
     const [typeSelected, setTypeSelected] = useState(issueNewCard?.data?.limitType ?? defaultType);
 
     const isEditing = issueNewCard?.isEditing;
-    const areSpendRulesAvailable = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED);
+    const areSpendRulesAvailable = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, policyCategories);
 
     const nextStep = useMemo(() => {
         if (isEditing) {
@@ -87,18 +108,30 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
         setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE, policyID});
     }, [isEditing, policyID]);
 
+    const workspaceWorkflowsPageURL = canReadWorkflows ? `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)}` : undefined;
+
     const data = useMemo(() => {
         const options = [];
 
-        if (areApprovalsConfigured) {
-            options.push({
-                value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
-                label: translate('workspace.card.issueNewCard.smartLimit'),
-                description: translate('workspace.card.issueNewCard.smartLimitDescription'),
-                keyForList: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
-                isSelected: typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
-            });
-        }
+        options.push({
+            value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
+            label: translate('workspace.card.issueNewCard.smartLimit'),
+            description: areApprovalsConfigured ? translate('workspace.card.issueNewCard.smartLimitDescription') : undefined,
+            alternateTextComponent: areApprovalsConfigured ? undefined : (
+                <RenderHTML html={translate('workspace.card.issueNewCard.smartLimitDisabledDescription', workspaceWorkflowsPageURL)} />
+            ),
+            rightElement: areApprovalsConfigured ? undefined : (
+                <Icon
+                    src={expensifyIcons.Lock}
+                    fill={theme.icon}
+                />
+            ),
+            shouldHideSelectionButton: !areApprovalsConfigured,
+            keyForList: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
+            isSelected: typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
+            isDisabled: !areApprovalsConfigured,
+            titleStyles: areApprovalsConfigured ? undefined : {color: theme.heading},
+        });
 
         options.push(
             {
@@ -127,7 +160,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
             });
         }
         return options;
-    }, [areApprovalsConfigured, issueNewCard?.data?.cardType, translate, typeSelected]);
+    }, [areApprovalsConfigured, expensifyIcons.Lock, issueNewCard?.data?.cardType, theme.heading, theme.icon, translate, typeSelected, workspaceWorkflowsPageURL]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {

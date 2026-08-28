@@ -1,32 +1,36 @@
-import React, {useCallback, useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import type {LinkSuccessMetadata} from 'react-native-plaid-link-sdk';
-import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link/src/types';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import PlaidLink from '@components/PlaidLink';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@libs/actions/CompanyCards';
+import {splitCardFeedWithDomainID} from '@libs/CardUtils';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
+import getPlaidInstitutionID from '@libs/PlaidUtils';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import Navigation from '@navigation/Navigation';
+
 import {handleRestrictedEvent} from '@userActions/App';
 import {setPlaidEvent} from '@userActions/BankAccounts';
 import {importPlaidAccounts, openPlaidCompanyCardLogin} from '@userActions/Plaid';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
-import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useCallback, useEffect, useRef} from 'react';
+import {View} from 'react-native';
 
 type PlaidConnectionStepProps = {
     feed?: CompanyCardFeedWithDomainID;
@@ -46,8 +50,7 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
     const plaidErrors = plaidData?.errors;
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
     const previousNetworkState = useRef<boolean | undefined>(undefined);
-    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-    const plaidDataErrorMessage = !isEmptyObject(plaidErrors) ? (Object.values(plaidErrors).at(0) as string) : '';
+    const plaidDataErrorMessage = !isEmptyObject(plaidErrors) ? (Object.values(plaidErrors).at(0) ?? '') : '';
     const {isOffline} = useNetwork();
     const domain = getDomainNameForPolicy(policyID);
 
@@ -127,21 +130,24 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
                         // on success we need to move to bank connection screen with token, bank name = plaid
                         Log.info('[PlaidLink] Success!');
 
-                        const plaidConnectedFeed = ((metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id ??
-                            (metadata?.institution as LinkSuccessMetadata['institution'])?.id) as CardFeedWithNumber;
-                        const plaidConnectedFeedName =
-                            (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.name ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.name;
+                        const institution = metadata.institution;
+                        const plaidConnectedFeed = getPlaidInstitutionID(institution);
+                        const plaidConnectedFeedName = institution?.name;
 
                         if (feed) {
                             if (plaidConnectedFeed && addNewCard?.data?.selectedCountry && plaidConnectedFeedName) {
+                                // Repairing an existing feed: send the existing `feed` (which keeps its `plaid.` prefix and
+                                // originating `#domainID`) rather than the freshly-derived bare institution ID, so the server
+                                // takes its repair branch and refreshes the existing feed instead of minting a duplicate.
                                 importPlaidAccounts(
                                     publicToken,
-                                    plaidConnectedFeed,
+                                    feed,
                                     plaidConnectedFeedName,
                                     addNewCard.data.selectedCountry,
                                     getDomainNameForPolicy(policyID),
-                                    JSON.stringify(metadata?.accounts),
+                                    JSON.stringify(metadata.accounts),
                                     '',
+                                    splitCardFeedWithDomainID(feed)?.domainID,
                                 );
                             }
                             setAssignCardStepAndData({
@@ -149,7 +155,7 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
                                     plaidAccessToken: publicToken,
                                     institutionId: plaidConnectedFeed,
                                     plaidConnectedFeedName,
-                                    plaidAccounts: metadata?.accounts,
+                                    plaidAccounts: metadata.accounts,
                                 },
                                 currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION,
                             });
@@ -162,7 +168,7 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
                                 publicToken,
                                 plaidConnectedFeed,
                                 plaidConnectedFeedName,
-                                plaidAccounts: metadata?.accounts,
+                                plaidAccounts: metadata.accounts,
                             },
                         });
                     }}
@@ -189,16 +195,9 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
         }
 
         if (plaidData?.isLoading) {
-            const reasonAttributes: SkeletonSpanReasonAttributes = {
-                context: 'PlaidConnectionStep.renderPlaidLink',
-                isPlaidDataLoading: plaidData?.isLoading,
-            };
             return (
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={reasonAttributes}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             );
         }

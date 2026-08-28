@@ -1,7 +1,8 @@
 import type {Ref} from 'react';
+import type {TextInputProps} from 'react-native';
+
 import React from 'react';
 import {TextInput} from 'react-native';
-import type {TextInputProps} from 'react-native';
 
 type MarkdownTextInputProps = TextInputProps & {
     ref?: Ref<TextInput>;

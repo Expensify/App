@@ -1,11 +1,16 @@
-import React from 'react';
-import {View} from 'react-native';
-import Avatar from '@components/Avatar';
+import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import TextWithTooltip from '@components/TextWithTooltip';
+
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getPolicyName, getWorkspaceIcon} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type WorkspaceCellProps = {
     policyID?: string;
@@ -13,9 +18,10 @@ type WorkspaceCellProps = {
 };
 
 function WorkspaceCell({policyID, report}: WorkspaceCellProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const icon = getWorkspaceIcon(report);
-    const name = getPolicyName({report});
+    const icon = getWorkspaceIcon(report, translate);
+    const name = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
 
     if (report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
         return null;
@@ -27,13 +33,12 @@ function WorkspaceCell({policyID, report}: WorkspaceCellProps) {
 
     return (
         <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter]}>
-            <Avatar
-                imageStyles={[styles.alignSelfCenter]}
-                size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+            <WorkspaceAvatar
+                imageStyles={styles.alignSelfCenter}
+                size={CONST.AVATAR_SIZE.XXX_SMALL}
                 source={icon.source}
-                avatarID={policyID}
+                avatarID={policyID ?? CONST.DEFAULT_NUMBER_ID}
                 name={name ?? ''}
-                type={CONST.ICON_TYPE_WORKSPACE}
             />
             <TextWithTooltip
                 text={name ?? ''}
@@ -43,7 +48,5 @@ function WorkspaceCell({policyID, report}: WorkspaceCellProps) {
         </View>
     );
 }
-
-WorkspaceCell.displayName = 'WorkspaceCell';
 
 export default WorkspaceCell;

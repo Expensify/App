@@ -1,7 +1,6 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import {generateFieldID} from '@libs/WorkspaceReportFieldUtils';
+
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy/Policy';
@@ -15,9 +14,15 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 import type {PolicyReportField, Policy as PolicyType} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import type {MockFetch} from '../utils/TestHelper';
+
 import createRandomPolicy from '../utils/collections/policies';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type PolicyReportFieldWithOfflineFeedback = Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>;
@@ -45,8 +50,8 @@ describe('actions/ReportField', () => {
 
     let mockFetch: MockFetch;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = TestHelper.getGlobalFetchMock();
+        global.fetch = mockFetch;
 
         // Ensure clean queues and no pending requests between tests
         SequentialQueue.resetQueue();

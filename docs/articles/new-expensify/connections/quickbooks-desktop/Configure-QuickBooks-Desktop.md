@@ -95,7 +95,8 @@ These settings control how Expensify exports reports and transactions to QuickBo
 
 **Travel Expenses:**
 
-* **Export travel invoicing expenses as**: This option appears only when [Travel Invoicing](https://help.expensify.com/travel/hubs/travel-invoicing/) is enabled. Click it, then select the **Travel payable account** where travel expenses will post in QuickBooks Desktop.
+* **Export Consolidated Travel Billing expenses as**: This option appears only when [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) is enabled. Click it, then select the **Travel payable account** where travel expenses will post in QuickBooks Desktop.
+* Individual travel expenses export to QuickBooks Desktop, but Consolidated Travel Billing settlements are not reconciled automatically. The **Sync Consolidated Travel Billing settlements** setting is only available for QuickBooks Online, Xero, NetSuite, and Sage Intacct.
 
 ---
 

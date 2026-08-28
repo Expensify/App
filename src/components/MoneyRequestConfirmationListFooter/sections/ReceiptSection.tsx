@@ -1,5 +1,3 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import {receiptSliceSelector} from '@components/MoneyRequestConfirmationList/sections/selectors';
 import useTransactionSelector from '@components/MoneyRequestConfirmationList/sections/useTransactionSelector';
@@ -8,15 +6,23 @@ import useCompactReceiptDimensions from '@components/MoneyRequestConfirmationLis
 import useReceiptThumbnailSource from '@components/MoneyRequestConfirmationListFooter/hooks/useReceiptThumbnailSource';
 import shouldShowDistanceMap from '@components/MoneyRequestConfirmationListFooter/shouldShowDistanceMap';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
+
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {shouldShowReceiptEmptyState} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isScanRequest} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type ReceiptSectionProps = {
     /** Active policy (used to decide whether the receipt empty state should render) */
@@ -107,6 +113,7 @@ function ReceiptSection({
                 compactReceiptContainerStyle={compact.compactReceiptContainerStyle}
                 onPDFLoadError={onPDFLoadError}
                 onPDFPassword={onPDFPassword}
+                onPDFLoadSuccess={compact.endReceiptLoadSpan}
                 onCompactReceiptContainerLayout={compact.handleCompactReceiptContainerLayout}
                 onReceiptLoad={compact.handleReceiptLoad}
             />
@@ -124,9 +131,10 @@ function ReceiptSection({
                 if (!transactionID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID)));
             }}
-            style={[compact.isCompactMode ? undefined : styles.mv3, compact.isCompactMode && compact.compactReceiptStyle ? compact.compactReceiptStyle : styles.moneyRequestViewImage]}
+            isCompact={!compact.isCompactMode}
+            style={[compact.isCompactMode ? undefined : styles.mt2, compact.isCompactMode && compact.compactReceiptStyle ? compact.compactReceiptStyle : undefined]}
         />
     );
 }

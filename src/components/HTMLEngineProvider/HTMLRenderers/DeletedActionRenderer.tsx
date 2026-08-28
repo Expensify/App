@@ -1,14 +1,19 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
-import {TNodeChildrenRenderer} from 'react-native-render-html';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
+
+import React from 'react';
+import {View} from 'react-native';
+import {TNodeChildrenRenderer} from 'react-native-render-html';
 
 function DeletedActionRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'EyeDisabled', 'Trashcan']);
@@ -47,7 +52,7 @@ function DeletedActionRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) 
                         return (
                             <Text
                                 key={data}
-                                style={(styles.textLabelSupporting, styles.textStrong)}
+                                style={[styles.textLabelSupporting, styles.textStrong]}
                             >
                                 {data}
                             </Text>

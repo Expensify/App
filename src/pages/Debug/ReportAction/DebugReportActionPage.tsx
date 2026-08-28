@@ -1,12 +1,11 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DebugUtils from '@libs/DebugUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {DebugTabNavigatorRoutes} from '@libs/Navigation/DebugTabNavigator';
@@ -15,14 +14,23 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
 import {getLinkedTransactionID, withDEWRoutedActionsObject} from '@libs/ReportActionsUtils';
+
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
+
 import Debug from '@userActions/Debug';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+
 import DebugReportActionPreview from './DebugReportActionPreview';
 
 type DebugReportActionPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION>;
@@ -35,20 +43,9 @@ function DebugReportActionPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const getReportActionSelector = useCallback(
-        (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => {
-            return withDEWRoutedActionsObject(reportActions)?.[reportActionID];
-        },
-        [reportActionID],
-    );
-
-    const [reportAction] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        {
-            selector: getReportActionSelector,
-        },
-        [getReportActionSelector],
-    );
+    const [reportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => withDEWRoutedActionsObject(reportActions)?.[reportActionID],
+    });
     const transactionID = getLinkedTransactionID(reportAction);
 
     const DebugDetailsTab = useCallback(
@@ -73,11 +70,12 @@ function DebugReportActionPage({
                 {!!transactionID && (
                     <View style={[styles.mh5, styles.mb5]}>
                         <Button
-                            text={translate('debug.viewTransaction')}
                             onPress={() => {
                                 Navigation.navigate(ROUTES.DEBUG_TRANSACTION.getRoute(transactionID));
                             }}
-                        />
+                        >
+                            <Button.Text>{translate('debug.viewTransaction')}</Button.Text>
+                        </Button>
                     </View>
                 )}
             </DebugDetails>

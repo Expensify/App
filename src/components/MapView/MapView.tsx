@@ -1,30 +1,38 @@
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import type {MapState} from '@rnmapbox/maps';
-import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
-import {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ImageSVG from '@components/ImageSVG';
-import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
-import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
+
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
 import ONYXKEYS from '@src/ONYXKEYS';
-import Direction from './Direction';
+
+import type {MapState} from '@rnmapbox/maps';
+
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import Mapbox, {MarkerView} from '@rnmapbox/maps';
+import {getForegroundPermissionsAsync} from 'expo-location';
+import {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
+
 import type {MapViewProps} from './MapViewTypes';
+
+import Compass from './Compass';
+import Directions from './Directions';
+import MapMarkerIcon from './MapMarkerIcon';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
-import ToggleDistanceUnitButton from './ToggleDistanceUnitButton';
-import useDistanceUnit from './useDistanceUnit';
+import useAccessToken from './useAccessToken';
 import utils from './utils';
 
 function MapView({
@@ -35,16 +43,17 @@ function MapView({
     pitchEnabled,
     initialState,
     waypoints,
-    directionCoordinates: directionCoordinatesProp,
+    directionCoordinates,
+    alternateDirection,
+    setIsAlternateDirectionSelected,
     onMapReady,
     interactive = true,
     distanceInMeters,
     unit,
     ref,
     shouldDisplayCurrentLocation = true,
+    shouldDisplayCompass = true,
 }: MapViewProps) {
-    const directionCoordinates = !directionCoordinatesProp || utils.isSingleSegmentRoute(directionCoordinatesProp) ? directionCoordinatesProp : directionCoordinatesProp.flat();
-
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
     const navigation = useNavigation();
     const {isOffline} = useNetwork();
@@ -58,14 +67,7 @@ function MapView({
     const currentPosition = userLocation ?? initialLocation;
     const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
     const shouldInitializeCurrentPosition = useRef(true);
-    const [isAccessTokenSet, setIsAccessTokenSet] = useState(false);
-
-    const {distanceUnit, toggleDistanceUnit} = useDistanceUnit(unit);
-
-    const distanceLabelText = useMemo(
-        () => DistanceRequestUtils.getDistanceForDisplayLabel(distanceInMeters ?? 0, distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS),
-        [distanceInMeters, distanceUnit],
-    );
+    const isAccessTokenReady = useAccessToken({accessToken});
 
     // Determines if map can be panned to user's detected
     // location without bothering the user. It will return
@@ -103,10 +105,26 @@ function MapView({
                 return;
             }
 
-            getCurrentPosition((params) => {
-                const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
-                setUserLocation(currentCoords);
-            }, setCurrentPositionToInitialState);
+            // Only read the device location when permission is ALREADY granted. We never request it here,
+            // so opening the map cannot trigger an OS permission prompt without a prior explicit user action.
+            getForegroundPermissionsAsync().then(({granted}) => {
+                if (!granted) {
+                    // Pass the permission-denied error so any stale cached location is cleared and the map falls back to initialState.
+                    setCurrentPositionToInitialState({
+                        code: GeolocationErrorCode.PERMISSION_DENIED,
+                        message: 'User denied access to location.',
+                    });
+                    return;
+                }
+
+                getCurrentPosition((params) => {
+                    const currentCoords = {
+                        longitude: params.coords.longitude,
+                        latitude: params.coords.latitude,
+                    };
+                    setUserLocation(currentCoords);
+                }, setCurrentPositionToInitialState);
+            });
         }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
     );
 
@@ -137,6 +155,8 @@ function MapView({
         [],
     );
 
+    const allDirectionCoordinates = utils.getCoordinatesFromAllDirections(directionCoordinates, alternateDirection);
+
     // When the page loses focus, we temporarily set the "idled" state to false.
     // When the page regains focus, the onIdled method of the map will set the actual "idled" state,
     // which in turn triggers the callback.
@@ -155,11 +175,11 @@ function MapView({
             } else {
                 const {southWest, northEast} = utils.getBounds(
                     waypoints.map((waypoint) => waypoint.coordinate),
-                    directionCoordinates,
+                    allDirectionCoordinates,
                 );
                 cameraRef.current?.fitBounds(northEast, southWest, mapPadding, 1000);
             }
-        }, [mapPadding, waypoints, isIdle, directionCoordinates]),
+        }, [mapPadding, waypoints, isIdle, allDirectionCoordinates]),
     );
 
     useEffect(() => {
@@ -176,15 +196,6 @@ function MapView({
         setIsIdle(false);
     }, [isOffline]);
 
-    useEffect(() => {
-        setAccessToken(accessToken).then((token) => {
-            if (!token) {
-                return;
-            }
-            setIsAccessTokenSet(true);
-        });
-    }, [accessToken]);
-
     const setMapIdle = (e: MapState) => {
         if (e.gestures.isGestureActive) {
             return;
@@ -194,10 +205,17 @@ function MapView({
             onMapReady();
         }
     };
+
+    const mapHeading = useSharedValue(0);
+
+    const onCameraChanged = (e: MapState) => {
+        mapHeading.set(e.properties.heading ?? 0);
+    };
+
     const centerMap = useCallback(() => {
         const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
-        if (waypointCoordinates.length > 1 || (directionCoordinates ?? []).length > 1) {
-            const {southWest, northEast} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], directionCoordinates);
+        if (waypointCoordinates.length > 1 || (allDirectionCoordinates ?? []).length > 1) {
+            const {southWest, northEast} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], allDirectionCoordinates);
             cameraRef.current?.fitBounds(southWest, northEast, mapPadding, CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME);
             return;
         }
@@ -207,7 +225,7 @@ function MapView({
             animationDuration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
             zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
         });
-    }, [directionCoordinates, currentPosition?.longitude, currentPosition?.latitude, mapPadding, waypoints]);
+    }, [allDirectionCoordinates, currentPosition?.longitude, currentPosition?.latitude, mapPadding, waypoints]);
 
     const centerCoordinate = useMemo(() => (currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location), [currentPosition, initialState?.location]);
 
@@ -217,10 +235,10 @@ function MapView({
         }
         const {northEast, southWest} = utils.getBounds(
             waypoints.map((waypoint) => waypoint.coordinate),
-            directionCoordinates,
+            allDirectionCoordinates,
         );
         return {ne: northEast, sw: southWest};
-    }, [waypoints, directionCoordinates]);
+    }, [waypoints, allDirectionCoordinates]);
 
     const defaultSettings: Mapbox.CameraStop | undefined = useMemo(() => {
         if (interactive) {
@@ -243,33 +261,20 @@ function MapView({
     const initCenterCoordinate = useMemo(() => (interactive ? centerCoordinate : undefined), [interactive, centerCoordinate]);
     const initBounds = useMemo(() => (interactive ? undefined : waypointsBounds), [interactive, waypointsBounds]);
 
-    const distanceSymbolCoordinate = useMemo(() => {
-        if (!directionCoordinates?.length || !waypoints?.length) {
-            return;
-        }
-        const {northEast, southWest} = utils.getBounds(
-            waypoints.map((waypoint) => waypoint.coordinate),
-            directionCoordinates,
-        );
-        const boundsCenter = utils.getBoundsCenter({northEast, southWest});
-
-        return utils.findClosestCoordinateOnLineFromCenter(boundsCenter, directionCoordinates);
-    }, [waypoints, directionCoordinates]);
-
-    return !isOffline && isAccessTokenSet && !!defaultSettings ? (
+    return !isOffline && isAccessTokenReady && !!defaultSettings ? (
         <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
             <Mapbox.MapView
                 style={{flex: 1}}
                 styleURL={styleURL}
                 onMapIdle={setMapIdle}
+                onCameraChanged={onCameraChanged}
                 onTouchStart={() => setUserInteractedWithMap(true)}
                 pitchEnabled={pitchEnabled}
                 attributionPosition={{...styles.r2, ...styles.b2}}
                 scaleBarEnabled={false}
                 // We use scaleBarPosition with top: -32 to hide the scale bar on iOS because scaleBarEnabled={false} not work on iOS
                 scaleBarPosition={{...styles.tn8, left: 0}}
-                compassEnabled
-                compassPosition={{...styles.l2, ...styles.t5}}
+                compassEnabled={false}
                 logoPosition={{...styles.l2, ...styles.b2}}
                 {...responder.panHandlers}
             >
@@ -294,8 +299,7 @@ function MapView({
                         />
                     </MarkerView>
                 )}
-                {waypoints?.map(({coordinate, markerComponent, id}) => {
-                    const MarkerComponent = markerComponent;
+                {waypoints?.map(({coordinate, markerType, id}) => {
                     if (
                         utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) &&
                         interactive &&
@@ -311,41 +315,38 @@ function MapView({
                             coordinate={coordinate}
                             allowOverlap
                         >
-                            <MarkerComponent />
+                            <MapMarkerIcon markerType={markerType} />
                         </MarkerView>
                     );
                 })}
 
-                {!!directionCoordinatesProp && <Direction coordinates={directionCoordinatesProp} />}
-                {!!distanceSymbolCoordinate && !!distanceInMeters && !!distanceUnit && (
-                    <MarkerView
-                        coordinate={distanceSymbolCoordinate}
-                        id="distance-label"
-                        key="distance-label"
-                        allowOverlap
-                    >
-                        <View style={{zIndex: 1}}>
-                            <ToggleDistanceUnitButton
-                                accessibilityRole={CONST.ROLE.BUTTON}
-                                accessibilityLabel="distance-label"
-                                onPress={toggleDistanceUnit}
-                            >
-                                <View style={[styles.distanceLabelWrapper]}>
-                                    <Text style={styles.distanceLabelText}> {distanceLabelText}</Text>
-                                </View>
-                            </ToggleDistanceUnitButton>
-                        </View>
-                    </MarkerView>
-                )}
+                <Directions
+                    directionCoordinates={directionCoordinates}
+                    alternateDirection={alternateDirection}
+                    setIsAlternateDirectionSelected={setIsAlternateDirectionSelected}
+                    distanceInMeters={distanceInMeters}
+                    unit={unit}
+                    waypoints={waypoints}
+                />
             </Mapbox.MapView>
+            <Compass
+                interactive={interactive}
+                shouldDisplayCompass={shouldDisplayCompass}
+                cameraRef={cameraRef}
+                mapHeading={mapHeading}
+            />
             {interactive && (
-                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
+                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, styles.zIndex1]}>
                     <Button
                         onPress={centerMap}
-                        iconFill={theme.icon}
-                        icon={expensifyIcons.Crosshair}
                         accessibilityLabel={translate('common.center')}
-                    />
+                    >
+                        <Button.Icon
+                            src={expensifyIcons.Crosshair}
+                            fill={theme.icon}
+                            hoverFill={theme.icon}
+                        />
+                    </Button>
                 </View>
             )}
         </View>

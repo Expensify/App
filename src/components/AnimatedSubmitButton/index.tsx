@@ -1,60 +1,66 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import {clearPendingExpenseAction} from '@userActions/IOU/ReportWorkflow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportMetadata} from '@src/types/onyx';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type AnimatedSubmitButtonProps = WithSentryLabel & {
-    // Whether to show the success state
-    success: boolean | undefined;
+import type {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 
-    // Text to show on the button
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+
+type AnimatedSubmitButtonProps = WithSentryLabel & {
+    /** Submit buttons support the default and success styles; danger is not a valid submit state. */
+    variant?: typeof CONST.BUTTON_VARIANT.SUCCESS;
+
+    /** Text to show on the button */
     text: string;
 
-    // Function to call when the button is pressed
+    /** Function to call when the button is pressed */
     onPress: () => void;
 
-    // Whether the animation is running
+    /** Whether the animation is running */
     isSubmittingAnimationRunning: boolean;
 
-    // Function to call when the animation finishes
+    /** Function to call when the animation finishes */
     onAnimationFinish: () => void;
 
-    // Whether the button should be disabled
+    /** Whether the button should be disabled */
     isDisabled?: boolean;
 
-    // Whether this is a DEW submission that needs backend validation before showing "Submitted"
+    /** Whether this is a DEW submission that needs backend validation before showing "Submitted" */
     isDEWSubmission?: boolean;
 
-    // The report id for which the button is displayed
+    /** The report id for which the button is displayed */
     reportID?: string;
 
     /** Whether to show "Mark as done" copy instead of "Submit" copy for track-intent users */
-    isMarkAsDone?: boolean;
+    shouldShowMarkAsDoneCopy?: boolean;
 };
 
 const pendingExpenseActionSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.pendingExpenseAction;
 
 function AnimatedSubmitButton({
-    success,
+    variant,
     text,
     onPress,
     isSubmittingAnimationRunning,
     onAnimationFinish,
     isDisabled,
     sentryLabel,
-    isMarkAsDone,
+    shouldShowMarkAsDoneCopy,
     isDEWSubmission,
     reportID,
 }: AnimatedSubmitButtonProps) {
@@ -104,7 +110,6 @@ function AnimatedSubmitButton({
         [buttonDuration, stretchOutY],
     );
     const icons = useMemoizedLazyExpensifyIcons(['Send']);
-    const icon = isAnimationRunning ? icons.Send : null;
 
     useEffect(() => {
         if (!isAnimationRunning) {
@@ -153,6 +158,7 @@ function AnimatedSubmitButton({
 
     // eslint-disable-next-line react-hooks/refs
     const showLoading = isShowingLoading || (isAnimationRunning && (!viewRef.current || (isDEWSubmission && !isDEWSubmissionComplete)));
+    const shouldShowIcon = isAnimationRunning && !showLoading;
 
     return (
         <Animated.View style={[containerStyles, {minWidth}]}>
@@ -164,24 +170,25 @@ function AnimatedSubmitButton({
                     exiting={buttonAnimation}
                 >
                     <Button
-                        success={success}
-                        text={showLoading ? text : translate(isMarkAsDone ? 'common.markedAsDoneStatus' : 'common.submitted')}
+                        variant={variant}
                         isLoading={showLoading}
-                        icon={!showLoading ? icon : undefined}
                         isDisabled
-                        shouldStayNormalOnDisable
-                    />
+                        stayNormalOnDisable
+                    >
+                        {shouldShowIcon && <Button.Icon src={icons.Send} />}
+                        <Button.Text>{shouldShowIcon ? translate(shouldShowMarkAsDoneCopy ? 'common.markedAsDoneStatus' : 'common.submitted') : text}</Button.Text>
+                    </Button>
                 </Animated.View>
             )}
             {!isAnimationRunning && (
                 <Button
-                    success={success}
-                    text={text}
+                    variant={variant}
                     onPress={onPress}
-                    icon={icon}
                     isDisabled={isDisabled}
                     sentryLabel={sentryLabel}
-                />
+                >
+                    <Button.Text>{text}</Button.Text>
+                </Button>
             )}
         </Animated.View>
     );

@@ -1,18 +1,23 @@
-import React from 'react';
-import {View} from 'react-native';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import WorkspaceInvoiceBalanceSection from './WorkspaceInvoiceBalanceSection';
 import WorkspaceInvoiceVBASection from './WorkspaceInvoiceVBASection';
 import WorkspaceInvoicingDetailsSection from './WorkspaceInvoicingDetailsSection';
@@ -24,7 +29,6 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['InvoiceBlue']);
     const {canWrite: canWriteMoreFeatures, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
     return (
@@ -40,7 +44,6 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 shouldSkipVBBACall={!canWriteMoreFeatures}
                 route={route}
-                icon={illustrations.InvoiceBlue}
                 addBottomSafeAreaPadding
                 policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
             >

@@ -1,6 +1,5 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -8,9 +7,16 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MonthListItemHeader from '@components/Search/SearchList/ListItem/MonthListItemHeader';
 import type {TransactionMonthGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchActionsContextValue, SearchColumnType, SearchStateContextValue} from '@components/Search/types';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 import MockSearchContextProvider from '../utils/MockSearchContextProvider';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -19,7 +25,7 @@ jest.mock('@libs/Navigation/Navigation');
 
 // Mock useResponsiveLayout to control screen size in tests
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
-const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
+const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
 // Mock search context with all required SearchContextStateValue and SearchContextActionsValue fields
 const mockSearchStateContext = {
@@ -27,10 +33,13 @@ const mockSearchStateContext = {
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
+    currentSearchTransactionsByReportID: new Map(),
+    currentSearchViolations: {},
     currentSelectedTransactionReportID: undefined,
     selectedReports: [],
     selectedTransactionIDs: [],
     selectedTransactions: {},
+    excludedTransactions: {},
     shouldTurnOffSelectionMode: false,
     shouldResetSearchQuery: false,
     lastSearchType: undefined,
@@ -38,7 +47,7 @@ const mockSearchStateContext = {
     shouldShowFiltersBarLoading: false,
     shouldUseLiveData: false,
     currentSimilarSearchHash: -1,
-    suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
+    suggestedSearches: createMock<SearchStateContextValue['suggestedSearches']>({}),
     sortedReportIDs: [],
     hasSelectedTransactions: false,
 } satisfies SearchStateContextValue;
@@ -61,6 +70,7 @@ const createMonthListItem = (year: number, month: number, options: Partial<Trans
     year,
     month,
     formattedMonth: options.formattedMonth ?? `January ${year}`,
+    shortFormattedMonth: options.shortFormattedMonth ?? `Jan ’${String(year).slice(-2)}`,
     count: options.count ?? 5,
     currency: options.currency ?? 'USD',
     total: options.total ?? 250,

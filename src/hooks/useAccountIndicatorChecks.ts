@@ -3,9 +3,11 @@ import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@
 import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {expensifyLoginsSelector, hasDeviceManagementError, hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
+
 import useCardFeedErrors from './useCardFeedErrors';
 import useOnyx from './useOnyx';
 import usePoliciesWithCardFeedErrors from './usePoliciesWithCardFeedErrors';
@@ -30,6 +32,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
     const [billingStatus] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS);
     const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerTravelBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_TRAVEL_BILLING_GRACE_PERIOD_END);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -52,6 +55,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
             billingStatus,
             amountOwed,
             ownerBillingGracePeriodEnd,
+            ownerTravelBillingGracePeriodEnd,
         ),
         [CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS]: Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
         [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR]: !!loginList && hasLoginListError(loginList),
@@ -75,6 +79,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
             billingStatus,
             amountOwed,
             ownerBillingGracePeriodEnd,
+            ownerTravelBillingGracePeriodEnd,
         ),
         [CONST.INDICATOR_STATUS.HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO]: hasPartiallySetupBankAccount(bankAccountList) || hasPersonalBankAccountMissingInfo(bankAccountList),
     };

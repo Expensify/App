@@ -1,14 +1,19 @@
-import * as NativeNavigation from '@react-navigation/native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React, {useState} from 'react';
-import type ReactNative from 'react-native';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import BaseSelectionListWithSections from '@components/SelectionList/SelectionListWithSections/BaseSelectionListWithSections';
 import type {ListItem, SelectionListWithSectionsProps} from '@components/SelectionList/SelectionListWithSections/types';
+
 import type Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
+
+import type ReactNative from 'react-native';
+
+import * as NativeNavigation from '@react-navigation/native';
+import React, {useState} from 'react';
 
 // Captures scrollToIndex calls so tests can assert on scroll behaviour
 const mockScrollToIndex = jest.fn();
@@ -146,14 +151,14 @@ describe('BaseSelectionList', () => {
     }
 
     it('should not trigger item press if screen is not focused', () => {
-        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(false);
+        jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(false);
         render(<BaseListItemRenderer sections={[{data: mockSections, sectionIndex: 0}]} />);
         fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`));
         expect(onSelectRowMock).toHaveBeenCalledTimes(0);
     });
 
     it('should handle item press correctly', () => {
-        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
+        jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(true);
         render(<BaseListItemRenderer sections={[{data: mockSections, sectionIndex: 0}]} />);
 
         fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`));
@@ -165,7 +170,7 @@ describe('BaseSelectionList', () => {
     });
 
     it('should update focused item when sections are updated from BE', () => {
-        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
+        jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(true);
         const updatedMockSections = mockSections.map((section) => ({
             ...section,
             isSelected: section.keyForList === '2',
@@ -321,7 +326,7 @@ describe('BaseSelectionList', () => {
     });
 
     it('should render items from multiple sections', () => {
-        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
+        jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(true);
         const sectionA = Array.from({length: 5}, (_, index) => ({
             text: `Section A Item ${index}`,
             keyForList: `a-${index}`,
@@ -350,7 +355,7 @@ describe('BaseSelectionList', () => {
     });
 
     it('should handle item press from second section correctly', () => {
-        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
+        jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(true);
         const sectionA = [{text: 'A0', keyForList: 'a-0', isSelected: false}];
         const sectionB = [{text: 'B0', keyForList: 'b-0', isSelected: false}];
 

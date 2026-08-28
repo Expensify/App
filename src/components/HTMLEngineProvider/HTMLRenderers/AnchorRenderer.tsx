@@ -1,21 +1,29 @@
-import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
-import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
-import {TNodeChildrenRenderer} from 'react-native-render-html';
 import AnchorForAttachmentsOnly from '@components/AnchorForAttachmentsOnly';
 import AnchorForCommentsOnly from '@components/AnchorForCommentsOnly';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useEnvironment from '@hooks/useEnvironment';
 import useHover from '@hooks/useHover';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getInternalExpensifyPath, getInternalNewExpensifyPath, openLink} from '@libs/actions/Link';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, TextStyle} from 'react-native';
+import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
+
+import {Str} from 'expensify-common';
+import React, {useContext, useMemo} from 'react';
+import {TNodeChildrenRenderer} from 'react-native-render-html';
+
+import TableLinkColumnContext from './TableLinkColumnContext';
+import {getTextContent, isLinkColumnAnchor} from './TableRowLink';
 
 type AnchorRendererProps = CustomRendererProps<TText | TPhrasing> & {
     /** Key of the element */
@@ -42,8 +50,13 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
 
     const isDeleted = HTMLEngineUtils.isDeletedNode(tnode);
     const isChildOfTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(tnode);
+    const linkColumnIndex = useContext(TableLinkColumnContext);
 
     const textDecorationLineStyle = isDeleted ? styles.lineThrough : {};
+
+    // In high-contrast themes, underline report action links so they are distinguishable by more than color (WCAG 1.4.1).
+    // The `styles.link` used by the non-comment link path above already handles this, but AnchorForCommentsOnly does not use it.
+    const highContrastUnderlineStyle = theme.isHighContrast ? styles.underline : {};
 
     const onLinkPress = useMemo(() => {
         if (internalNewExpensifyPath || internalExpensifyPath) {
@@ -52,6 +65,12 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
 
         return undefined;
     }, [internalNewExpensifyPath, internalExpensifyPath, attrHref, environmentURL, isAttachment]);
+
+    // The table row already navigates to this link's destination, so the cell shows the link text as plain content
+    // rather than a second target styled as a link.
+    if (isLinkColumnAnchor(tnode, linkColumnIndex)) {
+        return <Text>{getTextContent(tnode)}</Text>;
+    }
 
     if (!HTMLEngineUtils.isChildOfComment(tnode) && !isChildOfTaskTitle) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
@@ -137,11 +156,11 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                 style,
                 parentStyle,
                 styles.textDecorationLineNone,
+                highContrastUnderlineStyle,
                 textDecorationLineStyle,
                 styles.textUnderlinePositionUnder,
                 styles.textDecorationSkipInkNone,
                 isChildOfTaskTitle && styles.taskTitleMenuItem,
-                styles.dInlineFlex,
                 hoverStyle,
             ]}
             key={key}
@@ -165,10 +184,10 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                                     props.childTnode.getNativeStyles(),
                                     parentStyle,
                                     styles.textDecorationLineNone,
+                                    highContrastUnderlineStyle,
                                     textDecorationLineStyle,
                                     styles.textUnderlinePositionUnder,
                                     styles.textDecorationSkipInkNone,
-                                    styles.dInlineFlex,
                                     hoverStyle,
                                 ]}
                             >

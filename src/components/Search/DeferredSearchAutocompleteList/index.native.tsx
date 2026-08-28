@@ -1,11 +1,14 @@
-import React, {useRef, useState, useTransition} from 'react';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {SearchAutocompleteListProps} from '@components/Search/SearchAutocompleteList';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
+
 import useIsFocusedUntilTransitionEnd from '@hooks/useIsFocusedUntilTransitionEnd';
+
 import {endSpan} from '@libs/telemetry/activeSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
+
+import React, {useRef, useState} from 'react';
 
 /**
  * This component acts as a wrapper for a SearchAutocompleteList, waiting for the navigation to be ready and deferring it,
@@ -16,27 +19,30 @@ function DeferredAutocompleteList(props: SearchAutocompleteListProps) {
     // On native it stays mounted behind when a chat is opened from it.
     // Unmount the heavy list once this screen loses focus (kept mounted through the closing transition so it doesn't blank mid-navigation).
     const isFocusedUntilTransitionEnd = useIsFocusedUntilTransitionEnd();
-    const [shouldRender, setShouldRender] = useState(false);
-    const [, startTransition] = useTransition();
+    const [hasLayout, setHasLayout] = useState(false);
     const hasEndedPageVisibleSpan = useRef(false);
 
-    // Run the transition after the skeleton is mounted; end the "page visible" span once
-    const renderComponent = () => {
+    const markLayoutComplete = () => {
         if (!hasEndedPageVisibleSpan.current) {
             hasEndedPageVisibleSpan.current = true;
             endSpan(CONST.TELEMETRY.SPAN_SEARCH_PAGE_VISIBLE);
         }
-        startTransition(() => setShouldRender(true));
+        setHasLayout(true);
     };
 
-    if (!shouldRender || !isFocusedUntilTransitionEnd) {
+    // Mount the real list as soon as the skeleton has laid out, overlapping its render with the
+    // native-stack push animation instead of waiting for the transition to end. The push runs on the
+    // UI thread, so rendering the list on the JS thread during it does not stutter the slide, and the
+    // list's onLayout (which ends the ManualOpenSearchRouter span) now fires while the animation is
+    // still finishing rather than ~150ms after it. Affordable because the option-list build is cheap
+    // after the caching/deferral in #95378 and #95683.
+    if (!hasLayout || !isFocusedUntilTransitionEnd) {
         return (
             <OptionsListSkeletonView
                 fixedNumItems={4}
                 shouldStyleAsTable
-                onLayout={renderComponent}
+                onLayout={markLayoutComplete}
                 speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                reasonAttributes={{context: 'DeferredSearchAutocompleteList'} satisfies SkeletonSpanReasonAttributes}
             />
         );
     }

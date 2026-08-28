@@ -1,45 +1,44 @@
-import React from 'react';
-import {View} from 'react-native';
 import AttachmentPicker from '@components/AttachmentPicker';
-import Avatar from '@components/Avatar';
-import Button from '@components/Button';
+import UserAvatar from '@components/Avatar/UserAvatar';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import UserInitialsAvatar from '@components/UserInitialsAvatar';
+
 import useAvatarMenu from '@hooks/useAvatarMenu';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLetterAvatars from '@hooks/useLetterAvatars';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {isLetterAvatarSchemeKey, LETTER_AVATAR_SCHEMES} from '@libs/Avatars/letterAvatarPalette';
 import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import {validateAvatarImage} from '@libs/AvatarUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {getDefaultAvatarName, isCatalogAvatar, isLetterAvatar} from '@libs/UserAvatarUtils';
+import {getDefaultAvatarURL, isCatalogAvatar, isGeneratedLetterAvatarURL, isLetterAvatar} from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject} from '@src/types/utils/Attachment';
-import AvatarCapture from './AvatarCapture';
-import type {AvatarCaptureHandle} from './AvatarCapture/types';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type AvatarPreviewProps = {
     /** The selected avatar ID */
     selected: string | undefined;
-    /** The function to set the selected avatar ID */
-    setSelected: (selected: string | undefined) => void;
-    /** The ref to the avatar capture component */
-    avatarCaptureRef: React.RefObject<AvatarCaptureHandle | null>;
+    /** Whether the current avatar is staged for removal */
+    isRemoved: boolean;
+    /** Callback when the current avatar photo is removed */
+    onImageRemoved: () => void;
     /** The image data */
     imageData: ImageData;
-    /** The function to set the image data */
-    setImageData: (imageData: ImageData) => void;
     /** The function to set the error */
-    setError: (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => void;
-    /** The function to set the crop image data */
-    setCropImageData: (cropImageData: ImageData) => void;
-    /** Whether the avatar crop modal is open */
-    isAvatarCropModalOpen: boolean;
-    /** The function to set whether the avatar crop modal is open */
-    setIsAvatarCropModalOpen: (isAvatarCropModalOpen: boolean) => void;
+    setError: (error: TranslationPaths | null, phraseParam?: Record<string, unknown>) => void;
+    /** Opens the avatar crop screen for the picked image */
+    openCropper: (image: FileObject) => void;
 };
 
 type ImageData = {
@@ -49,32 +48,43 @@ type ImageData = {
     file: File | CustomRNImageManipulatorResult | null;
 };
 
-const EMPTY_FILE = {uri: '', name: '', type: '', file: null};
-
-function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropModalOpen, setIsAvatarCropModalOpen, imageData, setImageData, setError, setCropImageData}: AvatarPreviewProps) {
+function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError, openCropper}: AvatarPreviewProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Upload']);
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
-    const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart, styles.alignSelfCenter];
+    const avatarStyle = [styles.alignSelfStart, styles.alignSelfCenter];
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {avatarMap: avatars} = useLetterAvatars(currentUserPersonalDetails?.displayName, CONST.AVATAR_SIZE.X_LARGE);
+    const {initials} = useLetterAvatars();
+    const selectedLetterScheme = selected && isLetterAvatarSchemeKey(selected) ? LETTER_AVATAR_SCHEMES[selected] : undefined;
 
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
     let avatarURL: AvatarSource = '';
     if (selected && USER_AVATARS.isAvatarID(selected)) {
         avatarURL = USER_AVATARS.getLocal(selected) ?? '';
-    } else if (selected) {
-        avatarURL = avatars[selected];
     } else if (imageData.uri) {
         avatarURL = imageData.uri;
+    } else if (isRemoved) {
+        avatarURL = getDefaultAvatarURL({
+            accountID,
+            accountEmail: currentUserPersonalDetails?.email,
+            firstName: currentUserPersonalDetails?.firstName,
+            lastName: currentUserPersonalDetails?.lastName,
+        });
     } else {
         avatarURL = currentUserPersonalDetails?.avatar ?? '';
     }
-    // Weather avatar view & edit options should be hidden. False if user uploaded their own avatar.
-    const shouldHideAvatarEdit = (!imageData.uri && (isCatalogAvatar(currentUserPersonalDetails?.avatar) || isLetterAvatar(currentUserPersonalDetails?.originalFileName))) || !!selected;
+    // Whether avatar view & edit options should be hidden. False if user uploaded their own avatar.
+    const shouldHideAvatarEdit =
+        (!imageData.uri &&
+            (isCatalogAvatar(currentUserPersonalDetails?.avatar) ||
+                isGeneratedLetterAvatarURL(currentUserPersonalDetails?.avatar) ||
+                isLetterAvatar(currentUserPersonalDetails?.originalFileName))) ||
+        !!selected ||
+        isRemoved;
 
     /**
      * Validates an image and opens avatar crop modal if valid
@@ -87,32 +97,16 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
                     return;
                 }
 
-                setIsAvatarCropModalOpen(true);
-                setError(null, {});
-                setCropImageData({
-                    uri: image.uri ?? '',
-                    name: image.name ?? '',
-                    type: image.type ?? '',
-                    file: null,
-                });
+                setError(null);
+                openCropper(image);
             })
             .catch(() => {
-                setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
+                setError('attachmentPicker.errorWhileSelectingCorruptedAttachment');
             });
     };
 
-    const onImageRemoved = () => {
-        setSelected(
-            getDefaultAvatarName({
-                accountID: currentUserPersonalDetails?.accountID,
-                accountEmail: currentUserPersonalDetails?.email,
-            }),
-        );
-        setImageData({...EMPTY_FILE});
-    };
-
     const clearError = () => {
-        setError(null, {});
+        setError(null);
     };
 
     const {createMenuItems} = useAvatarMenu({
@@ -127,20 +121,24 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
 
     return (
         <View style={[styles.flexColumn, styles.gap5, styles.alignItemsCenter, styles.pb10]}>
-            <AvatarCapture
-                ref={avatarCaptureRef}
-                fileName={selected ?? 'avatar'}
-            >
-                <Avatar
+            {selectedLetterScheme ? (
+                <View style={avatarStyle}>
+                    <UserInitialsAvatar
+                        text={initials}
+                        colors={selectedLetterScheme}
+                        size={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.XXXX_LARGE)}
+                    />
+                </View>
+            ) : (
+                <UserAvatar
                     containerStyles={avatarStyle}
                     imageStyles={avatarStyle}
                     source={avatarURL}
-                    avatarID={accountID}
+                    accountID={accountID}
                     fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
-                    size={CONST.AVATAR_SIZE.X_LARGE}
-                    type={CONST.ICON_TYPE_AVATAR}
+                    size={CONST.AVATAR_SIZE.XXXX_LARGE}
                 />
-            </AvatarCapture>
+            )}
             <AttachmentPicker
                 type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
                 shouldValidateImage={false}
@@ -150,26 +148,27 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
                     if (menuItems?.length <= 1) {
                         return (
                             <Button
-                                icon={icons.Upload}
-                                text={translate('avatarPage.uploadPhoto')}
                                 accessibilityLabel={translate('avatarPage.uploadPhoto')}
-                                isDisabled={isAvatarCropModalOpen}
                                 onPress={() => {
                                     openPicker({
                                         onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
                                     });
                                 }}
-                            />
+                            >
+                                <Button.Icon src={icons.Upload} />
+                                <Button.Text>{translate('avatarPage.uploadPhoto')}</Button.Text>
+                            </Button>
                         );
                     }
 
                     return (
                         <ButtonWithDropdownMenu
-                            success={false}
                             shouldUseOptionIcon
-                            isDisabled={isAvatarCropModalOpen}
                             onPress={() => {}}
-                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                            anchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                            }}
                             customText={translate('common.edit')}
                             options={menuItems}
                             isSplitButton={false}

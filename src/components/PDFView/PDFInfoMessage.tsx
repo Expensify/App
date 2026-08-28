@@ -1,15 +1,19 @@
-import type {KeyboardEvent} from 'react';
-import React from 'react';
-import type {GestureResponderEvent} from 'react-native';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
+import type {KeyboardEvent} from 'react';
+import type {GestureResponderEvent} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type PDFInfoMessageProps = {
     /** Callback function to indicate that PDF password form should be shown */

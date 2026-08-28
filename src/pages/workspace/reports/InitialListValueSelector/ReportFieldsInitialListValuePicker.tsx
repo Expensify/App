@@ -1,7 +1,12 @@
-import React, {useMemo} from 'react';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
+
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+
+import React, {useMemo} from 'react';
 
 type ReportFieldsInitialListValuePickerProps = {
     /** Options to select from if field is of type list */
@@ -19,6 +24,8 @@ type ReportFieldsInitialListValuePickerProps = {
 
 function ReportFieldsInitialListValuePicker({listValues, disabledOptions, value, onValueChange}: ReportFieldsInitialListValuePickerProps) {
     const {localeCompare} = useLocalize();
+    // Freeze the value that was selected when this picker opened so the pre-selected option stays pinned to the top for the whole open/focus cycle, even as the live selection changes.
+    const initialValue = useInitialSelection(value, {resetOnFocus: true});
     const listValueOptions = useMemo(
         () =>
             Object.values(listValues ?? {})
@@ -32,13 +39,17 @@ function ReportFieldsInitialListValuePicker({listValues, disabledOptions, value,
                 })),
         [value, listValues, disabledOptions, localeCompare],
     );
+    const orderedListValueOptions = moveInitialSelectionToTop(listValueOptions, initialValue ? [initialValue] : []);
 
     return (
         <SelectionList
-            data={listValueOptions}
+            data={orderedListValueOptions}
             ListItem={SingleSelectListItem}
             onSelectRow={(item) => onValueChange(item.value)}
-            initiallyFocusedItemKey={listValueOptions.find((listValue) => listValue.isSelected)?.keyForList}
+            initiallyFocusedItemKey={initialValue}
+            shouldSingleExecuteRowSelect
+            shouldScrollToFocusedIndexOnMount={false}
+            shouldUpdateFocusedIndex
             addBottomSafeAreaPadding
         />
     );

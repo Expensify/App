@@ -1,7 +1,9 @@
-import escapeRegExp from 'lodash/escapeRegExp';
-import 'react-native-url-polyfill/auto';
 import CONST from '@src/CONST';
+
+import 'react-native-url-polyfill/auto';
 import type {Route} from '@src/ROUTES';
+
+import escapeRegExp from 'lodash/escapeRegExp';
 
 function addLeadingForwardSlash(url: string): string {
     if (!url.startsWith('/')) {
@@ -151,4 +153,22 @@ function getUrlWithParams<TBase extends string, TParams extends UrlParams>(baseU
     return (queryString ? `${path}?${queryString}` : path) as UrlWithParams<TBase>;
 }
 
-export {getSearchParamFromUrl, getSearchParamFromPath, hasSameExpensifyOrigin, getPathFromURL, appendParam, hasURL, addLeadingForwardSlash, extractUrlDomain, getUrlWithParams};
+/**
+ * Whether a URL or route carries a Submit-via-PDF secure access key (the `secureKey` query param).
+ */
+function hasSecureLinkKey(url: string | null | undefined): boolean {
+    return !!url?.includes('secureKey=');
+}
+
+export {
+    getSearchParamFromUrl,
+    getSearchParamFromPath,
+    hasSameExpensifyOrigin,
+    getPathFromURL,
+    appendParam,
+    hasURL,
+    addLeadingForwardSlash,
+    extractUrlDomain,
+    getUrlWithParams,
+    hasSecureLinkKey,
+};

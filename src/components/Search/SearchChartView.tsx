@@ -1,18 +1,24 @@
-import React from 'react';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import {getCurrencySymbol, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
+
+import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+
+import type {ChartView, GroupedItem, SearchChartProps, SearchGroupBy, SearchQueryJSON} from './types';
+
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import SearchBarChart from './SearchBarChart';
 import SearchLineChart from './SearchLineChart';
 import SearchPieChart from './SearchPieChart';
-import type {ChartView, GroupedItem, SearchChartProps, SearchGroupBy, SearchQueryJSON} from './types';
 
 type SearchChartViewProps = {
     /** The current search query JSON */
@@ -46,8 +52,9 @@ const CHART_VIEW_TO_COMPONENT: Record<ChartView, React.ComponentType<SearchChart
  */
 function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChartViewProps) {
     const {preferredLocale} = useLocalize();
+    const {getCurrencySymbol} = useCurrencyListActions();
 
-    const {getLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
+    const {getLabel, getShortLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
     const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
 
     const handleItemPress = (filterQuery: string) => {
@@ -83,6 +90,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
         <ChartComponent
             data={data}
             getLabel={(item) => StringUtils.normalize(getLabel(item))}
+            getShortLabel={getShortLabel}
             getFilterQuery={getFilterQuery}
             onItemPress={handleItemPress}
             isLoading={isLoading}

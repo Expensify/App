@@ -1,8 +1,11 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+
 import {navigateToConciergeChat} from '@userActions/Report';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 
 /**
  * Returns a callback that navigates to the Concierge chat on native (opens the side panel on web instead),
@@ -15,7 +18,8 @@ function useOpenConciergeAnywhere() {
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const openConciergeAnywhere = () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const openConciergeAnywhere = (_options?: {forceConcierge?: boolean}) => {
         navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
     };
 

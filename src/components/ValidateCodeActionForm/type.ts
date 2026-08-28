@@ -1,7 +1,9 @@
+import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
+
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+
 import type {ForwardedRef, ReactNode} from 'react';
 import type {TextStyle} from 'react-native';
-import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
-import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type ValidateCodeActionFormProps = {
     /** Primary description of the modal */
@@ -28,11 +30,11 @@ type ValidateCodeActionFormProps = {
     /** Function to clear error of the form */
     clearError: () => void;
 
-    /** Function is called when validate code modal is mounted and on magic code resend */
+    /** Function is called when validate code modal is mounted and on validateCode resend */
     sendValidateCode: () => void;
 
-    /** If the magic code has been resent previously */
-    hasMagicCodeBeenSent?: boolean;
+    /** If the validateCode has been resent previously */
+    hasValidateCodeBeenSent?: boolean;
 
     /** Whether the form is loading or not */
     isLoading?: boolean;

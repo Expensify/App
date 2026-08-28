@@ -1,8 +1,5 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
@@ -10,24 +7,32 @@ import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Clipboard from '@libs/Clipboard';
 import getPlatform from '@libs/getPlatform';
 import localFileDownload from '@libs/localFileDownload';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import {toggleTwoFactorAuth} from '@userActions/Session';
 import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuthActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 const TWO_FACTOR_AUTH_RECOVERY_CODES_FILENAME = 'DO-NOT-DELETE_Expensify-2FA-RecoveryCodes.txt';
@@ -58,7 +63,7 @@ function DynamicTwoFactorAuthPage() {
 
     const isUserValidated = account?.validated ?? false;
     const is2FAEnabled = !!account?.requiresTwoFactorAuth;
-    const accountLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'DynamicTwoFactorAuthPage', isLoading: !!account?.isLoading};
+    const is2FASetupInProgress = !!account?.twoFactorAuthSetupInProgress;
 
     const recoveryCodes = account?.recoveryCodes;
 
@@ -70,14 +75,16 @@ function DynamicTwoFactorAuthPage() {
             return;
         }
 
-        if (isFocused && is2FAEnabled) {
+        // Skip redirect to the enabled page while setup is still in progress (e.g. post-verify handoff
+        // during forced onboarding, when requiresTwoFactorAuth becomes true before Got it clears progress).
+        if (isFocused && is2FAEnabled && !is2FASetupInProgress) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(ROUTES.SETTINGS_2FA_ENABLED, {forceReplace: true});
             });
             return;
         }
 
-        if (isLoadingOnyxValue(accountMetadata) || is2FAEnabled || account?.recoveryCodes || !isUserValidated) {
+        if (isLoadingOnyxValue(accountMetadata) || (is2FAEnabled && !is2FASetupInProgress) || account?.recoveryCodes || !isUserValidated) {
             return;
         }
 
@@ -87,7 +94,7 @@ function DynamicTwoFactorAuthPage() {
 
         toggleTwoFactorAuth(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
-    }, [isUserValidated, accountMetadata.status, isFocused, is2FAEnabled]);
+    }, [isUserValidated, accountMetadata.status, isFocused, is2FAEnabled, is2FASetupInProgress]);
 
     return (
         <TwoFactorAuthWrapper
@@ -113,7 +120,7 @@ function DynamicTwoFactorAuthPage() {
                         <View style={[styles.twoFactorAuthCodesBox, styles.twoFactorAuthCodesBoxPadding({isExtraSmallScreenWidth, isSmallScreenWidth})]}>
                             {account?.isLoading ? (
                                 <View style={styles.twoFactorLoadingContainer}>
-                                    <ActivityIndicator reasonAttributes={accountLoadingReasonAttributes} />
+                                    <ActivityIndicator />
                                 </View>
                             ) : (
                                 <>
@@ -176,10 +183,9 @@ function DynamicTwoFactorAuthPage() {
                     )}
                     {!!recoveryCodes && (
                         <Button
-                            success
-                            large
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            size={CONST.BUTTON_SIZE.LARGE}
                             isDisabled={!isUserValidated}
-                            text={translate('twoFactorAuth.downloadCodes')}
                             onPress={() => {
                                 localFileDownload(TWO_FACTOR_AUTH_RECOVERY_CODES_FILENAME, recoveryCodes, translate, undefined, undefined, false);
                                 setError('');
@@ -187,7 +193,9 @@ function DynamicTwoFactorAuthPage() {
                                 announceStatus(translate('fileDownload.success.title'));
                                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY.path, backPath), {forceReplace: true});
                             }}
-                        />
+                        >
+                            <Button.Text>{translate('twoFactorAuth.downloadCodes')}</Button.Text>
+                        </Button>
                     )}
                 </FixedFooter>
             </ScrollView>

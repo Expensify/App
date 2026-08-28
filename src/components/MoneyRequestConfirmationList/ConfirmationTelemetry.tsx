@@ -1,6 +1,8 @@
-import {useEffect, useRef} from 'react';
 import {endSpan} from '@libs/telemetry/activeSpans';
+
 import CONST from '@src/CONST';
+
+import {useEffect, useRef} from 'react';
 
 type ConfirmationTelemetryProps = {
     transactionID: string | undefined;

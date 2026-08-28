@@ -1,10 +1,3 @@
-import React, {useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
-import {View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {useSharedValue} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
-import {Pie, PolarChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import {TOOLTIP_BAR_GAP, useChartLabelFormats, useTooltipData} from '@components/Charts/hooks';
@@ -12,9 +5,19 @@ import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@componen
 import {findSliceAtPosition, processDataIntoSlices} from '@components/Charts/utils';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
+import type {LayoutChangeEvent} from 'react-native';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import Animated, {useSharedValue} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+import {Pie, PolarChart} from 'victory-native';
+
 import PaddedPieSlice from './PaddedPieSlice';
 
 type PieChartProps = ChartProps & {
@@ -148,13 +151,9 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     };
 
     if (isLoading) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'PieChartContent', isLoading};
         return (
             <View style={styles.chartActivityIndicator}>
-                <ActivityIndicator
-                    size="large"
-                    reasonAttributes={reasonAttributes}
-                />
+                <ActivityIndicator size="large" />
             </View>
         );
     }

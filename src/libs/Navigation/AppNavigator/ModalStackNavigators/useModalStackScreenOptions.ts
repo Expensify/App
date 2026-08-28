@@ -1,16 +1,25 @@
-import type {ParamListBase} from '@react-navigation/native';
-import {CardStyleInterpolators} from '@react-navigation/stack';
-import type {StackCardStyleInterpolator} from '@react-navigation/stack';
-import {useCallback} from 'react';
-import {useWideRHPState} from '@components/WideRHPContextProvider';
+import {animatedSuperWideRHPWidth, useWideRHPState} from '@components/WideRHPContextProvider';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import enhanceCardStyleInterpolator from '@libs/Navigation/AppNavigator/enhanceCardStyleInterpolator';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import RHP_WEB_TRANSITION_SPEC from '@libs/Navigation/AppNavigator/RHPTransitionSpec';
 import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
 import type {PlatformStackNavigationOptions, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import CONST from '@src/CONST';
+
+import type {ParamListBase} from '@react-navigation/native';
+import type {StackCardStyleInterpolator} from '@react-navigation/stack';
+
+import {CardStyleInterpolators} from '@react-navigation/stack';
+import {useCallback} from 'react';
+// Import Animated directly from 'react-native' as animations are used with navigation.
+// eslint-disable-next-line no-restricted-imports
+import {Animated} from 'react-native';
 
 function useWideModalStackScreenOptions() {
     const styles = useThemeStyles();
@@ -22,6 +31,7 @@ function useWideModalStackScreenOptions() {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {wideRHPRouteKeys, superWideRHPRouteKeys} = useWideRHPState();
+    const {sidePanelOffset} = useSidePanelState();
 
     return useCallback<({route}: {route: PlatformStackRouteProp<ParamListBase, string>}) => PlatformStackNavigationOptions>(
         ({route}) => {
@@ -34,7 +44,9 @@ function useWideModalStackScreenOptions() {
             if (!isSmallScreenWidth) {
                 if (superWideRHPRouteKeys.includes(route.key)) {
                     cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
-                        cardStyle: styles.superWideRHPExtendedCardInterpolatorStyles,
+                        // Shrink the super wide sheet by the Side Panel width while it is open so the sheet's
+                        // left edge stays put instead of being pushed off-screen. See https://github.com/Expensify/App/issues/99035
+                        cardStyle: styles.getSuperWideRHPExtendedCardInterpolatorStyles(Animated.subtract(animatedSuperWideRHPWidth, sidePanelOffset.current)),
                     });
                 } else if (wideRHPRouteKeys.includes(route.key)) {
                     cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
@@ -62,7 +74,7 @@ function useWideModalStackScreenOptions() {
                 },
             };
         },
-        [isSmallScreenWidth, modalCardStyleInterpolator, styles, superWideRHPRouteKeys, wideRHPRouteKeys],
+        [isSmallScreenWidth, modalCardStyleInterpolator, sidePanelOffset, styles, superWideRHPRouteKeys, wideRHPRouteKeys],
     );
 }
 

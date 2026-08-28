@@ -1,28 +1,41 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
-import type {ValueOf} from 'type-fest';
-import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
+
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import Navigation from '@libs/Navigation/Navigation';
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserUtils';
-import WorkspacesEmptyStateComponent from '@pages/workspace/WorkspacesEmptyStateComponent';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
-import type {CopySettingsEligibleTargets} from '@src/selectors/Policy';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+
 import WorkspaceRow from './WorkspaceTableRow';
 
 type WorkspaceTableColumnKey = 'workspaces' | 'owner' | 'type' | 'actions';
 
 type WorkspaceRowData = TableData & {
     title: string;
-    icon: AvatarSource;
+    icon?: AvatarSource;
     isDefault: boolean;
     isDeleted: boolean;
+    isArchived: boolean;
     isJoinRequestPending: boolean;
     shouldAnimateInHighlight: boolean;
     policyID: string;
@@ -32,10 +45,10 @@ type WorkspaceRowData = TableData & {
     ownerAvatar?: AvatarSource;
     type: ValueOf<typeof CONST.POLICY.TYPE>;
     role: ValueOf<typeof CONST.POLICY.ROLE>;
+    isEligibleToCopy: boolean;
     iconType: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_ICON;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
-    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     action: (event?: ModifiedMouseEvent) => void;
     dismissError: () => void;
 };
@@ -43,20 +56,22 @@ type WorkspaceRowData = TableData & {
 type WorkspaceListTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey, string>> | undefined;
     workspaces: WorkspaceRowData[];
+    headerComponent?: React.ReactElement;
 
     /** Called when the user picks Delete in a row menu, so the page can mount the delete flow */
     onDeleteWorkspace: (policyID: string) => void;
 
     /** ID of the workspace with a deletion in progress, if any */
     pendingDeletePolicyID?: string;
-
-    /** IDs of the policies eligible as copy-settings targets, passed down to the row menus */
-    copySettingsEligibleTargets: CopySettingsEligibleTargets;
 };
 
-export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, pendingDeletePolicyID, copySettingsEligibleTargets}: WorkspaceListTableProps) {
+export default function WorkspaceListTable({ref, workspaces, headerComponent, onDeleteWorkspace, pendingDeletePolicyID}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+    const canUseArchivePolicies = isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES);
+    const {isRestrictedPolicyCreation} = usePreferredPolicy();
+    const illustrations = useMemoizedLazyIllustrations(['PlanetWithMobileApp']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
@@ -107,6 +122,16 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
         return item.title.toLowerCase().includes(searchValue.toLowerCase());
     };
 
+    const canAccessArchived = (role: ValueOf<typeof CONST.POLICY.ROLE>) => role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.OWNER || role === CONST.POLICY.ROLE.AUDITOR;
+    const canSeeFilter = canUseArchivePolicies && workspaces.some((w) => canAccessArchived(w.role));
+    const searchBarComponent = (
+        <Table.FilterBar
+            label={translate('workspace.common.findWorkspace')}
+            shouldShowClearFiltersButton={canSeeFilter}
+        />
+    );
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
+
     const renderTableItem = ({item, index}: ListRenderItemInfo<WorkspaceRowData>) => {
         return (
             <WorkspaceRow
@@ -115,25 +140,87 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
                 shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
                 onDeleteWorkspace={onDeleteWorkspace}
                 pendingDeletePolicyID={pendingDeletePolicyID}
-                copySettingsEligibleTargets={copySettingsEligibleTargets}
             />
         );
     };
 
+    const isItemInFilter: IsItemInFilterCallback<WorkspaceRowData> = (item, filterValues) => {
+        if (item.isArchived && !canAccessArchived(item.role)) {
+            return false;
+        }
+
+        if (!filterValues || filterValues.length === 0) {
+            return !item.isArchived;
+        }
+
+        if (filterValues.includes(CONST.POLICY.WORKSPACE_STATUS.ACTIVE) && !item.isArchived) {
+            return true;
+        }
+
+        if (filterValues.includes(CONST.POLICY.WORKSPACE_STATUS.ARCHIVED) && item.isArchived) {
+            return true;
+        }
+
+        return false;
+    };
+
+    const filterConfig: FilterConfig | undefined = canSeeFilter
+        ? {
+              status: {
+                  label: translate('workspace.common.workspaceStatus'),
+                  filterType: CONST.TABLES.FILTER_TYPE.MULTI_SELECT,
+                  immediate: true,
+                  options: [
+                      {
+                          label: translate('workspace.common.active'),
+                          value: CONST.POLICY.WORKSPACE_STATUS.ACTIVE,
+                      },
+                      {
+                          label: translate('workspace.common.archived'),
+                          value: CONST.POLICY.WORKSPACE_STATUS.ARCHIVED,
+                      },
+                  ],
+              },
+          }
+        : undefined;
+
+    const emptyStateButtons = !isRestrictedPolicyCreation
+        ? [
+              {
+                  success: true,
+                  buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route))),
+                  buttonText: translate('workspace.new.newWorkspace'),
+              },
+          ]
+        : undefined;
+
     return (
         <Table
             ref={ref}
-            data={workspaces}
+            data={canSeeFilter ? workspaces : workspaces.filter((w) => !w.isArchived)}
             columns={workspaceTableColumns}
             renderItem={renderTableItem}
             compareItems={compareTableItems}
             isItemInSearch={isTableItemInSearch}
             initialSortColumn="workspaces"
             title={translate('common.workspaces')}
-            ListEmptyComponent={WorkspacesEmptyStateComponent}
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
+            filters={filterConfig}
+            isItemInFilter={isItemInFilter}
         >
-            {workspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findWorkspace')} />}
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
+            <Table.NoResultsState />
+            <Table.EmptyState
+                titleStyles={styles.pt2}
+                containerStyles={styles.mb10}
+                headerStyles={styles.emptyStateCardIllustrationContainer}
+                headerContentStyles={styles.emptyWorkspaceListStaticIllustrationStyle}
+                headerMedia={illustrations.PlanetWithMobileApp}
+                title={translate('workspace.emptyWorkspace.title')}
+                subtitle={translate('workspace.emptyWorkspace.subtitle')}
+                buttons={emptyStateButtons}
+            />
+
             <Table.Header />
             <Table.Body />
         </Table>

@@ -1,10 +1,5 @@
-import {NavigationContext} from '@react-navigation/core';
-import type {NavigationProp, ParamListBase} from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React, {useEffect, useLayoutEffect, useRef} from 'react';
-import type {PropsWithChildren, ReactNode} from 'react';
-import type {GestureResponderEvent, View as RNViewType} from 'react-native';
-import {View} from 'react-native';
+
 import * as PopoverMenu from '@components/PopoverMenu/v2';
 import {useContentNavigation, useContentSubActions} from '@components/PopoverMenu/v2/content/ContentContext';
 // Test-only: harness publishes `activeAnchor` synthetically so we don't need a real measurable trigger.
@@ -14,7 +9,18 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import usePressResponderPropsImport from '@components/Pressable/PressResponder/usePressResponderProps';
 import useResponderRefImport from '@components/Pressable/PressResponder/useResponderRef';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+
 import Log from '@libs/Log';
+
+import type {EventListenerCallback, EventMapCore, NavigationProp, NavigationState, ParamListBase} from '@react-navigation/native';
+import type {PropsWithChildren, ReactNode} from 'react';
+import type {GestureResponderEvent, View as RNViewType} from 'react-native';
+
+import {NavigationContext} from '@react-navigation/core';
+import React, {useEffect, useLayoutEffect, useRef} from 'react';
+import {View} from 'react-native';
+
+import createMock from '../utils/createMock';
 
 const {useIsAtActiveLevel} = PopoverMenu;
 
@@ -115,15 +121,25 @@ function pressShortcut(shortcutKey: string): void {
 const mockNavigationState: {blurListeners: Set<() => void>} = {
     blurListeners: new Set(),
 };
-const mockNavigation = {
-    addListener: (event: string, listener: () => void) => {
-        if (event !== 'blur') {
-            return () => {};
-        }
-        mockNavigationState.blurListeners.add(listener);
-        return () => mockNavigationState.blurListeners.delete(listener);
-    },
-} as unknown as NavigationProp<ParamListBase>;
+
+type NavigationEventMap = EventMapCore<NavigationState>;
+type NavigationAddListenerArgs = {
+    [EventName in keyof NavigationEventMap]: [event: EventName, listener: EventListenerCallback<NavigationEventMap, EventName>];
+}[keyof NavigationEventMap];
+
+function mockAddListener<EventName extends keyof NavigationEventMap>(event: EventName, listener: EventListenerCallback<NavigationEventMap, EventName>): () => void;
+function mockAddListener(...args: NavigationAddListenerArgs): () => void {
+    if (args[0] !== 'blur') {
+        return () => {};
+    }
+    const blurListener = () => args[1]({type: 'blur'});
+    mockNavigationState.blurListeners.add(blurListener);
+    return () => mockNavigationState.blurListeners.delete(blurListener);
+}
+
+const mockNavigation = createMock<NavigationProp<ParamListBase>>({
+    addListener: mockAddListener,
+});
 
 function fireBlur(): void {
     for (const fn of mockNavigationState.blurListeners) {
@@ -170,9 +186,8 @@ beforeEach(() => {
 
 // RN's View ref in jest exposes `measureInWindow` but not `getBoundingClientRect` (production paths have it); install the stub for tests that exercise the press → anchor-measurement path.
 function stubViewGetBoundingClientRect(): {restore: () => void} {
-    const proto = (View as unknown as {prototype: Record<string, unknown>}).prototype;
-    const original = proto.getBoundingClientRect as ((this: unknown) => DOMRect) | undefined;
-    proto.getBoundingClientRect = () => ({
+    const original = Object.getOwnPropertyDescriptor(View.prototype, 'getBoundingClientRect');
+    View.prototype.getBoundingClientRect = () => ({
         x: 0,
         y: 0,
         width: 0,
@@ -186,9 +201,9 @@ function stubViewGetBoundingClientRect(): {restore: () => void} {
     return {
         restore: () => {
             if (original) {
-                proto.getBoundingClientRect = original;
+                Object.defineProperty(View.prototype, 'getBoundingClientRect', original);
             } else {
-                delete proto.getBoundingClientRect;
+                Reflect.deleteProperty(View.prototype, 'getBoundingClientRect');
             }
         },
     };
@@ -1403,12 +1418,12 @@ describe('PopoverMenu V2', () => {
                     </PopoverMenu.Content>
                 </Harness>,
             );
-            const event = {
+            const event = createMock<GestureResponderEvent>({
                 defaultPrevented: false,
                 preventDefault() {
                     event.defaultPrevented = true;
                 },
-            } as unknown as GestureResponderEvent;
+            });
             act(() => {
                 const onPress = findItemByTitle('Drill')?.onPress;
                 if (typeof onPress === 'function') {

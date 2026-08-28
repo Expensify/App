@@ -1,9 +1,13 @@
-import {primaryLoginSelector} from '@selectors/Account';
 import useOnyx from '@hooks/useOnyx';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Policy} from '@src/types/onyx';
+import type {BankAccountList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {TimeSensitiveAdminPolicy} from '@selectors/Policy';
+
+import {primaryLoginSelector} from '@selectors/Account';
 
 type LockedBankAccount = {
     /** Stable key used to render this account widget */
@@ -16,7 +20,7 @@ type LockedBankAccount = {
     policyName?: string;
 };
 
-function useTimeSensitiveLockedBankAccount(adminPolicies: Policy[] | undefined) {
+function useTimeSensitiveLockedBankAccount(adminPolicies: TimeSensitiveAdminPolicy[] | undefined) {
     const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const lockedBankAccounts: LockedBankAccount[] = [];

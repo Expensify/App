@@ -1,30 +1,33 @@
-import {Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useCardFeeds from '@hooks/useCardFeeds';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+
 import {getCompanyCardFeed, getDomainOrWorkspaceAccountID, getPlaidCountry, getPlaidInstitutionId, isCardAlreadyAssigned, isSelectedFeedExpired, maskCardNumber} from '@libs/CardUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {
     assignWorkspaceCompanyCard,
     clearAssignCardErrors as clearAssignCardErrorsAction,
@@ -32,19 +35,23 @@ import {
     setAddNewCompanyCardStepAndData,
     setAssignCardStepAndData,
 } from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-type ConfirmationStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION>;
+import {Str} from 'expensify-common';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
+type ConfirmationStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION>;
 
 function ConfirmationStep({route}: ConfirmationStepProps) {
     const policyID = route.params.policyID;
     const feed = route.params.feed;
     const cardID = route.params.cardID;
-    const backTo = route.params?.backTo;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -65,7 +72,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
 
     const cardToAssign = assignCard?.cardToAssign;
 
-    const cardholder = getPersonalDetailByEmail(cardToAssign?.email ?? '');
+    const cardholder = usePersonalDetailByLogin(cardToAssign?.email ?? '');
     const cardholderName = Str.removeSMSDomain(cardholder?.displayName ?? '');
 
     const cardholderEmail = Str.removeSMSDomain(cardToAssign?.email ?? '');
@@ -79,17 +86,10 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             return;
         }
 
-        if (backTo) {
-            Navigation.dismissModal();
-            Navigation.navigate(backTo, {
-                afterTransition: () => clearAssignCardStepAndData(),
-            });
-        } else {
-            Navigation.dismissModal({
-                afterTransition: () => clearAssignCardStepAndData(),
-            });
-        }
-    }, [assignCard?.isAssignmentFinished, backTo]);
+        Navigation.dismissModal({
+            afterTransition: () => clearAssignCardStepAndData(),
+        });
+    }, [assignCard?.isAssignmentFinished]);
 
     const submit = () => {
         if (!policyID) {
@@ -121,17 +121,18 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             return;
         }
 
-        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, translate, {...cardToAssign, cardholder, bankName}, currentUserAccountID);
+        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, {...cardToAssign, cardholder, bankName}, cardholderAccountID, currentUserAccountID);
     };
 
     const editStep = (step: string) => {
         setAssignCardStepAndData({isEditing: true});
 
         const routeParams = {policyID, feed, cardID};
+        const assigneeRoute = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(feed, cardID), ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
 
         switch (step) {
             case CONST.COMPANY_CARD.STEP.ASSIGNEE:
-                Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(routeParams), {compareParams: false});
+                Navigation.goBack(assigneeRoute, {compareParams: false});
                 break;
             case CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE:
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
@@ -147,8 +148,13 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     };
 
     const handleBackButtonPress = () => {
-        setAssignCardStepAndData({isEditing: true});
-        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute({policyID, feed, cardID}), {compareParams: false});
+        // Header back is plain wizard back-navigation, so it must NOT set isEditing. Setting it here would make the
+        // assignee step think the user came to edit the cardholder and route its own back to Confirmation, trapping the
+        // user in a loop between Confirmation and Assignee. Editing the cardholder goes through editStep(ASSIGNEE), which is
+        // the one place that sets isEditing: true.
+        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(feed, cardID), ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
+            compareParams: false,
+        });
     };
 
     const clearAssignCardErrors = () => {
@@ -191,6 +197,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                         icon={cardholder?.avatar ?? getDefaultAvatarURL({accountID: cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID})}
                         iconType={CONST.ICON_TYPE_AVATAR}
                         shouldShowRightIcon
+                        pressableTestID={CONST.ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID}
                         onPress={() => editStep(CONST.COMPANY_CARD.STEP.ASSIGNEE)}
                     />
                     <MenuItemWithTopDescription
@@ -218,14 +225,15 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                         >
                             <Button
                                 isDisabled={isOffline}
-                                success
-                                large
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                size={CONST.BUTTON_SIZE.LARGE}
                                 isLoading={assignCard?.isAssigning}
                                 style={styles.w100}
                                 onPress={submit}
                                 testID={CONST.ASSIGN_CARD_BUTTON_TEST_ID}
-                                text={translate('workspace.companyCards.assignCard')}
-                            />
+                            >
+                                <Button.Text>{translate('workspace.companyCards.assignCard')}</Button.Text>
+                            </Button>
                         </OfflineWithFeedback>
                     </View>
                 </ScrollView>

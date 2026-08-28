@@ -1,22 +1,27 @@
-import {accountIDSelector} from '@selectors/Session';
-import {addMinutes} from 'date-fns';
-import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openExternalLink} from '@libs/actions/Link';
 import {cancelBooking, clearBookingDraft, rescheduleBooking} from '@libs/actions/ScheduleCall';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportNameValuePairs} from '@src/types/onyx';
-import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+
+import {accountIDSelector} from '@selectors/Session';
+import {addMinutes} from 'date-fns';
+import React from 'react';
+
 import type {DropdownOption, OnboardingHelpType} from './ButtonWithDropdownMenu/types';
+
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 
 type OnboardingHelpButtonProps = {
     /** The ID of onboarding chat report */
@@ -38,8 +43,11 @@ type OnboardingHelpButtonProps = {
 const reportNameValuePartsSelector = (reportNameValuePairs?: ReportNameValuePairs) => reportNameValuePairs?.calendlyCalls?.at(-1);
 
 function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldShowRegisterForWebinar, shouldShowGuideBooking, hasActiveScheduledCall}: OnboardingHelpButtonProps) {
-    const {translate} = useLocalize();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const {translate, dateFnsLocale} = useLocalize();
+    const StyleUtils = useStyleUtils();
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {
+        selector: accountIDSelector,
+    });
 
     const [latestScheduledCall] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
         selector: reportNameValuePartsSelector,
@@ -72,26 +80,27 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
 
     if (hasActiveScheduledCall && latestScheduledCall) {
         options.push({
-            text: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.WEEKDAY_TIME_FORMAT)}, ${DateUtils.formatInTimeZoneWithFallback(
+            text: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.WEEKDAY_TIME_FORMAT, {locale: dateFnsLocale})}, ${DateUtils.formatInTimeZoneWithFallback(
                 latestScheduledCall.eventTime,
                 userTimezone,
                 CONST.DATE.MONTH_DAY_YEAR_FORMAT,
+                {locale: dateFnsLocale},
             )}`,
             value: CONST.ONBOARDING_HELP.EVENT_TIME,
-            description: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)} - ${DateUtils.formatInTimeZoneWithFallback(
+            description: `${DateUtils.formatTimeInTimeZoneWithPeriod(translate, latestScheduledCall.eventTime, userTimezone)} - ${DateUtils.formatTimeInTimeZoneWithPeriod(
+                translate,
                 addMinutes(latestScheduledCall.eventTime, 30),
                 userTimezone,
-                CONST.DATE.LOCAL_TIME_FORMAT,
             )} ${DateUtils.getZoneAbbreviation(new Date(latestScheduledCall.eventTime), userTimezone)}`,
             descriptionTextStyle: [styles.themeTextColor, styles.ml2],
             displayInDefaultIconColor: true,
             icon: illustrations.HeadSet,
-            iconWidth: variables.avatarSizeLargeNormal,
-            iconHeight: variables.avatarSizeLargeNormal,
+            iconWidth: StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.LARGE),
+            iconHeight: StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.LARGE),
             wrapperStyle: [styles.mb3, styles.pl4, styles.pr5, styles.pt3, styles.pb6, styles.borderBottom],
             interactive: false,
             titleStyle: styles.ml2,
-            avatarSize: CONST.AVATAR_SIZE.LARGE_NORMAL,
+            avatarSize: CONST.AVATAR_SIZE.LARGE,
         });
         options.push({
             text: translate('common.reschedule'),
@@ -130,8 +139,8 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
                 option?.onSelected?.();
             }}
             pressOnEnter
-            success={!!hasActiveScheduledCall}
-            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+            variant={hasActiveScheduledCall ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
+            size={CONST.BUTTON_SIZE.MEDIUM}
             options={options}
             shouldUseOptionIcon
             isSplitButton={false}

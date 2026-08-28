@@ -1,8 +1,5 @@
-import {useRoute} from '@react-navigation/native';
-import {addMinutes} from 'date-fns';
-import React, {useEffect} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
@@ -11,10 +8,12 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openPublicProfilePage} from '@libs/actions/PersonalDetails';
 import {confirmBooking} from '@libs/actions/ScheduleCall';
 import DateUtils from '@libs/DateUtils';
@@ -22,15 +21,20 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ScheduleCallParamList} from '@libs/Navigation/types';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails} from '@src/types/onyx';
 
+import {useRoute} from '@react-navigation/native';
+import {addMinutes} from 'date-fns';
+import React, {useEffect} from 'react';
+
 function ScheduleCallConfirmationPage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
@@ -68,11 +72,11 @@ function ScheduleCallConfirmationPage() {
 
     let dateTimeString = '';
     if (scheduleCallDraft?.timeSlot && scheduleCallDraft.date) {
-        const dateString = DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
-        const timeString = `${DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft?.timeSlot, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)} - ${DateUtils.formatInTimeZoneWithFallback(
+        const dateString = DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT, {locale: dateFnsLocale});
+        const timeString = `${DateUtils.formatTimeInTimeZoneWithPeriod(translate, scheduleCallDraft?.timeSlot, userTimezone)} - ${DateUtils.formatTimeInTimeZoneWithPeriod(
+            translate,
             addMinutes(scheduleCallDraft?.timeSlot, 30),
             userTimezone,
-            CONST.DATE.LOCAL_TIME_FORMAT,
         )}`;
 
         const timezoneString = DateUtils.getZoneAbbreviation(new Date(scheduleCallDraft?.timeSlot), userTimezone);
@@ -135,11 +139,12 @@ function ScheduleCallConfirmationPage() {
                 </ScrollView>
                 <FixedFooter>
                     <Button
-                        success
-                        large
-                        text={translate('scheduledCall.confirmation.title')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={confirm}
-                    />
+                    >
+                        <Button.Text>{translate('scheduledCall.confirmation.title')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </FullPageOfflineBlockingView>
         </ScreenWrapper>

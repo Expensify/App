@@ -1,7 +1,7 @@
 ---
 title: Track Expenses
 description: Learn how to create and manage expenses in New Expensify without submitting them for reimbursement or approval.
-keywords: track expenses, create expense, scan receipt, enter mileage, expense chat, just track it
+keywords: track expenses, create expense, scan receipt, enter mileage, expense chat, just track it, out-of-pocket, out of pocket, out-of-pocket expenses, reimbursable
 ---
 
 
@@ -77,6 +77,10 @@ After tracking an expense, it also appears in an **Expense Chat** in the left-ha
 When you create a tracked expense, Concierge will show an actionable message with options in the Expense Chat:
    - **Submit it to someone** – Send it for approval or reimbursement.
    - **Nothing for now** – Leave it stored for later.
+
+You can also open the tracked expense and select **More** to submit it:
+   - **Send to someone** – Send the expense to another person to request payment.
+   - **Submit to my employer** – Submit the expense to a workspace for approval and reimbursement. If you do not have a workspace yet, one is created for you automatically.
 
 If you belong to a workspace, you can also click into the expense to:
    - **Categorize** – Assign to a workspace category.

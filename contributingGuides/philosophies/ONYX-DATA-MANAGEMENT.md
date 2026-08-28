@@ -37,6 +37,29 @@ Different platforms come with varying storage capacities and Onyx has a way to g
 - Add the key to the `evictableKeys` option in `Onyx.init(options)`
 - A least recently accessed key will only be deleted when an Onyx operation retries after failing.
 
+## Reading Onyx data: `useOnyx` vs `Onyx.connectWithoutView`
+There are only two ways to read Onyx data, and `Onyx.connect` is deprecated:
+1. **`useOnyx`** (from `@hooks/useOnyx`) — the default for anything a React component renders.
+2. **`Onyx.connectWithoutView`** — an imperative subscription for non-render logic, used only when `useOnyx` genuinely does not fit.
+
+### - Prefer a pure function over reading Onyx at all
+A pure function does not read Onyx itself — it receives the data it needs as parameters, and its caller does the reading (with `useOnyx` or `Onyx.connectWithoutView`) and passes it in. Before adding either subscription, check whether the code can be a pure function instead: it needs no connection, is trivial to test, and cannot cause extra rerenders. Prefer this even when it means passing more arguments. This takes precedence over everything below.
+
+### - Components MUST read Onyx with `useOnyx`, never `Onyx.connectWithoutView`
+Any value used during render belongs in `useOnyx` so the UI updates when the value changes.
+
+### - `Onyx.connectWithoutView` is ONLY for data that is never used during render
+It is appropriate for module-level state in actions/libraries that is read by non-React logic (e.g. network layer, pusher subscriptions, test files, etc.), where `useOnyx` is not possible. 
+
+### - Existing `Onyx.connectWithoutView` usage is NOT a template to copy
+Do not add a new `Onyx.connectWithoutView` just because nearby code uses it. Justify each new use on its own against the rule above; when in doubt, use `useOnyx`.
+
+### - Every new `Onyx.connectWithoutView` MUST have a comment explaining why it is needed
+Add an inline comment at each new `Onyx.connectWithoutView` call stating why the data cannot come from a pure function or `useOnyx`, so reviewers and future readers can see the choice was deliberate.
+
+### - Using `Onyx.connectWithoutView` in a component for performance REQUIRES @frontend-performance approval
+In rare cases a component that subscribes to multiple large collections through `useOnyx` suffers a significant performance regression. Reaching for `Onyx.connectWithoutView` to avoid that is an explicit exception, not a self-serve option: it MUST be approved by the `@frontend-performance` team on Slack, and the PR description MUST link to that discussion.
+
 ## Onyx Derived Values
 
 Derived values are special Onyx keys which contain values derived from other Onyx values. These are available as a performance optimization, so that if the result of a common computation of Onyx values is needed in many places across the app, the computation can be done only as needed in a centralized location, and then shared across the app. Once created, Onyx derived values are stored and consumed just like any other Onyx value.
@@ -115,3 +138,50 @@ compute: ([reports, personalDetails]) => {
 - Explain the purpose and dependencies
 - Document any special cases or performance considerations
 - Include type annotations for better developer experience
+
+### - Recompute rate is monitored in production
+Every derived value flush passes through `detectOnyxDerivedLoop` (`src/libs/telemetry/detectOnyxDerivedLoop.ts`). If one derived key recomputes more than `RECOMPUTE_THRESHOLD` times inside `WINDOW_MS`, it reports `[OnyxDerived] recompute loop detected for <key>` once per key per session to Sentry (fingerprinted `['onyx-derived-loop', <key>]`) and to the server log, with a per-dependency count showing which dependency is driving the churn. Recomputes during app startup are ignored, since dependencies legitimately hydrate in bursts.
+
+If your derived value trips it, look at the dependency counts to find which dependency recomputed the most. There are two common causes: the derived value depends on a key that updates much more often than it needs, or it depends on another derived value that in turn depends back on it.
+
+## Onyx State Export
+
+Users can export their Onyx state from **Settings → Troubleshoot → Export Onyx state** (used mainly to attach state to bug reports). Because Onyx holds sensitive data (credentials, tokens, banking data, personal details), the export is passed through `maskOnyxState` (`src/libs/ExportOnyxState/common.ts`) which removes or masks fragile data before it ever leaves the device.
+
+### - There are two ways the export masks data
+The buckets below make more sense once you know how the two masking treatments differ.
+
+**`maskFragileData` masks only what it recognizes.** It walks through a value and:
+- Replaces fields whose *name* it knows (`firstName`, `lastName`, `phoneNumber`, `addressStreet`, `accountNumber`, `routingNumber`, `cardNumber`, `validateCode`, `source`, `name`, and others in `keysToMask`) with a random string of the same length.
+- Swaps email addresses for fake ones, whether they appear as a value, as an object key, or inside a longer string.
+- Randomizes amount fields like `amount` and `total`, and replaces report action `text` and `html` with `***`.
+- Leaves everything else exactly as it was.
+
+That last point matters. If a secret is stored under a field name it doesn't know about, it gets exported in cleartext. `MAPBOX_ACCESS_TOKEN` is the example: its secret lives in a field called `token`, which isn't in `keysToMask`, so it has to be removed instead.
+
+**An export rule masks everything you don't ask to keep.** A rule lists an `allowList` of fields to keep and a `maskList` of fields to replace with a random string of the same length. Fields in neither list still get handled: objects are walked, numbers are randomized, dates become today's date, strings are masked, and anything else becomes `***`. Forgetting about a field means it gets masked rather than exported.
+
+In short, write a rule when you can't be sure what every field holds, and use `maskFragileData` when you can.
+
+### - Every Onyx key MUST be deliberately categorized for export
+A key holding credentials and a key holding a boolean flag both need a decision made about them, and there's no default that's safe for both. So every top-level and `COLLECTION.*` key in `ONYXKEYS` goes into exactly one of four buckets in `src/libs/ExportOnyxState/common.ts`.
+
+**1. `onyxKeysToRemove` — dropped from the export.**
+This is the most sensitive data that belongs to a user, so use this bucket for anything that might cause a security concern if it was leaked: credentials, access tokens and third-party secrets like the push notification ID, Stripe customer ID, Plaid and merge-HR link tokens, Onfido token and applicant ID, and the Mapbox access token. It's also the right choice when a value is a secret that neither masking treatment would catch. All `DERIVED` keys live here too, since they're recomputed from other keys and add nothing to a bug report.
+
+**2. `ONYX_KEY_EXPORT_RULES` — keep some fields, mask the rest.**
+Use this when a key holds a mix of PII and fields that are genuinely useful for debugging, like `SESSION` (where `accountID` is kept and the auth token is masked), `ACCOUNT`, `COLLECTION.REPORT`, `COLLECTION.TRANSACTION`, `USER_WALLET` and `CARD_LIST`. It's also the safer choice for a large or growing object, because a field added later gets masked on its own instead of quietly ending up in the export.
+
+**3. `safeOnyxKeys` — exported as-is.**
+Only use this when you're sure the value holds nothing personal: booleans, loading states, feature flags, enums, numeric IDs, timestamps and config values. Nothing is masked here, so one sensitive field anywhere in the value ends up in the export. If the value is a free-form string, or an object that's likely to grow, pick a different bucket.
+
+**4. `onyxKeysToMaskFragileData` — handled by `maskFragileData`.**
+Use this for everyday user data whose sensitive fields are ones `maskFragileData` already knows by name, such as personal details, drafts, report actions and policy data. Don't use it for a key holding a secret under a field name it won't recognize, as that belongs in `onyxKeysToRemove` or needs its own rule. When you're not sure every sensitive field is covered, write a rule.
+
+### - When adding a new Onyx key you MUST place it in one of the four buckets
+The coverage test in `tests/unit/ExportOnyxStateTest.ts` fails when a key exists in `ONYXKEYS` but isn't in any bucket, so a new key can't quietly pick up a default. Whoever adds it has to decide whether it should be masked.
+
+Keep in mind that nothing reads `onyxKeysToMaskFragileData` at runtime, and adding a key to it doesn't mask anything by itself. It's written out by hand so the coverage test can tell the difference between a key that's meant to fall through to `maskFragileData` and one nobody has categorized yet.
+
+### - Deciding a key is safe is a judgment call
+A key in `safeOnyxKeys` is exported with no masking, so it MUST NOT hold credentials, tokens, banking data or personal details. No test can check this for you, because nothing in the test suite knows what fields a key actually holds, which makes it a decision someone has to make by reading the type. The `knownSensitiveKeys` denylist test covers the keys we already know are sensitive, and fails if one of them is ever moved into `safeOnyxKeys`.

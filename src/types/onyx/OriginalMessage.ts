@@ -1,11 +1,14 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
+import type {ValueOf} from 'type-fest';
+
 import type {CardID} from './Card';
 import type {PolicyRuleTaxRate} from './ExpenseRule';
 import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
 import type {AllConnectionName} from './Policy';
+import type {PolicyChangeLogCopyReportActionNames} from './ReportAction';
 import type ReportActionName from './ReportActionName';
 import type {Reservation, TransactionCommentVendor} from './Transaction';
 import type TransactionPending3DSReview from './TransactionPending3DSReview';
@@ -79,6 +82,9 @@ type OriginalMessageIOU = {
     /** The bank account id */
     bankAccountID?: number;
 
+    /** Masked number (e.g., 'XXXXXX1234') of the bank account used to fund the payment */
+    accountNumber?: string;
+
     /** True when the submitter marked the report as payment received outside Expensify */
     isSubmitterMarkedPaymentReceived?: boolean;
 
@@ -87,6 +93,18 @@ type OriginalMessageIOU = {
 
     /** Currency of the transaction money */
     currency?: string;
+
+    /** Cross-border FX reimbursement: amount credited to the employee, in their deposit currency */
+    creditedAmount?: number;
+
+    /** Cross-border FX reimbursement: currency of `creditedAmount` (the employee deposit currency) */
+    creditedCurrency?: string;
+
+    /** Cross-border FX reimbursement: last 4 of the company withdrawal (VBA) account that was debited */
+    debitBankAccountLast4?: string;
+
+    /** Cross-border FX reimbursement: last 4 of the employee deposit account that was credited */
+    creditBankAccountLast4?: string;
 
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
@@ -113,6 +131,9 @@ type Decision = {
 type OriginalMessageSmartScanFailed = {
     /** Fields that are missing */
     missingFields: string[];
+
+    /** LLM-friendly explanation of the scan failure that activates the Explain button */
+    reasoning?: string;
 };
 
 /** Model of `add comment` report action */
@@ -137,6 +158,9 @@ type OriginalMessageAddComment = {
 
     /** The accountID of the human agent assisting Concierge when "Reply as yourself" is used */
     humanAgentAccountID?: number;
+
+    /** The AgentZero request ID that produced this comment, surfaced for internal tracing in non-production builds */
+    agentZeroRequestID?: string;
 };
 
 /** Model of `actionable mention whisper` report action */
@@ -580,7 +604,10 @@ type OriginalMessagePolicyChangeLog = {
     /** Rate amount in cents for the custom unit rate */
     rate?: number;
 
-    /** Unit of the custom unit (e.g. "mi", "km") */
+    /**
+     * Distance unit ('mi' or 'km'). Used by custom-unit rate change logs and
+     * commuter-exclusion change logs.
+     */
     unit?: string;
 
     /** Start date of the custom unit rate (yyyy-MM-dd), used in ADD actions */
@@ -630,6 +657,9 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Updated tag enabled/disabled value */
     enabled?: boolean;
+
+    /** Who pays the currency conversion fees on cross-border reimbursements */
+    preference?: ValueOf<typeof CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE>;
 
     /** Default value of a report field */
     defaultValue?: string;
@@ -810,6 +840,9 @@ type OriginalMessagePolicyChangeLog = {
 /** Amount operators for spend rules */
 type SpendRuleAmountOperator = typeof CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN | typeof CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO;
 
+/** Currency operators for spend rules */
+type SpendRuleCurrencyOperator = typeof CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO | typeof CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO;
+
 /** Model of an Expensify card spend rule change log action (add, update, or remove) */
 type OriginalMessageSpendRuleChangeLog = {
     /** Spend rule action */
@@ -829,6 +862,24 @@ type OriginalMessageSpendRuleChangeLog = {
 
     /** Previous list of categories when a spend rule was updated */
     oldCategories?: string[];
+
+    /** Currencies included in the spend rule */
+    currencies?: Array<{
+        /** Operator (`eq` for "is", `ne` for "is not") */
+        operator: SpendRuleCurrencyOperator;
+
+        /** Currency value */
+        value: string[];
+    }>;
+
+    /** Old currencies included in the spend rule */
+    oldCurrencies?: Array<{
+        /** Operator (`eq` for "is", `ne` for "is not") */
+        operator: SpendRuleCurrencyOperator;
+
+        /** Currency value */
+        value: string[];
+    }>;
 
     /** Max-amount filters in a spend rule */
     amounts?: Array<{
@@ -868,6 +919,30 @@ type OriginalMessageSpendRuleChangeLog = {
 
     /** Currency of the spend rule */
     currency?: string;
+};
+
+/** Model of a workspace agent rule change log action (add, update, or delete) */
+type OriginalMessageAgentRuleChangeLog = {
+    /** ID of the policy the agent rule belongs to */
+    policyID?: string;
+
+    /** ID of the agent rule that changed */
+    ruleID?: string;
+
+    /** Server-generated one-line title of the agent rule */
+    ruleTitle?: string;
+
+    /** Natural-language prompt of the agent rule (present for add/update, omitted for delete) */
+    prompt?: string;
+};
+
+/** Model of a policy copy change log action */
+type OriginalMessagePolicyChangeCopyLog = {
+    /** The ID of the source policy from which the user copied settings */
+    sourcePolicyID?: string;
+
+    /** The quantity of the item copied from source policy */
+    quantity?: number;
 };
 
 /** Model of `join policy` report action */
@@ -1243,8 +1318,11 @@ type OriginalMessageReimbursed = {
     /** Raw payment method field as stored by Auth (e.g., 'Fast_ACH', 'Check', 'StripeConnect', or standard ACH) - set on real-time Pusher updates */
     method?: string;
 
-    /** Last 4 digits of the debit bank account used to fund the payment */
+    /** Last 4 digits of the debit bank account used to fund the payment - set by the openReport path */
     debitBankAccountLast4?: string;
+
+    /** Masked number (e.g., 'XXXXXX1234') of the debit bank account used to fund the payment - set on real-time Pusher updates */
+    accountNumber?: string;
 
     /** Last 4 digits of the credit bank account receiving the payment */
     creditBankAccountLast4?: string;
@@ -1260,6 +1338,12 @@ type OriginalMessageReimbursed = {
 
     /** For StripeConnect payments, indicates payment type ('card' or 'bank account') */
     stripePaymentType?: string;
+
+    /** Cents credited to the employee on a cross-border FX reimbursement, in the employee's deposit currency */
+    creditedAmount?: number;
+
+    /** Currency the creditedAmount is denominated in (the employee's deposit currency) */
+    creditedCurrency?: string;
 };
 
 /** Model of `trip room preview` report action */
@@ -1354,7 +1438,8 @@ type OriginalMessageExportIntegration = {
     reimbursableUrls?: string[];
 
     /**
-     * A list of URLs to the Travel Invoicing Journal Entry records
+     * A list of URLs to the Travel Billing Journal Entry records.
+     * The key keeps the legacy spelling because it is stored in existing report actions.
      */
     travelInvoicingUrls?: string[];
 
@@ -1450,6 +1535,19 @@ type OriginalMessagePlaidBalanceFailure = {
 };
 
 /**
+ * Original message for a COMMUTER_EXCLUSION system action,
+ * posted to the workspace chat when a distance expense has the workspace's
+ * commuter exclusion applied to it.
+ */
+type OriginalMessageCommuterExclusion = {
+    /** The distance that was deducted, formatted to 2 decimals (e.g. "1.00") */
+    distance: string;
+
+    /** Display unit ("mi" or "km") */
+    unit: string;
+};
+
+/**
  * Original message for DEW_SUBMIT_FAILED and DEW_APPROVE_FAILED actions
  */
 type OriginalMessageDEWFailed = {
@@ -1527,6 +1625,9 @@ type OriginalMessageIntegrationMessage = {
     result: {
         /** Wether action was successful */
         success: boolean;
+
+        /** Whether the message is informational (the export was reconciled as already recorded in the integration) rather than an error */
+        reconciled?: boolean;
     };
 };
 
@@ -1548,6 +1649,20 @@ type OriginalMessageTakeControl = {
 type OriginalMessageReassignApprover = {
     /** Account ID of the new approver assigned by the system */
     newApproverID: number;
+};
+
+/**
+ * Model of Delegate Submit action original message (posted when a report is auto-forwarded to a vacation delegate)
+ */
+type OriginalMessageDelegateSubmit = {
+    /** Email of the manager the report would normally have been sent to */
+    originalManager: string;
+
+    /** Email of the vacation delegate the report was sent to (or would have been sent to) */
+    delegate: string;
+
+    /** Whether the delegate is a member of the report's policy. Defaults to true when absent. */
+    isOnPolicy?: boolean;
 };
 
 /**
@@ -1579,6 +1694,17 @@ type IssueNewCardOriginalMessage = OriginalMessage<
 >;
 
 /**
+ * Model of a HOME_ADDRESS_REQUIRED Concierge report action.
+ */
+type OriginalMessageHomeAddressRequired = {
+    /** ID of the policy whose commuter-exclusion change triggered the prompt */
+    policyID: string;
+
+    /** Set once the member saves a home address, marking the prompt as satisfied */
+    resolution?: string | null;
+};
+
+/**
  * Model of reimbursement director information report action
  */
 type OriginalMessageReimbursementDirectorInformationRequired = {
@@ -1596,6 +1722,17 @@ type OriginalMessageReimbursementDirectorInformationRequired = {
 
     /** Whether user added signer information */
     completed: boolean;
+};
+
+/**
+ * Model of the travel nudge report action Concierge posts on an out-of-platform travel expense.
+ */
+type OriginalMessageTravelNudge = {
+    /** The kind of bookable travel the expense was classified as */
+    travelType: ValueOf<typeof CONST.RESERVATION_TYPE>;
+
+    /** Whether the expense was created from a card import or manually */
+    origination: ValueOf<typeof CONST.TRAVEL_NUDGE.ORIGINATION>;
 };
 
 /** The map type of original message */
@@ -1667,6 +1804,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.TASK_EDITED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL]: OriginalMessageTakeControl;
+    [CONST.REPORT.ACTIONS.TYPE.TRAVEL_NUDGE]: OriginalMessageTravelNudge;
     [CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE]: OriginalMessageTravelUpdate;
     [CONST.REPORT.ACTIONS.TYPE.UNAPPROVED]: OriginalMessageUnapproved;
     [CONST.REPORT.ACTIONS.TYPE.UNHOLD]: never;
@@ -1697,19 +1835,26 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_DESCRIPTION_OPTIONS]: OriginalMessageConciergeDescriptionOptions;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MAP_MCC_GROUPS]: OriginalMessageConciergeAutoMapMccGroups;
     [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN]: OriginalMessageCompanyCardConnectionBroken;
+    [CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION]: OriginalMessageCommuterExclusion;
     [CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE]: OriginalMessagePlaidBalanceFailure;
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
     [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: OriginalMessageSmartScanFailed;
     [CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER]: OriginalMessageReassignApprover;
     [CONST.REPORT.ACTIONS.TYPE.REROUTE]: OriginalMessageTakeControl;
+    [CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT]: OriginalMessageDelegateSubmit;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
+    [CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED]: OriginalMessageHomeAddressRequired;
     [CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED]: OriginalMessageSettlementAccountLocked;
-} & OldDotOriginalMessageMap &
-    Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>, OriginalMessagePolicyChangeLog> & {
+} & Omit<OldDotOriginalMessageMap, typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> &
+    Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>, OriginalMessagePolicyChangeLog> &
+    Record<PolicyChangeLogCopyReportActionNames, OriginalMessagePolicyChangeCopyLog> & {
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EXPENSIFY_CARD_RULE]: OriginalMessageSpendRuleChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE]: OriginalMessageSpendRuleChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_EXPENSIFY_CARD_RULE]: OriginalMessageSpendRuleChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_AGENT_RULE]: OriginalMessageAgentRuleChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AGENT_RULE]: OriginalMessageAgentRuleChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE]: OriginalMessageAgentRuleChangeLog;
     } & Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>, OriginalMessageChangeLog>;
 
 type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessageMap ? OriginalMessageMap[T] : never;
@@ -1718,6 +1863,7 @@ export default OriginalMessage;
 export type {
     DecisionName,
     OriginalMessageIOU,
+    OriginalMessageReportPreview,
     ChronosOOOEvent,
     PaymentMethodType,
     OriginalMessageSource,

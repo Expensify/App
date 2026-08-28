@@ -1,16 +1,32 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import {resolveOpenAppDuplicationConflictAction, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
+import {isClientTheLeader} from '@libs/ActiveClientManager';
 import * as NetworkState from '@libs/NetworkState';
+
 import {clear as clearPersistedRequests, getAll, getLength, getOngoingRequest, updateOngoingRequest} from '@userActions/PersistedRequests';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
-import * as RequestModule from '../../src/libs/Request';
+
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import type Request from '../../src/types/onyx/Request';
 import type {AnyRequest, ConflictActionData} from '../../src/types/onyx/Request';
 import type {MockFetch} from '../utils/TestHelper';
+
+import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
+import * as RequestModule from '../../src/libs/Request';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+jest.mock('@libs/ActiveClientManager', () => ({
+    isClientTheLeader: jest.fn(() => true),
+    isReady: jest.fn(() => Promise.resolve()),
+    init: jest.fn(),
+}));
+const mockedIsClientTheLeader = jest.mocked(isClientTheLeader);
 
 const request: Request<'userMetadata'> = {
     command: 'ReconnectApp',
@@ -399,6 +415,201 @@ describe('SequentialQueue', () => {
             onyxUpdateSpy.mockRestore();
         }
     });
+
+    it('should reset the shared throttle when the queue stops because the app went offline', async () => {
+        const offlineSpy = jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(false);
+        mockFetch.mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
+
+        try {
+            await SequentialQueue.push(request);
+            await waitForBatchedUpdates();
+
+            // The request failed once, so the throttle is now carrying a retry count and a wait time.
+            const scheduledWait = SequentialQueue.sequentialQueueRequestThrottle.getLastRequestWaitTime();
+            expect(scheduledWait).toBeGreaterThan(0);
+
+            // Go offline while the retry is still sleeping. When it wakes, process() stops on its offline guard.
+            offlineSpy.mockReturnValue(true);
+            await new Promise((resolve) => {
+                setTimeout(resolve, scheduledWait + 10);
+            });
+
+            // The next command must start from a fresh count and a floor-range wait rather than inherit this one.
+            expect(SequentialQueue.sequentialQueueRequestThrottle.getLastRequestWaitTime()).toBe(0);
+        } finally {
+            offlineSpy.mockRestore();
+        }
+    });
+});
+
+describe('SequentialQueue - reconnect coverage collapse', () => {
+    // Build a ReconnectApp wired to the real resolver exactly as API.writeWithNoDuplicatesReconnectConflictAction
+    // does, so these tests exercise the wiring, not a stand-in matcher. getOngoingRequest() is read inside the
+    // closure (both eval passes agree).
+    function makeReconnectRequest<TKey extends OnyxKey = never>(overrides: {command: 'ReconnectApp'; data?: Record<string, unknown>} & Partial<Request<TKey>>): Request<TKey> {
+        const incoming: AnyRequest = {command: overrides.command, data: overrides.data};
+        return {
+            ...overrides,
+            checkAndFixConflictingRequest: (persistedRequests) => resolveReconnectDuplicationConflictAction(persistedRequests as AnyRequest[], getOngoingRequest(), incoming),
+        } as Request<TKey>;
+    }
+
+    // Build an OpenApp wired as API.writeWithNoDuplicatesOpenAppConflictAction does.
+    function makeOpenAppRequest<TKey extends OnyxKey = never>(shouldDedupeWithInFlight = true): Request<TKey> {
+        return {
+            command: 'OpenApp',
+            checkAndFixConflictingRequest: (persistedRequests) => resolveOpenAppDuplicationConflictAction(persistedRequests as AnyRequest[], getOngoingRequest(), shouldDedupeWithInFlight),
+        } as Request<TKey>;
+    }
+
+    it('drops an identical reconnect enqueued while one is in flight, leaving only one on the wire', async () => {
+        mockFetch.pause();
+        try {
+            await SequentialQueue.push(makeReconnectRequest({command: 'ReconnectApp'}));
+            await waitForBatchedUpdates();
+            expect(getOngoingRequest()?.command).toBe('ReconnectApp');
+
+            // An identical full reconnect lands mid-flight. It is fully covered, so it is dropped.
+            await SequentialQueue.push(makeReconnectRequest({command: 'ReconnectApp'}));
+
+            // Only the in-flight request remains; nothing was added to the waiting queue.
+            expect(getLength()).toBe(1);
+            expect(getAll()).toHaveLength(0);
+        } finally {
+            await mockFetch.resume();
+        }
+    });
+
+    it('keeps a full reconnect that arrives while only an incremental one is in flight (no data lost)', async () => {
+        mockFetch.pause();
+        try {
+            await SequentialQueue.push(makeReconnectRequest({command: 'ReconnectApp', data: {updateIDFrom: 500}}));
+            await waitForBatchedUpdates();
+            expect(getOngoingRequest()?.data?.updateIDFrom).toBe(500);
+
+            // A full reconnect re-fetches more than the in-flight incremental one, so it must run after.
+            await SequentialQueue.push(makeReconnectRequest({command: 'ReconnectApp'}));
+
+            expect(getLength()).toBe(2);
+            expect(getAll().at(0)?.data?.updateIDFrom).toBeUndefined();
+        } finally {
+            await mockFetch.resume();
+        }
+    });
+
+    it('does not collapse an unrelated command enqueued during an in-flight reconnect', async () => {
+        mockFetch.pause();
+        try {
+            await SequentialQueue.push(makeReconnectRequest({command: 'ReconnectApp'}));
+            await waitForBatchedUpdates();
+            expect(getOngoingRequest()?.command).toBe('ReconnectApp');
+
+            await SequentialQueue.push({command: 'AddComment', data: {reportActionID: '1'}});
+
+            expect(getLength()).toBe(2);
+            expect(getAll().some((r) => r.command === 'AddComment')).toBe(true);
+        } finally {
+            await mockFetch.resume();
+        }
+    });
+
+    it('drops an incoming incremental reconnect rather than clobbering a waiting full reconnect (under-fetch fix)', async () => {
+        // The generic resolver would `replace` the waiting full reconnect with the newer incremental one,
+        // silently narrowing coverage. The reconnect resolver drops the incremental and keeps the full.
+        SequentialQueue.pause();
+        try {
+            await SequentialQueue.push(makeReconnectRequest({command: 'ReconnectApp'}));
+            await SequentialQueue.push(makeReconnectRequest({command: 'ReconnectApp', data: {updateIDFrom: 500}}));
+
+            expect(getLength()).toBe(1);
+            expect(getAll().at(0)?.data?.updateIDFrom).toBeUndefined();
+        } finally {
+            SequentialQueue.unpause();
+        }
+    });
+
+    it('clears IS_LOADING_REPORT_DATA after a dropped duplicate, once the in-flight reconnect finishes', async () => {
+        const onyxData = {
+            optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.IS_LOADING_REPORT_DATA, value: true}] as Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_REPORT_DATA>>,
+            finallyData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.IS_LOADING_REPORT_DATA, value: false}] as Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_REPORT_DATA>>,
+        };
+        let isLoadingReportData: boolean | undefined;
+        const connectionID = Onyx.connect({
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            callback: (value) => {
+                isLoadingReportData = value;
+            },
+        });
+
+        try {
+            mockFetch.pause();
+            await SequentialQueue.push(makeReconnectRequest<typeof ONYXKEYS.IS_LOADING_REPORT_DATA>({command: 'ReconnectApp', ...onyxData}));
+            await waitForBatchedUpdates();
+            await SequentialQueue.push(makeReconnectRequest<typeof ONYXKEYS.IS_LOADING_REPORT_DATA>({command: 'ReconnectApp', ...onyxData}));
+            expect(getLength()).toBe(1);
+            await mockFetch.resume();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            // The in-flight cycle owns the shared flag; its finallyData clears the spinner even under the drop.
+            expect(isLoadingReportData).toBe(false);
+        } finally {
+            Onyx.disconnect(connectionID);
+        }
+    });
+
+    it('keeps an incoming OpenApp that arrives while a reconnect is in flight (HAS_LOADED_APP path is preserved)', async () => {
+        mockFetch.pause();
+        try {
+            await SequentialQueue.push(makeReconnectRequest({command: 'ReconnectApp'}));
+            await waitForBatchedUpdates();
+            expect(getOngoingRequest()?.command).toBe('ReconnectApp');
+
+            // A reconnect does not carry OpenApp's payload, so it never covers an incoming OpenApp.
+            await SequentialQueue.push(makeOpenAppRequest());
+
+            expect(getLength()).toBe(2);
+            expect(getAll().at(0)?.command).toBe('OpenApp');
+        } finally {
+            await mockFetch.resume();
+        }
+    });
+
+    it('drops an incoming OpenApp enqueued while one is in flight, leaving only one full download on the wire', async () => {
+        mockFetch.pause();
+        try {
+            await SequentialQueue.push(makeOpenAppRequest());
+            await waitForBatchedUpdates();
+            expect(getOngoingRequest()?.command).toBe('OpenApp');
+
+            await SequentialQueue.push(makeOpenAppRequest());
+
+            expect(getLength()).toBe(1);
+            expect(getAll()).toHaveLength(0);
+        } finally {
+            await mockFetch.resume();
+        }
+    });
+
+    it('keeps an incoming OpenApp that opted out of the dedupe while one is in flight', async () => {
+        mockFetch.pause();
+        try {
+            await SequentialQueue.push(makeOpenAppRequest());
+            await waitForBatchedUpdates();
+            expect(getOngoingRequest()?.command).toBe('OpenApp');
+
+            // The priority-mode refetch opts out: identical params, but the in-flight response is the old report set.
+            await SequentialQueue.push(makeOpenAppRequest(false));
+
+            expect(getLength()).toBe(2);
+            expect(getAll().at(0)?.command).toBe('OpenApp');
+        } finally {
+            await mockFetch.resume();
+        }
+    });
+
+    // The failure→retry→no-loss story (a dropped duplicate is a subset of the durable, retryable in-flight
+    // request) rests on the queue's existing retry/backoff, which is exercised in tests/unit/APITest.ts.
 });
 
 describe('SequentialQueue - QueueFlushedData', () => {
@@ -412,5 +623,346 @@ describe('SequentialQueue - QueueFlushedData', () => {
         await SequentialQueue.saveQueueFlushedData(...updates);
         await SequentialQueue.clearQueueFlushedData();
         expect(SequentialQueue.getQueueFlushedData()).toEqual([]);
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    // Pushes an OpenApp request carrying queueFlushedData, with processWithMiddleware mocked to resolve with the given jsonCode.
+    async function pushOpenAppAndWaitForIdle(jsonCode: number) {
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldFailAllRequests: false, shouldForceOffline: false});
+        await clearPersistedRequests();
+        await waitForBatchedUpdates();
+
+        const flushedUpdate: OnyxUpdate<typeof ONYXKEYS.HAS_LOADED_APP> = {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.HAS_LOADED_APP, value: true};
+        jest.spyOn(RequestModule, 'processWithMiddleware').mockResolvedValue({jsonCode});
+        SequentialQueue.push({command: 'OpenApp', queueFlushedData: [flushedUpdate]});
+        await SequentialQueue.waitForIdle();
+        await waitForBatchedUpdates();
+    }
+
+    it('does not commit queueFlushedData when the resolved response is not a 200', async () => {
+        await pushOpenAppAndWaitForIdle(CONST.JSON_CODE.BAD_REQUEST);
+
+        // A failed-but-resolved OpenApp must not stage HAS_LOADED_APP, or the next boot runs ReconnectApp only and can't self-heal.
+        expect(SequentialQueue.getQueueFlushedData()).toEqual([]);
+        expect(await getOnyxValue(ONYXKEYS.HAS_LOADED_APP)).toBeFalsy();
+    });
+
+    it('commits queueFlushedData when the resolved response is a 200', async () => {
+        await pushOpenAppAndWaitForIdle(CONST.JSON_CODE.SUCCESS);
+
+        expect(await getOnyxValue(ONYXKEYS.HAS_LOADED_APP)).toBe(true);
+    });
+});
+
+describe('SequentialQueue - pause watchdog', () => {
+    beforeEach(() => {
+        // Keep setImmediate real so waitForBatchedUpdates and Onyx batching still work under fake timers.
+        jest.useFakeTimers({doNotFake: ['setImmediate', 'nextTick']});
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+        SequentialQueue.resetQueue();
+        SequentialQueue.registerPauseWatchdogEscalation(() => Promise.resolve());
+        mockedIsClientTheLeader.mockReturnValue(true);
+        NetworkState.setForceOffline(false);
+        jest.useRealTimers();
+    });
+
+    it('should force-unpause a pause stuck without progress for the full window', async () => {
+        const escalation = jest.fn(() => Promise.resolve());
+        SequentialQueue.registerPauseWatchdogEscalation(escalation);
+
+        SequentialQueue.pause();
+        expect(SequentialQueue.isPaused()).toBe(true);
+
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
+
+        expect(escalation).toHaveBeenCalledTimes(1);
+        expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
+    it('should re-arm on applied-update progress, so a progressing catch-up is not interrupted', async () => {
+        SequentialQueue.registerPauseWatchdogEscalation(() => Promise.resolve());
+        SequentialQueue.pause();
+
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2);
+        // The client applies a newer update mid-pause: the watchdog window restarts.
+        // (No waitForBatchedUpdates here — under fake timers it runs all pending timers, firing the watchdog early; the subscriber callback is synchronous anyway.)
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 12345);
+
+        // Three-quarters of a window later the ORIGINAL deadline is long past, but not the re-armed one.
+        await jest.advanceTimersByTimeAsync((CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 4) * 3);
+        expect(SequentialQueue.isPaused()).toBe(true);
+
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 4);
+        expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
+    it('does not treat a decrease or clear of the applied-update key as progress', async () => {
+        const escalation = jest.fn(() => Promise.resolve());
+        SequentialQueue.registerPauseWatchdogEscalation(escalation);
+
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 100);
+        SequentialQueue.pause();
+
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2);
+        // A decrease (e.g. an Onyx.clear() elsewhere) must not look like this tab making progress.
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 50);
+
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2);
+
+        expect(escalation).toHaveBeenCalledTimes(1);
+        expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
+    it('should not fire while offline, where a paused queue has no way to advance', async () => {
+        const escalation = jest.fn(() => Promise.resolve());
+        SequentialQueue.registerPauseWatchdogEscalation(escalation);
+
+        NetworkState.setForceOffline(true);
+        SequentialQueue.pause();
+
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS * 2);
+
+        // The pause isn't orphaned, the client is just offline. Alerting would poison the telemetry this watchdog
+        // exists to produce, the reconnect could not succeed, and force-unpausing would drain WRITEs against a client
+        // known to be behind.
+        expect(escalation).not.toHaveBeenCalled();
+        expect(SequentialQueue.isPaused()).toBe(true);
+    });
+
+    it('should stop the clock when going offline mid-window and restart it when connectivity returns', async () => {
+        const escalation = jest.fn(() => Promise.resolve());
+        SequentialQueue.registerPauseWatchdogEscalation(escalation);
+
+        SequentialQueue.pause();
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2);
+
+        // Long enough offline to blow both the window and the absolute ceiling.
+        NetworkState.setForceOffline(true);
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_ABSOLUTE_TIME_MS * 2);
+        expect(escalation).not.toHaveBeenCalled();
+
+        NetworkState.setForceOffline(false);
+
+        // Time spent offline must not count toward the window...
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2);
+        expect(escalation).not.toHaveBeenCalled();
+        expect(SequentialQueue.isPaused()).toBe(true);
+
+        // ...but a full window of online silence still trips it.
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2);
+        expect(escalation).toHaveBeenCalledTimes(1);
+        expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
+    it('bounds total pause time by an absolute ceiling that re-arming cannot extend', async () => {
+        const escalation = jest.fn(() => Promise.resolve());
+        SequentialQueue.registerPauseWatchdogEscalation(escalation);
+
+        SequentialQueue.pause();
+
+        // Commands in requestsToIgnoreLastUpdateID advance this key even with the gap still open, so a leader whose
+        // unpause is orphaned keeps pushing its own deadline out. Half a window at a time, forever.
+        const halfWindow = CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2;
+        let updateID = 0;
+        for (let elapsed = 0; elapsed < CONST.NETWORK.MAX_PAUSE_WATCHDOG_ABSOLUTE_TIME_MS; elapsed += halfWindow) {
+            await jest.advanceTimersByTimeAsync(halfWindow);
+            updateID += 1;
+
+            await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, updateID);
+        }
+
+        await jest.advanceTimersByTimeAsync(halfWindow);
+
+        expect(escalation).toHaveBeenCalledTimes(1);
+        expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
+    it('does not let a clear of the applied-update key reset the watermark and re-arm on the next value', async () => {
+        const escalation = jest.fn(() => Promise.resolve());
+        SequentialQueue.registerPauseWatchdogEscalation(escalation);
+
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 100);
+        SequentialQueue.pause();
+
+        // Troubleshoot → "Clear Onyx data" wipes the key mid-pause.
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, null);
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2);
+        // A value that does not clear the pre-clear watermark is not progress, so the original deadline must hold.
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 60);
+
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2);
+
+        expect(escalation).toHaveBeenCalledTimes(1);
+        expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
+    it('does not re-arm from another tab advancing the shared key once this tab is demoted', async () => {
+        const escalation = jest.fn(() => Promise.resolve());
+        SequentialQueue.registerPauseWatchdogEscalation(escalation);
+        mockedIsClientTheLeader.mockReturnValue(false);
+
+        SequentialQueue.pause();
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2);
+        // The new leader tab advances the shared key — this demoted tab must still self-heal.
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 12345);
+
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2);
+
+        expect(escalation).toHaveBeenCalledTimes(1);
+        expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
+    it('a stale escalation must not unpause a pause that started after it fired', async () => {
+        let resolveFirstEscalation: () => void = () => {};
+        SequentialQueue.registerPauseWatchdogEscalation(
+            () =>
+                new Promise<void>((resolve) => {
+                    resolveFirstEscalation = resolve;
+                }),
+        );
+
+        SequentialQueue.pause();
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
+        expect(SequentialQueue.isPaused()).toBe(true); // escalation in flight
+
+        // The normal chain resolves the original gap and unpauses, then a fresh gap re-pauses immediately.
+        SequentialQueue.unpause();
+        SequentialQueue.pause();
+
+        // The stale escalation from the FIRST pause now settles.
+        resolveFirstEscalation();
+        await jest.advanceTimersByTimeAsync(0);
+
+        // It must not have unpaused the second, unrelated pause.
+        expect(SequentialQueue.isPaused()).toBe(true);
+    });
+
+    it('a stale escalation must not unpause across a resetQueue that recycles the pause token', async () => {
+        let resolveFirstEscalation: () => void = () => {};
+        SequentialQueue.registerPauseWatchdogEscalation(
+            () =>
+                new Promise<void>((resolve) => {
+                    resolveFirstEscalation = resolve;
+                }),
+        );
+
+        SequentialQueue.pause();
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
+        expect(SequentialQueue.isPaused()).toBe(true); // escalation in flight
+
+        // Mirrors afterEach running while an escalation is still pending, followed by the next test's pause.
+        SequentialQueue.resetQueue();
+        SequentialQueue.pause();
+
+        resolveFirstEscalation();
+        await jest.advanceTimersByTimeAsync(0);
+
+        // A recycled token would let the previous run's escalation unpause this one.
+        expect(SequentialQueue.isPaused()).toBe(true);
+    });
+
+    it('should be cleared by a normal unpause and never fire afterwards', async () => {
+        const escalation = jest.fn(() => Promise.resolve());
+        SequentialQueue.registerPauseWatchdogEscalation(escalation);
+
+        SequentialQueue.pause();
+        SequentialQueue.unpause();
+
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS * 2);
+
+        expect(escalation).not.toHaveBeenCalled();
+        expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
+    it('should unpause only after the gap-closing escalation settles', async () => {
+        let resolveEscalation: () => void = () => {};
+        SequentialQueue.registerPauseWatchdogEscalation(
+            () =>
+                new Promise<void>((resolve) => {
+                    resolveEscalation = resolve;
+                }),
+        );
+
+        SequentialQueue.pause();
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
+
+        // Escalation is in flight: the queue must stay paused so drained writes don't run against stale data.
+        expect(SequentialQueue.isPaused()).toBe(true);
+
+        resolveEscalation();
+        await jest.advanceTimersByTimeAsync(0);
+
+        expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
+    it('should not leave the escalation cap timer armed once the escalation wins the race', async () => {
+        let resolveEscalation: () => void = () => {};
+        SequentialQueue.registerPauseWatchdogEscalation(
+            () =>
+                new Promise<void>((resolve) => {
+                    resolveEscalation = resolve;
+                }),
+        );
+
+        SequentialQueue.pause();
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
+        const timersWithCapArmed = jest.getTimerCount();
+
+        resolveEscalation();
+        await jest.advanceTimersByTimeAsync(0);
+        expect(SequentialQueue.isPaused()).toBe(false);
+
+        // The cap lost the race, so its timer must be gone rather than left pending to leak into the next test.
+        expect(jest.getTimerCount()).toBe(timersWithCapArmed - 1);
+    });
+
+    it('should unpause anyway when the escalation hangs past its cap', async () => {
+        SequentialQueue.registerPauseWatchdogEscalation(() => new Promise(() => {}));
+
+        SequentialQueue.pause();
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
+        expect(SequentialQueue.isPaused()).toBe(true);
+
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_ESCALATION_TIME_MS);
+        expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
+    it('should unpause anyway when the escalation rejects', async () => {
+        SequentialQueue.registerPauseWatchdogEscalation(() => Promise.reject(new Error('escalation failed')));
+
+        SequentialQueue.pause();
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
+
+        expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
+    it('should drain the stuck request and clear IS_LOADING_APP after a force-unpause', async () => {
+        // This is the bug the watchdog exists for: the stranded OpenApp has to reach the wire and the skeleton has to
+        // go away. Asserting only isPaused() would stay green even if the queue never drained.
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+        const processWithMiddleware = jest.spyOn(RequestModule, 'processWithMiddleware').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+
+        SequentialQueue.pause();
+        SequentialQueue.push({
+            command: 'OpenApp',
+            queueFlushedData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.IS_LOADING_APP, value: false}],
+        });
+
+        expect(getLength()).toBe(1);
+        expect(processWithMiddleware).not.toHaveBeenCalled();
+
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
+        await SequentialQueue.waitForIdle();
+        await waitForBatchedUpdates();
+
+        expect(processWithMiddleware).toHaveBeenCalledTimes(1);
+        expect(getLength()).toBe(0);
+        expect(await getOnyxValue(ONYXKEYS.IS_LOADING_APP)).toBe(false);
     });
 });

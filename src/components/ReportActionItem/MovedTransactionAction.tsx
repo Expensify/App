@@ -1,18 +1,24 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Parser from '@libs/Parser';
-import {getOriginalMessage, hasReasoning} from '@libs/ReportActionsUtils';
-import {getMovedTransactionMessage} from '@libs/ReportUtils';
+import {hasReasoning} from '@libs/ReportActionsUtils';
+import {getMovedTransactionMessage, parseMovedTransactionReportIDs} from '@libs/ReportUtils';
+
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type MovedTransactionActionProps = {
     /** The moved transaction action data */
@@ -24,16 +30,16 @@ type MovedTransactionActionProps = {
 
 function MovedTransactionAction({action, originalReport}: MovedTransactionActionProps) {
     const {translate} = useLocalize();
-    const movedTransactionOriginalMessage = getOriginalMessage(action);
-    const fromReportID = movedTransactionOriginalMessage?.fromReportID;
+    const {fromReportID, toReportID, displayReportID} = parseMovedTransactionReportIDs(action);
 
     const [fromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`);
+    const [displayReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${displayReportID}`);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
-    const reportAttributes = useReportAttributes();
 
     const isPendingDelete = fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-    const message = getMovedTransactionMessage(translate, action, reportAttributes);
+    const derivedReportName = useDerivedReportNameByReportID(displayReportID);
+    const message = getMovedTransactionMessage({translate, movedReport: displayReport, fromReportID, toReportID, derivedReportName});
 
     if (hasReasoning(action)) {
         return (

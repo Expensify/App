@@ -1,20 +1,25 @@
-import {useRoute} from '@react-navigation/native';
-import type {ReactNode} from 'react';
-import React, {useEffect} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportTransactionThread, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
+
+import type {ReactNode} from 'react';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
 
 type ReportNotFoundGuardProps = {
     children: ReactNode;
@@ -50,7 +55,22 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const isLoading = isLoadingApp !== false || isLoadingReportData || (!isOffline && !!isLoadingInitialReportActions);
     const reportExists = !!reportID || isOptimisticDelete || userLeavingStatus;
 
-    const shouldShowNotFoundPage = !deleteTransactionNavigateBackUrl && (isInvalidReportPath || (!isLoading && !reportExists));
+    // `isLoadingInitialReportActions` lives in a memory-only key that is not reset between navigations.
+    // Returning to a previously visited report (e.g. via direct URL) can leave a stale `false` here, so we
+    // only infer not-found once we've actually observed a loading phase for the current reportID — i.e. a
+    // fetch was in flight — instead of trusting the leaked flag. See issue #92920.
+    // This uses the documented "adjust state during render" pattern to keep the gate render-synchronous.
+    const [trackedReportID, setTrackedReportID] = useState(reportIDFromRoute);
+    const [hasSeenLoadingForCurrentReportID, setHasSeenLoadingForCurrentReportID] = useState(false);
+    if (trackedReportID !== reportIDFromRoute) {
+        setTrackedReportID(reportIDFromRoute);
+        setHasSeenLoadingForCurrentReportID(false);
+    }
+    if (isLoading && !hasSeenLoadingForCurrentReportID) {
+        setHasSeenLoadingForCurrentReportID(true);
+    }
+
+    const shouldShowNotFoundPage = !deleteTransactionNavigateBackUrl && (isInvalidReportPath || (!isLoading && hasSeenLoadingForCurrentReportID && !reportExists));
 
     useEffect(() => {
         if (!shouldShowNotFoundPage) {

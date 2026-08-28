@@ -1,7 +1,5 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,12 +7,20 @@ import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useBiometricRegistrationStatus from '@hooks/useBiometricRegistrationStatus';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {openMultifactorAuthenticationRevokePage} from '@userActions/User';
+
+import CONST from '@src/CONST';
+
+import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 type ConfirmMode = 'thisDevice' | 'single' | 'multiple' | 'all';
 
@@ -189,37 +195,39 @@ function MultifactorAuthenticationRevokePage() {
                                     rightComponent={
                                         <View style={styles.justifyContentCenter}>
                                             <Button
-                                                danger
-                                                small
+                                                variant={CONST.BUTTON_VARIANT.DANGER}
+                                                size={CONST.BUTTON_SIZE.SMALL}
                                                 isLoading={isThisDeviceLoading}
-                                                text={translate('multifactorAuthentication.revoke.revoke')}
                                                 onPress={() => {
                                                     if (!localCredentialID) {
                                                         return;
                                                     }
                                                     showConfirmModal('thisDevice');
                                                 }}
-                                            />
+                                            >
+                                                <Button.Text>{translate('multifactorAuthentication.revoke.revoke')}</Button.Text>
+                                            </Button>
                                         </View>
                                     }
                                 />
                             )}
                             {otherDeviceCount > 0 && (
                                 <MenuItem
-                                    title={translate('multifactorAuthentication.revoke.otherDevices', otherDeviceCount)}
+                                    title={translate('multifactorAuthentication.revoke.otherDevices', {count: otherDeviceCount})}
                                     interactive={false}
                                     shouldShowRightComponent
                                     rightComponent={
                                         <View style={styles.justifyContentCenter}>
                                             <Button
-                                                danger
-                                                small
+                                                variant={CONST.BUTTON_VARIANT.DANGER}
+                                                size={CONST.BUTTON_SIZE.SMALL}
                                                 isLoading={isOtherDevicesLoading}
-                                                text={translate('multifactorAuthentication.revoke.revoke')}
                                                 onPress={() => {
                                                     showConfirmModal(otherDevicesConfirmMode());
                                                 }}
-                                            />
+                                            >
+                                                <Button.Text>{translate('multifactorAuthentication.revoke.revoke')}</Button.Text>
+                                            </Button>
                                         </View>
                                     }
                                 />
@@ -236,21 +244,23 @@ function MultifactorAuthenticationRevokePage() {
                 <View style={[styles.flexRow, styles.m5, styles.mt0]}>
                     {hasDevices ? (
                         <Button
-                            large
-                            danger
+                            size={CONST.BUTTON_SIZE.LARGE}
+                            variant={CONST.BUTTON_VARIANT.DANGER}
                             style={styles.flex1}
                             isLoading={isThisDeviceLoading && isOtherDevicesLoading}
                             onPress={() => showConfirmModal(revokeAllConfirmMode())}
-                            text={translate(hasMultipleKeys ? 'multifactorAuthentication.revoke.ctaAll' : 'multifactorAuthentication.revoke.cta')}
-                        />
+                        >
+                            <Button.Text>{translate(hasMultipleKeys ? 'multifactorAuthentication.revoke.ctaAll' : 'multifactorAuthentication.revoke.cta')}</Button.Text>
+                        </Button>
                     ) : (
                         <Button
-                            large
-                            success
+                            size={CONST.BUTTON_SIZE.LARGE}
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             style={styles.flex1}
                             onPress={onGoBackPress}
-                            text={translate('multifactorAuthentication.revoke.dismiss')}
-                        />
+                        >
+                            <Button.Text>{translate('multifactorAuthentication.revoke.dismiss')}</Button.Text>
+                        </Button>
                     )}
                 </View>
             </FullPageOfflineBlockingView>

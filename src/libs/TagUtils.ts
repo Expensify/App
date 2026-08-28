@@ -1,5 +1,6 @@
-import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
+
+import {Str} from 'expensify-common';
 
 /**
  * Checks if a tag value is missing/empty

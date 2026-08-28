@@ -1,11 +1,16 @@
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import {computeSplitSaveErrorMessage, computeSplitWarningMessage} from '@libs/SplitExpenseUtils';
+
 import CONST from '@src/CONST';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 
-// Minimal translate mock: returns the translation key plus any first argument for verifying
+import {convertToDisplayString} from '../../utils/TestHelper';
+
+// Minimal translate implementation: returns the translation key plus any first argument for verifying
 // which message was chosen without relying on exact English strings.
-const translate = jest.fn((key: string, ...args: unknown[]) => (args.length ? `${key}:${String(args.at(0))}` : key));
+const translate: LocalizedTranslate = <TPath extends TranslationPaths>(key: TPath, ...args: TranslationParameters<TPath>) => (args.length ? `${key}:${String(args.at(0))}` : key);
 
 function makeSplit(amount: number, transactionID = `tx-${amount}`): SplitExpense {
     return {transactionID, amount, created: '2024-01-01'};
@@ -13,10 +18,6 @@ function makeSplit(amount: number, transactionID = `tx-${amount}`): SplitExpense
 
 const GREATER = 'iou.totalAmountGreaterThanOriginal';
 const LESS = 'iou.totalAmountLessThanOriginal';
-
-beforeEach(() => {
-    translate.mockClear();
-});
 
 describe('computeSplitWarningMessage', () => {
     const currency = 'USD';
@@ -27,7 +28,7 @@ describe('computeSplitWarningMessage', () => {
             splitExpenses: [],
             transactionDetailsAmount: 1000,
             currency,
-            translate: translate as never,
+            translate,
             convertToDisplayString,
         });
         expect(result).toContain(LESS);
@@ -39,7 +40,7 @@ describe('computeSplitWarningMessage', () => {
                 splitExpenses: [],
                 transactionDetailsAmount: 0,
                 currency,
-                translate: translate as never,
+                translate,
                 convertToDisplayString,
             }),
         ).toBe('');
@@ -51,7 +52,7 @@ describe('computeSplitWarningMessage', () => {
                 splitExpenses: [makeSplit(600), makeSplit(400)],
                 transactionDetailsAmount: 1000,
                 currency,
-                translate: translate as never,
+                translate,
                 convertToDisplayString,
             }),
         ).toBe('');
@@ -62,7 +63,7 @@ describe('computeSplitWarningMessage', () => {
             splitExpenses: [makeSplit(600), makeSplit(500)],
             transactionDetailsAmount: 1000,
             currency,
-            translate: translate as never,
+            translate,
             convertToDisplayString,
         });
         expect(result).toContain(GREATER);
@@ -73,7 +74,7 @@ describe('computeSplitWarningMessage', () => {
             splitExpenses: [makeSplit(300), makeSplit(200)],
             transactionDetailsAmount: 1000,
             currency,
-            translate: translate as never,
+            translate,
             convertToDisplayString,
         });
         expect(result).toContain(LESS);
@@ -85,7 +86,7 @@ describe('computeSplitWarningMessage', () => {
             splitExpenses: [makeSplit(1500)],
             transactionDetailsAmount: 1000,
             currency,
-            translate: translate as never,
+            translate,
             convertToDisplayString,
         });
         expect(result).toContain(GREATER);
@@ -97,7 +98,7 @@ describe('computeSplitWarningMessage', () => {
             splitExpenses: [makeSplit(1500, 'a'), makeSplit(-700, 'b')],
             transactionDetailsAmount: 1000,
             currency,
-            translate: translate as never,
+            translate,
             convertToDisplayString,
         });
         // sum (800) < total (1000) → Less
@@ -110,7 +111,7 @@ describe('computeSplitWarningMessage', () => {
             splitExpenses: [makeSplit(1500, 'a'), makeSplit(-500, 'b')],
             transactionDetailsAmount: 1000,
             currency,
-            translate: translate as never,
+            translate,
             convertToDisplayString,
         });
         // invalidSplit && sum !== total is false → falls to else branches, sum === total → no warning
@@ -124,7 +125,7 @@ describe('computeSplitWarningMessage', () => {
                 splitExpenses: [makeSplit(600, 'a'), makeSplit(-200, 'b')],
                 transactionDetailsAmount: 1000,
                 currency,
-                translate: translate as never,
+                translate,
                 convertToDisplayString,
             });
             expect(result).toContain(LESS);
@@ -136,7 +137,7 @@ describe('computeSplitWarningMessage', () => {
                 splitExpenses: [makeSplit(1200, 'a'), makeSplit(-100, 'b')],
                 transactionDetailsAmount: 500,
                 currency,
-                translate: translate as never,
+                translate,
                 convertToDisplayString,
             });
             expect(result).toContain(GREATER);
@@ -148,7 +149,7 @@ describe('computeSplitWarningMessage', () => {
                 splitExpenses: [makeSplit(1200, 'a'), makeSplit(-200, 'b')],
                 transactionDetailsAmount: 1000,
                 currency,
-                translate: translate as never,
+                translate,
                 convertToDisplayString,
             });
             expect(result).toBe('');
@@ -162,7 +163,7 @@ describe('computeSplitWarningMessage', () => {
                 splitExpenses: [makeSplit(-600, 'a'), makeSplit(-600, 'b')],
                 transactionDetailsAmount: -1000,
                 currency,
-                translate: translate as never,
+                translate,
                 convertToDisplayString,
             });
             expect(result).toContain(LESS);
@@ -174,7 +175,7 @@ describe('computeSplitWarningMessage', () => {
                 splitExpenses: [makeSplit(-300, 'a'), makeSplit(-200, 'b')],
                 transactionDetailsAmount: -1000,
                 currency,
-                translate: translate as never,
+                translate,
                 convertToDisplayString,
             });
             expect(result).toContain(GREATER);
@@ -185,7 +186,7 @@ describe('computeSplitWarningMessage', () => {
                 splitExpenses: [makeSplit(-400, 'a'), makeSplit(-600, 'b')],
                 transactionDetailsAmount: -1000,
                 currency,
-                translate: translate as never,
+                translate,
                 convertToDisplayString,
             });
             expect(result).toBe('');
@@ -201,7 +202,7 @@ describe('computeSplitSaveErrorMessage', () => {
         isDistance: false,
         isPerDiem: false,
         isCard: false,
-        translate: translate as never,
+        translate,
         convertToDisplayString,
     };
 

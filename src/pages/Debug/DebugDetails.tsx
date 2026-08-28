@@ -1,8 +1,4 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -10,17 +6,28 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ObjectType, OnyxDataType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
+
 import Debug from '@userActions/Debug';
-import type CONST from '@src/CONST';
+
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import TRANSACTION_FORM_INPUT_IDS from '@src/types/form/DebugTransactionForm';
 import type {Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useEffect, useMemo} from 'react';
+import {View} from 'react-native';
+
 import {DETAILS_CONSTANT_FIELDS, DETAILS_DATETIME_FIELDS, DETAILS_DISABLED_KEYS} from './const';
 import ConstantSelector from './ConstantSelector';
 import DateTimeSelector from './DateTimeSelector';
@@ -105,7 +112,12 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
                 try {
                     validate(key, DebugUtils.onyxDataToString(value));
                 } catch (e) {
-                    const {cause, message} = e as SyntaxError;
+                    if (!(e instanceof Error)) {
+                        newErrors[key] = String(e);
+                        continue;
+                    }
+
+                    const {message, cause} = e;
                     newErrors[key] = cause || message === 'debug.missingValue' ? translate(message as TranslationPaths, cause as never) : message;
                 }
             }
@@ -250,11 +262,12 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
                 <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
                 <View style={[styles.ph5, styles.mb3, styles.mt5]}>
                     <Button
-                        danger
-                        large
-                        text={translate('common.delete')}
+                        variant={CONST.BUTTON_VARIANT.DANGER}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={onDelete}
-                    />
+                    >
+                        <Button.Text>{translate('common.delete')}</Button.Text>
+                    </Button>
                 </View>
             </FormProvider>
         </ScrollView>

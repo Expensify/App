@@ -1,5 +1,6 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
 
 /** Model of onboarding */
 type Onboarding = {
@@ -32,9 +33,6 @@ type Onboarding = {
 
     /** A Boolean that tells whether the onboarding flow is loading */
     isLoading?: boolean;
-
-    /** A Boolean that tells whether the test drive modal has been dismissed */
-    testDriveModalDismissed?: boolean;
 };
 
 export default Onboarding;

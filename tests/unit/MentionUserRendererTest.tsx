@@ -1,22 +1,33 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import type {ComponentType, ReactNode} from 'react';
-import Onyx from 'react-native-onyx';
-import type {TText} from 'react-native-render-html';
+
 import MentionUserRenderer from '@components/HTMLEngineProvider/HTMLRenderers/MentionUserRenderer';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetails, Report, ReportAction} from '@src/types/onyx';
+
+import type {ComponentProps, ComponentType, ReactNode} from 'react';
+import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 import {translateLocal} from '../utils/TestHelper';
+
+type MockMentionUserRendererProps = WithCurrentUserPersonalDetailsProps & CustomRendererProps<TText | TPhrasing>;
 
 // Mock Navigation to avoid actual navigation calls
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -45,11 +56,11 @@ jest.mock('react-native-render-html', () => {
 
 // Provide current user details via HOC mock
 jest.mock('@components/withCurrentUserPersonalDetails', () => {
-    const withCurrentUserPersonalDetailsMock = <TProps extends WithCurrentUserPersonalDetailsProps>(Component: ComponentType<TProps>) => {
-        function WrappedComponent(props: Omit<TProps, keyof WithCurrentUserPersonalDetailsProps>) {
+    const withCurrentUserPersonalDetailsMock = (Component: ComponentType<MockMentionUserRendererProps>) => {
+        function WrappedComponent(props: Omit<MockMentionUserRendererProps, keyof WithCurrentUserPersonalDetailsProps>) {
             return (
                 <Component
-                    {...(props as TProps)}
+                    {...props}
                     currentUserPersonalDetails={{
                         accountID: 1,
                         login: 'current@example.com',
@@ -91,11 +102,14 @@ let mockPersonalDetails: Record<number, Partial<PersonalDetails>> = {};
 jest.mock('@hooks/useOnyx', () => {
     const onyxModule = jest.requireActual<{default: {PERSONAL_DETAILS_LIST: string}}>('../../src/ONYXKEYS');
 
+    // Second tuple element is the Onyx result metadata. LocaleContextProvider passes it to
+    // isLoadingOnyxValue, so it must be a real metadata object rather than undefined.
+    const loadedMetadata = {status: 'loaded'};
     return (key: string) => {
         if (key === onyxModule.default.PERSONAL_DETAILS_LIST) {
-            return [mockPersonalDetails];
+            return [mockPersonalDetails, loadedMetadata];
         }
-        return [undefined];
+        return [undefined, loadedMetadata];
     };
 });
 
@@ -114,50 +128,44 @@ type ContextMenuStateOverrides = {
 function withProvider(children: ReactNode, overrides: ContextMenuStateOverrides = {}) {
     return (
         <OnyxListItemProvider>
-            <ShowContextMenuStateContext.Provider
-                value={{
-                    anchor: null,
-                    report: overrides.report,
-                    action: overrides.action,
-                    isDisabled: overrides.isDisabled ?? true,
-                    shouldDisplayContextMenu: overrides.shouldDisplayContextMenu ?? false,
-                    originalReportID: overrides.originalReportID,
-                }}
-            >
-                <ShowContextMenuActionsContext.Provider
+            <LocaleContextProvider>
+                <ShowContextMenuStateContext.Provider
                     value={{
-                        onShowContextMenu: (fn: () => void) => fn(),
-                        checkIfContextMenuActive: () => false,
+                        anchor: null,
+                        report: overrides.report,
+                        action: overrides.action,
+                        isDisabled: overrides.isDisabled ?? true,
+                        shouldDisplayContextMenu: overrides.shouldDisplayContextMenu ?? false,
+                        originalReportID: overrides.originalReportID,
                     }}
                 >
-                    {children}
-                </ShowContextMenuActionsContext.Provider>
-            </ShowContextMenuStateContext.Provider>
+                    <ShowContextMenuActionsContext.Provider
+                        value={{
+                            onShowContextMenu: (fn: () => void) => fn(),
+                            checkIfContextMenuActive: () => false,
+                        }}
+                    >
+                        {children}
+                    </ShowContextMenuActionsContext.Provider>
+                </ShowContextMenuStateContext.Provider>
+            </LocaleContextProvider>
         </OnyxListItemProvider>
     );
 }
 
-function renderMention(props: {tnode: TText; style?: Record<string, unknown>}) {
-    const Component = MentionUserRenderer as unknown as ComponentType<{
-        tnode: TText;
-        TDefaultRenderer: () => null;
-        style: Record<string, unknown>;
-    }>;
-    return render(
-        withProvider(
-            <Component
-                tnode={props.tnode}
-                TDefaultRenderer={() => null}
-                style={props.style ?? {}}
-            />,
-        ),
-    );
+function renderMention(props: {tnode: ComponentProps<typeof MentionUserRenderer>['tnode']; style?: ComponentProps<typeof MentionUserRenderer>['style']}) {
+    const mentionProps = createMock<ComponentProps<typeof MentionUserRenderer>>({
+        tnode: props.tnode,
+        TDefaultRenderer: () => null,
+        style: props.style ?? {},
+    });
+    return render(withProvider(<MentionUserRenderer {...mentionProps} />));
 }
 
 // Helper to build a minimal tnode-like object used by the component
 function buildTNode({accountID, data}: {accountID?: string; data?: string}): TText {
     // cspell:disable-next-line
-    return {attributes: {accountid: accountID}, data} as unknown as TText;
+    return createMock<TText>({attributes: {accountid: accountID}, data});
 }
 
 describe('MentionUserRenderer', () => {
@@ -171,8 +179,8 @@ describe('MentionUserRenderer', () => {
         mockPersonalDetails = {};
         IntlStore.load(CONST.LOCALES.DEFAULT);
         jest.clearAllMocks();
-        (Navigation.getActiveRoute as jest.Mock).mockReturnValue(MOCK_BASE_ROUTE);
-        (Navigation.getReportRHPActiveRoute as jest.Mock).mockReturnValue(MOCK_BASE_ROUTE);
+        jest.mocked(Navigation.getActiveRoute).mockReturnValue(MOCK_BASE_ROUTE);
+        jest.mocked(Navigation.getReportRHPActiveRoute).mockReturnValue(MOCK_BASE_ROUTE);
     });
 
     test('renders phone number (not displayName) when user has phone login', () => {
@@ -250,9 +258,11 @@ describe('MentionUserRenderer', () => {
         const mention = screen.getByTestId('mention-user');
         fireEvent(mention, 'press', {preventDefault: jest.fn()});
         expect(Navigation.navigate).toHaveBeenCalled();
-        const navigationMock = Navigation.navigate as jest.MockedFunction<typeof Navigation.navigate>;
-        const firstCallArgs = navigationMock.mock.calls.at(0) as [string, ...unknown[]] | undefined;
-        expect(firstCallArgs?.[0]).toContain('login=user%40test.com');
+        const firstCallArgs = jest.mocked(Navigation.navigate).mock.calls.at(0);
+        if (!firstCallArgs) {
+            throw new Error('Expected Navigation.navigate to have a call');
+        }
+        expect(firstCallArgs[0]).toContain('login=user%40test.com');
     });
 
     test('renders short form for self-mention (Current user)', () => {
@@ -293,35 +303,27 @@ describe('MentionUserRenderer', () => {
         const mockReportID = '12345';
         const mockOriginalReportID = '67890';
         const mockReportActionID = 'action123';
-        const mockReport = {reportID: mockReportID} as Report;
-        const mockAction = {reportActionID: mockReportActionID} as ReportAction;
+        const mockReport = createMock<Report>({reportID: mockReportID});
+        const mockAction = createMock<ReportAction>({reportActionID: mockReportActionID});
 
         mockPersonalDetails = {
             301: {login: 'test@example.com', displayName: 'Test User'},
         };
         const tnode = buildTNode({accountID: '301'});
-
-        const Component = MentionUserRenderer as unknown as ComponentType<{
-            tnode: TText;
-            TDefaultRenderer: () => null;
-            style: Record<string, unknown>;
-        }>;
+        const mentionProps = createMock<ComponentProps<typeof MentionUserRenderer>>({
+            tnode,
+            TDefaultRenderer: () => null,
+            style: {},
+        });
 
         render(
-            withProvider(
-                <Component
-                    tnode={tnode}
-                    TDefaultRenderer={() => null}
-                    style={{}}
-                />,
-                {
-                    report: mockReport,
-                    action: mockAction,
-                    originalReportID: mockOriginalReportID,
-                    isDisabled: false,
-                    shouldDisplayContextMenu: true,
-                },
-            ),
+            withProvider(<MentionUserRenderer {...mentionProps} />, {
+                report: mockReport,
+                action: mockAction,
+                originalReportID: mockOriginalReportID,
+                isDisabled: false,
+                shouldDisplayContextMenu: true,
+            }),
         );
 
         // When the user long presses the mention

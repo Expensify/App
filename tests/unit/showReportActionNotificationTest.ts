@@ -1,8 +1,15 @@
-import {afterEach, beforeAll, beforeEach, describe, expect, it, jest} from '@jest/globals';
-import Onyx from 'react-native-onyx';
+import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
+
+import type {LocalNotificationModule, LocalNotificationModifiedExpenseParams} from '@libs/Notification/LocalNotification/types';
+
 import CONST from '@src/CONST';
 import * as Report from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/ActiveClientManager', () => ({
@@ -11,13 +18,17 @@ jest.mock('@libs/ActiveClientManager', () => ({
     init: jest.fn(),
 }));
 
-const mockShowModifiedExpenseNotification = jest.fn();
-const mockShowCommentNotification = jest.fn();
+const mockShowModifiedExpenseNotification = jest.fn<void, [LocalNotificationModifiedExpenseParams]>();
+const mockShowCommentNotification = jest.fn<void, Parameters<LocalNotificationModule['showCommentNotification']>>();
 jest.mock('@libs/Notification/LocalNotification', () => ({
     __esModule: true,
     default: {
-        showModifiedExpenseNotification: (...args: unknown[]) => mockShowModifiedExpenseNotification(...args),
-        showCommentNotification: (...args: unknown[]) => mockShowCommentNotification(...args),
+        showModifiedExpenseNotification: (params: LocalNotificationModifiedExpenseParams) => {
+            mockShowModifiedExpenseNotification(params);
+        },
+        showCommentNotification: (...args: Parameters<LocalNotificationModule['showCommentNotification']>) => {
+            mockShowCommentNotification(...args);
+        },
         showUpdateAvailableNotification: jest.fn(),
         clearReportNotifications: jest.fn(),
     },
@@ -26,7 +37,7 @@ jest.mock('@libs/Notification/LocalNotification', () => ({
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
-        getTopmostReportId: jest.fn(() => 'other-report-id'),
+        getFocusedReportId: jest.fn(() => 'other-report-id'),
         navigate: jest.fn(),
     },
 }));
@@ -43,7 +54,7 @@ const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_LOGIN = 'test@user.com';
 const REPORT_ID = '100';
 const OTHER_USER_ACCOUNT_ID = 2;
-const REPORT_ATTRIBUTES = {someReportKey: {reportName: 'Test Report'}} as Record<string, unknown>;
+const REPORT_ATTRIBUTES = createMock<ReportAttributesDerivedValue['reports']>({someReportKey: {reportName: 'Test Report'}});
 
 describe('showReportActionNotification', () => {
     beforeAll(() => {
@@ -88,14 +99,18 @@ describe('showReportActionNotification', () => {
         Report.showReportActionNotification(
             REPORT_ID,
             reportAction as Parameters<typeof Report.showReportActionNotification>[1],
+            undefined,
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
-            REPORT_ATTRIBUTES as Parameters<typeof Report.showReportActionNotification>[4],
+            REPORT_ATTRIBUTES,
         );
         await waitForBatchedUpdates();
 
         expect(mockShowModifiedExpenseNotification).toHaveBeenCalledTimes(1);
-        const callArgs = mockShowModifiedExpenseNotification.mock.calls.at(0)?.at(0) as Record<string, unknown>;
+        const callArgs = mockShowModifiedExpenseNotification.mock.calls.at(0)?.at(0);
+        if (!callArgs) {
+            throw new Error('Modified expense notification arguments are missing');
+        }
         expect(callArgs.reportAttributes).toBe(REPORT_ATTRIBUTES);
         expect(mockShowCommentNotification).not.toHaveBeenCalled();
     });
@@ -112,11 +127,21 @@ describe('showReportActionNotification', () => {
             person: [{type: 'TEXT', style: 'strong', text: 'Other User'}],
         };
 
-        Report.showReportActionNotification(REPORT_ID, reportAction as Parameters<typeof Report.showReportActionNotification>[1], CURRENT_USER_ACCOUNT_ID, CURRENT_USER_LOGIN, undefined);
+        Report.showReportActionNotification(
+            REPORT_ID,
+            reportAction as Parameters<typeof Report.showReportActionNotification>[1],
+            undefined,
+            CURRENT_USER_ACCOUNT_ID,
+            CURRENT_USER_LOGIN,
+            undefined,
+        );
         await waitForBatchedUpdates();
 
         expect(mockShowModifiedExpenseNotification).toHaveBeenCalledTimes(1);
-        const callArgs = mockShowModifiedExpenseNotification.mock.calls.at(0)?.at(0) as Record<string, unknown>;
+        const callArgs = mockShowModifiedExpenseNotification.mock.calls.at(0)?.at(0);
+        if (!callArgs) {
+            throw new Error('Modified expense notification arguments are missing');
+        }
         expect(callArgs.reportAttributes).toBeUndefined();
         expect(mockShowCommentNotification).not.toHaveBeenCalled();
     });
@@ -136,9 +161,10 @@ describe('showReportActionNotification', () => {
         Report.showReportActionNotification(
             REPORT_ID,
             reportAction as Parameters<typeof Report.showReportActionNotification>[1],
+            undefined,
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
-            REPORT_ATTRIBUTES as Parameters<typeof Report.showReportActionNotification>[4],
+            REPORT_ATTRIBUTES,
         );
         await waitForBatchedUpdates();
 

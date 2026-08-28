@@ -1,20 +1,28 @@
-import React, {useMemo} from 'react';
-import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useMemo} from 'react';
 
 type QBOSectionType = {
     title?: string;
@@ -33,6 +41,7 @@ const accountOrExportDestination = [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSE
 
 function DynamicQuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -107,6 +116,7 @@ function DynamicQuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPoli
             displayName="QuickbooksOutOfPocketExpenseConfigurationPage"
             headerTitle="workspace.accounting.exportOutOfPocket"
             title="workspace.qbo.exportOutOfPocketExpensesDescription"
+            titleAlreadyTranslated={translate('workspace.qbo.exportOutOfPocketExpensesDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}

@@ -1,23 +1,30 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
+import useAvatarCrop from '@hooks/useAvatarCrop';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {validateAvatarImage} from '@libs/AvatarUtils';
 import {isSafari} from '@libs/Browser';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {AvatarButtonWithIconProps} from './AvatarButtonWithIcon';
+
 import AttachmentPicker from './AttachmentPicker';
 import AvatarButtonWithIcon from './AvatarButtonWithIcon';
-import type {AvatarButtonWithIconProps} from './AvatarButtonWithIcon';
-import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverMenu from './PopoverMenu';
@@ -42,6 +49,9 @@ type MenuItem = {
 type AvatarWithImagePickerProps = Omit<AvatarButtonWithIconProps, 'text' | 'onPress' | 'anchorRef'> & {
     /** Additional style props */
     style?: StyleProp<ViewStyle>;
+
+    /** Current avatar source. Used to clear the validation error whenever the avatar changes. */
+    source?: AvatarSource;
 
     /** Executed once an image has been selected */
     onImageSelected?: (file: File | CustomRNImageManipulatorResult) => void;
@@ -69,15 +79,11 @@ type AvatarWithImagePickerProps = Omit<AvatarButtonWithIconProps, 'text' | 'onPr
 
     /** Allows to open an image without Attachment Picker. */
     enablePreview?: boolean;
-
-    /** The name associated with avatar */
-    name?: string;
 };
 
 const anchorAlignment = {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP};
 
 function AvatarWithImagePicker({
-    DefaultAvatar = () => null,
     style,
     disabledStyle,
     editIconStyle,
@@ -86,10 +92,8 @@ function AvatarWithImagePicker({
     errorRowStyles,
     onErrorClose = () => {},
     source = '',
-    avatarID,
-    fallbackIcon,
-    size = CONST.AVATAR_SIZE.DEFAULT,
-    type = CONST.ICON_TYPE_AVATAR,
+    avatar,
+    size,
     isUsingDefaultAvatar = false,
     onImageSelected = () => {},
     onImageRemoved = () => {},
@@ -99,26 +103,20 @@ function AvatarWithImagePicker({
     onViewPhotoPress,
     enablePreview = false,
     editIcon,
-    name = '',
     sentryLabel,
 }: AvatarWithImagePickerProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Eye', 'FallbackAvatar', 'Pencil', 'Trashcan', 'Upload']);
+    const icons = useMemoizedLazyExpensifyIcons(['Eye', 'Pencil', 'Trashcan', 'Upload']);
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseParam: {}});
-    const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false);
-    const [imageData, setImageData] = useState({
-        uri: '',
-        name: '',
-        type: '',
-    });
     const {calculatePopoverPosition} = usePopoverPosition();
     const anchorRef = useRef<View>(null);
     const {translate} = useLocalize();
+    const {openCropper} = useAvatarCrop({maskType: editorMaskImage ? 'square' : undefined, onCropped: onImageSelected});
 
-    const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
+    const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown> = {}) => {
         setErrorData({
             validationError: error,
             phraseParam,
@@ -136,7 +134,7 @@ function AvatarWithImagePicker({
 
     useEffect(() => {
         setError(null, {});
-    }, [source, avatarID]);
+    }, [source]);
 
     /**
      * Validates an image and opens avatar crop modal if valid
@@ -149,22 +147,13 @@ function AvatarWithImagePicker({
                     return;
                 }
 
-                setIsAvatarCropModalOpen(true);
                 setError(null, {});
                 setIsMenuVisible(false);
-                setImageData({
-                    uri: image.uri ?? '',
-                    name: image.name ?? '',
-                    type: image.type ?? '',
-                });
+                openCropper(image);
             })
             .catch(() => {
                 setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
             });
-    };
-
-    const hideAvatarCropModal = () => {
-        setIsAvatarCropModalOpen(false);
     };
 
     /**
@@ -254,21 +243,16 @@ function AvatarWithImagePicker({
                                 >
                                     <AvatarButtonWithIcon
                                         text={translate('avatarWithImagePicker.editImage')}
-                                        source={source}
-                                        avatarID={avatarID}
+                                        avatar={avatar}
+                                        size={size}
                                         onPress={() => onPressAvatar(openPicker)}
                                         avatarStyle={avatarStyle}
                                         pendingAction={pendingAction}
-                                        fallbackIcon={fallbackIcon ?? icons.FallbackAvatar}
                                         anchorRef={anchorRef}
-                                        DefaultAvatar={DefaultAvatar}
                                         editIcon={editIcon ?? icons.Pencil}
-                                        size={size}
-                                        type={type}
                                         disabled={disabled}
                                         disabledStyle={disabledStyle}
                                         editIconStyle={editIconStyle}
-                                        name={name}
                                         sentryLabel={sentryLabel}
                                     />
                                 </OfflineWithFeedback>
@@ -299,20 +283,11 @@ function AvatarWithImagePicker({
             {!!errorData.validationError && (
                 <DotIndicatorMessage
                     style={styles.mt6}
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unsafe-type-assertion
                     messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
                     type="error"
                 />
             )}
-            <AvatarCropModal
-                onClose={hideAvatarCropModal}
-                isVisible={isAvatarCropModalOpen}
-                onSave={onImageSelected}
-                imageUri={imageData.uri}
-                imageName={imageData.name}
-                imageType={imageData.type}
-                maskImage={editorMaskImage}
-            />
         </View>
     );
 }

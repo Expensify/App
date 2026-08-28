@@ -1,6 +1,3 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
-import type {TupleToUnion} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
@@ -9,25 +6,33 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import type {TupleToUnion} from 'type-fest';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 type SpendRulesSectionProps = {
     policyID: string;
@@ -44,7 +49,6 @@ function SpendRulesSection({policyID, canWriteRules, showReadOnlyModal}: SpendRu
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock', 'Plus']);
     const {showConfirmModal} = useConfirmModal();
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardProtectionIllustration']);
-    const {isOffline} = useNetwork();
     const defaultFundID = useDefaultFundID(policyID);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const {cardRules, isLoadingCardRules} = useExpensifyCardRules(policyID);
@@ -162,14 +166,7 @@ function SpendRulesSection({policyID, canWriteRules, showReadOnlyModal}: SpendRu
             />
             {isLoadingCardRules ? (
                 <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mt5, styles.mb3]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={{
-                            context: 'SpendRulesSection',
-                            isOffline,
-                            hasOnceLoaded: false,
-                        }}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             ) : (
                 filteredCardRules.map((rule) => (

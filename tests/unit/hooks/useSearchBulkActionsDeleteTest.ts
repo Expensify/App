@@ -1,12 +1,22 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
+
 import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, SearchResults} from '@src/types/onyx';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
+
+import Onyx from 'react-native-onyx';
+
 import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
+
+import createMock from '../../utils/createMock';
 
 // ---------------------------------------------------------------------------
 // Module mocks
@@ -34,11 +44,12 @@ jest.mock('@libs/actions/Report', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
-    getExportTemplates: jest.fn(() => []),
+    getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     exportSearchItemsToCSV: jest.fn(),
     queueExportSearchItemsToCSV: jest.fn(),
     queueExportSearchWithTemplate: jest.fn(),
-    approveMoneyRequestOnSearch: jest.fn(),
+    getSearchApproveOnyxData: jest.fn(() => ({})),
+    getSearchPayOnyxData: jest.fn(() => ({})),
     getLastPolicyBankAccountID: jest.fn(),
     getLastPolicyPaymentMethod: jest.fn(),
     getPayMoneyOnSearchInvoiceParams: jest.fn(),
@@ -164,13 +175,18 @@ jest.mock('@hooks/useDuplicateTransactionsAndViolations', () => ({
     default: () => ({duplicateTransactions: {}, duplicateTransactionViolations: {}}),
 }));
 
-// Make InteractionManager execute callbacks immediately so we don't need fake timers
-jest.mock('react-native', () => ({
-    InteractionManager: {
-        runAfterInteractions: (callback: () => void | Promise<void>) => {
+// Make TransitionTracker execute callbacks immediately too (it can't wait for a real
+// modal/popover transition in a unit test, and waitForUpcomingTransition would otherwise
+// stall until MAX_TRANSITION_START_WAIT_MS).
+jest.mock('@libs/Navigation/TransitionTracker', () => ({
+    __esModule: true,
+    default: {
+        runAfterTransitions: ({callback}: {callback: () => void | Promise<void>}) => {
             callback();
             return {cancel: jest.fn()};
         },
+        startTransition: jest.fn(),
+        endTransition: jest.fn(),
     },
 }));
 
@@ -236,7 +252,6 @@ const baseQueryJSON: SearchQueryJSON = {
     similarSearchHash: 12345,
     flatFilters: [],
     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
     sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
     sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
     view: CONST.SEARCH.VIEW.TABLE,
@@ -245,7 +260,7 @@ const baseQueryJSON: SearchQueryJSON = {
 
 /** Minimal IOU report action that references our test transaction */
 function makeIOUAction(overrides: Partial<ReportAction> = {}): ReportAction {
-    return {
+    return createMock<ReportAction>({
         reportActionID: IOU_ACTION_ID,
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -260,7 +275,7 @@ function makeIOUAction(overrides: Partial<ReportAction> = {}): ReportAction {
         person: [],
         shouldShow: true,
         ...overrides,
-    } as unknown as ReportAction;
+    });
 }
 
 function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]> = {}): SelectedTransactions[string] {
@@ -286,6 +301,8 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
+
+const renderHookWithProvider: typeof renderHook = (callback, options) => renderHook(callback, {...options, wrapper: OnyxListItemProvider});
 
 describe('useSearchBulkActions - delete unreported expenses', () => {
     beforeAll(() => {
@@ -324,10 +341,9 @@ describe('useSearchBulkActions - delete unreported expenses', () => {
         const iouAction = makeIOUAction();
 
         // Snapshot contains the IOU action (simulates what the search API returns).
-        mockCurrentSearchResults = {
+        const searchResults = createMock<SearchResults>({
             search: {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 offset: 0,
                 hasMoreResults: false,
                 hasResults: true,
@@ -336,12 +352,11 @@ describe('useSearchBulkActions - delete unreported expenses', () => {
                 total: 100,
                 currency: 'USD',
             },
-            data: {
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SELF_DM_REPORT_ID}`]: {
-                    [IOU_ACTION_ID]: iouAction,
-                },
-            },
-        } as unknown as SearchResults;
+            data: {},
+        });
+        const searchData: SearchResultDataType = searchResults.data;
+        searchData[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SELF_DM_REPORT_ID}`] = {[IOU_ACTION_ID]: iouAction};
+        mockCurrentSearchResults = searchResults;
 
         // The transaction itself is available in Onyx (used by useAllTransactions).
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, {
@@ -367,7 +382,7 @@ describe('useSearchBulkActions - delete unreported expenses', () => {
         // Confirm the delete modal.
         mockShowConfirmModal.mockResolvedValue({action: 'CONFIRM'});
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
 
         // Wait for the DELETE option to appear.
         await waitFor(() => {
@@ -429,7 +444,7 @@ describe('useSearchBulkActions - delete unreported expenses', () => {
         mockShouldShowDeleteOption = true;
         mockShowConfirmModal.mockResolvedValue({action: 'CONFIRM'});
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)).toBeDefined();

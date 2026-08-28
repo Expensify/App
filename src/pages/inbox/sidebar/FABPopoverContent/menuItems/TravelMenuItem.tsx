@@ -1,19 +1,23 @@
-import {Str} from 'expensify-common';
-import React from 'react';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink, shouldOpenTravelDotLinkWeb} from '@libs/openTravelDotLink';
 import Permissions from '@libs/Permissions';
-import {isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
+import {hasAcceptedTravelTerms, isPaidGroupPolicy} from '@libs/PolicyUtils';
+
 import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {primaryLoginSelector} from '@src/selectors/Account';
 import {emailSelector} from '@src/selectors/Session';
+
+import {Str} from 'expensify-common';
+import React from 'react';
 
 const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.TRAVEL;
 
@@ -30,13 +34,12 @@ function TravelMenuItem() {
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const isVisible = !!activePolicy?.isTravelEnabled;
 
-    const isPolicyProvisioned = isWorkspaceProvisionedForTravel(activePolicy?.travelSettings);
     const isTravelEnabled =
         !isBlockedFromSpotnanaTravel &&
         !!primaryContactMethod &&
         !Str.isSMSLogin(primaryContactMethod) &&
         isPaidGroupPolicy(activePolicy) &&
-        (activePolicy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned));
+        hasAcceptedTravelTerms(activePolicy, travelSettings);
 
     const openTravel = () => {
         if (isTravelEnabled) {

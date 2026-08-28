@@ -1,18 +1,26 @@
 import {render, screen} from '@testing-library/react-native';
-import type {ViewProps} from 'react-native';
-import type ReactNative from 'react-native';
-import Onyx from 'react-native-onyx';
-import ReceiptDoc from '@assets/images/receipt-doc.png';
+
 import ComposeProviders from '@components/ComposeProviders';
+import FeatureTraining from '@components/FeatureTraining';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import FullScreenContextProvider from '@components/VideoPlayerContexts/FullScreenContextProvider';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from '@components/VideoPlayerContexts/VolumeContext';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
+
+import type {ViewProps} from 'react-native';
+import type ReactNative from 'react-native';
+
+import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
+import Onyx from 'react-native-onyx';
 
 const CONFIRM_TEXT = 'Start';
 
@@ -29,6 +37,18 @@ jest.mock('@components/ImageSVG', () => {
     return (props: ViewProps) => <View {...props} />;
 });
 
+const Stack = createStackNavigator();
+
+function withNavigation(ui: React.ReactElement): React.ReactElement {
+    return (
+        <NavigationContainer>
+            <Stack.Navigator>
+                <Stack.Screen name={SCREENS.FEATURE_TRAINING_ROOT}>{() => ui}</Stack.Screen>
+            </Stack.Navigator>
+        </NavigationContainer>
+    );
+}
+
 describe('FeatureTrainingModal', () => {
     beforeAll(() => {
         Onyx.init({
@@ -38,12 +58,16 @@ describe('FeatureTrainingModal', () => {
     describe('renderIllustration', () => {
         it('renders video', () => {
             render(
-                <ComposeProviders components={[OnyxListItemProvider, PlaybackContextProvider, FullScreenContextProvider, VolumeContextProvider, VideoPopoverMenuContextProvider]}>
-                    <FeatureTrainingModal
-                        confirmText={CONFIRM_TEXT}
-                        videoURL={CONST.FEATURE_TRAINING['track-expenses'].VIDEO_URL}
-                    />
-                </ComposeProviders>,
+                withNavigation(
+                    <ComposeProviders components={[OnyxListItemProvider, PlaybackContextProvider, FullScreenContextProvider, VolumeContextProvider, VideoPopoverMenuContextProvider]}>
+                        <FeatureTrainingModal>
+                            <FeatureTraining.Illustration videoURL={CONST.FEATURE_TRAINING['track-expenses'].VIDEO_URL} />
+                            <FeatureTraining.Body>
+                                <FeatureTraining.ConfirmButton>{CONFIRM_TEXT}</FeatureTraining.ConfirmButton>
+                            </FeatureTraining.Body>
+                        </FeatureTrainingModal>
+                    </ComposeProviders>,
+                ),
             );
 
             expect(screen.getByTestId(CONST.VIDEO_PLAYER_TEST_ID)).toBeOnTheScreen();
@@ -52,29 +76,29 @@ describe('FeatureTrainingModal', () => {
             function Component() {
                 const illustrations = useMemoizedLazyIllustrations(['HoldExpense']);
                 return (
-                    <FeatureTrainingModal
-                        confirmText={CONFIRM_TEXT}
-                        image={illustrations.HoldExpense}
-                    />
+                    <FeatureTrainingModal>
+                        <FeatureTraining.Illustration image={illustrations.HoldExpense} />
+                        <FeatureTraining.Body>
+                            <FeatureTraining.ConfirmButton>{CONFIRM_TEXT}</FeatureTraining.ConfirmButton>
+                        </FeatureTraining.Body>
+                    </FeatureTrainingModal>
                 );
             }
 
-            render(<Component />);
+            render(withNavigation(<Component />));
             expect(screen.getByTestId(CONST.IMAGE_SVG_TEST_ID)).toBeOnTheScreen();
         });
-        it('renders non-svg image', () => {
-            render(
-                <FeatureTrainingModal
-                    confirmText={CONFIRM_TEXT}
-                    image={ReceiptDoc}
-                    shouldRenderSVG={false}
-                />,
-            );
-
-            expect(screen.getByTestId(CONST.IMAGE_TEST_ID)).toBeOnTheScreen();
-        });
         it('renders animation', () => {
-            render(<FeatureTrainingModal confirmText={CONFIRM_TEXT} />);
+            render(
+                withNavigation(
+                    <FeatureTrainingModal>
+                        <FeatureTraining.Illustration />
+                        <FeatureTraining.Body>
+                            <FeatureTraining.ConfirmButton>{CONFIRM_TEXT}</FeatureTraining.ConfirmButton>
+                        </FeatureTraining.Body>
+                    </FeatureTrainingModal>,
+                ),
+            );
 
             expect(screen.getByTestId(CONST.LOTTIE_VIEW_TEST_ID)).toBeOnTheScreen();
         });

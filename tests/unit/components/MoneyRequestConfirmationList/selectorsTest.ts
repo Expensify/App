@@ -1,15 +1,18 @@
 import {merchantStateSelector} from '@components/MoneyRequestConfirmationList/sections/selectors';
+
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 
+import createMock from '../../../utils/createMock';
+
 function createTransaction(overrides: Partial<Transaction> = {}): Transaction {
-    return {
+    return createMock<Transaction>({
         transactionID: 'txn1',
         amount: 100,
         currency: 'USD',
         merchant: 'Coffee Shop',
         ...overrides,
-    } as Transaction;
+    });
 }
 
 describe('MoneyRequestConfirmationList selectors', () => {

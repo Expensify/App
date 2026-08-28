@@ -1,15 +1,21 @@
-import React from 'react';
-import type {ReactNode} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
-import Button from './Button';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type DotLottieAnimation from './LottieAnimations/types';
+
+import Button from './ButtonComposed';
 import MenuItem from './MenuItem';
 import Section from './Section';
 
@@ -130,17 +136,18 @@ function FeatureList({
                 </View>
                 {!!ctaText && (
                     <Button
-                        text={ctaText}
                         onPress={onCtaPress}
                         accessibilityLabel={ctaAccessibilityLabel}
                         style={styles.w100}
                         innerStyles={buttonInnerStyles}
                         hoverStyles={buttonHoverStyles}
-                        success
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         isDisabled={isButtonDisabled}
-                        large
+                        size={CONST.BUTTON_SIZE.LARGE}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.FEATURE_LIST.CTA_BUTTON}
-                    />
+                    >
+                        <Button.Text>{ctaText}</Button.Text>
+                    </Button>
                 )}
                 {!!footer && footer}
             </View>

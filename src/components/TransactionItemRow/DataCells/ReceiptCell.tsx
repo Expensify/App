@@ -1,19 +1,27 @@
-import {Str} from 'expensify-common';
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import type {ViewStyle} from 'react-native';
 import ReceiptImage from '@components/ReceiptImage';
 import ReceiptPreview from '@components/TransactionItemRow/ReceiptPreview';
+import type {AnchorPosition} from '@components/TransactionItemRow/types';
+
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalReceiptThumbnail from '@hooks/useLocalReceiptThumbnail';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {hasReceiptSource, isPerDiemRequest} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+
 import variables from '@styles/variables';
+
 import type {Transaction} from '@src/types/onyx';
+
+import type {ViewStyle} from 'react-native';
+
+import {Str} from 'expensify-common';
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
 
 function ReceiptCell({
     transactionItem,
@@ -40,11 +48,16 @@ function ReceiptCell({
     // ReceiptPreview handles its own visibility via debounced state, so keeping it
     // mounted avoids re-creating the portal and reloading images on subsequent hovers.
     const [shouldMountPreview, setShouldMountPreview] = useState(false);
+    const cellRef = useRef<View>(null);
+    // The preview is a document.body portal, so it needs the hovered cell's window position to
+    // anchor itself beside the row instead of sitting fixed in the upper-left corner.
+    const [previewAnchor, setPreviewAnchor] = useState<AnchorPosition>();
 
     const handleMouseEnter = () => {
         if (!shouldMountPreview) {
             setShouldMountPreview(true);
         }
+        cellRef.current?.measureInWindow((left, top, width, height) => setPreviewAnchor({left, top, width, height}));
         bind.onMouseEnter();
     };
 
@@ -55,7 +68,11 @@ function ReceiptCell({
     const filename = receiptURIs.filename ?? '';
 
     // Use 320px thumbnail for the receipt cell image
-    const source = tryResolveUrlFromApiRoot(receiptURIs.thumbnail320 ?? receiptURIs.thumbnail ?? receiptURIs.image ?? '');
+    const serverThumbnail = receiptURIs.thumbnail320 ?? receiptURIs.thumbnail;
+    const localImageUri = typeof receiptURIs.image === 'string' ? receiptURIs.image : undefined;
+    const isLocalReceipt = !!(receiptURIs.isLocalFile && localImageUri && !serverThumbnail && Str.isImage(filename));
+    const {thumbnailUri: localThumbnail} = useLocalReceiptThumbnail(isLocalReceipt ? localImageUri : undefined, isLocalReceipt);
+    const source = isLocalReceipt ? (localThumbnail ?? '') : tryResolveUrlFromApiRoot(serverThumbnail ?? receiptURIs.image ?? '');
 
     // Use full size receipt image for the hovered preview
     const previewImageURI = Str.isImage(filename) ? receiptURIs.image : receiptURIs.thumbnail;
@@ -63,6 +80,7 @@ function ReceiptCell({
 
     return (
         <View
+            ref={cellRef}
             style={[
                 StyleUtils.getWidthAndHeightStyle(isLargeScreenWidth ? variables.w28 : variables.h36, isLargeScreenWidth ? variables.h32 : variables.w40),
                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall),
@@ -97,6 +115,7 @@ function ReceiptCell({
                     hovered={hovered && shouldShowPreview}
                     isEReceipt={!!isEReceipt}
                     transactionItem={transactionItem}
+                    anchorPosition={previewAnchor}
                 />
             )}
         </View>

@@ -1,11 +1,18 @@
+import TextWithTooltip from '@components/TextWithTooltip';
+
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {View} from 'react-native';
-import TextWithTooltip from '@components/TextWithTooltip';
-import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import SelectableListItem from './SelectableListItem';
+
 import type {BaseSelectListItemProps, ListItem} from './types';
+
+import SelectableListItem from './SelectableListItem';
 
 /**
  * A text-only row with a title and optional subtitle, built on BaseListItem. Serves as the
@@ -35,6 +42,7 @@ function BaseSelectListItem<TItem extends ListItem>({
     selectionButtonPosition,
 }: BaseSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const fullTitle = isMultilineSupported ? item.text?.trimStart() : item.text;
     const indentsLength = (item.text?.length ?? 0) - (fullTitle?.length ?? 0);
     const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
@@ -70,18 +78,20 @@ function BaseSelectListItem<TItem extends ListItem>({
                         text={fullTitle ?? ''}
                         style={[
                             styles.optionDisplayName,
-                            isFocusVisible ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                            styles.sidebarLinkText,
                             styles.sidebarLinkTextBold,
                             isMultilineSupported ? styles.preWrap : styles.pre,
-                            item.alternateText ? styles.mb1 : null,
+                            item.alternateText || item.alternateTextComponent ? styles.mb1 : null,
                             isDisabled && styles.colorMuted,
-                            isMultilineSupported ? {paddingLeft} : null,
+                            isMultilineSupported ? StyleUtils.getPaddingLeft(paddingLeft) : null,
                             titleStyles,
+                            item.titleStyles,
                         ]}
                         numberOfLines={isMultilineSupported ? titleNumberOfLines : 1}
                     />
 
-                    {!!item.alternateText && (
+                    {!!item.alternateTextComponent && item.alternateTextComponent}
+                    {!item.alternateTextComponent && !!item.alternateText && (
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
                             text={item.alternateText}
@@ -90,6 +100,7 @@ function BaseSelectListItem<TItem extends ListItem>({
                                 styles.lh16,
                                 isAlternateTextMultilineSupported ? styles.preWrap : styles.pre,
                                 isAlternateTextMultilineSupported ? {maxWidth: alternateTextMaxWidth} : null,
+                                isMultilineSupported ? StyleUtils.getPaddingLeft(paddingLeft) : null,
                             ]}
                             numberOfLines={isAlternateTextMultilineSupported ? alternateTextNumberOfLines : 1}
                         />

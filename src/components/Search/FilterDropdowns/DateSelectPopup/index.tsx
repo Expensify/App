@@ -1,6 +1,3 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import ScrollView from '@components/ScrollView';
 import DatePresetFilterBase from '@components/Search/FilterComponents/DatePresetFilterBase';
@@ -8,14 +5,23 @@ import type {SearchDatePresetFilterBaseHandle} from '@components/Search/FilterCo
 import ActionButtons from '@components/Search/FilterDropdowns/ActionButtons';
 import type {SearchDatePreset} from '@components/Search/types';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDateModifierTitle, getDateRangeDisplayValueFromFormValue} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import SelectedDateModifierHeader from './SelectedDateModifierHeader';
 
 type DateSelectPopupProps = {
@@ -45,7 +51,7 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
 
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
@@ -53,11 +59,17 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
     const [shouldShowRangeError, setShouldShowRangeError] = useState(false);
     const [rangeText, setRangeText] = useState(() =>
-        getDateRangeDisplayValueFromFormValue(value[CONST.SEARCH.DATE_MODIFIERS.RANGE], value[CONST.SEARCH.DATE_MODIFIERS.AFTER], value[CONST.SEARCH.DATE_MODIFIERS.BEFORE]),
+        getDateRangeDisplayValueFromFormValue(dateFnsLocale, value[CONST.SEARCH.DATE_MODIFIERS.RANGE], value[CONST.SEARCH.DATE_MODIFIERS.AFTER], value[CONST.SEARCH.DATE_MODIFIERS.BEFORE]),
     );
     const syncedRangeText = useMemo(
-        () => getDateRangeDisplayValueFromFormValue(value[CONST.SEARCH.DATE_MODIFIERS.RANGE], value[CONST.SEARCH.DATE_MODIFIERS.AFTER], value[CONST.SEARCH.DATE_MODIFIERS.BEFORE]),
-        [value],
+        () =>
+            getDateRangeDisplayValueFromFormValue(
+                dateFnsLocale,
+                value[CONST.SEARCH.DATE_MODIFIERS.RANGE],
+                value[CONST.SEARCH.DATE_MODIFIERS.AFTER],
+                value[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
+            ),
+        [value, dateFnsLocale],
     );
     const displayedRangeText = selectedDateModifier ? rangeText : syncedRangeText;
     const selectedDateModifierTitle = getDateModifierTitle(selectedDateModifier, '', translate);

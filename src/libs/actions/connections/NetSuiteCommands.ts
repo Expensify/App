@@ -1,17 +1,21 @@
-import type {CONST as COMMON_CONST} from 'expensify-common';
-import isObject from 'lodash/isObject';
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import type {ConnectPolicyToNetSuiteParams} from '@libs/API/parameters';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import type {ConnectPolicyToNetSuiteOAuthParams, ConnectPolicyToNetSuiteParams} from '@libs/API/parameters';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getCommandURL} from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {Connections, NetSuiteCustomFormID, NetSuiteCustomList, NetSuiteCustomSegment, NetSuiteMappingValues} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {CONST as COMMON_CONST} from 'expensify-common';
+import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import isObject from 'lodash/isObject';
+import Onyx from 'react-native-onyx';
 
 type SubsidiaryParam = {
     subsidiaryID: string;
@@ -44,6 +48,12 @@ function writeNetSuiteCredentials(
 function connectPolicyToNetSuite(policyID: string, credentials: Omit<ConnectPolicyToNetSuiteParams, 'policyID'>) {
     writeNetSuiteCredentials(WRITE_COMMANDS.CONNECT_POLICY_TO_NETSUITE, policyID, credentials);
 }
+
+const getNetSuiteSetupLink = (policyID: string, accountID: string) => {
+    const params: ConnectPolicyToNetSuiteOAuthParams = {policyID, netSuiteAccountID: accountID};
+    const commandURL = getCommandURL({command: READ_COMMANDS.CONNECT_POLICY_TO_NETSUITE_OAUTH, shouldSkipWebProxy: true});
+    return commandURL + new URLSearchParams(params).toString();
+};
 
 function updateNetSuiteTokens(policyID: string, credentials: Omit<ConnectPolicyToNetSuiteParams, 'policyID'>) {
     writeNetSuiteCredentials(WRITE_COMMANDS.UPDATE_NETSUITE_TOKENS, policyID, credentials);
@@ -1060,30 +1070,31 @@ function updateNetSuiteCustomFormIDOptions(
     API.write(commandName, parameters, onyxData);
 }
 
-function updateNetSuiteTravelInvoicingPayableAccount(policyID: string, accountID: string, oldAccountID?: string) {
-    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, accountID, oldAccountID);
+function updateNetSuiteTravelBillingPayableAccount(policyID: string, accountID: string, oldAccountID?: string) {
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT, accountID, oldAccountID);
     const parameters = {
         policyID,
         bankAccountID: accountID,
     };
-    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_BILLING_PAYABLE_ACCOUNT, parameters, onyxData);
 }
 
-function updateNetSuiteTravelInvoicingJournalPostingPreference(
+function updateNetSuiteTravelBillingJournalPostingPreference(
     policyID: string,
     postingPreference: ValueOf<typeof CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE>,
     oldPostingPreference?: ValueOf<typeof CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE>,
 ) {
-    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE, postingPreference, oldPostingPreference);
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE, postingPreference, oldPostingPreference);
     const parameters = {
         policyID,
         value: postingPreference,
     };
-    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE, parameters, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE, parameters, onyxData);
 }
 
 export {
     connectPolicyToNetSuite,
+    getNetSuiteSetupLink,
     updateNetSuiteTokens,
     updateNetSuiteSubsidiary,
     updateNetSuiteSyncTaxConfiguration,
@@ -1121,6 +1132,6 @@ export {
     updateNetSuiteCustomFormIDOptions,
     updateNetSuiteCustomersJobsMapping,
     updateNetSuiteAccountingMethod,
-    updateNetSuiteTravelInvoicingPayableAccount,
-    updateNetSuiteTravelInvoicingJournalPostingPreference,
+    updateNetSuiteTravelBillingPayableAccount,
+    updateNetSuiteTravelBillingJournalPostingPreference,
 };

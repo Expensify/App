@@ -1,15 +1,19 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
-import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem, ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
-import TextWithTooltip from '@components/TextWithTooltip';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
+
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {OptionData} from '@libs/ReportUtils';
-import type CONST from '@src/CONST';
+
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type SearchQueryItem = ListItem & {
     singleIcon?: IconAsset;
@@ -20,6 +24,8 @@ type SearchQueryItem = ListItem & {
     autocompleteID?: string;
     roomType?: ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
     mapKey?: string;
+    /** Navigates to the destination represented by this suggestion. */
+    action?: () => void;
 };
 
 type SearchQueryListItemProps = {
@@ -43,54 +49,43 @@ function isSearchQueryItem(item: OptionData | SearchQueryItem): item is SearchQu
 function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus, shouldSyncFocus, shouldDisableHoverStyle}: SearchQueryListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const subtitle = item.alternateText;
+    const shouldShowBrickRoadIndicator = !item.isSelected || !!item.canShowSeveralIndicators;
 
     return (
-        <BaseListItem
+        <ListItemComposed
             item={item}
-            pressableStyle={[[styles.searchQueryListItemStyle, item.isSelected && styles.activeComponentBG, item.cursorStyle]]}
-            wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
+            pressableStyle={[styles.searchQueryListItemStyle, item.isSelected && styles.activeComponentBG, item.cursorStyle]}
             isFocused={isFocused}
             onSelectRow={onSelectRow}
             keyForList={item.keyForList}
             onFocus={onFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             shouldSyncFocus={shouldSyncFocus}
-            showTooltip={showTooltip}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
             shouldHighlightSelectedItem
+            shouldShowTooltip={showTooltip}
         >
-            <>
+            <View style={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}>
                 {!!item.singleIcon && (
                     <Icon
                         src={item.singleIcon}
                         fill={item.shouldIconApplyFill !== false ? theme.icon : undefined}
                         additionalStyles={styles.mr3}
-                        medium
+                        size={CONST.ICON_SIZE.MEDIUM}
                     />
                 )}
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
-                    <TextWithTooltip
-                        shouldShowTooltip={showTooltip ?? false}
+                    <ListItemComposed.Title
                         text={item.text ?? ''}
-                        style={[
-                            styles.optionDisplayName,
-                            isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                            styles.sidebarLinkTextBold,
-                            styles.pre,
-                            item.alternateText ? styles.mb1 : null,
-                            styles.justifyContentCenter,
-                        ]}
+                        style={[styles.justifyContentCenter, !!subtitle && styles.mb1]}
                     />
-                    {!!item.alternateText && (
-                        <TextWithTooltip
-                            shouldShowTooltip={showTooltip ?? false}
-                            text={item.alternateText}
-                            style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                        />
-                    )}
+                    {!!subtitle && <ListItemComposed.Subtitle text={subtitle} />}
                 </View>
-            </>
-        </BaseListItem>
+                {!!item.rightElement && <View style={[styles.ml2, styles.flexShrink1, styles.mw50]}>{item.rightElement}</View>}
+                {!!item.brickRoadIndicator && shouldShowBrickRoadIndicator && <ListItemComposed.RBRIndicator brickRoadIndicator={item.brickRoadIndicator} />}
+            </View>
+        </ListItemComposed>
     );
 }
 

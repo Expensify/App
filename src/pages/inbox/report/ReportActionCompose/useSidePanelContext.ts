@@ -1,12 +1,15 @@
-import {useMemo} from 'react';
 import {useSearchQueryContext, useSearchSelectionContext} from '@components/Search/SearchContext';
+
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {useMemo} from 'react';
 
 function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | undefined {
     const isInSidePanel = useIsInSidePanel();
@@ -48,6 +51,15 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
 
         if (!contextReportID && !selectedTransactionIDsForContext && !selectedReportIDsForContext) {
             return undefined;
+        }
+
+        // On Spend > Expenses (EXPENSE search) the selected transactions can span multiple reports,
+        // so contextReportID doesn't correspond to them. Send selectedReportIDs (+ selectedTransactionIDs)
+        // instead of an invalid reportID. We only do this while no report is open in the RHP: once the user
+        // opens a report from the list (currentRHPReportID is set) contextReportID is a valid, meaningful
+        // report, so we fall through to the default return and keep sending reportID.
+        if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && !currentRHPReportID && selectedReportIDsForContext) {
+            return {selectedTransactionIDs: selectedTransactionIDsForContext, selectedReportIDs: selectedReportIDsForContext};
         }
 
         return {reportID: contextReportID, selectedTransactionIDs: selectedTransactionIDsForContext, selectedReportIDs: selectedReportIDsForContext};

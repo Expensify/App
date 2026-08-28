@@ -1,26 +1,33 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {RefObject} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, TextInputKeyPressEvent} from 'react-native';
-import {Keyboard} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearAgentPromptUpdateError, openProfilePage, updateAgentPrompt} from '@libs/actions/Agent';
 import getPlatform from '@libs/getPlatform';
 import {containsHtmlTag} from '@libs/ValidationUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView, TextInputKeyPressEvent} from 'react-native';
+
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {Keyboard} from 'react-native';
 
 const MAX_VISIBLE_PROMPT_LINES = 15;
 const SAVED_CONFIRMATION_DURATION_MS = 2000;
@@ -196,6 +203,8 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     const handleKeyPress = (e: TextInputKeyPressEvent) => {
         const event = e as unknown as KeyboardEvent;
         if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+            // The markdown input inserts a line break for any Enter keydown whose default is not already prevented, so the submit combo has to claim it first.
+            event.preventDefault();
             handleSave();
         }
     };
@@ -214,6 +223,8 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
                     ref={inputRef}
                     label={translate('profilePage.aiPromptSection.prompt')}
                     accessibilityLabel={translate('profilePage.aiPromptSection.prompt')}
+                    type="markdown"
+                    excludedMarkdownStyles={['mentionReport']}
                     value={draftPrompt}
                     onChangeText={handleChangeText}
                     onKeyPress={handleKeyPress}
@@ -226,16 +237,18 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
                     onFocus={handleInputFocus}
                 />
             </OfflineWithFeedback>
+            <Text style={[styles.textMicroSupporting, styles.mt1, styles.mb5]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
             <Button
-                success
-                text={showSavedConfirmation ? translate('profilePage.aiPromptSection.saved') : translate('common.save')}
-                icon={showSavedConfirmation ? icons.Checkmark : undefined}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={handleSave}
                 isLoading={isSaving && isUserInitiatedSave}
                 isDisabled={isSaving && isUserInitiatedSave}
                 style={[styles.alignSelfStart]}
                 testID="save-prompt-button"
-            />
+            >
+                {showSavedConfirmation && <Button.Icon src={icons.Checkmark} />}
+                <Button.Text>{showSavedConfirmation ? translate('profilePage.aiPromptSection.saved') : translate('common.save')}</Button.Text>
+            </Button>
             <ErrorMessageRow
                 errors={agentPrompt?.promptErrors}
                 errorRowStyles={[styles.mt3]}

@@ -1,15 +1,22 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
+import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
+
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React from 'react';
+
 import WorkspaceCategoriesTableRow from './WorkspaceCategoriesTableRow';
 
 type WorkspaceCategoryTableColumnKey = 'name' | 'glCode' | 'approver' | 'enabled' | 'actions';
@@ -37,8 +44,10 @@ type WorkspaceCategoriesTableProps = {
     shouldShowGLCodeColumn: boolean;
     shouldShowApproverColumn: boolean;
     selectedKeys: string[];
+    emptyStateSubtitleText: React.ReactNode;
+    emptyStateButtons: EmptyStateButton[] | undefined;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    EmptyStateComponent: React.ReactElement;
+    headerComponent?: React.ReactElement;
 };
 
 export default function WorkspaceCategoriesTable({
@@ -48,8 +57,10 @@ export default function WorkspaceCategoriesTable({
     selectionEnabled,
     shouldShowGLCodeColumn,
     shouldShowApproverColumn,
+    emptyStateSubtitleText,
+    emptyStateButtons,
     onRowSelectionChange,
-    EmptyStateComponent,
+    headerComponent,
 }: WorkspaceCategoriesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -136,7 +147,8 @@ export default function WorkspaceCategoriesTable({
         />
     );
 
-    const isEmpty = categories.length === 0;
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.categories.findCategory')} />;
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (
         <Table
@@ -153,14 +165,16 @@ export default function WorkspaceCategoriesTable({
             keyExtractor={(category) => category.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            {isEmpty && EmptyStateComponent}
-            {!isEmpty && (
-                <>
-                    {categories.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.categories.findCategory')} />}
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
+            <Table.EmptyState
+                title={translate('workspace.categories.emptyCategories.title')}
+                subtitleText={emptyStateSubtitleText}
+                headerStyles={styles.emptyStateCardIllustrationContainer}
+                buttons={emptyStateButtons}
+            />
+            <Table.NoResultsState />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }

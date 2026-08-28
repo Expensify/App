@@ -1,8 +1,10 @@
 import emojis, {importEmojiLocale, localeEmojis} from '@assets/emojis';
 import type {Emoji, HeaderEmoji} from '@assets/emojis/types';
+
 import CONST from '@src/CONST';
 import {FULLY_SUPPORTED_LOCALES} from '@src/CONST/LOCALES';
 import type {FullySupportedLocale} from '@src/CONST/LOCALES';
+
 import StringUtils from './StringUtils';
 import {endSpan, startSpan} from './telemetry/activeSpans';
 import Trie from './Trie';
@@ -37,7 +39,7 @@ function addKeywordsToTrie(trie: Trie<EmojiMetaData>, keywords: string[], item: 
             (node.metaData.suggestions ??= []).push(suggestion);
         }
 
-        const normalizedKeyword = StringUtils.normalizeAccents(keyword);
+        const normalizedKeyword = StringUtils.normalizeForMatch(keyword);
         if (normalizedKeyword !== keyword) {
             const {node: normNode} = trie.getOrCreate(normalizedKeyword);
             normNode.metaData = node.metaData;
@@ -76,7 +78,7 @@ function createTrie(lang: FullySupportedLocale = CONST.LOCALES.DEFAULT): Trie<Em
 
         const englishName = emoji.name;
         const localeName = langEmojis?.[emoji.code]?.name ?? englishName;
-        const normalizedName = StringUtils.normalizeAccents(localeName);
+        const normalizedName = StringUtils.normalizeForMatch(localeName);
 
         const {node, isNew} = trie.getOrCreate(localeName);
         if (isNew) {

@@ -1,17 +1,16 @@
-import {isUserValidatedSelector} from '@selectors/Account';
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
+import useCanEnrollNewExpensifyCardProgram from '@hooks/useCanEnrollNewExpensifyCardProgram';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
@@ -22,6 +21,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearIssueNewCardFlow, clearIssueNewCardFormData, setIssueNewCardStepAndData, updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import type {ExpensifyCardFeedEntry} from '@libs/ExpensifyCardFeedSelectorUtils';
@@ -30,18 +30,27 @@ import {isEmailPublicDomain} from '@libs/LoginUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberWrite} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, canMemberWrite} from '@libs/PolicyUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import variables from '@styles/variables';
+
 import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+import {isUserValidatedSelector} from '@selectors/Account';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type ExpensifyFeedListItem = ListItem & {
     value: number;
@@ -75,6 +84,8 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const policy = usePolicy(policyID);
     const canWriteExpensifyCard = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
+    const {canEnrollNewCardProgram} = useCanEnrollNewExpensifyCardProgram(policyID);
+    const canStartBankAccountSetup = canEditWorkspaceSettings(policy, currentUserLogin);
 
     const getIssueCardFundID = () => {
         if (primaryFeeds.length === 0) {
@@ -91,6 +102,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     };
 
     const issueCardFundID = getIssueCardFundID();
+    const hasIssueCardFundID = issueCardFundID !== undefined;
 
     const handleAddCardPress = () => {
         if (issueCardFundID === undefined) {
@@ -192,14 +204,20 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
 
     const primaryListData = primaryFeeds.map((entry) => toListItem(entry, false));
 
+    // Suppress the new-program branch on workspaces with unsupported currencies, and for members who cannot
+    // reach the bank account setup page. These workspaces may only issue cards on existing feeds
+    const shouldShowIssueCardButton = hasIssueCardFundID || (canEnrollNewCardProgram && canStartBankAccountSetup);
+
     const issueNewCardAndOtherFeedsFooter = canWriteExpensifyCard ? (
         <View style={[styles.w100, styles.flexColumn]}>
-            <MenuItem
-                title={translate(issueCardFundID !== undefined ? 'workspace.expensifyCard.issueCard' : 'workspace.expensifyCard.issueNewCard')}
-                icon={expensifyIcons.Plus}
-                onPress={issueCardFundID !== undefined ? handleAddCardPress : handleSetUpNewProgramPress}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
-            />
+            {shouldShowIssueCardButton && (
+                <MenuItemAction
+                    title={translate(hasIssueCardFundID ? 'workspace.expensifyCard.issueCard' : 'workspace.expensifyCard.issueNewCard')}
+                    icon={expensifyIcons.Plus}
+                    onPress={hasIssueCardFundID ? handleAddCardPress : handleSetUpNewProgramPress}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
+                />
+            )}
             {otherFeeds.length > 0 && (
                 <>
                     <Text style={[styles.ph5, styles.mv2, styles.textLabelSupporting]}>{translate('workspace.companyCards.fromOtherWorkspaces')}</Text>

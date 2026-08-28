@@ -1,16 +1,21 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {LockAccountOnyxKey} from '@userActions/User';
 import {lockAccount} from '@userActions/User';
+
+import CONST from '@src/CONST';
 import type Response from '@src/types/onyx/Response';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type BaseLockAccountComponentProps = {
     confirmModalPrompt: React.JSX.Element | string;
@@ -70,15 +75,16 @@ function LockAccountPageBase({
 
     const lockAccountButton = (
         <Button
-            danger
+            variant={CONST.BUTTON_VARIANT.DANGER}
             isLoading={isLoading}
             isDisabled={isOffline}
-            large
-            text={lockButtonText ?? translate('lockAccountPage.reportSuspiciousActivity')}
+            size={CONST.BUTTON_SIZE.LARGE}
             style={styles.mt6}
-            pressOnEnter
             onPress={handleReportSuspiciousActivity}
-        />
+        >
+            <Button.KeyboardShortcut />
+            <Button.Text>{lockButtonText ?? translate('lockAccountPage.reportSuspiciousActivity')}</Button.Text>
+        </Button>
     );
 
     return (

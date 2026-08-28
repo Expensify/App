@@ -1,5 +1,3 @@
-import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import Badge from '@components/Badge';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -7,6 +5,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -14,17 +13,25 @@ import usePolicy from '@hooks/usePolicy';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
+
 import {clearPolicyCodingRuleErrors} from '@userActions/Policy/Rules';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useEffect, useMemo} from 'react';
+import {View} from 'react-native';
 
 type MerchantRulesSectionProps = {
     policyID: string;
@@ -37,12 +44,13 @@ type FieldLabels = {
     tag: string;
     description: string;
     tax: string;
+    vendor: string;
 };
 
 /**
  * Generates a human-readable description of what a coding rule does
  */
-function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLocalize>['translate'], labels: FieldLabels): string {
+function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLocalize>['translate'], labels: FieldLabels, policy: Policy | undefined): string {
     const actions: string[] = [];
 
     if (rule.merchant) {
@@ -60,6 +68,11 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
     }
     if (rule.tax?.field_id_TAX?.value) {
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tax, `${rule.tax.field_id_TAX.name} (${rule.tax.field_id_TAX.value})`));
+    }
+    if (rule.vendorID) {
+        const unavailableLabel = translate(isXeroActiveMatchingSource(policy) ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
+        const vendorValue = getVendorRuleDisplayValue(policy, rule.vendorID, unavailableLabel);
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.vendor, vendorValue));
     }
     if (rule.reimbursable !== undefined) {
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleReimbursable', rule.reimbursable));
@@ -87,8 +100,9 @@ function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: Merc
             tag: translate('common.tag').toLowerCase(),
             description: translate('common.description').toLowerCase(),
             tax: translate('common.tax').toLowerCase(),
+            vendor: translate(isXeroActiveMatchingSource(policy) ? 'common.supplier' : 'common.vendor').toLowerCase(),
         }),
-        [translate],
+        [translate, policy],
     );
 
     const codingRules = policy?.rules?.codingRules;
@@ -160,7 +174,7 @@ function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: Merc
                         const merchantName = rule.filters?.right ?? '';
                         const isExactMatch = rule.filters?.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
                         const matchDescription = translate('workspace.rules.merchantRules.ruleSummaryTitle', merchantName, isExactMatch);
-                        const ruleDescription = getRuleDescription(rule, translate, fieldLabels);
+                        const ruleDescription = getRuleDescription(rule, translate, fieldLabels, policy);
 
                         return (
                             <View key={rule.ruleID}>
@@ -209,3 +223,4 @@ function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: Merc
 MerchantRulesSection.displayName = 'MerchantRulesSection';
 
 export default MerchantRulesSection;
+export {getRuleDescription};

@@ -1,29 +1,37 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoneyRequestAmount, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {calculateAmount, isMovingTransactionFromTrackExpense, isParticipantP2P} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldEnableNegative} from '@libs/ReportUtils';
 import {calculateTaxAmount, getTaxCode, getTaxValue} from '@libs/TransactionUtils';
+
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
+
 import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import {amountSliceSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -77,7 +85,7 @@ function AmountField({
     const {isEditingSplitBill} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -190,17 +198,23 @@ function AmountField({
 
                 const isPayer = splitShareAccountID === accountID;
                 acc[splitShareAccountID] = {
-                    amount: calculateAmount(participantsLength, updatedAmount, updatedCurrency, isPayer),
+                    amount: calculateAmount(participantsLength, updatedAmount, updatedCurrency, isPayer, false, getCurrencyDecimals),
                     isModified: false,
                 };
                 return acc;
             }, {});
 
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {
-                amount: updatedAmount,
-                currency: updatedCurrency,
-                ...(accountIDs.length > 0 ? {splitShares: updatedSplitShares} : {}),
-            });
+            setDraftSplitTransaction(
+                transactionID,
+                splitDraftTransaction,
+                {
+                    amount: updatedAmount,
+                    currency: updatedCurrency,
+                    ...(accountIDs.length > 0 ? {splitShares: updatedSplitShares} : {}),
+                },
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            );
             return;
         }
 
@@ -209,13 +223,13 @@ function AmountField({
             const participantAccountIDs =
                 shareAccountIDs.length > 0 ? shareAccountIDs : (transactionSlice.participants ?? []).map((p) => p.accountID).filter((id): id is number => id !== undefined);
             if (participantAccountIDs.length > 0) {
-                setSplitShares(transactionForHandlers, updatedAmount, updatedCurrency, participantAccountIDs, currentUserPersonalDetails.accountID);
+                setSplitShares(transactionForHandlers, updatedAmount, updatedCurrency, participantAccountIDs, currentUserPersonalDetails.accountID, getCurrencyDecimals);
             }
             return;
         }
 
         if (transactionSlice?.splitShares) {
-            resetSplitShares(transactionForHandlers, updatedAmount, updatedCurrency, currentUserPersonalDetails.accountID);
+            resetSplitShares(transactionForHandlers, updatedAmount, updatedCurrency, currentUserPersonalDetails.accountID, getCurrencyDecimals);
         }
     };
 
@@ -261,6 +275,8 @@ function AmountField({
             // User cleared the field — mark amount as unset so the field stays empty
             // and submission is blocked until a value is re-entered.
             clearMoneyRequestAmount(transactionID);
+            // Recalculate split shares to 0 so each participant's individual amount reflects the cleared total.
+            buildAndSaveSplitShares(0, effectiveCurrency);
             return;
         }
 

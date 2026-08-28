@@ -1,5 +1,6 @@
-import * as core from '@actions/core';
 import type {CompareResult, MeasureEntry} from '@callstack/reassure-compare';
+
+import * as core from '@actions/core';
 import fs from 'fs';
 
 const run = (): boolean => {
@@ -46,7 +47,7 @@ const run = (): boolean => {
     return true;
 };
 
-if (require.main === module) {
+if (import.meta.main) {
     run();
 }
 

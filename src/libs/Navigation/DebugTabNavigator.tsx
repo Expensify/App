@@ -1,18 +1,22 @@
-import type {EventMapCore, NavigationProp, NavigationState, ParamListBase} from '@react-navigation/native';
-import {useNavigation, useRoute} from '@react-navigation/native';
-import {createStackNavigator} from '@react-navigation/stack';
-import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import getBackgroundColor from '@components/TabSelector/getBackground';
 import getOpacity from '@components/TabSelector/getOpacity';
 import TabSelectorItem from '@components/TabSelector/TabSelectorItem';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {EventMapCore, NavigationProp, NavigationState, ParamListBase} from '@react-navigation/native';
+
+import {useNavigation, useRoute} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
+import React, {useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type IconAndTitle = {
     icon: IconAsset;

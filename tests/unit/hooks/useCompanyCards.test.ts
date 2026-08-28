@@ -1,12 +1,16 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useCompanyCards from '@hooks/useCompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
+import type {CombinedCardFeed, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const mockPolicyID = '123456';
@@ -20,7 +24,8 @@ const mockCustomFeed: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_B
 const mockOAuthFeed: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#${domainID}` as CompanyCardFeedWithDomainID;
 
 // Plaid feed
-const mockPlaidFeed: CompanyCardFeedWithDomainID = `plaid.ins_123#${workspaceAccountID}` as CompanyCardFeedWithDomainID;
+// @ts-expect-error -- Plaid provider feed IDs are runtime values outside the static bank-name union.
+const mockPlaidFeed: CompanyCardFeedWithDomainID = `plaid.ins_123#${workspaceAccountID}`;
 
 const mockCustomFeedData = {
     [mockCustomFeed]: {
@@ -47,35 +52,44 @@ const mockOAuthFeedData = {
     },
 };
 
-const mockPlaidFeedData = {
-    [mockPlaidFeed]: {
-        liabilityType: 'corporate',
-        pending: false,
-        domainID: workspaceAccountID,
-        customFeedName: 'Plaid Bank cards',
-        feed: 'plaid.ins_123' as CompanyCardFeed,
-        accountList: ['Plaid Checking 0000', 'Plaid Credit Card 3333'],
-        credentials: 'xxxxx',
-        expiration: 1730998958,
-    },
+const mockPlaidFeedDetails: CombinedCardFeed = {
+    liabilityType: 'corporate',
+    pending: false,
+    domainID: workspaceAccountID,
+    customFeedName: 'Plaid Bank cards',
+    // @ts-expect-error -- This bare runtime Plaid provider ID is outside the current static feed union.
+    feed: 'plaid.ins_123',
+    accountList: ['Plaid Checking 0000', 'Plaid Credit Card 3333'],
+    credentials: 'xxxxx',
+    expiration: 1730998958,
 };
 
-const mockCardsList = {
-    cardList: {
-        card1: 'card1',
-        card2: 'card2',
-    },
+const mockPlaidFeedData: NonNullable<ReturnType<typeof useCardFeeds>[0]> = {
+    [mockPlaidFeed]: mockPlaidFeedDetails,
+};
+
+const mockCardsList: NonNullable<ReturnType<typeof useCardsList>[0]> = {
     '21570652': {
+        cardID: 21570652,
         accountID: 18439984,
         bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
         cardName: 'card1',
         domainName: 'expensify-policy://123456',
+        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
         lastFourPAN: '1234',
         lastScrape: '',
         lastScrapeResult: 200,
+        lastUpdated: '',
         scrapeMinDate: '2024-09-01',
         state: 3,
     },
+};
+mockCardsList.cardList = {card1: 'card1', card2: 'card2'};
+
+const createCardsList = (cardList: Record<string, string>, cards: NonNullable<ReturnType<typeof useCardsList>[0]> = {}): NonNullable<ReturnType<typeof useCardsList>[0]> => {
+    const cardsWithCardList: NonNullable<ReturnType<typeof useCardsList>[0]> = {...cards};
+    cardsWithCardList.cardList = cardList;
+    return cardsWithCardList;
 };
 
 /** Helper to build expected card entries concisely (uses objectContaining so assignedCard doesn't need exact match) */
@@ -91,12 +105,12 @@ jest.mock('@hooks/useCardsList', () => ({
     default: jest.fn(),
 }));
 
-const mockUseCardFeedsHook = (feedData: unknown, metadata: Record<string, unknown> = {status: 'loaded'}) => {
-    (useCardFeeds as jest.Mock).mockReturnValue([feedData, metadata, undefined]);
+const mockUseCardFeedsHook = (feedData: ReturnType<typeof useCardFeeds>[0], metadata: ReturnType<typeof useCardFeeds>[1] = {status: 'loaded'}) => {
+    jest.mocked(useCardFeeds).mockReturnValue([feedData, metadata, undefined, {}, 0]);
 };
 
-const mockUseCardsListHook = (cardsList: unknown, metadata: Record<string, unknown> = {status: 'loaded'}) => {
-    (useCardsList as jest.Mock).mockReturnValue([cardsList, metadata]);
+const mockUseCardsListHook = (cardsList: ReturnType<typeof useCardsList>[0], metadata: ReturnType<typeof useCardsList>[1] = {status: 'loaded'}) => {
+    jest.mocked(useCardsList).mockReturnValue([cardsList, metadata]);
 };
 
 describe('useCompanyCards', () => {
@@ -166,12 +180,10 @@ describe('useCompanyCards', () => {
                     accountList: ['CARD A', 'CARD B'],
                 },
             };
-            const cardsListWithEncrypted = {
-                cardList: {
-                    'CARD A': 'encrypted_A',
-                    'CARD C': 'encrypted_C',
-                },
-            };
+            const cardsListWithEncrypted = createCardsList({
+                'CARD A': 'encrypted_A',
+                'CARD C': 'encrypted_C',
+            });
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, feedWithBoth);
             mockUseCardFeedsHook(feedDataWithAccountList);
@@ -219,8 +231,8 @@ describe('useCompanyCards', () => {
         it('should return all metadata from dependent hooks', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
 
-            const cardListMetadata = {status: 'loaded'};
-            const allCardFeedsMetadata = {status: 'loaded'};
+            const cardListMetadata: ReturnType<typeof useCardsList>[1] = {status: 'loaded'};
+            const allCardFeedsMetadata: ReturnType<typeof useCardFeeds>[1] = {status: 'loaded'};
             mockUseCardFeedsHook(mockCustomFeedData, allCardFeedsMetadata);
             mockUseCardsListHook(mockCardsList, cardListMetadata);
 
@@ -233,12 +245,10 @@ describe('useCompanyCards', () => {
     });
 
     describe('cardList data structure', () => {
-        const mockCardsListWithEncryptedNumbers = {
-            cardList: {
-                '490901XXXXXX1234': 'v12:74E3CA3C4C0FA02F4C754FEN4RYP3ED1',
-                '490901XXXXXX5678': 'v12:74E3CA3C4C0FA02F4C754FEN4RYP3ED2',
-            },
-        };
+        const mockCardsListWithEncryptedNumbers = createCardsList({
+            '490901XXXXXX1234': 'v12:74E3CA3C4C0FA02F4C754FEN4RYP3ED1',
+            '490901XXXXXX5678': 'v12:74E3CA3C4C0FA02F4C754FEN4RYP3ED2',
+        });
 
         it('should return entries with encrypted card numbers for commercial feeds', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
@@ -282,18 +292,22 @@ describe('useCompanyCards', () => {
 
     describe('assigned cards not in cardList (stale cardList)', () => {
         it('should include assigned cards when cardList is empty/stale for custom feeds', async () => {
-            const staleCardsList = {
-                cardList: {},
-                '21570652': {
-                    cardID: 21570652,
-                    accountID: 18439984,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                    cardName: 'VISA - 1234',
-                    encryptedCardNumber: 'enc_visa_1234',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
+            const staleCardsList = createCardsList(
+                {},
+                {
+                    '21570652': {
+                        cardID: 21570652,
+                        accountID: 18439984,
+                        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                        cardName: 'VISA - 1234',
+                        encryptedCardNumber: 'enc_visa_1234',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
                 },
-            };
+            );
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
             mockUseCardFeedsHook(mockCustomFeedData);
@@ -312,17 +326,21 @@ describe('useCompanyCards', () => {
                 },
             };
 
-            const cardsListWithExtraAssigned = {
-                cardList: {},
-                '99999': {
-                    cardID: 99999,
-                    accountID: 18439984,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-                    cardName: 'CREDIT CARD...5501',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
+            const cardsListWithExtraAssigned = createCardsList(
+                {},
+                {
+                    '99999': {
+                        cardID: 99999,
+                        accountID: 18439984,
+                        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                        cardName: 'CREDIT CARD...5501',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
                 },
-            };
+            );
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockOAuthFeed);
             mockUseCardFeedsHook(oAuthFeedWithPartialList);
@@ -337,20 +355,24 @@ describe('useCompanyCards', () => {
         });
 
         it('should not duplicate assigned cards already present in cardList by encryptedCardNumber', async () => {
-            const cardsListWithMatchingEncrypted = {
-                cardList: {
+            const cardsListWithMatchingEncrypted = createCardsList(
+                {
                     'VISA - 1234': 'enc_visa_1234',
                 },
-                '21570652': {
-                    cardID: 21570652,
-                    accountID: 18439984,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                    cardName: 'VISA - 1234',
-                    encryptedCardNumber: 'enc_visa_1234',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
+                {
+                    '21570652': {
+                        cardID: 21570652,
+                        accountID: 18439984,
+                        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                        cardName: 'VISA - 1234',
+                        encryptedCardNumber: 'enc_visa_1234',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
                 },
-            };
+            );
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
             mockUseCardFeedsHook(mockCustomFeedData);
@@ -369,17 +391,21 @@ describe('useCompanyCards', () => {
                 },
             };
 
-            const cardsListWithMatchingName = {
-                cardList: {},
-                '55555': {
-                    cardID: 55555,
-                    accountID: 18439984,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-                    cardName: 'CREDIT CARD...6607',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
+            const cardsListWithMatchingName = createCardsList(
+                {},
+                {
+                    '55555': {
+                        cardID: 55555,
+                        accountID: 18439984,
+                        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                        cardName: 'CREDIT CARD...6607',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
                 },
-            };
+            );
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockOAuthFeed);
             mockUseCardFeedsHook(oAuthFeedData);
@@ -391,38 +417,46 @@ describe('useCompanyCards', () => {
         });
 
         it('should handle multiple assigned cards missing from stale cardList', async () => {
-            const staleCardsList = {
-                cardList: {
+            const staleCardsList = createCardsList(
+                {
                     'VISA - 1111': 'enc_1111',
                 },
-                '10001': {
-                    cardID: 10001,
-                    accountID: 18439984,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                    cardName: 'VISA - 1111',
-                    encryptedCardNumber: 'enc_1111',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
+                {
+                    '10001': {
+                        cardID: 10001,
+                        accountID: 18439984,
+                        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                        cardName: 'VISA - 1111',
+                        encryptedCardNumber: 'enc_1111',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
+                    '10002': {
+                        cardID: 10002,
+                        accountID: 18439985,
+                        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                        cardName: 'VISA - 2222',
+                        encryptedCardNumber: 'enc_2222',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
+                    '10003': {
+                        cardID: 10003,
+                        accountID: 18439986,
+                        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                        cardName: 'VISA - 3333',
+                        encryptedCardNumber: 'enc_3333',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
                 },
-                '10002': {
-                    cardID: 10002,
-                    accountID: 18439985,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                    cardName: 'VISA - 2222',
-                    encryptedCardNumber: 'enc_2222',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
-                },
-                '10003': {
-                    cardID: 10003,
-                    accountID: 18439986,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                    cardName: 'VISA - 3333',
-                    encryptedCardNumber: 'enc_3333',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
-                },
-            };
+            );
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
             mockUseCardFeedsHook(mockCustomFeedData);
@@ -437,17 +471,21 @@ describe('useCompanyCards', () => {
         });
 
         it('should skip assigned cards without a cardName', async () => {
-            const cardsListWithMissingName = {
-                cardList: {},
-                '77777': {
-                    cardID: 77777,
-                    accountID: 18439984,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                    encryptedCardNumber: 'enc_no_name',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
+            const cardsListWithMissingName = createCardsList(
+                {},
+                {
+                    '77777': {
+                        cardID: 77777,
+                        accountID: 18439984,
+                        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                        encryptedCardNumber: 'enc_no_name',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
                 },
-            };
+            );
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
             mockUseCardFeedsHook(mockCustomFeedData);
@@ -459,17 +497,21 @@ describe('useCompanyCards', () => {
         });
 
         it('should use cardName as fallback encryptedCardNumber when card has none', async () => {
-            const cardsListNoEncrypted = {
-                cardList: {},
-                '88888': {
-                    cardID: 88888,
-                    accountID: 18439984,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                    cardName: 'VISA - 9999',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
+            const cardsListNoEncrypted = createCardsList(
+                {},
+                {
+                    '88888': {
+                        cardID: 88888,
+                        accountID: 18439984,
+                        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                        cardName: 'VISA - 9999',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
                 },
-            };
+            );
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
             mockUseCardFeedsHook(mockCustomFeedData);
@@ -481,27 +523,33 @@ describe('useCompanyCards', () => {
         });
 
         it('should include both cards when two assigned cards share the same cardName', async () => {
-            const cardsListWithDuplicateNames = {
-                cardList: {},
-                '60001': {
-                    cardID: 60001,
-                    accountID: 18439984,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                    cardName: 'VISA - 1234',
-                    encryptedCardNumber: 'enc_aaa',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
+            const cardsListWithDuplicateNames = createCardsList(
+                {},
+                {
+                    '60001': {
+                        cardID: 60001,
+                        accountID: 18439984,
+                        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                        cardName: 'VISA - 1234',
+                        encryptedCardNumber: 'enc_aaa',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
+                    '60002': {
+                        cardID: 60002,
+                        accountID: 18439985,
+                        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                        cardName: 'VISA - 1234',
+                        encryptedCardNumber: 'enc_bbb',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
                 },
-                '60002': {
-                    cardID: 60002,
-                    accountID: 18439985,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                    cardName: 'VISA - 1234',
-                    encryptedCardNumber: 'enc_bbb',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
-                },
-            };
+            );
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
             mockUseCardFeedsHook(mockCustomFeedData);
@@ -527,17 +575,21 @@ describe('useCompanyCards', () => {
                 },
             };
 
-            const cardsListWithSpecialChar = {
-                cardList: {},
-                '44444': {
-                    cardID: 44444,
-                    accountID: 18439984,
-                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-                    cardName: 'Business Platinum Card\u00AE - JOHN SMITH - 1234',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
+            const cardsListWithSpecialChar = createCardsList(
+                {},
+                {
+                    '44444': {
+                        cardID: 44444,
+                        accountID: 18439984,
+                        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                        cardName: 'Business Platinum Card\u00AE - JOHN SMITH - 1234',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
                 },
-            };
+            );
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockOAuthFeed);
             mockUseCardFeedsHook(oAuthFeedData);
@@ -551,21 +603,25 @@ describe('useCompanyCards', () => {
 
     describe('CDF stale card name resolution via cascading lookup', () => {
         it('should keep card name when encryptedCardNumber matches a cardList entry', async () => {
-            const cdfCardsList = {
-                cardList: {
+            const cdfCardsList = createCardsList(
+                {
                     '888222XXXX74444': 'v1:148EECFC15D818ACBC0D707FD0C44CC3',
                 },
-                '8341': {
-                    cardID: 8341,
-                    accountID: 8393,
-                    bank: 'gl1025',
-                    cardName: '888222XXXXX4444',
-                    encryptedCardNumber: 'v1:148EECFC15D818ACBC0D707FD0C44CC3',
-                    lastFourPAN: '4444',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
+                {
+                    '8341': {
+                        cardID: 8341,
+                        accountID: 8393,
+                        bank: 'gl1025',
+                        cardName: '888222XXXXX4444',
+                        encryptedCardNumber: 'v1:148EECFC15D818ACBC0D707FD0C44CC3',
+                        lastFourPAN: '4444',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
                 },
-            };
+            );
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
             mockUseCardFeedsHook(mockCustomFeedData);
@@ -578,20 +634,24 @@ describe('useCompanyCards', () => {
         });
 
         it('should resolve encryptedCardNumber via lastFourPAN when no other match exists', async () => {
-            const cdfCardsList = {
-                cardList: {
+            const cdfCardsList = createCardsList(
+                {
                     '111222XXXX31234': 'v1:2D0EF0C3C834A6C5721225BAB4996799',
                 },
-                '8340': {
-                    cardID: 8340,
-                    accountID: 11,
-                    bank: 'gl1025',
-                    cardName: 'XXXXXXXXXXX1234',
-                    lastFourPAN: '1234',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
+                {
+                    '8340': {
+                        cardID: 8340,
+                        accountID: 11,
+                        bank: 'gl1025',
+                        cardName: 'XXXXXXXXXXX1234',
+                        lastFourPAN: '1234',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
                 },
-            };
+            );
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
             mockUseCardFeedsHook(mockCustomFeedData);
@@ -604,31 +664,37 @@ describe('useCompanyCards', () => {
         });
 
         it('should resolve mixed CDF cards without creating duplicates', async () => {
-            const cdfCardsList = {
-                cardList: {
+            const cdfCardsList = createCardsList(
+                {
                     '111222XXXX31234': 'v1:2D0EF0C3C834A6C5721225BAB4996799',
                     '888222XXXX74444': 'v1:148EECFC15D818ACBC0D707FD0C44CC3',
                 },
-                '8340': {
-                    cardID: 8340,
-                    accountID: 11,
-                    bank: 'gl1025',
-                    cardName: 'XXXXXXXXXXX1234',
-                    lastFourPAN: '1234',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
+                {
+                    '8340': {
+                        cardID: 8340,
+                        accountID: 11,
+                        bank: 'gl1025',
+                        cardName: 'XXXXXXXXXXX1234',
+                        lastFourPAN: '1234',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
+                    '8341': {
+                        cardID: 8341,
+                        accountID: 8393,
+                        bank: 'gl1025',
+                        cardName: '888222XXXXX4444',
+                        encryptedCardNumber: 'v1:148EECFC15D818ACBC0D707FD0C44CC3',
+                        lastFourPAN: '4444',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
                 },
-                '8341': {
-                    cardID: 8341,
-                    accountID: 8393,
-                    bank: 'gl1025',
-                    cardName: '888222XXXXX4444',
-                    encryptedCardNumber: 'v1:148EECFC15D818ACBC0D707FD0C44CC3',
-                    lastFourPAN: '4444',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
-                },
-            };
+            );
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
             mockUseCardFeedsHook(mockCustomFeedData);
@@ -647,21 +713,25 @@ describe('useCompanyCards', () => {
         });
 
         it('should not resolve via lastFourPAN when multiple cardList entries share the same last 4 digits', async () => {
-            const cdfCardsList = {
-                cardList: {
+            const cdfCardsList = createCardsList(
+                {
                     '111222XXXX64444': 'v1:ENCRYPTED_A',
                     '333222XXXX44444': 'v1:ENCRYPTED_B',
                 },
-                '9000': {
-                    cardID: 9000,
-                    accountID: 11,
-                    bank: 'gl1025',
-                    cardName: 'XXXXXXXXXXX4444',
-                    lastFourPAN: '4444',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
+                {
+                    '9000': {
+                        cardID: 9000,
+                        accountID: 11,
+                        bank: 'gl1025',
+                        cardName: 'XXXXXXXXXXX4444',
+                        lastFourPAN: '4444',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
                 },
-            };
+            );
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
             mockUseCardFeedsHook(mockCustomFeedData);
@@ -678,21 +748,25 @@ describe('useCompanyCards', () => {
         });
 
         it('should return the card unchanged when nothing in cardList matches', async () => {
-            const cdfCardsList = {
-                cardList: {
+            const cdfCardsList = createCardsList(
+                {
                     '999888XXXX77777': 'v1:COMPLETELY_DIFFERENT',
                 },
-                '6000': {
-                    cardID: 6000,
-                    accountID: 11,
-                    bank: 'gl1025',
-                    cardName: 'XXXXXXXXXXX5555',
-                    encryptedCardNumber: 'v1:UNRELATED_ENCRYPTED',
-                    lastFourPAN: '5555',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
+                {
+                    '6000': {
+                        cardID: 6000,
+                        accountID: 11,
+                        bank: 'gl1025',
+                        cardName: 'XXXXXXXXXXX5555',
+                        encryptedCardNumber: 'v1:UNRELATED_ENCRYPTED',
+                        lastFourPAN: '5555',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
                 },
-            };
+            );
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
             mockUseCardFeedsHook(mockCustomFeedData);
@@ -708,21 +782,25 @@ describe('useCompanyCards', () => {
         });
 
         it('should cascade to lastFourPAN even when card has a non-matching encryptedCardNumber', async () => {
-            const cdfCardsList = {
-                cardList: {
+            const cdfCardsList = createCardsList(
+                {
                     '111222XXXX31234': 'v1:NEW_ENCRYPTED',
                 },
-                '7000': {
-                    cardID: 7000,
-                    accountID: 11,
-                    bank: 'gl1025',
-                    cardName: 'XXXXXXXXXXX1234',
-                    encryptedCardNumber: 'v1:OLD_ENCRYPTED',
-                    lastFourPAN: '1234',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
+                {
+                    '7000': {
+                        cardID: 7000,
+                        accountID: 11,
+                        bank: 'gl1025',
+                        cardName: 'XXXXXXXXXXX1234',
+                        encryptedCardNumber: 'v1:OLD_ENCRYPTED',
+                        lastFourPAN: '1234',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
                 },
-            };
+            );
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
             mockUseCardFeedsHook(mockCustomFeedData);
@@ -735,31 +813,37 @@ describe('useCompanyCards', () => {
         });
 
         it('should deduplicate when an old-format (4-digit) and new-format card both resolve to the same cardList entry', async () => {
-            const cdfCardsList = {
-                cardList: {
+            const cdfCardsList = createCardsList(
+                {
                     '553312XXXXXX0487': 'v1:ENCRYPTED_0487',
                 },
-                // Old-format card: cardName is just last 4 digits, lastFourPAN is empty
-                '8100': {
-                    cardID: 8100,
-                    accountID: 11,
-                    bank: 'gl1025',
-                    cardName: '0487',
-                    lastFourPAN: '',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
+                {
+                    // Old-format card: cardName is just last 4 digits, lastFourPAN is empty
+                    '8100': {
+                        cardID: 8100,
+                        accountID: 11,
+                        bank: 'gl1025',
+                        cardName: '0487',
+                        lastFourPAN: '',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
+                    // New-format card: full masked name with lastFourPAN
+                    '8101': {
+                        cardID: 8101,
+                        accountID: 11,
+                        bank: 'gl1025',
+                        cardName: '553312XXXXXX0487',
+                        lastFourPAN: '0487',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
                 },
-                // New-format card: full masked name with lastFourPAN
-                '8101': {
-                    cardID: 8101,
-                    accountID: 11,
-                    bank: 'gl1025',
-                    cardName: '553312XXXXXX0487',
-                    lastFourPAN: '0487',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
-                },
-            };
+            );
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
             mockUseCardFeedsHook(mockCustomFeedData);
@@ -779,19 +863,23 @@ describe('useCompanyCards', () => {
         });
 
         it('should enrich encryptedCardNumber via name match when card has no encryptedCardNumber', async () => {
-            const cdfCardsList = {
-                cardList: {
+            const cdfCardsList = createCardsList(
+                {
                     '553312XXXXXX0487': 'v1:ENCRYPTED_0487',
                 },
-                '8200': {
-                    cardID: 8200,
-                    accountID: 11,
-                    bank: 'gl1025',
-                    cardName: '553312XXXXXX0487',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
+                {
+                    '8200': {
+                        cardID: 8200,
+                        accountID: 11,
+                        bank: 'gl1025',
+                        cardName: '553312XXXXXX0487',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
                 },
-            };
+            );
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
             mockUseCardFeedsHook(mockCustomFeedData);
@@ -804,19 +892,23 @@ describe('useCompanyCards', () => {
         });
 
         it('should use cardName as panSuffix when lastFourPAN is undefined', async () => {
-            const cdfCardsList = {
-                cardList: {
+            const cdfCardsList = createCardsList(
+                {
                     '553312XXXXXX0487': 'v1:ENCRYPTED_0487',
                 },
-                '8300': {
-                    cardID: 8300,
-                    accountID: 11,
-                    bank: 'gl1025',
-                    cardName: '0487',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
+                {
+                    '8300': {
+                        cardID: 8300,
+                        accountID: 11,
+                        bank: 'gl1025',
+                        cardName: '0487',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
                 },
-            };
+            );
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
             mockUseCardFeedsHook(mockCustomFeedData);
@@ -836,29 +928,35 @@ describe('useCompanyCards', () => {
                     accountList: ['0487', 'SOME OTHER CARD'],
                 },
             };
-            const cdfCardsList = {
-                cardList: {
+            const cdfCardsList = createCardsList(
+                {
                     '553312XXXXXX0487': 'v1:ENCRYPTED_0487',
                 },
-                '8100': {
-                    cardID: 8100,
-                    accountID: 11,
-                    bank: 'gl1025',
-                    cardName: '0487',
-                    lastFourPAN: '',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
+                {
+                    '8100': {
+                        cardID: 8100,
+                        accountID: 11,
+                        bank: 'gl1025',
+                        cardName: '0487',
+                        lastFourPAN: '',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
+                    '8101': {
+                        cardID: 8101,
+                        accountID: 11,
+                        bank: 'gl1025',
+                        cardName: '553312XXXXXX0487',
+                        lastFourPAN: '0487',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
                 },
-                '8101': {
-                    cardID: 8101,
-                    accountID: 11,
-                    bank: 'gl1025',
-                    cardName: '553312XXXXXX0487',
-                    lastFourPAN: '0487',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
-                },
-            };
+            );
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, feedWithAccountList);
             mockUseCardFeedsHook(feedData);
@@ -877,42 +975,50 @@ describe('useCompanyCards', () => {
         });
 
         it('should deduplicate three cards resolving to the same cardList entry', async () => {
-            const cdfCardsList = {
-                cardList: {
+            const cdfCardsList = createCardsList(
+                {
                     '553312XXXXXX0487': 'v1:ENCRYPTED_0487',
                 },
-                // Old-format card
-                '8100': {
-                    cardID: 8100,
-                    accountID: 11,
-                    bank: 'gl1025',
-                    cardName: '0487',
-                    lastFourPAN: '',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
+                {
+                    // Old-format card
+                    '8100': {
+                        cardID: 8100,
+                        accountID: 11,
+                        bank: 'gl1025',
+                        cardName: '0487',
+                        lastFourPAN: '',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
+                    // New-format card with lastFourPAN
+                    '8101': {
+                        cardID: 8101,
+                        accountID: 11,
+                        bank: 'gl1025',
+                        cardName: '553312XXXXXX0487',
+                        lastFourPAN: '0487',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
+                    // Another new-format card with matching encryptedCardNumber
+                    '8102': {
+                        cardID: 8102,
+                        accountID: 11,
+                        bank: 'gl1025',
+                        cardName: '553312XXXXXX0487',
+                        encryptedCardNumber: 'v1:ENCRYPTED_0487',
+                        lastFourPAN: '0487',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
                 },
-                // New-format card with lastFourPAN
-                '8101': {
-                    cardID: 8101,
-                    accountID: 11,
-                    bank: 'gl1025',
-                    cardName: '553312XXXXXX0487',
-                    lastFourPAN: '0487',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
-                },
-                // Another new-format card with matching encryptedCardNumber
-                '8102': {
-                    cardID: 8102,
-                    accountID: 11,
-                    bank: 'gl1025',
-                    cardName: '553312XXXXXX0487',
-                    encryptedCardNumber: 'v1:ENCRYPTED_0487',
-                    lastFourPAN: '0487',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
-                },
-            };
+            );
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
             mockUseCardFeedsHook(mockCustomFeedData);
@@ -928,31 +1034,37 @@ describe('useCompanyCards', () => {
         });
 
         it('should deduplicate correctly when new-format card is processed before old-format card', async () => {
-            const cdfCardsList = {
-                cardList: {
+            const cdfCardsList = createCardsList(
+                {
                     '553312XXXXXX0487': 'v1:ENCRYPTED_0487',
                 },
-                // New-format card has lower numeric key — processed first
-                '8099': {
-                    cardID: 8099,
-                    accountID: 11,
-                    bank: 'gl1025',
-                    cardName: '553312XXXXXX0487',
-                    lastFourPAN: '0487',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
+                {
+                    // New-format card has lower numeric key — processed first
+                    '8099': {
+                        cardID: 8099,
+                        accountID: 11,
+                        bank: 'gl1025',
+                        cardName: '553312XXXXXX0487',
+                        lastFourPAN: '0487',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
+                    // Old-format card processed second
+                    '8100': {
+                        cardID: 8100,
+                        accountID: 11,
+                        bank: 'gl1025',
+                        cardName: '0487',
+                        lastFourPAN: '',
+                        domainName: 'expensify-policy://123456',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastUpdated: '',
+                        state: 3,
+                    },
                 },
-                // Old-format card processed second
-                '8100': {
-                    cardID: 8100,
-                    accountID: 11,
-                    bank: 'gl1025',
-                    cardName: '0487',
-                    lastFourPAN: '',
-                    domainName: 'expensify-policy://123456',
-                    state: 3,
-                },
-            };
+            );
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
             mockUseCardFeedsHook(mockCustomFeedData);
@@ -989,12 +1101,10 @@ describe('useCompanyCards', () => {
         });
 
         it('should have entries where cardName differs from encryptedCardNumber for commercial feeds', async () => {
-            const commercialCardsList = {
-                cardList: {
-                    'VISA - 1234': 'enc_abc123',
-                    'VISA - 5678': 'enc_def456',
-                },
-            };
+            const commercialCardsList = createCardsList({
+                'VISA - 1234': 'enc_abc123',
+                'VISA - 5678': 'enc_def456',
+            });
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
             mockUseCardFeedsHook(mockCustomFeedData);

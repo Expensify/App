@@ -1,9 +1,18 @@
-import type {Dispatch, SetStateAction} from 'react';
-import {useEffect, useRef, useState} from 'react';
 import type {TableData, TableRow} from '@components/Table/types';
+
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
+
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
+
+import type {Dispatch, SetStateAction} from 'react';
+
+import {useCallback, useEffect, useState} from 'react';
+
 import type {MiddlewareHookResult} from './types';
 
 type UseSelectionProps<DataType extends TableData> = {
@@ -16,8 +25,20 @@ type UseSelectionProps<DataType extends TableData> = {
     /** The list of selected keys */
     selectedKeys: string[];
 
+    /** The list of actively applied filters */
+    currentFilters: Record<string, unknown>;
+
+    /** The search string currently applied to the table */
+    activeSearchString: string;
+
     /** Callback that is fired when the selection of rows in the table changes */
     onRowSelectionChange?: (selectedRowKeys: string[]) => void;
+
+    /** Whether the selection mode should key off the real screen size instead of shouldUseNarrowLayout (for tables inside a narrow pane modal / RHP) */
+    shouldEnableSelectionInNarrowPaneModal?: boolean;
+
+    /** Whether selected row keys should remain selected while the search query changes. */
+    shouldPreserveSelectionOnSearch?: boolean;
 };
 
 type SelectionMethods = {
@@ -46,53 +67,92 @@ export default function useSelection<DataType extends TableData>({
     data,
     originalSelectableCount,
     selectedKeys,
+    currentFilters,
+    activeSearchString,
     onRowSelectionChange,
+    shouldEnableSelectionInNarrowPaneModal,
+    shouldPreserveSelectionOnSearch = false,
 }: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // When a table opts into selection inside a narrow pane modal (RHP), the selection-mode auto-sync keys off the real
+    // screen size (isSmallScreenWidth) so it behaves correctly there (shouldUseNarrowLayout is always true in an RHP).
+    // Otherwise it keeps the original shouldUseNarrowLayout behavior, so central-pane tables are unaffected.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const selectionUsesNarrowLayout = shouldEnableSelectionInNarrowPaneModal ? isSmallScreenWidth : shouldUseNarrowLayout;
     const isSelectionModeEnabled = useMobileSelectionMode();
-    const lastSelectedRowKeyRef = useRef<string | null>(null);
-    const lastSelectedRowIsSelectedRef = useRef<boolean>(false);
 
     // When a user long-presses a row on mobile, store the key of the row that will be selected if
     // the user confirms the selection
     const [mobileSelectionModalRowKey, setMobileSelectionModalRowKey] = useState<string | null>(null);
 
-    const selectableKeys = data.filter((item) => !item.disabled).map((item) => item.keyForList);
-    const tableRowData: Array<TableRow<DataType>> = data.map((item) => ({...item, selected: selectedKeys.includes(item.keyForList)}));
+    const selectableKeys = data.filter((item) => !item.disabled && !item.isSelectionDisabled).map((item) => item.keyForList);
+    const selectedKeySet = new Set(selectedKeys);
+    const tableRowData: Array<TableRow<DataType>> = data.map((item) => ({...item, selected: selectedKeySet.has(item.keyForList)}));
 
-    // Automatically disable selection mode when switching to desktop, or enable it when switching to mobile if there are selected rows
+    const rangeApi = useShiftRangeSelection<DataType>({
+        items: data,
+        getItemKey: (item) => item.keyForList,
+        isItemSelected: (item) => selectedKeySet.has(item.keyForList),
+        isDisabledItem: (item) => !!item.disabled || !!item.isSelectionDisabled,
+        onApplyRange: (batch) => onRowSelectionChange?.(applyShiftRangeBatchToKeySet(batch, selectedKeys, (item) => item.keyForList)),
+    });
+
+    // The shift anchor deliberately survives clears — a vanished anchor re-resolves and stale deselects are no-ops, so the next shift+click still ranges from the last click.
+    const clearSelection = useCallback(() => {
+        onRowSelectionChange?.([]);
+    }, [onRowSelectionChange]);
+
+    // Disable selection mode when the Android hardware back button is pressed
+    const androidBackButtonDisableSelectionMode = useCallback(() => {
+        if (!isSelectionModeEnabled) {
+            return false;
+        }
+
+        clearSelection();
+        turnOffMobileSelectionMode();
+        return true;
+    }, [isSelectionModeEnabled, clearSelection]);
+
+    useAndroidBackButtonHandler(androidBackButtonDisableSelectionMode);
+
+    // Sync the selection mode with the screen size & selection state
     useEffect(() => {
-        if (shouldUseNarrowLayout && !isSelectionModeEnabled && selectedKeys.length) {
+        const isMobileMissingSelectionMode = selectionUsesNarrowLayout && !isSelectionModeEnabled && selectedKeys.length;
+        const isDesktopWithoutSelectableKeys = isSelectionModeEnabled && !selectableKeys.length && !selectionUsesNarrowLayout;
+        const isSelectionModeEnabledWithoutSelectableKeys = isSelectionModeEnabled && !selectableKeys.length && !originalSelectableCount;
+
+        if (isMobileMissingSelectionMode) {
             turnOnMobileSelectionMode();
-        } else if (!shouldUseNarrowLayout && isSelectionModeEnabled && !selectedKeys.length) {
+        } else if (isDesktopWithoutSelectableKeys || isSelectionModeEnabledWithoutSelectableKeys) {
             turnOffMobileSelectionMode();
         }
-    }, [shouldUseNarrowLayout, isSelectionModeEnabled, selectedKeys.length]);
+    }, [selectionUsesNarrowLayout, isSelectionModeEnabled, selectedKeys.length, originalSelectableCount, selectableKeys.length]);
 
-    // When there are genuinely no selectable items left, turn off selection mode on mobile.
-    // Stay in selection mode as long as the original data has non-disabled items (they may be hidden by search/filter).
+    // When selection mode is turned off, clear the list of selected keys, so that re-enabling selection mode doesn't retain rows
+    const wasSelectionModeEnabled = usePrevious(isSelectionModeEnabled);
     useEffect(() => {
-        if (selectableKeys.length || !isSelectionModeEnabled || originalSelectableCount > 0) {
+        if (!wasSelectionModeEnabled || isSelectionModeEnabled) {
             return;
         }
 
-        turnOffMobileSelectionMode();
-    }, [selectableKeys.length, isSelectionModeEnabled, originalSelectableCount]);
+        clearSelection();
+    }, [isSelectionModeEnabled, selectedKeys.length, clearSelection, wasSelectionModeEnabled]);
 
-    const prevSelectionModeEnabledRef = useRef(isSelectionModeEnabled);
+    // Filters change which rows are actionable, so preserve the existing clear-on-filter behavior.
+    useEffect(() => clearSelection(), [currentFilters, clearSelection]);
+
+    // Search only changes row visibility. Callers can preserve selected keys so they return when the query is cleared.
     useEffect(() => {
-        if (prevSelectionModeEnabledRef.current && !isSelectionModeEnabled) {
-            onRowSelectionChange?.([]);
+        if (shouldPreserveSelectionOnSearch) {
+            return;
         }
-        prevSelectionModeEnabledRef.current = isSelectionModeEnabled;
-    }, [isSelectionModeEnabled, onRowSelectionChange]);
 
-    /**
-     * Clear all of the currently selected keys
-     */
-    const clearSelection = () => {
-        onRowSelectionChange?.([]);
-    };
+        clearSelection();
+    }, [activeSearchString, clearSelection, shouldPreserveSelectionOnSearch]);
+
+    // When the table unmounts, clear the selection. Should only run on unmount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => () => onRowSelectionChange?.([]), []);
 
     /**
      * When the select all checkbox is toggled, select or deselect all of the
@@ -107,6 +167,7 @@ export default function useSelection<DataType extends TableData>({
 
         if (isSelectionEmpty) {
             onRowSelectionChange?.(selectableKeys);
+            rangeApi.seedFullRange();
         } else if (isSelectionFull || isSelectionIndeterminate) {
             onRowSelectionChange?.([]);
         }
@@ -117,11 +178,15 @@ export default function useSelection<DataType extends TableData>({
      * on or off
      */
     const handleSingleRowSelection = (keyForList: string) => {
+        const item = data.find((row) => row.keyForList === keyForList);
+        if (!item || item.disabled || item.isSelectionDisabled) {
+            return;
+        }
+
+        rangeApi.notifyAnchor(item);
+
         const keyIndex = selectedKeys.indexOf(keyForList);
         const isCurrentlySelected = keyIndex !== -1;
-
-        lastSelectedRowKeyRef.current = keyForList;
-        lastSelectedRowIsSelectedRef.current = !isCurrentlySelected;
 
         if (isCurrentlySelected) {
             onRowSelectionChange?.([...selectedKeys.slice(0, keyIndex), ...selectedKeys.slice(keyIndex + 1)]);
@@ -131,58 +196,13 @@ export default function useSelection<DataType extends TableData>({
         onRowSelectionChange?.([...selectedKeys, keyForList]);
     };
 
-    /**
-     * When a row is selected, while holding shift, select all of the rows in-between
-     * the last selected row and the current row
-     */
+    // The hook rejects disabled targets itself.
     const handleMultipleRowSelection = (keyForList: string) => {
-        const keyForListExists = selectableKeys.includes(keyForList);
-
-        if (!keyForListExists) {
+        const item = data.find((row) => row.keyForList === keyForList);
+        if (!item) {
             return;
         }
-
-        const lastSelectedRowKey = lastSelectedRowKeyRef.current;
-        const lastSelectedRowIsSelected = lastSelectedRowIsSelectedRef.current;
-
-        if (!lastSelectedRowKey) {
-            handleSingleRowSelection(keyForList);
-            return;
-        }
-
-        const currentSelectedRowIndex = selectableKeys.indexOf(keyForList);
-        const lastSelectedRowIndex = selectableKeys.indexOf(lastSelectedRowKey);
-
-        if (currentSelectedRowIndex === -1 || lastSelectedRowIndex === -1) {
-            handleSingleRowSelection(keyForList);
-            return;
-        }
-
-        const endIndex = Math.max(currentSelectedRowIndex, lastSelectedRowIndex);
-        const startIndex = Math.min(currentSelectedRowIndex, lastSelectedRowIndex);
-
-        const newSelectedKeys = [...selectedKeys];
-
-        for (let i = startIndex; i <= endIndex; i++) {
-            const key = selectableKeys.at(i);
-
-            if (!key) {
-                continue;
-            }
-
-            if (lastSelectedRowIsSelected) {
-                if (!newSelectedKeys.includes(key)) {
-                    newSelectedKeys.push(key);
-                }
-            } else {
-                const index = newSelectedKeys.indexOf(key);
-                if (index !== -1) {
-                    newSelectedKeys.splice(index, 1);
-                }
-            }
-        }
-
-        onRowSelectionChange?.(newSelectedKeys);
+        rangeApi.applyShiftClick(item, true);
     };
 
     const middleware = () => {

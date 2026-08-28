@@ -1,14 +1,17 @@
-import type {PropsWithChildren} from 'react';
-import React from 'react';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import NAVIGATION_TABS from './Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from './Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from './Navigation/TopBarWithLoadingBar';
@@ -16,23 +19,26 @@ import OfflineIndicator from './OfflineIndicator';
 import ScreenWrapper from './ScreenWrapper';
 import TabSelectorBase from './TabSelector/TabSelectorBase';
 
-type WorkspaceListLayoutProps = PropsWithChildren<{
-    headerButton?: React.ReactNode;
-    activeTabKey: 'workspaces' | 'domains';
-}>;
+type WorkspaceListActiveTabKey = 'workspaces' | 'domains';
 
-export default function WorkspaceListLayout({children, activeTabKey, headerButton}: WorkspaceListLayoutProps) {
+type WorkspaceListHeaderContentProps = {
+    activeTabKey: WorkspaceListActiveTabKey;
+    headerButton?: React.ReactNode;
+    shouldShowHeaderButton?: boolean;
+};
+
+type WorkspaceListLayoutProps = {
+    children: React.ReactNode;
+    headerButton?: React.ReactNode;
+    headerComponent?: React.ReactElement;
+    activeTabKey: WorkspaceListActiveTabKey;
+    scrollHeaderWithTable?: boolean;
+};
+
+function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeaderButton = true}: WorkspaceListHeaderContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'Building']);
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
-
-    const isWorkspacesListPage = activeTabKey === 'workspaces';
-    const testID = isWorkspacesListPage ? 'WorkspacesListPage' : 'DomainsListPage';
-    const activeTabLabel = isWorkspacesListPage ? translate('common.workspaces') : translate('common.domains');
-
     const navigationOptions = [
         {
             key: 'workspaces',
@@ -61,6 +67,43 @@ export default function WorkspaceListLayout({children, activeTabKey, headerButto
     };
 
     return (
+        <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5, styles.pt1, styles.pb2]}>
+            <TabSelectorBase
+                tabs={navigationOptions}
+                activeTabKey={activeTabKey}
+                onTabPress={onTabPress}
+            />
+            {shouldShowHeaderButton && headerButton}
+        </View>
+    );
+}
+
+function WorkspaceListLayout({children, activeTabKey, headerButton, headerComponent, scrollHeaderWithTable = false}: WorkspaceListLayoutProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+
+    const isWorkspacesListPage = activeTabKey === 'workspaces';
+    const testID = isWorkspacesListPage ? 'WorkspacesListPage' : 'DomainsListPage';
+    const activeTabLabel = isWorkspacesListPage ? translate('common.workspaces') : translate('common.domains');
+    const headerContent = headerComponent ?? (
+        <WorkspaceListHeaderContent
+            activeTabKey={activeTabKey}
+            headerButton={headerButton}
+            shouldShowHeaderButton={shouldDisplayButtonsInSeparateLine}
+        />
+    );
+
+    const content = (
+        <>
+            {!scrollHeaderWithTable && headerContent}
+            {children}
+        </>
+    );
+
+    return (
         <ScreenWrapper
             testID={testID}
             shouldEnableMaxHeight
@@ -75,22 +118,16 @@ export default function WorkspaceListLayout({children, activeTabKey, headerButto
                         shouldDisplayHelpButton
                         breadcrumbLabel={activeTabLabel}
                     >
-                        <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>
+                        {!scrollHeaderWithTable && <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>}
                     </TopBarWithLoadingBar>
 
-                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5, styles.pt1, styles.pb2]}>
-                        <TabSelectorBase
-                            tabs={navigationOptions}
-                            activeTabKey={activeTabKey}
-                            onTabPress={onTabPress}
-                        />
-                        {shouldDisplayButtonsInSeparateLine && headerButton}
-                    </View>
-
-                    {children}
+                    {content}
                     {!shouldUseNarrowLayout && <OfflineIndicator style={styles.pl5} />}
                 </View>
             </View>
         </ScreenWrapper>
     );
 }
+
+export {WorkspaceListHeaderContent};
+export default WorkspaceListLayout;

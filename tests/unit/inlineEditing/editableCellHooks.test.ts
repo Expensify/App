@@ -1,38 +1,37 @@
 import {act, renderHook} from '@testing-library/react-native';
+
 import useInlineEditState from '@components/TransactionItemRow/EditableCell/useInlineEditState';
 import usePopoverEditState from '@components/TransactionItemRow/EditableCell/usePopoverEditState';
 
-type InlineHookParameters<T> = Parameters<typeof useInlineEditState<T>>;
+type InlineHookParameters = Parameters<typeof useInlineEditState<string>>;
 
-type InlineSetupOptions<T> = {
-    canEdit?: InlineHookParameters<T>[0];
-    onSave?: InlineHookParameters<T>[2];
-    isEqual?: InlineHookParameters<T>[3];
+type InlineSetupOptions = {
+    canEdit?: InlineHookParameters[0];
+    onSave?: InlineHookParameters[2];
+    isEqual?: InlineHookParameters[3];
 };
 
-type WidenLiteral<T> = T extends string ? string : T extends number ? number : T extends boolean ? boolean : T;
-
-type InlineHookProps<T> = {
-    value: InlineHookParameters<T>[1];
-    canEdit: NonNullable<InlineHookParameters<T>[0]>;
+type InlineHookProps = {
+    value: InlineHookParameters[1];
+    canEdit: NonNullable<InlineHookParameters[0]>;
 };
 
-const setupInline = <T>(value: T, {canEdit = true, onSave, isEqual}: InlineSetupOptions<WidenLiteral<T>> = {}) =>
-    renderHook(({value: currentValue, canEdit: currentCanEdit}: InlineHookProps<WidenLiteral<T>>) => useInlineEditState<WidenLiteral<T>>(currentCanEdit, currentValue, onSave, isEqual), {
-        initialProps: {value: value as WidenLiteral<T>, canEdit},
+const setupInline = (value: string, {canEdit = true, onSave, isEqual}: InlineSetupOptions = {}) =>
+    renderHook(({value: currentValue, canEdit: currentCanEdit}: InlineHookProps) => useInlineEditState<string>(currentCanEdit, currentValue, onSave, isEqual), {
+        initialProps: {value, canEdit},
     });
 
-type InlineHookResult<T> = ReturnType<typeof setupInline<T>>['result'];
+type InlineHookResult = ReturnType<typeof setupInline>['result'];
 
-const startInlineEditing = <T>(result: InlineHookResult<T>) => {
+const startInlineEditing = (result: InlineHookResult) => {
     act(() => result.current.startEditing());
 };
 
-const setInlineValue = <T>(result: InlineHookResult<T>, value: WidenLiteral<T>) => {
+const setInlineValue = (result: InlineHookResult, value: string) => {
     act(() => result.current.setLocalValue(value));
 };
 
-const saveInline = <T>(result: InlineHookResult<T>) => {
+const saveInline = (result: InlineHookResult) => {
     act(() => result.current.save());
 };
 

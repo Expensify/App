@@ -1,8 +1,11 @@
-import Onyx from 'react-native-onyx';
 import {read} from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {openSubscriptionPage} from '../../src/libs/actions/Subscription';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -138,30 +141,46 @@ describe('actions/Subscription', () => {
             openSubscriptionPage(undefined);
 
             const call = mockRead.mock.calls.at(0);
-            const onyxData = call?.at(2) as Parameters<typeof mockRead>[2];
+            if (!call) {
+                throw new Error('Expected openSubscriptionPage to make an API read call');
+            }
+            const onyxData = call[2];
+            const optimisticUpdate = onyxData.optimisticData?.at(0);
+            const failureUpdate = onyxData.failureData?.at(0);
+            if (!optimisticUpdate || !failureUpdate) {
+                throw new Error('Expected the API read call to include optimistic and failure updates');
+            }
 
             // optimisticData should only have the loading key
-            expect(onyxData?.optimisticData).toHaveLength(1);
-            expect(onyxData?.optimisticData?.[0]?.key).toBe(ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA);
+            expect(onyxData.optimisticData).toHaveLength(1);
+            expect(optimisticUpdate.key).toBe(ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA);
 
             // failureData should only have the loading key
-            expect(onyxData?.failureData).toHaveLength(1);
-            expect(onyxData?.failureData?.[0]?.key).toBe(ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA);
+            expect(onyxData.failureData).toHaveLength(1);
+            expect(failureUpdate.key).toBe(ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA);
         });
 
         it('should not include grace period data when collection is empty', () => {
             openSubscriptionPage({});
 
             const call = mockRead.mock.calls.at(0);
-            const onyxData = call?.at(2) as Parameters<typeof mockRead>[2];
+            if (!call) {
+                throw new Error('Expected openSubscriptionPage to make an API read call');
+            }
+            const onyxData = call[2];
+            const optimisticUpdate = onyxData.optimisticData?.at(0);
+            const failureUpdate = onyxData.failureData?.at(0);
+            if (!optimisticUpdate || !failureUpdate) {
+                throw new Error('Expected the API read call to include optimistic and failure updates');
+            }
 
             // optimisticData should only have the loading key
-            expect(onyxData?.optimisticData).toHaveLength(1);
-            expect(onyxData?.optimisticData?.[0]?.key).toBe(ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA);
+            expect(onyxData.optimisticData).toHaveLength(1);
+            expect(optimisticUpdate.key).toBe(ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA);
 
             // failureData should only have the loading key
-            expect(onyxData?.failureData).toHaveLength(1);
-            expect(onyxData?.failureData?.[0]?.key).toBe(ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA);
+            expect(onyxData.failureData).toHaveLength(1);
+            expect(failureUpdate.key).toBe(ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA);
         });
     });
 });

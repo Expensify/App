@@ -1,6 +1,6 @@
-import {useEffect, useRef, useState, useTransition} from 'react';
-import {Image} from 'react-native';
 import {generateThumbnail} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
+
+import {useEffect, useRef, useState, useTransition} from 'react';
 
 const thumbnailCache = new Map<string, string>();
 /** Track how many mounted hook instances reference each sourceUri */
@@ -24,16 +24,11 @@ function releaseUri(uri: string) {
  * Pre-populate the receipt-image cache so the confirm screen can use it
  * synchronously on first render, avoiding any source swap / flash.
  */
-function precacheReceiptImage(sourceUri: string): Promise<string | undefined> {
+function precacheReceiptImage(sourceUri: string) {
     if (thumbnailCache.has(sourceUri)) {
-        return Promise.resolve(thumbnailCache.get(sourceUri));
+        return;
     }
     thumbnailCache.set(sourceUri, sourceUri);
-    // Pre-decode the image in the native image pipeline so the
-    // confirmation screen can display it instantly without decode latency.
-    return Image.prefetch(sourceUri)
-        .then(() => sourceUri)
-        .catch(() => sourceUri);
 }
 
 /**

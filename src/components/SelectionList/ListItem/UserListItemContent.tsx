@@ -1,23 +1,32 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
+import PolicyAvatar from '@components/Avatar/connected/PolicyAvatar';
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
-import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
+import {ListItemContext} from '@components/SelectionList/ListItemContext';
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getButtonState from '@libs/getButtonState';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
 import type {ListItem} from './types';
 
 const reportExistsSelector = (report: OnyxEntry<Report>) => !!report;
@@ -43,7 +52,7 @@ type UserListItemContentProps<TItem extends ListItem> = {
 function UserListItemContent<TItem extends ListItem>({
     item,
     isFocused,
-    showTooltip,
+    showTooltip: shouldShowTooltip,
     isDisabled,
     shouldDisableHoverStyle,
     shouldDisableAccessibleGrouping,
@@ -54,7 +63,7 @@ function UserListItemContent<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
@@ -74,6 +83,44 @@ function UserListItemContent<TItem extends ListItem>({
     const policyID = isThereOnlyWorkspaceIcon && shouldUseIconPolicyID ? String(item.icons?.at(0)?.id) : item.policyID;
 
     const isHovered = hovered && !shouldDisableHoverStyle;
+    const fallbackDisplayName = item.text ?? item.alternateText ?? undefined;
+
+    // A report resolves its own avatars, so it keeps going through `ReportActionAvatars`, otherwise using Account/Policy.
+    let avatar: React.ReactNode;
+    if (reportExists) {
+        avatar = (
+            <ReportActionAvatars
+                subscriptAvatarBorderColor={isHovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                secondaryAvatarContainerStyle={[
+                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                    isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                    isHovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                ]}
+                reportID={item.reportID}
+                singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
+                fallbackDisplayName={fallbackDisplayName}
+            />
+        );
+    } else if (policyID) {
+        avatar = (
+            <PolicyAvatar
+                policyID={policyID}
+                accountID={itemAccountID}
+                containerStyle={[styles.actionAvatar, styles.mr3]}
+                subscriptAvatarBorderColor={isHovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                fallbackDisplayName={fallbackDisplayName}
+            />
+        );
+    } else if (itemAccountID) {
+        avatar = (
+            <AccountAvatar
+                accountID={itemAccountID}
+                containerStyle={[styles.actionAvatar, styles.mr3]}
+                fallbackDisplayName={fallbackDisplayName}
+            />
+        );
+    }
+
     const baseAccessibilityLabel = getAccessibilityLabel(item);
     const accessibilityLabel =
         shouldDisableAccessibleGrouping && item.isSelected !== undefined
@@ -87,44 +134,23 @@ function UserListItemContent<TItem extends ListItem>({
             role={shouldDisableAccessibleGrouping ? CONST.ROLE.BUTTON : undefined}
             style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
         >
-            {(!!reportExists || !!itemAccountID || !!policyID) && (
-                <ReportActionAvatars
-                    subscriptAvatarBorderColor={isHovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                    shouldShowTooltip={showTooltip}
-                    secondaryAvatarContainerStyle={[
-                        StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                        isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                        isHovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                    ]}
-                    reportID={reportExists ? item.reportID : undefined}
-                    accountIDs={!reportExists && !!itemAccountID ? [itemAccountID] : []}
-                    policyID={!reportExists && !!policyID ? policyID : undefined}
-                    singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
-                    fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
-                />
-            )}
+            {!!avatar && <AvatarTooltipsProvider isEnabled={shouldShowTooltip}>{avatar}</AvatarTooltipsProvider>}
             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
                 <TextWithTooltip
-                    shouldShowTooltip={showTooltip}
-                    text={Str.removeSMSDomain(item.text ?? '')}
-                    style={[
-                        styles.optionDisplayName,
-                        isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                        item.isBold !== false && styles.sidebarLinkTextBold,
-                        styles.pre,
-                        item.alternateText ? styles.mb1 : null,
-                    ]}
+                    shouldShowTooltip={shouldShowTooltip}
+                    text={Str.isSMSLogin(item.text ?? '') ? formatPhoneNumber(item.text ?? '') : (item.text ?? '')}
+                    style={[styles.optionDisplayName, styles.sidebarLinkText, item.isBold !== false && styles.sidebarLinkTextBold, styles.pre, item.alternateText ? styles.mb1 : null]}
                 />
                 {!!item.alternateText && (
                     <TextWithTooltip
-                        shouldShowTooltip={showTooltip}
-                        text={Str.removeSMSDomain(item.alternateText ?? '')}
+                        shouldShowTooltip={shouldShowTooltip}
+                        text={Str.isSMSLogin(item.alternateText ?? '') ? formatPhoneNumber(item.alternateText ?? '') : (item.alternateText ?? '')}
                         style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                         forwardedFSClass={forwardedFSClass}
                     />
                 )}
             </View>
-            {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
+            {!!item.rightElement && <ListItemContext.Provider value={{isFocused, shouldShowTooltip}}>{item.rightElement}</ListItemContext.Provider>}
             {!!item.shouldShowRightCaret && (
                 <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, isDisabled && styles.cursorDisabled]}>
                     <Icon

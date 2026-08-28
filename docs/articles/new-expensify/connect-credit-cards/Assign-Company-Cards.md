@@ -45,7 +45,10 @@ If you haven’t set up a feed yet, learn how to set one up:
 
 ## Can I assign a company card to someone who is not a member of the Workspace? 
 
-You can enter any name, email address, or phone number when assigning a company card. However, only Workspace members can have company cards assigned to them. If the assignee is not yet a Workspace member, you can invite them while assigning the card. 
+Only Workspace members can have company cards assigned to them, so it depends on your role:
+
+- **Workspace Admins** can enter any name, email address, or phone number. If the assignee is not yet a Workspace member, you can invite them while assigning the card.
+- **Card Admins** can only assign company cards to people who are already Workspace members. If you search for someone who is not a member, no result appears and you cannot invite them from the assignment flow. Ask a Workspace Admin to invite the person to the Workspace first, then assign the card.
 
 ## Can I assign multiple company cards to one member?
 
@@ -58,3 +61,7 @@ No. Only Workspace Admins, Card Admins, and their Copilots can assign or reassig
 ## Can I change the transaction start date on an assigned card?
 
 Yes. You can update the **Transaction start date** at any time from the assigned card's details. The **Transaction start date** determines the date from which Expensify imports transactions for the card.
+
+## Can I set the transaction start date to a future date?
+
+Yes. The **Transaction start date** can be set to a past or future date. If you choose a future date, Expensify begins importing transactions for the card from that date onward.

@@ -1,22 +1,36 @@
-import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
-import {act, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
-import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+
+import type {SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@navigation/types';
+
 import WorkspaceWorkflowsPage from '@pages/workspace/workflows/WorkspaceWorkflowsPage';
+import WorkspaceWorkflowsPayerPage from '@pages/workspace/workflows/WorkspaceWorkflowsPayerPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {BankAccountList, Policy} from '@src/types/onyx';
+
+import {PortalProvider} from '@gorhom/portal';
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import type * as MockReanimatedModalModule from '../utils/mockReanimatedModal';
+
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -33,32 +47,17 @@ jest.mock('react-native-render-html', () => {
 });
 
 jest.mock('@components/Modal/ReanimatedModal', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const {useEffect, useRef}: {useEffect: typeof React.useEffect; useRef: typeof React.useRef} = require('react');
-
-    return function MockReanimatedModal({isVisible, onModalHide, children}: {isVisible: boolean; onModalHide?: () => void; children: React.ReactNode}) {
-        const wasVisible = useRef<boolean>(isVisible);
-
-        useEffect(() => {
-            if (wasVisible.current && !isVisible) {
-                onModalHide?.();
-            }
-            wasVisible.current = isVisible;
-        }, [isVisible, onModalHide]);
-
-        if (!isVisible) {
-            return null;
-        }
-
-        return children as React.ReactElement;
-    };
+    const {default: MockReanimatedModal} = jest.requireActual<typeof MockReanimatedModalModule>('../utils/mockReanimatedModal');
+    return MockReanimatedModal;
 });
 
 TestHelper.setupGlobalFetchMock();
 
 const POLICY_ID = 'workflows-payer-test';
 
-const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
+type TestNavigatorParamList = WorkspaceSplitNavigatorParamList & Pick<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_PAYER>;
+
+const Stack = createPlatformStackNavigator<TestNavigatorParamList>();
 
 const buildPolicy = (overrides: Partial<Policy> = {}): Policy =>
     ({
@@ -70,16 +69,22 @@ const buildPolicy = (overrides: Partial<Policy> = {}): Policy =>
         ...overrides,
     }) as Policy;
 
-const renderPage = () =>
+const renderPage = (initialRouteName: keyof TestNavigatorParamList = SCREENS.WORKSPACE.WORKFLOWS) =>
     render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <ModalProvider>
                     <NavigationContainer>
-                        <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.WORKFLOWS}>
+                        <Stack.Navigator initialRouteName={initialRouteName}>
                             <Stack.Screen
                                 name={SCREENS.WORKSPACE.WORKFLOWS}
                                 component={WorkspaceWorkflowsPage}
+                                // The payer row lives on the Payments tab, so deep-link straight to it.
+                                initialParams={{policyID: POLICY_ID, tab: CONST.TAB.WORKFLOWS.PAYMENTS}}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.WORKSPACE.WORKFLOWS_PAYER}
+                                component={WorkspaceWorkflowsPayerPage}
                                 initialParams={{policyID: POLICY_ID}}
                             />
                         </Stack.Navigator>
@@ -98,17 +103,19 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
         });
-        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
-            isSmallScreenWidth: false,
-            shouldUseNarrowLayout: false,
-        } as ResponsiveLayoutResult);
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+            createMock<ResponsiveLayoutResult>({
+                isSmallScreenWidth: false,
+                shouldUseNarrowLayout: false,
+            }),
+        );
     });
 
     afterEach(async () => {
         await act(async () => {
             await Onyx.clear();
         });
-        jest.clearAllMocks();
+        jest.restoreAllMocks();
     });
 
     it('shows the Payer row when reimbursementChoice is REIMBURSEMENT_YES and a bank account exists', async () => {
@@ -137,22 +144,13 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
         expect(screen.getByText(TestHelper.translateLocal('workflowsPayerPage.payer'))).toBeOnTheScreen();
     });
 
-    it('hides the Payer row when reimbursementChoice is REIMBURSEMENT_MANUAL', async () => {
+    it('shows the Payer row when reimbursementChoice is REIMBURSEMENT_MANUAL', async () => {
         await TestHelper.signInWithTestUser();
         await act(async () => {
             await Onyx.merge(
                 `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
                 buildPolicy({
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
-                    achAccount: {
-                        reimburser: 'test@user.com',
-                        bankAccountID: 123456,
-                        accountNumber: '1234567890',
-                        routingNumber: '011000015',
-                        bankName: 'Test Bank',
-                        addressName: 'Test Address',
-                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                    },
                 }),
             );
         });
@@ -160,7 +158,7 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByText(TestHelper.translateLocal('workflowsPayerPage.payer'))).not.toBeOnTheScreen();
+        expect(screen.getByText(TestHelper.translateLocal('workflowsPayerPage.payer'))).toBeOnTheScreen();
     });
 
     it('shows the Payer row when reimbursementChoice is undefined (legacy workspaces)', async () => {
@@ -223,5 +221,161 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByText(TestHelper.translateLocal('workflowsPayerPage.payer'))).toBeOnTheScreen();
+    });
+
+    it.each([CONST.BANK_ACCOUNT.STATE.SETUP, CONST.BANK_ACCOUNT.STATE.VERIFYING, CONST.BANK_ACCOUNT.STATE.PENDING])(
+        'keeps the Payer row non-clickable when bank account is %s',
+        async (state) => {
+            await TestHelper.signInWithTestUser();
+
+            const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+            const bankAccountID = 123456;
+            const bankAccountList: BankAccountList = {
+                [bankAccountID]: {
+                    methodID: bankAccountID,
+                    bankCurrency: 'USD',
+                    bankCountry: 'US',
+                    accountData: {
+                        additionalData: {
+                            policyID: POLICY_ID,
+                            bankName: CONST.BANK_NAMES.GENERIC_BANK,
+                        },
+                        addressName: 'Test Address',
+                        state,
+                    },
+                },
+            };
+
+            await act(async () => {
+                await Onyx.merge(
+                    `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                    buildPolicy({
+                        reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    }),
+                );
+                await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
+            });
+
+            renderPage();
+            await waitForBatchedUpdatesWithAct();
+
+            const payerRow = screen.getByText(TestHelper.translateLocal('workflowsPayerPage.payer'));
+            expect(payerRow).toBeOnTheScreen();
+
+            navigateSpy.mockClear();
+            fireEvent.press(payerRow);
+
+            expect(navigateSpy).not.toHaveBeenCalled();
+        },
+    );
+
+    it.each([CONST.BANK_ACCOUNT.STATE.SETUP, CONST.BANK_ACCOUNT.STATE.VERIFYING, CONST.BANK_ACCOUNT.STATE.PENDING])(
+        'blocks the direct Payer route when bank account is %s',
+        async (state) => {
+            await TestHelper.signInWithTestUser();
+
+            const bankAccountID = 123456;
+            await act(async () => {
+                await Onyx.merge(
+                    `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                    buildPolicy({
+                        reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    }),
+                );
+                await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                    [bankAccountID]: {
+                        methodID: bankAccountID,
+                        bankCurrency: 'USD',
+                        bankCountry: 'US',
+                        accountData: {
+                            additionalData: {
+                                policyID: POLICY_ID,
+                                bankName: CONST.BANK_NAMES.GENERIC_BANK,
+                            },
+                            addressName: 'Test Address',
+                            state,
+                        },
+                    },
+                });
+            });
+
+            renderPage(SCREENS.WORKSPACE.WORKFLOWS_PAYER);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('FullPageNotFoundView')).toBeOnTheScreen();
+            expect(screen.queryByTestId('WorkspaceWorkflowsPayerPage')).not.toBeOnTheScreen();
+        },
+    );
+
+    it('allows a payments admin to change the Payer only after bank setup is complete', async () => {
+        const currentUserLogin = 'test@user.com';
+        const reimburser = 'owner@test.com';
+        const bankAccountID = 123456;
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        await TestHelper.signInWithTestUser(undefined, currentUserLogin);
+        await act(async () => {
+            await Onyx.merge(
+                `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                buildPolicy({
+                    owner: reimburser,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    employeeList: {
+                        [currentUserLogin]: {
+                            email: currentUserLogin,
+                            role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                        },
+                    },
+                }),
+            );
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [bankAccountID]: {
+                    methodID: bankAccountID,
+                    bankCurrency: 'USD',
+                    bankCountry: 'US',
+                    accountData: {
+                        additionalData: {
+                            policyID: POLICY_ID,
+                            bankName: CONST.BANK_NAMES.GENERIC_BANK,
+                        },
+                        addressName: 'Test Address',
+                        state: CONST.BANK_ACCOUNT.STATE.SETUP,
+                    },
+                },
+            });
+        });
+
+        const {unmount} = renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        const payerRow = screen.getByText(TestHelper.translateLocal('workflowsPayerPage.payer'));
+        expect(payerRow).toBeOnTheScreen();
+
+        fireEvent.press(screen.getByLabelText(`${TestHelper.translateLocal('workflowsPayerPage.payer')}, ${reimburser}`), {type: 'press'});
+        expect(navigateSpy).not.toHaveBeenCalled();
+        unmount();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [bankAccountID]: {
+                    methodID: bankAccountID,
+                    bankCurrency: 'USD',
+                    bankCountry: 'US',
+                    accountData: {
+                        additionalData: {
+                            policyID: POLICY_ID,
+                            bankName: CONST.BANK_NAMES.GENERIC_BANK,
+                        },
+                        addressName: 'Test Address',
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                    },
+                },
+            });
+        });
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByLabelText(`${TestHelper.translateLocal('workflowsPayerPage.payer')}, ${reimburser}`), {type: 'press'});
+        expect(navigateSpy).toHaveBeenCalledWith('workspaces/workflows-payer-test/workflows/payer');
     });
 });

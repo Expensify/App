@@ -1,19 +1,26 @@
 import {act, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ReportListItemHeader from '@components/Search/SearchList/ListItem/ReportListItemHeader';
 import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchActionsContextValue, SearchStateContextValue} from '@components/Search/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
-import createRandomPolicy from '../utils/collections/policies';
-import MockSearchContextProvider from '../utils/MockSearchContextProvider';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import type * as MockUsePaymentContextUtil from '../utils/mockUsePaymentContext';
+
+import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
+import MockSearchContextProvider from '../utils/MockSearchContextProvider';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/ConfirmedRoute.tsx');
@@ -31,15 +38,18 @@ const mockSearchStateContext = {
     selectedReports: [],
     selectedTransactionIDs: [],
     selectedTransactions: {},
+    excludedTransactions: {},
     shouldTurnOffSelectionMode: false,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
+    currentSearchTransactionsByReportID: new Map(),
+    currentSearchViolations: {},
     currentSelectedTransactionReportID: undefined,
     shouldShowFiltersBarLoading: false,
     shouldUseLiveData: false,
     currentSimilarSearchHash: -1,
-    suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
+    suggestedSearches: createMock<SearchStateContextValue['suggestedSearches']>({}),
     lastSearchType: undefined,
     areAllMatchingItemsSelected: false,
     shouldResetSearchQuery: false,

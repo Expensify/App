@@ -1,23 +1,22 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {Keyboard, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
+import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar';
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
 import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
@@ -25,12 +24,23 @@ import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getDefaultApprover, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isControlPolicy, isSubmitPolicy, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
+import {getNewAccountIDsAndLogins, getPersonalDetailsOnyxDataForOptimisticUsers, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {
+    canMemberAssignElevatedRole,
+    canMemberAssignRole,
+    getDefaultApprover,
+    getMemberAccountIDsForWorkspace,
+    goBackFromInvalidPolicy,
+    isControlPolicy,
+    isSubmitPolicy,
+    tryNavigateToSubmitWorkspaceUpgrade,
+} from '@libs/PolicyUtils';
 import {getAllPolicyExpenseChatReportActions} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import {getSearchParamFromPath} from '@libs/Url';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AccessOrNotFoundWrapper from '@src/pages/workspace/AccessOrNotFoundWrapper';
@@ -41,6 +51,13 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
+
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {Keyboard, View} from 'react-native';
 
 type WorkspaceInviteMessageComponentProps = {
     policy: OnyxEntry<Policy>;
@@ -70,7 +87,7 @@ function WorkspaceInviteMessageComponent({
     const policyName = policy?.name;
 
     const backToPath = typeof backTo === 'string' ? (backTo.split('?').at(0) ?? '') : '';
-    const isWorkflowApprovalExpensesFromRoute = backToPath.endsWith('/workflows/approvals/expenses-from');
+    const isWorkflowApprovalExpensesFromRoute = backToPath.endsWith('/expenses-from');
     const headerTitle = isWorkflowApprovalExpensesFromRoute ? translate('workflowsExpensesFromPage.title') : translate('workspace.inviteMessage.confirmDetails');
     const subtitle = isWorkflowApprovalExpensesFromRoute ? undefined : policyName;
 
@@ -86,13 +103,19 @@ function WorkspaceInviteMessageComponent({
     const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
     const [workspaceInviteMessageDraft, workspaceInviteMessageDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`);
     const [workspaceInviteRoleDraftFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`);
+    const currentUserLogin = currentUserPersonalDetails.login ?? '';
+    const canManageUserRole = canMemberAssignRole(policy, currentUserLogin, CONST.POLICY.ROLE.USER);
+    const canChangeInviteRole = !isSubmitPolicy(policy) && canMemberAssignElevatedRole(policy, currentUserLogin);
+    const fallbackInviteRole = canManageUserRole ? CONST.POLICY.ROLE.USER : CONST.POLICY.ROLE.AUDITOR;
+    const draftInviteRole =
+        workspaceInviteRoleDraftFromOnyx && canMemberAssignRole(policy, currentUserLogin, workspaceInviteRoleDraftFromOnyx) ? workspaceInviteRoleDraftFromOnyx : fallbackInviteRole;
     // Submit workspaces only allow inviting editors, so default the invite role accordingly when no draft is set.
     // The backend ignores any other role for Submit workspaces, but defaulting here keeps the UI honest before submit.
-    const workspaceInviteRoleDraft = workspaceInviteRoleDraftFromOnyx ?? (isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : CONST.POLICY.ROLE.USER);
+    const workspaceInviteRoleDraft = isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : draftInviteRole;
     const defaultApprover = getDefaultApprover(policy);
     const [approverDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
-    const approverDetails = getPersonalDetailByEmail(workspaceInviteApproverDraft);
+    const approverDetails = usePersonalDetailByLogin(workspaceInviteApproverDraft);
 
     const isControl = isControlPolicy(policy);
     const shouldShowApproverRow = isControl && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED && policy?.areWorkflowsEnabled;
@@ -109,7 +132,7 @@ function WorkspaceInviteMessageComponent({
     const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
     const memberNames = Object.values(personalDetailsOfInvitedEmails)
         .map((personalDetail) => {
-            const displayName = getDisplayNameOrDefault(personalDetail, '', false);
+            const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, defaultValue: '', shouldFallbackToHidden: false, translate, formatPhoneNumber});
             if (displayName) {
                 return displayName;
             }
@@ -161,15 +184,16 @@ function WorkspaceInviteMessageComponent({
         Keyboard.dismiss();
         const filteredReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
+        const {newAccountIDs, newLogins} = getNewAccountIDsAndLogins(invitedEmailsToAccountIDsDraft, allPersonalDetails);
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
         // See https://github.com/Expensify/App/blob/main/README.md#workspace, we set conditions about who can leave the workspace
         addMembersToWorkspace(
             invitedEmailsToAccountIDsDraft ?? {},
+            getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber),
             `${welcomeNoteSubject}\n\n${welcomeNote}`,
             policy,
             policyMemberAccountIDs,
             workspaceInviteRoleDraft,
-            formatPhoneNumber,
             {
                 accountID: currentUserPersonalDetails?.accountID,
                 displayName: currentUserPersonalDetails?.displayName,
@@ -224,7 +248,7 @@ function WorkspaceInviteMessageComponent({
     };
 
     const invitingMemberEmail = Object.keys(invitedEmailsToAccountIDsDraft ?? {}).at(0) ?? '';
-    const invitingMemberDetails = getPersonalDetailByEmail(invitingMemberEmail);
+    const invitingMemberDetails = usePersonalDetailByLogin(invitingMemberEmail);
     const invitingMemberName = Str.removeSMSDomain(invitingMemberDetails?.displayName ?? '');
 
     useEffect(() => {
@@ -237,7 +261,8 @@ function WorkspaceInviteMessageComponent({
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ScreenWrapper
@@ -268,19 +293,18 @@ function WorkspaceInviteMessageComponent({
                         <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.inviteNewMember')}</Text>
                     )}
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                        <ReportActionAvatars
-                            size={CONST.AVATAR_SIZE.LARGE}
-                            accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
-                            horizontalStacking={{
-                                displayInRows: true,
-                            }}
-                            secondaryAvatarContainerStyle={styles.secondAvatarInline}
-                            invitedEmailsToAccountIDs={invitedEmailsToAccountIDsDraft}
-                            shouldUseCustomFallbackAvatar
-                            shouldShowTooltip={shouldShowTooltip}
-                        />
+                        <AvatarTooltipsProvider isEnabled={shouldShowTooltip}>
+                            <MultiAccountAvatar
+                                size={CONST.AVATAR_SIZE.XXX_LARGE}
+                                accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
+                                horizontalOptions={{
+                                    maxRows: 2,
+                                }}
+                                invitedEmailsToAccountIDs={invitedEmailsToAccountIDsDraft}
+                            />
+                        </AvatarTooltipsProvider>
                     </View>
-                    <View style={[styles.mb3]}>
+                    <View style={styles.mb3}>
                         <View style={[styles.mhn5, styles.mb3]}>
                             {isInviteNewMemberStep && (
                                 <MenuItemWithTopDescription
@@ -303,7 +327,8 @@ function WorkspaceInviteMessageComponent({
                             <MenuItemWithTopDescription
                                 title={translate(`workspace.common.roleName`, workspaceInviteRoleDraft)}
                                 description={translate('common.role')}
-                                shouldShowRightIcon
+                                shouldShowRightIcon={canChangeInviteRole}
+                                interactive={canChangeInviteRole}
                                 onPress={() => {
                                     if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias, Navigation.getActiveRoute())) {
                                         return;
@@ -313,7 +338,13 @@ function WorkspaceInviteMessageComponent({
                             />
                             {!!shouldShowApproverRow && (
                                 <MenuItemWithTopDescription
-                                    title={getDisplayNameOrDefault(approverDetails, workspaceInviteApproverDraft, false)}
+                                    title={temporaryGetDisplayNameOrDefault({
+                                        passedPersonalDetails: approverDetails,
+                                        defaultValue: workspaceInviteApproverDraft,
+                                        shouldFallbackToHidden: false,
+                                        translate,
+                                        formatPhoneNumber,
+                                    })}
                                     description={translate('workflowsPage.approver')}
                                     shouldShowRightIcon
                                     onPress={navigateToApproverPage}

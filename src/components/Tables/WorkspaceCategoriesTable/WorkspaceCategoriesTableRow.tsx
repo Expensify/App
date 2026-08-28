@@ -1,16 +1,22 @@
-import React from 'react';
-import {View} from 'react-native';
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Table from '@components/Table';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {WorkspaceCategoryTableRowData} from '.';
 
 type WorkspaceCategoriesTableRowProps = {
@@ -35,6 +41,7 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const accessibilityLabel = [
         item.name,
@@ -51,7 +58,6 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={{context: 'categoriesTableRow'}}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.ROW}
             onPress={item.action}
             offlineWithFeedback={{
@@ -63,7 +69,10 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
         >
             {({hovered}) => (
                 <>
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                    <View
+                        style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
                         <TextWithTooltip
                             shouldShowTooltip
                             numberOfLines={1}
@@ -72,7 +81,10 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                     </View>
 
                     {!shouldUseNarrowTableLayout && shouldShowGLCodeColumn && (
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
@@ -82,14 +94,16 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                     )}
 
                     {!shouldUseNarrowTableLayout && shouldShowApproverColumn && (
-                        <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             {!!item.approverDisplayName && !!item.approverAccountID && (
                                 <>
-                                    <Avatar
-                                        name={item.approverDisplayName}
+                                    <UserAvatar
                                         source={item.approverAvatar}
-                                        type={CONST.ICON_TYPE_AVATAR}
-                                        size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                                        accountID={item.approverAccountID}
+                                        size={CONST.AVATAR_SIZE.XXX_SMALL}
                                     />
                                     <TextWithTooltip
                                         shouldShowTooltip
@@ -101,7 +115,10 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                         </View>
                     )}
 
-                    <View style={[styles.justifyContentCenter, styles.alignItemsEnd]}>
+                    <View
+                        style={[styles.justifyContentCenter, styles.alignItemsEnd]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
                         <Switch
                             isOn={item.enabled}
                             showLockIcon={item.isLocked}
@@ -111,13 +128,15 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                         />
                     </View>
 
-                    <Icon
-                        src={icons.ArrowRight}
-                        fill={theme.icon}
-                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                    />
+                    <View {...getCellAccessibilityProps(isTableSemanticsEnabled)}>
+                        <Icon
+                            src={icons.ArrowRight}
+                            fill={theme.icon}
+                            additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                    </View>
                 </>
             )}
         </Table.Row>

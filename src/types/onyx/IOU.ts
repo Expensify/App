@@ -1,7 +1,10 @@
-import type {ValueOf} from 'type-fest';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type {Icon} from './OnyxCommon';
 import type Report from './Report';
 import type {Routes, TransactionCustomUnit, WaypointCollection} from './Transaction';
@@ -164,6 +167,15 @@ type SplitExpense = {
     /** Whether the split expense is billable */
     billable?: boolean;
 
+    /** Tax code applied to this split */
+    taxCode?: string;
+
+    /** Tax amount for this split (in cents) */
+    taxAmount?: number;
+
+    /** Tax percentage value as a string (e.g. "20%") */
+    taxValue?: string;
+
     /** Custom unit data for distance requests */
     customUnit?: TransactionCustomUnit;
 
@@ -192,27 +204,6 @@ type Attendee = {
 
     /** IOU attendee avatar url */
     avatarUrl: string;
-
-    /** Account ID */
-    accountID?: number;
-
-    /** Text to be displayed in lists (participant display name) */
-    text?: string;
-
-    /** IOU attendee login */
-    login?: string;
-
-    /** Text that IOU attendee display name and login, if available, for searching purposes */
-    searchText?: string;
-
-    /** Is IOU attendee selected in list */
-    selected?: boolean;
-
-    /** The type of IOU report, i.e. split, request, send, track */
-    iouType?: IOUType;
-
-    /** IOU attendee report ID */
-    reportID?: string;
 };
 
 /** Model of IOU accountant */

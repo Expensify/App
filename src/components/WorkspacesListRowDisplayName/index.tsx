@@ -1,6 +1,9 @@
-import React from 'react';
 import Text from '@components/Text';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+
 import type WorkspacesListRowDisplayNameProps from './types';
 
 function WorkspacesListRowDisplayName({isDeleted, ownerName}: WorkspacesListRowDisplayNameProps) {

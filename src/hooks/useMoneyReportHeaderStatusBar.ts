@@ -1,5 +1,3 @@
-import {getArchiveReason} from '@selectors/Report';
-import type {ValueOf} from 'type-fest';
 import {isPersonalCard} from '@libs/CardUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
@@ -8,16 +6,23 @@ import {isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import {
     allHavePendingRTERViolation,
+    getBrokenConnectionViolation,
     hasDuplicateTransactions,
     hasReceipt,
-    isExpensifyCardTransaction,
     isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
     isPending,
     isScanning,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ValueOf} from 'type-fest';
+
+import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
+import {getArchiveReason} from '@selectors/Report';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -39,6 +44,7 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
     const {accountID, email} = useCurrentUserPersonalDetails();
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -71,13 +77,21 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason});
 
     const hasScanningReceipt = transactions.filter((t) => hasReceipt(t)).some(isScanning);
-    const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations, email ?? '', accountID, moneyRequestReport, policy);
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactions, moneyRequestReport, policy, violations, email ?? '', accountID);
+    const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isPending(t));
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations, email ?? '', accountID, moneyRequestReport, ownerLogin, policy);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
+        transactions,
+        moneyRequestReport,
+        ownerLogin,
+        policy,
+        violations,
+        email ?? '',
+        accountID,
+    );
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
     const isReportSettled = isSettledReportUtils(moneyRequestReport);
-    const hasDuplicates = !isReportSettled && hasDuplicateTransactions(email ?? '', accountID, moneyRequestReport, policy, allTransactionViolations);
+    const hasDuplicates = !isReportSettled && hasDuplicateTransactions(email ?? '', accountID, moneyRequestReport, ownerLogin, policy, allTransactionViolations);
     const shouldShowMarkAsResolved = isMarkAsResolvedAction(moneyRequestReport, transactionViolations);
 
     const shouldShowStatusBar =
@@ -109,10 +123,13 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
             return CONST.REPORT.STATUS_BAR_TYPE.DUPLICATES;
         }
         if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
-            const brokenConnectionError = transactionViolations.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);
+            const brokenConnectionError = getBrokenConnectionViolation(transactionViolations);
             const cardID = brokenConnectionError?.data?.cardID;
             const card = cardID ? cardList?.[cardID] : undefined;
-            if (isPersonalCard(card) && brokenConnectionError) {
+
+            // Only suppress the status bar for a personal card the current user actually holds. A company card the
+            // viewer doesn't own resolves to `undefined` here, and must still surface the broken/re-auth status.
+            if (!!card && isPersonalCard(card) && brokenConnectionError) {
                 return undefined;
             }
             return CONST.REPORT.STATUS_BAR_TYPE.BROKEN_CONNECTION;

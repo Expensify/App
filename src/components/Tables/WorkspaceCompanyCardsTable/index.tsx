@@ -1,13 +1,11 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CardFeedIcon from '@components/CardFeedIcon';
 import ScrollView from '@components/ScrollView';
-import Table from '@components/Table';
-import type {ActiveSorting, CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
-import TableSkeleton from '@components/Table/TableSkeleton';
+import Table, {composeTableListHeader} from '@components/Table';
+import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import Text from '@components/Text';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
@@ -17,30 +15,49 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
-import {getDefaultCardName} from '@libs/CardUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
-import WorkspaceCompanyCardsFeedAddedEmptyPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage';
 import WorkspaceCompanyCardsFeedPendingPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedPendingPage';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import {companyCardCustomNamesSelector} from '@selectors/Card';
+import React, {useImperativeHandle, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTableRow';
+
+import WorkspaceCompanyCardsTableControls from './WorkspaceCompanyCardsTableControls';
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableRow';
-import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTableRow';
-import WorkspaceCompanyCardsTableSkeleton from './WorkspaceCompanyCardsTableSkeleton';
 
 type CompanyCardsTableColumnKey = 'member' | 'card' | 'customCardName' | 'actions';
 
+type WorkspaceCompanyCardsTableHandle = {
+    clearSelection: () => void;
+};
+
 type WorkspaceCompanyCardsTableProps = {
+    ref?: React.Ref<WorkspaceCompanyCardsTableHandle>;
+
     /** Policy ID */
     policyID: string;
 
-    /** Whether the policy is loaded */
+    /** Whether the policy is done loading, i.e. its account ID has resolved. Offline this is `true` even without an account ID, since it can never resolve until we reconnect */
     isPolicyLoaded: boolean;
+
+    /** Whether the company cards page fetch is still expected to land, i.e. no feeds are cached for the workspace yet */
+    isPageFetchPending: boolean;
 
     /** Domain or workspace account ID */
     domainOrWorkspaceAccountID: number;
@@ -54,6 +71,9 @@ type WorkspaceCompanyCardsTableProps = {
     /** Whether the current member can edit company cards */
     canWriteCompanyCards: boolean;
 
+    /** Whether the narrow-layout selection mode is active */
+    isSelectionModeEnabled: boolean;
+
     /** On assign card callback */
     onAssignCard: (cardID: string, encryptedCardNumber: string) => void;
 
@@ -65,13 +85,16 @@ type WorkspaceCompanyCardsTableProps = {
 };
 
 function WorkspaceCompanyCardsTable({
+    ref,
     policyID,
     isPolicyLoaded,
+    isPageFetchPending,
     domainOrWorkspaceAccountID,
     companyCards,
     onAssignCard,
     isAssigningCardDisabled,
     canWriteCompanyCards,
+    isSelectionModeEnabled,
     onReloadPage,
     onReloadFeed,
 }: WorkspaceCompanyCardsTableProps) {
@@ -79,6 +102,7 @@ function WorkspaceCompanyCardsTable({
     const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const tableRef = useRef<TableHandle<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>>(null);
 
     const {
         feedName,
@@ -94,19 +118,32 @@ function WorkspaceCompanyCardsTable({
     } = companyCards;
 
     const {cardFeedErrors} = useCardFeedErrors();
-    const isFeedConnectionBroken = feedName ? cardFeedErrors[feedName]?.isFeedConnectionBroken : false;
+    const illustrations = useMemoizedLazyIllustrations(['LaptopAssignCard', 'BrokenMagnifyingGlass']);
+    // Per-row errors are hidden while we surface the connection error for the whole feed instead. Keyed on the prompting flag
+    // so that past the grace period an actionable card error (e.g. a failed unassignment) becomes visible and dismissible
+    // again rather than being suppressed forever.
+    const isFeedConnectionBroken = feedName ? cardFeedErrors[feedName]?.shouldPromptBrokenConnection : false;
 
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
-    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const [selectedCardKeys, setSelectedCardKeys] = useState<string[]>([]);
+    const clearCardSelection = () => setSelectedCardKeys([]);
+    useImperativeHandle(ref, () => ({clearSelection: clearCardSelection}));
+    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [sharedCardCustomNames] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {selector: companyCardCustomNamesSelector});
+    const [companyCardsLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`);
+
+    const hasOnceLoadedPage = !!companyCardsLoadingState?.hasOnceLoadedPage;
+    const hasOnceLoadedSelectedFeed = !!bankName && !!companyCardsLoadingState?.feeds?.[bankName]?.hasOnceLoaded;
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
 
-    const areWorkspaceCardFeedsLoading = !!workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading;
     // Synthesize error locally since Onyx discards writes to collection keys with member ID '0'.
     const shouldShowWorkspaceFeedsLoadError = domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID && isPolicyLoaded && !isOffline;
     const workspaceCardFeedsErrors = shouldShowWorkspaceFeedsLoadError
-        ? {[CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR]: translate('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedMessage')}
+        ? {
+              [CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR]: translate('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedMessage'),
+          }
         : workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.errors;
 
     const selectedFeedStatus = selectedFeed?.status;
@@ -117,6 +154,7 @@ function WorkspaceCompanyCardsTable({
 
     let feedErrorTitle: string | undefined;
     let feedErrorReloadAction: (() => void) | undefined;
+
     if (feedErrorKey === CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR) {
         feedErrorTitle = translate('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedTitle');
         feedErrorReloadAction = onReloadPage;
@@ -125,28 +163,34 @@ function WorkspaceCompanyCardsTable({
         feedErrorReloadAction = onReloadFeed;
     }
 
-    // If we already have fetched cards, then do not show skeleton loader (let the remaining updates refresh in the background), else show it
+    // If we already have fetched cards, then do not show a loading spinner (let the remaining updates refresh in the background), else show it
     const hasCards = (companyCardEntries ?? []).length > 0;
-    // When the last feed is removed, card data already implies no feed (isNoFeed); lastSelectedFeed Onyx metadata can still report loading after optimistic clear.
-    const isLoadingFeed =
-        !hasCards && ((!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || (!isNoFeed && isLoadingOnyxValue(lastSelectedFeedMetadata)) || !!selectedFeedStatus?.isLoading);
-    const isLoadingCards = !hasCards ? isLoadingOnyxValue(cardListMetadata) : false;
-    const isLoadingPage = !isOffline && !hasCards && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata) || areWorkspaceCardFeedsLoading);
 
-    const isLoading = isLoadingPage || isLoadingFeed;
+    // The page fetch is kicked off from an effect, so its optimistic `isLoading` flag only lands after the first render.
+    // Treat the window before it as loading too, otherwise the empty feed state flashes before the loading indicator shows up.
+    const isPageFetchAwaited = isPageFetchPending && !hasFeedErrors;
+    const areWorkspaceCardFeedsLoading = (!!workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading || isPageFetchAwaited) && !hasOnceLoadedPage;
+
+    const isLoadingOnyxCardList = !hasCards && isLoadingOnyxValue(cardListMetadata);
+    const isLoadingOnyxPersonalDetails = isLoadingOnyxValue(personalDetailsMetadata);
+    const isLoadingOnyxFeed = !isNoFeed && isLoadingOnyxValue(lastSelectedFeedMetadata) && !hasOnceLoadedSelectedFeed;
+    const isSelectedFeedLoading = !!selectedFeedStatus?.isLoading && !hasOnceLoadedSelectedFeed;
+
+    const isLoadingPage = !isOffline && !hasCards && (isLoadingOnyxPersonalDetails || areWorkspaceCardFeedsLoading);
+    const isLoadingFeed = !hasCards && ((!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || isLoadingOnyxFeed || isSelectedFeedLoading);
+    const isLoading = isLoadingPage || isLoadingFeed || isLoadingOnyxCardList;
+
+    // Unassign requests hide their rows while online (pending-delete filter below), so bulk unassigning every
+    // visible card would flash the empty feed state; treat that in-flight window as loading instead.
+    const hasPendingUnassignment = (companyCardEntries ?? []).some((entry) => entry.assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoading && !hasFeedErrors;
-    const showTableControls = showCards && !!selectedFeed && !isLoadingCards && !hasFeedErrors;
+    const showTableControls = showCards && !!selectedFeed && !isLoadingOnyxCardList && !hasFeedErrors;
     const showTableHeaderButtons = (showTableControls || isLoadingPage || isFeedPending || feedErrorKey === CONST.COMPANY_CARDS.FEED_LOAD_ERROR) && !!feedName;
 
     const isGB = countryByIp === CONST.COUNTRY.GB;
     const shouldShowGBDisclaimer = isGB && (isNoFeed || hasNoAssignedCard);
-
-    // When we reach the medium screen width or the narrow layout is active,
-    // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
-
-    const tableRef = useRef<TableHandle<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>>(null);
 
     const columns: Array<TableColumn<CompanyCardsTableColumnKey>> = [
         {
@@ -174,27 +218,48 @@ function WorkspaceCompanyCardsTable({
         },
     ];
 
-    const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingCards
+    const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingOnyxCardList
         ? []
-        : (companyCardEntries ?? []).map(({cardName, encryptedCardNumber, isAssigned, assignedCard}) => {
-              const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
+        : (companyCardEntries ?? [])
+              .map(({cardName, encryptedCardNumber, isAssigned, assignedCard}) => {
+                  const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
 
-              return {
-                  cardName,
-                  keyForList: `${cardName}_${assignedCard?.cardID ?? 'unassigned'}_${encryptedCardNumber}`,
-                  encryptedCardNumber,
-                  customCardName: assignedCard?.cardID && customCardNames?.[assignedCard.cardID] ? customCardNames?.[assignedCard.cardID] : getDefaultCardName(cardholder?.displayName ?? ''),
-                  isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                  isAssigned,
-                  assignedCard,
-                  cardholder,
-                  errors: isFeedConnectionBroken || assignedCard?.pendingFields?.lastScrape ? undefined : assignedCard?.errors,
-                  pendingAction: assignedCard?.pendingAction,
-                  onDismissError: () => resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID),
-              };
-          });
+                  return {
+                      cardName,
+                      keyForList: `${cardName}_${assignedCard?.cardID ?? 'unassigned'}_${encryptedCardNumber}`,
+                      encryptedCardNumber,
+                      customCardName: getCompanyCardCustomName(assignedCard?.cardID, sharedCardCustomNames, customCardNames) ?? getDefaultCardName(cardholder?.displayName ?? ''),
+                      isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                      disabled: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                      isAssigned,
+                      assignedCard,
+                      cardholder,
+                      errors: isFeedConnectionBroken || assignedCard?.pendingFields?.lastScrape ? undefined : assignedCard?.errors,
+                      pendingAction: assignedCard?.pendingAction,
+                      onDismissError: () => resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID),
+                  };
+              })
+              .filter((item) => isOffline || item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
-    const keyExtractor = (item: WorkspaceCompanyCardTableItemData, index: number) => `${item.cardName}_${index}`;
+    const [selectedCardsFeedName, setSelectedCardsFeedName] = useState(feedName);
+    const isSelectedCardsFeedCurrent = selectedCardsFeedName === feedName;
+    const selectableCardKeySet = new Set(cardsData.filter((card) => !card.disabled).map((card) => card.keyForList));
+    const selectedCardKeysForCurrentData = isSelectedCardsFeedCurrent ? selectedCardKeys.filter((key) => selectableCardKeySet.has(key)) : [];
+    const areSelectedCardKeysPruned =
+        selectedCardKeys.length === selectedCardKeysForCurrentData.length && selectedCardKeys.every((key, index) => key === selectedCardKeysForCurrentData.at(index));
+
+    if (!isSelectedCardsFeedCurrent) {
+        setSelectedCardsFeedName(feedName);
+        if (selectedCardKeys.length > 0) {
+            setSelectedCardKeys([]);
+        }
+    } else if (!areSelectedCardKeysPruned) {
+        setSelectedCardKeys(selectedCardKeysForCurrentData);
+    }
+
+    const validSelectedCardKeys = selectedCardKeysForCurrentData;
+
+    const keyExtractor = (item: WorkspaceCompanyCardTableItemData) => item.keyForList;
 
     const compareItems: CompareItemsCallback<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey> = (a, b, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
@@ -265,13 +330,18 @@ function WorkspaceCompanyCardsTable({
 
     const filterConfig: FilterConfig = {
         status: {
-            filterType: 'single-select',
+            filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
+            label: translate('common.status'),
             options: [
-                {label: translate('workspace.moreFeatures.companyCards.allCards'), value: 'all'},
-                {label: translate('workspace.moreFeatures.companyCards.assignedCards'), value: 'assigned'},
-                {label: translate('workspace.moreFeatures.companyCards.unassignedCards'), value: 'unassigned'},
+                {
+                    label: translate('workspace.moreFeatures.companyCards.assignedCards'),
+                    value: 'assigned',
+                },
+                {
+                    label: translate('workspace.moreFeatures.companyCards.unassignedCards'),
+                    value: 'unassigned',
+                },
             ],
-            default: 'all',
         },
     };
 
@@ -290,10 +360,9 @@ function WorkspaceCompanyCardsTable({
 
     const renderItem = ({item, index}: ListRenderItemInfo<WorkspaceCompanyCardTableItemData>) => (
         <WorkspaceCompanyCardTableItem
-            key={`${item.cardName}_${index}`}
+            key={item.keyForList}
             item={item}
             rowIndex={index}
-            policyID={policyID ?? String(CONST.DEFAULT_NUMBER_ID)}
             feedName={feedName}
             CardFeedIcon={cardFeedIcon}
             onAssignCard={onAssignCard}
@@ -303,71 +372,33 @@ function WorkspaceCompanyCardsTable({
         />
     );
 
-    const isNarrowLayoutRef = useRef(shouldUseNarrowTableLayout);
-    const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
-
-    // When we switch from wide to narrow layout, we want to save the active sorting and set it to the member column.
-    // When switching back to wide layout, we want to restore the previous sorting.
-    useEffect(() => {
-        if (shouldUseNarrowTableLayout) {
-            if (isNarrowLayoutRef.current) {
-                return;
-            }
-
-            isNarrowLayoutRef.current = true;
-            const activeSorting = tableRef.current?.getActiveSorting();
-
-            setActiveSortingInWideLayout(activeSorting);
-            tableRef.current?.updateSorting({columnKey: 'member', order: 'asc'});
-            return;
-        }
-
-        if (!activeSortingInWideLayout || !isNarrowLayoutRef.current) {
-            return;
-        }
-
-        isNarrowLayoutRef.current = false;
-        tableRef.current?.updateSorting(activeSortingInWideLayout);
-    }, [activeSortingInWideLayout, shouldUseNarrowTableLayout]);
-
-    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
     });
 
-    const headerButtonsComponent = showTableHeaderButtons ? (
-        <View style={styles.mb3}>
-            <WorkspaceCompanyCardsTableHeaderButtons
-                isLoading={isLoading}
-                policyID={policyID}
-                feedName={feedName}
-                showTableControls={showTableControls}
-                canWriteCompanyCards={canWriteCompanyCards}
-                CardFeedIcon={cardFeedIcon}
-            />
-        </View>
-    ) : undefined;
-
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'WorkspaceCompanyCardsTable',
-        isLoading,
-        isLoadingCards,
-    };
-
-    const LoadingComponent = (
-        <TableSkeleton
-            rowCount={5}
-            reasonAttributes={reasonAttributes}
-            renderSkeletonItem={WorkspaceCompanyCardsTableSkeleton}
+    const headerButtonsComponent =
+        showTableHeaderButtons && !isSelectionModeEnabled ? (
+            <View style={styles.mb3}>
+                <WorkspaceCompanyCardsTableHeaderButtons
+                    isLoading={isLoading}
+                    policyID={policyID}
+                    feedName={feedName}
+                    canWriteCompanyCards={canWriteCompanyCards}
+                    CardFeedIcon={cardFeedIcon}
+                />
+            </View>
+        ) : undefined;
+    const tableControlsComponent = showCards ? (
+        <WorkspaceCompanyCardsTableControls
+            policyID={policyID}
+            domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
+            bankName={bankName}
+            canWriteCompanyCards={canWriteCompanyCards}
+            clearCardSelection={clearCardSelection}
+            isSelectionModeEnabled={isSelectionModeEnabled}
         />
-    );
-
-    const ListHeader = (
-        <>
-            {headerButtonsComponent}
-            {!isLoadingFeed && !isFeedPending && showCards && <Table.Header />}
-        </>
-    );
+    ) : undefined;
+    const shouldShowPendingUnassignmentLoading = showCards && hasPendingUnassignment && cardsData.length === 0;
 
     return (
         <Table
@@ -381,32 +412,36 @@ function WorkspaceCompanyCardsTable({
             isItemInSearch={isItemInSearch}
             isItemInFilter={isItemInFilter}
             initialSortColumn="member"
+            selectionEnabled={showTableControls}
+            selectedKeys={validSelectedCardKeys}
+            onRowSelectionChange={setSelectedCardKeys}
             title={translate('workspace.common.companyCards')}
-            ListHeaderComponent={shouldUseNarrowTableLayout ? ListHeader : undefined}
-            ListEmptyComponent={isLoadingCards ? LoadingComponent : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
+            ListEmptyComponent={shouldShowPendingUnassignmentLoading ? <Table.LoadingState /> : undefined}
         >
-            {!shouldUseNarrowTableLayout && ListHeader}
+            <Table.ListHeader>{showCards ? composeTableListHeader(headerButtonsComponent, tableControlsComponent) : undefined}</Table.ListHeader>
+            {!showCards && headerButtonsComponent}
 
-            {(isLoading || isFeedPending || isNoFeed) && !feedErrorKey && (
+            {isLoading && <Table.LoadingState />}
+
+            {!isLoading && isFeedPending && !feedErrorKey && (
                 <ScrollView addBottomSafeAreaPadding>
-                    {isLoading && LoadingComponent}
-
-                    {!isLoading && isFeedPending && (
+                    {isFeedPending && (
                         <View style={styles.flex1}>
-                            {shouldUseNarrowTableLayout && headerButtonsComponent}
                             <WorkspaceCompanyCardsFeedPendingPage />
                         </View>
                     )}
+                </ScrollView>
+            )}
 
-                    {!isLoading && isNoFeed && (
-                        <View style={styles.flex1}>
-                            <WorkspaceCompanyCardPageEmptyState
-                                policyID={policyID}
-                                shouldShowGBDisclaimer={shouldShowGBDisclaimer}
-                                canWriteCompanyCards={canWriteCompanyCards}
-                            />
-                        </View>
-                    )}
+            {!isLoading && isNoFeed && !feedErrorKey && (
+                <ScrollView addBottomSafeAreaPadding>
+                    <View style={styles.flex1}>
+                        <WorkspaceCompanyCardPageEmptyState
+                            policyID={policyID}
+                            shouldShowGBDisclaimer={shouldShowGBDisclaimer}
+                            canWriteCompanyCards={canWriteCompanyCards}
+                        />
+                    </View>
                 </ScrollView>
             )}
 
@@ -424,17 +459,36 @@ function WorkspaceCompanyCardsTable({
                             subtitleStyle={styles.textSupporting}
                         />
                         <Button
-                            text={translate('workspace.companyCards.error.tryAgain')}
                             isDisabled={isOffline}
                             onPress={feedErrorReloadAction}
-                        />
+                        >
+                            <Button.Text>{translate('common.tryAgain')}</Button.Text>
+                        </Button>
                     </View>
                 </ScrollView>
             )}
 
+            {/* Table.EmptyState and Table.NoResultsState must stay direct children (not wrapped in a fragment)
+            so the Table root can extract them and render them inside the scrolling list when cards are shown. */}
+            {showCards && !shouldShowPendingUnassignmentLoading && (
+                <Table.EmptyState
+                    headerMedia={illustrations.LaptopAssignCard}
+                    containerStyles={styles.mt5}
+                    headerStyles={styles.emptyStateCardIllustrationContainer}
+                    headerContentStyles={styles.pendingStateCardIllustration}
+                    title={translate('workspace.moreFeatures.companyCards.emptyAddedFeedTitle')}
+                    subtitle={translate('workspace.moreFeatures.companyCards.emptyAddedFeedDescription')}
+                >
+                    {!!shouldShowGBDisclaimer && <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.companyCards.ukRegulation')}</Text>}
+                </Table.EmptyState>
+            )}
+            {showCards && !shouldShowPendingUnassignmentLoading && <Table.NoResultsState />}
+            {showCards && <Table.Header />}
             {showCards && <Table.Body />}
         </Table>
     );
 }
 
 export default WorkspaceCompanyCardsTable;
+
+export type {WorkspaceCompanyCardsTableHandle};

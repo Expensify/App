@@ -1,10 +1,14 @@
 import useOnyx from '@hooks/useOnyx';
+import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
+
 import {getReportName} from '@libs/ReportNameUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function useFilterReportValue(reportIDs: SearchFilter['value']): string {
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+    const reportIDList = Array.isArray(reportIDs) ? reportIDs : [];
+    const derivedReportNames = useDerivedReportNamesByReportIDs(reportIDList);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     if (!Array.isArray(reportIDs)) {
@@ -12,7 +16,7 @@ function useFilterReportValue(reportIDs: SearchFilter['value']): string {
     }
 
     return reportIDs
-        .map((id) => getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportAttributes?.reports))
+        .map((id) => getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], derivedReportNames?.[id]))
         .filter(Boolean)
         .join(', ');
 }

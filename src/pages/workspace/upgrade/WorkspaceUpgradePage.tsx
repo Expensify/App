@@ -1,16 +1,15 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateQuickbooksOnlineSyncClasses, updateQuickbooksOnlineSyncCustomers, updateQuickbooksOnlineSyncLocations} from '@libs/actions/connections/QuickbooksOnline';
 import {updateXeroMappings} from '@libs/actions/connections/Xero';
 import {enablePolicyTravel} from '@libs/actions/Policy/Travel';
@@ -19,18 +18,23 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {
-    canAccessSubmitWorkspaceFeatures as canAccessSubmitWorkspaceFeaturesUtils,
     canEditWorkspaceSettings,
     canModifyPlan,
     getDefaultApprover,
+    getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     getUserFriendlyWorkspaceType,
     isControlPolicy,
     isPaidGroupPolicy,
+    isSubmitPolicy,
 } from '@libs/PolicyUtils';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
+import {setWorkspaceDistanceAutoUpdate} from '@userActions/Policy/DistanceRate';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
-import CONST, {SUBMIT_FEATURE_IDS} from '@src/CONST';
+
+import CONST from '@src/CONST';
 import {
     enableAutoApprovalOptions,
     enableCompanyCards,
@@ -44,6 +48,7 @@ import {
     isCurrencySupportedForDirectReimbursement,
     setPolicyPreventMemberCreatedTitle,
     setPolicyPreventSelfApproval,
+    setPolicyReceiptVisibilityPublic,
     setWorkspaceApprovalMode,
     setWorkspaceReimbursement,
     upgradeSubmit,
@@ -54,8 +59,15 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+
 import UpgradeConfirmation from './UpgradeConfirmation';
 import UpgradeIntro from './UpgradeIntro';
+import useWorkspaceUpgradeConfirmation from './useWorkspaceUpgradeConfirmation';
 
 type WorkspaceUpgradePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.UPGRADE>;
 
@@ -75,28 +87,33 @@ function getFeatureNameAlias(featureName: string) {
 function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
+    const reportID = route.params?.reportID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const {isBetaEnabled} = usePermissions();
-    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
-    const canAccessSubmitWorkspaceFeatures = canAccessSubmitWorkspaceFeaturesUtils(policy, isSubmit2026BetaEnabled);
+    const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
+    // A submit2026 policy can only be upgraded via the UpgradeSubmit command (the server rejects
+    // UpgradeToCorporate for it with a 402), and its owner holds the editor role, so the upgrade
+    // flow below must key off the policy type rather than admin checks.
+    const isUpgradingFromSubmitPolicy = isSubmitPolicy(policy);
     const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
+    const upgradingFromSubmitLatchPolicyIDRef = useRef<string | undefined>(undefined);
     // upgradePlanType comes from the URL, so only honor the plans we explicitly support upgrading to.
     const rawUpgradePlanType = route.params?.upgradePlanType;
     const upgradePlanType = rawUpgradePlanType === CONST.POLICY.TYPE.TEAM || rawUpgradePlanType === CONST.POLICY.TYPE.CORPORATE ? rawUpgradePlanType : undefined;
     const [upgradingFromSubmit, setUpgradingFromSubmit] = useState<boolean | undefined>(undefined);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- snapshot is workspace-scoped; clear when route policyID changes
-        setUpgradingFromSubmit(undefined);
-    }, [policyID]);
+        if (upgradingFromSubmitLatchPolicyIDRef.current !== policyID) {
+            upgradingFromSubmitLatchPolicyIDRef.current = policyID;
+            setUpgradingFromSubmit(undefined);
+        }
 
-    useEffect(() => {
         if (!policy?.type) {
             return;
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- latch once when policy loads; functional update preserves sticky value across upgrades
-        setUpgradingFromSubmit((previous) => (previous !== undefined ? previous : canAccessSubmitWorkspaceFeatures));
-    }, [policy?.type, policyID, canAccessSubmitWorkspaceFeatures]);
+
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- latch submit-plan snapshot once when policy loads; sticky across upgrade
+        setUpgradingFromSubmit((previous) => (previous !== undefined ? previous : isUpgradingFromSubmitPolicy));
+    }, [policyID, policy?.type, isUpgradingFromSubmitPolicy]);
 
     const feature = featureNameAlias
         ? Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
@@ -107,6 +124,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const isUpgraded = !!policy?.type && upgradingFromSubmit !== undefined && (isControlPolicy(policy) || !!(upgradingFromSubmit && isPaidGroupPolicy(policy)));
     const {translate} = useLocalize();
     const {accountID, email = ''} = useCurrentUserPersonalDetails();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const [priorFirstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [priorLastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
 
@@ -114,15 +132,17 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: ownerPoliciesSelectorWithAccountID});
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
-    const canPerformUpgrade = canModifyPlan(ownerPolicies, policy) || canAccessSubmitWorkspaceFeatures;
+    const canPerformUpgrade = canModifyPlan(ownerPolicies, policy) || isUpgradingFromSubmitPolicy;
     const policyData = usePolicyData(policyID);
     const policyDataRef = useRef(policyData);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     useEffect(() => {
         policyDataRef.current = policyData;
     });
 
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
+    const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
     const categoryId = route.params?.categoryId;
 
     const defaultApprover = getDefaultApprover(policy);
@@ -156,9 +176,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     }
                 }
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID)));
-                return;
+                return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
+                // The Rules backTo can carry a tab, and comparing params would replace the mounted route instead of popping.
+                return Navigation.goBack(route.params.backTo ?? ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID), {compareParams: false});
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id:
@@ -170,14 +191,24 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
     }, [feature, policyID, route.params?.backTo, route.params?.featureName, featureNameAlias]);
 
+    const afterUpgradeAcknowledged = () => {
+        if (feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id && policyID) {
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path, route.params.backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
+                forceReplace: true,
+            });
+            return;
+        }
+        goBack();
+    };
+
     const onUpgradeToCorporate = () => {
         if (!canPerformUpgrade || !policy) {
             return;
         }
 
-        if (canAccessSubmitWorkspaceFeatures) {
+        if (isUpgradingFromSubmitPolicy) {
             const targetType = upgradePlanType ?? (feature && 'requiredPlan' in feature ? feature.requiredPlan : undefined) ?? CONST.POLICY.TYPE.TEAM;
-            upgradeSubmit(policy, targetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial);
+            upgradeSubmit(policy, targetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial, reportID);
             return;
         }
 
@@ -193,7 +224,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
         if (!feature) {
             if (featureNameAlias === CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias) {
-                setPolicyPreventMemberCreatedTitle(policyID, true, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]);
+                setPolicyPreventMemberCreatedTitle(policyID, true, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE], getReviewWorkspaceSettingsTaskCompletion());
             }
             return;
         }
@@ -236,7 +267,18 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 }
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
-                enablePolicyRules(policy, true, false, policyDataRef.current);
+                // Re-enabling would re-run the sidebar's "just enabled" highlight on a row that already shows.
+                if (!policy?.areRulesEnabled) {
+                    enablePolicyRules(policy, true, false, policyDataRef.current);
+                }
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id:
+                if (distanceRateCustomUnit) {
+                    setWorkspaceDistanceAutoUpdate(policyID, distanceRateCustomUnit, true, governmentMileageRates ?? [], policy?.outputCurrency);
+                }
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.publicReceiptVisibility.id:
+                setPolicyReceiptVisibilityPublic(policyID, true, policy?.isReceiptVisibilityPublic);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id:
@@ -250,14 +292,18 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id:
-                setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email);
+                setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email, isTrackIntentUser);
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.id:
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id:
                 enableExpensifyCard(policyID, true);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.payments.id: {
                 let newReimbursementChoice;
-                if (!!policy?.achAccount && !isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
+                const hasConnectedBank =
+                    policy?.achAccount?.bankAccountID && (policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN || policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.LOCKED);
+                if (!hasConnectedBank || !isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
                     newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
                 } else {
                     newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
@@ -279,6 +325,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
             }
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.id:
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.intuitEnterpriseSuite.id:
                 enablePolicyConnections(policyID, true, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.id:
@@ -297,6 +344,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         policy,
         route.params.featureName,
         perDiemCustomUnit?.customUnitID,
+        distanceRateCustomUnit,
+        governmentMileageRates,
         defaultApprover,
         accountID,
         email,
@@ -304,37 +353,19 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         qboConfig?.syncCustomers,
         qboConfig?.syncLocations,
         categoryId,
+        getReviewWorkspaceSettingsTaskCompletion,
+        isTrackIntentUser,
     ]);
 
-    const confirmUpgradeOnBlurRef = useRef({isUpgraded, canPerformUpgrade, upgradingFromSubmit, featureID: feature?.id, confirmUpgrade});
-
-    useEffect(() => {
-        confirmUpgradeOnBlurRef.current = {isUpgraded, canPerformUpgrade, upgradingFromSubmit, featureID: feature?.id, confirmUpgrade};
+    useWorkspaceUpgradeConfirmation({
+        policyID,
+        isUpgraded,
+        canPerformUpgrade,
+        upgradingFromSubmit,
+        featureID: feature?.id,
+        isPendingUpgrade: policy?.isPendingUpgrade,
+        confirmUpgrade,
     });
-
-    useFocusEffect(
-        useCallback(() => {
-            return () => {
-                const {
-                    isUpgraded: wasUpgraded,
-                    canPerformUpgrade: couldPerformUpgrade,
-                    upgradingFromSubmit: wasUpgradingFromSubmit,
-                    featureID,
-                    confirmUpgrade: confirmUpgradeOnBlur,
-                } = confirmUpgradeOnBlurRef.current;
-                if (!wasUpgraded || !couldPerformUpgrade) {
-                    return;
-                }
-
-                // UpgradeSubmit enables Collect-tier features on the backend; skip the redundant client-side enable.
-                if (wasUpgradingFromSubmit && featureID && SUBMIT_FEATURE_IDS.has(featureID)) {
-                    return;
-                }
-
-                confirmUpgradeOnBlur();
-            };
-        }, []),
-    );
 
     // Editors can view the intro but only admins can upgrade, so we separate
     // access (canEditWorkspaceSettings) from the upgrade action (canPerformUpgrade).
@@ -362,7 +393,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {!!policy && isUpgraded && (
                     <UpgradeConfirmation
-                        afterUpgradeAcknowledged={goBack}
+                        afterUpgradeAcknowledged={afterUpgradeAcknowledged}
                         policyName={policy.name}
                         planName={getUserFriendlyWorkspaceType(policy.type, translate)}
                     />

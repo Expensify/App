@@ -1,8 +1,12 @@
-import React from 'react';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
+
 import CONST from '@src/CONST';
-import ListSelectionButton from './ListSelectionButton';
+
+import React from 'react';
+
 import type {ListSelectionButtonProps} from './ListSelectionButton';
+
+import ListSelectionButton from './ListSelectionButton';
 
 /**
  * A square checkbox indicator for use in selection list rows.
@@ -16,6 +20,7 @@ function ListCheckbox<TItem extends ListItem>({
     style,
     containerStyle,
     shouldStopMouseDownPropagation,
+    shouldUseOptimisticSelection,
     testID,
 }: ListSelectionButtonProps<TItem>) {
     return (
@@ -28,6 +33,7 @@ function ListCheckbox<TItem extends ListItem>({
             style={style}
             containerStyle={containerStyle}
             shouldStopMouseDownPropagation={shouldStopMouseDownPropagation}
+            shouldUseOptimisticSelection={shouldUseOptimisticSelection}
             testID={testID}
         />
     );

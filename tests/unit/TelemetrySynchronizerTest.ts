@@ -1,10 +1,14 @@
-import * as Sentry from '@sentry/react-native';
-import Onyx from 'react-native-onyx';
 import {getActivePolicies} from '@libs/PolicyUtils';
-import '@libs/telemetry/TelemetrySynchronizer';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import '@libs/telemetry/TelemetrySynchronizer';
+
 import type {Policy, Session, TryNewDot} from '@src/types/onyx';
+
+import * as Sentry from '@sentry/react-native';
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -55,7 +59,7 @@ describe('TelemetrySynchronizer', () => {
 
         beforeEach(() => {
             jest.clearAllMocks();
-            (getActivePolicies as jest.Mock).mockReturnValue(mockActivePolicies);
+            jest.mocked(getActivePolicies).mockReturnValue(mockActivePolicies);
         });
 
         it('should call Sentry.setTag and Sentry.setContext when all required data is available', async () => {
@@ -90,9 +94,9 @@ describe('TelemetrySynchronizer', () => {
         });
 
         it('should not call Sentry methods when session.email is missing', async () => {
-            const sessionWithoutEmail: Session = {
+            const sessionWithoutEmail = {
                 accountID: 1,
-            } as Session;
+            };
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: sessionWithoutEmail,
@@ -123,7 +127,7 @@ describe('TelemetrySynchronizer', () => {
 
         it('should correctly map active policies using getActivePolicies', async () => {
             const customActivePolicies = [createRandomPolicy(999)];
-            (getActivePolicies as jest.Mock).mockReturnValue(customActivePolicies);
+            jest.mocked(getActivePolicies).mockReturnValue(customActivePolicies);
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: mockSession,
@@ -215,7 +219,7 @@ describe('TelemetrySynchronizer', () => {
                 const mockPolicies: Record<string, Policy> = {
                     [`${ONYXKEYS.COLLECTION.POLICY}123`]: createRandomPolicy(123),
                 };
-                (getActivePolicies as jest.Mock).mockReturnValue([mockPolicies[`${ONYXKEYS.COLLECTION.POLICY}123`]]);
+                jest.mocked(getActivePolicies).mockReturnValue([mockPolicies[`${ONYXKEYS.COLLECTION.POLICY}123`]]);
 
                 await Onyx.multiSet({
                     [ONYXKEYS.SESSION]: mockSession,
@@ -240,7 +244,7 @@ describe('TelemetrySynchronizer', () => {
                 const mockPolicies: Record<string, Policy> = {
                     [`${ONYXKEYS.COLLECTION.POLICY}123`]: createRandomPolicy(123),
                 };
-                (getActivePolicies as jest.Mock).mockReturnValue([mockPolicies[`${ONYXKEYS.COLLECTION.POLICY}123`]]);
+                jest.mocked(getActivePolicies).mockReturnValue([mockPolicies[`${ONYXKEYS.COLLECTION.POLICY}123`]]);
 
                 await Onyx.multiSet({
                     [ONYXKEYS.SESSION]: mockSession,
@@ -268,7 +272,7 @@ describe('TelemetrySynchronizer', () => {
                 const mockPolicies: Record<string, Policy> = {
                     [`${ONYXKEYS.COLLECTION.POLICY}123`]: createRandomPolicy(123),
                 };
-                (getActivePolicies as jest.Mock).mockReturnValue([mockPolicies[`${ONYXKEYS.COLLECTION.POLICY}123`]]);
+                jest.mocked(getActivePolicies).mockReturnValue([mockPolicies[`${ONYXKEYS.COLLECTION.POLICY}123`]]);
 
                 await Onyx.multiSet({
                     [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: 'policy123',
@@ -286,9 +290,9 @@ describe('TelemetrySynchronizer', () => {
             });
 
             it('should not call sendPoliciesContext when session.email is missing', async () => {
-                const sessionWithoutEmail: Session = {
+                const sessionWithoutEmail = {
                     accountID: 1,
-                } as Session;
+                };
                 const mockPolicies: Record<string, Policy> = {
                     [`${ONYXKEYS.COLLECTION.POLICY}123`]: createRandomPolicy(123),
                 };
@@ -338,7 +342,7 @@ describe('TelemetrySynchronizer', () => {
                 const mockPolicies: Record<string, Policy> = {
                     [`${ONYXKEYS.COLLECTION.POLICY}123`]: createRandomPolicy(123),
                 };
-                (getActivePolicies as jest.Mock).mockReturnValue([mockPolicies[`${ONYXKEYS.COLLECTION.POLICY}123`]]);
+                jest.mocked(getActivePolicies).mockReturnValue([mockPolicies[`${ONYXKEYS.COLLECTION.POLICY}123`]]);
 
                 await Onyx.multiSet({
                     [ONYXKEYS.SESSION]: mockSession,
@@ -406,7 +410,7 @@ describe('TelemetrySynchronizer', () => {
                 [`${ONYXKEYS.COLLECTION.POLICY}101`]: createRandomPolicy(101),
             };
             const mockActivePolicies = [mockPolicies[`${ONYXKEYS.COLLECTION.POLICY}789`]];
-            (getActivePolicies as jest.Mock).mockReturnValue(mockActivePolicies);
+            jest.mocked(getActivePolicies).mockReturnValue(mockActivePolicies);
 
             await Onyx.set(ONYXKEYS.SESSION, mockSession);
             await waitForBatchedUpdatesWithAct();
@@ -433,7 +437,7 @@ describe('TelemetrySynchronizer', () => {
             const mockPolicies: Record<string, Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}123`]: createRandomPolicy(123),
             };
-            (getActivePolicies as jest.Mock).mockReturnValue([mockPolicies[`${ONYXKEYS.COLLECTION.POLICY}123`]]);
+            jest.mocked(getActivePolicies).mockReturnValue([mockPolicies[`${ONYXKEYS.COLLECTION.POLICY}123`]]);
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: mockSession,
@@ -444,13 +448,10 @@ describe('TelemetrySynchronizer', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAGS.ACTIVE_POLICY, '123');
-            expect(Sentry.setContext).toHaveBeenCalledWith(
-                CONST.TELEMETRY.CONTEXT_POLICIES,
-                expect.objectContaining({
-                    activePolicyID: '123',
-                    activePolicies: expect.any(Array) as unknown as string[],
-                }),
-            );
+            const contextCall = jest.mocked(Sentry.setContext).mock.calls.at(-1);
+            expect(contextCall?.[0]).toBe(CONST.TELEMETRY.CONTEXT_POLICIES);
+            expect(contextCall?.[1]).toEqual(expect.objectContaining({activePolicyID: '123'}));
+            expect(contextCall?.[1]?.activePolicies).toEqual(expect.any(Array));
         });
     });
 });

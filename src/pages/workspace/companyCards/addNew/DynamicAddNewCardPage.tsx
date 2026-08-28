@@ -1,28 +1,35 @@
-import {isActingAsDelegateSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {navigateToConciergeChat} from '@libs/actions/Report';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import Navigation from '@navigation/Navigation';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+
 import {clearAddNewCardFlow, openPolicyAddCardFeedPage} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {isActingAsDelegateSelector} from '@selectors/Account';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 import AmexCustomFeed from './AmexCustomFeed';
 import CardInstructionsStep from './CardInstructionsStep';
 import CardNameStep from './CardNameStep';
@@ -75,13 +82,7 @@ function DynamicAddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     }, [policyID]);
 
     if (isAddCardFeedLoading || isAllFeedsResultLoading || isBlockedToAddNewFeeds) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'AddNewCardPage',
-            isAddCardFeedLoading,
-            isAllFeedsResultLoading,
-            isBlockedToAddNewFeeds,
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     if (isActingAsDelegate) {

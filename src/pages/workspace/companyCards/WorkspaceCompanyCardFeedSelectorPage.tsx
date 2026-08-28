@@ -1,16 +1,13 @@
-import {isUserValidatedSelector} from '@selectors/Account';
-import {Str} from 'expensify-common';
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
+
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import type {CombinedCardFeed, CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
@@ -27,6 +24,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLinkedPolicyName} from '@libs/CardFeedUtils';
 import {getCardFeedIcon, getCardFeedWithDomainID, getCustomOrFormattedFeedName, getPlaidInstitutionIconUrl} from '@libs/CardUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -35,11 +33,16 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import variables from '@styles/variables';
+
 import {updateSelectedFeed} from '@userActions/Card';
 import {clearAddNewCardFlow, linkCardFeedToPolicy} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,6 +50,11 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+import {isUserValidatedSelector} from '@selectors/Account';
+import {Str} from 'expensify-common';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type WorkspaceCompanyCardFeedSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED>;
 
@@ -147,7 +155,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         if (!feed.fundID) {
             return;
         }
-        const feedValue = getCardFeedWithDomainID(feed.feed, feed.fundID) as CompanyCardFeedWithDomainID;
+        const feedValue = getCardFeedWithDomainID(feed.feed, feed.fundID);
         linkCardFeedToPolicy(feed.fundID, policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.COMPANY_CARD, feed?.country, feed.feed)
             .then(() => {
                 updateSelectedFeed(feedValue, policyID);
@@ -167,7 +175,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
 
     const otherMenuItemFeeds = canWriteCompanyCards ? (
         <View style={[styles.w100, styles.flexColumn]}>
-            <MenuItem
+            <MenuItemAction
                 title={translate('workspace.companyCards.addCards')}
                 icon={icons.Plus}
                 onPress={onAddCardsPress}

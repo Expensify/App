@@ -1,10 +1,8 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useFilteredOptions from '@hooks/useFilteredOptions';
@@ -14,6 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSortedActions from '@hooks/useSortedActions';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getOptimisticChatReport, saveReportDraft, searchInServer} from '@libs/actions/Report';
 import {clearUnknownUserDetails, saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,9 +20,14 @@ import {combineOrderingOfReportsAndPersonalDetails, getHeaderMessage, getSearchO
 import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 const defaultListOptions = {
     userToInvite: null,
@@ -35,7 +39,7 @@ const defaultListOptions = {
 
 function ShareTab() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -56,8 +60,8 @@ function ShareTab() {
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const {options: listOptions, isLoading} = useFilteredOptions({
         enabled: didScreenTransitionEnd,
-        betas: betas ?? [],
         isSearching: !!debouncedTextInputValue.trim(),
+        includeP2P: true,
     });
     const areOptionsInitialized = !isLoading;
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
@@ -67,6 +71,7 @@ function ShareTab() {
 
     const searchOptions = areOptionsInitialized
         ? getSearchOptions({
+              dateFnsLocale,
               options: listOptions ?? {reports: [], personalDetails: []},
               draftComments,
               betas: betas ?? [],
@@ -85,6 +90,7 @@ function ShareTab() {
               sortedActions,
               conciergeReportID,
               isTrackIntentUser,
+              translate,
           }).options
         : defaultListOptions;
 

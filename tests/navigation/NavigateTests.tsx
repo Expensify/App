@@ -1,14 +1,19 @@
 import {act, render} from '@testing-library/react-native';
-import React from 'react';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import SidePanelActions from '@libs/actions/SidePanel';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import React from 'react';
+
 import TestNavigationContainer from '../utils/TestNavigationContainer';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -17,8 +22,8 @@ jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 
 jest.mock('@pages/inbox/sidebar/NavigationTabBarAvatar');
 
-const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
-const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
+const mockedGetIsNarrowLayout = jest.mocked(getIsNarrowLayout);
+const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
 describe('Navigate', () => {
     beforeEach(() => {

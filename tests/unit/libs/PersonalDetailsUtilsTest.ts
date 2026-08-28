@@ -1,23 +1,25 @@
-import {Str} from 'expensify-common';
-import Onyx from 'react-native-onyx';
 import {
     arePersonalDetailsMissing,
     areTravelPersonalDetailsMissing,
     createDisplayName,
-    createPersonalDetailsLookupByAccountID,
     getAccountIDsByLogins,
     getDisplayNameOrYou,
     getEffectiveDisplayName,
+    getNewAccountIDsAndLogins,
     getPersonalDetailByEmail,
     getPersonalDetailsListByIDs,
     getPersonalDetailsOnyxDataForOptimisticUsers,
-    newGetPersonalDetailsByIDs,
+    getPersonalDetailsByIDs,
     temporaryGetDisplayNameOrDefault,
 } from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {formatPhoneNumber, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -67,7 +69,12 @@ describe('PersonalDetailsUtils', () => {
 
         test('should return displayName when login is empty or null but displayName exists', () => {
             const personalDetail1: PersonalDetails = {accountID: 123, displayName: 'John Doe', login: ''};
-            const personalDetail2: PersonalDetails = {accountID: 456, displayName: 'Jane Smith', login: null as unknown as string}; // Simulate null login
+            const personalDetail2: PersonalDetails = {
+                accountID: 456,
+                displayName: 'Jane Smith',
+                // @ts-expect-error -- deliberately null login exercises the display-name fallback.
+                login: null,
+            };
 
             let result = getEffectiveDisplayName(formatPhoneNumber, personalDetail1);
             expect(result).toBe('John Doe');
@@ -163,7 +170,7 @@ describe('PersonalDetailsUtils', () => {
                             // eslint-disable-next-line @typescript-eslint/naming-convention
                             '2': {
                                 accountID: 2,
-                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_18.png',
+                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/generated/letter/v1/ice700/T.png',
                                 displayName: 'test2@test.com',
                                 isOptimisticPersonalDetail: true,
                                 login: 'test2@test.com',
@@ -323,7 +330,7 @@ describe('PersonalDetailsUtils', () => {
     });
 
     describe('arePersonalDetailsMissing', () => {
-        it.each([
+        it.each<[string, Parameters<typeof arePersonalDetailsMissing>[0], boolean]>([
             [
                 'all required personal details are present',
                 {
@@ -385,11 +392,11 @@ describe('PersonalDetailsUtils', () => {
                 },
                 false,
             ],
-        ] as const)('should return false when %s', (_description, details, expected) => {
-            expect(arePersonalDetailsMissing(details as unknown as PrivatePersonalDetails)).toBe(expected);
+        ])('should return false when %s', (_description, details, expected) => {
+            expect(arePersonalDetailsMissing(details)).toBe(expected);
         });
 
-        it.each([
+        it.each<[string, Parameters<typeof arePersonalDetailsMissing>[0]]>([
             [
                 'legalFirstName is missing',
                 {
@@ -487,15 +494,19 @@ describe('PersonalDetailsUtils', () => {
             ],
             ['multiple required fields are missing', {legalFirstName: 'John'}],
             ['all fields are missing', {}],
-            ['null', null],
             ['undefined', undefined],
-        ] as const)('should return true when %s', (_description, details) => {
-            expect(arePersonalDetailsMissing(details as PrivatePersonalDetails)).toBe(true);
+        ])('should return true when %s', (_description, details) => {
+            expect(arePersonalDetailsMissing(details)).toBe(true);
+        });
+
+        it('should return true for null runtime input', () => {
+            // @ts-expect-error -- This test preserves runtime defensive behavior for null outside the static Onyx entry contract.
+            expect(arePersonalDetailsMissing(null)).toBe(true);
         });
     });
 
     describe('areTravelPersonalDetailsMissing', () => {
-        it.each([
+        it.each<[string, Parameters<typeof areTravelPersonalDetailsMissing>[0], boolean]>([
             [
                 'all required travel personal details are present',
                 {
@@ -535,10 +546,14 @@ describe('PersonalDetailsUtils', () => {
                 true,
             ],
             ['all fields are missing', {}, true],
-            ['null', null, true],
             ['undefined', undefined, true],
-        ] as const)('should return %s when %s', (_description, details, expected) => {
-            expect(areTravelPersonalDetailsMissing(details as PrivatePersonalDetails)).toBe(expected);
+        ])('should return %s when %s', (_description, details, expected) => {
+            expect(areTravelPersonalDetailsMissing(details)).toBe(expected);
+        });
+
+        it('should return true for null runtime input', () => {
+            // @ts-expect-error -- This test preserves runtime defensive behavior for null outside the static Onyx entry contract.
+            expect(areTravelPersonalDetailsMissing(null)).toBe(true);
         });
     });
 
@@ -615,6 +630,80 @@ describe('PersonalDetailsUtils', () => {
             const result = getAccountIDsByLogins([]);
             expect(result).toEqual([]);
         });
+
+        it('should prefer the live account when a closed merged-away account shares the same login, regardless of order', async () => {
+            // A closed merged-away account is served with the MERGED_ prefix stripped from its login,
+            // so it collides with the live account's login.
+            const closedHasHigherAccountID: PersonalDetailsList = {
+                [accountID1]: {
+                    accountID: accountID1,
+                    login: 'user1@example.com',
+                },
+                [accountID2]: {
+                    accountID: accountID2,
+                    login: 'user1@example.com',
+                    isClosed: true,
+                },
+            };
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, closedHasHigherAccountID);
+            await waitForBatchedUpdates();
+
+            expect(getAccountIDsByLogins(['user1@example.com'])).toEqual([accountID1]);
+
+            const closedHasLowerAccountID: PersonalDetailsList = {
+                [accountID1]: {
+                    accountID: accountID1,
+                    login: 'user1@example.com',
+                    isClosed: true,
+                },
+                [accountID2]: {
+                    accountID: accountID2,
+                    login: 'user1@example.com',
+                },
+            };
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, closedHasLowerAccountID);
+            await waitForBatchedUpdates();
+
+            expect(getAccountIDsByLogins(['user1@example.com'])).toEqual([accountID2]);
+        });
+
+        it('should prefer the real account when an optimistic personal detail shares the same login, regardless of order', async () => {
+            const optimisticHasHigherAccountID: PersonalDetailsList = {
+                [accountID1]: {
+                    accountID: accountID1,
+                    login: 'user1@example.com',
+                },
+                [accountID2]: {
+                    accountID: accountID2,
+                    login: 'user1@example.com',
+                    isOptimisticPersonalDetail: true,
+                },
+            };
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, optimisticHasHigherAccountID);
+            await waitForBatchedUpdates();
+
+            expect(getAccountIDsByLogins(['user1@example.com'])).toEqual([accountID1]);
+
+            const optimisticHasLowerAccountID: PersonalDetailsList = {
+                [accountID1]: {
+                    accountID: accountID1,
+                    login: 'user1@example.com',
+                    isOptimisticPersonalDetail: true,
+                },
+                [accountID2]: {
+                    accountID: accountID2,
+                    login: 'user1@example.com',
+                },
+            };
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, optimisticHasLowerAccountID);
+            await waitForBatchedUpdates();
+
+            expect(getAccountIDsByLogins(['user1@example.com'])).toEqual([accountID2]);
+        });
     });
 
     describe('getPersonalDetailByEmail', () => {
@@ -682,52 +771,6 @@ describe('PersonalDetailsUtils', () => {
         });
     });
 
-    describe('createPersonalDetailsLookupByAccountID', () => {
-        it('should create a lookup map from an array of personal details', () => {
-            const details: PersonalDetails[] = [
-                {accountID: 1, login: 'user1@example.com', displayName: 'User One'},
-                {accountID: 2, login: 'user2@example.com', displayName: 'User Two'},
-                {accountID: 3, login: 'user3@example.com', displayName: 'User Three'},
-            ];
-
-            const result = createPersonalDetailsLookupByAccountID(details);
-
-            expect(result[1]).toEqual({accountID: 1, login: 'user1@example.com', displayName: 'User One'});
-            expect(result[2]).toEqual({accountID: 2, login: 'user2@example.com', displayName: 'User Two'});
-            expect(result[3]).toEqual({accountID: 3, login: 'user3@example.com', displayName: 'User Three'});
-        });
-
-        it('should return an empty object for an empty array', () => {
-            const result = createPersonalDetailsLookupByAccountID([]);
-            expect(result).toEqual({});
-        });
-
-        it('should allow O(1) lookup by accountID', () => {
-            const details: PersonalDetails[] = [{accountID: 100, login: 'test@example.com', displayName: 'Test User'}];
-
-            const map = createPersonalDetailsLookupByAccountID(details);
-
-            // Direct access should work
-            expect(map[100]).toBeDefined();
-            expect(map[100].displayName).toBe('Test User');
-
-            // Non-existent key should be undefined
-            expect(map[999]).toBeUndefined();
-        });
-
-        it('should handle duplicate accountIDs by keeping the last occurrence', () => {
-            const details: PersonalDetails[] = [
-                {accountID: 1, login: 'first@example.com', displayName: 'First'},
-                {accountID: 1, login: 'second@example.com', displayName: 'Second'},
-            ];
-
-            const result = createPersonalDetailsLookupByAccountID(details);
-
-            // The second entry should overwrite the first
-            expect(result[1]).toEqual({accountID: 1, login: 'second@example.com', displayName: 'Second'});
-        });
-    });
-
     describe('temporaryGetDisplayNameOrDefault', () => {
         const translate = translateLocal;
 
@@ -736,6 +779,7 @@ describe('PersonalDetailsUtils', () => {
                 temporaryGetDisplayNameOrDefault({
                     passedPersonalDetails: {accountID: 1, displayName: 'Ada Lovelace', login: 'ada@example.com'},
                     translate,
+                    formatPhoneNumber,
                 }),
             ).toBe('Ada Lovelace');
         });
@@ -749,6 +793,7 @@ describe('PersonalDetailsUtils', () => {
                         login: 'user@example.com',
                     },
                     translate,
+                    formatPhoneNumber,
                 }),
             ).toBe('visible.name@example.com');
         });
@@ -763,8 +808,9 @@ describe('PersonalDetailsUtils', () => {
                         displayName: smsLogin,
                     },
                     translate,
+                    formatPhoneNumber,
                 }),
-            ).toBe(Str.removeSMSDomain(smsLogin));
+            ).toBe(formatPhoneNumber(smsLogin));
         });
 
         test('should append current-user postfix using localized "you"', () => {
@@ -773,6 +819,7 @@ describe('PersonalDetailsUtils', () => {
                     passedPersonalDetails: {accountID: 1, displayName: 'Sam', login: 'sam@example.com'},
                     shouldAddCurrentUserPostfix: true,
                     translate,
+                    formatPhoneNumber,
                 }),
             ).toBe('Sam (you)');
         });
@@ -784,6 +831,7 @@ describe('PersonalDetailsUtils', () => {
                     shouldAddCurrentUserPostfix: true,
                     youAfterTranslation: 'anotherYou',
                     translate,
+                    formatPhoneNumber,
                 }),
             ).toBe('Sam (anotherYou)');
         });
@@ -797,6 +845,7 @@ describe('PersonalDetailsUtils', () => {
                         login: CONST.EMAIL.CONCIERGE,
                     },
                     translate,
+                    formatPhoneNumber,
                 }),
             ).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
@@ -807,6 +856,7 @@ describe('PersonalDetailsUtils', () => {
                     passedPersonalDetails: {accountID: 1, login: 'only@example.com'},
                     defaultValue: 'Custom default',
                     translate,
+                    formatPhoneNumber,
                 }),
             ).toBe('Custom default');
         });
@@ -816,6 +866,7 @@ describe('PersonalDetailsUtils', () => {
                 temporaryGetDisplayNameOrDefault({
                     passedPersonalDetails: {accountID: 1, login: 'fallback@example.com'},
                     translate,
+                    formatPhoneNumber,
                 }),
             ).toBe('fallback@example.com');
         });
@@ -825,6 +876,7 @@ describe('PersonalDetailsUtils', () => {
                 temporaryGetDisplayNameOrDefault({
                     passedPersonalDetails: {accountID: 1},
                     translate,
+                    formatPhoneNumber,
                 }),
             ).toBe('Hidden');
         });
@@ -835,12 +887,13 @@ describe('PersonalDetailsUtils', () => {
                     passedPersonalDetails: {accountID: 1},
                     shouldFallbackToHidden: false,
                     translate,
+                    formatPhoneNumber,
                 }),
             ).toBe('');
         });
     });
 
-    describe('newGetPersonalDetailsByIDs', () => {
+    describe('getPersonalDetailsByIDs', () => {
         const accountID1 = 1;
         const accountID2 = 2;
         const personalDetails: PersonalDetailsList = {
@@ -856,18 +909,23 @@ describe('PersonalDetailsUtils', () => {
             },
         };
 
+        it('should return an empty array if accountIDs is undefined', () => {
+            const result = getPersonalDetailsByIDs(undefined, personalDetails);
+            expect(result).toEqual([]);
+        });
+
         it('should return an empty array if accountIDs is empty', () => {
-            const result = newGetPersonalDetailsByIDs([], personalDetails);
+            const result = getPersonalDetailsByIDs([], personalDetails);
             expect(result).toEqual([]);
         });
 
         it('should return personal details for the given accountIDs', () => {
-            const result = newGetPersonalDetailsByIDs([accountID1, accountID2], personalDetails);
+            const result = getPersonalDetailsByIDs([accountID1, accountID2], personalDetails);
             expect(result).toEqual([personalDetails[accountID1], personalDetails[accountID2]]);
         });
 
         it('should filter out accountIDs that do not have corresponding personal details', () => {
-            const result = newGetPersonalDetailsByIDs([accountID1, 999], personalDetails);
+            const result = getPersonalDetailsByIDs([accountID1, 999], personalDetails);
             expect(result).toEqual([personalDetails[accountID1]]);
         });
     });
@@ -888,6 +946,11 @@ describe('PersonalDetailsUtils', () => {
             },
         };
 
+        it('should return an empty object if accountIDs is undefined', () => {
+            const result = getPersonalDetailsListByIDs(undefined, personalDetails);
+            expect(result).toEqual({});
+        });
+
         it('should return an empty object if accountIDs is empty', () => {
             const result = getPersonalDetailsListByIDs([], personalDetails);
             expect(result).toEqual({});
@@ -906,6 +969,73 @@ describe('PersonalDetailsUtils', () => {
         it('should ignore undefined in accountIDs array', () => {
             const result = getPersonalDetailsListByIDs([accountID1, undefined], personalDetails);
             expect(result).toEqual({[accountID1]: personalDetails[accountID1]});
+        });
+    });
+
+    describe('getNewAccountIDsAndLogins', () => {
+        // Keys are dynamic emails/phone numbers, so build the record programmatically to satisfy the naming-convention lint rule.
+        const buildInvited = (entries: Array<[string, number]>): InvitedEmailsToAccountIDs => Object.fromEntries(entries);
+        const existingAccountID = 1;
+        const existingPersonalDetails: PersonalDetailsList = {
+            [existingAccountID]: {
+                accountID: existingAccountID,
+                login: 'existing@example.com',
+                displayName: 'Existing User',
+            },
+        };
+
+        test('should return empty arrays when invitedEmailsToAccountIDs is undefined', () => {
+            const result = getNewAccountIDsAndLogins(undefined, existingPersonalDetails);
+            expect(result).toEqual({newAccountIDs: [], newLogins: []});
+        });
+
+        test('should return empty arrays when invitedEmailsToAccountIDs is empty', () => {
+            const result = getNewAccountIDsAndLogins({}, existingPersonalDetails);
+            expect(result).toEqual({newAccountIDs: [], newLogins: []});
+        });
+
+        test('should return all users as new when personalDetailsList is undefined', () => {
+            const result = getNewAccountIDsAndLogins(
+                buildInvited([
+                    ['new1@example.com', 2],
+                    ['new2@example.com', 3],
+                ]),
+                undefined,
+            );
+            expect(result).toEqual({newAccountIDs: [2, 3], newLogins: ['new1@example.com', 'new2@example.com']});
+        });
+
+        test('should return all users as new when none exist in personalDetailsList', () => {
+            const result = getNewAccountIDsAndLogins(
+                buildInvited([
+                    ['new1@example.com', 2],
+                    ['new2@example.com', 3],
+                ]),
+                existingPersonalDetails,
+            );
+            expect(result).toEqual({newAccountIDs: [2, 3], newLogins: ['new1@example.com', 'new2@example.com']});
+        });
+
+        test('should filter out users that already exist in personalDetailsList', () => {
+            const result = getNewAccountIDsAndLogins(
+                buildInvited([
+                    ['existing@example.com', 1],
+                    ['new@example.com', 2],
+                ]),
+                existingPersonalDetails,
+            );
+            expect(result).toEqual({newAccountIDs: [2], newLogins: ['new@example.com']});
+        });
+
+        test('should append the SMS domain to new logins that are phone numbers', () => {
+            const result = getNewAccountIDsAndLogins(
+                buildInvited([
+                    ['+14185438090', 2],
+                    ['new@example.com', 3],
+                ]),
+                existingPersonalDetails,
+            );
+            expect(result).toEqual({newAccountIDs: [2, 3], newLogins: ['+14185438090@expensify.sms', 'new@example.com']});
         });
     });
 

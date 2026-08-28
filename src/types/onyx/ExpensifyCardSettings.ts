@@ -1,5 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Base settings that can appear at root level or nested under feed type */
@@ -25,7 +27,7 @@ type ExpensifyCardSettingsBase = {
     /** The bank account chosen for the card settlement */
     paymentBankAccountID?: number;
 
-    /** Whether the card program (e.g., Travel Invoicing) is enabled */
+    /** Whether the card program (e.g., Travel Billing) is enabled */
     isEnabled?: boolean;
 
     /** The previous bank account chosen for the card settlement, used for reverting failed updates */
@@ -70,7 +72,7 @@ type ExpensifyCardSettingsBase = {
     /** Credit limit for the card program */
     limit?: number;
 
-    /** Per-user monthly spend limit for travel invoicing cards (in cents) */
+    /** Per-user monthly spend limit for travel billing cards (in cents) */
     monthlySpendLimitPerUser?: number;
 
     /** Currency for the card program (e.g. USD, GBP, EUR) */
@@ -81,6 +83,15 @@ type ExpensifyCardSettingsBase = {
 
     /** Amount (in cents) of in-flight settlement that has been billed but not yet settled at the bank */
     pendingSettlementAmount?: number;
+
+    /** Amount (in cents) held on a sent Consolidated Travel Billing invoice that is awaiting payment by the customer */
+    pendingInvoiceAmount?: number;
+
+    /** Recipient of the travel settlement invoice; non-empty when the workspace pays by invoice instead of an ACH debit */
+    invoiceTo?: string;
+
+    /** Additional recipients who receive a copy of the travel settlement invoice */
+    shareWith?: string[];
 };
 
 /** Spend rule filter condition */
@@ -131,7 +142,7 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<
          *
          */
         GB?: NestedExpensifyCardSettings;
-        /** Nested Travel Invoicing settings from backend */
+        /** Nested Travel Billing settings from backend */
 
         /**
          *

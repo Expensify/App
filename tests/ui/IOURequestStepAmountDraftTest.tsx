@@ -3,18 +3,27 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+
 import IOURequestStepAmount from '@pages/iou/request/step/IOURequestStepAmount';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as TrackExpense from '../../src/libs/actions/IOU/TrackExpense';
 import cleanupAndNavigateAfterExpenseCreate from '../../src/libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -71,6 +80,7 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
         params: {},
     })),
     getState: jest.fn(() => ({})),
+    getRootState: jest.fn(() => ({routes: [], index: 0})),
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => {
@@ -91,6 +101,9 @@ jest.mock('@libs/Navigation/Navigation', () => {
         removeScreenByKey: jest.fn(),
         getActiveRouteWithoutParams: jest.fn(() => ''),
         isNavigationReady: jest.fn(() => Promise.resolve()),
+        getIsFullscreenPreInsertedUnderRHP: jest.fn(() => false),
+        removePreInsertedFullscreenIfNeeded: jest.fn(),
+        preInsertFullscreenUnderRHP: jest.fn(),
     };
 });
 
@@ -109,11 +122,13 @@ jest.mock('@react-navigation/native', () => {
         getState: jest.fn(() => ({})),
     };
     return {
+        ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
         createNavigationContainerRef: jest.fn(() => mockRef),
         useIsFocused: () => true,
         useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
         useFocusEffect: jest.fn(),
         usePreventRemove: jest.fn(),
+        useRoute: jest.fn(() => ({name: 'Money_Request_Step_Amount'})),
     };
 });
 
@@ -189,7 +204,7 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
                     <IOURequestStepAmount
                         // @ts-expect-error minimal route for test
                         route={createRouteParams()}
-                        navigation={{} as never}
+                        navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT>['navigation']>({})}
                     />
                 </CurrentUserPersonalDetailsProvider>
             </OnyxListItemProvider>,
@@ -234,7 +249,7 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
                     <IOURequestStepAmount
                         // @ts-expect-error minimal route for test
                         route={createRouteParams()}
-                        navigation={{} as never}
+                        navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT>['navigation']>({})}
                     />
                 </CurrentUserPersonalDetailsProvider>
             </OnyxListItemProvider>,

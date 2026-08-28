@@ -1,11 +1,14 @@
-import React from 'react';
-import {View} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
-import Button from './Button';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import Button from './ButtonComposed';
 import ImageSVG from './ImageSVG';
 import Modal from './Modal';
 import Text from './Text';
@@ -34,6 +37,7 @@ function ProactiveAppReviewModal({isVisible, onPositive, onNegative, onSkip}: Pr
         <Modal
             onClose={onSkip}
             isVisible={isVisible}
+            shouldTreatModalAsCovering
             type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
         >
@@ -56,19 +60,21 @@ function ProactiveAppReviewModal({isVisible, onPositive, onNegative, onSkip}: Pr
 
                 {/* Buttons */}
                 <Button
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.mt5]}
                     onPress={onPositive}
-                    pressOnEnter
-                    text={translate('proactiveAppReview.positiveButton')}
-                    large
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('proactiveAppReview.positiveButton')}</Button.Text>
+                </Button>
                 <Button
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.mt3, styles.noSelect]}
                     onPress={onNegative}
-                    text={translate('proactiveAppReview.negativeButton')}
-                    large
-                />
+                >
+                    <Button.Text>{translate('proactiveAppReview.negativeButton')}</Button.Text>
+                </Button>
             </View>
         </Modal>
     );

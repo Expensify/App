@@ -1,21 +1,29 @@
-import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
+import React from 'react';
+
 function QuickbooksTaxesPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -25,6 +33,7 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
             displayName="QuickbooksTaxesPage"
             headerTitle="workspace.accounting.taxes"
             title="workspace.qbo.taxesDescription"
+            titleAlreadyTranslated={translate('workspace.qbo.taxesDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -41,7 +50,9 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                 errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_TAX)}
                 onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_TAX)}
             />
-            {!qboConfig?.syncTax && isJournalExportEntity && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.taxesJournalEntrySwitchNote')}</Text>}
+            {!qboConfig?.syncTax && isJournalExportEntity && (
+                <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.taxesJournalEntrySwitchNote', integrationName)}</Text>
+            )}
         </ConnectionLayout>
     );
 }

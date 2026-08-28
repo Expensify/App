@@ -3,6 +3,7 @@
    Use `threshold` option with one of the rankings defined below to control the strictness of the match.
 */
 import type {ValueOf} from 'type-fest';
+
 import StringUtils from './StringUtils';
 
 const MATCH_RANK = {
@@ -24,8 +25,8 @@ type Ranking = ValueOf<typeof MATCH_RANK>;
  * @returns the ranking for how well stringToRank matches testString
  */
 function getMatchRanking(testStringParam: string, stringToRankParam: string, keepDiacritics = false): Ranking {
-    const testString = keepDiacritics ? testStringParam : StringUtils.normalizeAccents(testStringParam);
-    const stringToRank = keepDiacritics ? stringToRankParam : StringUtils.normalizeAccents(stringToRankParam);
+    const testString = keepDiacritics ? StringUtils.removeZeroWidthCharacters(testStringParam) : StringUtils.normalizeForMatch(testStringParam);
+    const stringToRank = keepDiacritics ? StringUtils.removeZeroWidthCharacters(stringToRankParam) : StringUtils.normalizeForMatch(stringToRankParam);
     // too long
     if (stringToRank.length > testString.length) {
         return MATCH_RANK.NO_MATCH;

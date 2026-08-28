@@ -1,9 +1,3 @@
-// NOTE: This component has a static twin in SearchPageNarrow/StaticSearchTypeMenu.tsx
-// used for fast perceived performance. If you change the UI here, verify the
-// static version still looks visually identical.
-import {useNavigation} from '@react-navigation/native';
-import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
 import type BaseModalProps from '@components/Modal/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PopoverMenu from '@components/PopoverMenu';
@@ -12,6 +6,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
+
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -22,14 +17,25 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useShareSavedSearch, {MENU_CLOSE_DELAY_MS} from '@hooks/useShareSavedSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTodoCounts from '@hooks/useTodoCounts';
+
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {getItemBadgeText, getOverflowMenu} from '@libs/SearchUIUtils';
+import {getItemBadgeText, getOverflowMenu, SAVED_SEARCH_FALLBACK_ICON_NAME, SAVED_SEARCH_ICON_NAMES, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {accountIDSelector} from '@src/selectors/Session';
-import todosReportCountsSelector from '@src/selectors/Todos';
+
+// NOTE: This component has a static twin in SearchPageNarrow/StaticSearchTypeMenu.tsx
+// used for fast perceived performance. If you change the UI here, verify the
+// static version still looks visually identical.
+import {useIsFocused, useNavigation} from '@react-navigation/native';
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import useSavedSearchIcons from './hooks/useSavedSearchIcons';
 import useSavedSearchTitles from './hooks/useSavedSearchTitles';
 
 type SearchTypeMenuNarrowProps = {
@@ -72,16 +78,21 @@ function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTa
 }
 
 function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps) {
-    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const navigation = useNavigation();
-    const {typeMenuSections, activeKey: activeTypeMenuKey} = useSearchTypeMenuSections({
-        hash: queryJSON?.hash,
-        similarSearchHash: queryJSON?.similarSearchHash,
-        sortBy: queryJSON?.sortBy,
-        sortOrder: queryJSON?.sortOrder,
-        type: queryJSON?.type,
-    });
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const styles = useThemeStyles();
+    const isFocused = useIsFocused();
+    const {typeMenuSections, activeKey: activeTypeMenuKey} = useSearchTypeMenuSections(
+        {
+            hash: queryJSON?.hash,
+            similarSearchHash: queryJSON?.similarSearchHash,
+            sortBy: queryJSON?.sortBy,
+            sortOrder: queryJSON?.sortOrder,
+            type: queryJSON?.type,
+        },
+        isFocused,
+    );
     const personalDetails = usePersonalDetails();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
@@ -90,9 +101,10 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [workspaceCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
+    const {counts: reportCounts} = useTodoCounts(isFocused);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const reportAttributes = useReportAttributes();
 
@@ -108,8 +120,10 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         policies: allPolicies,
         currentUserAccountID,
         translate,
+        formatPhoneNumber,
         feedKeysWithCards,
         reportAttributes,
+        bankAccountList,
         enabled: !!queryJSON,
     });
 
@@ -119,26 +133,10 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
     const {copiedHash, handleShare} = useShareSavedSearch();
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons([
-        'Receipt',
-        'MoneyBag',
-        'CreditCard',
-        'MoneyHourglass',
-        'CreditCardHourglass',
-        'Bank',
-        'User',
-        'Folder',
-        'Basket',
-        'CalendarSolid',
-        'Bookmark',
-        'Pencil',
-        'Trashcan',
-        'LinkCopy',
-        'Checkmark',
-        'Document',
-        'ThumbsUp',
-        'CheckCircle',
-    ]);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([...SEARCH_TYPE_MENU_ICON_NAMES, ...SAVED_SEARCH_ICON_NAMES, 'Trashcan', 'LinkCopy', 'Checkmark']);
+
+    // Resolve each saved search's icon once per collection change (see useSavedSearchIcons for why).
+    const savedSearchIconNames = useSavedSearchIcons(savedSearches);
 
     const queryMap = new Map<string, {query: string; name?: string}>();
     const tabItems: TabSelectorBaseItem[] = [];
@@ -170,13 +168,16 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
                   return {
                       key,
-                      icon: expensifyIcons.Bookmark,
+                      icon: expensifyIcons[savedSearchIconNames.get(item.query) ?? SAVED_SEARCH_FALLBACK_ICON_NAME],
                       title,
                       isDisabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                       pendingAction: item.pendingAction,
+                      // Saved-search tabs opt into the long-press / right-click menu (share / delete) via onLongTabPress.
+                      shouldEnableLongPress: true,
                   };
               })
               .filter((item) => item !== null)
+              .sort((a, b) => localeCompare(a?.title ?? '', b?.title ?? ''))
         : [];
 
     for (const section of typeMenuSections) {
@@ -192,6 +193,8 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                     icon: expensifyIcons[item.icon],
                     title,
                     badgeText,
+                    isBadgeCondensed: true,
+                    badgeStyles: styles.tabSelectorBadge,
                 });
                 queryMap.set(item.key, {query: item.searchQuery});
                 if (item.key === activeTypeMenuKey) {

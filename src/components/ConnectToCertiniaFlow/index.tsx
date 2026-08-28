@@ -1,17 +1,23 @@
-import React, {useEffect, useLayoutEffect, useState} from 'react';
 import PopoverMenu from '@components/PopoverMenu';
+
 import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
+
 import {isAuthenticationError} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {useAccountingState} from '@pages/workspace/accounting/AccountingContext';
+
 import type {AnchorPosition} from '@styles/index';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React, {useEffect, useLayoutEffect, useState} from 'react';
 
 type ConnectToCertiniaFlowProps = {
     policyID: string;
@@ -27,8 +33,8 @@ function ConnectToCertiniaFlow({policyID}: ConnectToCertiniaFlowProps) {
 
     const hasReusablePoliciesConnectedToCertinia = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CERTINIA, policyID);
 
-    const [isReuseConnectionsPopoverOpen, setIsReuseConnectionsPopoverOpen] = useState(false);
-    const [reuseConnectionPopoverPosition, setReuseConnectionPopoverPosition] = useState<AnchorPosition | null>(null);
+    const [isConnectionOptionsPopoverOpen, setIsConnectionOptionsPopoverOpen] = useState(false);
+    const [connectionOptionsPopoverPosition, setConnectionOptionsPopoverPosition] = useState<AnchorPosition | null>(null);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.CERTINIA);
@@ -45,24 +51,37 @@ function ConnectToCertiniaFlow({policyID}: ConnectToCertiniaFlowProps) {
             text: translate('workspace.certinia.prerequisites.connectButton'),
             onSelected: () => {
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID));
-                setIsReuseConnectionsPopoverOpen(false);
+                setIsConnectionOptionsPopoverOpen(false);
             },
         },
         {
-            icon: icons.Copy,
-            text: translate('workspace.common.reuseExistingConnection'),
+            icon: icons.LinkCopy,
+            text: translate('workspace.certinia.prerequisites.connectSandboxButton'),
             onSelected: () => {
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_EXISTING_CONNECTIONS.getRoute(policyID));
-                setIsReuseConnectionsPopoverOpen(false);
+                const isSandbox = true;
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID, CONST.CERTINIA_PREREQUISITES.PAGE_NAME.INSTALL_BUNDLE, isSandbox));
+                setIsConnectionOptionsPopoverOpen(false);
             },
         },
+        ...(hasReusablePoliciesConnectedToCertinia
+            ? [
+                  {
+                      icon: icons.Copy,
+                      text: translate('workspace.common.reuseExistingConnection'),
+                      onSelected: () => {
+                          Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_EXISTING_CONNECTIONS.getRoute(policyID));
+                          setIsConnectionOptionsPopoverOpen(false);
+                      },
+                  },
+              ]
+            : []),
     ];
 
     useEffect(() => {
-        if (!isAuthError && hasReusablePoliciesConnectedToCertinia) {
+        if (!isAuthError) {
             // We could ignore the lint error here because this effect has no dependencies, and would only run once.
             // eslint-disable-next-line react-hooks/set-state-in-effect
-            setIsReuseConnectionsPopoverOpen(true);
+            setIsConnectionOptionsPopoverOpen(true);
             return;
         }
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID));
@@ -70,22 +89,22 @@ function ConnectToCertiniaFlow({policyID}: ConnectToCertiniaFlowProps) {
     }, []);
 
     useLayoutEffect(() => {
-        if (!isReuseConnectionsPopoverOpen) {
+        if (!isConnectionOptionsPopoverOpen) {
             return;
         }
 
-        calculatePopoverPosition(threeDotsMenuContainerRef, anchorAlignment).then(setReuseConnectionPopoverPosition);
-    }, [isReuseConnectionsPopoverOpen, calculatePopoverPosition, threeDotsMenuContainerRef]);
+        calculatePopoverPosition(threeDotsMenuContainerRef, anchorAlignment).then(setConnectionOptionsPopoverPosition);
+    }, [isConnectionOptionsPopoverOpen, calculatePopoverPosition, threeDotsMenuContainerRef]);
 
-    if (!reuseConnectionPopoverPosition) {
+    if (!connectionOptionsPopoverPosition) {
         return null;
     }
 
     return (
         <PopoverMenu
-            isVisible={isReuseConnectionsPopoverOpen}
+            isVisible={isConnectionOptionsPopoverOpen}
             onClose={() => {
-                setIsReuseConnectionsPopoverOpen(false);
+                setIsConnectionOptionsPopoverOpen(false);
             }}
             menuItems={connectionOptions}
             onItemSelected={(item) => {
@@ -94,7 +113,7 @@ function ConnectToCertiniaFlow({policyID}: ConnectToCertiniaFlowProps) {
                 }
                 item.onSelected();
             }}
-            anchorPosition={reuseConnectionPopoverPosition}
+            anchorPosition={connectionOptionsPopoverPosition}
             anchorAlignment={anchorAlignment}
             anchorRef={threeDotsMenuContainerRef}
         />

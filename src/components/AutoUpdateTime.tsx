@@ -1,13 +1,17 @@
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import DateUtils from '@libs/DateUtils';
+
+import type {Timezone} from '@src/types/onyx/PersonalDetails';
+
 /**
  * Displays the user's local time and updates it every minute.
  * The time auto-update logic is extracted to this component to avoid re-rendering a more complex component, e.g. DetailsPage.
  */
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import DateUtils from '@libs/DateUtils';
-import type {Timezone} from '@src/types/onyx/PersonalDetails';
+
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 type AutoUpdateTimeProps = {
@@ -39,7 +43,7 @@ function AutoUpdateTime({timezone}: AutoUpdateTimeProps) {
         <View style={[styles.w100, styles.detailsPageSectionContainer]}>
             <MenuItemWithTopDescription
                 style={[styles.ph0]}
-                title={`${DateUtils.formatToLocalTime(currentUserLocalTime)} ${timezoneName}`}
+                title={`${DateUtils.formatToLocalTime(translate, currentUserLocalTime)} ${timezoneName}`}
                 description={translate('detailsPage.localTime')}
                 interactive={false}
             />

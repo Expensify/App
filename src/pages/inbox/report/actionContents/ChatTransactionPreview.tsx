@@ -1,20 +1,27 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUReportIDFromReportActionPreview, isSplitBillAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+
 import {createTransactionThreadReport} from '@userActions/Report';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ChatTransactionPreviewProps = {
     /** All the data of the action, used for showing context menu and deriving the IOU report */
@@ -23,8 +30,8 @@ type ChatTransactionPreviewProps = {
     /** The ID of the current report where the preview is rendered */
     reportID: string | undefined;
 
-    /** The ID of the chat report that owns the transaction. Defaults to reportID for chats; expense reports pass their parent chat. */
-    chatReportID?: string;
+    /** The chat report that owns the transaction */
+    chatReport: OnyxEntry<OnyxTypes.Report>;
 
     /** The IOU report linked to this transaction, used when creating a transaction thread on demand */
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -36,13 +43,16 @@ type ChatTransactionPreviewProps = {
     transactionID: string | undefined;
 };
 
-function ChatTransactionPreview({action, reportID, chatReportID = reportID, iouReport, shouldShowSplitPreview, transactionID}: ChatTransactionPreviewProps) {
+function ChatTransactionPreview({action, reportID, chatReport, iouReport, shouldShowSplitPreview, transactionID}: ChatTransactionPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const personalDetail = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, 1, undefined, undefined);
 
@@ -50,7 +60,7 @@ function ChatTransactionPreview({action, reportID, chatReportID = reportID, iouR
         <View style={[styles.mt1, styles.w100]}>
             <TransactionPreview
                 iouReportID={getIOUReportIDFromReportActionPreview(action)}
-                chatReportID={chatReportID}
+                chatReport={chatReport}
                 reportID={reportID}
                 action={action}
                 isBillSplit={isSplitBillAction(action)}
@@ -67,11 +77,13 @@ function ChatTransactionPreview({action, reportID, chatReportID = reportID, iouR
                     if (!action.childReportID) {
                         const createdTransactionThreadReport = createTransactionThreadReport({
                             introSelected,
+                            conciergeChat,
                             currentUserLogin: personalDetail.email ?? '',
                             currentUserAccountID: personalDetail.accountID,
                             betas,
                             iouReport,
                             iouReportAction: action,
+                            personalDetails,
                         });
                         if (createdTransactionThreadReport?.reportID) {
                             Navigation.navigate(getReportRouteForCurrentContext({reportID: createdTransactionThreadReport.reportID}));

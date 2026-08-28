@@ -1,8 +1,7 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {OnfidoDataWithApplicantID} from '@components/Onfido/types';
+
 import * as API from '@libs/API';
 import type {
     AddPersonalBankAccountParams,
@@ -26,6 +25,7 @@ import type AskForCorpaySignerInformationParams from '@libs/API/parameters/AskFo
 import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/SaveCorpayOnboardingCompanyDetailsParams';
 import type SaveCorpayOnboardingDirectorInformationParams from '@libs/API/parameters/SaveCorpayOnboardingDirectorInformationParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getInternationalBankAccountDetailsValues} from '@libs/BankAccountUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -33,6 +33,7 @@ import * as NetworkStore from '@libs/Network/NetworkStore';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {getFormattedStreet} from '@libs/PersonalDetailsUtils';
 import {buildOptimisticAddCommentReportAction} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,6 +46,11 @@ import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {getMakeDefaultPaymentOnyxData} from './PaymentMethods';
 import {setBankAccountSubStep} from './ReimbursementAccount';
 
@@ -85,6 +91,9 @@ type OpenPersonalBankAccountSetupViewProps = {
 
     /** Whether the user is validated */
     isUserValidated?: boolean;
+
+    /** Route to navigate to after adding a bank account when the KYC flow should continue */
+    onSuccessFallbackRoute?: Route;
 };
 
 type VBBAOnyxKey =
@@ -115,29 +124,76 @@ function setPlaidEvent(eventName: string | null) {
 }
 
 /**
- * Open the personal bank account setup flow, with an optional exitReportID to redirect to once the flow is finished.
+ * Opens the personal bank account setup flow and resets PERSONAL_BANK_ACCOUNT state before navigation.
+ * Any existing PERSONAL_BANK_ACCOUNT data is fully replaced with only the fields passed to this function,
+ * so callers that pass no parameters (e.g. Wallet > Add bank account) clear all existing data including
+ * a leftover onSuccessFallbackRoute from a previous flow.
  */
-function openPersonalBankAccountSetupView({exitReportID, policyID, source, shouldSetUpUSBankAccount = false, isUserValidated = true}: OpenPersonalBankAccountSetupViewProps) {
+function openPersonalBankAccountSetupView({
+    exitReportID,
+    policyID,
+    source,
+    shouldSetUpUSBankAccount = false,
+    isUserValidated = true,
+    onSuccessFallbackRoute,
+}: OpenPersonalBankAccountSetupViewProps) {
     clearInternationalBankAccount().then(() => {
+        const personalBankAccountState: Partial<PersonalBankAccount> = {};
+
         if (exitReportID) {
-            Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
+            personalBankAccountState.exitReportID = exitReportID;
         }
         if (policyID) {
-            Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {policyID});
+            personalBankAccountState.policyID = policyID;
         }
         if (source) {
-            Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {source});
+            personalBankAccountState.source = source;
         }
+        if (onSuccessFallbackRoute) {
+            personalBankAccountState.onSuccessFallbackRoute = onSuccessFallbackRoute;
+        }
+
+        // Use set instead of merge so each new flow starts with only the fields we explicitly pass, not leftover fields from a previous flow.
+        Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, Object.keys(personalBankAccountState).length > 0 ? personalBankAccountState : null);
+        Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
+
         if (!isUserValidated) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path));
+            // This flow always adds a personal deposit account, so the purpose screen is skipped once the account is validated.
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(true)));
             return;
         }
         if (shouldSetUpUSBankAccount) {
-            Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT);
+            Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute());
             return;
         }
         Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(Navigation.getActiveRoute()));
     });
+}
+
+/**
+ * Fetches the reimbursement countries for each of the user's policies and merges them into the policy_ Onyx
+ * collection. The personal bank account setup flow uses policy.reimbursement.enabled/countries to decide whether to
+ * collect international deposit details (IBAN/SWIFT), and this data is intentionally not part of the policy summary.
+ */
+function openDepositAccountSetup() {
+    const onyxData: OnyxData<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP,
+                value: true,
+            },
+        ],
+        finallyData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP,
+                value: false,
+            },
+        ],
+    };
+
+    API.read(READ_COMMANDS.OPEN_DEPOSIT_ACCOUNT_SETUP, null, onyxData);
 }
 
 /**
@@ -294,9 +350,13 @@ function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: Rout
     Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {onSuccessFallbackRoute});
 }
 
-function clearPersonalBankAccount() {
+/**
+ * Clears personal bank account state, Plaid data, and the form draft.
+ * Pass `preservedData` to retain specific fields (e.g. onSuccessFallbackRoute) across the reset.
+ */
+function clearPersonalBankAccount(preservedData?: Partial<PersonalBankAccount>) {
     clearPlaid();
-    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, null);
+    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, preservedData ?? null);
     Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
     clearPersonalBankAccountSetupType();
 }
@@ -477,6 +537,8 @@ function addPersonalBankAccount(
         addressZip: account?.addressZipCode,
         addressCountry: account?.country,
         confirmedOwnershipDetails: account?.confirmedOwnershipDetails,
+        iban: account?.iban,
+        swiftCode: account?.swiftCode,
     };
     if (policyID) {
         parameters.policyID = policyID;
@@ -883,6 +945,11 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm, policyID: str
 }
 
 function getCorpayOnboardingFields(country: Country | '') {
+    // No request when there is no country yet — the calling effects re-fire once Onyx hydrates the selected country.
+    if (!country) {
+        return;
+    }
+
     return API.read(READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS, {countryISO: country});
 }
 
@@ -1525,8 +1592,13 @@ function unshareBankAccount(bankAccountID: number, ownerEmail: string) {
 }
 
 function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm, classification: string, destinationCountry: string, preferredMethod: string) {
+    // The international details step is skipped when the Corpay bank-details step already collected equivalent values,
+    // so resolve them here to guarantee the IBAN/SWIFT are always sent when we have them, whichever step captured them.
+    const {iban, swiftCode} = getInternationalBankAccountDetailsValues(data.iban, data.swiftCode, data.accountNumber, data.swiftBicCode);
     const inputData = {
         ...data,
+        iban,
+        swiftCode,
         classification,
         destinationCountry,
         preferredMethod,
@@ -1837,6 +1909,7 @@ export {
     addPersonalBankAccount,
     clearOnfidoToken,
     clearPersonalBankAccount,
+    setPersonalBankAccountContinueKYCOnSuccess,
     resetPersonalBankAccountForUpdate,
     setPlaidEvent,
     openPlaidView,
@@ -1845,8 +1918,8 @@ export {
     createCorpayBankAccount,
     deletePaymentBankAccount,
     handlePlaidError,
-    setPersonalBankAccountContinueKYCOnSuccess,
     openPersonalBankAccountSetupView,
+    openDepositAccountSetup,
     openReimbursementAccountPage,
     updateBeneficialOwnersForBankAccount,
     updateCompanyInformationForBankAccount,

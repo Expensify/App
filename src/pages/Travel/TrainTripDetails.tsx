@@ -1,16 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import UserPills from '@components/UserPills';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
 import {formatTransitLocationLabel} from '@libs/TripReservationUtils';
+
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type TrainTripDetailsProps = {
     reservation: Reservation;
@@ -19,10 +24,10 @@ type TrainTripDetailsProps = {
 
 function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
 
-    const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
-    const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
+    const startDate = DateUtils.getFormattedTransportDateAndHour(translate, dateFnsLocale, new Date(reservation.start.date));
+    const endDate = DateUtils.getFormattedTransportDateAndHour(translate, dateFnsLocale, new Date(reservation.end.date));
     const trainRouteDescription = `${formatTransitLocationLabel(reservation.start)} ${translate('common.conjunctionTo')} ${formatTransitLocationLabel(reservation.end)}`;
     const trainDuration = DateUtils.getFormattedDurationBetweenDates(translate, new Date(reservation.start.date), new Date(reservation.end.date));
 

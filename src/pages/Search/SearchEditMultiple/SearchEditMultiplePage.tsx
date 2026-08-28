@@ -1,19 +1,19 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
@@ -22,11 +22,19 @@ import {canEditFieldOfMoneyRequest, isInvoiceReport, isIOUReport} from '@libs/Re
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import {hasEnabledTags, shouldShowDependentTagList} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName, getTaxName, hasSplitExpenseInSelection, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 import {
     areAllTransactionsExpenseCompatible,
     getTransactionEditContext,
@@ -39,28 +47,39 @@ import {
 
 function SearchEditMultiplePage() {
     const {translate} = useLocalize();
-    const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
+    const {convertToDisplayStringWithoutCurrency, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {currentSearchHash} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const personalPolicy = usePersonalPolicy();
     const delegateAccountID = useDelegateAccountID();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`);
+    const selectedTransactionIDs = draftTransaction?.selectedTransactionIDs ?? [];
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsListSelector(
+            selectedTransactionIDs.map((transactionID) => {
+                const iouReportID = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID;
+                return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]?.ownerAccountID;
+            }),
+        ),
+    });
+
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
     const snapshotData = currentSearchResults?.data;
     const mergedTransactions = withSnapshotTransactions(allTransactions, snapshotData);
     const mergedReportActions = withSnapshotReportActions(allReportActions, snapshotData);
     const mergedReports = withSnapshotReports(allReports, snapshotData);
-
-    const selectedTransactionIDs = draftTransaction?.selectedTransactionIDs ?? [];
 
     const selectedTransactionContexts = selectedTransactionIDs.flatMap((transactionID) => {
         const context = getTransactionEditContext(transactionID, mergedTransactions, mergedReports, mergedReportActions, policies);
@@ -79,7 +98,7 @@ function SearchEditMultiplePage() {
             if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 return false;
             }
-            return !canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report, policy: transactionPolicy});
+            return !canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report, policy: transactionPolicy, reportNameValuePairs});
         });
 
     const hasPartiallyEditableTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.AMOUNT);
@@ -180,10 +199,16 @@ function SearchEditMultiplePage() {
                 reportActions: mergedReportActions,
                 policyCategories: allPolicyCategories,
                 policyTags: allPolicyTags,
+                violations: allTransactionViolations,
+                reportNameValuePairs,
                 hash: currentSearchHash,
                 allPolicies: policies,
                 currentUserAccountID,
                 delegateAccountID,
+                personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                personalDetailsList,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
             // Bulk edit can start from report (ID-based selection) or search (map-based selection),
             // so clear both stores to keep deselection behavior consistent.
@@ -323,14 +348,15 @@ function SearchEditMultiplePage() {
                     ))}
                 </ScrollView>
                 <Button
-                    success
-                    large
-                    text={translate('common.save')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={save}
                     isLoading={isSaving}
                     isDisabled={isSaving}
                     style={[styles.m5]}
-                />
+                >
+                    <Button.Text>{translate('common.save')}</Button.Text>
+                </Button>
             </View>
         </ScreenWrapper>
     );

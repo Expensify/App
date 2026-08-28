@@ -1,4 +1,3 @@
-import {useRef} from 'react';
 import {importPlaidAccounts} from '@libs/actions/Plaid';
 import {
     getCompanyCardFeed,
@@ -10,18 +9,25 @@ import {
     isCustomFeed,
     isSelectedFeedExpired,
 } from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getDomainNameForPolicy, getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+
 import {clearAddNewCardFlow, clearAssignCardStepAndData, openPolicyCompanyCardsPage, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
+
+import {useRef} from 'react';
+
+import type {CombinedCardFeed} from './useCardFeeds';
+
 import useCardFeedErrors from './useCardFeedErrors';
 import useCardFeeds from './useCardFeeds';
-import type {CombinedCardFeed} from './useCardFeeds';
 import {useCurrencyListState} from './useCurrencyList';
 import useIsAllowedToIssueCompanyCard from './useIsAllowedToIssueCompanyCard';
 import useLocalize from './useLocalize';
@@ -62,7 +68,10 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
 
     const {cardFeedErrors} = useCardFeedErrors();
     const feedErrors = feedName ? cardFeedErrors[feedName] : undefined;
-    const isSelectedFeedConnectionBroken = !!feedErrors?.isFeedConnectionBroken || !!feedErrors?.hasFeedErrors;
+    // Keyed on the prompting flag rather than `isFeedConnectionBroken`: once a broken connection is past the grace period we
+    // stop blocking assignment. Otherwise a single long-dead card would disable assigning on the whole feed forever, and a
+    // commercial/CSV feed cannot be reconnected at all, so there would be no way out.
+    const isSelectedFeedConnectionBroken = !!feedErrors?.shouldPromptBrokenConnection || !!feedErrors?.hasFeedErrors;
 
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
     const isAssigningCardDisabled = !currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken || !isAllowedToIssueCompanyCard;
@@ -111,7 +120,9 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
                     break;
                 case CONST.COMPANY_CARD.STEP.ASSIGNEE:
                 default:
-                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute({policyID, feed: feedName, cardID}));
+                    Navigation.navigate(
+                        createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(feedName, cardID), ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)),
+                    );
                     break;
             }
         });
@@ -189,9 +200,9 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
             };
         }
 
-        const employeeList = Object.values(policy?.employeeList ?? {}).filter((employee) => !isDeletedPolicyEmployee(employee, isOffline));
-        if (employeeList.length === 1) {
-            const userEmail = Object.keys(policy?.employeeList ?? {}).at(0) ?? '';
+        const activeEmployees = Object.entries(policy?.employeeList ?? {}).filter(([, employee]) => !isDeletedPolicyEmployee(employee, isOffline));
+        if (activeEmployees.length === 1) {
+            const userEmail = activeEmployees.at(0)?.[0] ?? '';
             cardToAssign.email = userEmail;
             const personalDetails = getPersonalDetailByEmail(userEmail);
             const memberName = personalDetails?.firstName ? personalDetails.firstName : personalDetails?.login;

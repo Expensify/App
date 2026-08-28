@@ -1,17 +1,27 @@
-import React, {useMemo, useRef} from 'react';
-import {View} from 'react-native';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+
 import {dismissASAPSubmitExplanation} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import FeatureTrainingModal from './FeatureTrainingModal';
+
+import React, {useMemo, useRef} from 'react';
+import {View} from 'react-native';
+
+import CenteredModalLayout from './CenteredModalLayout';
+import FeatureTraining from './FeatureTraining';
 import Icon from './Icon';
 import Text from './Text';
 
@@ -37,61 +47,81 @@ function AutoSubmitModal() {
         [illustrations.PaperAirplane, illustrations.Pencil],
     );
 
-    // Defer the Onyx write until after the modal close animation finishes. The ref is set in onConfirm
-    // and consumed in onClose, which FeatureTrainingModal fires from onModalHide (after the close animation completes).
     const willShowAgainRef = useRef<boolean | null>(null);
 
-    const onConfirm = (willShowAgain: boolean) => {
-        willShowAgainRef.current = willShowAgain;
-    };
-
-    const onClose = () => {
+    const persistDismiss = () => {
         if (willShowAgainRef.current === null) {
             return;
         }
-        dismissASAPSubmitExplanation(!willShowAgainRef.current);
+
+        const shouldDismiss = !willShowAgainRef.current;
         willShowAgainRef.current = null;
+
+        TransitionTracker.runAfterTransitions({
+            callback: () => dismissASAPSubmitExplanation(shouldDismiss),
+            waitForUpcomingTransition: true,
+        });
     };
 
+    useBeforeRemove(persistDismiss);
+
+    const handleClose = () => Navigation.goBack();
+
+    const onConfirm = (willShowAgain: boolean) => {
+        willShowAgainRef.current = willShowAgain;
+        handleClose();
+    };
+
+    const shouldShowDismissOption = dismissedASAPSubmitExplanation === false;
+
     return (
-        <FeatureTrainingModal
-            title={translate('autoSubmitModal.title')}
-            description={translate('autoSubmitModal.description')}
-            confirmText={translate('common.buttonConfirm')}
-            image={illustrations.ReceiptsStackedOnPin}
-            contentFitImage="cover"
+        <CenteredModalLayout
+            onBackdropPress={handleClose}
             width={variables.holdEducationModalWidth}
-            imageWidth={variables.changePolicyEducationModalIconWidth}
-            imageHeight={variables.changePolicyEducationModalIconHeight}
-            illustrationAspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
-            illustrationInnerContainerStyle={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getBackgroundColorStyle(colors.green700), styles.p8]}
-            modalInnerContainerStyle={styles.pt0}
-            illustrationOuterContainerStyle={styles.p0}
-            shouldShowDismissModalOption={dismissedASAPSubmitExplanation === false}
-            onConfirm={onConfirm}
-            onClose={onClose}
-            titleStyles={[styles.mb1]}
-            contentInnerContainerStyles={[styles.mb5]}
-            shouldUseScrollView
+            contentStyle={[styles.pt0, styles.pb0]}
         >
-            {menuSections.map((section) => (
-                <View
-                    key={section.titleTranslationKey}
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.mt3]}
-                >
-                    <Icon
-                        width={variables.menuIconSize}
-                        height={variables.menuIconSize}
-                        src={section.icon}
-                        additionalStyles={[styles.mr4]}
-                    />
-                    <View style={[styles.flex1, styles.justifyContentCenter]}>
-                        <Text style={[styles.textStrong, styles.mb1]}>{translate(section.titleTranslationKey as TranslationPaths)}</Text>
-                        <Text style={[styles.mutedTextLabel, styles.lh16]}>{translate(section.descriptionTranslationKey as TranslationPaths)}</Text>
-                    </View>
-                </View>
-            ))}
-        </FeatureTrainingModal>
+            <FeatureTraining
+                onConfirm={onConfirm}
+                onClose={handleClose}
+                width={variables.holdEducationModalWidth}
+                shouldUseScrollView
+            >
+                <FeatureTraining.Illustration
+                    image={illustrations.ReceiptsStackedOnPin}
+                    contentFitImage="cover"
+                    imageWidth={variables.changePolicyEducationModalIconWidth}
+                    imageHeight={variables.changePolicyEducationModalIconHeight}
+                    aspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
+                    innerContainerStyle={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getBackgroundColorStyle(colors.green700), styles.p8]}
+                    outerContainerStyle={styles.p0}
+                />
+                <FeatureTraining.Body>
+                    <FeatureTraining.BodyText style={styles.mb5}>
+                        <FeatureTraining.Title style={styles.mb1}>{translate('autoSubmitModal.title')}</FeatureTraining.Title>
+                        <FeatureTraining.Description>{translate('autoSubmitModal.description')}</FeatureTraining.Description>
+                        {menuSections.map((section) => (
+                            <View
+                                key={section.titleTranslationKey}
+                                style={[styles.flexRow, styles.alignItemsCenter, styles.mt3]}
+                            >
+                                <Icon
+                                    width={variables.menuIconSize}
+                                    height={variables.menuIconSize}
+                                    src={section.icon}
+                                    additionalStyles={[styles.mr4]}
+                                />
+                                <View style={[styles.flex1, styles.justifyContentCenter]}>
+                                    <Text style={[styles.textStrong, styles.mb1]}>{translate(section.titleTranslationKey as TranslationPaths)}</Text>
+                                    <Text style={[styles.mutedTextLabel, styles.lh16]}>{translate(section.descriptionTranslationKey as TranslationPaths)}</Text>
+                                </View>
+                            </View>
+                        ))}
+                    </FeatureTraining.BodyText>
+                    {shouldShowDismissOption && <FeatureTraining.DismissOption />}
+                    <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
+                </FeatureTraining.Body>
+            </FeatureTraining>
+        </CenteredModalLayout>
     );
 }
 

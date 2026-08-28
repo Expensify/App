@@ -1,26 +1,33 @@
-import React, {useMemo} from 'react';
-import {StyleSheet} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getAccountingIntegrationDisplayName} from '@libs/AccountingUtils';
 import {savePreferredExportMethod as savePreferredExportMethodUtils} from '@libs/actions/Policy/Policy';
 import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {canBeExported as canBeExportedUtils, getIntegrationIcon, isExported as isExportedUtils} from '@libs/ReportUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportActions} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useMemo} from 'react';
+import {StyleSheet} from 'react-native';
 
 type ExportWithDropdownMenuProps = WithSentryLabel & {
     report: OnyxEntry<Report>;
@@ -51,12 +58,25 @@ function ExportWithDropdownMenu({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
     const [exportMethods] = useOnyx(ONYXKEYS.LAST_EXPORT_METHOD);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare', 'CertiniaSquare', 'GustoSquare']);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'XeroSquare',
+        'QBOSquare',
+        'IntuitSquare',
+        'NetSuiteSquare',
+        'IntacctSquare',
+        'QBDSquare',
+        'CertiniaSquare',
+        'RilletSquare',
+        'DualEntrySquare',
+        'GustoSquare',
+    ]);
 
-    const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons);
+    const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons, policy);
     const canBeExported = canBeExportedUtils(report);
     const isExported = isExportedUtils(reportActions, report);
     const flattenedWrapperStyle = StyleSheet.flatten([styles.flex1, wrapperStyle]);
+    const connectionNameFriendly = getAccountingIntegrationDisplayName(policy, connectionName, translate);
 
     const dropdownOptions: Array<DropdownOption<ReportExportType>> = useMemo(() => {
         const optionTemplate = {
@@ -70,7 +90,7 @@ function ExportWithDropdownMenu({
         const options = [
             {
                 value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
-                text: translate('workspace.common.exportIntegrationSelected', {connectionName}),
+                text: translate('workspace.common.exportIntegrationSelected', {connectionName, connectionNameFriendly}),
                 ...optionTemplate,
             },
             {
@@ -86,16 +106,16 @@ function ExportWithDropdownMenu({
         return options;
         // We do not include exportMethods not to re-render the component when the preferred export method changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [canBeExported, iconToDisplay, connectionName, report?.policyID, translate]);
+    }, [canBeExported, iconToDisplay, connectionName, connectionNameFriendly, report?.policyID, translate]);
 
     const handleExport = (exportType: ReportExportType) => {
         if (!reportID) {
             return;
         }
         if (exportType === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-            exportToIntegration(reportID, connectionName);
+            exportToIntegration(reportID, connectionName, policy);
         } else if (exportType === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-            markAsManuallyExported([reportID], connectionName);
+            markAsManuallyExported([reportID], connectionName, policy);
         }
     };
 
@@ -108,7 +128,7 @@ function ExportWithDropdownMenu({
 
     return (
         <ButtonWithDropdownMenu<ReportExportType>
-            success
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             pressOnEnter
             shouldAlwaysShowDropdownMenu
             anchorAlignment={dropdownAnchorAlignment}
@@ -116,7 +136,7 @@ function ExportWithDropdownMenu({
                 if (isExported) {
                     showConfirmModal({
                         title: translate('workspace.exportAgainModal.title'),
-                        prompt: translate('workspace.exportAgainModal.description', {connectionName, reportName: report?.reportName ?? ''}),
+                        prompt: translate('workspace.exportAgainModal.description', {connectionName, connectionNameFriendly, reportName: report?.reportName ?? ''}),
                         confirmText: translate('workspace.exportAgainModal.confirmText'),
                         cancelText: translate('workspace.exportAgainModal.cancelText'),
                     }).then(({action}) => {
@@ -133,7 +153,7 @@ function ExportWithDropdownMenu({
             options={dropdownOptions}
             style={[shouldUseNarrowLayout && styles.flexGrow1]}
             wrapperStyle={flattenedWrapperStyle}
-            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+            size={CONST.BUTTON_SIZE.MEDIUM}
             sentryLabel={sentryLabel}
         />
     );

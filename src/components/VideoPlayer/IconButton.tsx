@@ -1,15 +1,20 @@
-import React from 'react';
-import type {Ref} from 'react';
-import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import mergeRefs from '@libs/mergeRefs';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {Ref} from 'react';
+import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
+
+import React from 'react';
 
 type IconButtonProps = WithSentryLabel & {
     src: IconAsset;
@@ -43,7 +48,7 @@ function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipTex
                 <Icon
                     src={src}
                     fill={fill}
-                    small={small}
+                    size={small ? CONST.ICON_SIZE.SMALL : undefined}
                 />
             </PressableWithFeedback>
         </Tooltip>

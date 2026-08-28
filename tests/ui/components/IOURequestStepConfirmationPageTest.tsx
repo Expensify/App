@@ -1,18 +1,27 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {startSplitBill} from '@libs/actions/IOU/Split';
+
 import IOURequestStepConfirmationWithWritableReportOrNotFound from '@pages/iou/request/step/IOURequestStepConfirmation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, TaxRatesWithDefault} from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
 import * as MoneyRequest from '../../../src/libs/actions/IOU/MoneyRequest';
 import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
@@ -37,6 +46,7 @@ jest.mock('@src/languages/IntlStore', () => {
     cache.set('en', flatten(en));
     return {
         getCurrentLocale: jest.fn(() => 'en'),
+        getDateFnsLocale: jest.fn(() => undefined),
         load: jest.fn(() => Promise.resolve()),
         get: jest.fn((key: string, locale?: string) => {
             const translations = cache.get(locale ?? 'en');
@@ -69,7 +79,7 @@ jest.mock('@libs/actions/IOU/MoneyRequest', () => {
 });
 jest.mock('@libs/actions/IOU/Split', () => {
     return {
-        createDistanceRequest: jest.fn(),
+        createDistanceRequest: jest.fn(() => ({iouReport: undefined, chatReportID: undefined})),
         startSplitBill: jest.fn(),
     };
 });
@@ -84,6 +94,26 @@ jest.mock('@libs/actions/IOU/TrackExpense', () => {
 jest.mock('@components/ProductTrainingContext', () => ({
     useProductTrainingContext: () => [false],
 }));
+
+// Stands in for the participant picker so a test can hand the page a selection without driving the real selector.
+// The picker is only rendered under the new manual expense flow beta, so this is inert for every other test here.
+let mockSelectedParticipants: Participant[] = [];
+jest.mock('@components/ParticipantPicker', () => {
+    const ReactModule = jest.requireActual<typeof React>('react');
+    const {Text, TouchableOpacity} = jest.requireActual<{
+        Text: React.ComponentType<{children?: React.ReactNode}>;
+        TouchableOpacity: React.ComponentType<{testID: string; onPress: () => void; children?: React.ReactNode}>;
+    }>('react-native');
+    return {
+        __esModule: true,
+        default: ({onParticipantsAdded}: {onParticipantsAdded: (participants: Participant[]) => void}) =>
+            ReactModule.createElement(
+                TouchableOpacity,
+                {testID: 'MockParticipantPicker', onPress: () => onParticipantsAdded(mockSelectedParticipants)},
+                ReactModule.createElement(Text, null, 'Select participant'),
+            ),
+    };
+});
 jest.mock('@src/hooks/useResponsiveLayout');
 jest.mock('@libs/getCurrentPosition');
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn(() => false));
@@ -145,6 +175,7 @@ jest.mock('@react-navigation/native', () => {
         getState: jest.fn(() => ({})),
     };
     return {
+        ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
         createNavigationContainerRef: jest.fn(() => mockRef),
         useIsFocused: () => true,
         useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
@@ -250,14 +281,9 @@ const DEFAULT_SPLIT_TRANSACTION: Transaction = {
     comment: {
         attendees: [
             {
-                accountID: ACCOUNT_ID,
                 avatarUrl: '',
                 displayName: '',
                 email: ACCOUNT_LOGIN,
-                login: ACCOUNT_LOGIN,
-                reportID: REPORT_ID,
-                selected: true,
-                text: ACCOUNT_LOGIN,
             },
         ],
     },
@@ -1029,7 +1055,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
             await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
-            const requestMoneyMock = TrackExpense.requestMoney as jest.MockedFunction<typeof TrackExpense.requestMoney>;
+            const requestMoneyMock = jest.mocked(TrackExpense.requestMoney);
             const params = requestMoneyMock.mock.calls.at(0)?.at(0);
             expect(params?.report).toBeUndefined();
         });
@@ -1096,7 +1122,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
             await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
-            const requestMoneyMock = TrackExpense.requestMoney as jest.MockedFunction<typeof TrackExpense.requestMoney>;
+            const requestMoneyMock = jest.mocked(TrackExpense.requestMoney);
             const params = requestMoneyMock.mock.calls.at(0)?.at(0);
             expect(params?.report?.reportID).toBe(routeReportID);
         });
@@ -1172,7 +1198,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
                 await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
-                const requestMoneyMock = TrackExpense.requestMoney as jest.MockedFunction<typeof TrackExpense.requestMoney>;
+                const requestMoneyMock = jest.mocked(TrackExpense.requestMoney);
                 const params = requestMoneyMock.mock.calls.at(0)?.at(0);
                 expect(params?.report?.reportID).toBe(transactionReportID);
             } finally {
@@ -1390,9 +1416,249 @@ describe('IOURequestStepConfirmationPageTest', () => {
             fireEvent.press(await screen.findByText(/^Create .*expense/i));
 
             await waitFor(() => expect(Split.createDistanceRequest).toHaveBeenCalled());
-            const createDistanceRequestMock = Split.createDistanceRequest as jest.MockedFunction<typeof Split.createDistanceRequest>;
+            const createDistanceRequestMock = jest.mocked(Split.createDistanceRequest);
             const params = createDistanceRequestMock.mock.calls.at(0)?.at(0);
             expect(params?.personalDetails).toBeDefined();
+        });
+    });
+
+    describe('Transaction navigation (prev/next)', () => {
+        beforeEach(async () => {
+            await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+        });
+
+        it('switches the displayed transaction when pressing the Next and Previous buttons', async () => {
+            // Given two scanned draft transactions, so the confirmation renders in its multi-transaction mode
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`, {
+                    ...DEFAULT_SPLIT_TRANSACTION,
+                    transactionID: '1',
+                    iouRequestType: 'scan',
+                    receipt: {filename: 'receipt1.jpg', source: 'path/to/receipt1.jpg', type: ''},
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}2`, {
+                    ...DEFAULT_SPLIT_TRANSACTION,
+                    transactionID: '2',
+                    iouRequestType: 'scan',
+                    receipt: {filename: 'receipt2.jpg', source: 'path/to/receipt2.jpg', type: ''},
+                });
+            });
+
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation--30aPPAdjWan56sE5OpcG',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: 'create',
+                                            iouType: 'split',
+                                            transactionID: TRANSACTION_ID,
+                                            reportID: REPORT_ID,
+                                        },
+                                    }}
+                                    // @ts-expect-error we don't need navigation param here.
+                                    navigation={undefined}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            const of = translateLocal('common.of');
+
+            // The confirmation starts on the first of the two transactions
+            expect(await screen.findByText(`1 ${of} 2`)).toBeOnTheScreen();
+
+            // When pressing the Next button (the second of the two prev/next nav buttons)
+            const navButtons = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
+            expect(navButtons).toHaveLength(2);
+            const [, nextButton] = navButtons;
+            fireEvent.press(nextButton);
+
+            // Then the second transaction is displayed (setCurrentTransactionID committed inside startTransition)
+            expect(await screen.findByText(`2 ${of} 2`)).toBeOnTheScreen();
+
+            // And pressing the Previous button returns to the first transaction
+            const [prevButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
+            fireEvent.press(prevButton);
+            expect(await screen.findByText(`1 ${of} 2`)).toBeOnTheScreen();
+        });
+    });
+
+    describe('Participant switch field resets', () => {
+        const SOURCE_POLICY_ID = 'sourcePolicy';
+        const DESTINATION_POLICY_ID = 'destinationPolicy';
+        const SOURCE_CHAT_REPORT_ID = 'sourceChat';
+        const DESTINATION_CHAT_REPORT_ID = 'destinationChat';
+        const DESTINATION_DEFAULT_CATEGORY = 'Destination default category';
+
+        function createPolicyExpenseChat(reportID: string, policyID: string) {
+            return {
+                reportID,
+                policyID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                isOwnPolicyExpenseChat: true,
+            };
+        }
+
+        function createWorkspaceParticipant(reportID: string, policyID: string): Participant {
+            return {reportID, policyID, isPolicyExpenseChat: true, selected: true};
+        }
+
+        beforeEach(async () => {
+            mockSelectedParticipants = [];
+            await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW]);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`, {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Source policy'), id: SOURCE_POLICY_ID});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${DESTINATION_POLICY_ID}`, {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE, 'Destination policy'),
+                    id: DESTINATION_POLICY_ID,
+                    customUnits: {
+                        [CONST.CUSTOM_UNITS.NAME_DISTANCE]: {
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            customUnitID: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            enabled: true,
+                            defaultCategory: DESTINATION_DEFAULT_CATEGORY,
+                            attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                            rates: {},
+                        },
+                    },
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_CHAT_REPORT_ID}`, createPolicyExpenseChat(SOURCE_CHAT_REPORT_ID, SOURCE_POLICY_ID));
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_CHAT_REPORT_ID}`, createPolicyExpenseChat(DESTINATION_CHAT_REPORT_ID, DESTINATION_POLICY_ID));
+            });
+        });
+
+        /**
+         * Renders the confirmation for a manual expense that is currently assigned to the source workspace and carries
+         * a category and a tag from it.
+         */
+        async function renderConfirmationOnSourceWorkspace(extraTransactionData: Partial<Transaction> = {}) {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+                    transactionID: TRANSACTION_ID,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    amount: 1000,
+                    currency: 'USD',
+                    created: '2025-08-29',
+                    merchant: '(none)',
+                    reportID: SOURCE_CHAT_REPORT_ID,
+                    participants: [createWorkspaceParticipant(SOURCE_CHAT_REPORT_ID, SOURCE_POLICY_ID)],
+                    category: 'Source category',
+                    tag: 'Source tag',
+                    ...extraTransactionData,
+                });
+            });
+
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation--30aPPAdjWan56sE5OpcG',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: 'create',
+                                            iouType: 'submit',
+                                            transactionID: TRANSACTION_ID,
+                                            reportID: SOURCE_CHAT_REPORT_ID,
+                                        },
+                                    }}
+                                    // @ts-expect-error only setParams is used by the participant selection handler.
+                                    navigation={{setParams: jest.fn()}}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        async function selectParticipants(participants: Participant[]) {
+            mockSelectedParticipants = participants;
+            fireEvent.press(await screen.findByTestId('MockParticipantPicker'));
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        function getDraftTransaction() {
+            return new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`,
+                    callback: (value) => {
+                        resolve(value);
+                        Onyx.disconnect(connection);
+                    },
+                });
+            });
+        }
+
+        it('resets the category and the tag when the expense is moved to another workspace', async () => {
+            // Given a manual expense assigned to the source workspace with one of its categories and tags selected
+            await renderConfirmationOnSourceWorkspace();
+
+            // When a different workspace is selected in the participant picker
+            await selectParticipants([createWorkspaceParticipant(DESTINATION_CHAT_REPORT_ID, DESTINATION_POLICY_ID)]);
+
+            // Then the source workspace's category and tag are cleared, since they don't exist in the destination one
+            const draftTransaction = await getDraftTransaction();
+            expect(draftTransaction?.category).toBe('');
+            expect(draftTransaction?.tag).toBe('');
+        });
+
+        it('keeps the category and the tag when the same workspace is selected again', async () => {
+            // Given a manual expense assigned to the source workspace with one of its categories and tags selected
+            await renderConfirmationOnSourceWorkspace();
+
+            // When the same workspace is selected again in the participant picker
+            await selectParticipants([createWorkspaceParticipant(SOURCE_CHAT_REPORT_ID, SOURCE_POLICY_ID)]);
+
+            // Then the already selected category and tag are left untouched
+            const draftTransaction = await getDraftTransaction();
+            expect(draftTransaction?.category).toBe('Source category');
+            expect(draftTransaction?.tag).toBe('Source tag');
+        });
+
+        it('resets the category and the tag when a P2P recipient is selected', async () => {
+            // Given a manual expense assigned to the source workspace with one of its categories and tags selected
+            await renderConfirmationOnSourceWorkspace();
+
+            // When a P2P recipient is selected in the participant picker
+            await selectParticipants([{accountID: PARTICIPANT_ACCOUNT_ID, login: 'recipient@user.com', selected: true}]);
+
+            // Then the workspace's category and tag no longer apply and are cleared
+            const draftTransaction = await getDraftTransaction();
+            expect(draftTransaction?.category).toBe('');
+            expect(draftTransaction?.tag).toBe('');
+        });
+
+        it("applies the destination workspace's default distance category when the expense is moved to it", async () => {
+            // Given a distance expense assigned to the source workspace, and a destination workspace with a default
+            // category configured on its distance unit
+            await renderConfirmationOnSourceWorkspace({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {waypoints: createWaypoints('New York', 'Boston')},
+            });
+
+            // When the destination workspace is selected in the participant picker
+            await selectParticipants([createWorkspaceParticipant(DESTINATION_CHAT_REPORT_ID, DESTINATION_POLICY_ID)]);
+
+            // Then the destination workspace's default category is applied instead of the source workspace's one
+            const draftTransaction = await getDraftTransaction();
+            expect(draftTransaction?.category).toBe(DESTINATION_DEFAULT_CATEGORY);
+            expect(draftTransaction?.tag).toBe('');
         });
     });
 });

@@ -1,6 +1,3 @@
-import type {ReactNode} from 'react';
-import React from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
@@ -10,16 +7,24 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type BaseLegalNamePageProps<TFormID extends OnyxFormKey> = {
     children?: ReactNode;
@@ -94,6 +99,7 @@ function BaseLegalNamePage<TFormID extends OnyxFormKey>({
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
     const legalFirstName = defaultFirstName ?? privatePersonalDetails?.legalFirstName ?? '';
     const legalLastName = defaultLastName ?? privatePersonalDetails?.legalLastName ?? '';
 
@@ -110,10 +116,7 @@ function BaseLegalNamePage<TFormID extends OnyxFormKey>({
                 />
                 {isLoadingApp ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={{context: 'BaseLegalNamePage', isLoadingApp} satisfies SkeletonSpanReasonAttributes}
-                        />
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                     </View>
                 ) : (
                     <FormProvider
@@ -128,6 +131,7 @@ function BaseLegalNamePage<TFormID extends OnyxFormKey>({
                             {children}
                             <InputWrapper
                                 InputComponent={TextInput}
+                                ref={inputCallbackRef}
                                 inputID={INPUT_IDS.LEGAL_FIRST_NAME}
                                 name="legalFirstName"
                                 label={translate('privatePersonalDetails.legalFirstName')}

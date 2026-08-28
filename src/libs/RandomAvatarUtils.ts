@@ -22,6 +22,7 @@ import Avatar21 from '@assets/images/avatars/user/default-avatar_21.svg';
 import Avatar22 from '@assets/images/avatars/user/default-avatar_22.svg';
 import Avatar23 from '@assets/images/avatars/user/default-avatar_23.svg';
 import Avatar24 from '@assets/images/avatars/user/default-avatar_24.svg';
+
 import StringUtils from './StringUtils';
 
 const avatars = [

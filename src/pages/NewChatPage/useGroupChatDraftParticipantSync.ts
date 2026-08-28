@@ -1,14 +1,20 @@
-import {useEffect, useEffectEvent, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import useIsFocusedRef from '@hooks/useIsFocusedRef';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {getUserToInviteOption} from '@libs/OptionsListUtils';
-import type {SearchOption} from '@libs/OptionsListUtils';
+
+import {getParticipantsOption, getUserToInviteOption} from '@libs/OptionsListUtils';
+import type {OptionData} from '@libs/ReportUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Login, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {Login, PersonalDetailsList} from '@src/types/onyx';
 import type NewGroupChatDraft from '@src/types/onyx/NewGroupChatDraft';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import type SelectedOption from './types';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect, useEffectEvent, useRef} from 'react';
 
 /**
  * Keeps the NewChatPage's `selectedOptions` state aligned with the `NEW_GROUP_CHAT_DRAFT` Onyx draft.
@@ -20,18 +26,19 @@ import type SelectedOption from './types';
  *   consistent when the user returns.
  */
 function useGroupChatDraftParticipantSync(
-    allPersonalDetailOptions: Array<SearchOption<PersonalDetails>>,
-    areAllPersonalDetailOptionsLoaded: boolean,
+    areOptionsInitialized: boolean,
     allPersonalDetails: OnyxEntry<PersonalDetailsList>,
     loginList: OnyxEntry<Login>,
     currentUserEmail: string,
     currentUserAccountID: number,
-    selectedOptions: SelectedOption[],
-    setSelectedOptions: (options: SelectedOption[]) => void,
+    translate: LocalizedTranslate,
+    selectedOptions: OptionData[],
+    setSelectedOptions: (options: OptionData[]) => void,
 ) {
     const shouldRestoreSelectedOptionsRef = useRef(true);
     const isScreenFocusedRef = useIsFocusedRef();
 
+    const {dateFnsLocale} = useLocalize();
     const draftParticipantsSelector = (draft: NewGroupChatDraft | undefined) => {
         const isSubscriptionActive = shouldRestoreSelectedOptionsRef.current || !isScreenFocusedRef.current;
         return isSubscriptionActive ? draft?.participants : undefined;
@@ -45,18 +52,24 @@ function useGroupChatDraftParticipantSync(
         // Flip the ref first so the useOnyx selector disables the subscription
         shouldRestoreSelectedOptionsRef.current = false;
 
-        const restoredOptionsFromDraft = (draftParticipants ?? []).reduce<SelectedOption[]>((result, participant) => {
+        const restoredOptionsFromDraft = (draftParticipants ?? []).reduce<OptionData[]>((result, participant) => {
             if (participant.accountID === currentUserAccountID) {
                 return result;
             }
-            const option =
-                allPersonalDetailOptions.find((personalDetail) => personalDetail.accountID === participant.accountID) ??
-                getUserToInviteOption({
-                    searchValue: participant?.login,
-                    personalDetails: allPersonalDetails,
-                    loginList,
-                    currentUserEmail,
-                });
+
+            // Existing users resolve to their real account; participants without personal details are invited-by-email/phone
+            // users restored via getUserToInviteOption so they keep the optimistic flag.
+            const detail = allPersonalDetails?.[participant.accountID];
+            const option = detail
+                ? // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- participant-shaped option built from real personal details
+                  (getParticipantsOption({accountID: participant.accountID, login: participant.login}, allPersonalDetails, translate) as OptionData)
+                : getUserToInviteOption({
+                      dateFnsLocale,
+                      searchValue: participant?.login,
+                      personalDetails: allPersonalDetails,
+                      loginList,
+                      currentUserEmail,
+                  });
             if (option) {
                 result.push({...option, isSelected: true});
             }
@@ -89,7 +102,7 @@ function useGroupChatDraftParticipantSync(
         syncSelectedOptionsWithDraft();
     }, [draftParticipants, isScreenFocusedRef]);
 
-    const areRestoreInputsReady = areAllPersonalDetailOptionsLoaded && !isLoadingOnyxValue(draftParticipantsMetadata);
+    const areRestoreInputsReady = areOptionsInitialized && !isLoadingOnyxValue(draftParticipantsMetadata);
 
     // Handle reload with existing draft participants
     useEffect(() => {

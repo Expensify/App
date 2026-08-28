@@ -1,25 +1,44 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import type {FlatList as FlatListType} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FlatList from '@components/FlatList/FlatList';
 import Image from '@components/Image';
 import {PressableWithFeedback} from '@components/Pressable';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useLocalReceiptThumbnail from '@hooks/useLocalReceiptThumbnail';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionDraftReceipts from '@hooks/useTransactionDraftReceipts';
+
+import {isLocalFile} from '@libs/fileDownload/FileUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import useReceiptPreviewsSizes from '@pages/iou/request/step/IOURequestStepScan/hooks/useReceiptPreviewsSizes';
+
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
+
+import type {FlatList as FlatListType} from 'react-native';
+
+import {Str} from 'expensify-common';
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+
 import SubmitButtonShadow from './SubmitButtonShadow';
 
 type ReceiptWithTransactionID = Receipt & {transactionID: string};
+
+type ReceiptPreviewItemProps = {
+    /** The draft receipt to preview, or undefined for a placeholder slot */
+    item: ReceiptWithTransactionID | undefined;
+
+    /** Whether the scan screen is currently in landscape mode */
+    isInLandscapeMode: boolean;
+};
 
 type ReceiptPreviewsProps = {
     /** Submit method */
@@ -35,11 +54,43 @@ type ReceiptPreviewsProps = {
     isInLandscapeMode?: boolean;
 };
 
+function ReceiptPreviewItem({item, isInLandscapeMode}: ReceiptPreviewItemProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const placeholderStyle = isInLandscapeMode ? styles.receiptPlaceholderLandscape : styles.receiptPlaceholder;
+    const sourceUri = typeof item?.source === 'string' ? item.source : undefined;
+    const isLocalReceipt = isLocalFile(sourceUri) && Str.isImage(item?.filename ?? '');
+    const {thumbnailUri} = useLocalReceiptThumbnail(isLocalReceipt ? sourceUri : undefined, isLocalReceipt);
+
+    if (!item || (isLocalReceipt && !thumbnailUri)) {
+        return <View style={placeholderStyle} />;
+    }
+
+    const imageSource = isLocalReceipt ? thumbnailUri : item.source;
+
+    return (
+        <PressableWithFeedback
+            accessible
+            accessibilityLabel={translate('common.receipt')}
+            accessibilityRole={CONST.ROLE.BUTTON}
+            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_RECEIPT_VIEW.getRoute(item.transactionID)))}
+            sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.RECEIPT_PREVIEW_ITEM}
+        >
+            {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
+            <Image
+                source={typeof imageSource === 'string' ? {uri: imageSource} : imageSource}
+                style={[placeholderStyle, styles.overflowHidden]}
+                loadingIconSize="small"
+                loadingIndicatorStyles={styles.bgTransparent}
+            />
+        </PressableWithFeedback>
+    );
+}
+
 function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false, isInLandscapeMode = false}: ReceiptPreviewsProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
     const isPreviewsVisible = useSharedValue(false);
     const {previewsSize, previewItemSize, initialReceiptsAmount} = useReceiptPreviewsSizes(isInLandscapeMode);
 
@@ -83,30 +134,12 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false, 
         flatListRef.current?.scrollToIndex({index: receiptsPhotosLength - 1});
     }, [receiptsPhotosLength, previousReceiptsPhotosLength, initialReceiptsAmount]);
 
-    const renderItem = ({item}: {item: ReceiptWithTransactionID | undefined}) => {
-        const placeholderStyle = isInLandscapeMode ? styles.receiptPlaceholderLandscape : styles.receiptPlaceholder;
-        if (!item) {
-            return <View style={placeholderStyle} />;
-        }
-
-        return (
-            <PressableWithFeedback
-                accessible
-                accessibilityLabel={translate('common.receipt')}
-                accessibilityRole={CONST.ROLE.BUTTON}
-                onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_RECEIPT_VIEW.getRoute(item.transactionID, Navigation.getActiveRoute()))}
-                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.RECEIPT_PREVIEW_ITEM}
-            >
-                {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
-                <Image
-                    source={typeof item.source === 'string' ? {uri: item.source} : item.source}
-                    style={[placeholderStyle, styles.overflowHidden]}
-                    loadingIconSize="small"
-                    loadingIndicatorStyles={styles.bgTransparent}
-                />
-            </PressableWithFeedback>
-        );
-    };
+    const renderItem = ({item}: {item: ReceiptWithTransactionID | undefined}) => (
+        <ReceiptPreviewItem
+            item={item}
+            isInLandscapeMode={isInLandscapeMode}
+        />
+    );
 
     const slideInStyle = useAnimatedStyle(() => {
         const sizeValue = withTiming(isPreviewsVisible.get() ? previewsSize : 0, {duration: 300});
@@ -133,19 +166,23 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false, 
                     showsHorizontalScrollIndicator={false}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={
-                        isInLandscapeMode ? [{paddingBottom: styles.singleAvatarMedium.height}, styles.ph4] : [{paddingRight: styles.singleAvatarMedium.width}, styles.pl4]
+                        isInLandscapeMode ? [{paddingBottom: styles.singleAvatarXLarge.height}, styles.ph4] : [{paddingRight: styles.singleAvatarXLarge.width}, styles.pl4]
                     }
                 />
                 <SubmitButtonShadow isInLandscapeMode={isInLandscapeMode}>
                     <Button
-                        large
+                        size={CONST.BUTTON_SIZE.LARGE}
                         isDisabled={!optimisticTransactionsReceipts.length || isCapturingPhoto}
-                        innerStyles={[styles.singleAvatarMedium, styles.bgGreenSuccess]}
-                        icon={icons.ArrowRight}
-                        iconFill={theme.white}
+                        innerStyles={[styles.singleAvatarXLarge, styles.bgGreenSuccess]}
                         onPress={submit}
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.RECEIPT_PREVIEW_SUBMIT_BUTTON}
-                    />
+                    >
+                        <Button.Icon
+                            src={icons.ArrowRight}
+                            fill={theme.white}
+                            hoverFill={theme.white}
+                        />
+                    </Button>
                 </SubmitButtonShadow>
             </View>
         </Animated.View>

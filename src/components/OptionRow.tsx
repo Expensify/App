@@ -1,19 +1,24 @@
-import {deepEqual} from 'fast-equals';
-import React, {useEffect, useRef, useState} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, StyleSheet, View} from 'react-native';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
-import {shouldOptionShowTooltip} from '@libs/OptionsListUtils';
 import {getDisplayNamesWithTooltips} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import {deepEqual} from 'fast-equals';
+import React, {useEffect, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+
+import AccountAvatar from './Avatar/connected/AccountAvatar';
+import {AvatarTooltipsProvider} from './Avatar/tooltips/AvatarTooltipContext';
 import DisplayNames from './DisplayNames';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
@@ -35,8 +40,8 @@ type OptionRowProps = {
     /** Whether this option is currently in focus so we can modify its style */
     optionIsFocused?: boolean;
 
-    /** A function that is called when an option is selected. Selected option is passed as a param */
-    onSelectRow?: (option: OptionDataWithOptionalReportID, refElement: View | HTMLDivElement | null) => void | Promise<void>;
+    /** A function that is called when an option is selected */
+    onSelectRow?: () => void;
 
     /** Whether this item is selected */
     isSelected?: boolean;
@@ -111,8 +116,7 @@ function OptionRow({
     const fullTitle = isMultilineSupported ? text.trimStart() : text;
     const indentsLength = text.length - fullTitle.length;
     const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
-    const textStyle = optionIsFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
-    const textUnreadStyle = boldStyle || option.boldStyle ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
+    const textUnreadStyle = boldStyle || option.boldStyle ? [styles.sidebarLinkText, styles.sidebarLinkTextBold] : [styles.sidebarLinkText];
     const displayNameStyle: StyleProp<TextStyle> = [
         styles.optionDisplayName,
         textUnreadStyle,
@@ -122,7 +126,7 @@ function OptionRow({
         isMultilineSupported ? {paddingLeft} : {},
     ];
     const alternateTextStyle: StyleProp<TextStyle> = [
-        textStyle,
+        styles.sidebarLinkText,
         styles.optionAlternateText,
         styles.textLabelSupporting,
         style,
@@ -143,6 +147,7 @@ function OptionRow({
         shouldUseShortFormInTooltip,
         localeCompare,
         formatPhoneNumber,
+        translate,
     );
     let subscriptColor = theme.appBG;
     if (optionIsFocused) {
@@ -171,17 +176,8 @@ function OptionRow({
                             }
 
                             setIsDisabled(true);
-                            if (e) {
-                                e.preventDefault();
-                            }
-                            let result = onSelectRow(option, pressableRef.current);
-                            if (!(result instanceof Promise)) {
-                                result = Promise.resolve();
-                            }
-
-                            InteractionManager.runAfterInteractions(() => {
-                                result?.finally(() => setIsDisabled(isOptionDisabled));
-                            });
+                            e?.preventDefault();
+                            onSelectRow();
                         }}
                         disabled={isDisabled}
                         style={[
@@ -206,15 +202,25 @@ function OptionRow({
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 {!!option.icons?.length && !!firstIcon && (
-                                    <ReportActionAvatars
-                                        subscriptAvatarBorderColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
-                                        reportID={reportID}
-                                        accountIDs={!reportID && option.accountID ? [option.accountID] : []}
-                                        size={CONST.AVATAR_SIZE.DEFAULT}
-                                        secondaryAvatarContainerStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor)]}
-                                        shouldShowTooltip={showTitleTooltip && shouldOptionShowTooltip(option as OptionData)}
-                                    />
+                                    <AvatarTooltipsProvider isEnabled={showTitleTooltip && !option.private_isArchived}>
+                                        {!reportID && option.accountID ? (
+                                            <AccountAvatar
+                                                accountID={option.accountID}
+                                                size={CONST.AVATAR_SIZE.DEFAULT}
+                                            />
+                                        ) : (
+                                            <ReportActionAvatars
+                                                subscriptAvatarBorderColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
+                                                reportID={reportID}
+                                                size={CONST.AVATAR_SIZE.DEFAULT}
+                                                secondaryAvatarContainerStyle={[
+                                                    StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor),
+                                                ]}
+                                            />
+                                        )}
+                                    </AvatarTooltipsProvider>
                                 )}
+
                                 <View style={contentContainerStyles}>
                                     <DisplayNames
                                         accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}

@@ -1,17 +1,21 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import {View} from 'react-native';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
+
 import CONST from '@src/CONST';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
-import Button from './Button';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
+import Button from './ButtonComposed';
 import Icon from './Icon';
 import MenuItem from './MenuItem';
 import OfflineWithFeedback from './OfflineWithFeedback';
@@ -58,7 +62,7 @@ function ApprovalWorkflowSection({
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb', 'Pencil', 'Users', 'UserCheck']);
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
+    const {translate, toLocaleOrdinalWithWords, localeCompare} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const approverTitle = (index: number) => {
@@ -75,7 +79,7 @@ function ApprovalWorkflowSection({
             const fromProviderSuffix = hrProviderName ? ` (${translate('workflowsPage.approverFromProvider', {provider: hrProviderName})})` : '';
             return `${translate('workflowsPage.manager')}${fromProviderSuffix}`;
         }
-        return approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : translate('workflowsPage.approver');
+        return approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinalWithWords(index + 1)} ${translate('workflowsPage.approver').toLowerCase()}` : translate('workflowsPage.approver');
     };
 
     const sortedMembers = approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare);
@@ -109,7 +113,7 @@ function ApprovalWorkflowSection({
                             src={icons.Lightbulb}
                             fill={theme.icon}
                             additionalStyles={styles.mr2}
-                            small
+                            size={CONST.ICON_SIZE.SMALL}
                         />
                         <Text
                             style={[styles.textLabelSupportingNormal]}
@@ -198,13 +202,14 @@ function ApprovalWorkflowSection({
             {!isDisabled && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt4, styles.gap2]}>
                     <Button
-                        small
-                        icon={icons.Pencil}
-                        text={translate('workflowsPage.editWorkflowAction')}
+                        size={CONST.BUTTON_SIZE.SMALL}
                         onPress={onPress}
                         accessibilityLabel={translate('workflowsPage.editWorkflowAction')}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.APPROVAL_WORKFLOW_SECTION}
-                    />
+                    >
+                        <Button.Icon src={icons.Pencil} />
+                        <Button.Text>{translate('workflowsPage.editWorkflowAction')}</Button.Text>
+                    </Button>
                 </View>
             )}
         </View>

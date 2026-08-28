@@ -1,24 +1,42 @@
 import {waitFor} from '@testing-library/react-native';
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+
+import * as API from '@libs/API';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
-import '@libs/Navigation/AppNavigator/AuthScreens';
 import Navigation from '@libs/Navigation/Navigation';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
+
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import '@libs/Navigation/AppNavigator/AuthScreens';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import type Request from '../../src/types/onyx/Request';
+import type {MockFetch} from '../utils/TestHelper';
+
 import * as App from '../../src/libs/actions/App';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
-import type Request from '../../src/types/onyx/Request';
+import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
+function mockRead() {
+    return jest.spyOn(API, 'read').mockImplementation(() => {});
+}
+
 OnyxUpdateManager();
 
 describe('actions/App', () => {
+    let mockFetch: MockFetch;
+
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -26,7 +44,8 @@ describe('actions/App', () => {
     });
 
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        mockFetch = TestHelper.createGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -37,7 +56,6 @@ describe('actions/App', () => {
     test('lastFullReconnectTime - openApp', async () => {
         // When Open App runs
         App.openApp();
-        App.confirmReadyToOpenApp();
         await waitForBatchedUpdates();
 
         // The lastFullReconnectTime should be updated
@@ -48,7 +66,6 @@ describe('actions/App', () => {
         // When a full ReconnectApp runs
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
         App.reconnectApp();
-        App.confirmReadyToOpenApp();
         await waitForBatchedUpdates();
 
         // The lastFullReconnectTime should be updated
@@ -59,11 +76,53 @@ describe('actions/App', () => {
         // When an incremental ReconnectApp runs
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
         App.reconnectApp(123);
-        App.confirmReadyToOpenApp();
         await waitForBatchedUpdates();
 
         // The lastFullReconnectTime should NOT be updated
         expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBeUndefined();
+    });
+
+    test('reconnectAppWithSideEffects falls back to openApp when the app has not finished loading', async () => {
+        // Given OpenApp hasn't finished yet, so there's no base app state
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, false);
+
+        // When the pause watchdog escalates with an incremental reconnect
+        await App.reconnectAppWithSideEffects(123);
+        await waitForBatchedUpdates();
+
+        // Then it must fall back to a full OpenApp instead of sending a nonsensical incremental reconnect
+        const calledCommands = mockFetch.mock.calls.map(([input]) => (typeof input === 'string' ? input.match(/api\/(\w+)\?/)?.[1] : undefined));
+        expect(calledCommands).toContain('OpenApp');
+        expect(calledCommands).not.toContain('ReconnectApp');
+    });
+
+    test('reconnectAppWithSideEffects is a no-op when using imported state', async () => {
+        // Given the app has loaded from imported state
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
+        await Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, true);
+
+        // When the pause watchdog escalates with an incremental reconnect
+        await App.reconnectAppWithSideEffects(123);
+        await waitForBatchedUpdates();
+
+        // Then no API call should be made, since imported state never makes API calls
+        expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    test('openApp is not deduped against an in-flight OpenApp when it carries preservation data', async () => {
+        const writeOpenApp = jest.spyOn(API, 'writeWithNoDuplicatesOpenAppConflictAction').mockImplementation(() => Promise.resolve());
+
+        App.openApp();
+        await waitForBatchedUpdates();
+        expect(writeOpenApp).toHaveBeenLastCalledWith(expect.anything(), expect.anything(), true);
+
+        App.openApp(true);
+        await waitForBatchedUpdates();
+        expect(writeOpenApp).toHaveBeenLastCalledWith(expect.anything(), expect.anything(), false);
+
+        App.openApp(false, {[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}1`]: 'a draft'});
+        await waitForBatchedUpdates();
+        expect(writeOpenApp).toHaveBeenLastCalledWith(expect.anything(), expect.anything(), false);
     });
 
     test('trigger full reconnect', async () => {
@@ -71,7 +130,6 @@ describe('actions/App', () => {
 
         // When OpenApp runs
         App.openApp();
-        App.confirmReadyToOpenApp();
         await waitForBatchedUpdates();
 
         // The lastFullReconnectTime should be updated
@@ -92,7 +150,6 @@ describe('actions/App', () => {
 
         // When OpenApp runs
         App.openApp();
-        App.confirmReadyToOpenApp();
         await waitForBatchedUpdates();
 
         // The lastFullReconnectTime should be updated
@@ -106,6 +163,44 @@ describe('actions/App', () => {
 
         // Then a full reconnect should NOT be triggered
         expect(triggerFullReconnect).toHaveBeenCalledTimes(0);
+    });
+
+    test('two reconnects the queue merges into one send one SearchForTodos', async () => {
+        const read = mockRead();
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
+
+        // Offline holds the queue, so the first reconnect is still in it when the second arrives
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+
+        App.reconnectApp();
+        await waitForBatchedUpdates();
+        App.reconnectApp();
+        await waitForBatchedUpdates();
+
+        // The queue kept one ReconnectApp and nothing has reached the server, so no read went out
+        expect(PersistedRequests.getAll()).toHaveLength(1);
+        expect(read).not.toHaveBeenCalled();
+
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+        SequentialQueue.flush();
+        await waitForBatchedUpdates();
+
+        // The one response that came back sent the one read
+        expect(read).toHaveBeenCalledTimes(1);
+        expect(read).toHaveBeenCalledWith(READ_COMMANDS.SEARCH_FOR_TODOS, null);
+    });
+
+    test('a ReconnectApp restored from a previous session sends SearchForTodos when it drains', async () => {
+        const read = mockRead();
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
+
+        // No caller is waiting on this one — it was persisted by a session that is gone
+        await PersistedRequests.save({command: WRITE_COMMANDS.RECONNECT_APP, data: {}} as Request<never>);
+        SequentialQueue.flush();
+        await waitForBatchedUpdates();
+
+        expect(read).toHaveBeenCalledTimes(1);
+        expect(read).toHaveBeenCalledWith(READ_COMMANDS.SEARCH_FOR_TODOS, null);
     });
 
     test('clearOnyxAndResetApp preserves rolled-back ongoing requests across reset', async () => {
@@ -151,42 +246,42 @@ describe('actions/App', () => {
         });
 
         it('should filter out undefined policies', () => {
-            const policies = {
+            const policies = createMock<OnyxCollection<Policy>>({
                 policy1: {id: 'policy1', name: 'Policy 1'},
                 policy2: undefined,
                 policy3: {id: 'policy3', name: 'Policy 3'},
-            } as unknown as OnyxCollection<Policy>;
+            });
             const result = App.getNonOptimisticPolicyIDs(policies);
             expect(result).toEqual(['policy1', 'policy3']);
         });
 
         it('should filter out policies with pendingAction ADD', () => {
-            const policies = {
+            const policies = createMock<OnyxCollection<Policy>>({
                 policy1: {id: 'policy1', name: 'Policy 1', pendingAction: 'add'},
                 policy2: {id: 'policy2', name: 'Policy 2'},
                 policy3: {id: 'policy3', name: 'Policy 3', pendingAction: 'update'},
-            } as unknown as OnyxCollection<Policy>;
+            });
             const result = App.getNonOptimisticPolicyIDs(policies);
             expect(result).toEqual(['policy2', 'policy3']);
         });
 
         it('should return IDs for all valid non-optimistic policies', () => {
-            const policies = {
+            const policies = createMock<OnyxCollection<Policy>>({
                 policy1: {id: 'policy1', name: 'Policy 1'},
                 policy2: {id: 'policy2', name: 'Policy 2'},
                 policy3: {id: 'policy3', name: 'Policy 3'},
-            } as unknown as OnyxCollection<Policy>;
+            });
             const result = App.getNonOptimisticPolicyIDs(policies);
             expect(result).toEqual(['policy1', 'policy2', 'policy3']);
         });
 
         it('should include policies with other pendingAction values', () => {
-            const policies = {
+            const policies = createMock<OnyxCollection<Policy>>({
                 policy1: {id: 'policy1', name: 'Policy 1', pendingAction: 'update'},
                 policy2: {id: 'policy2', name: 'Policy 2', pendingAction: 'delete'},
                 policy3: {id: 'policy3', name: 'Policy 3', pendingAction: null},
                 policy4: {id: 'policy4', name: 'Policy 4', pendingAction: undefined},
-            } as unknown as OnyxCollection<Policy>;
+            });
             const result = App.getNonOptimisticPolicyIDs(policies);
             expect(result).toEqual(['policy1', 'policy2', 'policy3', 'policy4']);
         });

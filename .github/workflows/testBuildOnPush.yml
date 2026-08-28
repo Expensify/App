@@ -5,23 +5,13 @@ on:
     branches: [main]
     paths-ignore: ['docs/**', 'contributingGuides/**', 'help/**', '.github/**', 'scripts/**', 'tests/**', 'jest/**', '.claude/**']
 
+concurrency:
+  group: testBuildOnPush
+  cancel-in-progress: false
+  queue: max
+
 jobs:
-  queue:
-    runs-on: blacksmith-2vcpu-ubuntu-2404
-    timeout-minutes: 120
-    steps:
-      - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
-
-      - name: Wait for earlier runs to finish (FIFO queue)
-        uses: ./.github/actions/javascript/waitForPreviousRuns
-        with:
-          GITHUB_TOKEN: ${{ github.token }}
-          WORKFLOW_ID: testBuildOnPush.yml
-          CURRENT_RUN_ID: ${{ github.run_id }}
-
   prep:
-    needs: [queue]
     runs-on: blacksmith-4vcpu-ubuntu-2404
     outputs:
       APP_REF: ${{ github.sha }}
@@ -30,7 +20,7 @@ jobs:
       BUILD_MOBILE: ${{ steps.detectOSBotifyPush.outputs.BUILD_MOBILE || 'true' }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
 
       - name: Validate that user is an Expensify employee
         uses: ./.github/actions/composite/validateActor
@@ -62,21 +52,21 @@ jobs:
         # v8
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
         with:
-            github-token: ${{ github.token }}
-            script: |
-                const prData = await github.rest.repos.listPullRequestsAssociatedWithCommit({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  commit_sha: context.sha,
-                });
-                const prNumber = prData?.data?.find(p => p.state === 'closed' && p.merged_at)?.number?.toString();
-                if (prNumber) {
-                  const prUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${prNumber}`;
-                  core.notice(`Found merged pull request: [#${prNumber}](${prUrl})`);
-                  core.setOutput('PR_NUMBER', prNumber);
-                } else {
-                  core.setFailed(`Commit pushed by non-OSBotify actor. No merged pull request found for commit ${context.sha}`);
-                }
+          github-token: ${{ github.token }}
+          script: |
+            const prData = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+            });
+            const prNumber = prData?.data?.find(p => p.state === 'closed' && p.merged_at)?.number?.toString();
+            if (prNumber) {
+              const prUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${prNumber}`;
+              core.notice(`Found merged pull request: [#${prNumber}](${prUrl})`);
+              core.setOutput('PR_NUMBER', prNumber);
+            } else {
+              core.setFailed(`Commit pushed by non-OSBotify actor. No merged pull request found for commit ${context.sha}`);
+            }
 
   buildApps:
     needs: [prep]

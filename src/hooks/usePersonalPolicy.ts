@@ -1,6 +1,8 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import useOnyx from './useOnyx';
 
 type PolicySelector = Pick<Policy, 'id' | 'type' | 'autoReporting' | 'outputCurrency'>;

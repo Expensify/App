@@ -1,18 +1,25 @@
-import type {ReactElement} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+
 import useLocalize from '@hooks/useLocalize';
+
 import {getIOUConfirmationOptionsFromPayeePersonalDetail} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
+
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import type {ReactElement} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 
 type MoneyRequestConfirmationListItem = (Participant & {keyForList: string}) | OptionData;
 
 type UseConfirmationSectionsParams = {
     /** Whether the current IOU type is split */
     isTypeSplit: boolean;
+
+    /** Whether the current IOU type is invoice (keeps the "To" header, which pairs with the invoice "Send from" field) */
+    isTypeInvoice?: boolean;
 
     /** Whether the "to" section should be hidden (used when adding directly to a report) */
     shouldHideToSection: boolean;
@@ -51,6 +58,7 @@ type UseConfirmationSectionsParams = {
  */
 function useConfirmationSections({
     isTypeSplit,
+    isTypeInvoice = false,
     shouldHideToSection,
     shouldForceTopEmptySections = false,
     participantRowErrors,
@@ -60,14 +68,14 @@ function useConfirmationSections({
     selectedParticipants,
     getSplitSectionHeader,
 }: UseConfirmationSectionsParams) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
 
     const options: Array<Section<MoneyRequestConfirmationListItem>> = [];
     if (isTypeSplit) {
         options.push(
             {
                 title: translate('moneyRequestConfirmationList.paidBy'),
-                data: [getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)],
+                data: [getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails, translate, formatPhoneNumber)],
                 sectionIndex: 0,
             },
             {
@@ -100,7 +108,7 @@ function useConfirmationSections({
                   ];
 
         options.push({
-            title: selectedParticipants.length > 0 ? translate('common.to') : undefined,
+            title: isTypeInvoice && selectedParticipants.length > 0 ? translate('common.to') : undefined,
             data: participantRows,
             sectionIndex: 0,
         });

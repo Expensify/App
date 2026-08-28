@@ -1,10 +1,15 @@
 import {render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import AccountManagerBanner from '@pages/inbox/AccountManagerBanner';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -59,7 +64,7 @@ describe('AccountManagerBanner', () => {
     it('renders the banner body using account.accountManagerAccountID (the OpenApp-populated field)', async () => {
         await Onyx.merge(ONYXKEYS.ACCOUNT, {
             accountManagerReportID: ACCOUNT_MANAGER_REPORT_ID,
-            accountManagerAccountID: String(ACCOUNT_MANAGER_ACCOUNT_ID),
+            accountManagerAccountID: ACCOUNT_MANAGER_ACCOUNT_ID,
         });
 
         renderBanner();
