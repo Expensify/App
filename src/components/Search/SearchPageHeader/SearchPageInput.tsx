@@ -2,6 +2,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,6 +13,7 @@ import {getKeywordQueryWithCurrentSearchContext, getQueryWithUpdatedValues, sani
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import KeyboardUtils from '@src/utils/keyboard';
 
@@ -27,6 +29,7 @@ type SearchPageInputProps = {
 
 function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
     const {translate} = useLocalize();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -46,7 +49,7 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
         const queryWithContext = getKeywordQueryWithCurrentSearchContext(query, queryJSON);
         // queryWithContext is derived from queryJSON whose amount filters are already in backend cents,
         // so skip the amount conversion to avoid multiplying the value by 100 again on every keyword change.
-        const updatedQuery = getQueryWithUpdatedValues(queryWithContext, true);
+        const updatedQuery = getQueryWithUpdatedValues(queryWithContext, true, policies);
 
         if (!updatedQuery) {
             return;
