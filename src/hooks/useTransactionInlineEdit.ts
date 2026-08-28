@@ -35,7 +35,7 @@ import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import {useCurrencyListActions} from './useCurrencyList';
 import useDelegateAccountID from './useDelegateAccountID';
 import useDistanceRateOriginalPolicy from './useDistanceRateOriginalPolicy';
-import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
+import {useLiveDuplicateTransactionsAndViolations} from './useDuplicateTransactionsAndViolations';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePersonalPolicy from './usePersonalPolicy';
@@ -95,6 +95,15 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const effectiveParentReport = isUnreported ? selfDMReport : parentReport;
     const effectiveParentReportID = effectiveParentReport?.reportID;
 
+    // The snapshot-aware effectiveParentReport above drives permissions, policy, chatReportID, and isTrackExpense.
+    // For the action params we additionally recover the parent report from live Onyx (single-key reads only), restoring
+    // the pre-refactor `allReports` fallbacks: the live report for reported expenses, and the real (non-optimistic) self
+    // DM for unreported expenses when it is missing from the Search snapshot.
+    const [liveParentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [liveSelfDMReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(selfDMReportID)}`);
+    const parentReportForAction = isUnreported ? (liveSelfDMReport ?? selfDMReport) : (effectiveParentReport ?? liveParentReport);
+
     const linkedReportActionID = linkedReportAction?.reportActionID;
 
     // Use original Onyx here because the useOnyx wrapper can read the partial Search snapshot report actions, which may miss
@@ -123,10 +132,11 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         isPerDiemRequest: isPerDiemRequest(transaction),
     });
 
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     // Use original Onyx here because the useOnyx wrapper can read the partial Search snapshot, where an existing
-    // transaction thread report may be missing. Reading live Onyx lets us reuse an existing child thread instead of
-    // creating a duplicate one (this restores the pre-refactor `allReports` fallback that recovered the live report).
-    const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
+    // transaction thread report may be missing. Reading live Onyx lets the action reuse an existing child thread instead
+    // of creating a duplicate one (this restores the pre-refactor `allReports` fallback that recovered the live report).
+    const [liveTransactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(reportPolicyID)}`);
@@ -150,7 +160,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     // Scoped transaction/violation collections (the edited transaction plus any duplicates) are read here and
     // passed into the pure edit actions, which need them to resolve duplicate-transaction violations. This mirrors
     // the non-inline edit flow (see DynamicIOURequestStepDate) and avoids subscribing to the full collections.
-    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations([transactionID]);
+    const {duplicateTransactions, duplicateTransactionViolations} = useLiveDuplicateTransactionsAndViolations([transactionID]);
 
     const {hasSelectedTransactions} = useSearchSelectionContext();
 
@@ -191,9 +201,9 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             hash,
             transactionID,
             transaction,
-            parentReport: effectiveParentReport,
+            parentReport: parentReportForAction,
             parentReportAction,
-            transactionThreadReport,
+            transactionThreadReport: transactionThreadReport ?? liveTransactionThreadReport,
             policy: completePolicy ?? policy,
             policyForTrackExpense: isTrackExpense ? policyForMovingExpenses : undefined,
             policyCategories,

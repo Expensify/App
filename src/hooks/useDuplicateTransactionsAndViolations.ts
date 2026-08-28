@@ -5,6 +5,8 @@ import type {Transaction, TransactionViolation, TransactionViolations} from '@sr
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {useMemo} from 'react';
+// eslint-disable-next-line no-restricted-imports -- Need original useOnyx to read the full live collections and bypass the partial Search snapshot.
+import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 
 import useOnyx from './useOnyx';
 
@@ -143,4 +145,40 @@ function useDuplicateTransactionsAndViolations(transactionIDs: string[]): Duplic
     );
 }
 
+/**
+ * Live variant of {@link useDuplicateTransactionsAndViolations} that reads the full transaction and violation collections
+ * from live Onyx (via the original useOnyx) instead of the Search-snapshot-aware wrapper. This restores the pre-refactor
+ * behavior where inline edits from Search operate on the complete duplicate set, so reciprocal duplicate-transaction
+ * violations of counterparts that are loaded locally but excluded from the current search are still cleaned up. It must be
+ * a separate hook rather than a runtime `shouldUseLiveData` flag because React Compiler forbids selecting a hook dynamically.
+ * @param transactionIDs - Array of transaction IDs to check for duplicates.
+ * @returns - An object containing duplicate transactions and their violations.
+ */
+function useLiveDuplicateTransactionsAndViolations(transactionIDs: string[]): DuplicateTransactionsAndViolations {
+    const violationsSelectorMemo = useMemo(() => {
+        return (allTransactionsViolations: OnyxCollection<TransactionViolations>) => selectViolationsWithDuplicates(transactionIDs, allTransactionsViolations);
+    }, [transactionIDs]);
+
+    const [duplicateTransactionViolations] = originalUseOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+        selector: violationsSelectorMemo,
+    });
+
+    const transactionSelector = useMemo(() => {
+        return (allTransactions: OnyxCollection<Transaction>) => selectTransactionsWithDuplicates(transactionIDs, allTransactions, duplicateTransactionViolations);
+    }, [transactionIDs, duplicateTransactionViolations]);
+
+    const [duplicateTransactions] = originalUseOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: transactionSelector,
+    });
+
+    return useMemo(
+        () => ({
+            duplicateTransactions,
+            duplicateTransactionViolations,
+        }),
+        [duplicateTransactions, duplicateTransactionViolations],
+    );
+}
+
+export {useLiveDuplicateTransactionsAndViolations};
 export default useDuplicateTransactionsAndViolations;
