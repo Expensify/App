@@ -1888,6 +1888,8 @@ describe('getSecondaryAction', () => {
             action: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
             reportData: {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, managerID: EMPLOYEE_ACCOUNT_ID},
             policyData: {approver: EMPLOYEE_EMAIL},
+
+            // Approve action is present in secondary actions only when the report has a duplicate violation.
             hasDuplicateViolation: true,
         },
         {
