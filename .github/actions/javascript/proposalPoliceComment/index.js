@@ -52276,9 +52276,9 @@ var COMMENT_INTENTS = import_expensify_common.Str.dedent(`
 
     - "${CONST_default.INTENT.SPAM}" if it claims or bids for the job without offering any technical content of its own: expressions of interest, "I'd like to work on this", "assign me", references to an Upwork application, or a restatement of the issue as a plan of action with no root cause or solution.
     - "${CONST_default.INTENT.GENUINE_ATTEMPT}" if it makes a real technical attempt to explain the cause of the problem or propose a fix, but does not follow the template.
-    - "${CONST_default.INTENT.NOT_AN_ATTEMPT}" for anything else: feedback on someone else's proposal, retest results, questions, reproduction notes, or general discussion.
+    - "${CONST_default.INTENT.NOT_AN_ATTEMPT}" for anything else: feedback on someone else's proposal, retest results, questions, reproduction notes, takeover coordination, review offers, or general discussion.
 
-    The dividing line between the first two is technical content. A comment that offers a root cause or a concrete fix is a genuine attempt no matter how informally it is written, or how poor the English. A comment that only asserts the author will do the work is spam.
+    The dividing line between the first two is technical content. A comment that offers a root cause or a concrete fix is a genuine attempt no matter how informally it is written, or how poor the English. A comment that only asserts the author will do the work is spam. Coordination about who should take over an issue or review a proposal is not a bid for the job, even when it contains no technical content.
 `);
 var EDITED_COMMENT_ACTIONS = import_expensify_common.Str.dedent(`
     EDITED COMMENTS: Compare the original proposal with its latest edit.
@@ -52357,6 +52357,16 @@ var commentIntentExamples_default = import_expensify_common2.Str.dedent(`
     What are the exact steps to reproduce this? I can't get the error to appear on the latest main.
     ___
     ${CONST_default.INTENT.NOT_AN_ATTEMPT} - a question about the issue.
+
+    ___
+    @reviewer Would you like to take over here? Or propose a solution?
+    ___
+    ${CONST_default.INTENT.NOT_AN_ATTEMPT} - coordination about transferring ownership of the issue, not a claim on the job.
+
+    ___
+    I don't have a solution yet. If you don't mind, I can take over here and review.
+    ___
+    ${CONST_default.INTENT.NOT_AN_ATTEMPT} - offering to take over or review is coordination, not a job claim.
 
     ___
     Bug Report:
