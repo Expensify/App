@@ -1,6 +1,5 @@
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-
-import type {MoneyRequestViewData} from '../useMoneyRequestViewData';
+import type {MoneyRequestViewData} from '@components/ReportActionItem/MoneyRequestView/useMoneyRequestViewData';
 
 type ViewTripDetailsActionProps = {
     data: MoneyRequestViewData;

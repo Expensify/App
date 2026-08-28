@@ -1,8 +1,7 @@
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import type {MoneyRequestViewData} from '@components/ReportActionItem/MoneyRequestView/useMoneyRequestViewData';
 
 import {View} from 'react-native';
-
-import type {MoneyRequestViewData} from '../useMoneyRequestViewData';
 
 type TripFieldProps = {
     data: MoneyRequestViewData;

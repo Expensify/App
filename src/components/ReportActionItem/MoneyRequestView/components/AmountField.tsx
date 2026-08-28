@@ -1,9 +1,8 @@
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import type {MoneyRequestViewData} from '@components/ReportActionItem/MoneyRequestView/useMoneyRequestViewData';
 
 import CONST from '@src/CONST';
-
-import type {MoneyRequestViewData} from '../useMoneyRequestViewData';
 
 type AmountFieldProps = {
     data: MoneyRequestViewData;

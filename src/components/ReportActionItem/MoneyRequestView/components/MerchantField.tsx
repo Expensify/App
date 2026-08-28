@@ -2,6 +2,7 @@ import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import type {MoneyRequestViewData} from '@components/ReportActionItem/MoneyRequestView/useMoneyRequestViewData';
 import Text from '@components/Text';
 
 import {openExternalLink} from '@libs/actions/Link';
@@ -9,8 +10,6 @@ import {openExternalLink} from '@libs/actions/Link';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-
-import type {MoneyRequestViewData} from '../useMoneyRequestViewData';
 
 type MerchantFieldProps = {
     data: MoneyRequestViewData;

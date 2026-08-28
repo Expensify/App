@@ -1,7 +1,6 @@
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-
-import type {MoneyRequestViewData} from '../useMoneyRequestViewData';
+import type {MoneyRequestViewData} from '@components/ReportActionItem/MoneyRequestView/useMoneyRequestViewData';
 
 type CardFieldProps = {
     data: MoneyRequestViewData;

@@ -1,11 +1,10 @@
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import type {MoneyRequestViewData} from '@components/ReportActionItem/MoneyRequestView/useMoneyRequestViewData';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
 
 import {View} from 'react-native';
-
-import type {MoneyRequestViewData} from '../useMoneyRequestViewData';
 
 type BillableFieldProps = {
     data: MoneyRequestViewData;

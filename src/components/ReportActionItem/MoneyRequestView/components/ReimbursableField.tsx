@@ -1,11 +1,10 @@
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import type {MoneyRequestViewData} from '@components/ReportActionItem/MoneyRequestView/useMoneyRequestViewData';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 
 import {Str} from 'expensify-common';
 import {View} from 'react-native';
-
-import type {MoneyRequestViewData} from '../useMoneyRequestViewData';
 
 type ReimbursableFieldProps = {
     data: MoneyRequestViewData;

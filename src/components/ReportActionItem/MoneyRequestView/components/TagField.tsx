@@ -1,5 +1,6 @@
 import HighlightableMenuItemWithTopDescription from '@components/HighlightableMenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import type {MoneyRequestViewData} from '@components/ReportActionItem/MoneyRequestView/useMoneyRequestViewData';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
@@ -10,8 +11,6 @@ import Navigation from '@navigation/Navigation';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-
-import type {MoneyRequestViewData} from '../useMoneyRequestViewData';
 
 type TagFieldProps = {
     data: MoneyRequestViewData;

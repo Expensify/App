@@ -1,9 +1,8 @@
 import Icon from '@components/Icon';
+import type {MoneyRequestViewData} from '@components/ReportActionItem/MoneyRequestView/useMoneyRequestViewData';
 import Text from '@components/Text';
 
 import {View} from 'react-native';
-
-import type {MoneyRequestViewData} from '../useMoneyRequestViewData';
 
 type PerDiemOutOfPolicyBannerProps = {
     data: MoneyRequestViewData;

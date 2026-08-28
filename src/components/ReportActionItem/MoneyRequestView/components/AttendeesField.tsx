@@ -1,10 +1,9 @@
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import type {MoneyRequestViewData} from '@components/ReportActionItem/MoneyRequestView/useMoneyRequestViewData';
 import UserPills from '@components/UserPills';
 
 import CONST from '@src/CONST';
-
-import type {MoneyRequestViewData} from '../useMoneyRequestViewData';
 
 type AttendeesFieldProps = {
     data: MoneyRequestViewData;

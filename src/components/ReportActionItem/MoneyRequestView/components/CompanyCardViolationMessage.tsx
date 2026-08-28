@@ -1,6 +1,5 @@
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-
-import type {MoneyRequestViewData} from '../useMoneyRequestViewData';
+import type {MoneyRequestViewData} from '@components/ReportActionItem/MoneyRequestView/useMoneyRequestViewData';
 
 type CompanyCardViolationMessageProps = {
     data: MoneyRequestViewData;
