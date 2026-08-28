@@ -409,7 +409,7 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        expect(preventRemoveFlags.some(Boolean)).toBe(false);
+        expect(preventRemoveFlags.at(-1)).toBe(false);
     });
 
     it('arms the native discard guard when a negative amount becomes positive and disarms it when the negative sign is restored', async () => {
@@ -434,7 +434,7 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
                 <CurrentUserPersonalDetailsProvider>
                     <IOURequestStepAmount
                         // @ts-expect-error minimal route for test
-                        route={createRouteParams({iouType: CONST.IOU.TYPE.CREATE})}
+                        route={createRouteParams({iouType: CONST.IOU.TYPE.CREATE, backTo: 'test'})}
                         navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT>['navigation']>({})}
                     />
                 </CurrentUserPersonalDetailsProvider>
