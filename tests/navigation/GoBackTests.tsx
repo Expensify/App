@@ -11,6 +11,8 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
+import type {InitialState} from '@react-navigation/native';
+
 import React from 'react';
 
 import TestNavigationContainer from '../utils/TestNavigationContainer';
@@ -24,6 +26,62 @@ const mockedGetIsNarrowLayout = jest.mocked(getIsNarrowLayout);
 const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 const mockedPolicyID = 'test-policy';
 const mockedBackToRoute = '/test';
+
+function buildWorkspaceSplitRoute(policyID: string) {
+    return {
+        name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+        state: {
+            index: 1,
+            routes: [
+                {name: SCREENS.WORKSPACE.INITIAL, params: {policyID}},
+                {name: SCREENS.WORKSPACE.MEMBERS, params: {policyID}},
+            ],
+        },
+    } as const;
+}
+
+function buildDomainSplitRoute(domainAccountID: number) {
+    return {
+        name: NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
+        state: {
+            index: 1,
+            routes: [
+                {name: SCREENS.DOMAIN.INITIAL, params: {domainAccountID}},
+                {name: SCREENS.DOMAIN.MEMBERS, params: {domainAccountID}},
+            ],
+        },
+    } as const;
+}
+
+type WorkspaceScopeRoute = ReturnType<typeof buildWorkspaceSplitRoute> | ReturnType<typeof buildDomainSplitRoute>;
+
+function buildWorkspaceNavigationState(...workspaceSplits: WorkspaceScopeRoute[]): InitialState {
+    return {
+        index: 0,
+        routes: [
+            {
+                name: NAVIGATORS.TAB_NAVIGATOR,
+                state: {
+                    index: 4,
+                    routes: [
+                        {name: SCREENS.HOME},
+                        {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                        {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                        {
+                            name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+                            state: {
+                                index: workspaceSplits.length - 1,
+                                routes: workspaceSplits,
+                            },
+                        },
+                    ],
+                },
+            },
+        ],
+    };
+}
+
 describe('Go back on the narrow layout', () => {
     beforeEach(() => {
         mockedGetIsNarrowLayout.mockReturnValue(true);
@@ -366,6 +424,91 @@ describe('Go back on the narrow layout', () => {
             const tabStateAfterGoBack = rootStateAfterGoBack?.routes.at(0)?.state;
             const activeTabAfterGoBack = tabStateAfterGoBack?.routes.at(tabStateAfterGoBack?.index ?? 0);
             expect(activeTabAfterGoBack?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+        });
+    });
+
+    describe('called with a different workspace fallback route', () => {
+        const policyA = 'policy-a';
+        const policyB = 'policy-b';
+
+        it('Should pop to the matching workspace split', () => {
+            render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(buildWorkspaceSplitRoute(policyA), buildWorkspaceSplitRoute(policyB))} />);
+
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyA));
+            });
+
+            const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const workspaceState = tabState?.routes.at(4)?.state;
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(workspaceState?.routes).toHaveLength(1);
+            expect(activeSplit?.state?.routes.at(0)?.params).toMatchObject({policyID: policyA});
+            expect(activeSplit?.state?.routes.at(-1)?.params).toMatchObject({policyID: policyA});
+        });
+
+        it('Should replace the active split when the fallback workspace is not in the stack', () => {
+            render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(buildWorkspaceSplitRoute(policyB))} />);
+
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyA));
+            });
+
+            const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const workspaceState = tabState?.routes.at(4)?.state;
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(workspaceState?.routes).toHaveLength(1);
+            expect(activeSplit?.state?.routes.at(0)?.params).toMatchObject({policyID: policyA});
+            expect(activeSplit?.state?.routes.at(-1)?.params).toMatchObject({policyID: policyA});
+        });
+
+        it('Should pop to the matching workspace split without comparing leaf params', () => {
+            render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(buildWorkspaceSplitRoute(policyA), buildWorkspaceSplitRoute(policyB))} />);
+
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyA), {compareParams: false});
+            });
+
+            const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const workspaceState = tabState?.routes.at(4)?.state;
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(workspaceState?.routes).toHaveLength(1);
+            expect(activeSplit?.state?.routes.at(0)?.params).toMatchObject({policyID: policyA});
+            expect(activeSplit?.state?.routes.at(-1)?.params).toMatchObject({policyID: policyA});
+        });
+    });
+
+    describe('called with a different domain fallback route', () => {
+        const domainA = 1;
+        const domainB = 2;
+
+        it('Should pop to the matching domain split', () => {
+            render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(buildDomainSplitRoute(domainA), buildDomainSplitRoute(domainB))} />);
+
+            act(() => {
+                Navigation.goBack(ROUTES.DOMAIN_MEMBERS.getRoute(domainA));
+            });
+
+            const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const workspaceState = tabState?.routes.at(4)?.state;
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(workspaceState?.routes).toHaveLength(1);
+            expect(activeSplit?.state?.routes.at(0)?.params).toMatchObject({domainAccountID: domainA});
+            expect(activeSplit?.state?.routes.at(-1)?.params).toMatchObject({domainAccountID: domainA});
+        });
+
+        it('Should replace the active split when the fallback domain is not in the stack', () => {
+            render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(buildDomainSplitRoute(domainB))} />);
+
+            act(() => {
+                Navigation.goBack(ROUTES.DOMAIN_MEMBERS.getRoute(domainA));
+            });
+
+            const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const workspaceState = tabState?.routes.at(4)?.state;
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(workspaceState?.routes).toHaveLength(1);
+            expect(activeSplit?.state?.routes.at(0)?.params).toMatchObject({domainAccountID: String(domainA)});
+            expect(activeSplit?.state?.routes.at(-1)?.params).toMatchObject({domainAccountID: String(domainA)});
         });
     });
 

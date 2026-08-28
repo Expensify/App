@@ -57,7 +57,7 @@ import isReportOpenInRHP from './helpers/isReportOpenInRHP';
 import isReportTopmostSplitNavigator from './helpers/isReportTopmostSplitNavigator';
 import isSideModalNavigator from './helpers/isSideModalNavigator';
 import linkTo from './helpers/linkTo';
-import getMinimalAction from './helpers/linkTo/getMinimalAction';
+import getMinimalAction, {hasMatchingSplitScope} from './helpers/linkTo/getMinimalAction';
 import {popAndRealignMfaMarker} from './helpers/mfaModalMarkerPreservation';
 import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
 import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
@@ -469,8 +469,16 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
     }
 
     const {action: minimalAction, targetState} = getMinimalAction(action, rootState);
+    const minimalActionPayload = minimalAction.payload;
+    const isScopedSplitPush =
+        minimalAction.type === CONST.NAVIGATION.ACTION_TYPE.PUSH &&
+        !!minimalActionPayload &&
+        typeof minimalActionPayload === 'object' &&
+        'name' in minimalActionPayload &&
+        typeof minimalActionPayload.name === 'string' &&
+        isSplitNavigatorName(minimalActionPayload.name);
 
-    if (minimalAction.type !== CONST.NAVIGATION.ACTION_TYPE.NAVIGATE || !targetState) {
+    if ((minimalAction.type !== CONST.NAVIGATION.ACTION_TYPE.NAVIGATE && !isScopedSplitPush) || !targetState) {
         Log.hmmm('[Navigation] Unable to go up. Minimal action type is wrong.');
         return false;
     }
@@ -509,7 +517,9 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
         return true;
     }
 
-    const indexOfBackToRoute = targetState.routes.findLastIndex((route) => doesRouteMatchToMinimalActionPayload(route, minimalAction, compareParams));
+    const indexOfBackToRoute = targetState.routes.findLastIndex((route) =>
+        isScopedSplitPush ? hasMatchingSplitScope(route, minimalActionPayload) : doesRouteMatchToMinimalActionPayload(route, minimalAction, compareParams),
+    );
     const distanceToPop = targetState.routes.length - indexOfBackToRoute - 1;
 
     // If we need to pop more than one route from rootState, we replace the current route to not lose visited routes from the navigation state
@@ -522,7 +532,7 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
     /**
      * If we are not comparing params, we want to use popTo action because it will replace params in the route already existing in the state if necessary.
      */
-    if (!compareParams) {
+    if (!compareParams && !isScopedSplitPush) {
         dispatch({...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.POP_TO});
         return true;
     }

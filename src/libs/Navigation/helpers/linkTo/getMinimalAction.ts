@@ -24,9 +24,13 @@ function isNamedActionPayload(payload: unknown): payload is ActionPayload & {nam
     return isRecord(payload) && typeof payload.name === 'string';
 }
 
-function hasDifferentSplitScope(currentRoute: NavigationRoute, payload: ActionPayload): boolean {
+function getSplitScopeComparisonValues(currentRoute: NavigationRoute, payload: unknown) {
+    if (!isNamedActionPayload(payload)) {
+        return;
+    }
+
     if (!isSplitNavigatorName(currentRoute.name) || !currentRoute.state) {
-        return false;
+        return;
     }
 
     const sidebarScreen = SPLIT_TO_SIDEBAR[currentRoute.name];
@@ -34,14 +38,46 @@ function hasDifferentSplitScope(currentRoute: NavigationRoute, payload: ActionPa
     const sidebarRoute = currentRoute.state.routes.find((route) => route.name === sidebarScreen);
     const currentParams: unknown = sidebarRoute?.params;
     const targetParams = payload.params?.params;
-    if (!isRecord(currentParams) || !isRecord(targetParams)) {
+    if (!scopeParams.length || !isRecord(currentParams) || !isRecord(targetParams)) {
+        return;
+    }
+
+    return {scopeParams, currentParams, targetParams};
+}
+
+function getComparableScopeValue(value: unknown): string | undefined {
+    if (typeof value !== 'string' && typeof value !== 'number') {
+        return;
+    }
+
+    return String(value);
+}
+
+function hasDifferentSplitScope(currentRoute: NavigationRoute, payload: ActionPayload): boolean {
+    const scopeComparisonValues = getSplitScopeComparisonValues(currentRoute, payload);
+    if (!scopeComparisonValues) {
         return false;
     }
 
+    const {scopeParams, currentParams, targetParams} = scopeComparisonValues;
     return scopeParams.some((param) => {
-        const currentValue = currentParams[param];
-        const targetValue = targetParams[param];
+        const currentValue = getComparableScopeValue(currentParams[param]);
+        const targetValue = getComparableScopeValue(targetParams[param]);
         return currentValue !== undefined && targetValue !== undefined && currentValue !== targetValue;
+    });
+}
+
+function hasMatchingSplitScope(currentRoute: NavigationRoute, payload: unknown): boolean {
+    const scopeComparisonValues = getSplitScopeComparisonValues(currentRoute, payload);
+    if (!scopeComparisonValues) {
+        return false;
+    }
+
+    const {scopeParams, currentParams, targetParams} = scopeComparisonValues;
+    return scopeParams.every((param) => {
+        const currentValue = getComparableScopeValue(currentParams[param]);
+        const targetValue = getComparableScopeValue(targetParams[param]);
+        return currentValue !== undefined && currentValue === targetValue;
     });
 }
 
@@ -89,4 +125,5 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Min
     return {action: currentAction, targetState: currentState};
 }
 
+export {hasMatchingSplitScope};
 export default getMinimalAction;
