@@ -2306,6 +2306,14 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Noms de segments surlignés',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.clic, navigation, ui.chargement',
             showBranchNameInTitle: 'Afficher le nom de la branche dans le titre du navigateur',
+            qaAuth: 'Authentification QA (Cloudflare)',
+            qaAuthRunProbe: 'Lancer le test',
+            qaAuthSession: 'Session d’authentification QA',
+            qaAuthClearSession: 'Effacer la session',
+            qaAuthStatusSuccess: 'Sonde réussie',
+            qaAuthStatusReauthRequired: 'Session expirée — relancez pour vous connecter',
+            qaAuthStatusSignInFailed: 'La connexion n’a pas abouti — relancez pour réessayer',
+            qaAuthStatusError: 'Sonde échouée',
         },
         security: 'Sécurité',
         signOut: 'Se déconnecter',
@@ -4593,6 +4601,10 @@ ${amount} pour ${merchant} - ${date}`,
                 'Saviez-vous que vous pouvez réserver et gérer vos trajets en train directement dans Expensify ? La prochaine fois, évitez la corvée de créer votre dépense manuellement et réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Saviez-vous que vous pouvez réserver et gérer vos trajets en train directement dans Expensify ? Et que les reçus sont automatiquement téléchargés pour vous ? La prochaine fois, réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            hotelBlockManual:
+                'Saviez-vous que vous pouvez réserver et gérer des voyages de groupe comme celui-ci directement dans Expensify ? Évitez-vous des ennuis la prochaine fois et essayez notre outil <a href="https://help.expensify.com/travel/hubs/event-management/">Événements de voyage</a>.',
+            hotelBlockCard:
+                'Saviez-vous que vous pouvez réserver et gérer des voyages de groupe comme celui-ci directement dans Expensify ? Évitez-vous des ennuis la prochaine fois et essayez notre outil <a href="https://help.expensify.com/travel/hubs/event-management/">Événements de voyage</a>.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Voyage n’est pas activé',
@@ -6073,6 +6085,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     comment: 'Description',
                     category: 'Catégorie',
                     tag: 'Étiquette',
+                    uniqueID: 'ID unique',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Veuillez attribuer une colonne à chacun des attributs : ${missingColumns}.`,

@@ -2354,6 +2354,14 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Καταγραφή αιτημάτων Sentry στην κονσόλα',
             sentryHighlightedSpanOps: 'Επισημασμένα ονόματα span',
             sentryHighlightedSpanOpsPlaceholder: 'κλικ αλληλεπίδρασης διεπαφής, πλοήγηση, φόρτωση διεπαφής',
+            qaAuth: 'Έλεγχος ταυτότητας QA (Cloudflare)',
+            qaAuthRunProbe: 'Εκτέλεση δοκιμής',
+            qaAuthSession: 'Δοκιμαστική συνεδρία ελέγχου ταυτότητας',
+            qaAuthClearSession: 'Εκκαθάριση συνεδρίας',
+            qaAuthStatusSuccess: 'Η δοκιμή ανίχνευσης ήταν επιτυχής',
+            qaAuthStatusReauthRequired: 'Η περίοδος σύνδεσης έληξε — εκτελέστε ξανά για να συνδεθείτε',
+            qaAuthStatusSignInFailed: 'Η σύνδεση δεν ολοκληρώθηκε — εκτελέστε ξανά για επανάληψη',
+            qaAuthStatusError: 'Η δοκιμή απέτυχε',
         },
         security: 'Ασφάλεια',
         signOut: 'Αποσύνδεση',
@@ -4649,6 +4657,10 @@ ${amount} για ${merchant} - ${date}`,
                 'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε σιδηροδρομικά ταξίδια απευθείας στο Expensify; Την επόμενη φορά αποφύγετε την ταλαιπωρία της χειροκίνητης δημιουργίας του εξόδου σας και απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ταξίδια με τρένο απευθείας στο Expensify; Και ότι ανεβάζει αυτόματα τις αποδείξεις για εσάς; Την επόμενη φορά απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            hotelBlockManual:
+                'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ομαδικά ταξίδια όπως αυτό απευθείας στο Expensify; Γλιτώστε ταλαιπωρία την επόμενη φορά και δοκιμάστε το εργαλείο μας <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
+            hotelBlockCard:
+                'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ομαδικά ταξίδια όπως αυτό απευθείας στο Expensify; Γλιτώστε ταλαιπωρία την επόμενη φορά και δοκιμάστε το εργαλείο μας <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Η ταξιδιωτική λειτουργία δεν είναι ενεργοποιημένη',
@@ -6178,6 +6190,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     category: 'Κατηγορία',
                     tag: 'Ετικέτα',
                     cardName: 'Όνομα κάρτας',
+                    uniqueID: 'Μοναδικό αναγνωριστικό',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Παρακαλούμε αντιστοιχίστε μια στήλη σε καθεμία από τις ιδιότητες: ${missingColumns}.`,

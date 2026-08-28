@@ -50,7 +50,6 @@ import {
     getXeroTenants,
     hasAccountingConnections,
     hasSupportedOnlyOnOldDotIntegration,
-    isCollectPolicy,
     isControlPolicy,
     settingsPendingAction,
     shouldShowSyncError,
@@ -137,7 +136,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const connectionSyncStage = connectionSyncProgress?.stageInProgress;
 
     const canUseDualEntryIntegration = isBetaEnabled(CONST.BETAS.DUALENTRY) || !!policy?.connections?.dualEntry;
-    const shouldShowIntuitEnterpriseSuiteIntegration = isBetaEnabled(CONST.BETAS.INTUIT_ENTERPRISE_SUITE) && (isCollectPolicy(policy) || isControlPolicy(policy));
     const accountingIntegrations = useMemo(
         () =>
             CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
@@ -152,9 +150,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         () =>
             accountingIntegrations.flatMap((name) => [
                 {name, isIntuitEnterpriseSuite: name === CONST.POLICY.CONNECTIONS.NAME.QBO ? false : undefined},
-                ...(name === CONST.POLICY.CONNECTIONS.NAME.QBO && shouldShowIntuitEnterpriseSuiteIntegration ? [{name, isIntuitEnterpriseSuite: true}] : []),
+                ...(name === CONST.POLICY.CONNECTIONS.NAME.QBO ? [{name, isIntuitEnterpriseSuite: true}] : []),
             ]),
-        [accountingIntegrations, shouldShowIntuitEnterpriseSuiteIntegration],
+        [accountingIntegrations],
     );
     const syncingAccountingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingAccountingIntegration;
