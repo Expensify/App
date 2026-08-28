@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -30,6 +31,7 @@ function DomainAlreadyExistsPage({route}: DomainAlreadyExistsPageProps) {
     const {asset: EarthWithControls} = useMemoizedLazyAsset(() => loadIllustration('EarthWithControls'));
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
 
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [hasPendingRequest] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: hasPendingAdminshipRequestSelector(currentUserAccountID)});
@@ -81,7 +83,7 @@ function DomainAlreadyExistsPage({route}: DomainAlreadyExistsPageProps) {
                     !!requestError && (
                         <FormHelpMessage
                             message={getLatestErrorMessage({errors: requestError})}
-                            style={styles.mb2}
+                            style={styles.mb0}
                         />
                     )
                 }
@@ -90,7 +92,8 @@ function DomainAlreadyExistsPage({route}: DomainAlreadyExistsPageProps) {
                 onSecondaryButtonPress={goToDomainsList}
                 shouldShowButton
                 buttonText={translate(hasPendingRequest ? 'domain.requestSent' : 'domain.domainAlreadyExists.requestAccess')}
-                isButtonDisabled={hasPendingRequest}
+                isButtonLoading={isRequestPending}
+                isButtonDisabled={!isRequestPending && (!!hasPendingRequest || isOffline)}
                 onButtonPress={() => {
                     if (!currentUserAccountID) {
                         return;
