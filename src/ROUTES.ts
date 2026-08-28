@@ -99,6 +99,7 @@ const DYNAMIC_ROUTES = {
         entryScreens: [
             SCREENS.SETTINGS.WALLET.ROOT,
             SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS,
+            SCREENS.WORKSPACE.INVOICES,
             SCREENS.HOME,
             SCREENS.SEARCH.ROOT,
             SCREENS.REPORT,
@@ -3099,10 +3100,6 @@ const ROUTES = {
             }
             return `workspaces/${policyID}/invoices` as const;
         },
-    },
-    WORKSPACE_INVOICES_VERIFY_ACCOUNT: {
-        route: `workspaces/:policyID/invoices/${VERIFY_ACCOUNT}`,
-        getRoute: (policyID: string) => `workspaces/${policyID}/invoices/${VERIFY_ACCOUNT}` as const,
     },
     WORKSPACE_INVOICES_COMPANY_NAME: {
         route: 'workspaces/:policyID/invoices/company-name',
