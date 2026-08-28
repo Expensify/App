@@ -7,13 +7,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 function PerDiemFooter({policy, policyTags, selectedParticipants, amountDisplay, requiredFlags, visibilityFlags, errorState, toggleHandlers = {}}: PerDiemFooterProps) {
-    const renderTransactionDetailsFields = () => (
-        <PerDiemDetailsFields
-            policy={policy}
-            isDescriptionRequired={requiredFlags.isDescriptionRequired}
-        />
-    );
-
     return (
         <View>
             <PerDiemSection
@@ -30,8 +23,12 @@ function PerDiemFooter({policy, policyTags, selectedParticipants, amountDisplay,
                 visibilityFlags={visibilityFlags}
                 errorState={errorState}
                 toggleHandlers={toggleHandlers}
-                renderTransactionDetailsFields={renderTransactionDetailsFields}
-            />
+            >
+                <PerDiemDetailsFields
+                    policy={policy}
+                    isDescriptionRequired={requiredFlags.isDescriptionRequired}
+                />
+            </ConfirmationFieldList>
         </View>
     );
 }

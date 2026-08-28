@@ -2,7 +2,8 @@ import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/
 import AmountField from '@components/MoneyRequestConfirmationList/sections/AmountField';
 import DescriptionField from '@components/MoneyRequestConfirmationList/sections/DescriptionField';
 import TimeFields from '@components/MoneyRequestConfirmationList/sections/TimeFields';
-import type {AmountDisplay, DetailsFieldsProps, ErrorState} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
+import {useDetailsFields} from '@components/MoneyRequestConfirmationListFooter/DetailsFieldsContext';
+import type {AmountDisplay, ErrorState} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 
@@ -12,7 +13,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
-type TimeDetailsFieldsProps = DetailsFieldsProps & {
+type TimeDetailsFieldsProps = {
     /** Active policy */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -26,7 +27,8 @@ type TimeDetailsFieldsProps = DetailsFieldsProps & {
     errorState: ErrorState;
 };
 
-function TimeDetailsFields({policy, amountDisplay, isDescriptionRequired, errorState, fieldVisibility, iouCurrencyCode}: TimeDetailsFieldsProps) {
+function TimeDetailsFields({policy, amountDisplay, isDescriptionRequired, errorState}: TimeDetailsFieldsProps) {
+    const {fieldVisibility, iouCurrencyCode} = useDetailsFields();
     const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isNewManualExpenseFlowEnabled} = useConfirmationFields();
     const shouldAutoFocusAmountField = !canUseTouchScreen();
 

@@ -21,8 +21,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {AmountDisplay, CompactState, DetailsFieldsProps, ErrorState, RequiredFlags, ToggleHandlers, VisibilityFlags} from './fieldGroupTypes';
+import type {AmountDisplay, CompactState, ErrorState, RequiredFlags, ToggleHandlers, VisibilityFlags} from './fieldGroupTypes';
 
+import DetailsFieldsContext from './DetailsFieldsContext';
 import ClassificationFields from './fieldGroups/ClassificationFields';
 import computeFieldVisibility, {hasBelowShowMore} from './fieldGroups/fieldVisibility';
 import SettingsFields from './fieldGroups/SettingsFields';
@@ -45,8 +46,9 @@ type ConfirmationFieldListProps = {
     /** Per-field "required" flags */
     requiredFlags: RequiredFlags;
 
-    /** Renders the expense-type-driven fields. */
-    renderTransactionDetailsFields: (props: DetailsFieldsProps) => React.ReactNode;
+    /** The expense-type-driven fields, supplied by the footer variant. Rendered above the classification
+     *  fields, and reads what this component derives from `DetailsFieldsContext`. */
+    children: React.ReactNode;
 
     /** Caller-supplied visibility decisions */
     visibilityFlags: VisibilityFlags;
@@ -67,7 +69,7 @@ function ConfirmationFieldList({
     selectedParticipants,
     amountDisplay,
     requiredFlags,
-    renderTransactionDetailsFields,
+    children,
     visibilityFlags,
     errorState,
     toggleHandlers,
@@ -121,68 +123,72 @@ function ConfirmationFieldList({
     });
     const shouldShowMoreButton = hasBelowShowMore(fieldVisibility);
 
+    const detailsFields = {
+        fieldVisibility,
+        isCompactMode: compactState.isCompactMode,
+        iouCurrencyCode: flags.iouCurrencyCode,
+        shouldNavigateToUpgradePath: flags.shouldNavigateToUpgradePath,
+        shouldSelectPolicy: flags.shouldSelectPolicy,
+    };
+
     return (
-        <View style={[styles.mb5, styles.mt2]}>
-            {compactState.isCompactMode && (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.pl5, styles.gap2, styles.mb2, styles.pr10]}>
-                    <Icon
-                        src={icons.Sparkles}
-                        fill={theme.icon}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                    />
-                    <Text style={styles.rightLabelMenuItem}>{translate('iou.automaticallyEnterExpenseDetails')}</Text>
-                </View>
-            )}
+        <DetailsFieldsContext.Provider value={detailsFields}>
+            <View style={[styles.mb5, styles.mt2]}>
+                {compactState.isCompactMode && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.pl5, styles.gap2, styles.mb2, styles.pr10]}>
+                        <Icon
+                            src={icons.Sparkles}
+                            fill={theme.icon}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                        <Text style={styles.rightLabelMenuItem}>{translate('iou.automaticallyEnterExpenseDetails')}</Text>
+                    </View>
+                )}
 
-            {renderTransactionDetailsFields({
-                fieldVisibility,
-                isCompactMode: compactState.isCompactMode,
-                iouCurrencyCode: flags.iouCurrencyCode,
-                shouldNavigateToUpgradePath: flags.shouldNavigateToUpgradePath,
-                shouldSelectPolicy: flags.shouldSelectPolicy,
-            })}
+                {children}
 
-            <ClassificationFields
-                policy={policy}
-                policyForMovingExpenses={flags.policyForMovingExpenses}
-                policyTagLists={policyTagLists}
-                previousTagsVisibility={previousTagsVisibility}
-                isCategoryRequired={requiredFlags.isCategoryRequired}
-                canModifyTaxFields={flags.canModifyTaxFields}
-                errorState={errorState}
-                shouldNavigateToUpgradePath={flags.shouldNavigateToUpgradePath}
-                shouldSelectPolicy={flags.shouldSelectPolicy}
-                iouCurrencyCode={flags.iouCurrencyCode}
-                formattedAmountPerAttendee={amountDisplay.formattedAmountPerAttendee}
-                isCompactMode={compactState.isCompactMode}
-                fieldVisibility={fieldVisibility}
-            />
+                <ClassificationFields
+                    policy={policy}
+                    policyForMovingExpenses={flags.policyForMovingExpenses}
+                    policyTagLists={policyTagLists}
+                    previousTagsVisibility={previousTagsVisibility}
+                    isCategoryRequired={requiredFlags.isCategoryRequired}
+                    canModifyTaxFields={flags.canModifyTaxFields}
+                    errorState={errorState}
+                    shouldNavigateToUpgradePath={flags.shouldNavigateToUpgradePath}
+                    shouldSelectPolicy={flags.shouldSelectPolicy}
+                    iouCurrencyCode={flags.iouCurrencyCode}
+                    formattedAmountPerAttendee={amountDisplay.formattedAmountPerAttendee}
+                    isCompactMode={compactState.isCompactMode}
+                    fieldVisibility={fieldVisibility}
+                />
 
-            <SettingsFields
-                selectedParticipants={selectedParticipants}
-                shouldShowBillable={flags.shouldShowBillable}
-                shouldShowReimbursable={flags.shouldShowReimbursable}
-                toggleHandlers={toggleHandlers}
-                isCompactMode={compactState.isCompactMode}
-                fieldVisibility={fieldVisibility}
-            />
+                <SettingsFields
+                    selectedParticipants={selectedParticipants}
+                    shouldShowBillable={flags.shouldShowBillable}
+                    shouldShowReimbursable={flags.shouldShowReimbursable}
+                    toggleHandlers={toggleHandlers}
+                    isCompactMode={compactState.isCompactMode}
+                    fieldVisibility={fieldVisibility}
+                />
 
-            {compactState.isCompactMode && shouldShowMoreButton && (
-                <View style={[styles.mt3, styles.alignItemsCenter, styles.pRelative, styles.mh5]}>
-                    <View style={[styles.dividerLine, styles.pAbsolute, styles.w100, styles.justifyContentCenter, {transform: [{translateY: -0.5}]}]} />
-                    <Button
-                        onPress={() => compactState.setShowMoreFields(true)}
-                        size={CONST.BUTTON_SIZE.SMALL}
-                        // pl3 + Button.Text's built-in ph1 = 16; right stays 8 from the SMALL default, as legacy Button
-                        innerStyles={[styles.hoveredComponentBG, styles.pv2, styles.pl3]}
-                    >
-                        <Button.Text>{translate('common.showMore')}</Button.Text>
-                        <Button.Icon src={icons.DownArrow} />
-                    </Button>
-                </View>
-            )}
-        </View>
+                {compactState.isCompactMode && shouldShowMoreButton && (
+                    <View style={[styles.mt3, styles.alignItemsCenter, styles.pRelative, styles.mh5]}>
+                        <View style={[styles.dividerLine, styles.pAbsolute, styles.w100, styles.justifyContentCenter, {transform: [{translateY: -0.5}]}]} />
+                        <Button
+                            onPress={() => compactState.setShowMoreFields(true)}
+                            size={CONST.BUTTON_SIZE.SMALL}
+                            // pl3 + Button.Text's built-in ph1 = 16; right stays 8 from the SMALL default, as legacy Button
+                            innerStyles={[styles.hoveredComponentBG, styles.pv2, styles.pl3]}
+                        >
+                            <Button.Text>{translate('common.showMore')}</Button.Text>
+                            <Button.Icon src={icons.DownArrow} />
+                        </Button>
+                    </View>
+                )}
+            </View>
+        </DetailsFieldsContext.Provider>
     );
 }
 

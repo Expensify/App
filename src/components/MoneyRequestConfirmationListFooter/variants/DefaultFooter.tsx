@@ -70,18 +70,16 @@ function DefaultFooter({
                 errorState={errorState}
                 toggleHandlers={toggleHandlers ?? {}}
                 compactState={{isCompactMode, setShowMoreFields}}
-                renderTransactionDetailsFields={(props) => (
-                    <TransactionDetailsFields
-                        {...props}
-                        policy={policy}
-                        amountDisplay={amountDisplay}
-                        distanceData={distanceData}
-                        requiredFlags={requiredFlags}
-                        errorState={errorState}
-                        isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
-                    />
-                )}
-            />
+            >
+                <TransactionDetailsFields
+                    policy={policy}
+                    amountDisplay={amountDisplay}
+                    distanceData={distanceData}
+                    requiredFlags={requiredFlags}
+                    errorState={errorState}
+                    isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
+                />
+            </ConfirmationFieldList>
         </View>
     );
 }

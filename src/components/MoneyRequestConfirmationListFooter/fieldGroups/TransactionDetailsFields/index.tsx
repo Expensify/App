@@ -5,7 +5,8 @@ import DistanceField from '@components/MoneyRequestConfirmationList/sections/Dis
 import MerchantField from '@components/MoneyRequestConfirmationList/sections/MerchantField';
 import RateField from '@components/MoneyRequestConfirmationList/sections/RateField';
 import TimeFields from '@components/MoneyRequestConfirmationList/sections/TimeFields';
-import type {AmountDisplay, DetailsFieldsProps, DistanceData, ErrorState, RequiredFlags} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
+import {useDetailsFields} from '@components/MoneyRequestConfirmationListFooter/DetailsFieldsContext';
+import type {AmountDisplay, DistanceData, ErrorState, RequiredFlags} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 
@@ -15,7 +16,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
-type TransactionDetailsFieldsProps = DetailsFieldsProps & {
+type TransactionDetailsFieldsProps = {
     /** Active policy (read by Amount/Description/Rate/Merchant) */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -39,19 +40,8 @@ type TransactionDetailsFieldsProps = DetailsFieldsProps & {
  * The expense-type-driven half of the confirmation fields, for every type that has not migrated to a
  * footer variant of its own.
  */
-function TransactionDetailsFields({
-    policy,
-    amountDisplay,
-    distanceData,
-    requiredFlags,
-    errorState,
-    shouldNavigateToUpgradePath,
-    shouldSelectPolicy,
-    iouCurrencyCode,
-    isCompactMode,
-    fieldVisibility,
-    isParticipantPickerVisible,
-}: TransactionDetailsFieldsProps) {
+function TransactionDetailsFields({policy, amountDisplay, distanceData, requiredFlags, errorState, isParticipantPickerVisible}: TransactionDetailsFieldsProps) {
+    const {fieldVisibility, isCompactMode, iouCurrencyCode, shouldNavigateToUpgradePath, shouldSelectPolicy} = useDetailsFields();
     const {
         action,
         iouType,

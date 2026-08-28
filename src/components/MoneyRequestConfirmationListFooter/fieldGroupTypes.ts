@@ -4,8 +4,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 
-import type {FieldVisibility} from './fieldGroups/fieldVisibility';
-
 /** Pre-formatted amount values displayed in Amount/Attendee fields */
 type AmountDisplay = {
     amount: number;
@@ -46,23 +44,6 @@ type VisibilityFlags = {
     isParticipantPickerVisible: boolean;
 };
 
-type DetailsFieldsProps = {
-    /** Per-field visibility decisions resolved by `computeFieldVisibility` */
-    fieldVisibility: Pick<FieldVisibility, 'amount' | 'distance' | 'rate' | 'merchant' | 'time'>;
-
-    /** When true, suppresses the below-show-more entries (Amount, Rate, Merchant, Time) */
-    isCompactMode: boolean;
-
-    /** ISO currency code for the transaction */
-    iouCurrencyCode: string;
-
-    /** Whether navigating to upgrade is required to proceed past blocked workspaces */
-    shouldNavigateToUpgradePath: boolean;
-
-    /** Whether the user must select a policy before submitting */
-    shouldSelectPolicy: boolean;
-};
-
 /** Shared error state surfaced into multiple fields */
 type ErrorState = {
     shouldDisplayFieldError: boolean;
@@ -100,4 +81,4 @@ type ReceiptOptions = {
     onPDFPassword?: () => void;
 };
 
-export type {AmountDisplay, CompactControls, CompactState, DetailsFieldsProps, DistanceData, ErrorState, ReceiptOptions, RequiredFlags, ToggleHandlers, VisibilityFlags};
+export type {AmountDisplay, CompactControls, CompactState, DistanceData, ErrorState, ReceiptOptions, RequiredFlags, ToggleHandlers, VisibilityFlags};
