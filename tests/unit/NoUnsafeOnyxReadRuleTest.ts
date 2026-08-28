@@ -1,6 +1,7 @@
 import type {Rule} from 'eslint';
 
 import {RuleTester} from 'eslint';
+import * as typescriptParser from '@typescript-eslint/parser';
 
 type LocalRuleModule = Rule.RuleModule & {
     name: string;
@@ -84,6 +85,8 @@ describe('no-unsafe-onyx-read', () => {
 
             `${ONYX_IMPORT} function Row() { const onPress = useCallback(() => Onyx.get(key), []); return <View onPress={onPress} />; }`,
             `${ONYX_IMPORT} function Row() { useOnyx(key, {onLoaded: () => Onyx.get(other)}); return <View />; }`,
+            `${ONYX_IMPORT} client.configure({selector: () => Onyx.get(key)});`,
+            `${ONYX_IMPORT} function setup() { client.configure({selector: () => Onyx.get(key)}); }`,
             `${ONYX_IMPORT} function Row() { const [v] = useReducer((state, action) => Onyx.get(key), 0); return <View v={v} />; }`,
             `${ONYX_IMPORT} function Row() { useEffect(() => { use(Onyx.get(key)); }, []); return <View />; }`,
             `${ONYX_IMPORT} function Row() { useLayoutEffect(() => { use(Onyx.get(key)); }, []); return <View />; }`,
@@ -94,6 +97,12 @@ describe('no-unsafe-onyx-read', () => {
             `${ONYX_IMPORT} ready.then(() => Onyx.get(key));`,
             `${ONYX_IMPORT} new Promise((resolve) => { ready.then(() => resolve(Onyx.get(key))); });`,
             `${ONYX_IMPORT} Onyx.init(config).then(() => Onyx.get(key));`,
+
+            // An alias of something else keeps its own methods, and an un-awaited read is a Promise, so writing
+            // to one cannot reach the cache.
+            `${ONYX_IMPORT} const api = window.somethingElse; function Row() { const value = api.get(key); return <View value={value} />; }`,
+            `${ONYX_IMPORT} function f(key) { const pending = Onyx.get(key); pending.name = 'x'; return pending; }`,
+            `${ONYX_IMPORT} function f(key) { const pending = Onyx.get(key); pending.push(1); return pending; }`,
 
             // Not the library: a local object that happens to expose a get, and the debug shim on window.
             'const Onyx = {get: () => undefined}; const initialValue = Onyx.get(key);',
@@ -149,6 +158,9 @@ describe('no-unsafe-onyx-read', () => {
             // A statement loop orders its passes, so an await in the body lands before the next read.
             `${ONYX_IMPORT} async function submit(items) { for (const item of items) { const draft = Onyx.get(key); await Onyx.merge(key, item); } }`,
             `${ONYX_IMPORT} async function submit(items) { for (const item of items) { await flush(); const draft = Onyx.get(key); Onyx.merge(key, item); } }`,
+
+            // A break leaves the loop rather than taking its back edge, so the await still ends every pass.
+            `${ONYX_IMPORT} async function submit(items) { for (const item of items) { const draft = Onyx.get(key); Onyx.merge(key, item); if (stop) { break; } await flush(); } }`,
 
             // Each pass gets a task of its own, so the repeat does not put the two in one tick.
             `${ONYX_IMPORT} function submit(items) { items.forEach((item) => setTimeout(() => { const draft = Onyx.get(key); Onyx.merge(key, item); }, 0)); }`,
@@ -234,6 +246,10 @@ describe('no-unsafe-onyx-read', () => {
             },
             {
                 code: `${ONYX_IMPORT} function useThing() { return useOnyx(key, {selector: (data) => { const extra = Onyx.get(other); return {...data, extra}; }}); }`,
+                errors: RENDER_ERRORS,
+            },
+            {
+                code: `${ONYX_IMPORT} function Row() { const p = usePolicy(id, {selector: (data) => Onyx.get(other)}); return <View p={p} />; }`,
                 errors: RENDER_ERRORS,
             },
 
@@ -422,6 +438,12 @@ describe('no-unsafe-onyx-read', () => {
                 errors: READ_AFTER_WRITE_IN_LOOP_ERRORS,
             },
 
+            // A continue takes the back edge before the await, so a pass can reach the read without awaiting.
+            {
+                code: `${ONYX_IMPORT} async function submit(items) { for (const item of items) { const draft = Onyx.get(key); Onyx.merge(key, item); if (skip) { continue; } await flush(); } }`,
+                errors: READ_AFTER_WRITE_IN_LOOP_ERRORS,
+            },
+
             // An array method does not await its callback, so the passes overlap and the await orders nothing.
             {
                 code: `${ONYX_IMPORT} function submit(items) { items.forEach(async (item) => { const draft = Onyx.get(key); await Onyx.merge(key, item); }); }`,
@@ -432,6 +454,16 @@ describe('no-unsafe-onyx-read', () => {
             {
                 code: `${ONYX_IMPORT} async function submit(items) { for (const item of items) { const draft = Onyx.get(key); Onyx.merge(key, item); if (x) { await flush(); } } }`,
                 errors: READ_AFTER_WRITE_IN_LOOP_ERRORS,
+            },
+
+            // An alias of the import reaches every method through the new name, on both sides of the pair.
+            {code: `${ONYX_IMPORT} const api = Onyx; function Row() { const value = api.get(key); return <View value={value} />; }`, errors: RENDER_ERRORS},
+            {code: `${ONYX_IMPORT} const api = Onyx; const alias = api; function Row() { return <View value={alias.get(key)} />; }`, errors: RENDER_ERRORS},
+            {code: `${ONYX_IMPORT} const api = Onyx; function submit() { api.merge(key, value); return Onyx.get(key); }`, errors: READ_AFTER_WRITE_ERRORS},
+            {code: `${ONYX_IMPORT} const api = Onyx; function submit() { Onyx.merge(key, value); return api.get(key); }`, errors: READ_AFTER_WRITE_ERRORS},
+            {
+                code: `${ONYX_IMPORT} const api = Onyx; async function f(key) { const report = await api.get(key); report.name = 'x'; return report; }`,
+                errors: MUTATION_ERRORS,
             },
 
             {code: `${ONYX_IMPORT} const {get} = Onyx; function submit() { Onyx.merge(key, value); return get(key); }`, errors: READ_AFTER_WRITE_ERRORS},
@@ -457,6 +489,38 @@ describe('no-unsafe-onyx-read', () => {
 
             // A read whose Promise is dropped is still a read after the write.
             {code: `${ONYX_IMPORT} function submit() { Onyx.merge(key, value); Onyx.get(key); }`, errors: READ_AFTER_WRITE_ERRORS},
+        ],
+    });
+});
+
+/** The default parser cannot parse an `as` cast, so the type-only wrappers need a tester of their own. */
+const typescriptRuleTester = new RuleTester({
+    languageOptions: {
+        parser: typescriptParser,
+        ecmaVersion: 2022,
+        sourceType: 'module',
+    },
+});
+
+describe('no-unsafe-onyx-read, TypeScript syntax', () => {
+    typescriptRuleTester.run(ruleModule.name, ruleModule, {
+        valid: [`${WRAPPER_IMPORT} async function f(key: string) { const report = {...((await OnyxUtils.get(key)) as Report)}; report.name = 'x'; return report; }`],
+        invalid: [
+            // A cast and a `!` are gone at runtime, so each of these mutates the cached object itself.
+            {
+                code: `${WRAPPER_IMPORT} async function f(key: string) { const report = (await OnyxUtils.get(key)) as Report; report.name = 'x'; return report; }`,
+                errors: MUTATION_ERRORS,
+            },
+            {
+                code: `${WRAPPER_IMPORT} async function f(key: string) { const report = (await OnyxUtils.get(key))!; report.items.push(1); return report; }`,
+                errors: MUTATION_ERRORS,
+            },
+
+            // The cast can also sit on the mutation target rather than on the read.
+            {
+                code: `${WRAPPER_IMPORT} async function f(key: string) { const report = await OnyxUtils.get(key); (report as Report).name = 'x'; return report; }`,
+                errors: MUTATION_ERRORS,
+            },
         ],
     });
 });

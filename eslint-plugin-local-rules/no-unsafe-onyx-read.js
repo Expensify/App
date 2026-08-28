@@ -38,6 +38,11 @@ const RENDER_TIME_HOOK_ARGUMENTS = new Map([
  * Option properties whose function runs during render. A `useOnyx` selector runs inside the hook's
  * `getSnapshot`, which React calls while rendering, so a read in one is a render read even though the
  * function sits in an object rather than in an argument position.
+ *
+ * Matched by property name inside a call to a `use`-prefixed function rather than against a list of
+ * hooks, which covers wrappers such as `usePolicy(id, {selector})` and leaves a `selector` option on a
+ * non-hook API alone. Only the selector written inline is caught: one hoisted to a `const` and passed by
+ * reference reads as a plain module function, so resolve the binding if that shape shows up.
  */
 const RENDER_TIME_OPTION_NAMES = new Set(['selector']);
 
@@ -60,7 +65,7 @@ const meta = {
     type: 'problem',
     docs: {
         description:
-            'Disallow unsafe Onyx reads (Onyx.get and friends): during render, where the read does not subscribe; at module scope, where it can only be parked in a stale module variable; and after an un-awaited write in the same body, where it resolves to the pre-write value.',
+            'Disallow unsafe Onyx reads (Onyx.get and friends): during render, where the read does not subscribe; at module scope, where it can only be parked in a stale module variable; after an un-awaited write in the same body, or in a body that repeats and writes, where it resolves to the pre-write value; around the read surface, which the Search snapshot keys need; and mutations of the result, which write straight into the cache.',
         recommended: 'error',
     },
     schema: [
@@ -158,31 +163,39 @@ function getStaticPropertyName(memberExpression) {
     return getStaticName(memberExpression.property, memberExpression.computed);
 }
 
-/** The render-time argument positions of a call, keyed by callee name so `React.useMemo` matches too. */
-function getRenderTimeArgumentIndices(callee) {
+/** The name a call is written under, `Onyx.get` reading as `get`, or `null` when it is computed. */
+function getCalleeName(callee) {
     if (callee.type === 'Identifier') {
-        return RENDER_TIME_HOOK_ARGUMENTS.get(callee.name) ?? null;
+        return callee.name;
     }
 
-    if (callee.type === 'MemberExpression') {
-        const propertyName = getStaticPropertyName(callee);
-        return propertyName ? (RENDER_TIME_HOOK_ARGUMENTS.get(propertyName) ?? null) : null;
-    }
-
-    return null;
+    return callee.type === 'MemberExpression' ? getStaticPropertyName(callee) : null;
 }
 
 function matchesCalleeName(callee, names) {
-    if (callee.type === 'Identifier') {
-        return names.has(callee.name);
+    const calleeName = getCalleeName(callee);
+
+    return !!calleeName && names.has(calleeName);
+}
+
+/** The render-time argument positions of a call, so `React.useMemo` counts the same as `useMemo`. */
+function getRenderTimeArgumentIndices(callee) {
+    const calleeName = getCalleeName(callee);
+
+    return calleeName ? (RENDER_TIME_HOOK_ARGUMENTS.get(calleeName) ?? null) : null;
+}
+
+/** Whether the object holding this property is passed to a hook, which is what makes it hook options. */
+function isHookOption(property) {
+    const call = property.parent?.parent;
+
+    if (call?.type !== 'CallExpression' || !call.arguments.includes(property.parent)) {
+        return false;
     }
 
-    if (callee.type === 'MemberExpression') {
-        const propertyName = getStaticPropertyName(callee);
-        return !!propertyName && names.has(propertyName);
-    }
+    const calleeName = getCalleeName(call.callee);
 
-    return false;
+    return !!calleeName && isHookName(calleeName);
 }
 
 function isOnyxModuleSource(sourceValue) {
@@ -214,7 +227,7 @@ function getVariableByName(scope, variableName) {
  * continues through it.
  */
 function classifyFunctionBoundary(functionNode, parent) {
-    if (parent?.type === 'Property' && parent.value === functionNode && RENDER_TIME_OPTION_NAMES.has(getStaticName(parent.key, parent.computed))) {
+    if (parent?.type === 'Property' && parent.value === functionNode && RENDER_TIME_OPTION_NAMES.has(getStaticName(parent.key, parent.computed)) && isHookOption(parent)) {
         return RENDER;
     }
 
@@ -507,12 +520,20 @@ function isWithin(node, container) {
 
 /**
  * Whether the back edge crosses an `await`, which ends the tick before the next pass reaches the read.
- * Awaiting the write itself counts, and so does any unconditional `await` the rest of the pass reaches,
- * whether it sits after the write or ahead of the read.
+ * Awaiting the write itself counts, and so does an `await` the rest of the pass reaches, whether it sits
+ * after the write or ahead of the read.
+ *
+ * A `continue` takes the back edge early, so a pass can reach the read again without having awaited
+ * anything. Any `continue` in the loop withdraws the exemption, which is coarse in the one direction that
+ * only costs a report: one belonging to a nested loop cannot actually skip this loop's `await`.
  */
-function isSeparatedAcrossBackEdge(awaits, write, read, loop) {
+function isSeparatedAcrossBackEdge(awaits, continues, write, read, loop) {
     if (getEnclosingAwait(write.ancestors)) {
         return true;
+    }
+
+    if (continues.some((continueNode) => isWithin(continueNode, loop))) {
+        return false;
     }
 
     return awaits.some(
@@ -526,8 +547,9 @@ function isSeparatedAcrossBackEdge(awaits, write, read, loop) {
 function getRootIdentifier(node) {
     let current = node;
 
-    while (current?.type === 'MemberExpression' || current?.type === 'ChainExpression') {
-        current = current.type === 'ChainExpression' ? current.expression : current.object;
+    // The cast can sit on the mutation target rather than on the read: `(report as Report).name = 'x'`.
+    while (current?.type === 'MemberExpression' || current?.type === 'ChainExpression' || current?.type === 'TSAsExpression' || current?.type === 'TSNonNullExpression') {
+        current = current.type === 'MemberExpression' ? current.object : current.expression;
     }
 
     return current?.type === 'Identifier' ? current : null;
@@ -536,17 +558,22 @@ function getRootIdentifier(node) {
 /**
  * Whether the initializer hands back a value the cache owns: an awaited read, or a property reached off
  * one. A spread or a method call in between produces a copy, and copies are the fix rather than the bug.
+ *
+ * The `await` is required, since an un-awaited read is a Promise and writing to one cannot reach the cache.
  */
 function isCacheOwnedInit(node, isReadCall) {
     let current = node;
+    let isAwaited = false;
 
     while (current) {
         if (current.type === 'AwaitExpression') {
+            isAwaited = true;
             current = current.argument;
             continue;
         }
 
-        if (current.type === 'ChainExpression') {
+        // An `as` cast and a `!` are gone at runtime, so the value under one is still the cache's own.
+        if (current.type === 'ChainExpression' || current.type === 'TSAsExpression' || current.type === 'TSNonNullExpression') {
             current = current.expression;
             continue;
         }
@@ -556,7 +583,7 @@ function isCacheOwnedInit(node, isReadCall) {
             continue;
         }
 
-        return current.type === 'CallExpression' && isReadCall(current);
+        return isAwaited && current.type === 'CallExpression' && isReadCall(current);
     }
 
     return false;
@@ -646,6 +673,8 @@ function create(context) {
 
     /** Event-time reads, writes and awaits per enclosing body, in source order. Bodies are only compared against themselves. */
     const callsByBody = new Map();
+    /** Every `continue` in the file, since one inside a loop can take its back edge before an `await`. */
+    const continueStatements = [];
 
     function trackBinding(node, bindingName, bindings) {
         const variable = sourceCode.getDeclaredVariables(node).find((declaredVariable) => declaredVariable.name === bindingName);
@@ -684,6 +713,13 @@ function create(context) {
         }
     }
 
+    function getCalls(body) {
+        const calls = callsByBody.get(body) ?? {reads: [], writes: [], awaits: []};
+        callsByBody.set(body, calls);
+
+        return calls;
+    }
+
     function record(node, ancestors, kind) {
         const body = getEnclosingBody(ancestors);
 
@@ -691,9 +727,7 @@ function create(context) {
             return;
         }
 
-        const calls = callsByBody.get(body) ?? {reads: [], writes: [], awaits: []};
-        calls[kind].push({node, ancestors});
-        callsByBody.set(body, calls);
+        getCalls(body)[kind].push({node, ancestors});
     }
 
     return {
@@ -751,6 +785,21 @@ function create(context) {
                 return;
             }
 
+            // const api = Onyx;  every method stays reachable through the new name, reads and writes alike.
+            if (node.init?.type === 'Identifier') {
+                const aliasedVariable = getVariableByName(scope, node.init.name);
+
+                if (aliasedVariable && onyxImportBindings.has(aliasedVariable)) {
+                    trackBinding(node, node.id.name, onyxImportBindings);
+
+                    if (libraryImportBindings.has(aliasedVariable)) {
+                        trackBinding(node, node.id.name, libraryImportBindings);
+                    }
+                }
+            }
+
+            // Only `const`: a `let` can be reassigned to a copy, `report = {...report}`, and then mutating it is
+            // the fix rather than the bug, which no test of the initializer alone can tell apart.
             if (node.parent?.kind === 'const' && isCacheOwnedInit(node.init, (call) => isReadCall(call, scope))) {
                 trackBinding(node, node.id.name, cacheOwnedBindings);
             }
@@ -776,6 +825,9 @@ function create(context) {
 
             reportIfCacheOwned(node, node.argument, sourceCode.getScope(node));
         },
+        ContinueStatement(node) {
+            continueStatements.push(node);
+        },
         AwaitExpression(node) {
             const ancestors = sourceCode.getAncestors(node);
             const body = getAwaitingBody(ancestors);
@@ -784,9 +836,7 @@ function create(context) {
                 return;
             }
 
-            const calls = callsByBody.get(body) ?? {reads: [], writes: [], awaits: []};
-            calls.awaits.push({node, ancestors});
-            callsByBody.set(body, calls);
+            getCalls(body).awaits.push({node, ancestors});
         },
         CallExpression(node) {
             const scope = sourceCode.getScope(node);
@@ -804,7 +854,7 @@ function create(context) {
 
             const calleeVariable = node.callee.type === 'Identifier' ? getVariableByName(scope, node.callee.name) : null;
 
-            if (isOnyxMember(node.callee, scope, READ_METHODS) || (!!calleeVariable && readAliases.has(calleeVariable))) {
+            if (isReadCall(node, scope)) {
                 const ancestors = sourceCode.getAncestors(node);
 
                 const position = classifyPosition(ancestors);
@@ -869,7 +919,7 @@ function create(context) {
                         return (
                             !!edge &&
                             // Only a loop orders its passes, so only a loop can have an `await` between them.
-                            (!edge.isLoop || !isSeparatedAcrossBackEdge(awaits, write, read, edge.node)) &&
+                            (!edge.isLoop || !isSeparatedAcrossBackEdge(awaits, continueStatements, write, read, edge.node)) &&
                             !areMutuallyExclusive(write, read) &&
                             !exitsBeforeRead(write, read) &&
                             !isProvablyDifferentKey(write.node, read.node)
