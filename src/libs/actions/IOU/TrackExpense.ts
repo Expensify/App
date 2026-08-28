@@ -173,6 +173,7 @@ type GetTrackExpenseInformationTransactionParams = {
     odometerEnd?: number;
     gpsCoordinates?: string;
     distanceRequestType?: string;
+    customUnitRateID?: string;
 };
 
 type GetTrackExpenseInformationParticipantParams = {
@@ -899,6 +900,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         odometerStart,
         odometerEnd,
         gpsCoordinates,
+        customUnitRateID,
     } = transactionParams;
 
     const onyxData: OnyxData<BuildOnyxDataForTrackExpenseKeys | BuildPolicyDataKeys | typeof ONYXKEYS.SELF_DM_REPORT_ID> = {
@@ -1121,6 +1123,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             odometerStart: isOdometerDistanceRequest ? odometerStart : undefined,
             odometerEnd: isOdometerDistanceRequest ? odometerEnd : undefined,
             gpsCoordinates: isGPSDistanceRequest ? gpsCoordinates : undefined,
+            customUnitRateID,
         },
     });
     if (iouReport) {
@@ -2603,6 +2606,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             odometerStart,
             odometerEnd,
             gpsCoordinates,
+            customUnitRateID,
         },
         policyParams: {
             policy,
