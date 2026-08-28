@@ -1,10 +1,11 @@
 import Button from '@components/ButtonComposed';
+import RenderHTML from '@components/RenderHTML';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 
 import useLocalize from '@hooks/useLocalize';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {getOriginalMessage, getReportActionText} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportActionHtml} from '@libs/ReportActionsUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 
@@ -27,7 +28,8 @@ function HomeAddressRequiredContent({action}: HomeAddressRequiredContentProps) {
     const isResolved = !!getOriginalMessage(action)?.resolution;
 
     return (
-        <ReportActionItemBasicMessage message={getReportActionText(action)}>
+        <ReportActionItemBasicMessage>
+            <RenderHTML html={`<comment><muted-text>${getReportActionHtml(action)}</muted-text></comment>`} />
             {!isResolved && (
                 <ActionableItemButtons layout="horizontal">
                     <Button
