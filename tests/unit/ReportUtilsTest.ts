@@ -5325,6 +5325,36 @@ describe('ReportUtils', () => {
                 expect(isThreadDisabled).toBeTruthy();
             });
         });
+
+        describe('moved system messages', () => {
+            it.each([CONST.REPORT.ACTIONS.TYPE.MOVED, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION])('should be disabled for a %s action with no child visible action count', (actionName) => {
+                // Given a moved system message that has never been threaded
+                const reportAction = createMock<ReportAction>({
+                    actionName,
+                    childVisibleActionCount: 0,
+                });
+
+                // When it's checked to see if the thread should be disabled
+                const isThreadDisabled = shouldDisableThread(reportAction, false);
+
+                // Then the thread should be disabled so the doomed thread-creation call is never made
+                expect(isThreadDisabled).toBeTruthy();
+            });
+
+            it.each([CONST.REPORT.ACTIONS.TYPE.MOVED, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION])('should be enabled for a %s action that has already been threaded', (actionName) => {
+                // Given a moved system message that already has a legitimately threaded child
+                const reportAction = createMock<ReportAction>({
+                    actionName,
+                    childVisibleActionCount: 1,
+                });
+
+                // When it's checked to see if the thread should be disabled
+                const isThreadDisabled = shouldDisableThread(reportAction, false);
+
+                // Then the thread should stay enabled so the existing thread remains reachable
+                expect(isThreadDisabled).toBeFalsy();
+            });
+        });
     });
 
     describe('isChatUsedForOnboarding', () => {

@@ -216,6 +216,7 @@ import {
     isIntegrationMessageAction,
     isMoneyRequestAction,
     isMovedAction,
+    isMovedTransactionAction,
     isOlderReportAction,
     isPendingRemove,
     isReopenedAction,
@@ -11696,12 +11697,16 @@ function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, isThr
     const isIOUAction = isMoneyRequestAction(reportAction);
     const isWhisperActionLocal = isWhisperAction(reportAction) || isActionableTrackExpense(reportAction);
     const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
+    // Moved system messages can't be threaded server-side, so offering "Reply in thread" leads to a failed thread-creation call.
+    // Gate them out of the thread UI, but keep any moved actions that have already been legitimately threaded.
+    const isMovedSystemMessage = isMovedAction(reportAction) || isMovedTransactionAction(reportAction);
     const isActionDisabled = CONST.REPORT.ACTIONS.THREAD_DISABLED.some((action: string) => action === reportAction?.actionName);
     return (
         isActionDisabled ||
         isSplitBillAction ||
         (isDeletedActionLocal && !reportAction?.childVisibleActionCount) ||
         (isReportArchived && !reportAction?.childVisibleActionCount) ||
+        (isMovedSystemMessage && !reportAction?.childVisibleActionCount) ||
         (isWhisperActionLocal && !isReportPreviewActionLocal && !isIOUAction) ||
         isThreadReportParentAction ||
         isDynamicWorkflowRoutedAction
