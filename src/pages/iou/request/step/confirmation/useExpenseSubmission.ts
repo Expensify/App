@@ -1,4 +1,5 @@
 import useActivePolicy from '@hooks/useActivePolicy';
+import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
@@ -330,6 +331,13 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
     const transactionIDs = transactions?.map((tx) => tx.transactionID);
     const [storedTransactions] = useTransactionsByID(transactionIDs);
+
+    const blockDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        policyID: policy?.id,
+        isDistanceRequest,
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+    });
 
     function performPostBatchCleanup({
         participant,
@@ -943,6 +951,10 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     }
 
     function createTransaction(locationPermissionGranted = false, shouldHandleNavigation = true) {
+        if (blockDistanceRequestIfNeeded()) {
+            return;
+        }
+
         setIsConfirmed(true);
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
 
