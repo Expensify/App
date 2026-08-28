@@ -41,7 +41,7 @@ function DynamicWorkspaceOwnerChangeSuccessPage({route}: DynamicWorkspaceOwnerCh
     const policy = usePolicy(policyID);
     const shouldShowRef = useRef(!policy?.errorFields?.changeOwner && policy?.isChangeOwnerSuccessful);
 
-    // The server has already moved the payer; refetch so the local policy stops reporting the former owner as payer.
+    // The server has already moved the payer. Refetch so the local policy stops reporting the former owner as payer.
     useEffect(() => {
         openPolicyProfilePage(policyID);
     }, [policyID]);
