@@ -607,7 +607,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push(memberOption);
         }
 
-        if (hasAtLeastOneNonAdminRole && !hasAtLeastOnePayer && canAssignElevatedRoles) {
+        // Admin is a valid payer role, so the payer may be promoted to Admin (Admin and Payments Admin are the two roles that can pay).
+        if (hasAtLeastOneNonAdminRole && canAssignElevatedRoles) {
             options.push(adminOption);
         }
 
@@ -629,7 +630,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push(peopleAdminOption);
         }
 
-        if (hasAtLeastOneNonPaymentsAdminRole && isControlPolicy(policy) && !hasAtLeastOnePayer && canAssignElevatedRoles) {
+        // Payments Admin is a valid payer role, so the payer may be changed to Payments Admin (Admin and Payments Admin are the two roles that can pay).
+        if (hasAtLeastOneNonPaymentsAdminRole && isControlPolicy(policy) && canAssignElevatedRoles) {
             options.push(paymentsAdminOption);
         }
 
