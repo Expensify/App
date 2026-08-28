@@ -9124,8 +9124,8 @@ const translations = {
         },
         removedOverLimitForwardsTo: ({member, previousApprover, previousLimit}: {member: string; previousApprover?: string; previousLimit: string}) =>
             previousApprover
-                ? `changed the approval workflow for ${member} to stop forwarding reports over the ${previousLimit} limit (previously forwarded to ${previousApprover})`
-                : `changed the approval workflow for ${member} to stop forwarding reports over the ${previousLimit} limit`,
+                ? `changed the approval workflow for ${member} to stop forwarding reports over ${previousLimit} (previously forwarded to ${previousApprover})`
+                : `changed the approval workflow for ${member} to stop forwarding reports over ${previousLimit}`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `changed the approval workflow for ${member} to forward reports over ${limit} (previously ${previousLimit})`,
         changedInvoiceCompanyName: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
