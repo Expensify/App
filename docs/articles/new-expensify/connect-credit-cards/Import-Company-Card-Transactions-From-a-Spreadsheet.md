@@ -51,7 +51,7 @@ If you don't map **Unique ID**, Expensify treats every row in the file as a new 
 
 For **Unique ID** to work, the values in that column must be unique within the file and stay the same for the same transaction across uploads. If the column repeats the same value on different transactions, Expensify treats them as the same transaction and skips the later ones.
 
-Each **Unique ID** value must also be at least 5 characters long. Expensify ignores anything shorter when it checks for transactions it has already imported, so rows with a very short **Unique ID** import again every time you re-upload the file. If your file numbers transactions with short values such as `1`, `2`, and `3`, map **Unique ID** to a longer reference column instead.
+Each **Unique ID** value must also be more than 5 characters long. A value of 5 characters or fewer is too short to reliably identify a transaction, so Expensify ignores it and imports the row again every time you re-upload the file. If your file numbers transactions with short values such as `1`, `2`, and `3`, map **Unique ID** to a longer reference column instead.
 
 You must map **Unique ID** yourself on every import. Unlike the other field mappings, it is never filled in for you.
 
@@ -141,7 +141,7 @@ Expensify imports them. A row with an empty **Unique ID** cell gets a generated 
 
 ## Is there a minimum length for Unique ID?
 
-Yes. A **Unique ID** value must be at least 5 characters long. Expensify ignores shorter values when it checks for transactions it has already imported, so those rows create duplicates on a re-upload even though **Unique ID** is mapped. Map **Unique ID** to a column with longer references, such as the bank's own transaction ID.
+Yes. A **Unique ID** value must be more than 5 characters long. Expensify ignores any value of 5 characters or fewer because it's too short to reliably identify a transaction, so those rows create duplicates on a re-upload even though **Unique ID** is mapped. Map **Unique ID** to a column with longer references, such as the bank's own transaction ID.
 
 ## Do imported company card transactions sync across web and mobile?
 
