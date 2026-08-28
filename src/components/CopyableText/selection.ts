@@ -70,8 +70,12 @@ function useCopyableTextRowPress() {
         return shouldSuppressPress;
     };
 
+    // Pointer focus from copyable text should not make virtualized lists scroll the row into view.
+    const shouldSuppressCopyableTextRowFocus = () => wasMouseDownOnCopyableTextRef.current;
+
     return {
         markMouseDownOnCopyableText,
+        shouldSuppressCopyableTextRowFocus,
         shouldSuppressCopyableTextRowPress,
     };
 }
