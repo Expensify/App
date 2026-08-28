@@ -12,45 +12,16 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OptimisticAgentAccountIDMappingCreatedAt, Policy} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import type NewAgentTemplate from '@src/types/onyx/NewAgentTemplate';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
-import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxCollectionInputValue, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-const OPTIMISTIC_ACCOUNT_ID_MAPPING_MAX_AGE_IN_DAYS = 7;
-const OPTIMISTIC_ACCOUNT_ID_MAPPING_MAX_AGE_MS = OPTIMISTIC_ACCOUNT_ID_MAPPING_MAX_AGE_IN_DAYS * 24 * 60 * 60 * 1000;
-
-// Non-React file, so it reads its own data here instead of via useOnyx + a param (same pattern as HandleUnusedOptimisticID.ts).
-let optimisticAccountIDMappingCreatedAt: OnyxEntry<OptimisticAgentAccountIDMappingCreatedAt>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT,
-    callback: (value) => {
-        optimisticAccountIDMappingCreatedAt = value;
-        // Runs on every write to this key (creation, backfill, or this prune's own writes), so entries are pruned
-        // as soon as they're old enough — no caller needs to trigger this explicitly (see openAgentsPage() below
-        // for the one exception: nothing else writes to this key just from opening the page).
-        pruneStaleOptimisticAccountIDMappingEntries();
-    },
-});
-
-function pruneStaleOptimisticAccountIDMappingEntries() {
-    const now = Date.now();
-    const staleOptimisticAccountIDs = Object.entries(optimisticAccountIDMappingCreatedAt ?? {})
-        .filter(([, createdAt]) => now - createdAt > OPTIMISTIC_ACCOUNT_ID_MAPPING_MAX_AGE_MS)
-        .map(([staleOptimisticAccountID]) => staleOptimisticAccountID);
-
-    if (staleOptimisticAccountIDs.length === 0) {
-        return;
-    }
-
-    const staleEntries = Object.fromEntries(staleOptimisticAccountIDs.map((id) => [id, null]));
-    Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, staleEntries);
-    Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT, staleEntries);
-}
+import {pruneStaleOptimisticAccountIDMappingEntries} from './pruneOptimisticAgentAccountIDMapping';
 
 function openAgentsPage() {
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ARE_AGENTS_LOADED>> = [
@@ -61,8 +32,7 @@ function openAgentsPage() {
         },
     ];
 
-    // An entry can go stale purely from time passing with no new write to trigger the callback above — catch
-    // that here, since opening the agents list is the only realistic moment to re-check for it.
+    // See pruneOptimisticAgentAccountIDMapping.ts for why this needs to be triggered explicitly here.
     pruneStaleOptimisticAccountIDMappingEntries();
 
     read(READ_COMMANDS.OPEN_AGENTS_PAGE, null, {finallyData});

@@ -476,34 +476,6 @@ describe('openAgentsPage', () => {
     });
 });
 
-describe('pruneStaleOptimisticAccountIDMappingEntries (reactive)', () => {
-    beforeEach(async () => {
-        await Onyx.set(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, null);
-        await Onyx.set(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT, null);
-        await waitForBatchedUpdates();
-    });
-
-    it('prunes a stale entry automatically as soon as any write touches the createdAt key, without createAgent() or openAgentsPage()', async () => {
-        await Onyx.multiSet({
-            [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: {[STALE_OPTIMISTIC_ACCOUNT_ID]: 555, [FRESH_OPTIMISTIC_ACCOUNT_ID]: 666},
-            [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT]: {[STALE_OPTIMISTIC_ACCOUNT_ID]: Date.now() - 8 * 24 * 60 * 60 * 1000},
-        });
-        await waitForBatchedUpdates();
-
-        // No call to createAgent()/openAgentsPage() at all — this write alone should trigger the prune.
-        await Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT, {[FRESH_OPTIMISTIC_ACCOUNT_ID]: Date.now()});
-        await waitForBatchedUpdates();
-
-        const mapping = await OnyxUtils.get(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
-        const timestamps = await OnyxUtils.get(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT);
-
-        expect(mapping?.[STALE_OPTIMISTIC_ACCOUNT_ID]).toBeUndefined();
-        expect(mapping?.[FRESH_OPTIMISTIC_ACCOUNT_ID]).toBe(666);
-        expect(timestamps?.[STALE_OPTIMISTIC_ACCOUNT_ID]).toBeUndefined();
-        expect(timestamps?.[FRESH_OPTIMISTIC_ACCOUNT_ID]).toBeDefined();
-    });
-});
-
 const TEST_ACCOUNT_ID = 42;
 
 describe('updateAgentName', () => {
