@@ -615,6 +615,8 @@ const CONST = {
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
         FNS_DATE_TIME_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss',
         LOCAL_TIME_FORMAT: 'h:mm a',
+        LOCAL_TIME_FORMAT_WITHOUT_PERIOD: 'h:mm',
+        TIME_FORMAT_WITHOUT_PERIOD: 'hh:mm',
         YEAR_MONTH_FORMAT: 'yyyyMM',
         MONTH_FORMAT: 'MMMM',
         WEEKDAY_TIME_FORMAT: 'eeee',
@@ -758,6 +760,7 @@ const CONST = {
             // The back-end is always returning account number with 4 last digits and mask the rest with X
             MASKED_US_ACCOUNT_NUMBER: /^[X]{0,13}[0-9]{4}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
+            IBAN: /^[a-zA-Z]{2}[0-9]{2}[a-zA-Z0-9]{4}[0-9]{7}([a-zA-Z0-9]?){0,16}$/,
         },
         STATE: {
             VERIFYING: 'VERIFYING',
@@ -1022,6 +1025,7 @@ const CONST = {
         INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
+        MULTIPLE_APPROVERS: 'multipleApprovers',
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
@@ -1678,6 +1682,7 @@ const CONST = {
                 REIMBURSEMENT_SETUP: 'REIMBURSEMENTSETUP', // Deprecated OldDot Action
                 REIMBURSEMENT_SETUP_REQUESTED: 'REIMBURSEMENTSETUPREQUESTED', // Deprecated OldDot Action
                 REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED: 'DIRECTORINFORMATIONREQUIRED',
+                HOME_ADDRESS_REQUIRED: 'HOMEADDRESSREQUIRED',
                 REJECTED: 'REJECTED',
                 REJECTED_TO_SUBMITTER: 'REJECTEDTOSUBMITTER',
                 REMOVED_FROM_APPROVAL_CHAIN: 'REMOVEDFROMAPPROVALCHAIN',
@@ -2255,7 +2260,6 @@ const CONST = {
         SPAN_EXPENSE_SERVER_RESPONSE: 'ManualCreateExpenseServerResponse',
         SPAN_RECONNECT_SERVER_RESPONSE: 'ManualReconnectServerResponse',
         SPAN_GEOLOCATION_WAIT: 'ManualGeolocationWait',
-        SPAN_SEND_MESSAGE: 'ManualSendMessage',
         SPAN_SEND_MESSAGE_VISIBLE: 'ManualSendMessageVisible',
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
         SPAN_ODOMETER_TO_CONFIRMATION: 'ManualOdometerToConfirmation',
@@ -3668,6 +3672,8 @@ const CONST = {
         EXPENSE: 'expense',
         CREDIT_CARD: 'credit_card',
         BANK: 'bank',
+        ACCOUNTS_PAYABLE: 'accounts_payable',
+        OTHER_CURRENT_LIABILITY: 'other_current_liability',
     },
 
     UPDATE_PERSONAL_BANK_ACCOUNT: {
@@ -3682,6 +3688,7 @@ const CONST = {
         SUB_PAGE_NAMES: {
             PLAID_BANK_ACCOUNT: 'plaid',
             MANUAL_BANK_ACCOUNT_DETAILS: 'manual',
+            INTERNATIONAL_BANK_ACCOUNT_DETAILS: 'international-bank-account-details',
             LEGAL_NAME: 'legal-name',
             ADDRESS: 'address',
             PHONE_NUMBER: 'phone-number',
@@ -4372,7 +4379,7 @@ const CONST = {
         },
         COMMUTER_EXCLUSION_METHOD: {
             FIXED_DISTANCE: 'fixedDistance',
-            // R2 will add HOME_AND_OFFICE: 'homeAndOffice'
+            HOME_AND_OFFICE: 'homeAndOffice',
         },
         // Upper bound for the commuter exclusion fixed distance. Matches the length of the longest road in the world
         COMMUTER_EXCLUSION_MAX_DISTANCE: 19000,
@@ -4557,6 +4564,9 @@ const CONST = {
                 DUALENTRY_SYNC_TITLE: 'dualEntrySyncTitle',
                 DUALENTRY_SYNC_CONNECTION: 'dualEntrySyncConnection',
                 DUALENTRY_SYNC_IMPORT_DATA: 'dualEntrySyncImportData',
+                DUALENTRY_SYNC_PAYMENTS: 'dualEntrySyncPayments',
+                DUALENTRY_SYNC_CARD_SETTLEMENTS: 'dualEntrySyncCardSettlements',
+                DUALENTRY_SYNC_TRAVEL_SETTLEMENTS: 'dualEntrySyncTravelSettlements',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
@@ -8151,6 +8161,22 @@ const CONST = {
         },
     },
 
+    RULES: {
+        SCOPE: {
+            POLICY: 'policy',
+        },
+        APPROVAL_WORKFLOW: {
+            TRIGGER: {
+                REPORT_SUBMIT: 'ReportSubmit',
+                REPORT_APPROVE: 'ReportApprove',
+            },
+            ACTION: {
+                FORWARD_TO: 'ForwardTo',
+                APPROVE_REPORT: 'ApproveReport',
+            },
+        },
+    },
+
     BOOT_SPLASH_STATE: {
         VISIBLE: 'visible',
         READY_TO_BE_HIDDEN: 'readyToBeHidden',
@@ -8317,6 +8343,8 @@ const CONST = {
         EXCLUDED_CURRENCIES: ['IRR', 'CUP', 'SYP', 'UAH', 'KPW', 'RUB'] as string[],
         ACCOUNT_TYPE_KEY: 'BeneficiaryAccountType',
         ACCOUNT_HOLDER_COUNTRY_KEY: 'accountHolderCountry',
+        IBAN_LABEL_KEYWORD: 'iban',
+        SWIFT_LABEL_KEYWORD: 'swift',
         BANK_INFORMATION_FIELDS: ['bankName', 'bankAddressLine1', 'bankAddressLine2', 'bankCity', 'bankRegion', 'bankPostal', 'BeneficiaryBankBranchName'] as string[],
         ACCOUNT_HOLDER_FIELDS: [
             'accountHolderName',
@@ -8339,6 +8367,7 @@ const CONST = {
         PAGE_NAME: {
             COUNTRY: 'country',
             ACCOUNT_DETAILS: 'account-details',
+            INTERNATIONAL_BANK_ACCOUNT_DETAILS: 'international-bank-account-details',
             ACCOUNT_TYPE: 'account-type',
             BANK_INFORMATION: 'bank-information',
             ACCOUNT_HOLDER_DETAILS: 'account-holder-details',
@@ -8349,11 +8378,12 @@ const CONST = {
             MAPPING: {
                 COUNTRY_SELECTOR: 0,
                 BANK_ACCOUNT_DETAILS: 1,
-                ACCOUNT_TYPE: 2,
-                BANK_INFORMATION: 3,
-                ACCOUNT_HOLDER_INFORMATION: 4,
-                CONFIRMATION: 5,
-                SUCCESS: 6,
+                INTERNATIONAL_BANK_ACCOUNT_DETAILS: 2,
+                ACCOUNT_TYPE: 3,
+                BANK_INFORMATION: 4,
+                ACCOUNT_HOLDER_INFORMATION: 5,
+                CONFIRMATION: 6,
+                SUCCESS: 7,
             },
         },
     },
