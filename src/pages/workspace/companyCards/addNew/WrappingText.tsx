@@ -33,8 +33,11 @@ function WrappingText({text}: WrappingTextProps) {
     const {preferredLocale} = useLocalize();
 
     // Segment on word boundaries (rather than a whitespace regex) so locales without spaces (e.g. Japanese, Chinese)
-    // also get real break opportunities, letting the run wrap within itself on narrow screens.
-    const words = Array.from(new Intl.Segmenter(preferredLocale, {granularity: 'word'}).segment(text), (segment) => segment.segment);
+    // also get real break opportunities, letting the run wrap within itself on narrow screens. Hermes doesn't
+    // implement Intl.Segmenter (https://hermesengine.dev/docs/intl/), so fall back to splitting on whitespace,
+    // keeping the separators as their own entries to preserve spacing the same way Segmenter would.
+    const words =
+        typeof Intl.Segmenter === 'function' ? Array.from(new Intl.Segmenter(preferredLocale, {granularity: 'word'}).segment(text), (segment) => segment.segment) : text.split(/(\s+)/);
 
     return (
         <>
