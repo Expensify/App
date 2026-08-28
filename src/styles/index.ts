@@ -1,7 +1,7 @@
 import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
-import {animatedReceiptPaneRHPWidth, animatedSuperWideRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
+import {animatedReceiptPaneRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
 
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
@@ -6302,13 +6302,6 @@ const staticStyles = (theme: ThemeColors) =>
             width: animatedWideRHPWidth,
         },
 
-        superWideRHPExtendedCardInterpolatorStyles: {
-            position: 'absolute',
-            height: '100%',
-            right: 0,
-            width: animatedSuperWideRHPWidth,
-        },
-
         singleRHPExtendedCardInterpolatorStyles: {
             position: 'absolute',
             height: '100%',
@@ -6644,6 +6637,17 @@ const dynamicStyles = (theme: ThemeColors) =>
             width: amountWidth,
             marginRight: 4,
         }),
+
+        // The width is shrunk by the Side Panel offset at the call site (passed in), so the super wide
+        // sheet's left edge stays put instead of being pushed off-screen while the Side Panel is open.
+        // See https://github.com/Expensify/App/issues/99035
+        getSuperWideRHPExtendedCardInterpolatorStyles: (width: Animated.AnimatedSubtraction<number>) =>
+            ({
+                position: 'absolute',
+                height: '100%',
+                right: 0,
+                width,
+            }) satisfies ViewStyle,
 
         uploadFileViewBorderWidth: (isSmallScreenWidth: boolean) =>
             ({
@@ -7229,6 +7233,15 @@ const plainStyles = (theme: ThemeColors) =>
             flexGrow: 1,
             flexShrink: 0,
             minHeight: COMPOSER_SIZE_BUTTON_SIZE,
+        },
+
+        // Overlays the exceeded-length message just below the compose box so showing it never grows the box's
+        // footprint and pushes the content underneath down.
+        conciergePromptBoxExceededLength: {
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
         },
 
         // Hidden probe that measures whether the long placeholder wraps. The paddingRight renders it a few px
