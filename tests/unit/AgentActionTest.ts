@@ -411,10 +411,10 @@ describe('createAgent', () => {
         expect(createdAtValue).toBeLessThanOrEqual(after);
     });
 
-    it('prunes mapping entries older than 30 days, keeping fresher ones', async () => {
+    it('prunes mapping entries older than 7 days, keeping fresher ones', async () => {
         const now = Date.now();
         await Onyx.set(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT, {
-            [STALE_OPTIMISTIC_ACCOUNT_ID]: now - 31 * 24 * 60 * 60 * 1000,
+            [STALE_OPTIMISTIC_ACCOUNT_ID]: now - 8 * 24 * 60 * 60 * 1000,
             [FRESH_OPTIMISTIC_ACCOUNT_ID]: now - 1 * 24 * 60 * 60 * 1000,
         });
         await waitForBatchedUpdates();
@@ -469,10 +469,10 @@ describe('openAgentsPage', () => {
         expect(findUpdate(finallyData, ONYXKEYS.ARE_AGENTS_LOADED)?.value).toBe(true);
     });
 
-    it('prunes mapping entries older than 30 days, keeping fresher ones', async () => {
+    it('prunes mapping entries older than 7 days, keeping fresher ones', async () => {
         const now = Date.now();
         await Onyx.set(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT, {
-            [STALE_OPTIMISTIC_ACCOUNT_ID]: now - 31 * 24 * 60 * 60 * 1000,
+            [STALE_OPTIMISTIC_ACCOUNT_ID]: now - 8 * 24 * 60 * 60 * 1000,
             [FRESH_OPTIMISTIC_ACCOUNT_ID]: now - 1 * 24 * 60 * 60 * 1000,
         });
         await waitForBatchedUpdates();
