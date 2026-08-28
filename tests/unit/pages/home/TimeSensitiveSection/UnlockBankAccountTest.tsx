@@ -2,7 +2,6 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import {pressLockedBankAccount} from '@libs/actions/BankAccounts';
 import {navigateToConciergeChat} from '@libs/actions/Report';
-import {showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
@@ -14,6 +13,7 @@ import type * as NativeNavigation from '@react-navigation/native';
 
 import Onyx from 'react-native-onyx';
 
+import {getShowConfirmModalOption, mockShowConfirmModal, resetMockConfirmModal} from '../../../../utils/mockUseConfirmModal';
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
 jest.mock('@react-navigation/native', () => ({
@@ -66,8 +66,9 @@ jest.mock('@libs/actions/Report', () => ({
     navigateToConciergeChat: jest.fn(),
 }));
 
-jest.mock('@libs/BankAccountUtils', () => ({
-    showUnlockAlreadyRequestedModal: jest.fn(),
+jest.mock('@hooks/useConfirmModal', () => ({
+    __esModule: true,
+    default: () => ({showConfirmModal: mockShowConfirmModal, closeModal: jest.fn()}),
 }));
 
 const ADMIN_ACCOUNT_ID = 12345;
@@ -94,6 +95,7 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
     });
 
     beforeEach(async () => {
+        resetMockConfirmModal();
         await Onyx.clear();
         await Onyx.set(ONYXKEYS.ACCOUNT, {primaryLogin: 'admin@example.com'});
         await waitForBatchedUpdates();
@@ -334,7 +336,7 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
         const cta = screen.getByText('homePage.timeSensitiveSection.ctaFix');
         fireEvent.press(cta);
 
-        expect(showUnlockAlreadyRequestedModal).toHaveBeenCalled();
+        expect(getShowConfirmModalOption('title')).toBe('bankAccount.unlockAlreadyRequestedTitle');
         expect(pressLockedBankAccount).not.toHaveBeenCalled();
     });
 
