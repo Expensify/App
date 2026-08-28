@@ -474,6 +474,13 @@ const ONYXKEYS = {
     /** Set when we are loading the bulk change approver page */
     IS_LOADING_BULK_CHANGE_APPROVER_PAGE: 'isLoadingBulkChangeApproverPage',
 
+    /**
+     * Set when we are loading the reimbursement countries used to decide whether to collect international deposit
+     * details. RAM-only so an interrupted request never persists a stuck `true` and leaves the deposit account flow
+     * showing a loading state on the next launch.
+     */
+    RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP: 'isLoadingDepositAccountSetup',
+
     /** Is report data loading? */
     IS_LOADING_APP: 'isLoadingApp',
 
@@ -739,6 +746,9 @@ const ONYXKEYS = {
     /** The user's Concierge reportID */
     CONCIERGE_REPORT_ID: 'conciergeReportID',
 
+    /** Draft message typed into the Concierge prompt box on the home page */
+    CONCIERGE_PROMPT_DRAFT: 'conciergePromptDraft',
+
     /** The user's Self DM reportID */
     SELF_DM_REPORT_ID: 'selfDMReportID',
 
@@ -825,10 +835,6 @@ const ONYXKEYS = {
 
     /** List of transaction IDs used when navigating to prev/next transaction when viewing it in RHP */
     TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS: 'transactionThreadNavigationTransactionIDs',
-
-    /** Hash of the search snapshot that holds the transactions referenced by TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS.
-     * Used to fall back to snapshot data when the live transaction collection hasn't loaded those transactions yet (e.g. opening an expense from the Spend page as an approver). */
-    TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH: 'transactionThreadNavigationSnapshotHash',
 
     /** Optional map of transactionID -> sibling descriptor for prev/next navigation in snapshot-backed flows (e.g. Home "Recently added"), where siblings may be absent from the main Onyx collections. When set, navigation resolves (and lazily creates) each sibling's thread on demand from its descriptor. */
     TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS: 'transactionThreadNavigationThreadReportIDs',
@@ -1700,6 +1706,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: boolean;
     [ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS]: boolean;
     [ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE]: boolean;
+    [ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP]: boolean;
     [ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW]: boolean;
     [ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS]: boolean;
     [ONYXKEYS.IS_LOADING_AGENT_TEMPLATES]: boolean;
@@ -1803,6 +1810,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
     [ONYXKEYS.CONCIERGE_THINKING_KICKOFF]: boolean;
     [ONYXKEYS.CONCIERGE_REPORT_ID]: string;
+    [ONYXKEYS.CONCIERGE_PROMPT_DRAFT]: string;
     [ONYXKEYS.SELF_DM_REPORT_ID]: string;
     [ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS]: Participant;
     [ONYXKEYS.SHARE_TEMP_FILE]: OnyxTypes.ShareTempFile;
@@ -1836,7 +1844,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY]: OnyxTypes.LastSearchParams;
     [ONYXKEYS.NVP_LAST_ANDROID_LOGIN]: string;
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS]: string[];
-    [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH]: number;
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS]: Record<string, TransactionThreadNavigationDescriptor>;
     [ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES]: OnyxTypes.ExportTemplate[];
     [ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION]: OnboardingAccounting;
