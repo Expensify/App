@@ -26,10 +26,6 @@ const REPORT_PATH = ROUTES.REPORT_WITH_ID.getRoute('1234');
 // Not one of EXPENSIFY_CARD_DETAILS.entryScreens, so a route built against it resolves to the not-found page.
 const UNRELATED_PATH = ROUTES.SETTINGS_DISPLAY_NAME;
 
-jest.mock('@libs/Navigation/helpers/getPathFromState', () => jest.fn());
-
-const getPathFromStateMock = jest.requireMock<jest.Mock>('@libs/Navigation/helpers/getPathFromState');
-
 const Stack = createPlatformStackNavigator<TestParamList>();
 const navigationRef = createNavigationContainerRef<TestParamList>();
 
@@ -44,7 +40,7 @@ function UnfocusedScreenWrapper({children}: {children: ReactNode}) {
             ref={navigationRef}
             initialState={{
                 index: 1,
-                routes: [{name: 'Bound'}, {name: 'Stacked'}],
+                routes: [{name: 'Bound', path: REPORT_PATH}, {name: 'Stacked'}],
             }}
         >
             <Stack.Navigator>
@@ -75,13 +71,8 @@ function ScreenWrapper({children}: {children: ReactNode}) {
 const renderOnScreen = () => renderHook(() => useScreenBoundDynamicRoute(), {wrapper: ScreenWrapper});
 
 describe('useScreenBoundDynamicRoute', () => {
-    beforeEach(() => {
-        getPathFromStateMock.mockReturnValue(REPORT_PATH);
-    });
-
     afterEach(() => {
         jest.restoreAllMocks();
-        getPathFromStateMock.mockReset();
     });
 
     it('binds the route to the screen it was focused on', () => {
