@@ -83,6 +83,7 @@ describe('no-unsafe-onyx-read', () => {
             `${ONYX_IMPORT} function Row() { const onPress = async () => { await save(); return Onyx.get(key); }; return <View onPress={onPress} />; }`,
 
             `${ONYX_IMPORT} function Row() { const onPress = useCallback(() => Onyx.get(key), []); return <View onPress={onPress} />; }`,
+            `${ONYX_IMPORT} function Row() { useOnyx(key, {onLoaded: () => Onyx.get(other)}); return <View />; }`,
             `${ONYX_IMPORT} function Row() { const [v] = useReducer((state, action) => Onyx.get(key), 0); return <View v={v} />; }`,
             `${ONYX_IMPORT} function Row() { useEffect(() => { use(Onyx.get(key)); }, []); return <View />; }`,
             `${ONYX_IMPORT} function Row() { useLayoutEffect(() => { use(Onyx.get(key)); }, []); return <View />; }`,
@@ -138,7 +139,6 @@ describe('no-unsafe-onyx-read', () => {
 
             // The write's own await finishes before the read starts, even when the read is inside a second one.
             `${ONYX_IMPORT} async function submit() { await Promise.all([Onyx.merge(keyA, value), Onyx.merge(keyB, value)]); return await Promise.all([Onyx.get(keyA), Onyx.get(keyB)]); }`,
-
 
             // Bodies that run once have no repeat edge, so reading before the write is the fix, not a finding.
             `${ONYX_IMPORT} function submit() { const draft = Onyx.get(key); Onyx.merge(key, draft); }`,
@@ -226,6 +226,16 @@ describe('no-unsafe-onyx-read', () => {
             {code: `${ONYX_IMPORT} function Row() { const value = React.useMemo(() => Onyx.get(key), []); return <View value={value} />; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} function Row() { const [value] = useState(() => Onyx.get(key)); return <View value={value} />; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} function Row() { const [value] = useReducer(reducer, key, (k) => Onyx.get(k)); return <View value={value} />; }`, errors: RENDER_ERRORS},
+
+            // A useOnyx selector runs inside the hook's getSnapshot, which React calls while rendering.
+            {
+                code: `${ONYX_IMPORT} function Row() { const [value] = useOnyx(key, {selector: (data) => Onyx.get(other)}); return <View value={value} />; }`,
+                errors: RENDER_ERRORS,
+            },
+            {
+                code: `${ONYX_IMPORT} function useThing() { return useOnyx(key, {selector: (data) => { const extra = Onyx.get(other); return {...data, extra}; }}); }`,
+                errors: RENDER_ERRORS,
+            },
 
             // Function boundaries that defer nothing: an IIFE, a synchronous array callback, and a Promise
             // executor, which runs while the constructor is still on the stack.

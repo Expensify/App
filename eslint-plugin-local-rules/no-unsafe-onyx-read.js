@@ -34,6 +34,13 @@ const RENDER_TIME_HOOK_ARGUMENTS = new Map([
     ['useReducer', new Set([2])],
 ]);
 
+/**
+ * Option properties whose function runs during render. A `useOnyx` selector runs inside the hook's
+ * `getSnapshot`, which React calls while rendering, so a read in one is a render read even though the
+ * function sits in an object rather than in an argument position.
+ */
+const RENDER_TIME_OPTION_NAMES = new Set(['selector']);
+
 /** Calls that wrap a component without deferring it, so their callback argument is still a render body. */
 const COMPONENT_WRAPPER_NAMES = new Set(['memo', 'forwardRef']);
 
@@ -159,7 +166,7 @@ function getRenderTimeArgumentIndices(callee) {
 
     if (callee.type === 'MemberExpression') {
         const propertyName = getStaticPropertyName(callee);
-        return propertyName ? RENDER_TIME_HOOK_ARGUMENTS.get(propertyName) ?? null : null;
+        return propertyName ? (RENDER_TIME_HOOK_ARGUMENTS.get(propertyName) ?? null) : null;
     }
 
     return null;
@@ -207,6 +214,10 @@ function getVariableByName(scope, variableName) {
  * continues through it.
  */
 function classifyFunctionBoundary(functionNode, parent) {
+    if (parent?.type === 'Property' && parent.value === functionNode && RENDER_TIME_OPTION_NAMES.has(getStaticName(parent.key, parent.computed))) {
+        return RENDER;
+    }
+
     // `new Promise((resolve) => ...)` runs its executor while the constructor is still on the stack, so the
     // read inside one happens in the constructing body's own tick, render included.
     if (parent?.type === 'NewExpression' && parent.arguments.at(0) === functionNode && matchesCalleeName(parent.callee, SYNCHRONOUS_EXECUTOR_NAMES)) {
@@ -370,9 +381,7 @@ function isOnEveryPathTo(awaitEntry, read) {
  * the path that skips it still reaches the read in the write's own tick.
  */
 function isSeparatedByAwait(awaits, write, read) {
-    return awaits.some(
-        (awaitEntry) => awaitEntry.node.range.at(0) >= write.node.range.at(1) && awaitEntry.node.range.at(1) <= read.node.range.at(0) && isOnEveryPathTo(awaitEntry, read),
-    );
+    return awaits.some((awaitEntry) => awaitEntry.node.range.at(0) >= write.node.range.at(1) && awaitEntry.node.range.at(1) <= read.node.range.at(0) && isOnEveryPathTo(awaitEntry, read));
 }
 
 /**
