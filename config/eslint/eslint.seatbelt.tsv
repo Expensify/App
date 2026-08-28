@@ -814,7 +814,7 @@
 "../../src/libs/actions/Task.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/libs/actions/Task.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/actions/Task.ts"	"no-restricted-imports"	1
-"../../src/libs/actions/Task.ts"	"no-restricted-syntax"	6
+"../../src/libs/actions/Task.ts"	"no-restricted-syntax"	5
 "../../src/libs/actions/TaxRate.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/TeachersUnite.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Transaction.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
