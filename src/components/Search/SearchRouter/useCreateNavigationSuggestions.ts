@@ -127,7 +127,8 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
     const trackDistanceMatchTerms = [translate('iou.trackDistance')];
     const chatMatchTerms = [translate('sidebarScreen.fabNewChat'), `${translate('common.new')} ${translate('common.chat')}`];
     const invoiceMatchTerms = [translate('workspace.invoices.sendInvoice')];
-    const travelMatchTerms = [translate('travel.bookTravel')];
+    const bookTravelLabel = translate('travel.bookTravel');
+    const travelMatchTerms = [bookTravelLabel];
     const workspaceMatchTerms = [translate('workspace.new.newWorkspace'), translate('onboarding.workspace.createWorkspace'), translate('homePage.gettingStartedSection.createWorkspace')];
     const matchQuery = stripNavigationIntentPrefix(query);
     const shouldPrepareCreateReport =
@@ -233,7 +234,7 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
         },
         {
             visible: isTravelVisible,
-            text: translate('travel.bookTravel'),
+            text: bookTravelLabel,
             icon: icons.Suitcase,
             matchTerms: travelMatchTerms,
             action: () =>
