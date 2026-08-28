@@ -129,4 +129,43 @@ second
             expect(StringUtils.startsWithVowel('@example')).toBe(false);
         });
     });
+
+    describe('normalization fast path', () => {
+        // unguarded originals, so this fails if the fast path ever drifts
+        const referenceNormalizeAccents = (text: string) => text.normalize('NFD').replaceAll(/[\u0300-\u036f]/g, '');
+        const referenceRemoveZeroWidth = (text: string) => text.replaceAll(/[\u200b\u2060\ufeff]/g, '');
+
+        it('leaves ASCII-only strings untouched', () => {
+            for (const text of ['', ' ', 'John Smith', "O'Brien-Smith", 'john.smith@expensify.com', 'category:', '~!@#$%^&*()_+`={}|[]:";<>?,./']) {
+                expect(StringUtils.normalizeForMatch(text)).toBe(text);
+            }
+        });
+
+        it('still strips accents and zero-width layout characters', () => {
+            expect(StringUtils.normalizeForMatch('naïve café')).toBe('naive cafe');
+            expect(StringUtils.normalizeForMatch('ca\u0301fe')).toBe('cafe');
+            expect(StringUtils.normalizeForMatch('a\u200bb\u2060c\ufeffd')).toBe('abcd');
+        });
+
+        it('keeps zero-width joiner and non-joiner', () => {
+            expect(StringUtils.normalizeForMatch('a\u200db')).toBe('a\u200db');
+            expect(StringUtils.normalizeForMatch('a\u200cb')).toBe('a\u200cb');
+        });
+
+        it('matches the unguarded implementations for every BMP code point', () => {
+            const mismatches: string[] = [];
+            for (let codePoint = 0; codePoint <= 0xffff; codePoint++) {
+                const char = String.fromCharCode(codePoint);
+                for (const text of [char, `a${char}b`]) {
+                    if (StringUtils.normalizeAccents(text) !== referenceNormalizeAccents(text)) {
+                        mismatches.push(`normalizeAccents U+${codePoint.toString(16)}`);
+                    }
+                    if (StringUtils.removeZeroWidthCharacters(text) !== referenceRemoveZeroWidth(text)) {
+                        mismatches.push(`removeZeroWidthCharacters U+${codePoint.toString(16)}`);
+                    }
+                }
+            }
+            expect(mismatches).toEqual([]);
+        });
+    });
 });
