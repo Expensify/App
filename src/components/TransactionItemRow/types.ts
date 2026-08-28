@@ -73,7 +73,7 @@ type TransactionItemRowProps = {
     isSelected: boolean;
     shouldShowTooltip: boolean;
     dateColumnSize: TableColumnSize;
-    /** When true, the date column renders as the wider "Created" column (report-style Search: invoice/expense-report). Defaults to the narrow "Date" width. */
+    /** When true, the date column renders as the wider "Created" column (expense reports, tasks) instead of the narrow "Date" column. */
     isDateColumnCreated?: boolean;
     submittedColumnSize?: TableColumnSize;
     approvedColumnSize?: TableColumnSize;

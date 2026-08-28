@@ -6710,7 +6710,7 @@ function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes, i
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.ACTION) {
             minWidth += (isActionColumnWide ?? type === CONST.SEARCH.DATA_TYPES.TASK) ? 80 : 68;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.DATE) {
-            // Only the report-style "Created" header (expense report, invoice) needs the sibling date-column room ("Submitted"/"Approved"). Other types keep "Date" narrower.
+            // The "Created" header (expense reports, tasks) is a longer label, so it uses the same width as the sibling date columns (Submitted/Approved/Posted = 72); the short "Date" header stays at 48.
             minWidth += isCreatedDateType(type) ? 72 : 48;
         } else if (
             column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED ||

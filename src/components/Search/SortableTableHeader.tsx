@@ -43,8 +43,6 @@ type SearchTableHeaderProps = {
     onSortPress: (column: SearchSortBy, order: SortOrder) => void;
     shouldRemoveTotalColumnFlex?: boolean;
     isActionColumnWide?: boolean;
-
-    /** True when the date column renders "Created" (expense reports), which needs a wider column. */
     isDateColumnCreated?: boolean;
 };
 
