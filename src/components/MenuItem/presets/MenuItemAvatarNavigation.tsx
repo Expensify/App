@@ -9,7 +9,6 @@ import MenuItemTitle from '@components/MenuItem/leaves/text/MenuItemTitle';
 import MenuItemChevron from '@components/MenuItem/leaves/trailing/MenuItemChevron';
 
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
@@ -28,10 +27,10 @@ type MenuItemAvatarNavigationProps = WithSentryLabel &
         /** Supporting line under the title — an email, address, or other secondary identifier */
         description: string;
 
-        /** Account ID the avatar belongs to. Picks the default avatar when `avatarSource` is absent */
+        /** Account ID the avatar belongs to. Used to resolve `avatarSource` when it is a default-avatar URL */
         accountID: number;
 
-        /** Avatar for the leading cell. Falls back to the default avatar for `accountID` when omitted */
+        /** Avatar for the leading cell. Falls back to the generic fallback avatar when omitted */
         avatarSource?: AvatarSource;
 
         /** Function to fire when the row is pressed */
@@ -57,7 +56,7 @@ function MenuItemAvatarNavigation({title, description, accountID, avatarSource, 
             <MenuItemRow>
                 <MenuItemLeading>
                     <UserAvatar
-                        source={avatarSource ?? getDefaultAvatarURL({accountID})}
+                        source={avatarSource}
                         accountID={accountID}
                     />
                 </MenuItemLeading>
