@@ -283,10 +283,20 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
     const categoriesToMatch = form?.categoriesToMatch ?? [];
     const hasCategoryCondition = categoriesToMatch.length > 0;
     const hasMerchantCondition = !!form?.merchantToMatch;
-    // Scoping lives in the draft rather than the route, so it survives a trip to any picker and every picker can route
-    // back to the same URL.
-    const isScopedToCategory = form?.ruleType === 'category';
-    const isScopedToMerchant = form?.ruleType === 'merchant';
+    // A saved rule already is one kind or the other, so editing is scoped the same way creating is. Creating reads the
+    // draft rather than the route, so scoping survives a trip to any picker and every picker routes back to one URL.
+    const getScopedRuleType = (): 'merchant' | 'category' | undefined => {
+        if (isEditingCategoryTaxRule) {
+            return 'category';
+        }
+        if (isEditing) {
+            return 'merchant';
+        }
+        return form?.ruleType;
+    };
+    const scopedRuleType = getScopedRuleType();
+    const isScopedToCategory = scopedRuleType === 'category';
+    const isScopedToMerchant = scopedRuleType === 'merchant';
     const isCategoryRule = hasCategoryCondition || isEditingCategoryTaxRule || isScopedToCategory;
     // Deleting means writing the workspace default rate back, so without one there is nothing to write.
     const canDeleteCategoryTaxRule = isEditingCategoryTaxRule && !!policy?.taxRates?.defaultExternalID;
