@@ -9,13 +9,10 @@ import {useEffect, useEffectEvent, useLayoutEffect, useRef, useState} from 'reac
 import useNumericSelection from './useNumericSelection';
 
 type UseNumberEditControllerParams = {
-    /** Externally controlled value. Re-initializes only when reset to an empty string. */
     value?: string;
 
-    /** Called with the canonical signed value on number edit. */
     onInputChange?: (value: string) => void;
 
-    /** Whether negative values are allowed. */
     allowNegative?: boolean;
 
     /** Number of decimal places accepted by the controller. */
@@ -25,10 +22,7 @@ type UseNumberEditControllerParams = {
     maxLength?: number;
 };
 
-/**
- * Runs the callback whenever `decimals` changes, including on mount, where it sanitizes a value that already
- * exceeds the precision. `usePrevious` cannot back this: it reports the current value on the first render.
- */
+/** Runs on mount and whenever `decimals` changes, sanitizing values that exceed the new precision. */
 function useDecimalsChangeEffect(decimals: number, onDecimalsChange: (decimals: number) => void) {
     const previousDecimals = useRef<number | undefined>(undefined);
     const handleDecimalsChange = useEffectEvent(onDecimalsChange);
@@ -43,10 +37,7 @@ function useDecimalsChangeEffect(decimals: number, onDecimalsChange: (decimals: 
     }, [decimals]);
 }
 
-/**
- * Controller owning the numeric value: its formatting, validation and commit. The caret belongs to
- * `useNumericSelection`, which the controller calls whenever an edit changes the displayed text.
- */
+/** Owns numeric value, formatting, validation, and commits while delegating caret state to `useNumericSelection`. */
 function useNumericEditingController({value: externalValueProp, onInputChange, allowNegative = false, decimals = 0, maxLength}: UseNumberEditControllerParams) {
     const {fromLocaleDigit, toLocaleDigit} = useLocalize();
 
@@ -55,14 +46,14 @@ function useNumericEditingController({value: externalValueProp, onInputChange, a
     const [currentValue, setCurrentValue] = useState(externalValue);
     const [previousExternalValue, setPreviousExternalValue] = useState(externalValue);
 
-    // Synchronously tracks the latest committed value across batched state updates.
+    // Keep the latest committed value available across batched state updates.
     const committedValueRef = useRef(externalValue);
 
     const formattedNumber = replaceAllDigits(currentValue, toLocaleDigit);
 
     const selectionControls = useNumericSelection({displayText: formattedNumber});
 
-    // Reset when external value is cleared; ignore other external changes while editing.
+    // Reset when the external value is cleared; ignore other external changes while editing.
     if (previousExternalValue !== externalValue) {
         setPreviousExternalValue(externalValue);
         if (externalValue === '') {
@@ -71,7 +62,7 @@ function useNumericEditingController({value: externalValueProp, onInputChange, a
         }
     }
 
-    /** Commits a canonical value. Returns the previously committed canonical value. */
+    // Commits a canonical value and returns the previously committed value.
     const applyValue = (nextValue: string, {notify = true}: {notify?: boolean} = {}) => {
         const previousValue = committedValueRef.current;
 
@@ -98,22 +89,21 @@ function useNumericEditingController({value: externalValueProp, onInputChange, a
         selectionControls.syncAfterEdit({previousText: previousValue, nextText: numberWithLeadingZero});
     };
 
-    /** Replaces canonical value without validation or notification and moves caret to the end. */
+    // Replaces the canonical value without validation or notification and moves the caret to the end.
     const updateNumber = (newNumber: string) => {
         applyValue(newNumber, {notify: false});
         selectionControls.moveToEnd(newNumber);
     };
 
-    /** Returns the canonical signed value. */
     const getNumber = () => committedValueRef.current;
 
     useLayoutEffect(() => {
-        // Catches up with the external reset, the one commit that bypasses applyValue.
+        // Keep the ref in sync with external resets, which bypass applyValue.
         committedValueRef.current = currentValue;
     }, [currentValue]);
 
     useDecimalsChangeEffect(decimals, (newDecimals) => {
-        // Skip if empty or already valid for the new decimal precision.
+        // Empty values and values already valid at the new precision need no update.
         if (externalValue === '' || validateAmount(currentValue, newDecimals, maxLength, allowNegative)) {
             return;
         }

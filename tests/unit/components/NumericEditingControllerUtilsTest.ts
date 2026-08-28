@@ -12,10 +12,8 @@ jest.mock('@libs/getOperatingSystem', () => jest.fn());
 const mockedIsMobileSafari = jest.mocked(isMobileSafari);
 const mockedGetOperatingSystem = jest.mocked(getOperatingSystem);
 
-/** Identity conversion, matching a locale whose digits are the Latin ones. */
 const fromLatinDigit = (digit: string) => digit;
 
-/** Mirrors the real `fromLocaleDigit`, which throws on characters that are not digits of the locale. */
 const fromArabicIndicDigit = (digit: string) => {
     const index = '٠١٢٣٤٥٦٧٨٩'.indexOf(digit);
 
@@ -51,9 +49,7 @@ describe('NumericEditingController utils', () => {
         });
 
         it('documents the leading zero addLeadingZero produces for a negative value without an integer part', () => {
-            // `addLeadingZero` prepends `-0` instead of replacing the minus sign, so the result fails validation
-            // and the input is rejected. The behavior predates this helper and is asserted here so that fixing
-            // `addLeadingZero` surfaces the numeric input as a caller that expects `-0.5`.
+            // Preserve legacy `addLeadingZero` behavior: `-.5` becomes `-0-.5` and is rejected.
             expect(normalizeNumericInput('-.5', {fromLocaleDigit: fromLatinDigit, allowNegative: true})).toBe('-0-.5');
         });
 

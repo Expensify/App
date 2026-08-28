@@ -10,9 +10,7 @@ import CONST from '@src/CONST';
 
 import type {BlurEvent, TextInputSelectionChangeEvent} from 'react-native';
 
-/**
- * Primitive text input rendered within a NumericField root, connected to form context.
- */
+/** Text input primitive connected to a NumericField root. */
 function NumericTextInput({
     symbol = '',
     position = 'prefix',

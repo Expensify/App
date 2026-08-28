@@ -48,8 +48,7 @@ function renderTextInput(inputProps: Partial<NumericTextInputProps> = {}, rootPr
 
 const INPUT_TEST_ID = 'number-form-input';
 
-// The root re-initializes its editing state only when the external value resets to an empty string (matching
-// NumberWithSymbolForm); the reset must also collapse the selection so the caret cannot outlive the cleared text.
+// Only an empty external value resets editing state; clearing selection keeps the caret within the cleared text.
 describe('NumericField external reset handling', () => {
     afterEach(() => {
         jest.clearAllMocks();
@@ -203,7 +202,7 @@ describe('NumericField.TextInput', () => {
         fireEvent.changeText(screen.getByTestId(INPUT_TEST_ID), '1,234.56');
         await waitForBatchedUpdatesWithAct();
 
-        // Then the commas are stripped as thousands separators (unified controller pipeline; the legacy text path rejected this)
+        // Then the commas are stripped as thousands separators
         expect(onInputChange).toHaveBeenLastCalledWith('1234.56');
         expect(screen.getByDisplayValue('1234.56')).toBeOnTheScreen();
     });

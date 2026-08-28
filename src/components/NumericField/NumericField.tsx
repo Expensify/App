@@ -11,13 +11,12 @@ import type {NumericFieldActionsContextValue, NumericFieldStateContextValue} fro
 import {NumericFieldActionsContext, NumericFieldStateContext} from './context';
 
 type NumericFieldProps = {
-    /** The canonical number value shared by composed primitives. Only a reset to an empty string re-initializes the editing state. */
+    /** Canonical value shared by composed primitives; only an empty value resets editing state. */
     value?: string;
 
-    /** Called when a composed primitive changes the canonical value. */
     onInputChange?: (value: string) => void;
 
-    /** Whether negative values are allowed. The canonical value always stores its sign. */
+    /** Whether negative values are allowed; the canonical value always stores its sign. */
     allowNegative?: boolean;
 
     /** Number of decimal places accepted by the form. */
@@ -26,19 +25,16 @@ type NumericFieldProps = {
     /** Maximum number of integer digits accepted by the form. */
     maxLength?: number;
 
-    /** Error supplied by FormProvider. Rendered inline by the text input, which owns the label and error slots. */
+    /** Error supplied by FormProvider and rendered by the text input. */
     errorText?: string;
 
-    /** Form callback supplied by InputWrapper. */
     onBlur?: BaseTextInputProps['onBlur'];
 
-    /** Submit callback supplied by InputWrapper. */
     onSubmitEditing?: BaseTextInputProps['onSubmitEditing'];
 
-    /** Reference to the underlying text input, supplied by InputWrapper. */
     ref?: ForwardedRef<BaseTextInputRef>;
 
-    /** Reference exposing the number editing imperative API. */
+    /** Ref exposing the number editing imperative API. */
     numericEditingRef?: ForwardedRef<NumericEditingRef>;
 
     children: ReactNode;

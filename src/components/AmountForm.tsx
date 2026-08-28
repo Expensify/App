@@ -112,8 +112,7 @@ function AmountForm({
     const decimals = decimalsProp ?? getCurrencyDecimals(currency);
     const symbol = getLocalizedCurrencySymbol(preferredLocale, currency) ?? '';
 
-    // Use the new composable NumericField for the standard text-input path as part of the NumberWithSymbolForm migration.
-    // Keep the legacy component for currency-button variants until those additional controls are supported by NumericField.
+    // Use NumericField for standard text input. Currency-button variants still use the legacy form.
     if (displayAsTextInput && !shouldShowCurrencyButton) {
         return (
             <NumericField

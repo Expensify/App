@@ -7,8 +7,7 @@ import type ShouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSel
 
 import * as NativeNavigation from '@react-navigation/native';
 
-// `shouldIgnoreSelectionWhenUpdatedManually` is `true` on native only, so this suite mocks it for the whole file the
-// way NumericFieldSelectionGuardTest does: the guards it gates are what this hook exists to own.
+// Native sets this flag only on native platforms; mock it to exercise the guards owned by this hook.
 jest.mock('@libs/shouldIgnoreSelectionWhenUpdatedManually', () => ({
     ...jest.requireActual<{default: ShouldIgnoreSelectionWhenUpdatedManually}>('@libs/shouldIgnoreSelectionWhenUpdatedManually'),
     __esModule: true,

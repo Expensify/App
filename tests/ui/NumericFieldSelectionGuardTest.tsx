@@ -50,10 +50,7 @@ function renderTextInput(onInputChange: jest.Mock, numericEditingRef?: React.Ref
     );
 }
 
-// `shouldIgnoreSelectionWhenUpdatedManually` is `true` on native only, so this suite mocks it for the whole file the way
-// NumberWithSymbolFormTest does. It pins the legacy `setFormattedNumber` lifecycle: a manual update raises the flag and
-// only the next native selection event consumes it, however late it arrives (native always echoes one after a controlled
-// update). This keeps the caret stable even when the stale event lands after the update has committed.
+// Native sets this flag only on native platforms. Mock it here to cover the manual-update guard and late native echoes.
 describe('NumericField.TextInput native selection guard', () => {
     afterEach(() => {
         jest.clearAllMocks();
@@ -67,7 +64,7 @@ describe('NumericField.TextInput native selection guard', () => {
         renderTextInput(onInputChange);
         await waitForBatchedUpdatesWithAct();
 
-        // When onChangeText and a stale onSelectionChange arrive in the same batch (native behavior fireEvent cannot reproduce)
+        // When onChangeText and stale onSelectionChange arrive in the same batch
         const inputProps: {onChangeText?: (text: string) => void; onSelectionChange?: (event: {nativeEvent: {selection: {start: number; end: number}}}) => void} = getInput().props;
         await act(async () => {
             inputProps.onChangeText?.('123');

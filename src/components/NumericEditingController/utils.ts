@@ -12,10 +12,7 @@ type NormalizeNumericInputOptions = {
     allowNegative?: boolean;
 };
 
-/**
- * Normalizes localized numeric input to the canonical form accepted by `validateAmount`.
- * The result is unvalidated and may exceed allowed precision or length.
- */
+/** Normalizes localized input to the canonical form expected by `validateAmount`, without validating it. */
 function normalizeNumericInput(inputValue: string, {fromLocaleDigit, allowNegative = false}: NormalizeNumericInputOptions): string {
     // Remove spaces iOS Safari adds when pasting: https://github.com/Expensify/App/issues/16974
     const inputWithoutSpaces = stripSpacesFromAmount(inputValue);
@@ -44,7 +41,6 @@ function getSelectionAtOffset(offset: number): NumericEditingSelection {
     return {start: offset, end: offset};
 }
 
-/** Adjusts the selection for the displayed text's length change. */
 function getNewSelection(oldSelection: NumericEditingSelection, previousLength: number, newLength: number): NumericEditingSelection {
     return getSelectionAtOffset(oldSelection.end + (newLength - previousLength));
 }
@@ -53,7 +49,6 @@ function collapseSelection(selection: NumericEditingSelection): NumericEditingSe
     return getSelectionAtOffset(selection.end);
 }
 
-/** Clamps selection offsets when native events report positions past the text end. */
 function clampSelection(selection: NumericEditingSelection, maxLength: number): NumericEditingSelection {
     return {
         start: Math.min(selection.start, maxLength),

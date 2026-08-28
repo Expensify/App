@@ -24,22 +24,16 @@ type NumericEditingSelection = {
 };
 
 type NumericEditingBaseProps = {
-    /** Symbol displayed next to the number. */
     symbol?: string;
 
-    /** Position of the symbol relative to the number. */
     position?: NumericEditingPosition;
 
-    /** Whether the symbol should be hidden. */
     hideSymbol?: boolean;
 
-    /** Style applied to the number input. */
     style?: StyleProp<TextStyle>;
 
-    /** Reference to the underlying text input. */
     ref?: ForwardedRef<BaseTextInputRef>;
 
-    /** Callback for keyboard events received by the numeric input. */
     onKeyPress?: (event: NumericEditingKeyPressEvent) => void;
 } & Pick<
     BaseTextInputProps,
