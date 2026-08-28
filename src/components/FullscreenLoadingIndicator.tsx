@@ -24,7 +24,7 @@ type FullScreenLoadingIndicatorProps = {
     /** Size of the icon */
     iconSize?: FullScreenLoadingIndicatorIconSize;
 
-    /** Whether the "Go Back" button appears after a timeout. */
+    /** Whether the "Go Back" button appears after a timeout. Defaults to true, pass false on screens where going back is dead or harmful (e.g. cold deep-link auth/transition screens). */
     shouldUseGoBackButton?: boolean;
 
     /** The ID of the test to be used for testing */
@@ -37,7 +37,7 @@ type FullScreenLoadingIndicatorProps = {
 function FullScreenLoadingIndicator({
     style,
     iconSize = CONST.ACTIVITY_INDICATOR_SIZE.LARGE,
-    shouldUseGoBackButton = false,
+    shouldUseGoBackButton = true,
     testID = '',
     extraLoadingContext,
 }: FullScreenLoadingIndicatorProps) {

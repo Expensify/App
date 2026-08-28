@@ -63,7 +63,8 @@ function DelegatorConnectGuard({children}: {children: React.ReactNode}) {
     }
 
     return (
-        <Suspense fallback={<FullScreenLoadingIndicator />}>
+        // No "Go Back" button: this gate runs on a cold delegate connect, so there is usually no history to pop back to.
+        <Suspense fallback={<FullScreenLoadingIndicator shouldUseGoBackButton={false} />}>
             <DelegatorConnectGate delegatorEmail={delegatorEmail}>{children}</DelegatorConnectGate>
         </Suspense>
     );

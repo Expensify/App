@@ -70,7 +70,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
             );
         }
         if (isLoading) {
-            return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+            return <FullScreenLoadingIndicator />;
         }
         if (paymentBankAccountID) {
             return (

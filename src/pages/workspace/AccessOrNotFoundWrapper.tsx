@@ -261,7 +261,7 @@ function AccessOrNotFoundWrapper({
     // The feature linked to this page is disabled, so the redirect effect above will navigate to the More Features page.
     // Render a loader instead of the page's children so the disabled page is never shown for a frame (avoids a visible flash).
     if (shouldRedirectToMoreFeatures) {
-        return <FullscreenLoadingIndicator shouldUseGoBackButton />;
+        return <FullscreenLoadingIndicator />;
     }
     if (shouldShowNotFoundPage) {
         return (
