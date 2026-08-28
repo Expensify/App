@@ -19,7 +19,7 @@ import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import Parser from '@libs/Parser';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {getDefaultApprover, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
+import {getDefaultApprover, getReimburserEmail, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 
@@ -778,6 +778,10 @@ function requestWorkspaceOwnerChange(policy: OnyxEntry<Policy>, currentUserAccou
         },
     ];
 
+    // With a bank account setup on the workspace the backend keeps the former payer, so reassign only to the new owner
+    // when there is no bank account setup and the outgoing owner is the resolved payer.
+    const shouldReassignPayer = !policy.achAccount?.bankAccountID && getReimburserEmail(policy) === policy.owner;
+
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -788,6 +792,10 @@ function requestWorkspaceOwnerChange(policy: OnyxEntry<Policy>, currentUserAccou
                 isChangeOwnerFailed: false,
                 owner: currentUserAccountLogin,
                 ownerAccountID: currentUserAccountID,
+                ...(shouldReassignPayer && {
+                    ...(policy.reimburser ? {reimburser: currentUserAccountLogin} : {}),
+                    ...(policy.achAccount?.reimburser ? {achAccount: {reimburser: currentUserAccountLogin}} : {}),
+                }),
             },
         },
     ];
