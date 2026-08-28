@@ -21,7 +21,7 @@ import type {OnyxCollection, OnyxCollectionInputValue, OnyxUpdate} from 'react-n
 
 import Onyx from 'react-native-onyx';
 
-import {pruneStaleOptimisticAccountIDMappingEntries} from './pruneOptimisticAgentAccountIDMapping';
+import pruneStaleOptimisticAccountIDMappingEntries from './pruneOptimisticAgentAccountIDMapping';
 
 function openAgentsPage() {
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ARE_AGENTS_LOADED>> = [

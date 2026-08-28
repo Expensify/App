@@ -47,6 +47,4 @@ function pruneStaleOptimisticAccountIDMappingEntries() {
     Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT, staleEntries);
 }
 
-export {pruneStaleOptimisticAccountIDMappingEntries};
-
-export default {};
+export default pruneStaleOptimisticAccountIDMappingEntries;
