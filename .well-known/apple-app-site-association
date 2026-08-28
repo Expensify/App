@@ -49,6 +49,10 @@
                         "comment": "Plaid setup"
                     },
                     {
+                        "/": "/oauth/callback",
+                        "comment": "Cloudflare Access OAuth callback for the QA environment"
+                    },
+                    {
                         "/": "/statements/*",
                         "comment": "Wallet statements"
                     },
