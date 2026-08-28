@@ -168,19 +168,6 @@ function BaseSelectionListImpl({
         return {data, allSelected, someSelected, selectedOptions, disabledIndexes, disabledArrowKeyIndexes};
     }, [canSelectMultiple, data, isDisabled, isItemSelected]);
 
-    // Whether an actually Enter-capable, enabled confirm control will take plain Enter instead of the list: either the
-    // built-in `showButton` confirm button (enabled unless `isDisabled`), or a custom `footerContent` that declares a
-    // confirm via `onConfirm`. A `footerContent` node is opaque (it may hold no Enter handler, e.g. a referral CTA), so
-    // its confirm counts as enabled only when at least one item is selected — the universal condition under which these
-    // footer confirm buttons render/enable across the invite pickers (NewChatPage, WorkspaceInvite, attendee/participant
-    // selectors, ...) — AND the owner has not explicitly disabled it (`isDisabled === true`). Owners that can compute
-    // their footer button's disabled state (e.g. ParticipantSearchResults' split-bill error) pass it through
-    // `confirmButtonOptions.isDisabled` so a disabled footer button surrenders Enter back to the list.
-    const hasSelectedItems = dataDetails.selectedOptions.length > 0;
-    const isCustomFooterConfirmEnabled = hasSelectedItems && confirmButtonOptions?.isDisabled !== true;
-    const hasEnabledEnterConfirm =
-        (!!confirmButtonOptions?.showButton && !confirmButtonOptions?.isDisabled) || (!!footerContent && !!confirmButtonOptions?.onConfirm && isCustomFooterConfirmEnabled);
-
     const {focusedIndex, setFocusedIndex, isKeyboardNavigating, setHasKeyBeenPressed} = useSelectionListKeyboardFocus({
         initialFocusedIndex,
         maxIndex: data.length - 1,
@@ -261,14 +248,25 @@ function BaseSelectionListImpl({
         selectRow(focusedOption);
     };
 
+    const hasSelectedItems = selectedItems.length > 0;
+    const isFooterConfirmEnabled = confirmButtonOptions?.isFooterConfirmEnabled ?? hasSelectedItems;
+    const isCustomFooterConfirmEnabled = isFooterConfirmEnabled && confirmButtonOptions?.isDisabled !== true && confirmButtonOptions?.isFooterConfirmEnterKeyEnabled !== false;
+    // Whether Enter should trigger an enabled confirm button instead of the list.
+    // Custom footers count only if they are Enter-capable and enabled; owners can override
+    // the enabled state when selection persists outside the currently rendered rows.
+    const hasEnabledEnterConfirm =
+        (!!confirmButtonOptions?.showButton && !confirmButtonOptions?.isDisabled) || (!!footerContent && !!confirmButtonOptions?.onConfirm && isCustomFooterConfirmEnabled);
+    // Whether the focused row should handle plain Enter.
+    // Enter selects the row when keyboard navigation/search is active, propagation should stop,
+    // or there is no enabled Enter-capable confirm control that should handle the keypress instead.
+    const shouldSelectOnEnter = isKeyboardNavigating || !!syncedSearchValue?.trim() || !hasEnabledEnterConfirm || shouldStopPropagation;
+
     useSelectionListShortcuts({
         selectFocusedItem: selectFocusedOption,
         getFocusedOption: () => focusedOption,
         confirmButtonOptions,
         isActive: isFocused,
-        // Keep the focused row's index (so plain Enter selects it) unless an enabled Enter-capable confirm control will
-        // take Enter instead; only then pass `-1` to disable the list's Enter shortcut and let the keypress reach it.
-        focusedIndex: isKeyboardNavigating || !!syncedSearchValue?.trim() || !hasEnabledEnterConfirm || shouldStopPropagation ? focusedIndex : -1,
+        focusedIndex: shouldSelectOnEnter ? focusedIndex : -1,
         disableKeyboardShortcuts,
         shouldStopPropagation,
         shouldBubble: !focusedOption,

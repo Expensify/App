@@ -555,10 +555,6 @@ function ParticipantSearchResults({
         <SelectionListWithSections
             confirmButtonOptions={{
                 onConfirm: handleConfirmSelection,
-                // The footer's Enter-capable control is driven by persistent state, not the rendered rows (selected
-                // rows get filtered out during search). Pass the authoritative enabled condition directly: for the
-                // categorize/share action the footer is the always-enabled "New Workspace" button (enabled even at
-                // zero selection); otherwise it's the "Next" button, enabled once at least one participant is selected.
                 isFooterConfirmEnabled: selectedOptions.length > 0 || isCategorizeOrShareAction,
                 // Surface the footer Next button's real disabled state so the list keeps its Enter shortcut when the
                 // split-bill error disables Next — otherwise Enter would be neither consumed by the list nor by the

@@ -307,25 +307,16 @@ type ConfirmButtonOptions<TItem extends ListItem> = {
     confirmButtonSize?: 'large' | 'medium' | 'small';
 
     /**
-     * For a custom `footerContent` confirm control: whether that footer confirm button actually reacts to a plain
-     * Enter key on the current platform. The list reads this to decide whether to surrender its Enter shortcut to the
-     * footer (so Enter opens/confirms instead of toggling the focused row). Defaults to `true` — footers built with an
-     * unconditional `<Button.KeyboardShortcut />` are Enter-capable everywhere. Footers built on
-     * `FormAlertWithSubmitButton` must pass `false` on Android Native, where its `pressOnEnter` is force-disabled
-     * (Samsung keyboard workaround); otherwise the list would hand Enter to a footer that can't receive it and a
-     * hardware Enter would be dead.
+     * Whether a custom footer confirm control can handle a plain Enter key on the current platform.
+     * Defaults to `true` — footers built with an unconditional `<Button.KeyboardShortcut />` are Enter-capable everywhere.
+     * Pass `false` when the footer is intentionally unable to handle Enter on a platform.
      */
     isFooterConfirmEnterKeyEnabled?: boolean;
 
     /**
-     * For a custom `footerContent` confirm control: whether that footer confirm button is currently rendered and
-     * enabled. The list uses this to decide whether to surrender its Enter shortcut to the footer. When omitted the
-     * list infers it from the currently rendered rows (a selected row is visible). Callers that maintain their
-     * selection outside the rendered sections — e.g. `NewChatPage`, whose Next button is driven by a persistent
-     * `selectedOptions` array while the selected rows get filtered out of the visible list during search — MUST pass
-     * their authoritative state here. Otherwise, after clearing the search input, the visible rows briefly hold no
-     * selected row (the debounced sections still show the old filtered results) and the list would wrongly keep row
-     * Enter, toggling the focused row instead of letting the still-enabled footer confirm.
+     * Whether a custom footer confirm control is currently rendered and enabled.
+     * Defaults to inferring the state from the rendered rows. Pass the authoritative state when the footer's
+     * enabled state depends on selection that may not be reflected in the currently rendered rows.
      */
     isFooterConfirmEnabled?: boolean;
 };

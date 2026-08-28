@@ -200,43 +200,25 @@ function BaseSelectionListWithSectionsImpl({
 
     const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
 
-    // Whether an actually Enter-capable, enabled confirm control will take plain Enter instead of the list: either the
-    // built-in `showButton` confirm button (enabled unless `isDisabled`), or a custom `footerContent` that declares a
-    // confirm via `onConfirm`. A `footerContent` node is opaque (it may hold no Enter handler, e.g. a referral CTA), so
-    // its confirm counts as enabled only when at least one item is selected — the universal condition under which these
-    // footer confirm buttons render/enable across the invite pickers (NewChatPage, WorkspaceInvite, attendee/participant
-    // selectors, ...) — AND the owner has not explicitly disabled it (`isDisabled === true`). Owners that can compute
-    // their footer button's disabled state (e.g. ParticipantSearchResults' split-bill error) pass it through
-    // `confirmButtonOptions.isDisabled` so a disabled footer button surrenders Enter back to the list.
-    //
-    // A custom footer confirm counts only when it actually reacts to Enter on the current platform: owners whose footer
-    // is Enter-disabled there (e.g. `FormAlertWithSubmitButton`, whose `pressOnEnter` is force-disabled on Android
-    // Native — Samsung keyboard workaround) pass `isFooterConfirmEnterKeyEnabled: false` so the list keeps row Enter
-    // instead of handing it to a footer that can't receive it (which would leave a hardware Enter dead). Footers using an
-    // unconditional `<Button.KeyboardShortcut />` (e.g. NewChatPage's `createGroup`) are Enter-capable everywhere and
-    // need not pass it (defaults to enabled). The built-in `showButton` path always uses `ButtonKeyboardShortcut`, so it
-    // is Enter-capable on every platform.
-    //
-    // "Enabled" is normally inferred from the currently rendered rows (a selected row is visible), but that source is
-    // wrong for owners whose selection persists outside the rendered sections — e.g. NewChatPage, whose Next button is
-    // driven by a persistent `selectedOptions` array while its selected rows get filtered out of the visible list.
-    // Such owners pass `isFooterConfirmEnabled` with their authoritative state, which takes precedence over the
-    // visible-row heuristic; without it, clearing the search input during the debounce window (visible rows still show
-    // the old filtered results with no selected row) would wrongly hand Enter back to the list.
     const hasSelectedItems = selectedItems.length > 0;
     const isFooterConfirmEnabled = confirmButtonOptions?.isFooterConfirmEnabled ?? hasSelectedItems;
     const isCustomFooterConfirmEnabled = isFooterConfirmEnabled && confirmButtonOptions?.isDisabled !== true && confirmButtonOptions?.isFooterConfirmEnterKeyEnabled !== false;
+    // Whether Enter should trigger an enabled confirm button instead of the list.
+    // Custom footers count only if they are Enter-capable and enabled; owners can override
+    // the enabled state when selection persists outside the currently rendered rows.
     const hasEnabledEnterConfirm =
         (!!confirmButtonOptions?.showButton && !confirmButtonOptions?.isDisabled) || (!!footerContent && !!confirmButtonOptions?.onConfirm && isCustomFooterConfirmEnabled);
+    // Whether the focused row should handle plain Enter.
+    // Enter selects the row when keyboard navigation/search is active, propagation should stop,
+    // or there is no enabled Enter-capable confirm control that should handle the keypress instead.
+    const shouldSelectOnEnter = isKeyboardNavigating || !!syncedSearchValue?.trim() || !hasEnabledEnterConfirm || shouldStopPropagation;
 
     useSelectionListShortcuts({
         selectFocusedItem,
         getFocusedOption: getFocusedItem,
         confirmButtonOptions,
         isActive: isScreenFocused,
-        // Keep the focused row's index (so plain Enter selects it) unless an enabled Enter-capable confirm control will
-        // take Enter instead; only then pass `-1` to disable the list's Enter shortcut and let the keypress reach it.
-        focusedIndex: isKeyboardNavigating || !!syncedSearchValue?.trim() || !hasEnabledEnterConfirm || shouldStopPropagation ? focusedIndex : -1,
+        focusedIndex: shouldSelectOnEnter ? focusedIndex : -1,
         disableKeyboardShortcuts,
         shouldStopPropagation,
         shouldBubble: itemsCount > 0 && !getFocusedItem(),

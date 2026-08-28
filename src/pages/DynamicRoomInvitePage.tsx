@@ -248,12 +248,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
                     confirmButtonOptions={{
                         isDisabled: !validSelectedOptions.length,
                         onConfirm: inviteUsers,
-                        // The Next button is driven by the persistent `validSelectedOptions`, but selected rows get
-                        // filtered out of the visible list during search, so the list can't infer the confirm's enabled
-                        // state from the rendered rows. Pass the authoritative selection state directly.
                         isFooterConfirmEnabled: validSelectedOptions.length > 0,
-                        // The footer is a `FormAlertWithSubmitButton`, whose Enter handling is force-disabled on Android
-                        // Native, so the list must keep row Enter there instead of surrendering it to a dead footer.
                         isFooterConfirmEnterKeyEnabled: getPlatform() !== CONST.PLATFORM.ANDROID,
                     }}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}

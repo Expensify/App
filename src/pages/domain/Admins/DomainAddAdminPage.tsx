@@ -181,12 +181,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
                     textInputOptions={textInputOptions}
                     confirmButtonOptions={{
                         onConfirm: inviteUser,
-                        // The Next button is driven by the persistent `selectedOptions`, but selected rows get filtered
-                        // out of the visible list during search, so the list can't infer the confirm's enabled state
-                        // from the rendered rows. Pass the authoritative selection state directly.
                         isFooterConfirmEnabled: selectedOptions.length > 0,
-                        // The footer's FormAlertWithSubmitButton force-disables pressOnEnter on Android Native, so it can't
-                        // receive Enter there — keep row Enter with the list instead of handing it to a footer that ignores it.
                         isFooterConfirmEnterKeyEnabled: getPlatform() !== CONST.PLATFORM.ANDROID,
                     }}
                     shouldShowLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}

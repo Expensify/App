@@ -278,12 +278,7 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
                     confirmButtonOptions={{
                         onConfirm: inviteUser,
                         isDisabled: !selectedOptions.length,
-                        // The Next button is driven by the persistent `selectedOptions`, but selected rows get filtered
-                        // out of the visible list during search, so the list can't infer the confirm's enabled state
-                        // from the rendered rows. Pass the authoritative selection state directly.
                         isFooterConfirmEnabled: selectedOptions.length > 0,
-                        // The footer is a `FormAlertWithSubmitButton`, whose Enter handling is force-disabled on Android
-                        // Native, so the list must keep row Enter there instead of surrendering it to a dead footer.
                         isFooterConfirmEnterKeyEnabled: getPlatform() !== CONST.PLATFORM.ANDROID,
                     }}
                     shouldShowLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
