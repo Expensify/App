@@ -112,7 +112,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         'ReceiptPartners',
         'Clock',
         'Members',
-        'AiBot',
+        'AiAutomation',
     ]);
 
     const policyID = policy?.id;
@@ -401,7 +401,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             }}
                         />
                         <MoreFeatureToggle
-                            icon={illustrations.AiBot}
+                            icon={illustrations.AiAutomation}
                             title={translate('workspace.moreFeatures.mcp.title')}
                             subtitle={translate('workspace.moreFeatures.mcp.subtitle')}
                             isActive={isMCPEnabled(policy)}
