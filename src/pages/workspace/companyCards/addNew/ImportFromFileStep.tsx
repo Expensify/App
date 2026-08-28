@@ -70,35 +70,22 @@ function ImportFromFileStep() {
     // On Android, a link nested inline inside a <Text> becomes a ClickableSpan whose touch area is limited to the glyph bounds,
     // which makes it unreliable to tap (e.g. at the minimum device font size). Rendering each link as its own PressableWithoutFeedback
     // gives it a real native touch target, while splitting the plain copy into words keeps the paragraph flowing/wrapping naturally.
-    const createFileFeedHelpTextSegments: Array<{
-        text: string;
-        onPress?: React.ComponentProps<typeof PressableWithoutFeedback>['onPress'];
-        href?: string;
-        role?: React.ComponentProps<typeof PressableWithoutFeedback>['role'];
-        sentryLabel?: string;
-    }> = [
-        {text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionStart')},
-        {
-            text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.templateLink'),
-            onPress: downloadTemplate,
-            role: CONST.ROLE.BUTTON,
-            sentryLabel: 'ImportFromFileStep-TemplateLink',
-        },
-        {text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionMiddle')},
-        {
-            text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.helpGuideLink'),
-            // Pass href so the link renders as a real anchor on web (native link behavior: hover URL, open in a new tab, etc.),
-            // while onPress preventDefault()s the anchor's default navigation and routes through openLink on every platform.
-            href: CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL,
-            onPress: (event) => {
-                event?.preventDefault();
-                openLink(CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL, environmentURL);
-            },
-            role: CONST.ROLE.LINK,
-            sentryLabel: 'ImportFromFileStep-HelpGuideLink',
-        },
-        {text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionEnd')},
-    ];
+    const renderPlainCopy = (text: string) =>
+        // Keep each word (with its own leading/trailing whitespace) as a separate node so the paragraph wraps in the flexWrap row.
+        // Preserving the run's own spacing means locales that don't use spaces around the links (e.g. Japanese, Chinese) aren't
+        // given extra spaces the translation never intended.
+        (text.match(/\s*\S+\s*/g) ?? []).map((word, wordIndex) => (
+            <Text
+                // The word list is derived synchronously from a fixed translation and is never reordered, inserted into, or
+                // filtered, so a word's index is a stable identity. wordIndex is only needed to disambiguate repeated words
+                // within a run (the word text alone can't); the array position is what makes it unique.
+                // eslint-disable-next-line react/no-array-index-key -- index is a stable identity for this static, never-reordered word list
+                key={`${text}-${word}-${wordIndex}`}
+                style={styles.textSupporting}
+            >
+                {word}
+            </Text>
+        ));
 
     const navigateToImport = () => {
         if (!companyCardLayoutName.trim()) {
@@ -127,39 +114,35 @@ function ImportFromFileStep() {
                 addBottomSafeAreaPadding
             >
                 <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap, styles.alignItemsCenter]}>
-                    {createFileFeedHelpTextSegments.map((segment) => {
-                        if (segment.onPress) {
-                            return (
-                                <PressableWithoutFeedback
-                                    // Each link segment's translated text is unique (template vs. help guide), so it's a stable key on its own.
-                                    key={segment.text}
-                                    role={segment.role}
-                                    href={segment.href}
-                                    accessibilityLabel={segment.text}
-                                    sentryLabel={segment.sentryLabel}
-                                    onPress={segment.onPress}
-                                    style={styles.dInlineFlex}
-                                >
-                                    <Text style={[styles.textSupporting, styles.link]}>{segment.text}</Text>
-                                </PressableWithoutFeedback>
-                            );
-                        }
-                        // Keep each word (with its own leading/trailing whitespace) as a separate node so the paragraph wraps in the
-                        // flexWrap row. Preserving the segment's own spacing means locales that don't use spaces around the links
-                        // (e.g. Japanese, Chinese) aren't given extra spaces the translation never intended.
-                        return (segment.text.match(/\s*\S+\s*/g) ?? []).map((word, wordIndex) => (
-                            <Text
-                                // The word list is derived synchronously from a fixed translation and is never reordered, inserted into, or
-                                // filtered, so a word's index is a stable identity. wordIndex is only needed to disambiguate repeated words
-                                // within a segment (segment.text alone can't); the array position is what makes it unique.
-                                // eslint-disable-next-line react/no-array-index-key -- index is a stable identity for this static, never-reordered word list
-                                key={`${segment.text}-${word}-${wordIndex}`}
-                                style={styles.textSupporting}
-                            >
-                                {word}
-                            </Text>
-                        ));
-                    })}
+                    {renderPlainCopy(translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionStart'))}
+                    <PressableWithoutFeedback
+                        testID="ImportFromFileStep-TemplateLink"
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('workspace.companyCards.addNewCard.createFileFeedHelpText.templateLink')}
+                        sentryLabel="ImportFromFileStep-TemplateLink"
+                        onPress={downloadTemplate}
+                        style={styles.dInlineFlex}
+                    >
+                        <Text style={[styles.textSupporting, styles.link]}>{translate('workspace.companyCards.addNewCard.createFileFeedHelpText.templateLink')}</Text>
+                    </PressableWithoutFeedback>
+                    {renderPlainCopy(translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionMiddle'))}
+                    <PressableWithoutFeedback
+                        testID="ImportFromFileStep-HelpGuideLink"
+                        role={CONST.ROLE.LINK}
+                        // Pass href so the link renders as a real anchor on web (native link behavior: hover URL, open in a new tab, etc.),
+                        // while onPress preventDefault()s the anchor's default navigation and routes through openLink on every platform.
+                        href={CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}
+                        accessibilityLabel={translate('workspace.companyCards.addNewCard.createFileFeedHelpText.helpGuideLink')}
+                        sentryLabel="ImportFromFileStep-HelpGuideLink"
+                        onPress={(event) => {
+                            event?.preventDefault();
+                            openLink(CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL, environmentURL);
+                        }}
+                        style={styles.dInlineFlex}
+                    >
+                        <Text style={[styles.textSupporting, styles.link]}>{translate('workspace.companyCards.addNewCard.createFileFeedHelpText.helpGuideLink')}</Text>
+                    </PressableWithoutFeedback>
+                    {renderPlainCopy(translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionEnd'))}
                 </View>
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
