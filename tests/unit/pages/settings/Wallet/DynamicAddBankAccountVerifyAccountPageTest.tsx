@@ -19,11 +19,11 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
-const mockVerifyAccountPageBase = jest.fn(() => null);
+const mockVerifyAccountPageBase = jest.fn<null, [Record<string, unknown>]>(() => null);
 
 jest.mock('@pages/settings/VerifyAccountPageBase', () => ({
     __esModule: true,
-    default: () => mockVerifyAccountPageBase(),
+    default: (props: Record<string, unknown>) => mockVerifyAccountPageBase(props),
 }));
 
 jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/wallet'));
