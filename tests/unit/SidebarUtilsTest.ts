@@ -2946,7 +2946,7 @@ describe('SidebarUtils', () => {
                 formatPhoneNumber,
             });
 
-            expect(setResult?.alternateText).toBe('changed the approval workflow for member@example.com to forward reports over $100.00 to approver@example.com');
+            expect(setResult?.alternateText).toBe('set the approval workflow for member@example.com to forward reports over $100.00 to approver@example.com');
 
             const removedAction: ReportAction = {
                 ...createRandomReportAction(7),

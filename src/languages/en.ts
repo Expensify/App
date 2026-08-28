@@ -9114,7 +9114,9 @@ const translations = {
             previousApprover?: string;
             previousLimit?: string;
         }) => {
-            let text = `changed the approval workflow for ${member} to forward reports over ${limit} to ${approver}`;
+            let text = previousApprover
+                ? `changed the approval workflow for ${member} to forward reports over ${limit} to ${approver}`
+                : `set the approval workflow for ${member} to forward reports over ${limit} to ${approver}`;
             if (previousApprover && previousLimit) {
                 text += ` (previously forwarded reports over ${previousLimit} to ${previousApprover})`;
             } else if (previousApprover) {

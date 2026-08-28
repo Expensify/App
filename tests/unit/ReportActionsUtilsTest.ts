@@ -3980,7 +3980,7 @@ describe('ReportActionsUtils', () => {
                 originalMessage: {member, overLimitForwardsTo: approver, limit: 10000, currency: 'USD'},
             } as ReportAction;
             const result = getOverLimitForwardsToUpdateMessage(translateLocal, action, convertToDisplayString);
-            expect(result).toBe('changed the approval workflow for member@example.com to forward reports over $100.00 to approver@example.com');
+            expect(result).toBe('set the approval workflow for member@example.com to forward reports over $100.00 to approver@example.com');
         });
 
         it('should return changed message naming only the previous approver when the limit did not change', () => {

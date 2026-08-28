@@ -942,7 +942,7 @@ describe('ReportNameUtils', () => {
                 {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: setParentAction}},
                 currentUserAccountID,
             );
-            expect(setName).toBe('changed the approval workflow for member@example.com to forward reports over $100.00 to approver@example.com');
+            expect(setName).toBe('set the approval workflow for member@example.com to forward reports over $100.00 to approver@example.com');
 
             const removedParentAction: ReportAction = {
                 ...setParentAction,
