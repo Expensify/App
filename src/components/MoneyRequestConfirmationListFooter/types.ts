@@ -12,7 +12,7 @@ type MoneyRequestConfirmationListFooterProps = {
     /** Whether the active transaction is a scan request (drives compact mode) */
     isScanRequest: boolean;
 
-    /** Active policy (read by sections — may differ from the context `policyID` in track-expense flows where the user moves the expense to a different workspace) */
+    /** Active policy read by sections. It may differ from the context `policyID` in track-expense flows where the user moves the expense to a different workspace. */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Policy tag lists (resolved by the caller; passed in to avoid a duplicate Onyx subscription inside `ConfirmationFieldList`) */
