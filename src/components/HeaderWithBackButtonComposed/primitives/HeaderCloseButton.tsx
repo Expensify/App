@@ -8,6 +8,7 @@ import HeaderTooltipIconButton from './HeaderTooltipIconButton';
 type HeaderCloseButtonProps = {
     /** Method to trigger when pressing the close button of the header. */
     onPress: () => void;
+
     /** The fill color for the close icon. */
     iconFill?: string;
 };
