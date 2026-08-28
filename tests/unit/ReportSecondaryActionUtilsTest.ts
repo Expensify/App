@@ -4551,7 +4551,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(false);
     });
 
-    it('includes the SPLIT option for a group policy even when the legacy flag is disabled', async () => {
+    it('includes the SPLIT option for a group policy', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
             policyID: POLICY_ID,

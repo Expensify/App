@@ -4341,7 +4341,7 @@ describe('actions/Policy', () => {
             expect(activePolicyID).toBe(mostRecentlyCreatedGroupPolicy.id);
         });
 
-        it('should clear reimbursement account errors when only a personal policy remains after deleting a workspace', async () => {
+        it('should clear reimbursement account errors when no admin group workspace remains after deleting a workspace', async () => {
             const reimbursementAccountError = {};
             const policyToDelete = createRandomPolicy(0, CONST.POLICY.TYPE.TEAM);
             policyToDelete.pendingAction = null;

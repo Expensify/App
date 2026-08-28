@@ -6388,7 +6388,6 @@ describe('ReportUtils', () => {
                 type: CONST.POLICY.TYPE.CORPORATE,
                 owner: '',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: false,
                 employeeList: {
                     'lagertha2@vikings.net': {
                         email: 'lagertha2@vikings.net',
