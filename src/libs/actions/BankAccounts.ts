@@ -74,13 +74,6 @@ Onyx.connectWithoutView({
     callback: (value) => (bankAccountList = value),
 });
 
-let initiatingBankAccountUnlock: OnyxEntry<InitiatingBankAccountUnlock>;
-
-Onyx.connectWithoutView({
-    key: ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK,
-    callback: (value) => (initiatingBankAccountUnlock = value),
-});
-
 type AccountFormValues = typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM | typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM;
 
 type OpenPersonalBankAccountSetupViewProps = {
@@ -1866,7 +1859,13 @@ function initiateBankAccountUnlock(bankAccountID: number, conciergeReportID: str
     return API.write(WRITE_COMMANDS.INITIATE_BANK_ACCOUNT_UNLOCK, {bankAccountID, authToken, optimisticReportActionID}, onyxData);
 }
 
-function pressLockedBankAccount(bankAccountID: number, translate: LocalizedTranslate, conciergeReportID: string | undefined, delegateAccountID: number | undefined) {
+function pressLockedBankAccount(
+    bankAccountID: number,
+    translate: LocalizedTranslate,
+    conciergeReportID: string | undefined,
+    delegateAccountID: number | undefined,
+    initiatingBankAccountUnlock: OnyxEntry<InitiatingBankAccountUnlock>,
+) {
     if (initiatingBankAccountUnlock?.isLoading && initiatingBankAccountUnlock?.bankAccountIDToUnlock === bankAccountID) {
         return;
     }

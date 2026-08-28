@@ -102,6 +102,7 @@ function WalletPage() {
     const lockedBankAccountID = Object.values(bankAccountList).find((account) => account?.accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED)?.accountData?.bankAccountID;
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [unlockRequestedAt] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${lockedBankAccountID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [initiatingBankAccountUnlock] = useOnyx(ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK);
     const delegateAccountID = useDelegateAccountID();
     const isUserValidated = userAccount?.validated ?? false;
     const {isBetaEnabled} = usePermissions();
@@ -165,7 +166,7 @@ function WalletPage() {
                 showUnlockAlreadyRequestedModal(showConfirmModal, translate);
                 return;
             }
-            pressLockedBankAccount(accountData.bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID);
+            pressLockedBankAccount(accountData.bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID, initiatingBankAccountUnlock);
             navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas);
             return;
         }

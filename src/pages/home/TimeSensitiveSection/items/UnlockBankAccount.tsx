@@ -37,6 +37,7 @@ function UnlockBankAccount({bankAccountID, policyName}: UnlockBankAccountProps) 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const [unlockRequestedAt] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${bankAccountID}`);
+    const [initiatingBankAccountUnlock] = useOnyx(ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK);
     const {showConfirmModal} = useConfirmModal();
 
     const title = policyName ? translate('homePage.timeSensitiveSection.unlockBankAccount.workspaceTitle') : translate('homePage.timeSensitiveSection.unlockBankAccount.personalTitle');
@@ -50,7 +51,7 @@ function UnlockBankAccount({bankAccountID, policyName}: UnlockBankAccountProps) 
             showUnlockAlreadyRequestedModal(showConfirmModal, translate);
             return;
         }
-        pressLockedBankAccount(bankAccountID, translate, conciergeReportID, delegateAccountID);
+        pressLockedBankAccount(bankAccountID, translate, conciergeReportID, delegateAccountID, initiatingBankAccountUnlock);
         navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
     };
 
