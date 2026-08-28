@@ -81,6 +81,7 @@ jest.mock('@libs/PhoneNumber', () => ({
             number: isPhone ? {national: value} : undefined,
         };
     }),
+    addSMSDomainIfPhoneNumber: jest.fn((login: string) => (login.endsWith('@expensify.sms') || !/^\+\d+$/.test(login) ? login : `${login}@expensify.sms`)),
 }));
 
 // `usePersonalDetailByLogin` reads from PersonalDetailsByLoginProvider, which isn't mounted here.
