@@ -5,6 +5,8 @@ import useNetwork from '@hooks/useNetwork';
 
 import {openSearchCardFiltersPage} from '@libs/actions/Search';
 
+import variables from '@styles/variables';
+
 import React, {useEffect} from 'react';
 
 import MultiSelect from './MultiSelect';
@@ -26,6 +28,7 @@ function FeedSelector({value, selectionListStyle, footer, onChange}: FeedSelecto
         <MultiSelect
             value={feedValue}
             items={feedOptions}
+            itemHeight={variables.optionRowHeight}
             selectionListStyle={selectionListStyle}
             footer={footer}
             onChange={(feeds) => onChange(feeds.map((feed) => feed.value))}
