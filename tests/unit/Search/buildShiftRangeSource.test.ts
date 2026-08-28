@@ -101,6 +101,13 @@ describe('isGroupSelected', () => {
         expect(isGroupSelected(params)).toBe(false);
         expect(getGroupCheckboxState(params).isSelectAllChecked).toBe(false);
     });
+
+    it('stops answering from its own key once it carries rows, so a group holding only deleted ones reads the same to both', () => {
+        const deletedChild = {...child, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+        const params = groupOf(selectionOf('groupA'), {children: [deletedChild]});
+        expect(isGroupSelected(params)).toBe(false);
+        expect(getGroupCheckboxState(params).isSelectAllChecked).toBe(false);
+    });
 });
 
 describe('buildShiftRangeSource: who owns each row', () => {

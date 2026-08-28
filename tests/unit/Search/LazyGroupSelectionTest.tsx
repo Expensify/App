@@ -1136,6 +1136,36 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
     });
 
+    it('leaves a select-all-matching selection alone when a shift+click lands in it, since narrowing it would need exclusions for rows never on screen', async () => {
+        const {result} = renderSelection();
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given every matching item selected from the menu, which the reconcile pass writes out as an entry per visible row
+        await act(async () => {
+            result.current.selectAllMatchingItems(true);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When a shift+click lands on the first row
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then both rows stay checked: those entries carry no group, so they read as hand-picked and a range may not take them back
+        const isChecked = (rowKey: string) =>
+            isRowChecked({
+                rowKey,
+                parentGroupKey: GROUP_KEY,
+                selectedTransactions: result.current.selectedTransactions,
+                excludedTransactions: result.current.excludedTransactions,
+                areAllMatchingItemsSelected: result.current.areAllMatchingItemsSelected,
+            });
+        expect(isChecked(firstChild.keyForList)).toBe(true);
+        expect(isChecked(secondChild.keyForList)).toBe(true);
+    });
+
     it('turns select-all-matching off when the header checkbox clears the selection', async () => {
         const {result} = renderFlatSelection();
 

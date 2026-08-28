@@ -319,13 +319,14 @@ type GroupSelectionParams = {
 
 /** Whether clicking a group's checkbox means "deselect": true once any row under it reads as checked. */
 function isGroupSelected({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): boolean {
+    const selectable = children.filter((child) => !isTransactionPendingDelete(child));
+    if (children.length > 0 && selectable.length === 0) {
+        return false;
+    }
     if (groupKey && isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected})) {
         return true;
     }
-    // Everything the checkbox reads skips a row being deleted, so counting it here would invert the click.
-    return children
-        .filter((child) => !isTransactionPendingDelete(child))
-        .some((child) => isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}));
+    return selectable.some((child) => isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}));
 }
 
 /** What a group's checkbox shows: fully checked, and whether only some of its rows are. Rows being deleted count for neither. */
