@@ -1131,6 +1131,24 @@ describe('actions/IOU/ReportWorkflow', () => {
                         }
                         return waitForBatchedUpdates();
                     })
+                    .then(() => {
+                        // Delete workspace action will be replaced with archive workspace.
+                        // Simulate archive workspace response with merging archivedDate to the policy.
+                        return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`, {archivedDate: DateUtils.getDBTime()});
+                    })
+                    .then(
+                        () =>
+                            new Promise<void>((resolve) => {
+                                const connection = Onyx.connect({
+                                    key: ONYXKEYS.COLLECTION.POLICY,
+                                    callback: (allPolicies) => {
+                                        Onyx.disconnect(connection);
+                                        policy = Object.values(allPolicies ?? {}).find((p): p is OnyxEntry<Policy> => p?.id === policy?.id);
+                                        resolve();
+                                    },
+                                });
+                            }),
+                    )
                     .then(
                         () =>
                             new Promise<void>((resolve) => {

@@ -137,7 +137,7 @@ function reportMatchesTodoBucket(
             }
 
             // isSubmitAction also allows workflow approvers to submit on the owner's behalf; the to-do only nudges the owner.
-            return isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, reportNameValuePair, undefined, login, currentUserAccountID) && !allExpensesHeld;
+            return isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, undefined, login, currentUserAccountID) && !allExpensesHeld;
         case CONST.SEARCH.SEARCH_KEYS.APPROVE:
             return isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && (!allExpensesHeld || currentUserPlacedHold);
         case CONST.SEARCH.SEARCH_KEYS.PAY:

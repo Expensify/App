@@ -159,7 +159,7 @@ describe('RulesRequireReceiptsPage save order', () => {
 
         // Then the itemized amount goes first, so the receipt amount is never checked against the old lower limit
         expect(mockSetItemized).toHaveBeenCalledWith(policy.id, '100.00', 5000);
-        expect(mockSetReceipt).toHaveBeenCalledWith(policy.id, '100.00', 5000);
+        expect(mockSetReceipt).toHaveBeenCalledWith(policy.id, '100.00', 5000, {});
         expect(wasItemizedSentFirst()).toBe(true);
 
         unmount();
@@ -179,7 +179,7 @@ describe('RulesRequireReceiptsPage save order', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the receipt amount goes first, so the itemized amount is never dropped below the old receipt limit
-        expect(mockSetReceipt).toHaveBeenCalledWith(policy.id, '50.00', 10000);
+        expect(mockSetReceipt).toHaveBeenCalledWith(policy.id, '50.00', 10000, {});
         expect(mockSetItemized).toHaveBeenCalledWith(policy.id, '50.00', 10000);
         expect(wasItemizedSentFirst()).toBe(false);
 
@@ -201,7 +201,7 @@ describe('RulesRequireReceiptsPage save order', () => {
 
         // Then clearing the itemized limit goes first, which leaves no limit for the raised receipt amount to exceed
         expect(mockSetItemized).toHaveBeenCalledWith(policy.id, '', 8000);
-        expect(mockSetReceipt).toHaveBeenCalledWith(policy.id, '60.00', 5000);
+        expect(mockSetReceipt).toHaveBeenCalledWith(policy.id, '60.00', 5000, {});
         expect(wasItemizedSentFirst()).toBe(true);
 
         unmount();
@@ -223,7 +223,7 @@ describe('RulesRequireReceiptsPage save order', () => {
 
         // Then the itemized amount is raised first, so the new receipt amount lands under it
         expect(mockSetItemized).toHaveBeenCalledWith(policy.id, '100.00', 5000);
-        expect(mockSetReceipt).toHaveBeenCalledWith(policy.id, '80.00', CONST.DISABLED_MAX_EXPENSE_VALUE);
+        expect(mockSetReceipt).toHaveBeenCalledWith(policy.id, '80.00', CONST.DISABLED_MAX_EXPENSE_VALUE, {});
         expect(wasItemizedSentFirst()).toBe(true);
 
         unmount();
@@ -246,7 +246,7 @@ describe('RulesRequireReceiptsPage save order', () => {
 
         // Then the itemized amount is set first, and neither request claims a previous amount to roll back to
         expect(mockSetItemized).toHaveBeenCalledWith(policy.id, '20.00', undefined);
-        expect(mockSetReceipt).toHaveBeenCalledWith(policy.id, '10.00', undefined);
+        expect(mockSetReceipt).toHaveBeenCalledWith(policy.id, '10.00', undefined, {});
         expect(wasItemizedSentFirst()).toBe(true);
 
         unmount();
@@ -265,7 +265,7 @@ describe('RulesRequireReceiptsPage save order', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the itemized amount is left alone
-        expect(mockSetReceipt).toHaveBeenCalledWith(policy.id, '60.00', 5000);
+        expect(mockSetReceipt).toHaveBeenCalledWith(policy.id, '60.00', 5000, {});
         expect(mockSetReceipt).toHaveBeenCalledTimes(1);
         expect(mockSetItemized).not.toHaveBeenCalled();
 

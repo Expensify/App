@@ -8,6 +8,7 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useLocalize from '@hooks/useLocalize';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateWorkspaceDescription} from '@libs/actions/Policy/Policy';
@@ -34,6 +35,7 @@ type Props = WithPolicyProps;
 function WorkspaceOverviewDescriptionPage({policy}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const isInputInitializedRef = useRef(false);
     const [description, setDescription] = useState(() => Parser.htmlToMarkdown(policy?.description ?? translate('workspace.common.defaultDescription')));
 
@@ -60,11 +62,11 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
                 return;
             }
 
-            updateWorkspaceDescription(policy.id, values.description.trim(), policy.description);
+            updateWorkspaceDescription(policy.id, values.description.trim(), policy.description, getReviewWorkspaceSettingsTaskCompletion());
             Keyboard.dismiss();
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
         },
-        [policy],
+        [policy, getReviewWorkspaceSettingsTaskCompletion],
     );
 
     return (

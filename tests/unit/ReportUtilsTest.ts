@@ -15221,19 +15221,27 @@ describe('ReportUtils', () => {
         });
 
         it('should return false if the user is not the report manager', () => {
-            expect(canRejectReportAction(buildReportToReject(), 2)).toBe(false);
+            expect(canRejectReportAction(buildReportToReject(), 2, undefined)).toBe(false);
         });
 
         it('should return false when no account ID is passed', () => {
-            expect(canRejectReportAction(buildReportToReject(), undefined)).toBe(false);
+            expect(canRejectReportAction(buildReportToReject(), undefined, undefined)).toBe(false);
         });
 
         it('should return true if the passed user is the manager of a report being processed', () => {
-            expect(canRejectReportAction(buildReportToReject(), managerAccountID)).toBe(true);
+            expect(canRejectReportAction(buildReportToReject(), managerAccountID, undefined)).toBe(true);
         });
 
         it('should return false for IOU reports even when the passed user is the manager', () => {
-            expect(canRejectReportAction({...buildReportToReject(), type: CONST.REPORT.TYPE.IOU}, managerAccountID)).toBe(false);
+            expect(canRejectReportAction({...buildReportToReject(), type: CONST.REPORT.TYPE.IOU}, managerAccountID, undefined)).toBe(false);
+        });
+
+        it('should return false when the policy is archived', () => {
+            expect(canRejectReportAction(buildReportToReject(), managerAccountID, {...createRandomPolicy(0), archivedDate: '2026-08-19 00:00:00'})).toBe(false);
+        });
+
+        it('should return false when the policy is pending deletion', () => {
+            expect(canRejectReportAction(buildReportToReject(), managerAccountID, {...createRandomPolicy(0), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})).toBe(false);
         });
     });
 
