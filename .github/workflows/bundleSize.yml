@@ -7,14 +7,20 @@
 # Artifact upload works from a fork run because artifacts use the runner's own runtime token rather than
 # `GITHUB_TOKEN`, which is what makes the split possible at all.
 name: Bundle size
-# cspell:ignore argjson
+# cspell:ignore argjson nvmrc
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
     # Everything that can change what `npm run build` emits: app sources, the bundler configuration, the
     # assets it embeds, the dependency tree, and the patches applied to it. The measurement tooling itself
-    # is included so a change to how bytes are counted re-counts them.
+    # is included so a change to how bytes are counted re-counts them, `.nvmrc` with it, because the runtime
+    # that takes the measurement is part of how the bytes are counted.
+    #
+    # GitHub evaluates these against the files in the PUSH, not against the pull request's cumulative diff.
+    # A pull request that touched `src/` and then pushes a commit touching only `tests/` does not re-measure,
+    # so the sticky comment keeps the earlier commit's numbers. It names the commit it measured, so it is
+    # stale rather than wrong.
     paths:
       - 'src/**'
       - 'config/**'
@@ -22,6 +28,7 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'patches/**'
+      - '.nvmrc'
       - 'scripts/bundleSize.ts'
       - '.github/workflows/bundleSize.yml'
   push:

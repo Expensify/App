@@ -101,23 +101,27 @@ function assertComparable(a: BundleSizeReport, b: BundleSizeReport): void {
 const CHUNK_HEADLINE_FLOOR_BYTES = 1024;
 
 /**
- * The named cache groups `config/rsbuild/rsbuild.common.ts` splits out, as a real build emits them.
+ * Every chunk a real build emits under a name a reader knows: the entry chunk `main`, plus the named
+ * cache groups `config/rsbuild/rsbuild.common.ts` splits out.
  *
- * Chunk names come from the emitted filenames, so a rename in that file does not fail anything by itself: the
- * group simply stops appearing in the measurement, and every later comparison reads "no change" for a chunk
- * that no longer exists. That is a wrong answer rather than a missing one, so a group that has gone missing
- * fails the measurement here, where the build is, rather than being rendered as if nothing had happened.
+ * Chunk names come from the emitted filenames, so a rename does not fail anything by itself: the chunk
+ * simply stops appearing in the measurement, and every later comparison reads "no change" for a chunk that
+ * no longer exists. That is a wrong answer rather than a missing one, so a name that has gone missing fails
+ * the measurement here, where the build is, rather than being rendered as if nothing had happened.
  *
- * `lottiePlayer` is configured alongside these but no build emits a chunk under that name, so it is not
- * required. Add a name here when a new group starts being emitted.
+ * `main` comes from `filename.js: '[name]-[contenthash].bundle.js'` rather than from a cache group.
+ * `lottiePlayer` is configured as a cache group but no build emits a chunk under that name, so it is not
+ * required. Add a name here when a new one starts being emitted.
  */
-const EXPECTED_CACHE_GROUPS = ['main', 'vendors', 'heicTo', 'expensifyIcons', 'illustrations'];
+const EXPECTED_CHUNK_NAMES = ['main', 'vendors', 'heicTo', 'expensifyIcons', 'illustrations'];
 
 /**
  * A measurement is written by a build of the pull request's own code and read by a job holding a write
  * token, so everything in it is untrusted input. These bound what may reach the comment.
  */
 const CHUNK_NAME_PATTERN = /^[A-Za-z0-9_@./+-]+$/;
+/** A chunk named by numeric id, which moves whenever the module graph moves and names nothing to a reader. */
+const NUMERIC_CHUNK_NAME = /^\d+$/;
 const SHA_PATTERN = /^[0-9a-f]{7,40}$/;
 const MEASURED_WITH_PATTERN = /^[A-Za-z0-9_. +-]{1,64}$/;
 const MAX_NAME_LENGTH = 512;
@@ -125,8 +129,8 @@ const MAX_NAME_LENGTH = 512;
 /** 94 chunks today. The cap is a ceiling on how long a fork can make the comment, not a fit to the build. */
 const MAX_CHUNKS = 1000;
 
-/** Matches the debug id `sentry-webpack-plugin` injects, and captures the UUID itself. */
-const SENTRY_DEBUG_ID = /_sentryDebugIds\[[A-Za-z_$\d]+\]="([\da-f-]{36})"/;
+/** Matches every debug id `sentry-webpack-plugin` injects, and captures the UUIDs themselves. */
+const SENTRY_DEBUG_ID = /_sentryDebugIds\[[A-Za-z_$\d]+\]="([\da-f-]{36})"/g;
 
 const SENTRY_DEBUG_ID_PLACEHOLDER = '00000000-0000-0000-0000-000000000000';
 
@@ -155,8 +159,12 @@ const SOURCE_MAP_HASH = /(sourceMappingURL=\S*?-)([\da-f]{8,})(\.bundle\.js\.map
  */
 function withStableBuildIds(buffer: Buffer): Buffer {
     const text = buffer.toString('latin1');
-    const debugId = text.match(SENTRY_DEBUG_ID)?.[1];
-    const masked = debugId ? text.replaceAll(debugId, SENTRY_DEBUG_ID_PLACEHOLDER) : text;
+    // Every id in the chunk rather than the first one: a single random id left in place is enough to make
+    // gzip non-reproducible for that chunk, which is the invariant the rest of this rests on.
+    let masked = text;
+    for (const debugId of new Set([...text.matchAll(SENTRY_DEBUG_ID)].map((match) => match[1]))) {
+        masked = masked.replaceAll(debugId, SENTRY_DEBUG_ID_PLACEHOLDER);
+    }
     // The map's own hash changes with the debug id it contains, and every chunk embeds that filename in its
     // `sourceMappingURL` comment. Same length, so raw sizes never saw it, but gzip did.
     return Buffer.from(
@@ -223,7 +231,14 @@ function measure(distDir: string, sha: string): BundleSizeReport {
         const raw = buffer.length;
         const gzip = gzipSize(buffer);
         const initial = initialScripts.has(file);
-        chunks[chunkName(file)] = {raw, gzip, initial};
+        const name = chunkName(file);
+        // The totals add every file, but a per-chunk entry can only hold one of them, so a collision would
+        // leave the rows and the totals disagreeing with nothing said about it. `cleanDistPath: true` makes
+        // this unreachable in CI; a local run over a stale `dist/` is what reaches it.
+        if (chunks[name]) {
+            throw new Error(`Two files in ${distDir} both measure as chunk ${name}. Is dist/ stale? The totals would count both and the rows only one.`);
+        }
+        chunks[name] = {raw, gzip, initial};
 
         allJsRaw += raw;
         allJsGzip += gzip;
@@ -232,7 +247,7 @@ function measure(distDir: string, sha: string): BundleSizeReport {
             initialJsGzip += gzip;
         }
         if (raw > largestChunk.raw) {
-            largestChunk = {name: chunkName(file), raw, gzip};
+            largestChunk = {name, raw, gzip};
         }
     }
 
@@ -240,11 +255,11 @@ function measure(distDir: string, sha: string): BundleSizeReport {
         throw new Error(`index.html in ${distDir} references no chunk that exists on disk.`);
     }
 
-    const missingGroups = EXPECTED_CACHE_GROUPS.filter((name) => !chunks[name]);
-    if (missingGroups.length > 0) {
+    const missingNames = EXPECTED_CHUNK_NAMES.filter((name) => !chunks[name]);
+    if (missingNames.length > 0) {
         throw new Error(
-            `The build emitted no chunk named ${missingGroups.join(', ')}. A cache group in config/rsbuild/rsbuild.common.ts has been renamed or removed, ` +
-                'and measuring around it would report "no change" for a chunk that no longer exists. Update EXPECTED_CACHE_GROUPS in this file to match.',
+            `The build emitted no chunk named ${missingNames.join(', ')}. The entry name or a cache group in config/rsbuild/rsbuild.common.ts has been renamed ` +
+                'or removed, and measuring around it would report "no change" for a chunk that no longer exists. Update EXPECTED_CHUNK_NAMES in this file to match.',
         );
     }
 
@@ -263,8 +278,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function checkedName(value: unknown, what: string): string {
-    const invalid = typeof value !== 'string' || value.length === 0 || value.length > MAX_NAME_LENGTH || !CHUNK_NAME_PATTERN.test(value) || value.includes('..') || value.startsWith('/');
-    if (invalid || typeof value !== 'string') {
+    if (typeof value !== 'string' || value.length === 0 || value.length > MAX_NAME_LENGTH || !CHUNK_NAME_PATTERN.test(value) || value.includes('..') || value.startsWith('/')) {
         throw new ReportValidationError(`${what} is not a usable name: ${JSON.stringify(value)}`);
     }
     return value;
@@ -308,7 +322,11 @@ function parseReport(value: unknown, source: string): BundleSizeReport {
     if (names.length > MAX_CHUNKS) {
         throw new ReportValidationError(`${source} reports ${names.length} chunks, past the ${MAX_CHUNKS} this renders.`);
     }
-    const chunks: Record<string, ChunkSizes> = {};
+    // Collected as entries and rebuilt with `Object.fromEntries` rather than assigned key by key, because
+    // `CHUNK_NAME_PATTERN` allows `__proto__` and assigning that key hits the prototype setter instead of
+    // defining a property: the chunk would be neither accepted nor rejected, which is the wrong outcome for
+    // the one input a contributor controls. `fromEntries` defines it, so it survives as an ordinary key.
+    const entries: Array<[string, ChunkSizes]> = [];
     for (const name of names) {
         const chunk = value.chunks[name];
         if (!isRecord(chunk)) {
@@ -317,12 +335,16 @@ function parseReport(value: unknown, source: string): BundleSizeReport {
         if (typeof chunk.initial !== 'boolean') {
             throw new ReportValidationError(`${source}: chunk ${JSON.stringify(name)} does not say whether it is on the initial path.`);
         }
-        chunks[checkedName(name, `${source}: chunk name`)] = {
-            raw: checkedSize(chunk.raw, `${source}: chunk ${name} raw`),
-            gzip: checkedSize(chunk.gzip, `${source}: chunk ${name} gzip`),
-            initial: chunk.initial,
-        };
+        entries.push([
+            checkedName(name, `${source}: chunk name`),
+            {
+                raw: checkedSize(chunk.raw, `${source}: chunk ${name} raw`),
+                gzip: checkedSize(chunk.gzip, `${source}: chunk ${name} gzip`),
+                initial: chunk.initial,
+            },
+        ]);
     }
+    const chunks = Object.fromEntries(entries);
 
     return {
         sha: value.sha,
@@ -398,9 +420,13 @@ function delta(base: number | null, head: number | null): string {
     if (diff === 0) {
         return 'no change';
     }
-    const percent = base === 0 ? Infinity : (diff / base) * 100;
     const sign = diff > 0 ? '+' : '';
-    return `${sign}${bytes(diff)} (${sign}${percent.toFixed(2)}%)`;
+    // Nothing to take a percentage of. `Infinity` survives `toFixed`, so this would otherwise render
+    // `+Infinity%` whenever one side measured a key as 0 - a build that emits no root CSS, for instance.
+    if (base === 0) {
+        return `${sign}${bytes(diff)}`;
+    }
+    return `${sign}${bytes(diff)} (${sign}${((diff / base) * 100).toFixed(2)}%)`;
 }
 
 /** With no baseline the row is one value wide, so the comment cannot read as a delta of zero. */
@@ -441,7 +467,7 @@ function render(head: BundleSizeReport, baseline: Baseline, branch: string): str
     const base = baseline.kind === 'missing' ? undefined : baseline.report;
     // The union of both sides, so a chunk this pull request added and a chunk it deleted are both rows.
     // Taking head's keys alone hides an added chunk entirely and reports a deleted one as nothing at all.
-    const stable = [...new Set([...Object.keys(head.chunks), ...Object.keys(base?.chunks ?? {})])].filter((name) => !/^\d+$/.test(name));
+    const stable = [...new Set([...Object.keys(head.chunks), ...Object.keys(base?.chunks ?? {})])].filter((name) => !NUMERIC_CHUNK_NAME.test(name));
     // Raw first: it is what the JavaScript engine parses on every load, cached or not, and it is emitted
     // identically by every rebuild. Gzip is what crosses the network on the loads that are not cache hits.
     const headline: string[] = [
@@ -450,19 +476,19 @@ function render(head: BundleSizeReport, baseline: Baseline, branch: string): str
         row('all JS (raw)', head.allJsRaw, base?.allJsRaw),
         row('all JS (gzip)', head.allJsGzip, base?.allJsGzip),
     ];
-    for (const name of stable) {
-        const headChunk = head.chunks[name];
-        const baseChunk = base?.chunks[name];
-        if (!base) {
-            continue;
-        }
-        // A chunk that exists on one side only is a structural change, so it earns the headline on the same
-        // terms as one that moved: above the floor, and either on the initial path or newly there at all.
-        const appeared = !headChunk || !baseChunk;
-        const moved = (headChunk?.gzip ?? 0) - (baseChunk?.gzip ?? 0);
-        const onInitialPath = headChunk?.initial ?? baseChunk?.initial ?? false;
-        if ((onInitialPath || appeared) && Math.abs(moved) >= CHUNK_HEADLINE_FLOOR_BYTES) {
-            headline.push(row(`${name} (gzip)`, headChunk?.gzip ?? null, baseChunk?.gzip ?? null));
+    // Nothing to promote without a baseline: every row would be a bare number the headline already carries.
+    if (base) {
+        for (const name of stable) {
+            const headChunk = head.chunks[name];
+            const baseChunk = base.chunks[name];
+            // A chunk that exists on one side only is a structural change, so it earns the headline on the
+            // same terms as one that moved: above the floor, and either on the initial path or newly there.
+            const appeared = !headChunk || !baseChunk;
+            const moved = (headChunk?.gzip ?? 0) - (baseChunk?.gzip ?? 0);
+            const onInitialPath = headChunk?.initial ?? baseChunk?.initial ?? false;
+            if ((onInitialPath || appeared) && Math.abs(moved) >= CHUNK_HEADLINE_FLOOR_BYTES) {
+                headline.push(row(`${name} (gzip)`, headChunk?.gzip ?? null, baseChunk?.gzip ?? null));
+            }
         }
     }
 
@@ -485,7 +511,11 @@ function render(head: BundleSizeReport, baseline: Baseline, branch: string): str
                 `These two builds were measured under different versions (\`${base.measuredWith}\` and \`${head.measuredWith}\`), so a small unexplained gzip move may be the compressor rather than the diff.`,
             );
         }
-        if (base.largestChunk.name !== head.largestChunk.name) {
+        // `largestChunk` is picked over every chunk, numerically-named ones included. Naming those in the
+        // note would read as `4821 -> 7233`, which says nothing to a reader and flips on any module-graph
+        // move, so the note is only worth printing when both sides are names someone knows.
+        const namedBothSides = !NUMERIC_CHUNK_NAME.test(base.largestChunk.name) && !NUMERIC_CHUNK_NAME.test(head.largestChunk.name);
+        if (base.largestChunk.name !== head.largestChunk.name && namedBothSides) {
             notes.push(`The largest chunk changed identity (\`${base.largestChunk.name}\` -> \`${head.largestChunk.name}\`), so the largest-chunk row compares two different chunks.`);
         }
     }
@@ -504,12 +534,14 @@ function render(head: BundleSizeReport, baseline: Baseline, branch: string): str
         '',
         ...(notes.length ? [notes.join('\n'), ''] : []),
         '<details>',
-        '<summary>All measured keys</summary>',
+        '<summary>All named chunks</summary>',
         '',
         ...detailColumns,
         ...detail,
         '',
-        `Measured with \`npm run build\`, gzip level ${GZIP_LEVEL} under ${head.measuredWith ?? 'an unrecorded runtime'}, with the per-build identifiers held constant so gzip is reproducible. Per-chunk rows below ${exactBytes(CHUNK_HEADLINE_FLOOR_BYTES)} stay in this block.`,
+        `Measured with \`npm run build\`, gzip level ${GZIP_LEVEL} under ${head.measuredWith ?? 'an unrecorded runtime'}, with the per-build identifiers held constant so gzip is reproducible.`,
+        '',
+        `A per-chunk row reaches the table above only when it moved by at least ${exactBytes(CHUNK_HEADLINE_FLOOR_BYTES)} AND is either on the initial path or present on one side only. A chunk loaded on demand can therefore grow by a lot and stay in this block, while the \`all JS\` rows above still move. Chunks named by numeric id are counted in the totals but never listed: those names move whenever the module graph does. \`emitted CSS\` is the CSS the build emits at the root of \`dist/\`; assets copied in wholesale (\`css/\`, \`fonts/\`, \`sounds/\`, \`pdfs/\`) are outside the measurement.`,
         '',
         '</details>',
     ].join('\n');
@@ -525,8 +557,14 @@ function render(head: BundleSizeReport, baseline: Baseline, branch: string): str
  * Gzip carries an irreducible wobble of a byte or two. With the per-build identifiers masked, what is left
  * is rspack emitting a star re-export's name list in a different order between builds: the same strings,
  * the same total length, so raw cannot see it, but the permutation compresses differently. That is real
- * emitted content, so the script reports it rather than hiding it, and only fails when it grows past the
- * threshold the comment itself uses to promote a row - above that it could change what an author reads.
+ * emitted content, so the script reports it rather than hiding it. A per-chunk gzip move below the floor is
+ * listed and tolerated, because a row that small never leaves the collapsed block anyway. The six aggregates
+ * are held exactly: the comment prints them whatever they moved by, so a wobble in one of them IS something
+ * an author reads.
+ *
+ * Nothing in CI runs this. It is a manual check to reach for after an rspack, zlib or `sentry-webpack-plugin`
+ * upgrade, or whenever a comment shows a delta the diff does not explain: build one commit twice into two
+ * `dist/` directories, measure each, and compare the two reports.
  */
 function assertSame(aPath: string, bPath: string): void {
     const a = readReport(aPath);
@@ -535,9 +573,13 @@ function assertSame(aPath: string, bPath: string): void {
     const failures: string[] = [];
     const withinFloor: string[] = [];
 
-    /** Gzip differences below the comment's own reporting threshold cannot change what the comment says. */
-    const record = (line: string, difference: number, isGzip: boolean) => {
-        if (isGzip && Math.abs(difference) < CHUNK_HEADLINE_FLOOR_BYTES) {
+    /**
+     * The floor is the threshold a PER-CHUNK row has to clear to be promoted, so it is only a "cannot change
+     * what the comment says" argument for those rows. The six aggregates are printed unconditionally, so any
+     * move in one of them reaches an author and none of it is allowed through here.
+     */
+    const record = (line: string, difference: number, floorApplies: boolean) => {
+        if (floorApplies && Math.abs(difference) < CHUNK_HEADLINE_FLOOR_BYTES) {
             withinFloor.push(line);
             return;
         }
@@ -550,7 +592,7 @@ function assertSame(aPath: string, bPath: string): void {
             continue;
         }
         const difference = b[key] - a[key];
-        record(`${key}: ${bytes(a[key])} -> ${bytes(b[key])} (${difference > 0 ? '+' : ''}${difference} B)`, difference, key.endsWith('Gzip'));
+        record(`${key}: ${bytes(a[key])} -> ${bytes(b[key])} (${difference > 0 ? '+' : ''}${difference} B)`, difference, false);
     }
     if (a.largestChunk.name !== b.largestChunk.name) {
         failures.push(`largestChunk.name: ${a.largestChunk.name} -> ${b.largestChunk.name}`);
@@ -608,7 +650,7 @@ function main(): void {
     const flag = (name: string): string | undefined => {
         const at = argv.indexOf(name);
         const value = at === -1 ? undefined : argv.at(at + 1);
-        if (!value) {
+        if (!value || value.startsWith('--')) {
             return undefined;
         }
         return value;
@@ -687,7 +729,7 @@ function main(): void {
 }
 
 export type {BundleSizeReport, Baseline};
-export {measure, parseReport, render, ReportValidationError};
+export {assertComparable, measure, parseReport, render, ReportValidationError};
 
 // Only when this file is what was run. The tooling tests import the functions above directly, and importing
 // a module must not start reading `dist/` or writing a comment to stdout.

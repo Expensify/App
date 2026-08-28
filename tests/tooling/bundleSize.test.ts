@@ -6,7 +6,7 @@ import path from 'node:path';
 
 import type {BundleSizeReport} from '../../scripts/bundleSize';
 
-import {measure, parseReport, render, ReportValidationError} from '../../scripts/bundleSize';
+import {assertComparable, measure, parseReport, render, ReportValidationError} from '../../scripts/bundleSize';
 
 /** Mirrors the cap in `scripts/bundleSize.ts`, which is not exported because nothing else needs it. */
 const MAX_CHUNKS = 1000;
@@ -90,6 +90,43 @@ describe('render', () => {
         expect(headline).toContain('| main (gzip) | 1.50 MB | 1.48 MB | +23.98 kB (+1.62%) |');
     });
 
+    it('names the merge base it compared against', () => {
+        const comment = render(report({sha: HEAD_SHA}), {kind: 'merge-base', report: report()}, 'main');
+
+        expect(comment).toContain(`against \`main\` at \`${BASE_SHA.slice(0, 11)}\`, this pull request's merge base.`);
+    });
+
+    it('says which commit stood in when the merge base itself was not measured', () => {
+        const mergeBaseSha = 'ab12cd34ef5ccccccccccccccccccccccccccccc';
+        const comment = render(report({sha: HEAD_SHA}), {kind: 'ancestor', report: report(), mergeBaseSha}, 'main');
+
+        expect(comment).toContain(`merge base \`${mergeBaseSha.slice(0, 11)}\` has no measurement`);
+        expect(comment).toContain('carries whatever landed on `main` between those two commits');
+    });
+
+    it('drops the percentage when the baseline side is zero, rather than rendering Infinity', () => {
+        const base = report({cssGzip: 0});
+        const head = report({sha: HEAD_SHA, cssGzip: 2_000});
+
+        const comment = render(head, {kind: 'merge-base', report: base}, 'main');
+
+        expect(comment).toContain('| emitted CSS (gzip) | 2.00 kB | 0 B | +2.00 kB |');
+        expect(comment).not.toContain('Infinity');
+    });
+
+    it('does not report a largest-chunk identity change between two numeric chunk ids', () => {
+        const base = report({largestChunk: {name: '4821', raw: 9_726_213, gzip: 1_862_657}});
+        const head = report({sha: HEAD_SHA, largestChunk: {name: '7233', raw: 9_726_213, gzip: 1_862_657}});
+
+        expect(render(head, {kind: 'merge-base', report: base}, 'main')).not.toContain('changed identity');
+    });
+
+    it('reports a largest-chunk identity change between two names a reader knows', () => {
+        const head = report({sha: HEAD_SHA, largestChunk: {name: 'main', raw: 9_726_213, gzip: 1_862_657}});
+
+        expect(render(head, {kind: 'merge-base', report: report()}, 'main')).toContain('changed identity (`vendors` -> `main`)');
+    });
+
     it('renders one-value rows with no baseline, so nothing reads as a delta of zero', () => {
         const comment = render(report({sha: HEAD_SHA}), {kind: 'missing'}, 'main');
 
@@ -122,6 +159,20 @@ describe('size formatting', () => {
 
     it('scales a negative change too', () => {
         expect(changeFor(1_000_000, 1_320_939)).toContain('| -320.94 kB ');
+    });
+});
+
+describe('assertComparable', () => {
+    it('refuses a bun measurement against a node one, which would read the compressor as a code change', () => {
+        expect(() => assertComparable(report({measuredWith: 'bun 1.3.14'}), report({sha: HEAD_SHA}))).toThrow(/different runtimes/);
+    });
+
+    it('allows two measurements from the same runtime at different versions', () => {
+        expect(() => assertComparable(report({measuredWith: 'node v26.5.0'}), report({sha: HEAD_SHA, measuredWith: 'node v26.6.0'}))).not.toThrow();
+    });
+
+    it('allows a report written before the runtime was recorded, rather than failing every old artifact', () => {
+        expect(() => assertComparable(report({measuredWith: undefined}), report({sha: HEAD_SHA}))).not.toThrow();
     });
 });
 
@@ -167,6 +218,14 @@ describe('parseReport', () => {
     it('refuses an array, which JSON allows and the renderer does not', () => {
         expect(() => parseReport([], 'head')).toThrow(ReportValidationError);
     });
+
+    it('keeps a chunk named __proto__, which assigning key by key would swallow instead', () => {
+        // `CHUNK_NAME_PATTERN` allows it, and `JSON.parse` hands it over as an own property, so it has to
+        // come out the other side as an ordinary key rather than silently vanishing into a prototype setter.
+        const parsed = parseReport(malformed(chunksNamed('__proto__')), 'head');
+
+        expect(Object.keys(parsed.chunks)).toContain('__proto__');
+    });
 });
 
 describe('measure', () => {
@@ -181,7 +240,7 @@ describe('measure', () => {
         return dir;
     }
 
-    /** The five cache groups `config/rsbuild/rsbuild.common.ts` splits out, as a real build emits them. */
+    /** The entry chunk and the four cache groups a real build emits, named as the build names them. */
     function emitted(): Array<[string, string]> {
         return [
             ['index.html', '<script src="/main-aaaaaaaa.bundle.js"></script><script src="/vendors-bbbbbbbb.bundle.js"></script>'],
@@ -203,14 +262,31 @@ describe('measure', () => {
         }
     });
 
-    it('measures a build that emits every expected cache group', () => {
+    it('measures a build that emits every expected chunk name', () => {
         const measured = measure(dist(emitted()), BASE_SHA);
 
         expect(Object.keys(measured.chunks).sort()).toEqual(['expensifyIcons', 'heicTo', 'illustrations', 'main', 'vendors']);
         expect(measured.initialJsRaw).toBe(2048 + 4096);
     });
 
-    it('fails when a cache group has been renamed away, rather than reporting no change for it', () => {
+    it('classifies a chunk index.html does not load as off the initial path', () => {
+        const measured = measure(dist(emitted()), BASE_SHA);
+
+        expect(measured.chunks.main.initial).toBe(true);
+        expect(measured.chunks.heicTo.initial).toBe(false);
+    });
+
+    it('picks the largest chunk by raw bytes, which is what the headline promotion rule reads', () => {
+        expect(measure(dist(emitted()), BASE_SHA).largestChunk.name).toBe('vendors');
+    });
+
+    it('refuses a stale dist where two files measure as one chunk, which would count both and show one', () => {
+        const stale = [...emitted(), ['main-ffffffff.bundle.js', 'f'.repeat(1024)] as [string, string]];
+
+        expect(() => measure(dist(stale), BASE_SHA)).toThrow(/both measure as chunk main/);
+    });
+
+    it('fails when an expected chunk has been renamed away, rather than reporting no change for it', () => {
         expect(() => measure(dist(without('illustrations-dddddddd.bundle.js')), BASE_SHA)).toThrow(/no chunk named illustrations/);
     });
 
