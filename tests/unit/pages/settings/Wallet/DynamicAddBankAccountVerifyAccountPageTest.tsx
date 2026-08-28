@@ -23,7 +23,7 @@ const mockVerifyAccountPageBase = jest.fn(() => null);
 
 jest.mock('@pages/settings/VerifyAccountPageBase', () => ({
     __esModule: true,
-    default: (props: Record<string, unknown>) => mockVerifyAccountPageBase(props),
+    default: () => mockVerifyAccountPageBase(),
 }));
 
 jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/wallet'));
