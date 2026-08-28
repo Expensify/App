@@ -12,8 +12,7 @@ type HeaderMenuItemButtonProps = {
 };
 
 /**
- * Single tooltip-wrapped icon button. Provisional block extracted from the legacy three-dots "minimized" variant
- * (a single-item menu collapsed to a plain icon button). Its only real use is the money-request Category step.
+ * Single tooltip-wrapped icon button. A single-item menu collapsed to a plain icon button. Its only real use is the money-request Category step.
  */
 function HeaderMenuItemButton({threeDotsMenuItem}: HeaderMenuItemButtonProps) {
     return (
