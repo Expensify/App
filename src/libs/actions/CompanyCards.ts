@@ -131,6 +131,7 @@ function buildOptimisticCompanyCardCSVTransactions(
     const transactions: OptimisticCompanyCardCSVTransaction[] = [];
     for (const row of csvDataWithGeneratedIDs) {
         const transactionID = rand64();
+
         // Fills the synthetic column, and any row whose mapped Unique ID cell is blank.
         if (!row.at(externalIDColumnIndex)?.trim()) {
             row[externalIDColumnIndex] = transactionID;
