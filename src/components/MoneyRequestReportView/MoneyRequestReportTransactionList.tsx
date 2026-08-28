@@ -11,6 +11,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 
+import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -318,6 +319,12 @@ function MoneyRequestReportTransactionList({
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
+    const blockDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        policyID: policy?.id,
+        isDistanceRequest: true,
+        isManualDistanceRequest: lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+        isOdometerDistanceRequest: lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+    });
 
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
@@ -334,6 +341,7 @@ function MoneyRequestReportTransactionList({
                 ownerBillingGracePeriodEnd,
                 lastDistanceExpenseType,
                 currentUserAccountID: currentUserDetails?.accountID,
+                blockDistanceRequestIfNeeded,
             }),
         [
             translate,
@@ -346,6 +354,7 @@ function MoneyRequestReportTransactionList({
             ownerBillingGracePeriodEnd,
             draftTransactionIDs,
             currentUserDetails?.accountID,
+            blockDistanceRequestIfNeeded,
         ],
     );
 

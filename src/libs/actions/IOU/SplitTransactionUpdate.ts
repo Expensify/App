@@ -281,7 +281,7 @@ function updateSplitTransactions({
 
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
-    const allChildTransactions = getChildTransactions(allTransactionsList, originalTransactionID, false);
+    const allChildTransactions = getChildTransactions(allTransactionsList, originalTransactionID);
     const processedChildTransactionIDs: string[] = [];
 
     const splitExpensesTotal = transactionData?.splitExpensesTotal ?? 0;
@@ -2028,7 +2028,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // set the navigate-back URL before the deletion to prevent the "Not Found" page.
     const splitExpenses = params.transactionData?.splitExpenses ?? [];
     const originalTransactionID = params.transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-    const allChildTransactions = getChildTransactions(params.allTransactionsList, originalTransactionID, false);
+    const allChildTransactions = getChildTransactions(params.allTransactionsList, originalTransactionID);
     const hasEditableSplitExpensesLeft = splitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
 
     // Unfiltered, so a pure selfDM 2-split still collapses via REVERT_SPLIT_TRANSACTION. The mixed

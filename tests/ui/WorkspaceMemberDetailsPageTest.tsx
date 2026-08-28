@@ -5,6 +5,7 @@ import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
@@ -38,7 +39,7 @@ const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 const renderPage = (initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.MEMBER_DETAILS]) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider, CurrentReportIDContextProvider, ModalProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider, CurrentReportIDContextProvider, ModalProvider, PersonalDetailsByLoginProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.MEMBER_DETAILS}>
@@ -67,6 +68,8 @@ describe('WorkspaceMemberDetailsPage', () => {
     const primaryAccountID = 7777;
     const primaryEmail = 'primary@example.com';
     const secondaryEmail = 'secondary@example.com';
+    const adminPayerAccountID = 8888;
+    const adminPayerEmail = 'adminpayer@example.com';
 
     const policy = {
         ...LHNTestUtils.getFakePolicy(),
@@ -83,6 +86,7 @@ describe('WorkspaceMemberDetailsPage', () => {
             [invitedEmail]: {email: invitedEmail, role: CONST.POLICY.ROLE.USER},
             [phoneLogin]: {email: phoneLogin, role: CONST.POLICY.ROLE.USER},
             [primaryEmail]: {email: primaryEmail, role: CONST.POLICY.ROLE.USER},
+            [adminPayerEmail]: {email: adminPayerEmail, role: CONST.POLICY.ROLE.ADMIN},
         },
     };
 
@@ -102,6 +106,7 @@ describe('WorkspaceMemberDetailsPage', () => {
                 [invitedAccountID]: TestHelper.buildPersonalDetails(invitedEmail, invitedAccountID, 'Invited'),
                 [phoneAccountID]: TestHelper.buildPersonalDetails(phoneLogin, phoneAccountID, 'Phone'),
                 [primaryAccountID]: TestHelper.buildPersonalDetails(primaryEmail, primaryAccountID, 'Primary'),
+                [adminPayerAccountID]: TestHelper.buildPersonalDetails(adminPayerEmail, adminPayerAccountID, 'AdminPayer'),
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
         });
@@ -218,6 +223,80 @@ describe('WorkspaceMemberDetailsPage', () => {
             expect(screen.getByText(TestHelper.translateLocal('workspace.rules.agentRules.unableToRemoveTitle'))).toBeOnTheScreen();
         });
         expect(screen.queryByText(TestHelper.translateLocal('workspace.people.removeMemberTitle'))).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should not lock the Role field for a non-admin Authorized Payer so they can be promoted to Admin', async () => {
+        // Make the invited member (a plain USER) the workspace Authorized Payer.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                reimburser: invitedEmail,
+            });
+        });
+
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
+        });
+
+        // The locked hint must NOT be shown — a non-admin payer can still be promoted to Admin.
+        expect(screen.queryByText(/Role can/)).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should not lock the Role field for an Authorized Payer who is already an Admin so they can be changed to Payments Admin', async () => {
+        // The admin member is the workspace Authorized Payer — Payments Admin is also a valid payer, so a lateral change is allowed.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                reimburser: adminPayerEmail,
+            });
+        });
+
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(adminPayerAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
+        });
+
+        // The locked hint must NOT be shown — an admin payer can still be changed to Payments Admin, another valid payer role.
+        expect(screen.queryByText(/Role can/)).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should keep the Role field interactive for an admin Authorized Payer on a non-Control workspace because Editor also holds the payments permission', async () => {
+        // On a Team (non-Control) workspace, Payments Admin is not assignable, but Editor also holds the WORKFLOWS_PAYMENTS
+        // permission, so an admin payer still has another valid payer role to switch to. The Role row must stay interactive.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                type: CONST.POLICY.TYPE.TEAM,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                reimburser: adminPayerEmail,
+            });
+        });
+
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(adminPayerAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
+        });
+
+        const roleItem = await screen.findByTestId('member-role-menu-item');
+
+        // Editor is another payer role the admin payer can switch to, so the row is interactive with no lock hint.
+        expect(roleItem).not.toBeDisabled();
+        expect(screen.queryByText(/Role can/)).not.toBeOnTheScreen();
 
         unmount();
         await waitForBatchedUpdatesWithAct();
