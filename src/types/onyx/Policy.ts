@@ -2880,9 +2880,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The custom units data for this policy */
         customUnits?: Record<string, CustomUnit>;
 
-        /** Deprecated legacy flag for policy expense chat compatibility. */
-        isPolicyExpenseChatEnabled?: boolean;
-
         /** Whether the auto reporting is enabled */
         autoReporting?: boolean;
 
