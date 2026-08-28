@@ -77,7 +77,7 @@ type ReportActionsListContentProps = {
     /** The ID of the report to display actions for */
     reportID: string;
 
-    /** The Concierge chat report, used to build onboarding data in openReport (https://github.com/Expensify/App/issues/66411) */
+    /** The Concierge chat report */
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
 
     /** Callback executed on list layout */
