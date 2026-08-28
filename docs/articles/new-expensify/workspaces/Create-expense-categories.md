@@ -91,7 +91,7 @@ Bulk actions are available using the checkboxes and **Selected** menu.
 
 Workspaces on the Control plan can assign optional GL codes and payroll codes to each category. Payroll codes are not visible to members. GL codes are hidden from members by default but can be shown by enabling **Show GL codes when categorizing expenses**. Both codes can be exported for accounting purposes.
 
-To add a GL codee or payroll code to a category:
+To add a GL code or payroll code to a category:
 
 1. In the navigation tabs (on the left on web, at the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Categories**.
