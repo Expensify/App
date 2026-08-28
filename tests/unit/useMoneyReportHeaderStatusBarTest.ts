@@ -6,7 +6,7 @@ import type {Card, CardList, TransactionViolation} from '@src/types/onyx';
 import createMock from '../utils/createMock';
 
 describe('shouldSuppressBrokenConnectionStatus', () => {
-    const personalCardID = 'personal-card';
+    const personalCardID = 1;
     const personalCardList = createMock<CardList>({[personalCardID]: createMock<Card>({fundID: '0'})});
     const personalBrokenConnection = createMock<TransactionViolation>({
         type: CONST.VIOLATION_TYPES.VIOLATION,

@@ -41,6 +41,10 @@ type StatusBarResult = {
     statusBarType: StatusBarType | undefined;
 };
 
+/**
+ * Suppresses the report-level status only when every broken connection belongs to a personal card.
+ * Reports with company-card or retry-later violations must retain a status so their required action is visible.
+ */
 function shouldSuppressBrokenConnectionStatus(brokenConnectionViolations: TransactionViolation[], cardList: OnyxEntry<CardList>) {
     return (
         brokenConnectionViolations.length > 0 &&
