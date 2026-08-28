@@ -210,17 +210,7 @@ function getDistanceRateForDisplay({customUnitRateID, policy, policies}: {custom
         return;
     }
 
-    const policyRate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID, policy});
-    if (policyRate) {
-        return policyRate;
-    }
-
-    for (const currentPolicy of Object.values(policies ?? {})) {
-        const rate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID, policy: currentPolicy});
-        if (rate) {
-            return rate;
-        }
-    }
+    return DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID, policy}) ?? DistanceRequestUtils.getEnabledRateByCustomUnitRateIDFromAnyPolicy(customUnitRateID, policies);
 }
 
 function getDisplayTransactionWithoutInvalidCommuterExclusion<TTransaction extends OnyxInputOrEntry<Transaction>>({
