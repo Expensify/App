@@ -4,12 +4,14 @@ import type {
     UpdateDualEntryAccountingMethodParams,
     UpdateDualEntryAutoSyncParams,
     UpdateDualEntryBillPaymentAccountParams,
+    UpdateDualEntryCardProgramAccountParams,
     UpdateDualEntryCreditCardAccountParams,
     UpdateDualEntryDefaultVendorParams,
     UpdateDualEntryEnableNewCategoriesParams,
     UpdateDualEntryExpensifyCardAccountParams,
     UpdateDualEntryExportDateParams,
     UpdateDualEntryExporterParams,
+    UpdateDualEntryExportToMultipleAccountsParams,
     UpdateDualEntryFieldMappingParams,
     UpdateDualEntrySettlementsAccountParams,
     UpdateDualEntrySubsidiaryParams,
@@ -510,6 +512,88 @@ function prepareDualEntrySyncOnyxData<TSettingName extends keyof DualEntrySync>(
     return {optimisticData, successData, failureData};
 }
 
+function prepareDualEntryCardProgramAccountOnyxData(
+    policyID: string,
+    feedKey: keyof DualEntryExport['cardProgramAccounts'],
+    accountID: ValueOf<DualEntryExport['cardProgramAccounts']>,
+    oldAccountID?: ValueOf<DualEntryExport['cardProgramAccounts']> | null,
+) {
+    const cardProgramAccountOfflineFeedbackKey = `${CONST.DUALENTRY_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`;
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    dualEntry: {
+                        config: {
+                            export: {
+                                cardProgramAccounts: {
+                                    // An empty accountID string implies clearing the custom account
+                                    [feedKey]: accountID || null,
+                                },
+                            },
+                            pendingFields: {
+                                [cardProgramAccountOfflineFeedbackKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [cardProgramAccountOfflineFeedbackKey]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    dualEntry: {
+                        config: {
+                            pendingFields: {
+                                [cardProgramAccountOfflineFeedbackKey]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    dualEntry: {
+                        config: {
+                            export: {
+                                cardProgramAccounts: {
+                                    [feedKey]: oldAccountID ?? null,
+                                },
+                            },
+                            pendingFields: {
+                                [cardProgramAccountOfflineFeedbackKey]: null,
+                            },
+                            errorFields: {
+                                [cardProgramAccountOfflineFeedbackKey]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, successData, failureData};
+}
+
 function updateDualEntrySubsidiary(policyID: string, subsidiaryID: DualEntryConnectionsConfig['subsidiaryID'], oldSubsidiaryID?: DualEntryConnectionsConfig['subsidiaryID']) {
     const onyxData = prepareDualEntryOnyxData(policyID, CONST.DUALENTRY_CONFIG.SUBSIDIARY_ID, subsidiaryID, oldSubsidiaryID ?? null);
     const params: UpdateDualEntrySubsidiaryParams = {
@@ -708,6 +792,30 @@ function updateDualEntryTravelInvoicingPayableAccount(
     write(WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, onyxData);
 }
 
+function updateDualEntryExportToMultipleAccounts(policyID: string, enabled: DualEntryExport['exportToMultipleAccounts'], oldEnabled?: DualEntryExport['exportToMultipleAccounts']) {
+    const onyxData = prepareDualEntryExportOnyxData(policyID, CONST.DUALENTRY_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS, enabled, oldEnabled ?? null);
+    const parameters: UpdateDualEntryExportToMultipleAccountsParams = {
+        policyID,
+        enabled,
+    };
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_EXPORT_TO_MULTIPLE_ACCOUNTS, parameters, onyxData);
+}
+
+function updateDualEntryCardProgramAccount(
+    policyID: string,
+    feedKey: keyof DualEntryExport['cardProgramAccounts'],
+    accountID: ValueOf<DualEntryExport['cardProgramAccounts']>,
+    oldAccountCode?: ValueOf<DualEntryExport['cardProgramAccounts']>,
+) {
+    const onyxData = prepareDualEntryCardProgramAccountOnyxData(policyID, feedKey, accountID, oldAccountCode ?? null);
+    const parameters: UpdateDualEntryCardProgramAccountParams = {
+        policyID,
+        feedKey,
+        accountID,
+    };
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_CARD_PROGRAM_ACCOUNT, parameters, onyxData);
+}
+
 export {
     connectToDualEntry,
     clearDualEntryErrorField,
@@ -729,4 +837,6 @@ export {
     updateDualEntrySyncTravelInvoicingSettlements,
     updateDualEntryTravelInvoicingSettlementsAccount,
     updateDualEntryTravelInvoicingPayableAccount,
+    updateDualEntryExportToMultipleAccounts,
+    updateDualEntryCardProgramAccount,
 };
