@@ -3289,7 +3289,10 @@ describe('actions/Duplicate', () => {
          * Duplicates a report whose expenses may be in a different currency than the report itself, and returns the copy.
          * `sourceCurrency` is the source report's (and, unless overridden, the target policy's) currency.
          */
-        const duplicateCrossCurrencyReport = async (transactions: Array<Partial<Transaction>>, {sourceCurrency = 'INR', outputCurrency = sourceCurrency} = {}) => {
+        const duplicateCrossCurrencyReport = async (
+            transactions: Array<Partial<Transaction>>,
+            {sourceCurrency = 'INR', outputCurrency = sourceCurrency}: {sourceCurrency?: string; outputCurrency?: string} = {},
+        ) => {
             const targetPolicy: Policy = {
                 ...mockPolicy,
                 type: CONST.POLICY.TYPE.TEAM,
