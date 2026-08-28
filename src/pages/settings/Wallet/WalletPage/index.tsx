@@ -99,11 +99,9 @@ function WalletPage() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [lockedVBAUnlockRequestedNVPs] = useOnyx(ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED);
-    const lockedVBAUnlockRequestedNVPsRef = useRef(lockedVBAUnlockRequestedNVPs);
-    useEffect(() => {
-        lockedVBAUnlockRequestedNVPsRef.current = lockedVBAUnlockRequestedNVPs;
-    }, [lockedVBAUnlockRequestedNVPs]);
+    const lockedBankAccountID = Object.values(bankAccountList).find((account) => account?.accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED)?.accountData?.bankAccountID;
+    // eslint-disable-next-line rulesdir/no-default-id-values
+    const [unlockRequestedAt] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${lockedBankAccountID ?? CONST.DEFAULT_NUMBER_ID}`);
     const delegateAccountID = useDelegateAccountID();
     const isUserValidated = userAccount?.validated ?? false;
     const {isBetaEnabled} = usePermissions();
@@ -163,7 +161,6 @@ function WalletPage() {
         paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
 
         if (accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED && accountData?.bankAccountID) {
-            const unlockRequestedAt = lockedVBAUnlockRequestedNVPsRef.current?.[`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${accountData.bankAccountID}`];
             if (unlockRequestedAt) {
                 showUnlockAlreadyRequestedModal(showConfirmModal, translate);
                 return;
