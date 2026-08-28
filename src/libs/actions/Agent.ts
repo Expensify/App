@@ -30,28 +30,30 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT,
     callback: (value) => {
         optimisticAccountIDMappingCreatedAt = value;
+        // Runs on every write to this key (creation, backfill, or this prune's own writes), so entries are pruned
+        // as soon as they're old enough — no caller needs to trigger this explicitly (see openAgentsPage() below
+        // for the one exception: nothing else writes to this key just from opening the page).
+        pruneStaleOptimisticAccountIDMappingEntries();
     },
 });
 
-function getStaleOptimisticAccountIDMappingUpdates(): AnyOnyxUpdate[] {
+function pruneStaleOptimisticAccountIDMappingEntries() {
     const now = Date.now();
     const staleOptimisticAccountIDs = Object.entries(optimisticAccountIDMappingCreatedAt ?? {})
         .filter(([, createdAt]) => now - createdAt > OPTIMISTIC_ACCOUNT_ID_MAPPING_MAX_AGE_MS)
         .map(([staleOptimisticAccountID]) => staleOptimisticAccountID);
 
     if (staleOptimisticAccountIDs.length === 0) {
-        return [];
+        return;
     }
 
     const staleEntries = Object.fromEntries(staleOptimisticAccountIDs.map((id) => [id, null]));
-    return [
-        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, value: staleEntries},
-        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT, value: staleEntries},
-    ];
+    Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, staleEntries);
+    Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT, staleEntries);
 }
 
 function openAgentsPage() {
-    const finallyData: AnyOnyxUpdate[] = [
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ARE_AGENTS_LOADED>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ARE_AGENTS_LOADED,
@@ -59,9 +61,11 @@ function openAgentsPage() {
         },
     ];
 
-    const optimisticData = getStaleOptimisticAccountIDMappingUpdates();
+    // An entry can go stale purely from time passing with no new write to trigger the callback above — catch
+    // that here, since opening the agents list is the only realistic moment to re-check for it.
+    pruneStaleOptimisticAccountIDMappingEntries();
 
-    read(READ_COMMANDS.OPEN_AGENTS_PAGE, null, {optimisticData, finallyData});
+    read(READ_COMMANDS.OPEN_AGENTS_PAGE, null, {finallyData});
 }
 
 function openProfilePage() {
@@ -137,7 +141,6 @@ function createAgent(
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReportID}`,
             value: {isOptimisticReport: true},
         },
-        ...getStaleOptimisticAccountIDMappingUpdates(),
     ];
 
     const successData: AnyOnyxUpdate[] = [
