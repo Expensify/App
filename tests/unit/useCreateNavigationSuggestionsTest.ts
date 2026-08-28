@@ -350,13 +350,15 @@ describe('useCreateNavigationSuggestions', () => {
     });
 
     it.each([
-        ['Travel is blocked', true, session.email, true, true],
-        ['the primary login is an SMS login', false, '+15555550123', true, true],
-        ['the active workspace is not paid', false, session.email, false, true],
-        ['Travel terms are not accepted', false, session.email, true, false],
-    ])('opens the Travel page when %s', (_condition, isBlocked, primaryLogin, isPaid, hasAcceptedTerms) => {
+        ['Travel is blocked', true, session.email, session.email, true, true],
+        ['the primary login is an SMS login', false, '+15555550123', session.email, true, true],
+        ['the active workspace is not paid', false, session.email, session.email, false, true],
+        ['Travel terms are not accepted', false, session.email, session.email, true, false],
+        ['there is no primary contact method', false, '', '', true, true],
+    ])('opens the Travel page when %s', (_condition, isBlocked, primaryLogin, sessionEmail, isPaid, hasAcceptedTerms) => {
         mockOnyxValues.set(`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, {...submitPolicy, isTravelEnabled: true});
         mockOnyxValues.set(ONYXKEYS.ACCOUNT, {primaryLogin});
+        mockOnyxValues.set(ONYXKEYS.SESSION, {...session, email: sessionEmail});
         mockIsPermissionsBetaEnabled.mockReturnValue(isBlocked);
         mockIsPaidGroupPolicy.mockReturnValue(isPaid);
         mockHasAcceptedTravelTerms.mockReturnValue(hasAcceptedTerms);
