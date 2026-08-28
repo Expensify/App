@@ -1,11 +1,12 @@
 import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 
+import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -19,6 +20,7 @@ import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/t
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+import {openLink} from '@userActions/Link';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,6 +49,7 @@ const CSV_TEMPLATE_CONTENT = [
 function ImportFromFileStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {environmentURL} = useEnvironment();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['Download']);
     const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_COMPANY_CARDS_ADD_NEW>>();
@@ -62,6 +65,18 @@ function ImportFromFileStep() {
     const downloadTemplate = () => {
         localFileDownload(CSV_TEMPLATE_FILE_NAME, CSV_TEMPLATE_CONTENT, translate);
     };
+
+    // The help text mixes plain copy with two tappable links (a client-side template download and an external help guide).
+    // On Android, a link nested inline inside a <Text> becomes a ClickableSpan whose touch area is limited to the glyph bounds,
+    // which makes it unreliable to tap (e.g. at the minimum device font size). Rendering each link as its own PressableWithoutFeedback
+    // gives it a real native touch target, while splitting the plain copy into words keeps the paragraph flowing/wrapping naturally.
+    const createFileFeedHelpTextSegments: Array<{text: string; onPress?: () => void; role?: React.ComponentProps<typeof PressableWithoutFeedback>['role']}> = [
+        {text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionStart')},
+        {text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.templateLink'), onPress: downloadTemplate, role: CONST.ROLE.BUTTON},
+        {text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionMiddle')},
+        {text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.helpGuideLink'), onPress: () => openLink(CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL, environmentURL), role: CONST.ROLE.LINK},
+        {text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionEnd')},
+    ];
 
     const navigateToImport = () => {
         if (!companyCardLayoutName.trim()) {
@@ -89,13 +104,35 @@ function ImportFromFileStep() {
                 contentContainerStyle={styles.flexGrow1}
                 addBottomSafeAreaPadding
             >
-                <Text style={[styles.ph5, styles.mv3, styles.textSupporting]}>
-                    {translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionStart')}
-                    <TextLink onPress={downloadTemplate}>{translate('workspace.companyCards.addNewCard.createFileFeedHelpText.templateLink')}</TextLink>
-                    {translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionMiddle')}
-                    <TextLink href={CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}>{translate('workspace.companyCards.addNewCard.createFileFeedHelpText.helpGuideLink')}</TextLink>
-                    {translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionEnd')}
-                </Text>
+                <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap, styles.alignItemsCenter]}>
+                    {createFileFeedHelpTextSegments.map((segment, segmentIndex) => {
+                        if (segment.onPress) {
+                            return (
+                                // eslint-disable-next-line react/no-array-index-key
+                                <React.Fragment key={`${segment.text}-${segmentIndex}`}>
+                                    <PressableWithoutFeedback
+                                        role={segment.role}
+                                        accessibilityLabel={segment.text}
+                                        onPress={segment.onPress}
+                                        style={styles.dInlineFlex}
+                                    >
+                                        <Text style={[styles.textSupporting, styles.link]}>{segment.text}</Text>
+                                    </PressableWithoutFeedback>
+                                    <Text style={styles.textSupporting}> </Text>
+                                </React.Fragment>
+                            );
+                        }
+                        return (segment.text.match(/\S+\s*/g) ?? []).map((word, wordIndex) => (
+                            <Text
+                                // eslint-disable-next-line react/no-array-index-key
+                                key={`${segment.text}-${segmentIndex}-${wordIndex}`}
+                                style={styles.textSupporting}
+                            >
+                                {word}
+                            </Text>
+                        ));
+                    })}
+                </View>
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
                     title={companyCardLayoutName}
