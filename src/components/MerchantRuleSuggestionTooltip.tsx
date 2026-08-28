@@ -2,7 +2,7 @@ import useMerchantRuleSuggestion from '@hooks/useMerchantRuleSuggestion';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {dismissMerchantRuleSuggestion} from '@libs/actions/MerchantRuleSuggestion';
+import {dismissMerchantRuleSuggestion, setIsCreatingMerchantRule} from '@libs/actions/MerchantRuleSuggestion';
 import {setDraftMerchantRule} from '@libs/actions/User';
 import {getMerchantRuleDraftFromTransaction} from '@libs/MerchantRuleSuggestionUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -73,8 +73,10 @@ function MerchantRuleSuggestionTooltipInner({reportID, policyID, transactionID, 
         }
         // Seed the draft the rule editor reads, then open the same flow used from workspace settings
         setDraftMerchantRule(draft);
+        // Tells that flow it was entered from an expense, so saving returns here rather than to the Rules page
+        setIsCreatingMerchantRule(true);
         hideProductTrainingTooltip();
-        Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID, undefined, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
     };
 
     return (

@@ -23,6 +23,12 @@ type MerchantRuleSuggestion = {
 
     /** Whether the user dismissed the tooltip for this expense */
     isDismissed?: boolean;
+
+    /**
+     * Whether the user took the offer and is now in the rule creation flow. The rule page reads this to return to the
+     * expense after saving instead of to the workspace Rules page, which is where creating a rule from settings ends.
+     */
+    isCreatingRule?: boolean;
 };
 
 export default MerchantRuleSuggestion;

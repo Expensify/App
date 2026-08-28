@@ -14,7 +14,6 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
         <MerchantRulePageBase
             policyID={route.params.policyID}
             initialCategoryName={route.params.categoryName}
-            backTo={route.params.backTo}
             titleKey="workspace.rules.merchantRules.addRuleTitle"
             testID="AddMerchantRulePage"
         />

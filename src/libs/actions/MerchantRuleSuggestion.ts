@@ -32,4 +32,15 @@ function dismissMerchantRuleSuggestion() {
     Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {isDismissed: true});
 }
 
-export {trackMerchantRuleSuggestion, dismissMerchantRuleSuggestion};
+/**
+ * Records that the user took the offer, so the rule page knows to return to the expense once the rule is saved.
+ *
+ * The `backTo` URL param is deprecated (see the `How to remove backTo from URL` section in NAVIGATION.md), so the
+ * origin travels through this record instead. It is session-scoped like the rest of the record, which means a page
+ * refresh mid-flow falls back to the workspace Rules page — acceptable, since a refresh discards the offer anyway.
+ */
+function setIsCreatingMerchantRule(isCreatingRule: boolean) {
+    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {isCreatingRule});
+}
+
+export {trackMerchantRuleSuggestion, dismissMerchantRuleSuggestion, setIsCreatingMerchantRule};
