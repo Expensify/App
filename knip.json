@@ -58,14 +58,9 @@
         }
     },
     "ignoreDependencies": [
-        "@expensify/react-native-hybrid-app",
         "focus-trap",
-        "group-ib-fp",
-        "react-native-image-size",
-        "react-native-picker-select",
         "react-native-quick-crypto",
         "react-native-quick-base64",
-        "lodash",
         "@babel/plugin-proposal-private-methods",
         "@babel/plugin-proposal-private-property-in-object",
         "@babel/plugin-transform-export-namespace-from",
@@ -75,7 +70,6 @@
         "html-entities",
         "@fullstory/babel-plugin-react-native",
         "@fullstory/babel-plugin-annotate-react",
-        "eslint-config-airbnb-typescript",
         "eslint-config-prettier",
         "eslint-plugin-storybook",
         "@dword-design/eslint-plugin-import-alias",
