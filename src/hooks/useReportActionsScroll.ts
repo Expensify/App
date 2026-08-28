@@ -38,6 +38,7 @@ import useWindowDimensions from './useWindowDimensions';
 type UseReportActionsScrollParams = {
     /** The Concierge chat report */
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
+
     /** The ID of the report currently being looked at */
     reportID: string;
 
