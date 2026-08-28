@@ -1,3 +1,8 @@
+/**
+ * Which groups a shift+click range may reach into. Whoever owns a group's expanded state owns that answer, which is
+ * the one thing the rows cannot tell the provider. Scoped to one search, so a group left open across a query change
+ * cannot range over the previous results.
+ */
 import type {SearchShiftRangeGroupsActions} from '@components/Search/types';
 
 import {useState} from 'react';
@@ -11,11 +16,6 @@ type OpenGroupsRegistry = {
     shiftRangeGroupsActions: SearchShiftRangeGroupsActions;
 };
 
-/**
- * Which groups a shift+click range may reach into. Whoever owns a group's expanded state owns that answer, which is
- * the one thing the rows cannot tell the provider. Scoped to one search, so a group left open across a query change
- * cannot range over the previous results.
- */
 function useOpenGroupsRegistry(searchHash: number): OpenGroupsRegistry {
     const [openGroupKeys, setOpenGroupKeys] = useState<ReadonlySet<string>>(NO_OPEN_GROUPS);
 
