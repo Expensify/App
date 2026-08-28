@@ -7,16 +7,11 @@ internalScope: Audience is all members. Covers how to duplicate a single expense
 
 # How to duplicate an expense
 
-You can create a copy of one or more expenses using **Duplicate expense**. This generates new expenses with the same details as the originals, including the merchant, amount, category, tags, and tax. The date is set to today and receipt images are not copied. A reported expense is copied onto your primary workspace, while an Unreported expense is copied as an Unreported expense.
+You can create a copy of one or more expenses using **Duplicate expense**. This generates new expenses with the same details as the originals, including the merchant, amount, category, tags, and tax. The date is set to today and receipt images are not copied. An expense that is on a report is copied onto your primary workspace, while an Unreported expense is copied onto your personal space.
 
 This is useful when you need to create similar expenses quickly without re-entering all the details manually. You can duplicate a single expense or select multiple expenses and duplicate them all at once.
 
 **Note:** Card expenses cannot be duplicated. Only cash, distance, and per diem expenses are eligible to be duplicated. 
-
-<!-- LINK:
-Learn about expense types. 
-Page creation GH: https://github.com/Expensify/Expensify/issues/614406
--->
 
 ---
 
@@ -70,7 +65,7 @@ Purpose: Helps the user identify the bulk duplicate option in the dropdown.
 
 The duplicate expense keeps the original expense's merchant, amount, category, tags, tax, and billable or reimbursable status. The date is set to today and receipt images are not included.
 
-The duplicate matches the reported state of the original. If the original is a reported expense, the copy is created on your primary workspace. If the original is an Unreported expense, the copy is also created as an Unreported expense instead of being added to a report.
+The duplicate matches the reported state of the original. If the original expense is on a report, the copy is created on your primary workspace. If the original is an Unreported expense, the copy is created on your personal space and is not added to a report.
 
 If the original expense's coding (such as categories or tags) is not available on your primary workspace, the duplicate expense will still be created. You will be prompted to correct the coding on the expense. 
 
