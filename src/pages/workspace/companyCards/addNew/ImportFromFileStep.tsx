@@ -70,7 +70,13 @@ function ImportFromFileStep() {
     // On Android, a link nested inline inside a <Text> becomes a ClickableSpan whose touch area is limited to the glyph bounds,
     // which makes it unreliable to tap (e.g. at the minimum device font size). Rendering each link as its own PressableWithoutFeedback
     // gives it a real native touch target, while splitting the plain copy into words keeps the paragraph flowing/wrapping naturally.
-    const createFileFeedHelpTextSegments: Array<{text: string; onPress?: () => void; role?: React.ComponentProps<typeof PressableWithoutFeedback>['role']; sentryLabel?: string}> = [
+    const createFileFeedHelpTextSegments: Array<{
+        text: string;
+        onPress?: React.ComponentProps<typeof PressableWithoutFeedback>['onPress'];
+        href?: string;
+        role?: React.ComponentProps<typeof PressableWithoutFeedback>['role'];
+        sentryLabel?: string;
+    }> = [
         {text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionStart')},
         {
             text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.templateLink'),
@@ -81,7 +87,13 @@ function ImportFromFileStep() {
         {text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionMiddle')},
         {
             text: translate('workspace.companyCards.addNewCard.createFileFeedHelpText.helpGuideLink'),
-            onPress: () => openLink(CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL, environmentURL),
+            // Pass href so the link renders as a real anchor on web (native link behavior: hover URL, open in a new tab, etc.),
+            // while onPress preventDefault()s the anchor's default navigation and routes through openLink on every platform.
+            href: CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL,
+            onPress: (event) => {
+                event?.preventDefault();
+                openLink(CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL, environmentURL);
+            },
             role: CONST.ROLE.LINK,
             sentryLabel: 'ImportFromFileStep-HelpGuideLink',
         },
@@ -118,22 +130,24 @@ function ImportFromFileStep() {
                     {createFileFeedHelpTextSegments.map((segment, segmentIndex) => {
                         if (segment.onPress) {
                             return (
-                                // eslint-disable-next-line react/no-array-index-key
-                                <React.Fragment key={`${segment.text}-${segmentIndex}`}>
-                                    <PressableWithoutFeedback
-                                        role={segment.role}
-                                        accessibilityLabel={segment.text}
-                                        sentryLabel={segment.sentryLabel}
-                                        onPress={segment.onPress}
-                                        style={styles.dInlineFlex}
-                                    >
-                                        <Text style={[styles.textSupporting, styles.link]}>{segment.text}</Text>
-                                    </PressableWithoutFeedback>
-                                    <Text style={styles.textSupporting}> </Text>
-                                </React.Fragment>
+                                <PressableWithoutFeedback
+                                    // eslint-disable-next-line react/no-array-index-key
+                                    key={`${segment.text}-${segmentIndex}`}
+                                    role={segment.role}
+                                    href={segment.href}
+                                    accessibilityLabel={segment.text}
+                                    sentryLabel={segment.sentryLabel}
+                                    onPress={segment.onPress}
+                                    style={styles.dInlineFlex}
+                                >
+                                    <Text style={[styles.textSupporting, styles.link]}>{segment.text}</Text>
+                                </PressableWithoutFeedback>
                             );
                         }
-                        return (segment.text.match(/\S+\s*/g) ?? []).map((word, wordIndex) => (
+                        // Keep each word (with its own leading/trailing whitespace) as a separate node so the paragraph wraps in the
+                        // flexWrap row. Preserving the segment's own spacing means locales that don't use spaces around the links
+                        // (e.g. Japanese, Chinese) aren't given extra spaces the translation never intended.
+                        return (segment.text.match(/\s*\S+\s*/g) ?? []).map((word, wordIndex) => (
                             <Text
                                 // eslint-disable-next-line react/no-array-index-key
                                 key={`${segment.text}-${segmentIndex}-${wordIndex}`}
