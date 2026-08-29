@@ -127,6 +127,40 @@ describe('useSidePanelContext', () => {
         });
     });
 
+    describe('EXPENSE search type (Spend > Expenses)', () => {
+        beforeEach(() => {
+            mockIsInSidePanel = true;
+            mockSearchState.currentSearchQueryJSON = {type: CONST.SEARCH.DATA_TYPES.EXPENSE};
+        });
+
+        it('drops the invalid contextReportID and sends selectedReportIDs + selectedTransactionIDs when transactions span multiple reports', async () => {
+            mockCurrentReportIDState = {currentRHPReportID: undefined, currentReportID: 'concierge_report'};
+            mockSearchState.selectedTransactionIDs = ['txn_1', 'txn_2'];
+            mockSearchState.selectedReports = [{reportID: 'report_1'}, {reportID: 'report_2'}];
+            const {result} = await renderWithConciergeReport();
+            await waitForBatchedUpdates();
+            expect(result.current).toEqual({selectedTransactionIDs: 'txn_1,txn_2', selectedReportIDs: 'report_1,report_2'});
+        });
+
+        it('keeps sending reportID when no reports are selected', async () => {
+            mockCurrentReportIDState = {currentRHPReportID: undefined, currentReportID: 'main_report'};
+            mockSearchState.selectedTransactionIDs = ['txn_1'];
+            mockSearchState.selectedReports = [];
+            const {result} = await renderWithConciergeReport();
+            await waitForBatchedUpdates();
+            expect(result.current).toEqual({reportID: 'main_report', selectedTransactionIDs: 'txn_1', selectedReportIDs: undefined});
+        });
+
+        it('keeps sending reportID when a report is open in the RHP even though transactions are still selected', async () => {
+            mockCurrentReportIDState = {currentRHPReportID: 'rhp_report', currentReportID: 'concierge_report'};
+            mockSearchState.selectedTransactionIDs = ['txn_1', 'txn_2'];
+            mockSearchState.selectedReports = [{reportID: 'report_1'}, {reportID: 'report_2'}];
+            const {result} = await renderWithConciergeReport();
+            await waitForBatchedUpdates();
+            expect(result.current).toEqual({reportID: 'rhp_report', selectedTransactionIDs: 'txn_1,txn_2', selectedReportIDs: 'report_1,report_2'});
+        });
+    });
+
     describe('contextReportID resolution', () => {
         beforeEach(() => {
             mockIsInSidePanel = true;

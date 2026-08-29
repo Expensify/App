@@ -25,6 +25,8 @@ const PAYMENT_STATUS = {
     POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE: 'policy_owner_with_amount_owed_overdue',
     OWNER_OF_POLICY_UNDER_INVOICING: 'owner_of_policy_under_invoicing',
     OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE: 'owner_of_policy_under_invoicing_overdue',
+    OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE: 'owner_of_policy_with_overdue_travel_invoice',
+    OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE_LOCKED: 'owner_of_policy_with_overdue_travel_invoice_locked',
     BILLING_DISPUTE_PENDING: 'billing_dispute_pending',
     CARD_AUTHENTICATION_REQUIRED: 'authentication_required',
     INSUFFICIENT_FUNDS: 'insufficient_funds',
@@ -55,8 +57,8 @@ type SubscriptionPlanInfo = {
 /**
  * @returns Whether the workspace owner's grace period is overdue.
  */
-function hasGracePeriodOverdue(gracePeriodEnd: OnyxEntry<number>): boolean {
-    return !!gracePeriodEnd && Date.now() > new Date(gracePeriodEnd).getTime();
+function hasGracePeriodOverdue(gracePeriodEndUnixSeconds: OnyxEntry<number>): boolean {
+    return !!gracePeriodEndUnixSeconds && isAfter(new Date(), fromUnixTime(gracePeriodEndUnixSeconds));
 }
 
 /**
@@ -223,7 +225,19 @@ function getSubscriptionStatus(
     billingStatus: OnyxEntry<BillingStatus>,
     amountOwed: number,
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
+    ownerTravelBillingGracePeriodEnd: OnyxEntry<number>,
 ): SubscriptionStatus | undefined {
+    // An overdue travel invoice is independent of the subscription balance, and it locks the workspace on its own,
+    // so it outranks every subscription status below
+    if (ownerTravelBillingGracePeriodEnd) {
+        return {
+            status: hasGracePeriodOverdue(ownerTravelBillingGracePeriodEnd)
+                ? PAYMENT_STATUS.OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE_LOCKED
+                : PAYMENT_STATUS.OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE,
+            isError: true,
+        };
+    }
+
     if (ownerBillingGracePeriodEnd) {
         if (amountOwed !== 0) {
             // 1. Policy owner with amount owed, within grace period
@@ -329,10 +343,20 @@ function hasSubscriptionRedDotError(
     billingStatus: OnyxEntry<BillingStatus>,
     amountOwed: number,
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
+    ownerTravelBillingGracePeriodEnd: OnyxEntry<number>,
 ): boolean {
     return (
-        getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, amountOwed, ownerBillingGracePeriodEnd)
-            ?.isError ?? false
+        getSubscriptionStatus(
+            stripeCustomerId,
+            retryBillingSuccessful,
+            billingDisputePending,
+            retryBillingFailed,
+            fundList,
+            billingStatus,
+            amountOwed,
+            ownerBillingGracePeriodEnd,
+            ownerTravelBillingGracePeriodEnd,
+        )?.isError ?? false
     );
 }
 
@@ -348,10 +372,20 @@ function hasSubscriptionGreenDotInfo(
     billingStatus: OnyxEntry<BillingStatus>,
     amountOwed: number,
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
+    ownerTravelBillingGracePeriodEnd: OnyxEntry<number>,
 ): boolean {
     return (
-        getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, amountOwed, ownerBillingGracePeriodEnd)
-            ?.isError === false
+        getSubscriptionStatus(
+            stripeCustomerId,
+            retryBillingSuccessful,
+            billingDisputePending,
+            retryBillingFailed,
+            fundList,
+            billingStatus,
+            amountOwed,
+            ownerBillingGracePeriodEnd,
+            ownerTravelBillingGracePeriodEnd,
+        )?.isError === false
     );
 }
 
@@ -392,7 +426,7 @@ function getFreeTrialText(
         return translate('subscription.billingBanner.preTrial.title');
     }
     if (isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
-        return translate('subscription.billingBanner.trialStarted.title', calculateRemainingFreeTrialDays(lastDayFreeTrial));
+        return translate('subscription.billingBanner.trialStarted.title', {count: calculateRemainingFreeTrialDays(lastDayFreeTrial)});
     }
 
     return undefined;

@@ -129,11 +129,13 @@ describe('OnboardingGuard', () => {
                 },
             };
 
-            const result = OnboardingGuard.evaluate(onboardingState, resetAction, authenticatedContext) as {type: 'BLOCK'; reason?: string};
+            const result = OnboardingGuard.evaluate(onboardingState, resetAction, authenticatedContext);
 
             // Then the action should be blocked because users who haven't completed onboarding should not be able to skip it via a RESET action
             expect(result.type).toBe('BLOCK');
-            expect(result.reason).toBe('Cannot reset to non-onboarding screen while on onboarding');
+            if (result.type === 'BLOCK') {
+                expect(result.reason).toBe('Cannot reset to non-onboarding screen while on onboarding');
+            }
         });
     });
 
@@ -227,11 +229,13 @@ describe('OnboardingGuard', () => {
                 payload: {name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR},
             };
 
-            const result = OnboardingGuard.evaluate(mockState, navigateToOnboardingAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
+            const result = OnboardingGuard.evaluate(mockState, navigateToOnboardingAction, authenticatedContext);
 
             // Then the user should be redirected to HOME because the OnboardingModalNavigator is not mounted for completed users, and navigating there would silently fail
             expect(result.type).toBe('REDIRECT');
-            expect(result.route).toBe('home');
+            if (result.type === 'REDIRECT') {
+                expect(result.route).toBe('home');
+            }
         });
 
         it('should redirect to HOME when completed user navigates to onboarding via PUSH action', async () => {
@@ -247,11 +251,13 @@ describe('OnboardingGuard', () => {
                 payload: {name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR},
             };
 
-            const result = OnboardingGuard.evaluate(mockState, pushToOnboardingAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
+            const result = OnboardingGuard.evaluate(mockState, pushToOnboardingAction, authenticatedContext);
 
             // Then the user should be redirected to HOME because the OnboardingModalNavigator is not mounted for completed users
             expect(result.type).toBe('REDIRECT');
-            expect(result.route).toBe('home');
+            if (result.type === 'REDIRECT') {
+                expect(result.route).toBe('home');
+            }
         });
 
         it('should ALLOW when completed user navigates to a non-onboarding route', async () => {
@@ -410,11 +416,13 @@ describe('OnboardingGuard', () => {
             await waitForBatchedUpdates();
 
             // When the guard evaluates a navigation action while the user is on a non-onboarding screen
-            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
 
             // Then the user should be redirected to onboarding because new users must complete the setup flow before accessing the app
             expect(result.type).toBe('REDIRECT');
-            expect(result.route).toContain('onboarding');
+            if (result.type === 'REDIRECT') {
+                expect(result.route).toContain('onboarding');
+            }
         });
 
         it('should redirect to correct step for users with accessible policies', async () => {
@@ -429,11 +437,13 @@ describe('OnboardingGuard', () => {
             await waitForBatchedUpdates();
 
             // When the guard evaluates a navigation action while the user is on a non-onboarding screen
-            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
 
             // Then the user should be redirected to onboarding because their domain/policy context determines which onboarding step they should land on
             expect(result.type).toBe('REDIRECT');
-            expect(result.route).toContain('onboarding');
+            if (result.type === 'REDIRECT') {
+                expect(result.route).toContain('onboarding');
+            }
         });
 
         it('should skip onboarding for invited or group members even when they have not completed onboarding', async () => {
@@ -536,11 +546,13 @@ describe('OnboardingGuard', () => {
             await waitForBatchedUpdates();
 
             // When the guard evaluates on a state without OnboardingModalNavigator
-            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
 
             // Then the guard should redirect because the user needs onboarding and isn't on it yet
             expect(result.type).toBe('REDIRECT');
-            expect(result.route).toContain('onboarding');
+            if (result.type === 'REDIRECT') {
+                expect(result.route).toContain('onboarding');
+            }
         });
 
         it('should still redirect when onboarding is in routes but not focused', async () => {
@@ -567,11 +579,13 @@ describe('OnboardingGuard', () => {
             await waitForBatchedUpdates();
 
             // When the guard evaluates while onboarding is NOT focused
-            const result = OnboardingGuard.evaluate(stateWithOnboardingUnfocused, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
+            const result = OnboardingGuard.evaluate(stateWithOnboardingUnfocused, mockAction, authenticatedContext);
 
             // Then the guard should still redirect because the user isn't actively on onboarding
             expect(result.type).toBe('REDIRECT');
-            expect(result.route).toContain('onboarding');
+            if (result.type === 'REDIRECT') {
+                expect(result.route).toContain('onboarding');
+            }
         });
 
         it('should still BLOCK RESET to non-onboarding even when on onboarding', async () => {
@@ -605,11 +619,81 @@ describe('OnboardingGuard', () => {
                 },
             };
 
-            const result = OnboardingGuard.evaluate(onboardingRootState, resetToHome, authenticatedContext) as {type: 'BLOCK'; reason?: string};
+            const result = OnboardingGuard.evaluate(onboardingRootState, resetToHome, authenticatedContext);
 
             // Then the RESET should still be blocked by shouldPreventReset (runs before the new check)
             expect(result.type).toBe('BLOCK');
-            expect(result.reason).toBe('Cannot reset to non-onboarding screen while on onboarding');
+            if (result.type === 'BLOCK') {
+                expect(result.reason).toBe('Cannot reset to non-onboarding screen while on onboarding');
+            }
+        });
+    });
+
+    describe('required 2FA setup exception', () => {
+        // Pre-verify required-2FA state: overlay is active and setup wizard is open.
+        const required2FAAccount = {
+            twoFactorAuthSetupInProgress: true,
+            requiresTwoFactorAuth: false,
+            needsTwoFactorAuthSetup: true,
+        };
+
+        const onboardingRootState: NavigationState = {
+            key: 'root',
+            index: 0,
+            routeNames: [SCREENS.ONBOARDING.PURPOSE],
+            routes: [{key: 'purpose', name: SCREENS.ONBOARDING.PURPOSE}],
+            stale: false,
+            type: 'root',
+        };
+
+        const twoFactorSetupState: NavigationState = {
+            key: 'root',
+            index: 0,
+            routeNames: [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT],
+            routes: [{key: '2fa-root', name: SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT}],
+            stale: false,
+            type: 'root',
+        };
+
+        beforeEach(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, required2FAAccount);
+            await waitForBatchedUpdates();
+        });
+
+        it('should ALLOW RESET to 2FA setup when required-2FA overlay is active', () => {
+            const resetTo2FA: NavigationAction = {
+                type: CONST.NAVIGATION_ACTIONS.RESET,
+                payload: {
+                    key: 'root',
+                    index: 0,
+                    routeNames: [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT],
+                    routes: [{key: '2fa-root', name: SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT}],
+                    stale: false,
+                    type: 'root',
+                },
+            };
+
+            const result = OnboardingGuard.evaluate(onboardingRootState, resetTo2FA, authenticatedContext);
+
+            expect(result.type).toBe('ALLOW');
+        });
+
+        it('should ALLOW navigation while user is on a 2FA setup screen', () => {
+            const result = OnboardingGuard.evaluate(twoFactorSetupState, mockAction, authenticatedContext);
+
+            expect(result.type).toBe('ALLOW');
+        });
+
+        it('should still REDIRECT unrelated navigation when required-2FA overlay is active', () => {
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
+
+            expect(result.type).toBe('REDIRECT');
+            if (result.type === 'REDIRECT') {
+                expect(result.route).toContain('onboarding');
+            }
         });
     });
 

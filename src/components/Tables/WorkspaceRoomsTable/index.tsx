@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import type {ActiveSorting, CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
@@ -45,9 +45,12 @@ type WorkspaceRoomsTableProps = {
 
     /** Callback when the active sorting configuration changes */
     onSortingChange?: (sorting: ActiveSorting<WorkspaceRoomsTableColumnKey>) => void;
+
+    /** Content rendered above the table header inside the scrollable list */
+    headerComponent?: React.ReactElement;
 };
 
-function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStringChange, onEndReached, onEndReachedThreshold, onSortingChange}: WorkspaceRoomsTableProps) {
+function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStringChange, onEndReached, onEndReachedThreshold, onSortingChange, headerComponent}: WorkspaceRoomsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -82,7 +85,11 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStri
         if (!highlightedRow) {
             return;
         }
-        tableRef.current?.scrollToItem({item: highlightedRow, animated: false});
+        tableRef.current?.scrollToItem({
+            item: highlightedRow,
+            animated: false,
+            viewPosition: 0.5,
+        });
         tableRef.current?.highlightItems([highlightedRow.keyForList]);
     }, [highlightedReportID, rooms]);
 
@@ -116,14 +123,22 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStri
         <View style={[styles.pv3, styles.alignItemsCenter]}>
             <ActivityIndicator
                 size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
-                reasonAttributes={{context: 'WorkspaceRoomsTable.loadMore', isLoading: true}}
+                extraLoadingContext={{context: 'WorkspaceRoomsTable.loadMore'}}
             />
         </View>
     ) : undefined;
 
     if (!roomsMetadata?.isLoaded) {
-        return <Table.LoadingState context="WorkspaceRoomsTable" />;
+        // The page header stays visible above the loading skeleton so the layout doesn't jump once the table renders.
+        return (
+            <>
+                {headerComponent}
+                <Table.LoadingState />
+            </>
+        );
     }
+
+    const tableHeaderComponent = composeTableListHeader(headerComponent, <Table.FilterBar label={translate('workspace.common.findRoom')} />);
 
     return (
         <Table
@@ -142,7 +157,7 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStri
             onEndReachedThreshold={onEndReachedThreshold}
             ListFooterComponent={listFooterComponent}
         >
-            <Table.FilterBar label={translate('workspace.common.findRoom')} />
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />

@@ -27,6 +27,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useRoute} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useState} from 'react';
 
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
@@ -35,6 +36,9 @@ import useScrollToEndOnNewMessageReceived from './useScrollToEndOnNewMessageRece
 import useWindowDimensions from './useWindowDimensions';
 
 type UseReportActionsScrollParams = {
+    /** The Concierge chat report */
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
+
     /** The ID of the report currently being looked at */
     reportID: string;
 
@@ -134,6 +138,7 @@ type UseReportActionsScrollResult = {
 };
 
 function useReportActionsScroll({
+    conciergeChat,
     reportID,
     report,
     transactionThreadReport,
@@ -162,6 +167,7 @@ function useReportActionsScroll({
     const {isOffline} = useNetworkWithOfflineStatus();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${getNonEmptyStringOnyxID(reportID)}`);
     const prevIsLoadingInitialReportActions = usePrevious(reportLoadingState?.isLoadingInitialReportActions);
@@ -219,6 +225,7 @@ function useReportActionsScroll({
         });
 
     const {isScrollToBottomEnabled, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom} = useReportActionsNewActionLiveTail({
+        conciergeChat,
         reportID,
         introSelected,
         betas,
@@ -345,7 +352,7 @@ function useReportActionsScroll({
             if (!Navigation.getReportRHPActiveRoute()) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, backTo));
             }
-            openReport({reportID, introSelected, betas, hasReportActions: true});
+            openReport({reportID, introSelected, conciergeChat, betas, hasReportActions: true, currentUserAccountID});
             reportScrollManager.scrollToBottom();
             return;
         }

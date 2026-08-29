@@ -40,6 +40,9 @@ type ConfirmModalProps = {
     /** Modal content text/element */
     prompt?: string | ReactNode;
 
+    /** Subtitle shown between the title and the prompt. Stays fixed above the prompt when the prompt is scrollable. */
+    subtitle?: string | ReactNode;
+
     /** Whether we should use the success button color */
     success?: boolean;
 
@@ -84,6 +87,9 @@ type ConfirmModalProps = {
 
     /** Styles for prompt */
     promptStyles?: StyleProp<TextStyle>;
+
+    /** Styles for subtitle */
+    subtitleStyles?: StyleProp<TextStyle>;
 
     /** Styles for icon */
     iconAdditionalStyles?: StyleProp<ViewStyle>;
@@ -144,6 +150,8 @@ function ConfirmModal({
     confirmText = '',
     cancelText = '',
     prompt = '',
+    subtitle,
+    subtitleStyles,
     success = true,
     danger = false,
     onCancel = () => {},
@@ -200,6 +208,7 @@ function ConfirmModal({
             onBackdropPress={onBackdropPress}
             isVisible={isVisible}
             shouldSetModalVisibility={shouldSetModalVisibility}
+            shouldTreatModalAsCovering
             onModalHide={onModalHide}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={innerContainerStyle ? {...styles.pv0, ...innerContainerStyle} : styles.pv0}
@@ -218,6 +227,8 @@ function ConfirmModal({
                 confirmText={confirmText}
                 cancelText={cancelText}
                 prompt={prompt}
+                subtitle={subtitle}
+                subtitleStyles={subtitleStyles}
                 success={success}
                 danger={danger}
                 isVisible={isVisible}

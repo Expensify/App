@@ -1,6 +1,7 @@
 import {act, render, waitFor} from '@testing-library/react-native';
 
 import type {TextSelection} from '@components/Composer/types';
+import PlaceholderIcon from '@components/Icon/PlaceholderIcon';
 import type {Mention} from '@components/MentionSuggestions';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
@@ -10,19 +11,20 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebounce from '@hooks/useDebounce';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
 import SuggestionMention from '@pages/inbox/report/ReportActionCompose/SuggestionMention';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, PolicyEmployeeList, Report} from '@src/types/onyx';
 
-import type {UseOnyxResult} from 'react-native-onyx';
-
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
+import {formatPhoneNumber} from '../utils/TestHelper';
 
 type MentionSuggestionsProps = {
     mentions: Mention[];
@@ -32,20 +34,33 @@ type MentionSuggestionsProps = {
 
 const mockMentionSuggestionsSpy = jest.fn<void, [MentionSuggestionsProps]>();
 const mockSetHighlightedMentionIndex = jest.fn<void, [number]>();
-const mockIcons = {Megaphone: 'megaphone', FallbackAvatar: 'fallback'};
-const mockLocalize = {
-    translate: (key: string) => key,
-    formatPhoneNumber: (value: string) => value,
-    localeCompare: (first: string, second: string) => first.localeCompare(second),
+const mockIcons = createMock<ReturnType<typeof useMemoizedLazyExpensifyIcons>>({Megaphone: PlaceholderIcon, FallbackAvatar: PlaceholderIcon});
+const mockTranslate: ReturnType<typeof useLocalize>['translate'] = (key, ...parameters) => {
+    for (const parameter of parameters) {
+        if (parameter) {
+            return String(key);
+        }
+    }
+    return String(key);
 };
-const mockReports = {};
+const mockLocalize: ReturnType<typeof useLocalize> = {
+    translate: mockTranslate,
+    numberFormat: () => '',
+    getLocalDateFromDatetime: () => new Date(),
+    datetimeToRelative: () => '',
+    datetimeToCalendarTime: () => '',
+    formatPhoneNumber: (value: string) => value,
+    toLocaleDigit: () => '',
+    toLocaleOrdinal: () => '',
+    toLocaleOrdinalWithWords: () => '',
+    fromLocaleDigit: () => '',
+    localeCompare: (first: string, second: string) => first.localeCompare(second),
+    formatTravelDate: () => '',
+    preferredLocale: CONST.LOCALES.DEFAULT,
+    dateFnsLocale: undefined,
+};
 
 let mockPersonalDetails: PersonalDetailsList = {};
-let mockCurrentReport: Report | undefined;
-
-function createOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T> {
-    return [value, {status: 'loaded'}];
-}
 
 jest.mock('@components/MentionSuggestions', () => {
     const ReactLib = jest.requireActual<typeof React>('react');
@@ -73,7 +88,6 @@ jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: jest.fn(),
 }));
 jest.mock('@hooks/useLocalize', () => jest.fn());
-jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@hooks/usePolicy', () => jest.fn());
 
 const mockUsePersonalDetails = jest.mocked(usePersonalDetails);
@@ -83,7 +97,6 @@ const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDeta
 const mockUseDebounce = jest.mocked(useDebounce);
 const mockUseMemoizedLazyExpensifyIcons = jest.mocked(useMemoizedLazyExpensifyIcons);
 const mockUseLocalize = jest.mocked(useLocalize);
-const mockUseOnyx = jest.mocked(useOnyx);
 const mockUsePolicy = jest.mocked(usePolicy);
 
 function renderSuggestionMention(value: string, updateComment = jest.fn(), selection: TextSelection = {start: value.length, end: value.length}) {
@@ -120,7 +133,6 @@ describe('SuggestionMention', () => {
         mockMentionSuggestionsSpy.mockClear();
         mockSetHighlightedMentionIndex.mockClear();
         mockPersonalDetails = {};
-        mockCurrentReport = undefined;
 
         mockUsePersonalDetails.mockImplementation(() => mockPersonalDetails);
         mockUseArrowKeyFocusManager.mockReturnValue([0, mockSetHighlightedMentionIndex]);
@@ -131,22 +143,15 @@ describe('SuggestionMention', () => {
             callbackRef.current = callback;
             return React.useCallback((...args: unknown[]) => callbackRef.current(...args), []) as typeof callback;
         });
-        mockUseMemoizedLazyExpensifyIcons.mockImplementation((() => mockIcons) as unknown as typeof useMemoizedLazyExpensifyIcons);
-        mockUseLocalize.mockImplementation(() => mockLocalize as ReturnType<typeof useLocalize>);
-        mockUseOnyx.mockImplementation(((...args: Parameters<typeof useOnyx>) => {
-            const key = args[0];
-            if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
-                return createOnyxResult<string>('');
-            }
-            if (key === ONYXKEYS.COLLECTION.REPORT) {
-                return createOnyxResult<typeof mockReports>(mockReports);
-            }
-            if (typeof key === 'string' && key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
-                return createOnyxResult<Report | undefined>(mockCurrentReport);
-            }
-            return createOnyxResult<unknown>(undefined);
-        }) as typeof useOnyx);
+        mockUseMemoizedLazyExpensifyIcons.mockImplementation(() => mockIcons);
+        mockUseLocalize.mockImplementation(() => createMock<ReturnType<typeof useLocalize>>(mockLocalize));
         mockUsePolicy.mockReturnValue(undefined);
+    });
+
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
     });
 
     it('shows user mention suggestions when prefix has a trailing dot', async () => {
@@ -275,19 +280,25 @@ describe('SuggestionMention', () => {
         };
 
         const buildReportWithParticipant = (overrides: Partial<Report>): Report => {
-            const participants: Record<number, {notificationPreference: string}> = {};
-            participants[PARTICIPANT_ACCOUNT_ID] = {notificationPreference: 'always'};
-            return {...overrides, participants} as unknown as Report;
+            const participants = {
+                [PARTICIPANT_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            };
+            return createMock<Report>({...overrides, participants});
         };
 
         it('weights report participants above policy employees and everyone else for a group chat', async () => {
             setupPersonalDetails();
-            mockUseCurrentReportIDState.mockReturnValue({currentReportID: 'group1'});
-            mockCurrentReport = buildReportWithParticipant({
+            const currentReportID = 'group1';
+            mockUseCurrentReportIDState.mockReturnValue({currentReportID, currentRHPReportID: ''});
+            const report = buildReportWithParticipant({
                 reportID: 'group1',
-                chatType: 'group' as Report['chatType'],
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
             });
             mockUsePolicy.mockReturnValue(policyWithEmployeeUb);
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`, report);
+            });
 
             renderSuggestionMention('@u');
 
@@ -299,13 +310,18 @@ describe('SuggestionMention', () => {
 
         it('weights details when the current report belongs to the active workspace', async () => {
             setupPersonalDetails();
-            mockUseCurrentReportIDState.mockReturnValue({currentReportID: 'wsp1'});
-            mockCurrentReport = buildReportWithParticipant({
+            const currentReportID = 'wsp1';
+            mockUseCurrentReportIDState.mockReturnValue({currentReportID, currentRHPReportID: ''});
+            const report = buildReportWithParticipant({
                 reportID: 'wsp1',
-                chatType: 'policyExpenseChat' as Report['chatType'],
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 policyID: 'policyID',
             });
             mockUsePolicy.mockReturnValue(policyWithEmployeeUb);
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`, report);
+            });
 
             renderSuggestionMention('@u');
 
@@ -317,9 +333,14 @@ describe('SuggestionMention', () => {
 
         it('skips weighting for a 1:1 DM and falls back to alphabetical order', async () => {
             setupPersonalDetails();
-            mockUseCurrentReportIDState.mockReturnValue({currentReportID: 'dm1'});
-            mockCurrentReport = buildReportWithParticipant({reportID: 'dm1'});
+            const currentReportID = 'dm1';
+            mockUseCurrentReportIDState.mockReturnValue({currentReportID, currentRHPReportID: ''});
+            const report = buildReportWithParticipant({reportID: 'dm1'});
             mockUsePolicy.mockReturnValue(policyWithEmployeeUb);
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`, report);
+            });
 
             renderSuggestionMention('@u');
 
@@ -550,5 +571,22 @@ describe('SuggestionMention', () => {
 
         expect(updateComment).toHaveBeenCalledWith('@alice@example.com #admins', true);
         expect(setSelection).toHaveBeenCalledWith({start: 19, end: 19});
+    });
+    it('matches a phone contact when searching by unformatted digits', async () => {
+        // The display name of a phone contact is the formatted number, so the raw login has to stay searchable.
+        mockUseLocalize.mockImplementation(() => createMock<ReturnType<typeof useLocalize>>({...mockLocalize, formatPhoneNumber}));
+        mockPersonalDetails = {};
+        mockPersonalDetails[2] = {
+            accountID: 2,
+            login: '+18332403627@expensify.sms',
+            displayName: '+18332403627@expensify.sms',
+        };
+
+        renderSuggestionMention('@8332403627');
+
+        await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+        const {mentions} = getLastMentionSuggestionsProps();
+
+        expect(mentions).toEqual(expect.arrayContaining([expect.objectContaining({handle: '+18332403627@expensify.sms', text: '(833) 240-3627'})]));
     });
 });

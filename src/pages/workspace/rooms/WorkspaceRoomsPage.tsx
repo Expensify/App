@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -6,13 +6,14 @@ import type {SortOrder} from '@components/Table/middlewares/sorting';
 import WorkspaceRoomsTable from '@components/Tables/WorkspaceRoomsTable';
 import type {WorkspaceRoomRowData} from '@components/Tables/WorkspaceRoomsTable';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -22,21 +23,22 @@ import {openReport} from '@libs/actions/Report';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {isArchivedPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {useIsFocused} from '@react-navigation/native';
 import {policyChatRoomsSelector} from '@selectors/Report';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceRoomsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.ROOMS>;
@@ -50,17 +52,19 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const headerIcons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const illustrations = useMemoizedLazyIllustrations(['Hashtag']);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const isAdmin = isPolicyAdmin(policy);
+    const isArchived = isArchivedPolicy(policy);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rooms');
 
-    const reportAttributes = useReportAttributes();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const personalDetails = usePersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [roomSort, setRoomSort] = useState<{columnKey: WorkspaceRoomsTableSortColumn; order: SortOrder}>({
         columnKey: 'name',
@@ -90,33 +94,39 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
             );
         },
     });
+    const policyReportIDs = (policyReports ?? []).map((report) => report.reportID);
+    const derivedNames = useDerivedReportNamesByReportIDs(policyReportIDs);
 
     // The newly created room reportID is stored in Onyx right before navigating back here so its row can play the highlight animation.
     // It is cleared by the create page once the navigation transition ends (see WorkspaceNewRoomPage), so the animation doesn't replay on a later visit.
     const [roomIDToHighlight] = useOnyx(ONYXKEYS.ROOM_ID_HIGHLIGHT_ON_ROOMS_PAGE);
     const highlightedReportID = roomIDToHighlight ?? undefined;
 
-    const rooms: WorkspaceRoomRowData[] = useMemo(
-        () =>
-            (policyReports ?? []).map((report) => ({
-                keyForList: report.reportID,
-                reportID: report.reportID,
-                name: deprecatedGetReportName(report, reportAttributes),
-                memberCount: getParticipantsAccountIDsForDisplay(report, true, false, false, undefined, personalDetails).length,
-                action: () => {
-                    if (isAdmin) {
-                        // Admins open the details RHP directly instead of the room report, so the report is never fetched via ReportScreen.
-                        // Fetch it here so the RHP has full data (participants, metadata) for Join, Invite and renaming.
-                        // shouldMarkAsRead is false because the user only views the room details, not the conversation itself.
-                        openReport({reportID: report.reportID, introSelected, betas, shouldMarkAsRead: false, hasReportActions: !!hasReportActions?.[report.reportID]});
-                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.getRoute(report.reportID)));
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
-                },
-            })),
-        [betas, hasReportActions, introSelected, isAdmin, personalDetails, policyReports, reportAttributes],
-    );
+    const rooms: WorkspaceRoomRowData[] = (policyReports ?? []).map((report) => ({
+        keyForList: report.reportID,
+        reportID: report.reportID,
+        name: getReportName(report, derivedNames?.[report.reportID]),
+        memberCount: getParticipantsAccountIDsForDisplay(report, true, false, false, undefined, personalDetails).length,
+        action: () => {
+            if (isAdmin) {
+                // Admins open the details RHP directly instead of the room report, so the report is never fetched via ReportScreen.
+                // Fetch it here so the RHP has full data (participants, metadata) for Join, Invite and renaming.
+                // shouldMarkAsRead is false because the user only views the room details, not the conversation itself.
+                openReport({
+                    reportID: report.reportID,
+                    introSelected,
+                    conciergeChat,
+                    betas,
+                    shouldMarkAsRead: false,
+                    hasReportActions: !!hasReportActions?.[report.reportID],
+                    currentUserAccountID,
+                });
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.getRoute(report.reportID)));
+                return;
+            }
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+        },
+    }));
 
     // The fetch is driven by the requested page: loading more only bumps `pageNumber` and this effect issues the
     // request, the same way Search drives its own pagination from `offset`. Refocusing and coming back online refetch
@@ -140,6 +150,20 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         setPagination({queryKey: roomsQueryKey, pageNumber: pageNumber + 1});
     };
 
+    const roomsTableHeader =
+        shouldUseNarrowLayout && !isArchived ? (
+            <View style={[styles.ph5, styles.pb3]}>
+                <Button
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
+                    style={styles.w100}
+                >
+                    <Button.Icon src={headerIcons.Plus} />
+                    <Button.Text>{translate('common.create')}</Button.Text>
+                </Button>
+            </View>
+        ) : undefined;
+
     return (
         <AccessOrNotFoundWrapper policyID={policyID}>
             <ScreenWrapper
@@ -151,33 +175,21 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.common.rooms')}
-                    icon={illustrations.Hashtag}
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={Navigation.goBack}
                     shouldDisplayHelpButton
                 >
-                    {!shouldUseNarrowLayout && (
+                    {!shouldUseNarrowLayout && !isArchived && (
                         <Button
-                            success
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
-                            icon={headerIcons.Plus}
-                            text={translate('common.create')}
-                        />
+                        >
+                            <Button.Icon src={headerIcons.Plus} />
+                            <Button.Text>{translate('common.create')}</Button.Text>
+                        </Button>
                     )}
                 </HeaderWithBackButton>
-
-                {shouldUseNarrowLayout && (
-                    <View style={[styles.ph5, styles.pb3]}>
-                        <Button
-                            success
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
-                            icon={headerIcons.Plus}
-                            text={translate('common.create')}
-                            style={styles.w100}
-                        />
-                    </View>
-                )}
 
                 <WorkspaceRoomsTable
                     rooms={rooms}
@@ -186,6 +198,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     onSearchStringChange={setSearchTerm}
                     onEndReached={loadMoreRooms}
                     onSortingChange={(sorting) => setRoomSort({columnKey: sorting.columnKey === 'members' ? 'members' : 'name', order: sorting.order})}
+                    headerComponent={roomsTableHeader}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

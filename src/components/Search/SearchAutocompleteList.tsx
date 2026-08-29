@@ -7,6 +7,7 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
@@ -27,11 +28,10 @@ import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {formatReportLastMessageText, getReportOrDraftReport, getReportSubtitlePrefix} from '@libs/ReportUtils';
+import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
@@ -50,9 +50,11 @@ import type {SearchQueryItem, SearchQueryListItemProps} from './SearchList/ListI
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 import type {UserFriendlyKey} from './types';
 
+import getAutocompleteInitialFocus from './getAutocompleteInitialFocus';
 import AvatarWithTextCell from './SearchList/ListItem/AvatarWithTextCell';
 import SearchQueryListItem, {isSearchQueryItem} from './SearchList/ListItem/SearchQueryListItem';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
+import SEARCH_ROUTER_OPTIONS_CONFIG from './SearchRouter/searchRouterOptionsConfig';
 
 type AutocompleteListItem = NewListItem & Partial<Omit<OptionData, keyof NewListItem>> & Partial<Omit<SearchQueryItem, keyof NewListItem>>;
 
@@ -61,6 +63,9 @@ type GetAdditionalSectionsCallback = (options: Options, sectionIndex: number) =>
 type SearchAutocompleteListProps = {
     /** Value of TextInput */
     autocompleteQueryValue: string;
+
+    /** Immediate (non-debounced) query from the input for UI-only behavior */
+    inputQueryValue?: string;
 
     /** Callback to trigger search action * */
     handleSearch: (value: string) => void;
@@ -99,16 +104,6 @@ const defaultListOptions = {
 };
 
 const EMPTY_RANK_MAP: ReadonlyMap<string, number> = new Map();
-
-// The list shows at most MAX_AMOUNT_OF_SUGGESTIONS recent reports, so building full option data for the
-// default 500-report list every time is unnecessary. Start from a smaller raw cap and only expand to the
-// full set if that batch filters down below the visible cap (see the loadAll effect below); typing a
-// query bypasses this cap entirely (isSearching drops the limit in createFilteredOptionList).
-// 100 leaves buffer for hidden/muted chats getting filtered out after the raw-recency slice.
-// The batch size stays at 500 (not smaller) because createFilteredOptionList rebuilds its whole
-// top-N slice from scratch each call, so a small batch would mean repeated rebuilds.
-const INITIAL_MAX_RECENT_REPORTS = 100;
-const RECENT_REPORTS_BATCH_SIZE = 500;
 
 // A DM's keyForList changes from the accountID to the reportID once its report loads from search, which would move the
 // row between sections. To keep it stable, key DMs and personal details by accountID instead. We can't do this for every
@@ -173,6 +168,7 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
 
 function SearchAutocompleteList({
     autocompleteQueryValue,
+    inputQueryValue,
     handleSearch,
     searchQueryItems,
     getAdditionalSections,
@@ -184,8 +180,12 @@ function SearchAutocompleteList({
     ref,
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
+        addOfflineIndicatorBottomSafeAreaPadding: true,
+        style: styles.pb2,
+    });
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
@@ -204,6 +204,15 @@ function SearchAutocompleteList({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const allCards = personalAndWorkspaceCards ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const effectiveInputQueryValue = inputQueryValue ?? autocompleteQueryValue;
+    const hasEffectiveInputQuery = effectiveInputQueryValue.trim() !== '';
+    // hasEffectiveInputQuery reflects the immediate input (used to hide recent searches the moment the user types).
+    // hasActiveSearchResults additionally requires the debounced autocompleteQueryValue to be non-empty, i.e. the
+    // filtered searchOptions/recentReportsOptions actually reflect the typed query. Gating the results layout on this
+    // (rather than the immediate value) keeps the sections in sync with the data they render: during the debounce
+    // window we keep showing recent chats instead of briefly rendering the previous/unfiltered rows under the search
+    // layout and then reflowing once the debounced query catches up.
+    const hasActiveSearchResults = hasEffectiveInputQuery && autocompleteQueryValue.trim() !== '';
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -217,13 +226,8 @@ function SearchAutocompleteList({
         loadAll: loadAllRecentReports,
         hasMore: hasMoreRecentReports,
     } = useFilteredOptions({
-        enabled: true,
+        ...SEARCH_ROUTER_OPTIONS_CONFIG,
         isSearching: !!autocompleteQueryValue.trim(),
-        // The empty-query state renders only recent searches and recent reports (no standalone contacts),
-        // so contacts can be deferred until the user types a query.
-        deferContactsUntilSearch: true,
-        maxRecentReports: INITIAL_MAX_RECENT_REPORTS,
-        batchSize: RECENT_REPORTS_BATCH_SIZE,
     });
 
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
@@ -251,6 +255,7 @@ function SearchAutocompleteList({
             return defaultListOptions;
         }
         return getSearchOptions({
+            dateFnsLocale,
             options: listOptions,
             draftComments,
             betas: betas ?? [],
@@ -291,12 +296,18 @@ function SearchAutocompleteList({
         conciergeReportID,
         isTrackIntentUser,
         translate,
+        dateFnsLocale,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
-    const prevQueryRef = useRef(autocompleteQueryValue);
+    const prevQueryRef = useRef(effectiveInputQueryValue);
     const innerListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const hasSetInitialFocusRef = useRef(false);
+    // Tracks the row key we last focused programmatically (reset-to-top below), so the auto-highlight
+    // effect can tell whether the user has since navigated away with the arrow keys. Without this,
+    // auto-highlight would silently snap focus back once the debounce settles even if the user had
+    // already moved to a different row (e.g. Ask Concierge) in the meantime.
+    const lastProgrammaticFocusKeyRef = useRef<string | undefined>(undefined);
 
     // Callback ref to set both inner ref and forward to external ref
     const setListRef = (instance: SelectionListWithSectionsHandle | null) => {
@@ -309,28 +320,6 @@ function SearchAutocompleteList({
             ref.current = instance;
         }
     };
-
-    // Reset focus when query changes to prevent stale focus on wrong items
-    useEffect(() => {
-        if (isInitialRender) {
-            return;
-        }
-
-        const queryChanged = prevQueryRef.current !== autocompleteQueryValue;
-        prevQueryRef.current = autocompleteQueryValue;
-
-        if (queryChanged) {
-            if (autocompleteQueryValue === '') {
-                // When query is cleared, reset the initial focus guard so the initial focus
-                // effect can re-fire and correctly focus the first focusable item (skipping section headers).
-                hasSetInitialFocusRef.current = false;
-            } else {
-                // When query changes to a non-empty value, focus on the search query item (index 0) and scroll to top.
-                // The highlight effect below switches focus to the first result when there's a good match.
-                innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
-            }
-        }
-    }, [autocompleteQueryValue, isInitialRender]);
 
     // Track external text input focus to prevent list items from stealing focus while typing
     useEffect(() => {
@@ -348,7 +337,7 @@ function SearchAutocompleteList({
 
         // Note: We can't easily subscribe to focus/blur events on the ref, so we update on query changes
         // which happen when the user types (meaning input is focused)
-    }, [textInputRef, autocompleteQueryValue]);
+    }, [textInputRef, effectiveInputQueryValue]);
 
     const autocompleteSuggestions = useAutocompleteSuggestions({
         autocompleteQueryValue,
@@ -391,6 +380,7 @@ function SearchAutocompleteList({
                           currentUserAccountID,
                           autoCompleteWithSpace: false,
                           translate,
+                          formatPhoneNumber,
                           feedKeysWithCards,
                           reportAttributes,
                           bankAccountList,
@@ -413,6 +403,7 @@ function SearchAutocompleteList({
         policies,
         currentUserAccountID,
         translate,
+        formatPhoneNumber,
         feedKeysWithCards,
         reportAttributes,
         bankAccountList,
@@ -420,10 +411,14 @@ function SearchAutocompleteList({
     ]);
 
     const recentReportsOptions = useMemo(() => {
-        if (autocompleteQueryValue.trim() === '') {
+        if (!hasActiveSearchResults) {
             return searchOptions.recentReports;
         }
 
+        // searchOptions/autocompleteQueryValue are debounced. For a query -> query change this still returns the
+        // previous query's matches during the debounce window (rows stay visible, preserving focus/Enter/arrow keys).
+        // For the empty -> query transition hasActiveSearchResults is false until the debounced query lands, so this
+        // returns recent chats instead of unfiltered rows, avoiding the stale-then-filtered reflow.
         const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, autocompleteQueryValue, {
             sortByReportTypeInSearch: true,
             preferChatRoomsOverThreads: true,
@@ -435,7 +430,7 @@ function SearchAutocompleteList({
         }
 
         return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, searchOptions]);
+    }, [autocompleteQueryValue, hasActiveSearchResults, searchOptions]);
 
     // Locked rank map (stable key -> originalIndex) capturing the order of locally-known
     // results at the moment the query changes. Recomputed only when the query changes, so server
@@ -466,6 +461,12 @@ function SearchAutocompleteList({
         setFrozenLocalRank(buildRankMap(recentReportsOptions));
     }
 
+    // Callers that pass a distinct inputQueryValue (e.g. SearchRouter) already debounce autocompleteQueryValue
+    // upstream, so firing handleSearch immediately here avoids stacking a second debounce on top and doubling
+    // the delay. Callers that don't pass inputQueryValue (e.g. the Spend page header) still get the local
+    // debounce below so they don't fire a server request on every keystroke.
+    const hasUpstreamDebounce = inputQueryValue !== undefined;
+
     const debounceHandleSearch = useDebounce(() => {
         if (!handleSearch || !autocompleteQueryWithoutFilters) {
             return;
@@ -475,14 +476,17 @@ function SearchAutocompleteList({
     }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
 
     useEffect(() => {
-        debounceHandleSearch();
-    }, [autocompleteQueryWithoutFilters, debounceHandleSearch]);
+        if (!handleSearch || !autocompleteQueryWithoutFilters) {
+            return;
+        }
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'SearchAutocompleteList',
-        isRecentSearchesDataLoaded,
-        isLoadingOptions,
-    };
+        if (hasUpstreamDebounce) {
+            handleSearch(autocompleteQueryWithoutFilters);
+            return;
+        }
+
+        debounceHandleSearch();
+    }, [autocompleteQueryWithoutFilters, debounceHandleSearch, handleSearch, hasUpstreamDebounce]);
 
     /* Sections generation */
     const {sections, styledRecentReports, suggestionsCount} = useMemo(() => {
@@ -508,7 +512,7 @@ function SearchAutocompleteList({
             }
         }
 
-        if (!autocompleteQueryValue && recentSearchesData && recentSearchesData.length > 0) {
+        if (!hasEffectiveInputQuery && recentSearchesData && recentSearchesData.length > 0) {
             pushSection({title: translate('search.recentSearches'), data: recentSearchesData as AutocompleteListItem[], sectionIndex: sectionIndex++});
         }
 
@@ -516,14 +520,12 @@ function SearchAutocompleteList({
             const report = getReportOrDraftReport(option.reportID, undefined, undefined, undefined, reports?.[`${ONYXKEYS.COLLECTION.REPORT}${option.reportID}`]);
             const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
             const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
-            const shouldParseAlternateText = report?.lastActionType !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
             const keyForList = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
             return {
                 ...option,
                 keyForList,
                 pressableStyle: styles.br2,
                 text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
-                alternateText: shouldParseAlternateText ? option.alternateText : getReportSubtitlePrefix(report) + formatReportLastMessageText(option.lastMessageText ?? ''),
                 wrapperStyle: [styles.pr3, styles.pl3],
             } as AutocompleteListItem;
         });
@@ -533,16 +535,12 @@ function SearchAutocompleteList({
                 fixedNumItems={3}
                 shouldStyleAsTable
                 speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                reasonAttributes={{
-                    context: 'SearchAutocompleteList',
-                    isRecentSearchesDataLoaded,
-                    isLoadingOptions,
-                }}
             />
         );
 
-        if (autocompleteQueryValue.trim() === '') {
-            // Empty query: single "Recent chats" section
+        if (!hasActiveSearchResults) {
+            // No active (debounced) query yet: single "Recent chats" section. This also covers the debounce window
+            // right after the user starts typing, so we keep recent chats visible instead of flashing search rows.
             if (!isLoadingOptions) {
                 pushSection({title: translate('search.recentChats'), data: nextStyledRecentReports, sectionIndex: sectionIndex++});
             } else {
@@ -618,7 +616,8 @@ function SearchAutocompleteList({
 
         return {sections: nextSections, styledRecentReports: nextStyledRecentReports, suggestionsCount: nextSuggestionsCount};
     }, [
-        autocompleteQueryValue,
+        hasEffectiveInputQuery,
+        hasActiveSearchResults,
         autocompleteSuggestions,
         expensifyIcons,
         frozenLocalRank,
@@ -630,7 +629,6 @@ function SearchAutocompleteList({
         styles,
         translate,
         isLoadingOptions,
-        isRecentSearchesDataLoaded,
         reports,
     ]);
 
@@ -656,59 +654,117 @@ function SearchAutocompleteList({
     const shouldAnnounceNoResults = !isLoading && suggestionsCount === 0 && !!trimmedAutocompleteQueryValue;
     useDebouncedAccessibilityAnnouncement(noResultsFoundText, shouldAnnounceNoResults, autocompleteQueryValue);
 
-    // Locate the first recent report row in the order it is actually rendered. The two-section switcher sorts the
-    // local "Recent chats" rows by a frozen rank, so the rendered order can differ from styledRecentReports (the
-    // unsorted combined local + server list). Walking sections keeps the focused row, its reference text, and the
-    // initially focused key all pointing at the first row the user actually sees.
     const recentReportKeys = new Set(styledRecentReports.map((report) => report.keyForList));
-    let firstRecentReportKey: string | undefined;
-    let firstRecentReportText = '';
-    let firstRecentReportFlatIndex = -1;
-    let flatIndex = 0;
-    for (const section of sections) {
-        const hasData = (section.data?.length ?? 0) > 0;
-        const hasHeader = hasData && (section.title !== undefined || ('customHeader' in section && section.customHeader !== undefined));
-        if (hasHeader) {
-            flatIndex++;
-        }
-        for (const item of section.data ?? []) {
-            if (item.keyForList && recentReportKeys.has(item.keyForList)) {
-                firstRecentReportKey = item.keyForList;
-                firstRecentReportText = item.text ?? '';
-                firstRecentReportFlatIndex = flatIndex;
-                break;
-            }
-            flatIndex++;
-        }
-        if (firstRecentReportFlatIndex !== -1) {
-            break;
-        }
-    }
-
+    const {firstRecentReportKey, firstRecentReportText, firstRecentReportFlatIndex, defaultFocusedKey, defaultFocusedFlatIndex} = getAutocompleteInitialFocus(sections, recentReportKeys);
     const normalizedReferenceText = firstRecentReportText.toLowerCase();
+
+    // Stable across renders while the query is non-empty (searchQueryItems is a fresh array reference on every
+    // SearchRouter render since it isn't memoized there, but its first item's key is always this same constant).
+    // Depending on this value instead of the raw array keeps the effects below from re-running on every keystroke.
+    const searchQueryRowKey = searchQueryItems?.at(0)?.keyForList;
+
+    // Reset focus when query changes to prevent stale focus on wrong items.
+    useEffect(() => {
+        if (isInitialRender) {
+            return;
+        }
+
+        const queryChanged = prevQueryRef.current !== effectiveInputQueryValue;
+        prevQueryRef.current = effectiveInputQueryValue;
+
+        if (!queryChanged) {
+            return;
+        }
+
+        if (effectiveInputQueryValue === '') {
+            // When query is cleared, reset the initial focus guard so the initial focus
+            // effect can re-fire and correctly focus the first focusable item (skipping section headers).
+            hasSetInitialFocusRef.current = false;
+            return;
+        }
+
+        // autocompleteQueryValue (debounced) can already equal the freshly typed text the moment the query
+        // changes, not just once it "catches up" later. This happens on a fast clear + retype of the exact same
+        // text: clearing doesn't reset the debounce hook's internal value, so retyping the same text is a no-op
+        // update and the debounced prop never changes again -- nothing would re-run the highlight effect below
+        // afterward. Deciding the correct focus target here, synchronously from this render's own props (rather
+        // than by reading the list's focus state back, which lags a render behind our own updates), is what
+        // prevents focus from being left stranded on the search-query row in that case.
+        const isDebounceSettled = autocompleteQueryValue.trim() === effectiveInputQueryValue.trim();
+        if (isDebounceSettled && shouldHighlightFirstItem && firstRecentReportFlatIndex !== -1 && shouldHighlight(normalizedReferenceText, autocompleteQueryValue)) {
+            lastProgrammaticFocusKeyRef.current = firstRecentReportKey;
+            innerListRef.current?.updateAndScrollToFocusedIndex(firstRecentReportFlatIndex, true);
+            return;
+        }
+
+        // The debounce hasn't caught up yet for this keystroke. If focus is already resting on the match from a
+        // previous, already-settled keystroke, and the freshly typed text still matches that same row, keep focus
+        // there instead of bouncing to the query row and waiting out a fresh debounce window -- this is what
+        // prevents a visible flicker when continuing to type past an already-highlighted match (production has no
+        // debounce gap here, so it never loses the highlight in this case either).
+        if (
+            shouldHighlightFirstItem &&
+            firstRecentReportFlatIndex !== -1 &&
+            lastProgrammaticFocusKeyRef.current === firstRecentReportKey &&
+            shouldHighlight(normalizedReferenceText, effectiveInputQueryValue)
+        ) {
+            return;
+        }
+
+        // Otherwise the debounce is still pending and the match is no longer valid for this keystroke: focus the
+        // search query item (index 0) and scroll to top. The highlight effect below switches focus to the first
+        // result once a good match settles.
+        lastProgrammaticFocusKeyRef.current = searchQueryRowKey;
+        innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
+    }, [
+        autocompleteQueryValue,
+        effectiveInputQueryValue,
+        firstRecentReportFlatIndex,
+        firstRecentReportKey,
+        isInitialRender,
+        normalizedReferenceText,
+        searchQueryRowKey,
+        shouldHighlightFirstItem,
+    ]);
 
     // When options initialize after the list is already mounted, initiallyFocusedItemKey has no effect
     // because useState(initialFocusedIndex) in useArrowKeyFocusManager only reads the initial value.
-    // Imperatively focus the first recent report once options become available (desktop only).
+    // Imperatively focus the default row once options become available (desktop only).
     useEffect(() => {
-        if (shouldUseNarrowLayout || isLoadingOptions || hasSetInitialFocusRef.current || firstRecentReportFlatIndex === -1) {
+        if (shouldUseNarrowLayout || isLoadingOptions || hasSetInitialFocusRef.current || defaultFocusedFlatIndex === -1) {
             return;
         }
         hasSetInitialFocusRef.current = true;
 
-        innerListRef.current?.updateAndScrollToFocusedIndex(firstRecentReportFlatIndex, false);
-    }, [isLoadingOptions, firstRecentReportFlatIndex, shouldUseNarrowLayout]);
+        // Track whatever we actually focused (the contextual "Search in <chat>" suggestion when present, else the
+        // first recent report) so the auto-highlight effect below can tell whether the user has since navigated
+        // away, versus us having landed on a row other than firstRecentReportKey to begin with.
+        lastProgrammaticFocusKeyRef.current = defaultFocusedKey;
+        innerListRef.current?.updateAndScrollToFocusedIndex(defaultFocusedFlatIndex, false);
+    }, [isLoadingOptions, defaultFocusedFlatIndex, defaultFocusedKey, shouldUseNarrowLayout]);
 
     useEffect(() => {
-        const targetText = autocompleteQueryValue;
-
-        if (!shouldHighlightFirstItem || firstRecentReportFlatIndex === -1 || !shouldHighlight(normalizedReferenceText, targetText)) {
+        if (!shouldHighlightFirstItem || firstRecentReportFlatIndex === -1 || !shouldHighlight(normalizedReferenceText, autocompleteQueryValue)) {
             return;
         }
+
+        // Only suppress the auto-highlight when the user has manually moved focus to some *other* real row
+        // (e.g. arrow-keyed to Ask Concierge). The reset effect above always keeps lastProgrammaticFocusKeyRef in
+        // sync with wherever it last placed focus (the search-query row while unsettled, or the first result once
+        // settled), so comparing against it alone is enough to detect a real, user-initiated divergence -- this
+        // effect is what promotes focus onto the first result once the debounce genuinely settles *later*, the
+        // common, non-coalesced typing flow.
+        const currentFocusedKey = innerListRef.current?.getFocusedOption?.()?.keyForList;
+        const isOnProgrammaticTarget = lastProgrammaticFocusKeyRef.current === undefined || currentFocusedKey === lastProgrammaticFocusKeyRef.current;
+        if (!isOnProgrammaticTarget) {
+            return;
+        }
+
         // Focus the header-aware flat index of the first result. A fixed index (e.g. searchQueryItems.length)
         // lands on the "Recent chats" section header row after the two-section switcher was introduced.
+        lastProgrammaticFocusKeyRef.current = firstRecentReportKey;
         innerListRef.current?.updateAndScrollToFocusedIndex(firstRecentReportFlatIndex, true);
-    }, [autocompleteQueryValue, firstRecentReportFlatIndex, normalizedReferenceText, shouldHighlightFirstItem]);
+    }, [autocompleteQueryValue, firstRecentReportFlatIndex, firstRecentReportKey, normalizedReferenceText, shouldHighlightFirstItem]);
 
     if (isLoading) {
         return (
@@ -716,7 +772,6 @@ function SearchAutocompleteList({
                 fixedNumItems={4}
                 shouldStyleAsTable
                 speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                reasonAttributes={reasonAttributes}
             />
         );
     }
@@ -730,14 +785,14 @@ function SearchAutocompleteList({
             style={{
                 containerStyle: [styles.mh100],
                 listStyle: [styles.ph2, styles.overscrollBehaviorContain],
-                contentContainerStyle: styles.pb2,
+                contentContainerStyle,
                 listItemWrapperStyle: [styles.pr0, styles.pl0],
                 sectionTitleStyles: styles.mhn2,
             }}
             shouldSingleExecuteRowSelect
             ref={setListRef}
             initialScrollIndex={0}
-            initiallyFocusedItemKey={!shouldUseNarrowLayout ? firstRecentReportKey : undefined}
+            initiallyFocusedItemKey={!shouldUseNarrowLayout ? defaultFocusedKey : undefined}
             shouldHighlightInitiallyFocusedItem={!shouldUseNarrowLayout}
             shouldScrollToFocusedIndex={!isInitialRender}
             disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}

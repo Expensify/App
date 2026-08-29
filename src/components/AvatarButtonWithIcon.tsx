@@ -3,8 +3,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {AvatarSource} from '@libs/UserAvatarUtils';
-
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -14,11 +12,11 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {RefObject} from 'react';
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 
-import Avatar from './Avatar';
 import Icon from './Icon';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
@@ -28,7 +26,7 @@ type AvatarButtonWithIconProps = WithSentryLabel & {
     /** Text to be used as a tooltip */
     text: string;
 
-    /** Style applied to the avatar */
+    /** Style applied to the avatar. Defaults to centering it within the parent. */
     avatarStyle?: StyleProp<ViewStyle & ImageStyle>;
 
     /** Executed on click */
@@ -37,29 +35,17 @@ type AvatarButtonWithIconProps = WithSentryLabel & {
     /** Ref of the anchor */
     anchorRef?: RefObject<View | HTMLDivElement | null>;
 
-    /** Account id of user for which avatar is displayed  */
-    avatarID?: number | string;
+    /** The avatar to display. */
+    avatar: React.ReactNode;
 
-    /** Avatar source to display */
-    source?: AvatarSource;
+    /** Size of the displayed avatar. Keeps the button footprint even when `avatar` is empty. */
+    size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Additional style props for disabled picker */
     disabledStyle?: StyleProp<ViewStyle>;
 
     /** Additional style props for the edit icon */
     editIconStyle?: StyleProp<ViewStyle>;
-
-    /** A default avatar component to display when there is no source */
-    DefaultAvatar?: () => React.ReactNode;
-
-    /** Size of Indicator */
-    size?: typeof CONST.AVATAR_SIZE.XXXX_LARGE | typeof CONST.AVATAR_SIZE.XXX_LARGE | typeof CONST.AVATAR_SIZE.DEFAULT;
-
-    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon?: AvatarSource;
-
-    /** Denotes whether it is an avatar or a workspace avatar */
-    type?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
 
     /** The type of action that's pending  */
     pendingAction?: OnyxCommon.PendingAction;
@@ -69,37 +55,29 @@ type AvatarButtonWithIconProps = WithSentryLabel & {
 
     /** Optionally override the default "Edit" icon */
     editIcon?: IconAsset;
-
-    /** The name associated with avatar */
-    name?: string;
 };
 
 /**
  * Avatar button with an edit icon overlay
  */
 function AvatarButtonWithIcon({
-    DefaultAvatar = () => null,
     disabledStyle,
     editIconStyle,
     pendingAction,
     text,
     onPress,
-    source = '',
-    avatarID,
-    fallbackIcon,
-    size = CONST.AVATAR_SIZE.DEFAULT,
-    type = CONST.ICON_TYPE_AVATAR,
+    avatar,
+    size = CONST.AVATAR_SIZE.XXXX_LARGE,
     avatarStyle,
     disabled = false,
     editIcon,
     anchorRef,
-    name = '',
     sentryLabel,
 }: AvatarButtonWithIconProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Pencil']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
 
     return (
         <Tooltip
@@ -112,26 +90,11 @@ function AvatarButtonWithIcon({
                 accessibilityLabel={text}
                 disabled={disabled}
                 disabledStyle={disabledStyle}
-                style={[styles.pRelative, type === CONST.ICON_TYPE_AVATAR && styles.alignSelfCenter, StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size)), avatarStyle]}
+                style={[styles.pRelative, StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size)), styles.alignSelfCenter, avatarStyle]}
                 ref={anchorRef}
                 sentryLabel={sentryLabel}
             >
-                <OfflineWithFeedback pendingAction={pendingAction}>
-                    {source ? (
-                        <Avatar
-                            containerStyles={avatarStyle}
-                            imageStyles={[styles.alignSelfCenter, avatarStyle]}
-                            source={source}
-                            avatarID={avatarID}
-                            fallbackIcon={fallbackIcon ?? expensifyIcons.FallbackAvatar}
-                            size={size}
-                            type={type}
-                            name={name}
-                        />
-                    ) : (
-                        <DefaultAvatar />
-                    )}
-                </OfflineWithFeedback>
+                <OfflineWithFeedback pendingAction={pendingAction}>{avatar}</OfflineWithFeedback>
                 {!disabled && (
                     <View style={StyleSheet.flatten([styles.smallEditIcon, styles.smallAvatarEditIcon, editIconStyle])}>
                         <Icon

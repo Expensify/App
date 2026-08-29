@@ -2,8 +2,6 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
 import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
 import type {ComponentType} from 'react';
 
 import isBoolean from 'lodash/isBoolean';
@@ -40,12 +38,7 @@ function WithPolicyConnectionsImpl<TProps extends WithPolicyConnectionsProps>({W
     const isFetchingData = isConnectionDataFetchNeeded && !!props.policy?.id && !isBoolean(hasConnectionsDataBeenFetched);
 
     if ((isFetchingData || isOnyxDataLoading) && shouldBlockView) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'withPolicyConnections',
-            isFetchingData,
-            isOnyxDataLoading,
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

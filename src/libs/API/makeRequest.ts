@@ -12,6 +12,7 @@ import {
     SupportalPermission,
 } from '@libs/Middleware';
 import FraudMonitoring from '@libs/Middleware/FraudMonitoring';
+import LoadPostDataForOpenOrReconnect from '@libs/Middleware/LoadPostDataForOpenOrReconnect';
 import SentryServerTiming from '@libs/Middleware/SentryServerTiming';
 import {push as pushToSequentialQueue} from '@libs/Network/SequentialQueue';
 import {getIsOffline} from '@libs/NetworkState';
@@ -67,6 +68,9 @@ addMiddleware(SentryServerTiming);
 // RecordFullReconnectTime - Records the full-reconnect time into an OpenApp/full-ReconnectApp response. Must run before SaveResponseInOnyx applies the response.
 addMiddleware(RecordFullReconnectTime);
 
+// LoadPostDataForOpenOrReconnect - Sends the reads that OpenApp/ReconnectApp does not return, once per response that reaches the server.
+addMiddleware(LoadPostDataForOpenOrReconnect);
+
 // SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This must be the last middleware that applies Onyx data
 // (middlewares after it, like FraudMonitoring, must not write Onyx), because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
 addMiddleware(SaveResponseInOnyx);
@@ -105,7 +109,7 @@ function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
     const {optimisticData, successData, failureData, ...onyxDataWithoutOptimisticData} = onyxData;
 
     if (optimisticData && shouldApplyOptimisticData) {
-        Log.info('[API] Applying optimistic data', false, {command, type});
+        Log.info('[API] Applying optimistic data', false, {command, type}, undefined, optimisticData);
         Onyx.update(optimisticData);
     }
 
@@ -140,7 +144,7 @@ function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
 
     if (isWriteRequest) {
         // This should be removed once we are no longer using deprecatedAPI https://github.com/Expensify/Expensify/issues/215650
-        request.data.shouldRetry = true;
+        request.data.shouldRetry ??= true;
         request.data.canCancel = true;
     }
 

@@ -29,10 +29,7 @@ function ConfirmCustomSegmentStep({onMove, customSegmentType, netSuiteCustomFiel
     if (!values.mapping) {
         return (
             <View style={[styles.flex1, styles.fullScreenLoading]}>
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    reasonAttributes={{context: 'ConfirmCustomSegmentStep'}}
-                />
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
             </View>
         );
     }

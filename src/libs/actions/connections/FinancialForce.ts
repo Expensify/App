@@ -536,7 +536,8 @@ function updateFinancialForceExportForeignCurrency(policyID: string, enabled: bo
     write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_FOREIGN_CURRENCY, {policyID, enabled}, {optimisticData, failureData, successData});
 }
 
-function updateFinancialForceCompany(policyID: string, companyID: string, previousCompanyID: string | null) {
+function updateFinancialForceCompany(policyID: string, companyID: string, previousCompanyID: string | null, hasPSA: boolean) {
+    const companyField = hasPSA ? CONST.CERTINIA_CONFIG.COMPANY_ID : CONST.CERTINIA_CONFIG.COMPANY;
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -545,14 +546,12 @@ function updateFinancialForceCompany(policyID: string, companyID: string, previo
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                         config: {
-                            credentials: {
-                                [CONST.CERTINIA_CONFIG.COMPANY_ID]: companyID,
-                            },
+                            ...(hasPSA ? {export: {[CONST.CERTINIA_CONFIG.COMPANY_ID]: companyID}} : {[CONST.CERTINIA_CONFIG.COMPANY]: companyID}),
                             pendingFields: {
-                                [CONST.CERTINIA_CONFIG.COMPANY_ID]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                [companyField]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             },
                             errorFields: {
-                                [CONST.CERTINIA_CONFIG.COMPANY_ID]: null,
+                                [companyField]: null,
                             },
                         },
                     },
@@ -569,14 +568,12 @@ function updateFinancialForceCompany(policyID: string, companyID: string, previo
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                         config: {
-                            credentials: {
-                                [CONST.CERTINIA_CONFIG.COMPANY_ID]: previousCompanyID ?? null,
-                            },
+                            ...(hasPSA ? {export: {[CONST.CERTINIA_CONFIG.COMPANY_ID]: previousCompanyID ?? null}} : {[CONST.CERTINIA_CONFIG.COMPANY]: previousCompanyID ?? null}),
                             pendingFields: {
-                                [CONST.CERTINIA_CONFIG.COMPANY_ID]: null,
+                                [companyField]: null,
                             },
                             errorFields: {
-                                [CONST.CERTINIA_CONFIG.COMPANY_ID]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                [companyField]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
                     },
@@ -593,11 +590,12 @@ function updateFinancialForceCompany(policyID: string, companyID: string, previo
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                         config: {
+                            ...(hasPSA ? {export: {[CONST.CERTINIA_CONFIG.COMPANY_ID]: companyID}} : {[CONST.CERTINIA_CONFIG.COMPANY]: companyID}),
                             pendingFields: {
-                                [CONST.CERTINIA_CONFIG.COMPANY_ID]: null,
+                                [companyField]: null,
                             },
                             errorFields: {
-                                [CONST.CERTINIA_CONFIG.COMPANY_ID]: null,
+                                [companyField]: null,
                             },
                         },
                     },
