@@ -5,9 +5,10 @@ import useStyleUtils from '@hooks/useStyleUtils';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import type {LayoutChangeEvent} from 'react-native';
+
 import {useFocusEffect} from '@react-navigation/native';
 import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 
 type OnboardingHeaderConfig = {
