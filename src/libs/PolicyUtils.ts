@@ -713,6 +713,21 @@ function getReimburserEmail(policy: OnyxEntry<Policy>): string | undefined {
 }
 
 /**
+ * Payer fields to merge into the successData of an ownership transfer. The backend keeps the former payer when the
+ * workspace has a bank account, so only reassign when there is none and the outgoing owner is the resolved payer.
+ */
+function getOwnerChangePayerSuccessData(policy: OnyxEntry<Policy>, newOwnerLogin: string): Partial<Policy> {
+    if (!policy || policy.achAccount?.bankAccountID || getReimburserEmail(policy) !== policy.owner) {
+        return {};
+    }
+
+    return {
+        ...(policy.reimburser ? {reimburser: newOwnerLogin} : {}),
+        ...(policy.achAccount?.reimburser ? {achAccount: {reimburser: newOwnerLogin} as Policy['achAccount']} : {}),
+    };
+}
+
+/**
  * Whether the given role is allowed to pay (reimburse) on a workspace.
  */
 function canRolePay(role: string | undefined): boolean {
@@ -3231,6 +3246,7 @@ export {
     isPolicyMember,
     isPolicyPayer,
     getReimburserEmail,
+    getOwnerChangePayerSuccessData,
     PAYER_ROLES,
     canRolePay,
     arePaymentsEnabled,
