@@ -41,7 +41,7 @@ You'll see a message like:
 
 This indicates connection failed and needs to be rebuilt rather than simply re-approved. This covers a range of causes — changed bank credentials, a changed or reissued card number, a bank-side outage, a bank that no longer supports the connection, or a bank Expensify can't classify the error for.
 
-To fix it, follow the broken-connection steps and, if needed, one of the alternative connection methods. See [Fix a Broken Card Connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Broken-Card-Connection). If a specific bank keeps disconnecting (for example, Bank of America) or loops during authorization (for example, American Express), check the bank-specific guidance in that article.
+To fix it, follow the broken-connection steps and, if needed, one of the alternative connection methods. See [Fix a Card Connection Error](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Card-Connection-Error). If a specific bank keeps disconnecting (for example, Bank of America) or loops during authorization (for example, American Express), check the bank-specific guidance in that article.
 
 ---
 
@@ -69,7 +69,7 @@ You'll see a message like:
 
 This indicates your bank is having an outage or is temporarily unavailable. No action is needed on your side.
 
-**What to do:** Wait and try again later. If the message persists for more than a day, treat it as a broken connection and follow [Fix a Broken Card Connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Broken-Card-Connection).
+**What to do:** Wait and try again later. If the message persists for more than a day, treat it as a broken connection and follow [Fix a Card Connection Error](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Card-Connection-Error).
 
 ---
 
@@ -81,6 +81,6 @@ If the connection is healthy (no red dot) but you're missing transactions, it's 
 
 ## Related articles
 
-- [Learn About Card Connection Issues](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Learn-About-Card-Connection-Issues)
+- [Understand Card Connection Issues](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Understand-Card-Connection-Issues)
 - [Re-authenticate a Card Connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Reauthenticate-a-Card-Connection)
-- [Fix a Broken Card Connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Broken-Card-Connection)
+- [Fix a Card Connection Error](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Card-Connection-Error)

@@ -1,4 +1,13 @@
 ---
+title: Understand Card Connection Issues
+description: Learn why card connections fail in Expensify, the difference between a connection that needs re-authentication and one that's broken, and how to tell which situation you're in.
+keywords: [New Expensify, card connection, broken connection, re-authenticate, reconnect card, bank connection, company card feed, personal card, credit card import]
+internalScope: Audience is members with personal cards and Workspace Admins with company card feeds. Covers why a new card may fail to connect, why an existing connection stops importing, the two failure modes (needs re-authentication vs. broken), the indicators members see, and who resolves each. Does not cover the step-by-step reconnect workflows or connecting a new card.
+retrievalIntent: Why a card connection failed or stopped importing and what the difference is between re-authentication and a broken connection.
+contentType: topic
+platform: new
+order: 1
+---
 
 # Understand Card Connection Issues
 
@@ -10,7 +19,7 @@ This applies to personal cards you manage in **Wallet** and company card feeds a
 
 ---
 
-## Why a new card may have trouble onnecting
+## Why a new card may have trouble connecting
 
 When you add a card, Expensify must establish a connection with your bank and receive access to the eligible cards or accounts.
 
@@ -26,7 +35,7 @@ If you encounter an issue while adding a card, use the error shown during the co
 
 ---
 
-## Why an existing card connection may stop 2orking
+## Why an existing card connection may stop working
 
 After a card is connected, Expensify relies on your bank continuing to authorize access to its transactions.
 
@@ -61,7 +70,7 @@ This can happen because of changed credentials, changes to the card or account, 
 
 Resolving a broken connection may require reconnecting or reassigning cards, using another available connection method, or waiting for a bank-side issue to be resolved.
 
-[Learn how to fix a broken card connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Broken-Card-Connection).
+[Learn how to fix a broken card connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Card-Connection-Error).
 
 ---
 
@@ -93,4 +102,4 @@ If you need an expense to move forward before the connection is fixed, you can m
 Use the troubleshooting guidance for the specific error or connection state you're seeing rather than removing or reconnecting a card without first identifying the issue.
 
 * [Learn how to re-authenticate a card connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Reauthenticate-a-Card-Connection)
-* [Learn how to fix a card connection error](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Broken-Card-Connection)
+* [Learn how to fix a card connection error](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Card-Connection-Error)

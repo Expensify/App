@@ -69,7 +69,7 @@ Once you re-approve the connection:
 ## Related articles
 
 - [Identify Your Card Connection Issue](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Identify-Your-Card-Connection-Issue)
-- [Fix a Broken Card Connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Broken-Card-Connection)
+- [Fix a Card Connection Error](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Card-Connection-Error)
 - [Manage Personal Cards](/articles/new-expensify/connect-credit-cards/Manage-Personal-Cards)
 
 ---
@@ -82,4 +82,4 @@ It varies by bank. Many banks require re-approval about once a year as their aut
 
 ## I re-authenticated but transactions still aren't importing. What now?
 
-If re-approving didn't restore imports, the connection may actually be broken. Try a manual refresh with **Update card**, and if that doesn't help, follow [Fix a Broken Card Connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Broken-Card-Connection).
+If re-approving didn't restore imports, the connection may actually be broken. Try a manual refresh with **Update card**, and if that doesn't help, follow [Fix a Card Connection Error](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Card-Connection-Error).

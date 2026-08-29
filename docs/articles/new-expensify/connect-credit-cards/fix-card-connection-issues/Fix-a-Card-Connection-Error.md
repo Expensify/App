@@ -1,5 +1,4 @@
 ---
-
 title: Fix a Card Connection Error
 description: Learn what to do when you see an error while connecting a card or managing an existing card connection in Expensify.
 keywords: [New Expensify, card connection error, can't connect card, bank connection error, card update failed, login failed, account setup required, Direct Connect, personal card, company card]
@@ -8,7 +7,7 @@ retrievalIntent: How to fix an error when connecting or updating a card in Expen
 contentType: task
 platform: new
 order: 4
---------
+---
 
 # Fix a Card Connection Error
 
