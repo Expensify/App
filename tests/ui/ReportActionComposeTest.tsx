@@ -7,7 +7,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {KeyboardStateProvider} from '@components/withKeyboardState';
 
 import type * as TaskActions from '@libs/actions/Task';
-import {createTaskAndNavigate} from '@libs/actions/Task';
+import {createTaskFromMarkdown} from '@libs/actions/Task';
 
 import type {ReportActionComposeProps} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
 import ReportActionCompose from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
@@ -33,7 +33,7 @@ jest.mock('@libs/ComponentUtils', () => ({
 
 jest.mock('@libs/actions/Task', () => ({
     ...jest.requireActual<typeof TaskActions>('@libs/actions/Task'),
-    createTaskAndNavigate: jest.fn(),
+    createTaskFromMarkdown: jest.fn(() => true),
 }));
 
 jest.mock('@hooks/useLocalize', () =>
@@ -334,7 +334,6 @@ describe('ReportActionCompose Integration Tests', () => {
                     name: 'Test Policy',
                     owner: 'test@test.com',
                     outputCurrency: CONST.CURRENCY.USD,
-                    isPolicyExpenseChatEnabled: true,
                 });
                 // Parent expense report (the IOUReportID in the action's originalMessage)
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {
@@ -520,33 +519,27 @@ describe('ReportActionCompose Integration Tests', () => {
         });
     });
 
-    describe('Task creation with a short mention', () => {
-        it('assigns the task to the user resolved from a same-private-domain short mention', async () => {
-            // Given a current user on a private domain and a coworker on the same domain
-            const coworkerAccountID = 2;
+    describe('Task creation', () => {
+        // The `[] title` parsing itself (short mentions included) is covered in tests/actions/TaskTest.ts; what matters
+        // here is that the composer routes the draft through the shared detection instead of sending it as a comment.
+        it('hands a `[] task` draft to the shared markdown task detection', async () => {
             await TestHelper.signInWithTestUser(1, 'user@domain.com');
-            await act(async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                    [coworkerAccountID]: TestHelper.buildPersonalDetails('mat@domain.com', coworkerAccountID, 'Mat'),
-                });
-            });
 
             const {unmount} = renderReportActionCompose();
             await waitForBatchedUpdatesWithAct();
 
-            // When a task with a short mention of the coworker is typed and submitted
+            // When a task with a short mention of a coworker is typed and submitted
             // (the composer submits by clearing the input, which hands the draft to validateAndSubmitDraft)
             const composer = screen.getByTestId('composer');
             fireEvent.changeText(composer, '[] @mat Buy milk');
             fireEvent(composer, 'clear', {nativeEvent: {text: '[] @mat Buy milk'}});
 
-            // Then the task is created with the mention resolved to the coworker's full login
+            // Then the draft is passed to the task detection along with the report it should be created in
             await waitFor(() => {
-                expect(createTaskAndNavigate).toHaveBeenCalledWith(
+                expect(createTaskFromMarkdown).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        title: 'Buy milk',
-                        assigneeEmail: 'mat@domain.com',
-                        assigneeAccountID: coworkerAccountID,
+                        text: '[] @mat Buy milk',
+                        parentReport: expect.objectContaining({reportID: defaultReport.reportID}),
                     }),
                 );
             });
