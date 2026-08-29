@@ -3535,6 +3535,7 @@ function filterOptions<T extends SearchOptionData>(
             // `config` is optional, so the required locale has to be set explicitly rather than relying on the spread.
             dateFnsLocale: config?.dateFnsLocale,
             searchInputValue: searchInputValueForInvite,
+            currentUserAccountID,
         },
     );
     const workspaceChats = filterWorkspaceChats(options.workspaceChats ?? [], searchTerms);
