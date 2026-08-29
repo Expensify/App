@@ -5836,16 +5836,17 @@ function getTransactionReportName({
     }
 
     const isFromExpenseReport = !isEmptyObject(report) && isExpenseReport(report);
+
+    if (isSentMoneyReportAction(reportAction)) {
+        return getIOUReportActionDisplayMessage(translate, reportAction as ReportAction, convertToDisplayString, undefined, linkedTransaction);
+    }
+
     const displayTransaction = getDisplayTransactionWithoutInvalidCommuterExclusion({
         transaction: linkedTransaction,
         isPolicyExpenseChat: isFromExpenseReport,
         policies: allPolicies,
         translate,
     });
-
-    if (isSentMoneyReportAction(reportAction)) {
-        return getIOUReportActionDisplayMessage(translate, reportAction as ReportAction, convertToDisplayString, undefined, displayTransaction);
-    }
 
     const amount = getTransactionAmount(displayTransaction, isFromExpenseReport, displayTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
     const formattedAmount = convertToDisplayString(amount, getCurrency(displayTransaction)) ?? '';
