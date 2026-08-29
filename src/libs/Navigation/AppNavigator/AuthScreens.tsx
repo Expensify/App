@@ -131,7 +131,7 @@ function AuthScreens() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
-    const {isOnboardingCompleted} = useOnboardingFlowRouter();
+    useOnboardingFlowRouter();
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
 
     useEffect(() => {
@@ -337,7 +337,12 @@ function AuthScreens() {
                             component={FeatureTrainingModalNavigator}
                             listeners={modalScreenListeners}
                         />
-                        {isOnboardingCompleted === false && !shouldSuppressPromotionalUI && !Navigation.isValidateLoginFlow() && (
+                        {/*
+                         * Always registered, like the other modal navigators below, so entering onboarding never toggles this
+                         * screen in and out of the RootStack mid-session (which resets the navigator's state to its initial
+                         * route). OnboardingGuard and useOnboardingFlowRouter gate whether/when a user actually lands here.
+                         */}
+                        {!shouldSuppressPromotionalUI && !Navigation.isValidateLoginFlow() && (
                             <RootStack.Screen
                                 name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                                 options={{...rootNavigatorScreenOptions.basicModalNavigator, gestureEnabled: false}}
