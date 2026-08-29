@@ -11,7 +11,7 @@ order: 2
 
 # Identify Your Card Connection Issue
 
-When a card connection needs attention, Expensify shows a message describing what happened. That message tells you which fix to use. This article helps you match what you see to the right next step.
+When a card connection needs attention, Expensify shows a message describing the issue. That message tells you what's wrong and how to fix it. This article helps you match what you see to the right next step.
 
 Expensify shows these messages in plain language rather than error codes, so you can act on them without looking anything up. Start by finding the card with the red dot — on a personal card in **Account > Wallet**, or on a company card feed under **Workspace > Company cards** — and read the message shown with it.
 
@@ -21,27 +21,27 @@ Expensify shows these messages in plain language rather than error codes, so you
 
 You'll see a message like:
 
-- "Your bank connection needs to be re-authenticated."
+- **Needs re-authentication**
 
-**What it means:** The connection is still valid, but your bank's authorization or your login session expired and needs to be re-approved. This is routine and happens periodically as your bank's authorization lapses.
 
-**What to do:** Re-approve the connection by logging back into your bank. See [Re-authenticate a Card Connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Reauthenticate-a-Card-Connection).
+This indicates the connection is still valid, but transaction import is paused until your  your bank's authorization or your login session expired and needs to be re-approved. This is routine can happens periodically as your bank's authorization lapses.
+
+To fix it, e-approve the connection by logging back into your bank. See [Re-authenticate a Card Connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Reauthenticate-a-Card-Connection).
 
 ---
 
-## When the connection is broken
+## When a connection has an error
 
 You'll see a message like:
 
-- "Your card connection is broken. Log into your bank to fix the card." (personal card)
-- "Card feed connection is broken. Please log into your bank so we can establish the connection again." (company card feed)
-- "The [feed] connection is broken. To restore card imports, log into your bank."
-- "Card update failed." — the feed hit an error Expensify's team is automatically alerted to.
-- "Unknown error." — often an international bank that doesn't support a direct connection.
+- **Connection is broken** 
+- **Bank connection issue**
+- **Account not found / Account number changed**
 
-**What it means:** The connection failed and needs to be rebuilt rather than simply re-approved. This covers a range of causes — changed bank credentials, a changed or reissued card number, a bank-side outage, a bank that no longer supports the connection, or a bank Expensify can't classify the error for.
 
-**What to do:** Follow the broken-connection steps and, if needed, one of the alternative connection methods. See [Fix a Broken Card Connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Broken-Card-Connection). If a specific bank keeps disconnecting (for example, Bank of America) or loops during authorization (for example, American Express), check the bank-specific guidance in that article.
+This indicates connection failed and needs to be rebuilt rather than simply re-approved. This covers a range of causes — changed bank credentials, a changed or reissued card number, a bank-side outage, a bank that no longer supports the connection, or a bank Expensify can't classify the error for.
+
+To fix it, follow the broken-connection steps and, if needed, one of the alternative connection methods. See [Fix a Broken Card Connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Broken-Card-Connection). If a specific bank keeps disconnecting (for example, Bank of America) or loops during authorization (for example, American Express), check the bank-specific guidance in that article.
 
 ---
 
@@ -49,12 +49,12 @@ You'll see a message like:
 
 You'll see a message on the expense like:
 
-- "Receipt pending due to broken bank connection."
-- "Can't auto-match receipt due to broken bank connection."
+- **Receipt pending due to broken bank connection.**
+- **Can't auto-match receipt due to broken bank connection.**
 
-**What it means:** A SmartScanned or receipt-scanned expense is waiting for a card transaction to match against, but the card connection is down, so the match can't happen. This is a symptom of a connection issue — not a separate problem.
+This indicates a scanned receipt is waiting for a card transaction to match against, but the card connection is down, so the match can't happen. This is a symptom of a connection issue — not a separate problem.
 
-**What to do:** Fix the underlying connection using the sections above. Once it's restored, the receipt matches automatically and the message clears. If you need the expense to move forward right away, mark it as cash to request payment now.
+To fix it, fix the underlying connection using the sections above. Once it's restored, the receipt matches automatically and the message clears. If you need the expense to move forward right away, mark it as cash to request payment now.
 
 For a company card feed, the message may direct members to ask a Workspace Admin to resolve it, since only an Admin can reconnect a company feed.
 
@@ -62,9 +62,12 @@ For a company card feed, the message may direct members to ask a Workspace Admin
 
 ## When a transient bank issue is to blame
 
-You'll see a message indicating a temporary bank issue and to retry later, or a general connection problem.
+You'll see a message like:
 
-**What it means:** Your bank had a brief outage or is temporarily unavailable. No action is needed on your side.
+- **Retry later**
+- **Login failed**
+
+This indicates your bank is having an outage or is temporarily unavailable. No action is needed on your side.
 
 **What to do:** Wait and try again later. If the message persists for more than a day, treat it as a broken connection and follow [Fix a Broken Card Connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Broken-Card-Connection).
 
