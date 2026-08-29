@@ -1692,7 +1692,7 @@ describe('ReportNameUtils', () => {
                 reportName: 'Fallback Report Name',
             });
 
-            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateLocal});
+            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateLocal, formatPhoneNumber});
             expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'Ragnar Lothbrok'));
         });
 
@@ -1702,7 +1702,7 @@ describe('ReportNameUtils', () => {
                 reportName: 'Fallback Report Name',
             });
 
-            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateLocal});
+            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateLocal, formatPhoneNumber});
             expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'floki'));
         });
 
@@ -1712,7 +1712,7 @@ describe('ReportNameUtils', () => {
                 reportName: 'Fallback Report Name',
             });
 
-            const name = getPolicyExpenseChatName({report, personalDetailsList: {}, translate: translateLocal});
+            const name = getPolicyExpenseChatName({report, personalDetailsList: {}, translate: translateLocal, formatPhoneNumber});
             expect(name).toBe('Fallback Report Name');
         });
 
@@ -1722,7 +1722,7 @@ describe('ReportNameUtils', () => {
             const translateWithMarker: LocalizedTranslate = (path, ...parameters) =>
                 path === 'workspace.common.policyExpenseChatName' ? `PolicyMarker:${String(parameters.at(0))}` : translateLocal(path, ...parameters);
 
-            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateWithMarker});
+            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateWithMarker, formatPhoneNumber});
             expect(name).toBe('PolicyMarker:Ragnar Lothbrok');
         });
     });
