@@ -1984,6 +1984,7 @@ const ROUTES = {
     },
     SEARCH_EDIT_MULTIPLE_BILLABLE_RHP: 'search/edit-multiple/billable',
     SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP: 'search/edit-multiple/reimbursable',
+    SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP: 'search/edit-multiple/attendees',
     SEARCH_EDIT_MULTIPLE_TAX_RHP: 'search/edit-multiple/tax',
     MOVE_TRANSACTIONS_SEARCH_RHP: {
         route: 'search/move-transactions/search/:backTo?',
