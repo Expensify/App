@@ -902,15 +902,18 @@ describe('canEditFieldOfMoneyRequest', () => {
         const forwardedActions = {[submittedAction.reportActionID]: submittedAction, [forwardedAction.reportActionID]: forwardedAction};
 
         beforeEach(async () => {
+            const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [corporatePolicy], (current) => current.id);
+            const reportCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, [submittedExpenseReport], (current) => current.reportID);
+            const transactionCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.TRANSACTION, [transaction], (current) => current.transactionID);
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
                     [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail},
                     [secondUserAccountID]: {accountID: secondUserAccountID, login: secondUserEmail},
                 },
-                [`${ONYXKEYS.COLLECTION.POLICY}${forwardedPolicyID}`]: corporatePolicy,
-                [`${ONYXKEYS.COLLECTION.REPORT}${forwardedReportID}`]: submittedExpenseReport,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${forwardedTransactionID}`]: transaction,
+                ...policyCollectionDataSet,
+                ...reportCollectionDataSet,
+                ...transactionCollectionDataSet,
             });
             await waitForBatchedUpdates();
         });
