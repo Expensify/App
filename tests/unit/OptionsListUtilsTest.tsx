@@ -93,6 +93,7 @@ import type {PersonalDetails, Policy, Report, ReportAction, ReportNameValuePairs
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import type Login from '@src/types/onyx/Login';
+import type {OriginalMessageReimbursed} from '@src/types/onyx/OriginalMessage';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -11086,7 +11087,7 @@ describe('OptionsListUtils', () => {
              * returns the params for `createOptionFromReport`. Each case uses its own reportID because the
              * module-level report-action caches survive `Onyx.clear()`, so a shared ID would leak across tests.
              */
-            const setUpReimbursedReport = async (reportID: string, ownerAccountID: number, originalMessage: Record<string, unknown>) => {
+            const setUpReimbursedReport = async (reportID: string, ownerAccountID: number, originalMessage: OriginalMessageReimbursed) => {
                 const report: Report = {
                     reportID,
                     reportName: 'Expense Report',
@@ -11097,14 +11098,14 @@ describe('OptionsListUtils', () => {
                     lastActionType: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
                     lastVisibleActionCreated: '2024-01-01 10:00:00.000',
                 };
-                const reimbursedAction = {
+                const reimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
                     reportActionID: `reimbursed-${reportID}`,
                     created: '2024-01-01 10:00:00.000',
                     actorAccountID: 3,
                     originalMessage,
                     message: [{type: 'COMMENT', html: 'reimbursed', text: 'reimbursed'}],
-                } as unknown as ReportAction;
+                };
 
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reimbursedAction.reportActionID]: reimbursedAction});
