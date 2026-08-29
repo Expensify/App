@@ -87,14 +87,27 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
             statusNum: action?.childStatusNum,
         } as Report);
 
-    const taskTitleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitle), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
-
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
     // Other linked reportActions will only contain the taskReportID and we will grab the details from there
     const isTaskCompletedFromOnyx = !isEmptyObject(taskReport)
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
+
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+
+    // The join-workspace intent's tasks each point at an onboarding screen that only makes sense until the step is
+    // done. Once completed there is nothing left to act on, so they lose their link, their press target and their
+    // disclosure arrow. Other tasks keep the standard behaviour of staying openable after completion.
+    const isFinishedJoinWorkspaceTask =
+        isTaskCompletedFromOnyx &&
+        !!taskReportID &&
+        (taskReportID === introSelected?.addWorkEmail || taskReportID === introSelected?.validateEmail || taskReportID === introSelected?.joinWorkspace);
+
+    const taskTitleMarkdown = Parser.htmlToMarkdown(taskTitle);
+    const taskTitleWithoutImage = Parser.replace(isFinishedJoinWorkspaceTask ? taskTitleMarkdown.replace(CONST.REGEX.MARKDOWN_LINK, '$1') : taskTitleMarkdown, {
+        disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES],
+    });
 
     const taskTitlePlainText = Parser.htmlToText(taskTitle);
     const {
@@ -151,7 +164,12 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
         <View style={[styles.chatItemMessage, !hasAssignee && styles.mv1]}>
             <PressableWithoutFeedback
                 accessible={shouldSplitTaskAccessibilityTargets ? false : undefined}
-                onPress={() => Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}))}
+                onPress={() => {
+                    if (isFinishedJoinWorkspaceTask) {
+                        return;
+                    }
+                    Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}));
+                }}
                 onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={(event) =>
@@ -194,7 +212,12 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={taskAccessibilityLabel}
                             accessibilityHint={titlePressableAccessibilityHint}
-                            onPress={() => Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}))}
+                            onPress={() => {
+                                if (isFinishedJoinWorkspaceTask) {
+                                    return;
+                                }
+                                Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}));
+                            }}
                             onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                             onPressOut={() => ControlSelection.unblock()}
                             onLongPress={(event) =>
@@ -223,11 +246,13 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                         />
                     </View>
                 )}
-                <Icon
-                    src={icons.ArrowRight}
-                    fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
-                    additionalStyles={iconWrapperStyle}
-                />
+                {!isFinishedJoinWorkspaceTask && (
+                    <Icon
+                        src={icons.ArrowRight}
+                        fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
+                        additionalStyles={iconWrapperStyle}
+                    />
+                )}
             </PressableWithoutFeedback>
         </View>
     );
