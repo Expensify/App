@@ -6140,6 +6140,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 report,
                 privateIsArchived: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
 
             expect(result.reportID).toBe(reportID);
@@ -7687,6 +7688,7 @@ describe('OptionsListUtils', () => {
                 isReportArchived: false,
                 lastAction: addCommentAction,
                 currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
 
             // Then the mention should fall back to the hidden placeholder
@@ -8039,8 +8041,8 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: true,
-
                     currentUserLogin: '',
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
 
                 expect(lastMessage).toContain('UnavailableMarker');
