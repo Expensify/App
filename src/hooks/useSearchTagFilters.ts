@@ -37,14 +37,11 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
     const [hasMore, setHasMore] = useState(false);
     const [nextCursor, setNextCursor] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
-    const hasCachedData = useRef(false);
 
-    // Track if we have cached data to avoid showing loading state on remount
+    // Keep ref updated with latest searchResults for use in stable callbacks
+    const searchResultsRef = useRef(searchResults);
     useEffect(() => {
-        if (!searchResults || Object.keys(searchResults).length === 0) {
-            return;
-        }
-        hasCachedData.current = true;
+        searchResultsRef.current = searchResults;
     }, [searchResults]);
 
     const loadMore = useCallback(() => {
@@ -65,7 +62,8 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
         setNextCursor('');
         setHasMore(false);
         // Only show loading if no cached data - otherwise fetch silently in background
-        if (!hasCachedData.current) {
+        const hasCachedData = searchResultsRef.current && Object.keys(searchResultsRef.current).length > 0;
+        if (!hasCachedData) {
             setIsLoading(true);
         }
         openSearchTagFiltersPage({searchQuery: query, cursor: '', limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE})
