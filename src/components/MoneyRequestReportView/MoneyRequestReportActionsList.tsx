@@ -684,7 +684,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         }, 2000);
 
         if (!hasNewestReportAction) {
-            openReport({reportID, introSelected, conciergeChat, betas, hasReportActions: true, currentUserAccountID});
+            openReport({reportID, introSelected, conciergeChat, betas, personalDetails: undefined, hasReportActions: true, currentUserAccountID});
             scrollToBottom();
             return;
         }

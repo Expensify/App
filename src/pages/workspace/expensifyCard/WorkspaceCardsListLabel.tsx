@@ -151,6 +151,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                 introSelected,
                 conciergeChat,
                 betas,
+                personalDetails: undefined,
                 hasReportActions,
                 currentUserAccountID,
                 isSelfTourViewed,

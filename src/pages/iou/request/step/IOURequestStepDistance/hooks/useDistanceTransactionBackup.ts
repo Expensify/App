@@ -72,7 +72,7 @@ function useDistanceTransactionBackup({
             if (!transaction?.reportID || hasRoute(transaction, true)) {
                 return;
             }
-            openReport({reportID: transaction?.reportID, introSelected, conciergeChat, betas, hasReportActions: true, currentUserAccountID});
+            openReport({reportID: transaction?.reportID, introSelected, conciergeChat, betas, personalDetails: undefined, hasReportActions: true, currentUserAccountID});
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- mount/unmount-only effect: backup on mount, restore-or-drop on unmount, never re-runs
     }, []);

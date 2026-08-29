@@ -215,7 +215,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             return;
         }
 
-        openReport({reportID: reportIDFromRoute, introSelected, conciergeChat, betas, hasReportActions, currentUserAccountID});
+        openReport({reportID: reportIDFromRoute, introSelected, conciergeChat, betas, personalDetails, hasReportActions, currentUserAccountID});
         isInitialMountRef.current = false;
 
         // oneTransactionID dependency handles the case when deleting a transaction:

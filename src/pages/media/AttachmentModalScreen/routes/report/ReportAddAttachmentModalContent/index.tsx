@@ -81,6 +81,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
             conciergeChat,
             reportActionID,
             betas,
+            personalDetails: undefined,
             hasReportActions,
             currentUserAccountID,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,

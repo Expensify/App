@@ -338,9 +338,11 @@ type OpenReportActionParams = {
     /** The list of participants */
     participants?: ParticipantInfo[];
 
-    // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
-    /** The personal details of the participants */
-    personalDetails?: OnyxEntry<PersonalDetailsList>;
+    /**
+     * The personal details of the participants. They are only read when a new report is created (i.e. when `newReportObject` is passed) to
+     * build the optimistic created action and the optimistic details of the new participants, so `undefined` can be passed when opening an existing report.
+     */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 
     /** The optimistic report object created when making a new chat, saved as optimistic data */
     newReportObject?: OptimisticChatReport;
@@ -528,14 +530,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (value) => {
         allReports = value;
-    },
-});
-
-let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => {
-        allPersonalDetails = value ?? {};
     },
 });
 
@@ -1689,7 +1683,6 @@ function openReport(params: OpenReportActionParams) {
     }
 
     const participantLoginList = participants.map((p) => p.login).filter((login) => !!login);
-    // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
     const participantAccountIDList = participants.map((p) => p.accountID).filter((id): id is number => id !== undefined);
     const existingReportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
     const isCreatingNewReport = !isEmptyObject(newReportObject);
@@ -1951,8 +1944,7 @@ function openReport(params: OpenReportActionParams) {
 
         let emailCreatingAction: string = CONST.REPORT.OWNER_EMAIL_FAKE;
         if (newReportObject.ownerAccountID && newReportObject.ownerAccountID !== CONST.REPORT.OWNER_ACCOUNT_ID_FAKE) {
-            // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-            emailCreatingAction = (personalDetails ?? allPersonalDetails)?.[newReportObject.ownerAccountID]?.login ?? '';
+            emailCreatingAction = personalDetails?.[newReportObject.ownerAccountID]?.login ?? '';
         }
         const optimisticCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction});
         optimisticData.push(
@@ -1990,7 +1982,7 @@ function openReport(params: OpenReportActionParams) {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
         for (const [index, login] of participantLoginList.entries()) {
             const accountID = participantAccountIDs.at(index) ?? -1;
-            const isOptimisticAccount = !(personalDetails ?? allPersonalDetails)?.[accountID];
+            const isOptimisticAccount = !personalDetails?.[accountID];
 
             if (!isOptimisticAccount) {
                 continue;
@@ -2616,7 +2608,7 @@ function navigateToAndOpenReport({
 
     if (!shouldRevalidateExistingChat) {
         if (isOnboardingPending) {
-            openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions, currentUserAccountID});
+            openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails, hasReportActions, currentUserAccountID});
         }
         navigateToReport(chat.reportID, {shouldDismissModal, ...linkToOptions});
         return;
@@ -2644,7 +2636,7 @@ function navigateToAndOpenReport({
 
     // Re-open existing chats to re-validate server-side access and refresh stale local state. Pass hasCompletedGuidedSetupFlow
     // so a pending onboarding OpenReport is enqueued here too (see the create-path assumption note above).
-    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions, currentUserAccountID, conciergeChat});
+    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails, hasReportActions, currentUserAccountID, conciergeChat});
     navigateToReport(chat.reportID, {shouldDismissModal, ...linkToOptions});
 }
 
@@ -2782,7 +2774,7 @@ function navigateToAndOpenReportWithAccountIDs(
     });
 
     // Re-open existing chats to re-validate server-side access and refresh stale local state.
-    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions, currentUserAccountID, conciergeChat});
+    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails, hasReportActions, currentUserAccountID, conciergeChat});
     navigateToReport(chat.reportID, {shouldDismissModal: false});
 }
 
@@ -3833,7 +3825,7 @@ function toggleSubscribeToChildReport({
     hasReportActions,
 }: ToggleSubscribeToChildReportParams) {
     if (childReportID) {
-        openReport({reportID: childReportID, introSelected, betas, isSelfTourViewed, hasCompletedGuidedSetupFlow, hasReportActions, currentUserAccountID});
+        openReport({reportID: childReportID, introSelected, betas, personalDetails, isSelfTourViewed, hasCompletedGuidedSetupFlow, hasReportActions, currentUserAccountID});
         const parentReportActionID = parentReportAction.reportActionID;
         if (!prevNotificationPreference || isHiddenForCurrentUser(prevNotificationPreference)) {
             updateNotificationPreference(
@@ -4776,11 +4768,11 @@ function navigateToConciergeChatAndDeleteReport(
     );
 }
 
-function cleanUpOptimisticPersonalDetailsForFailedChat(report: OnyxEntry<Report>, currentUserAccountID: number) {
+function cleanUpOptimisticPersonalDetailsForFailedChat(report: OnyxEntry<Report>, currentUserAccountID: number, personalDetails: OnyxEntry<PersonalDetailsList>) {
     const personalDetailsToRemove: PersonalDetailsList = {};
 
     for (const accountID of Object.keys(report?.participants ?? {}).map(Number)) {
-        if (accountID === currentUserAccountID || !allPersonalDetails?.[accountID]?.isOptimisticPersonalDetail) {
+        if (accountID === currentUserAccountID || !personalDetails?.[accountID]?.isOptimisticPersonalDetail) {
             continue;
         }
         personalDetailsToRemove[accountID] = null;
@@ -4803,6 +4795,7 @@ function clearCreateChatError(
     reportOwnerPersonalDetail: OnyxEntry<PersonalDetails>,
     currentUserPersonalDetail: OnyxEntry<PersonalDetails>,
     conciergePersonalDetail: OnyxEntry<PersonalDetails>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
 ) {
     const metaData = getReportMetadata(report?.reportID);
     const isOptimisticReport = metaData?.isOptimisticReport;
@@ -4812,7 +4805,7 @@ function clearCreateChatError(
     }
 
     if (report?.errorFields?.createChat && isOptimisticReport) {
-        cleanUpOptimisticPersonalDetailsForFailedChat(report, currentUserAccountID);
+        cleanUpOptimisticPersonalDetailsForFailedChat(report, currentUserAccountID, personalDetails);
     }
 
     navigateToConciergeChatAndDeleteReport(

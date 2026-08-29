@@ -120,7 +120,15 @@ function DynamicReviewPage() {
         if (!route.params.reportID || report?.reportID) {
             return;
         }
-        openReport({reportID: route.params.reportID, introSelected, conciergeChat, betas, hasReportActions, currentUserAccountID: currentPersonalDetails.accountID});
+        openReport({
+            reportID: route.params.reportID,
+            introSelected,
+            conciergeChat,
+            betas,
+            personalDetails: undefined,
+            hasReportActions,
+            currentUserAccountID: currentPersonalDetails.accountID,
+        });
     }, [report?.reportID, route.params.reportID, introSelected, conciergeChat, betas, hasReportActions, currentPersonalDetails.accountID]);
 
     useEffect(() => {

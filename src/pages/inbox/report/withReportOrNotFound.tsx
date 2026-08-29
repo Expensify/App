@@ -119,6 +119,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                     introSelected,
                     conciergeChat,
                     betas,
+                    personalDetails: undefined,
                     hasReportActions,
                     currentUserAccountID,
                     isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,

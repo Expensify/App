@@ -352,7 +352,7 @@ function useReportActionsScroll({
             if (!Navigation.getReportRHPActiveRoute()) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, backTo));
             }
-            openReport({reportID, introSelected, conciergeChat, betas, hasReportActions: true, currentUserAccountID});
+            openReport({reportID, introSelected, conciergeChat, betas, personalDetails: undefined, hasReportActions: true, currentUserAccountID});
             reportScrollManager.scrollToBottom();
             return;
         }

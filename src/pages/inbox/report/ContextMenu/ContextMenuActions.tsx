@@ -620,12 +620,24 @@ const ContextMenuActions: ContextMenuAction[] = [
             !isChronosReport,
         onPress: (
             closePopover,
-            {reportID, reportActions, originalReportActions, originalReportID, reportAction, moneyRequestAction, introSelected, betas, childReportActions, currentUserAccountID},
+            {
+                reportID,
+                reportActions,
+                originalReportActions,
+                originalReportID,
+                reportAction,
+                moneyRequestAction,
+                introSelected,
+                betas,
+                childReportActions,
+                currentUserAccountID,
+                personalDetails,
+            },
         ) => {
             if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
                 const editExpense = () => {
                     const childReportID = reportAction?.childReportID;
-                    openReport({reportID: childReportID, introSelected, betas, hasReportActions: !!childReportActions, currentUserAccountID});
+                    openReport({reportID: childReportID, introSelected, betas, personalDetails, hasReportActions: !!childReportActions, currentUserAccountID});
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 };
                 if (closePopover) {

@@ -117,6 +117,7 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
             introSelected,
             conciergeChat,
             betas,
+            personalDetails: undefined,
             hasReportActions,
             currentUserAccountID,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,

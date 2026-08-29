@@ -72,6 +72,7 @@ function TestDriveDemo() {
                     introSelected,
                     betas,
                     conciergeChat,
+                    personalDetails: undefined,
                     hasReportActions: hasConciergeReportActions,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,

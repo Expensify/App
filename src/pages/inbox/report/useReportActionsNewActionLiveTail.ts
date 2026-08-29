@@ -117,6 +117,7 @@ function useReportActionsNewActionLiveTail({
                             introSelected,
                             conciergeChat,
                             betas,
+                            personalDetails: undefined,
                             hasReportActions: true,
                             currentUserAccountID,
                         });

@@ -94,6 +94,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     introSelected,
                     conciergeChat,
                     betas,
+                    personalDetails,
                     shouldMarkAsRead: false,
                     hasReportActions: !!hasReportActions?.[report.reportID],
                     currentUserAccountID,
