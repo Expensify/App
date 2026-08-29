@@ -1,11 +1,12 @@
+import type {PressableRef} from '@components/Pressable/GenericPressable/types';
+
 import type {ButtonVariant} from '@styles/utils/types';
 
 import type CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {ForwardedRef} from 'react';
 import type React from 'react';
-import type {AccessibilityState, GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TargetedEvent, View, ViewStyle} from 'react-native';
+import type {AccessibilityState, GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TargetedEvent, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 type ButtonEventsProps = {
@@ -119,7 +120,7 @@ type BaseButtonProps = WithSentryLabel &
         /**
          * Reference to the outer element.
          */
-        ref?: ForwardedRef<View>;
+        ref?: PressableRef;
     };
 
 type ButtonProps = BaseButtonProps & {

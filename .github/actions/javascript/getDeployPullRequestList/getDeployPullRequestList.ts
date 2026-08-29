@@ -84,8 +84,9 @@ async function run() {
         }
         core.setOutput('MOBILE_EXPENSIFY_PR_LIST', mobileExpensifyPRList);
     } catch (error) {
-        console.error((error as Error).message);
-        core.setFailed(error as Error);
+        const failure = error instanceof Error ? error : String(error);
+        console.error(failure instanceof Error ? failure.message : failure);
+        core.setFailed(failure);
     }
 }
 

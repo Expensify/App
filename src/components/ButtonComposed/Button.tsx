@@ -1,6 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import {getButtonRole} from '@components/Button/utils';
-import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -135,7 +134,7 @@ function Button({
 
     return (
         <PressableWithFeedback
-            ref={ref as PressableRef}
+            ref={ref}
             id={id}
             testID={testID}
             accessibilityLabel={accessibilityLabel}
@@ -173,9 +172,9 @@ function Button({
             onHoverIn={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(true) : undefined}
             onHoverOut={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(false) : undefined}
             onPress={(event) => {
-                if (event?.type === 'click') {
-                    const currentTarget = event?.currentTarget as HTMLElement;
-                    currentTarget?.blur();
+                const currentTarget = event?.currentTarget;
+                if (event?.type === 'click' && typeof currentTarget === 'object' && currentTarget !== null && 'blur' in currentTarget && typeof currentTarget.blur === 'function') {
+                    currentTarget.blur();
                 }
 
                 if (enableHapticFeedback) {

@@ -106,6 +106,13 @@ function ConfirmationPage({
     const illustrations = useMemoizedLazyIllustrations(['Fireworks']);
     const isLottie = isIllustrationLottieAnimation(illustration);
     const shouldShowStaticFallback = isLottie && isReduceMotionEnabled && illustration === LottieAnimations.Fireworks;
+    const flattenedIllustrationStyle = StyleSheet.flatten(illustrationStyle);
+    const flattenedIllustrationWidth = flattenedIllustrationStyle?.width;
+    const flattenedIllustrationHeight = flattenedIllustrationStyle?.height;
+    const webIllustrationWidth =
+        typeof flattenedIllustrationWidth === 'string' || typeof flattenedIllustrationWidth === 'number' ? flattenedIllustrationWidth : styles.confirmationAnimation.width;
+    const webIllustrationHeight =
+        typeof flattenedIllustrationHeight === 'string' || typeof flattenedIllustrationHeight === 'number' ? flattenedIllustrationHeight : styles.confirmationAnimation.height;
 
     return (
         <View style={[styles.flex1, containerStyle]}>
@@ -129,8 +136,8 @@ function ConfirmationPage({
                                 loop
                                 style={[styles.confirmationAnimation, illustrationStyle]}
                                 webStyle={{
-                                    width: (StyleSheet.flatten(illustrationStyle)?.width as number) ?? styles.confirmationAnimation.width,
-                                    height: (StyleSheet.flatten(illustrationStyle)?.height as number) ?? styles.confirmationAnimation.height,
+                                    width: webIllustrationWidth,
+                                    height: webIllustrationHeight,
                                 }}
                             />
                         );
