@@ -3026,7 +3026,6 @@ function getValidOptions(
             loginList,
             currentUserEmail,
             personalDetails,
-            countryCode,
             {
                 dateFnsLocale,
                 excludeLogins: loginsToExclude,
@@ -3034,6 +3033,7 @@ function getValidOptions(
                 searchInputValue,
                 currentUserAccountID,
             },
+            countryCode,
         );
     }
 
@@ -3460,8 +3460,8 @@ function filterUserToInvite(
     loginList: OnyxEntry<Login>,
     currentUserEmail: string,
     personalDetails: OnyxEntry<PersonalDetailsList>,
-    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
     config: FilterUserToInviteConfig,
+    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
 ): SearchOptionData | null {
     const {canInviteUser = true, excludeLogins = {}, dateFnsLocale, currentUserAccountID} = config;
     if (!canInviteUser) {
@@ -3530,14 +3530,13 @@ function filterOptions<T extends SearchOptionData>(
         loginList,
         currentUserEmail,
         personalDetailsCollection,
-        countryCode,
         {
             ...config,
-            // `config` is optional, so the required locale has to be set explicitly rather than relying on the spread.
             dateFnsLocale: config?.dateFnsLocale,
             searchInputValue: searchInputValueForInvite,
             currentUserAccountID,
         },
+        countryCode,
     );
     const workspaceChats = filterWorkspaceChats(options.workspaceChats ?? [], searchTerms);
 
