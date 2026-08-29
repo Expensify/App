@@ -53,6 +53,10 @@ type BookTravelButtonProps = WithSentryLabel & {
 
 const hasPolicyIDInActiveRoute = () => getSearchParamFromPath(Navigation.getActiveRoute(), CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) !== null;
 
+// Avoids a duplicate policyID query param when the active route already has one (e.g. opened from the FAB).
+const getPolicyDynamicSuffix = (dynamicRoute: {path: string; getRoute: (policyID?: string) => string}, policyID?: string) =>
+    hasPolicyIDInActiveRoute() ? dynamicRoute.path : dynamicRoute.getRoute(policyID);
+
 function BookTravelButton({
     text,
     shouldRenderErrorMessageBelowButton = false,
@@ -85,7 +89,7 @@ function BookTravelButton({
     const groupPaidPolicies = activePolicies.filter((activePolicy) => activePolicy.type !== CONST.POLICY.TYPE.PERSONAL && isPaidGroupPolicy(activePolicy));
 
     const navigateToPublicDomainError = () => {
-        const dynamicSuffix = hasPolicyIDInActiveRoute() ? DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.path : DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(activePolicyID);
+        const dynamicSuffix = getPolicyDynamicSuffix(DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR, activePolicyID);
         Navigation.navigate(createDynamicRoute(dynamicSuffix));
     };
 
@@ -158,7 +162,7 @@ function BookTravelButton({
         // Legacy request-access path for not-yet-provisioned workspaces when the self-serve provisioning beta is off.
         if (!isPolicyProvisioned && !isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
             if (!isUserValidated) {
-                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, activePolicyID, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(getPolicyDynamicSuffix(DYNAMIC_ROUTES.TRAVEL_VERIFY_ACCOUNT, activePolicyID)));
                 return;
             }
             if (shouldShowVerifyAccountModal) {
@@ -189,7 +193,7 @@ function BookTravelButton({
         // replaced with the verify URL a render later.
         if (!isUserValidated) {
             setTravelProvisioningNextStep(enableTravelRoute);
-            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, activePolicyID, Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(getPolicyDynamicSuffix(DYNAMIC_ROUTES.TRAVEL_VERIFY_ACCOUNT, activePolicyID)));
             return;
         }
         Navigation.navigate(enableTravelRoute);
