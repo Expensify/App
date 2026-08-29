@@ -13,7 +13,7 @@ import {areSettingsInErrorFields, getCurrentSageIntacctEntityName, settingsPendi
 import createDynamicRoute from '@navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@navigation/Navigation';
 
-import TravelInvoicingContinuousReconciliationSection from '@pages/workspace/accounting/common/TravelInvoicingContinuousReconciliationSection';
+import TravelBillingContinuousReconciliationSection from '@pages/workspace/accounting/common/TravelBillingContinuousReconciliationSection';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -141,7 +141,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                     onCloseError={section.onCloseError}
                 />
             ))}
-            <TravelInvoicingContinuousReconciliationSection
+            <TravelBillingContinuousReconciliationSection
                 policy={policy}
                 connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
                 isAutoSyncEnabled={!!config?.autoSync?.enabled}

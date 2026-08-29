@@ -1,6 +1,7 @@
 import getCollectionDelta from '@libs/getCollectionDelta';
 import Log from '@libs/Log';
-import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {endSpan, getSpan, getSpanByPrefix, startSpan} from '@libs/telemetry/activeSpans';
+import detectOnyxDerivedLoop from '@libs/telemetry/detectOnyxDerivedLoop';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -102,11 +103,15 @@ function init() {
                 context.triggeredKeys = triggeredKeys;
 
                 const spanId = `${CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE}_${key}`;
+                // No-splash flows end ManualAppStartup before the startup response lands, so without this fallback onlyIfParent drops every recompute it triggers.
+                const startupSpan = getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP) ?? getSpanByPrefix(CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY);
                 startSpan(spanId, {
                     name: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
                     op: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
-                    parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
-                    attributes: {derivedKey: key},
+                    parentSpan: startupSpan,
+                    // A span with no parent is sent as its own transaction, one per recompute.
+                    onlyIfParent: true,
+                    attributes: {derivedKey: key, [CONST.TELEMETRY.ATTRIBUTE_IS_STARTUP]: !!startupSpan},
                 });
 
                 try {
@@ -144,6 +149,8 @@ function init() {
                 for (const index of pendingDependencyIndexes) {
                     triggeredKeys.add(dependencies[index]);
                 }
+
+                detectOnyxDerivedLoop(key, triggeredKeys);
 
                 if (hasFlushedOnce) {
                     for (const index of pendingDependencyIndexes) {

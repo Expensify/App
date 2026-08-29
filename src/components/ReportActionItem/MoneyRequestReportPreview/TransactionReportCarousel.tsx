@@ -20,8 +20,7 @@ import {useReportPreviewCarouselList, useReportPreviewMeta, useReportPreviewUISt
 function TransactionReportCarousel() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {shouldShowPreviewLoading, shouldShowAccessPlaceHolder, shouldShowEmptyPlaceholder, previewCarouselMinWidth, carouselReasonAttributes, reportPreviewStyles} =
-        useReportPreviewUIState();
+    const {shouldShowPreviewLoading, shouldShowAccessPlaceHolder, shouldShowEmptyPlaceholder, previewCarouselMinWidth, reportPreviewStyles} = useReportPreviewUIState();
     const carousel = useReportPreviewCarouselList();
     const {setCarouselRef} = useReportPreviewMeta();
 
@@ -35,10 +34,7 @@ function TransactionReportCarousel() {
                     styles.mtn1,
                 ]}
             >
-                <ActivityIndicator
-                    size={40}
-                    reasonAttributes={carouselReasonAttributes}
-                />
+                <ActivityIndicator size={40} />
             </View>
         );
     }

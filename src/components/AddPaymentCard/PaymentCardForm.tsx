@@ -13,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getFieldRequiredErrors, isValidAddress, isValidDebitCard, isValidExpirationDate, isValidLegalName, isValidPaymentZipCode, isValidSecurityCode} from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidAddress, isValidDebitCard, isValidExpirationDate, isValidNameOnCard, isValidPaymentZipCode, isValidSecurityCode} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -179,7 +179,7 @@ function PaymentCardForm({
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM> => {
         const errors = getFieldRequiredErrors(values, REQUIRED_FIELDS, translate);
 
-        if (values.nameOnCard && !isValidLegalName(values.nameOnCard)) {
+        if (values.nameOnCard && !isValidNameOnCard(values.nameOnCard)) {
             errors.nameOnCard = translate(label.error.nameOnCard);
         }
 
@@ -257,6 +257,7 @@ function PaymentCardForm({
                 submitButtonText={submitButtonText}
                 scrollContextEnabled
                 style={[styles.mh5, styles.flexGrow1]}
+                shouldPreserveCustomValidationErrors
             >
                 <InputWrapper
                     InputComponent={TextInput}

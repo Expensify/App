@@ -1,451 +1,665 @@
-import type {TransactionEditPermissions, TransactionEditPermissionsParams} from '@libs/actions/TransactionInlineEdit';
-import {getTransactionEditPermissions} from '@libs/actions/TransactionInlineEdit';
+import type {TransactionEditPermissions, TransactionEditPermissionsParams, TransactionInlineEditParams} from '@libs/actions/TransactionInlineEdit';
+import {
+    editTransactionAmountInline,
+    editTransactionCategoryInline,
+    editTransactionDateInline,
+    editTransactionDescriptionInline,
+    editTransactionMerchantInline,
+    editTransactionTagInline,
+    getTransactionEditPermissions,
+} from '@libs/actions/TransactionInlineEdit';
+
+import {
+    updateMoneyRequestAmountAndCurrency,
+    updateMoneyRequestCategory,
+    updateMoneyRequestDate,
+    updateMoneyRequestDescription,
+    updateMoneyRequestMerchant,
+    updateMoneyRequestTag,
+} from '@userActions/IOU/UpdateMoneyRequest';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 
-describe('getTransactionEditPermissions', () => {
-    // Use unreported transaction by default to bypass most permission checks
-    const baseTransaction: Transaction = {
-        transactionID: '1',
-        reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-        amount: 1000,
-        currency: 'USD',
-        merchant: 'Test Merchant',
-        created: '2024-01-01',
-        comment: {
-            comment: 'Test comment',
-        },
-    };
+import Onyx from 'react-native-onyx';
 
-    const baseParentReportAction: ReportAction = {
-        reportActionID: '1',
-        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-        actorAccountID: 1,
-        created: '2024-01-01',
-        message: [],
-        originalMessage: {
-            IOUTransactionID: '1',
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+
+// The delegate boundary is the assertion point: editTransaction*Inline only builds params and calls through.
+jest.mock('@userActions/IOU/UpdateMoneyRequest', () => ({
+    updateMoneyRequestDate: jest.fn(),
+    updateMoneyRequestMerchant: jest.fn(),
+    updateMoneyRequestDescription: jest.fn(),
+    updateMoneyRequestCategory: jest.fn(),
+    updateMoneyRequestAmountAndCurrency: jest.fn(),
+    updateMoneyRequestTag: jest.fn(),
+}));
+
+describe('TransactionInlineEdit', () => {
+    describe('getTransactionEditPermissions', () => {
+        // Use unreported transaction by default to bypass most permission checks
+        const baseTransaction: Transaction = {
+            transactionID: '1',
+            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             amount: 1000,
             currency: 'USD',
-            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-        },
-    };
-
-    const baseParentReport: Report = {
-        reportID: '100',
-        ownerAccountID: 1,
-        managerID: 1,
-        policyID: '1',
-        type: CONST.REPORT.TYPE.EXPENSE,
-        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-    };
-
-    const basePolicy: Policy = {
-        id: '1',
-        name: 'Test Policy',
-        role: 'admin',
-        type: CONST.POLICY.TYPE.TEAM,
-        owner: '',
-        outputCurrency: 'USD',
-        isPolicyExpenseChatEnabled: false,
-        areCategoriesEnabled: true,
-    };
-
-    const baseParams: TransactionEditPermissionsParams = {
-        transaction: baseTransaction,
-        parentReportAction: baseParentReportAction,
-        parentReport: baseParentReport,
-        policy: basePolicy,
-    };
-
-    const policyCategories: PolicyCategories = {
-        Food: {name: 'Food', enabled: true},
-        Travel: {name: 'Travel', enabled: true},
-    };
-
-    const singleLevelTags: PolicyTagLists = {
-        Tag: {
-            name: 'Tag',
-            required: false,
-            orderWeight: 1,
-            tags: {
-                Project1: {name: 'Project1', enabled: true},
-                Project2: {name: 'Project2', enabled: true},
+            merchant: 'Test Merchant',
+            created: '2024-01-01',
+            comment: {
+                comment: 'Test comment',
             },
-        },
-    };
-
-    const baseUnreportedParams: TransactionEditPermissionsParams = {
-        ...baseParams,
-        parentReportAction: undefined,
-        parentReport: undefined,
-        policyCategories,
-        policyTags: singleLevelTags,
-    };
-
-    const allFalsePermissions: TransactionEditPermissions = {
-        canEditDate: false,
-        canEditMerchant: false,
-        canEditDescription: false,
-        canEditCategory: false,
-        canEditAmount: false,
-        canEditTag: false,
-    } as const;
-
-    describe('disabled flag', () => {
-        it('should return all false when disabled is true', () => {
-            const permissions = getTransactionEditPermissions({
-                ...baseParams,
-                disabled: true,
-            });
-
-            expect(permissions).toEqual(allFalsePermissions);
-        });
-    });
-
-    describe('missing transaction', () => {
-        it('should return all false when transaction is undefined', () => {
-            const permissions = getTransactionEditPermissions({
-                ...baseParams,
-                transaction: undefined,
-            });
-
-            expect(permissions).toEqual(allFalsePermissions);
-        });
-    });
-
-    describe('scanning transactions', () => {
-        it('should handle field permissions correctly while transaction is scanning', () => {
-            const scanningTransaction: Transaction = {
-                ...baseTransaction,
-                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-                amount: 0,
-                receipt: {
-                    state: CONST.IOU.RECEIPT_STATE.SCANNING,
-                },
-            };
-
-            const permissions = getTransactionEditPermissions({
-                ...baseUnreportedParams,
-                transaction: scanningTransaction,
-            });
-
-            expect(permissions).toMatchObject({
-                canEditCategory: true,
-                canEditDate: true,
-                canEditDescription: true,
-                canEditTag: true,
-                // Amount and merchant editing should be disabled for scanning transactions
-                canEditAmount: false,
-                canEditMerchant: false,
-            } satisfies TransactionEditPermissions);
-        });
-    });
-
-    describe('distance requests', () => {
-        it('should handle field permissions correctly for distance requests', () => {
-            const distanceTransaction: Transaction = {
-                ...baseTransaction,
-                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                comment: {
-                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
-                    customUnit: {
-                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                    },
-                },
-            };
-
-            const permissions = getTransactionEditPermissions({
-                ...baseUnreportedParams,
-                transaction: distanceTransaction,
-            });
-
-            expect(permissions).toMatchObject({
-                canEditCategory: true,
-                canEditDate: true,
-                canEditDescription: true,
-                canEditTag: true,
-                canEditAmount: true,
-                // Merchant editing should be disabled for distance requests
-                canEditMerchant: false,
-            } satisfies TransactionEditPermissions);
-        });
-    });
-
-    describe('per diem requests', () => {
-        it('should disable amount and merchant for per diem requests', () => {
-            const perDiemTransaction: Transaction = {
-                ...baseTransaction,
-                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
-                comment: {
-                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
-                    customUnit: {
-                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
-                    },
-                },
-            };
-
-            const permissions = getTransactionEditPermissions({
-                ...baseUnreportedParams,
-                transaction: perDiemTransaction,
-            });
-
-            expect(permissions).toMatchObject({
-                canEditCategory: true,
-                canEditDate: true,
-                canEditDescription: true,
-                canEditTag: true,
-                // Amount and merchant are derived from the rate and cannot be edited
-                canEditAmount: false,
-                canEditMerchant: false,
-            } satisfies TransactionEditPermissions);
-        });
-    });
-
-    describe('split expenses', () => {
-        it('should handle field permissions correctly for split expense children', () => {
-            const splitTransaction: Transaction = {
-                ...baseTransaction,
-                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-                comment: {
-                    originalTransactionID: 'original123',
-                    source: CONST.IOU.TYPE.SPLIT,
-                },
-            };
-
-            const originalTransaction: Transaction = {
-                ...baseTransaction,
-                transactionID: 'original123',
-                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-                comment: {},
-            };
-
-            const permissions = getTransactionEditPermissions({
-                ...baseUnreportedParams,
-                transaction: splitTransaction,
-                originalTransaction,
-            });
-
-            expect(permissions).toMatchObject({
-                canEditCategory: true,
-                canEditDate: true,
-                canEditDescription: true,
-                canEditTag: true,
-                canEditMerchant: true,
-                // Amount editing should be disabled for split expense children
-                canEditAmount: false,
-            } satisfies TransactionEditPermissions);
-        });
-    });
-
-    describe('category permissions', () => {
-        it('should disable category editing when categories are not enabled on policy', () => {
-            const policyWithoutCategories: Policy = {
-                ...basePolicy,
-                areCategoriesEnabled: false,
-            };
-
-            const permissions = getTransactionEditPermissions({
-                ...baseUnreportedParams,
-                policy: policyWithoutCategories,
-            });
-
-            expect(permissions.canEditCategory).toBe(false);
-        });
-
-        it('should enable category editing when transaction already has a category', () => {
-            const transactionWithCategory: Transaction = {
-                ...baseTransaction,
-                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-                category: 'Food',
-            };
-
-            const permissions = getTransactionEditPermissions({
-                ...baseUnreportedParams,
-                transaction: transactionWithCategory,
-            });
-
-            expect(permissions.canEditCategory).toBe(true);
-        });
-    });
-
-    describe('tag permissions', () => {
-        it('should disable tag editing for multi-level tags', () => {
-            const multiLevelTags: PolicyTagLists = {
-                Department: {
-                    name: 'Department',
-                    required: false,
-                    orderWeight: 1,
-                    tags: {
-                        Engineering: {name: 'Engineering', enabled: true},
-                    },
-                },
-                Team: {
-                    name: 'Team',
-                    required: false,
-                    orderWeight: 2,
-                    tags: {
-                        Frontend: {name: 'Frontend', enabled: true},
-                    },
-                },
-            };
-
-            const permissions = getTransactionEditPermissions({
-                ...baseUnreportedParams,
-                policyTags: multiLevelTags,
-            });
-
-            expect(permissions.canEditTag).toBe(false);
-        });
-
-        it('should enable tag editing when transaction already has a tag', () => {
-            const transactionWithTag: Transaction = {
-                ...baseTransaction,
-                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-                tag: 'Project1',
-            };
-
-            const permissions = getTransactionEditPermissions({
-                ...baseUnreportedParams,
-                transaction: transactionWithTag,
-                policyTags: undefined,
-            });
-
-            expect(permissions.canEditTag).toBe(true);
-        });
-    });
-
-    describe('unreported expenses', () => {
-        const unreportedTransaction: Transaction = {
-            ...baseTransaction,
-            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
         };
 
-        it('should allow editing all fields', () => {
-            const permissions = getTransactionEditPermissions({
-                ...baseUnreportedParams,
-                transaction: unreportedTransaction,
-            });
+        const baseParentReportAction: ReportAction = {
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: 1,
+            created: '2024-01-01',
+            message: [],
+            originalMessage: {
+                IOUTransactionID: '1',
+                amount: 1000,
+                currency: 'USD',
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            },
+        };
 
-            expect(permissions).toMatchObject({
-                canEditAmount: true,
-                canEditDate: true,
-                canEditDescription: true,
-                canEditMerchant: true,
-                canEditCategory: true,
-                canEditTag: true,
-            } satisfies TransactionEditPermissions);
+        const baseParentReport: Report = {
+            reportID: '100',
+            ownerAccountID: 1,
+            managerID: 1,
+            policyID: '1',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        const basePolicy: Policy = {
+            id: '1',
+            name: 'Test Policy',
+            role: 'admin',
+            type: CONST.POLICY.TYPE.TEAM,
+            owner: '',
+            outputCurrency: 'USD',
+            areCategoriesEnabled: true,
+        };
+
+        const baseParams: TransactionEditPermissionsParams = {
+            transaction: baseTransaction,
+            parentReportAction: baseParentReportAction,
+            parentReport: baseParentReport,
+            policy: basePolicy,
+            parentReportActions: undefined,
+        };
+
+        const policyCategories: PolicyCategories = {
+            Food: {name: 'Food', enabled: true},
+            Travel: {name: 'Travel', enabled: true},
+        };
+
+        const singleLevelTags: PolicyTagLists = {
+            Tag: {
+                name: 'Tag',
+                required: false,
+                orderWeight: 1,
+                tags: {
+                    Project1: {name: 'Project1', enabled: true},
+                    Project2: {name: 'Project2', enabled: true},
+                },
+            },
+        };
+
+        const baseUnreportedParams: TransactionEditPermissionsParams = {
+            ...baseParams,
+            parentReportAction: undefined,
+            parentReport: undefined,
+            policyCategories,
+            policyTags: singleLevelTags,
+        };
+
+        const allFalsePermissions: TransactionEditPermissions = {
+            canEditDate: false,
+            canEditMerchant: false,
+            canEditDescription: false,
+            canEditCategory: false,
+            canEditAmount: false,
+            canEditTag: false,
+        } as const;
+
+        describe('disabled flag', () => {
+            it('should return all false when disabled is true', () => {
+                const permissions = getTransactionEditPermissions({
+                    ...baseParams,
+                    disabled: true,
+                });
+
+                expect(permissions).toEqual(allFalsePermissions);
+            });
         });
 
-        it('should disable category and tag editing without available options', () => {
-            const permissions = getTransactionEditPermissions({
-                ...baseUnreportedParams,
-                transaction: unreportedTransaction,
-                policyCategories: undefined,
-                policyTags: undefined,
-            });
+        describe('missing transaction', () => {
+            it('should return all false when transaction is undefined', () => {
+                const permissions = getTransactionEditPermissions({
+                    ...baseParams,
+                    transaction: undefined,
+                });
 
-            expect(permissions).toMatchObject({
-                canEditAmount: true,
-                canEditDate: true,
-                canEditDescription: true,
-                canEditMerchant: true,
-                canEditCategory: false,
-                canEditTag: false,
-            } satisfies TransactionEditPermissions);
+                expect(permissions).toEqual(allFalsePermissions);
+            });
         });
 
-        it('should respect scanning restrictions', () => {
-            const permissions = getTransactionEditPermissions({
-                ...baseUnreportedParams,
-                transaction: {
-                    ...unreportedTransaction,
+        describe('scanning transactions', () => {
+            it('should handle field permissions correctly while transaction is scanning', () => {
+                const scanningTransaction: Transaction = {
+                    ...baseTransaction,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                     merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                     amount: 0,
-                    receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
-                },
-            });
+                    receipt: {
+                        state: CONST.IOU.RECEIPT_STATE.SCANNING,
+                    },
+                };
 
-            expect(permissions).toMatchObject({
-                canEditAmount: false,
-                canEditMerchant: false,
-            } satisfies Partial<TransactionEditPermissions>);
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    transaction: scanningTransaction,
+                });
+
+                expect(permissions).toMatchObject({
+                    canEditCategory: true,
+                    canEditDate: true,
+                    canEditDescription: true,
+                    canEditTag: true,
+                    // Amount and merchant editing should be disabled for scanning transactions
+                    canEditAmount: false,
+                    canEditMerchant: false,
+                } satisfies TransactionEditPermissions);
+            });
         });
 
-        it('should respect distance request restrictions', () => {
-            const permissions = getTransactionEditPermissions({
-                ...baseUnreportedParams,
-                transaction: {
-                    ...unreportedTransaction,
+        describe('distance requests', () => {
+            it('should handle field permissions correctly for distance requests', () => {
+                const distanceTransaction: Transaction = {
+                    ...baseTransaction,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                     iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                     comment: {
                         type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
-                        customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE},
+                        customUnit: {
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        },
                     },
-                },
-            });
+                };
 
-            expect(permissions).toMatchObject({
-                canEditMerchant: false,
-            } satisfies Partial<TransactionEditPermissions>);
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    transaction: distanceTransaction,
+                });
+
+                expect(permissions).toMatchObject({
+                    canEditCategory: true,
+                    canEditDate: true,
+                    canEditDescription: true,
+                    canEditTag: true,
+                    canEditAmount: true,
+                    // Merchant editing should be disabled for distance requests
+                    canEditMerchant: false,
+                } satisfies TransactionEditPermissions);
+            });
         });
 
-        it('should respect per diem request restrictions', () => {
-            const permissions = getTransactionEditPermissions({
-                ...baseUnreportedParams,
-                transaction: {
-                    ...unreportedTransaction,
+        describe('per diem requests', () => {
+            it('should disable amount and merchant for per diem requests', () => {
+                const perDiemTransaction: Transaction = {
+                    ...baseTransaction,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                     iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                     comment: {
                         type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
-                        customUnit: {name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL},
+                        customUnit: {
+                            name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        },
                     },
-                },
-            });
+                };
 
-            expect(permissions).toMatchObject({
-                canEditAmount: false,
-                canEditMerchant: false,
-            } satisfies Partial<TransactionEditPermissions>);
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    transaction: perDiemTransaction,
+                });
+
+                expect(permissions).toMatchObject({
+                    canEditCategory: true,
+                    canEditDate: true,
+                    canEditDescription: true,
+                    canEditTag: true,
+                    // Amount and merchant are derived from the rate and cannot be edited
+                    canEditAmount: false,
+                    canEditMerchant: false,
+                } satisfies TransactionEditPermissions);
+            });
         });
 
-        it('should disable category editing when workspace selection is required', () => {
-            const permissions = getTransactionEditPermissions({
-                ...baseUnreportedParams,
-                transaction: unreportedTransaction,
-                // No policy context yet since workspace selection is pending
-                policy: undefined,
-                shouldSelectPolicyForUnreported: true,
+        describe('split expenses', () => {
+            it('should handle field permissions correctly for split expense children', () => {
+                const splitTransaction: Transaction = {
+                    ...baseTransaction,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    comment: {
+                        originalTransactionID: 'original123',
+                        source: CONST.IOU.TYPE.SPLIT,
+                    },
+                };
+
+                const originalTransaction: Transaction = {
+                    ...baseTransaction,
+                    transactionID: 'original123',
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    comment: {},
+                };
+
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    transaction: splitTransaction,
+                    originalTransaction,
+                });
+
+                expect(permissions).toMatchObject({
+                    canEditCategory: true,
+                    canEditDate: true,
+                    canEditDescription: true,
+                    canEditTag: true,
+                    canEditMerchant: true,
+                    // Amount editing should be disabled for split expense children
+                    canEditAmount: false,
+                } satisfies TransactionEditPermissions);
+            });
+        });
+
+        describe('category permissions', () => {
+            it('should disable category editing when categories are not enabled on policy', () => {
+                const policyWithoutCategories: Policy = {
+                    ...basePolicy,
+                    areCategoriesEnabled: false,
+                };
+
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policy: policyWithoutCategories,
+                });
+
+                expect(permissions.canEditCategory).toBe(false);
             });
 
-            expect(permissions).toMatchObject({
-                canEditCategory: false,
-            } satisfies Partial<TransactionEditPermissions>);
+            it('should enable category editing when transaction already has a category', () => {
+                const transactionWithCategory: Transaction = {
+                    ...baseTransaction,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    category: 'Food',
+                };
+
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    transaction: transactionWithCategory,
+                });
+
+                expect(permissions.canEditCategory).toBe(true);
+            });
+        });
+
+        describe('tag permissions', () => {
+            it('should disable tag editing for multi-level tags', () => {
+                const multiLevelTags: PolicyTagLists = {
+                    Department: {
+                        name: 'Department',
+                        required: false,
+                        orderWeight: 1,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                        },
+                    },
+                    Team: {
+                        name: 'Team',
+                        required: false,
+                        orderWeight: 2,
+                        tags: {
+                            Frontend: {name: 'Frontend', enabled: true},
+                        },
+                    },
+                };
+
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policyTags: multiLevelTags,
+                });
+
+                expect(permissions.canEditTag).toBe(false);
+            });
+
+            it('should enable tag editing when transaction already has a tag', () => {
+                const transactionWithTag: Transaction = {
+                    ...baseTransaction,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    tag: 'Project1',
+                };
+
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    transaction: transactionWithTag,
+                    policyTags: undefined,
+                });
+
+                expect(permissions.canEditTag).toBe(true);
+            });
+        });
+
+        describe('unreported expenses', () => {
+            const unreportedTransaction: Transaction = {
+                ...baseTransaction,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+
+            it('should allow editing all fields', () => {
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    transaction: unreportedTransaction,
+                });
+
+                expect(permissions).toMatchObject({
+                    canEditAmount: true,
+                    canEditDate: true,
+                    canEditDescription: true,
+                    canEditMerchant: true,
+                    canEditCategory: true,
+                    canEditTag: true,
+                } satisfies TransactionEditPermissions);
+            });
+
+            it('should disable category and tag editing without available options', () => {
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    transaction: unreportedTransaction,
+                    policyCategories: undefined,
+                    policyTags: undefined,
+                });
+
+                expect(permissions).toMatchObject({
+                    canEditAmount: true,
+                    canEditDate: true,
+                    canEditDescription: true,
+                    canEditMerchant: true,
+                    canEditCategory: false,
+                    canEditTag: false,
+                } satisfies TransactionEditPermissions);
+            });
+
+            it('should respect scanning restrictions', () => {
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    transaction: {
+                        ...unreportedTransaction,
+                        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                        amount: 0,
+                        receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
+                    },
+                });
+
+                expect(permissions).toMatchObject({
+                    canEditAmount: false,
+                    canEditMerchant: false,
+                } satisfies Partial<TransactionEditPermissions>);
+            });
+
+            it('should respect distance request restrictions', () => {
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    transaction: {
+                        ...unreportedTransaction,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                        comment: {
+                            type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                            customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE},
+                        },
+                    },
+                });
+
+                expect(permissions).toMatchObject({
+                    canEditMerchant: false,
+                } satisfies Partial<TransactionEditPermissions>);
+            });
+
+            it('should respect per diem request restrictions', () => {
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    transaction: {
+                        ...unreportedTransaction,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                        comment: {
+                            type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                            customUnit: {name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL},
+                        },
+                    },
+                });
+
+                expect(permissions).toMatchObject({
+                    canEditAmount: false,
+                    canEditMerchant: false,
+                } satisfies Partial<TransactionEditPermissions>);
+            });
+
+            it('should disable category editing when workspace selection is required', () => {
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    transaction: unreportedTransaction,
+                    // No policy context yet since workspace selection is pending
+                    policy: undefined,
+                    shouldSelectPolicyForUnreported: true,
+                });
+
+                expect(permissions).toMatchObject({
+                    canEditCategory: false,
+                } satisfies Partial<TransactionEditPermissions>);
+            });
+        });
+
+        describe('archived reports', () => {
+            it('should disable all editing when chat report is archived', () => {
+                const reportedTransaction: Transaction = {
+                    ...baseTransaction,
+                    reportID: '100',
+                };
+
+                const chatReportNVP: ReportNameValuePairs = {
+                    private_isArchived: 'true',
+                };
+
+                const permissions = getTransactionEditPermissions({
+                    ...baseParams,
+                    transaction: reportedTransaction,
+                    chatReportNVP,
+                });
+
+                expect(permissions).toEqual(allFalsePermissions);
+            });
+        });
+
+        describe('parentReportActions', () => {
+            const submitterAccountID = 7;
+            const submitterEmail = 'inline-edit-submitter@test.com';
+            const approverAccountID = 8;
+            const approverEmail = 'inline-edit-approver@test.com';
+            const forwardedPolicyID = 'inline-edit-forwarded-policy';
+            const forwardedReportID = 'inline-edit-forwarded-report';
+            const forwardedTransactionID = 'inline-edit-forwarded-transaction';
+
+            // A corporate policy where the submitter reports to the approver, so once the report is forwarded past the approver the submitter can no longer edit
+            const corporatePolicy: Policy = {
+                ...basePolicy,
+                id: forwardedPolicyID,
+                role: CONST.POLICY.ROLE.USER,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                employeeList: {
+                    [submitterEmail]: {
+                        email: submitterEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: approverEmail,
+                    },
+                },
+            };
+            const submittedReport: Report = {
+                reportID: forwardedReportID,
+                policyID: forwardedPolicyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: approverAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            const reportedTransaction: Transaction = {
+                ...baseTransaction,
+                transactionID: forwardedTransactionID,
+                reportID: forwardedReportID,
+            };
+            const iouAction: ReportAction = {
+                ...baseParentReportAction,
+                reportActionID: '900',
+                reportID: forwardedReportID,
+                // An empty message array reads as a deleted action, which would fail canEditMoneyRequest before the forwarded check
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.TEXT, text: ''}],
+                actorAccountID: submitterAccountID,
+                originalMessage: {
+                    IOUTransactionID: forwardedTransactionID,
+                    amount: 1000,
+                    currency: 'USD',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            const submittedAction: ReportAction = {
+                reportActionID: '901',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2026-05-01 10:00:00',
+                message: [],
+                originalMessage: {amount: 1000, currency: 'USD'},
+            };
+            const forwardedAction: ReportAction = {
+                reportActionID: '902',
+                actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                created: '2026-05-01 11:00:00',
+                message: [],
+                originalMessage: {amount: 1000, currency: 'USD'},
+            };
+            const forwardedCheckParams: TransactionEditPermissionsParams = {
+                ...baseParams,
+                transaction: reportedTransaction,
+                parentReport: submittedReport,
+                parentReportAction: iouAction,
+                policy: corporatePolicy,
+            };
+
+            beforeAll(async () => {
+                // canEditMoneyRequest resolves the submitter and the approver route from the session, personal details and policy
+                Onyx.init({keys: ONYXKEYS});
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: submitterEmail, accountID: submitterAccountID},
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                        [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
+                        [approverAccountID]: {accountID: approverAccountID, login: approverEmail},
+                    },
+                });
+                await waitForBatchedUpdates();
+            });
+
+            it('should keep the transaction editable when the passed parentReportActions show no forward since the last submit', () => {
+                const permissions = getTransactionEditPermissions({
+                    ...forwardedCheckParams,
+                    parentReportActions: {[submittedAction.reportActionID]: submittedAction},
+                });
+
+                expect(permissions.canEditDescription).toBe(true);
+            });
+
+            it('should disable all editing when the passed parentReportActions show the report was forwarded after the last submit', () => {
+                const permissions = getTransactionEditPermissions({
+                    ...forwardedCheckParams,
+                    parentReportActions: {
+                        [submittedAction.reportActionID]: submittedAction,
+                        [forwardedAction.reportActionID]: forwardedAction,
+                    },
+                });
+
+                expect(permissions).toEqual(allFalsePermissions);
+            });
         });
     });
 
-    describe('archived reports', () => {
-        it('should disable all editing when chat report is archived', () => {
-            const reportedTransaction: Transaction = {
-                ...baseTransaction,
-                reportID: '100',
+    describe('editTransaction*Inline', () => {
+        const TRANSACTION_ID = '7777777777777777777';
+        const SELF_DM_REPORT_ID = '4242424242';
+
+        /** An unreported expense as the Search table renders it, i.e. straight out of the search snapshot. */
+        const snapshotTransaction: Transaction = {
+            transactionID: TRANSACTION_ID,
+            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            amount: -10000,
+            currency: 'USD',
+            merchant: 'Coffee',
+            created: '2026-08-12',
+            comment: {},
+        };
+
+        const selfDMReport: Report = {
+            reportID: SELF_DM_REPORT_ID,
+            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            type: CONST.REPORT.TYPE.CHAT,
+        };
+
+        function buildParams(): TransactionInlineEditParams {
+            return {
+                hash: 123456,
+                isOffline: false,
+                transactionID: TRANSACTION_ID,
+                transaction: snapshotTransaction,
+                parentReport: selfDMReport,
+                parentReportAction: undefined,
+                transactionThreadReport: undefined,
+                policy: undefined,
+                policyCategories: {},
+                policyTags: undefined,
+                reportPolicyTags: undefined,
+                policyRecentlyUsedCategories: undefined,
+                policyRecentlyUsedTags: undefined,
+                isSelfTourViewed: true,
+                hasCompletedGuidedSetupFlow: true,
+                personalDetailsList: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                getCurrencyDecimals: () => 2,
+                getCurrencySymbol: () => '$',
             };
+        }
 
-            const chatReportNVP: ReportNameValuePairs = {
-                private_isArchived: 'true',
-            };
+        beforeEach(() => jest.clearAllMocks());
 
-            const permissions = getTransactionEditPermissions({
-                ...baseParams,
-                transaction: reportedTransaction,
-                chatReportNVP,
-            });
+        // Onyx is never initialized here, so the module-level transaction cache is empty. That is exactly
+        // the state of a Search row the user has not opened: it exists only in the search snapshot.
+        it.each([
+            ['date', () => editTransactionDateInline(buildParams(), '2026-01-15', undefined), () => updateMoneyRequestDate, {value: '2026-01-15'}],
+            ['merchant', () => editTransactionMerchantInline(buildParams(), 'Cafe'), () => updateMoneyRequestMerchant, {value: 'Cafe'}],
+            ['description', () => editTransactionDescriptionInline(buildParams(), 'Lunch'), () => updateMoneyRequestDescription, {comment: 'Lunch'}],
+            ['category', () => editTransactionCategoryInline(buildParams(), 'Benefits'), () => updateMoneyRequestCategory, {category: 'Benefits'}],
+            ['amount', () => editTransactionAmountInline(buildParams(), 500), () => updateMoneyRequestAmountAndCurrency, {amount: 500}],
+            ['tag', () => editTransactionTagInline(buildParams(), 'Project1'), () => updateMoneyRequestTag, {tag: 'Project1'}],
+        ])('forwards the caller transaction when editing %s', (_field, edit, getDelegate, expectedChange) => {
+            edit();
 
-            expect(permissions).toEqual(allFalsePermissions);
+            expect(getDelegate()).toHaveBeenCalledWith(expect.objectContaining({transactionID: TRANSACTION_ID, transaction: snapshotTransaction, ...expectedChange}));
+        });
+
+        it('clears the merchant instead of discarding the edit', () => {
+            // isValidMerchant only allows an empty merchant on an unreported expense, which it can only
+            // tell from the transaction. Without one the edit was dropped before any API call.
+            editTransactionMerchantInline(buildParams(), '');
+
+            expect(updateMoneyRequestMerchant).toHaveBeenCalledWith(expect.objectContaining({value: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT}));
         });
     });
 });

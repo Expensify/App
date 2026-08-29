@@ -13,7 +13,7 @@ import * as IsFileUploadable from '@libs/isFileUploadable';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
-import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction, isMovedTransactionAction} from '@libs/ReportActionsUtils';
 import {mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
 
 import type {IOUAction} from '@src/CONST';
@@ -25,7 +25,6 @@ import DateUtils from '@src/libs/DateUtils';
 import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, RecentlyUsedTags, Report} from '@src/types/onyx';
-import type {OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Participant} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -47,7 +46,18 @@ import createPersonalDetails from '../../utils/collections/personalDetails';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {expectAPICommandToHaveBeenCalled, formatPhoneNumber, getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser, translateLocal} from '../../utils/TestHelper';
+import {
+    expectAPICommandToHaveBeenCalled,
+    formatPhoneNumber,
+    getCurrencyDecimalsLocal,
+    getGlobalFetchMock,
+    getOnyxData,
+    getRequiredOnyxUpdates,
+    getRequiredWriteCall,
+    setPersonalDetails,
+    signInWithTestUser,
+    translateLocal,
+} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../../utils/waitForNetworkPromises';
 
@@ -173,8 +183,8 @@ describe('actions/IOU', () => {
     let mockFetch: MockFetch;
     beforeEach(() => {
         jest.clearAllTimers();
-        global.fetch = getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = getGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -195,6 +205,7 @@ describe('actions/IOU', () => {
             let transactionThreadCreatedAction: OnyxEntry<ReportAction>;
             mockFetch?.pause?.();
             requestMoney({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: ''},
                 participantParams: {
@@ -224,6 +235,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -456,6 +468,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     requestMoney({
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
                         report: chatReport,
                         participantParams: {
@@ -485,6 +498,7 @@ describe('actions/IOU', () => {
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -688,6 +702,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            getCurrencyDecimals: getCurrencyDecimalsLocal,
                             conciergeChat: undefined,
                             report: chatReport,
                             participantParams: {
@@ -717,6 +732,7 @@ describe('actions/IOU', () => {
                             personalDetails: {},
                             delegateAccountID: undefined,
                             isTrackIntentUser: false,
+                            formatPhoneNumber,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -855,6 +871,7 @@ describe('actions/IOU', () => {
             let transactionThreadAction: OnyxEntry<ReportAction>;
             mockFetch?.pause?.();
             requestMoney({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: ''},
                 participantParams: {
@@ -884,6 +901,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             return (
                 waitForBatchedUpdates()
@@ -1211,7 +1229,6 @@ describe('actions/IOU', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 owner: RORY_EMAIL,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 employeeList: {
                     [CARLOS_EMAIL]: {
                         role: CONST.POLICY.ROLE.ADMIN,
@@ -1252,6 +1269,7 @@ describe('actions/IOU', () => {
 
             // First create a tracked expense in self DM
             trackExpense({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
@@ -1312,6 +1330,7 @@ describe('actions/IOU', () => {
             // Now pause fetch and share the tracked expense with accountant
             mockFetch?.pause?.();
             trackExpense({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: policyExpenseChat,
                 isDraftPolicy: false,
@@ -1374,6 +1393,7 @@ describe('actions/IOU', () => {
 
         it('does not trigger notifyNewAction when doing the money request in a money request report', () => {
             requestMoney({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participantParams: {
@@ -1403,12 +1423,14 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
 
         it('trigger notifyNewAction when doing the money request in a chat report', () => {
             requestMoney({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: '123'},
                 participantParams: {
@@ -1438,12 +1460,14 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
         });
 
         it('should pass isSelfTourViewed true to the request when user has viewed the tour', () => {
             const {iouReport} = requestMoney({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: ''},
                 participantParams: {
@@ -1473,6 +1497,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             // Verify that the iouReport is created successfully when isSelfTourViewed is true
             expect(iouReport).toBeDefined();
@@ -1497,6 +1522,7 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
 
             requestMoney({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: expenseReport,
                 participantParams: {
@@ -1527,6 +1553,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1544,6 +1571,7 @@ describe('actions/IOU', () => {
             expect(nonReimbursableTotal).toBe(0);
 
             requestMoney({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: expenseReport,
                 participantParams: {
@@ -1574,6 +1602,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1616,6 +1645,7 @@ describe('actions/IOU', () => {
 
             // When requesting money
             requestMoney({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: expenseReport,
                 existingIOUReport: expenseReport,
@@ -1648,6 +1678,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             waitForBatchedUpdates();
 
@@ -1690,6 +1721,7 @@ describe('actions/IOU', () => {
             const merchant = 'Test Store';
 
             const {iouReport} = requestMoney({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: ''},
                 participantParams: {
@@ -1719,6 +1751,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             expect(iouReport).toBeDefined();
@@ -1766,6 +1799,7 @@ describe('actions/IOU', () => {
 
             const amount = 10000;
             const {iouReport} = requestMoney({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: ''},
                 participantParams: {
@@ -1795,6 +1829,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             expect(iouReport).toBeDefined();
@@ -1813,6 +1848,7 @@ describe('actions/IOU', () => {
             const amount = 2500;
 
             const {iouReport} = requestMoney({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: ''},
                 participantParams: {
@@ -1842,6 +1878,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             // Should still create the expense even with empty personalDetails
@@ -1880,6 +1917,7 @@ describe('actions/IOU', () => {
 
             // Create a tracked expense
             trackExpense({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
@@ -1971,6 +2009,7 @@ describe('actions/IOU', () => {
 
             // When: submitting the tracked expense to another user
             const {iouReport} = requestMoney({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 action: CONST.IOU.ACTION.SUBMIT,
                 report: chatReport,
@@ -2004,6 +2043,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -2026,11 +2066,9 @@ describe('actions/IOU', () => {
 
             // Also, the fromReportID of movedTransactionAction should be CONST.REPORT.UNREPORTED_REPORT_ID
             const updatedTransactionThreadReportActions = getAllReportActions(transactionThreadReport?.reportID);
-            const movedTransactionAction = Object.values(updatedTransactionThreadReportActions ?? {}).find(
-                (reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
-            );
+            const movedTransactionAction = Object.values(updatedTransactionThreadReportActions ?? {}).find(isMovedTransactionAction);
             expect(movedTransactionAction).toBeTruthy();
-            const originalMessage = getOriginalMessage(movedTransactionAction) as OriginalMessageMovedTransaction | undefined;
+            const originalMessage = getOriginalMessage(movedTransactionAction);
             expect(originalMessage?.fromReportID).toBe(CONST.REPORT.UNREPORTED_REPORT_ID);
         });
 
@@ -2052,6 +2090,7 @@ describe('actions/IOU', () => {
                     // Request money from CARLOS, but pass the existing chat report with JULES
                     // This simulates the scenario where submit frequency is disabled and user selects a different participant
                     requestMoney({
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
                         report: existingChatReport,
                         participantParams: {
@@ -2081,6 +2120,7 @@ describe('actions/IOU', () => {
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2141,6 +2181,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     // Request money from CARLOS with matching chat report
                     requestMoney({
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
                         report: existingChatReport,
                         participantParams: {
@@ -2170,6 +2211,7 @@ describe('actions/IOU', () => {
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2221,6 +2263,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     // Request money with isPolicyExpenseChat: true - should skip participant validation
                     requestMoney({
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
                         report: policyExpenseChatReport,
                         participantParams: {
@@ -2250,6 +2293,7 @@ describe('actions/IOU', () => {
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2296,6 +2340,7 @@ describe('actions/IOU', () => {
                     // Request money from CARLOS but passing a policy expense chat report with different participants (JULES)
                     // Since the chatReport is a policy expense chat, participant validation should be skipped
                     requestMoney({
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
                         report: policyExpenseChatReport,
                         participantParams: {
@@ -2325,6 +2370,7 @@ describe('actions/IOU', () => {
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2371,6 +2417,7 @@ describe('actions/IOU', () => {
                     // Track expense in self-DM with accountID: 0 (as getMoneyRequestParticipantsFromReport does)
                     // This simulates the scenario where user starts an expense from "Your Space"
                     requestMoney({
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
                         report: selfDMReport,
                         participantParams: {
@@ -2401,6 +2448,7 @@ describe('actions/IOU', () => {
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2445,6 +2493,7 @@ describe('actions/IOU', () => {
                 mockFetch?.pause?.();
 
                 requestMoney({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
                     report: {reportID: ''},
                     participantParams: {
@@ -2474,6 +2523,7 @@ describe('actions/IOU', () => {
                     personalDetails: {},
                     delegateAccountID: DELEGATE_ACCOUNT_ID,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
                 await waitForBatchedUpdates();
 
@@ -2507,6 +2557,7 @@ describe('actions/IOU', () => {
                 mockFetch?.pause?.();
 
                 requestMoney({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat,
                     report: {reportID: ''},
                     participantParams: {
@@ -2537,6 +2588,7 @@ describe('actions/IOU', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
                 await waitForBatchedUpdates();
 
@@ -2571,6 +2623,7 @@ describe('actions/IOU', () => {
         ])('%s', async (expectedCommand: ApiCommand, action: IOUAction) => {
             // When an expense is created
             requestMoney({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 action,
                 report: {reportID: ''},
@@ -2608,6 +2661,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -2615,11 +2669,12 @@ describe('actions/IOU', () => {
             // Then the correct API request should be made
             expect(writeSpy).toHaveBeenCalledTimes(1);
 
-            const [command, params] = writeSpy.mock.calls.at(0);
+            const writeCalls: unknown = writeSpy.mock.calls;
+            const [command, params] = getRequiredWriteCall(writeCalls);
             expect(command).toBe(expectedCommand);
 
             // And the parameters should be supported by XMLHttpRequest
-            for (const value of Object.values(params as Record<string, unknown>)) {
+            for (const value of Object.values(params)) {
                 expect(Array.isArray(value) ? value.every(isValid) : isValid(value)).toBe(true);
             }
         });
@@ -2638,6 +2693,7 @@ describe('actions/IOU', () => {
 
             // When the expense is submitted
             requestMoney({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: ''},
                 participantParams: {
@@ -2668,6 +2724,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -2679,6 +2736,241 @@ describe('actions/IOU', () => {
             expect(JSON.stringify(params)).toContain(traceId);
 
             isFileUploadableSpy.mockRestore();
+        });
+
+        test.each([
+            [WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, CONST.IOU.ACTION.CATEGORIZE],
+            [WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, CONST.IOU.ACTION.SHARE],
+        ])('omits an uploaded receipt from %s', async (expectedCommand: ApiCommand, action: IOUAction) => {
+            const sourceTransactionID = `${expectedCommand}-uploaded-receipt`;
+            const receipt: Receipt = new File(['receipt-bytes'], 'receipt.png', {type: 'image/png'});
+            receipt.source = 'blob:stale-receipt';
+            const isFileUploadableSpy = jest.spyOn(IsFileUploadable, 'default').mockReturnValue(true);
+
+            try {
+                // Given the original tracked expense already has a server receipt
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransactionID}`, {
+                    ...createRandomTransaction(1),
+                    transactionID: sourceTransactionID,
+                    receipt: {receiptID: 1, source: 'https://www.expensify.com/receipts/w_abc.jpg'},
+                });
+                await waitForBatchedUpdates();
+
+                // When it is moved with a stale local receipt file
+                trackExpense({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    conciergeChat: undefined,
+                    report: {reportID: '123', policyID: 'A'},
+                    isDraftPolicy: false,
+                    action,
+                    participantParams: {
+                        payeeEmail: RORY_EMAIL,
+                        payeeAccountID: RORY_ACCOUNT_ID,
+                        participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                    },
+                    transactionParams: {
+                        amount: 10000,
+                        currency: CONST.CURRENCY.USD,
+                        created: '2024-10-30',
+                        merchant: 'KFC',
+                        receipt,
+                        actionableWhisperReportActionID: '1',
+                        linkedTrackedExpenseReportAction: {
+                            reportActionID: 'source-action',
+                            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                            created: '2024-10-30',
+                            originalMessage: {IOUTransactionID: sourceTransactionID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+                        },
+                        linkedTrackedExpenseReportID: '1',
+                    },
+                    accountantParams:
+                        action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}, newAccountIDs: [], newLogins: [], formatPhoneNumber} : undefined,
+                    isASAPSubmitBetaEnabled: false,
+                    currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    introSelected: undefined,
+                    quickAction: undefined,
+                    recentWaypoints: [],
+                    betas: [CONST.BETAS.ALL],
+                    draftTransactionIDs: [],
+                    isSelfTourViewed: false,
+                    currentUserLocalCurrency: undefined,
+                    delegateAccountID: undefined,
+                    reportActionsList: undefined,
+                });
+                await waitForBatchedUpdates();
+
+                // Then the move payload does not re-upload the receipt
+                const [command, params] = writeSpy.mock.calls.at(0) ?? [];
+                expect(command).toBe(expectedCommand);
+                expect(params).toEqual(expect.objectContaining({receipt: undefined}));
+            } finally {
+                isFileUploadableSpy.mockRestore();
+            }
+        });
+
+        test.each([
+            [WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, CONST.IOU.ACTION.CATEGORIZE],
+            [WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, CONST.IOU.ACTION.SHARE],
+        ])('keeps a local receipt in %s', async (expectedCommand: ApiCommand, action: IOUAction) => {
+            const sourceTransactionID = `${expectedCommand}-local-receipt`;
+            const receipt: Receipt = new File(['receipt-bytes'], 'receipt.png', {type: 'image/png'});
+            receipt.source = 'blob:stale-receipt';
+            const isFileUploadableSpy = jest.spyOn(IsFileUploadable, 'default').mockReturnValue(true);
+
+            try {
+                // Given the original tracked expense only has a local receipt
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransactionID}`, {
+                    ...createRandomTransaction(1),
+                    transactionID: sourceTransactionID,
+                    receipt: {source: 'blob:local-receipt'},
+                });
+                await waitForBatchedUpdates();
+
+                // When it is moved before its upload response is processed
+                trackExpense({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    conciergeChat: undefined,
+                    report: {reportID: '123', policyID: 'A'},
+                    isDraftPolicy: false,
+                    action,
+                    participantParams: {
+                        payeeEmail: RORY_EMAIL,
+                        payeeAccountID: RORY_ACCOUNT_ID,
+                        participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                    },
+                    transactionParams: {
+                        amount: 10000,
+                        currency: CONST.CURRENCY.USD,
+                        created: '2024-10-30',
+                        merchant: 'KFC',
+                        receipt,
+                        actionableWhisperReportActionID: '1',
+                        linkedTrackedExpenseReportAction: {
+                            reportActionID: 'source-action',
+                            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                            created: '2024-10-30',
+                            originalMessage: {IOUTransactionID: sourceTransactionID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+                        },
+                        linkedTrackedExpenseReportID: '1',
+                    },
+                    accountantParams:
+                        action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}, newAccountIDs: [], newLogins: [], formatPhoneNumber} : undefined,
+                    isASAPSubmitBetaEnabled: false,
+                    currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    introSelected: undefined,
+                    quickAction: undefined,
+                    recentWaypoints: [],
+                    betas: [CONST.BETAS.ALL],
+                    draftTransactionIDs: [],
+                    isSelfTourViewed: false,
+                    currentUserLocalCurrency: undefined,
+                    delegateAccountID: undefined,
+                    reportActionsList: undefined,
+                });
+                await waitForBatchedUpdates();
+
+                // Then the move payload preserves the uploadable receipt
+                const [command, params] = writeSpy.mock.calls.at(0) ?? [];
+                expect(command).toBe(expectedCommand);
+                expect(params).toEqual(expect.objectContaining({receipt}));
+            } finally {
+                isFileUploadableSpy.mockRestore();
+            }
+        });
+
+        test.each([
+            ['omits an uploaded receipt', true],
+            ['keeps a local receipt', false],
+        ])('%s when submitting a tracked expense to a workspace', async (_scenario: string, hasUploadedReceipt: boolean) => {
+            const sourceTransactionID = hasUploadedReceipt ? 'submit-uploaded-receipt' : 'submit-local-receipt';
+            const receipt: Receipt = new File(['receipt-bytes'], 'receipt.png', {type: 'image/png'});
+            receipt.source = 'blob:stale-receipt';
+            const sourceReceipt = hasUploadedReceipt ? {receiptID: 1, source: 'https://www.expensify.com/receipts/w_abc.jpg'} : {source: 'blob:local-receipt'};
+            const sourceTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID: sourceTransactionID,
+                amount: -10000,
+                currency: CONST.CURRENCY.USD,
+                created: '2024-10-30',
+                merchant: 'KFC',
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                receipt: sourceReceipt,
+            };
+            const isFileUploadableSpy = jest.spyOn(IsFileUploadable, 'default').mockReturnValue(true);
+
+            try {
+                // Given the original tracked expense has the expected receipt state
+                await Promise.all([
+                    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransactionID}`, sourceTransaction),
+                    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}policy-expense-chat`, {
+                        reportID: 'policy-expense-chat',
+                        type: CONST.REPORT.TYPE.CHAT,
+                        chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                        isPolicyExpenseChat: true,
+                        policyID: 'policyID',
+                    } as Report),
+                    Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, 'policy-expense-chat'),
+                ]);
+                await waitForBatchedUpdates();
+
+                // When it is submitted to a workspace with a stale local receipt file
+                requestMoney({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    conciergeChat: undefined,
+                    action: CONST.IOU.ACTION.SUBMIT,
+                    report: {
+                        reportID: 'policy-expense-chat',
+                        type: CONST.REPORT.TYPE.CHAT,
+                        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                        policyID: 'policyID',
+                    },
+                    participantParams: {
+                        payeeEmail: RORY_EMAIL,
+                        payeeAccountID: RORY_ACCOUNT_ID,
+                        participant: {reportID: 'policy-expense-chat', isPolicyExpenseChat: true},
+                    },
+                    transactionParams: {
+                        amount: 10000,
+                        attendees: [],
+                        currency: CONST.CURRENCY.USD,
+                        created: '2024-10-30',
+                        merchant: 'KFC',
+                        comment: '',
+                        receipt,
+                        linkedTrackedExpenseReportAction: {
+                            reportActionID: 'source-action',
+                            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                            created: '2024-10-30',
+                            originalMessage: {IOUTransactionID: sourceTransactionID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+                        },
+                        linkedTrackedExpenseReportID: '1',
+                    },
+                    shouldGenerateTransactionThreadReport: true,
+                    isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                    currentUserEmailParam: RORY_EMAIL,
+                    transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
+                    existingTransactionDraft: {...sourceTransaction, receipt},
+                    existingTransaction: {...sourceTransaction, receipt},
+                    draftTransactionIDs: [],
+                    isSelfTourViewed: false,
+                    quickAction: undefined,
+                    betas: [CONST.BETAS.ALL],
+                    personalDetails: {},
+                    delegateAccountID: undefined,
+                    isTrackIntentUser: false,
+                    formatPhoneNumber,
+                });
+                await waitForBatchedUpdates();
+
+                // Then the workspace move only uploads a receipt that is still local
+                const [command, params] = writeSpy.mock.calls.at(0) ?? [];
+                expect(command).toBe(WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY);
+                expect(params).toEqual(expect.objectContaining({receipt: hasUploadedReceipt ? undefined : receipt}));
+            } finally {
+                isFileUploadableSpy.mockRestore();
+            }
         });
 
         it('adds grouped from snapshot optimistic data for grouped search queries', async () => {
@@ -2703,6 +2995,7 @@ describe('actions/IOU', () => {
             const getCurrentSearchQueryJSONSpy = jest.spyOn(SearchQueryUtils, 'getCurrentSearchQueryJSON').mockReturnValue(currentSearchQueryJSON);
 
             requestMoney({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 action: CONST.IOU.ACTION.CREATE,
                 report: {reportID: ''},
@@ -2740,15 +3033,17 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
 
             expect(writeSpy).toHaveBeenCalledTimes(1);
-            const [, , requestData] = writeSpy.mock.calls.at(0) as [ApiCommand, Record<string, unknown>, {optimisticData?: Array<{key: string}>}];
-            const optimisticData = requestData.optimisticData ?? [];
+            const writeCalls: unknown = writeSpy.mock.calls;
+            const [, , requestData] = getRequiredWriteCall(writeCalls);
+            const optimisticData = getRequiredOnyxUpdates(requestData, 'optimisticData');
             const mainSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`;
-            expect(optimisticData.some((update) => update.key === mainSnapshotKey)).toBeTruthy();
+            expect(optimisticData).toEqual(expect.arrayContaining([expect.objectContaining({key: mainSnapshotKey})]));
 
             const newFlatFilters = currentSearchQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
             newFlatFilters.push({
@@ -2768,7 +3063,7 @@ describe('actions/IOU', () => {
                 throw new Error('Expected grouped transactions query JSON to be defined');
             }
             const groupedSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupedTransactionsQueryJSON.hash}`;
-            expect(optimisticData.some((update) => update.key === groupedSnapshotKey)).toBeTruthy();
+            expect(optimisticData).toEqual(expect.arrayContaining([expect.objectContaining({key: groupedSnapshotKey})]));
 
             getCurrentSearchQueryJSONSpy.mockRestore();
         });
@@ -2782,6 +3077,7 @@ describe('actions/IOU', () => {
 
             // When a track expense is created
             trackExpense({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: '123', policyID: 'A'},
                 isDraftPolicy: false,
@@ -2825,7 +3121,8 @@ describe('actions/IOU', () => {
             // Then the correct API request should be made
             expect(writeSpy).toHaveBeenCalledTimes(1);
 
-            const [command, params] = writeSpy.mock.calls.at(0);
+            const writeCalls: unknown = writeSpy.mock.calls;
+            const [command, params] = getRequiredWriteCall(writeCalls);
             expect(command).toBe(expectedCommand);
 
             if (expectedCommand === WRITE_COMMANDS.SHARE_TRACKED_EXPENSE) {
@@ -2833,7 +3130,7 @@ describe('actions/IOU', () => {
             }
 
             // And the parameters should be supported by XMLHttpRequest
-            for (const value of Object.values(params as Record<string, unknown>)) {
+            for (const value of Object.values(params)) {
                 expect(Array.isArray(value) ? value.every(isValid) : isValid(value)).toBe(true);
             }
         });
@@ -2848,7 +3145,9 @@ describe('actions/IOU', () => {
                 transactionID: 'create-transaction-tx',
             };
             return {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactions: [transaction],
+                conciergeChat: undefined,
                 iouType,
                 report,
                 currentUserAccountID: CREATE_TRANSACTION_USER_ACCOUNT_ID,
@@ -2867,6 +3166,7 @@ describe('actions/IOU', () => {
                 optimisticChatReportID: undefined,
                 currentUserLocalCurrency: 'USD',
                 isTrackIntentUser: false,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             };
         };

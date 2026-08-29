@@ -142,7 +142,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
 
         onCloseCompleteRef.current = options?.afterTransition;
         setIsSidePanelTransitionEnded(false);
-        SidePanelActions.closeSidePanel(!isExtraLargeScreenWidth);
+        SidePanelActions.dismissSidePanel();
 
         // Focus the composer after closing the Side Panel
         focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.SIDE_PANEL_ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);

@@ -1,7 +1,7 @@
 ---
 title: Invite members and assign roles
 description: Invite new members to your workspace and assign them a role
-keywords: [Expensify Classic, invite members, member roles]
+keywords: [Expensify Classic, invite members, member roles, add employee, add new employee, add member, add new member, add user, add new user, set up new user, onboard employee, onboard member]
 ---
 
 

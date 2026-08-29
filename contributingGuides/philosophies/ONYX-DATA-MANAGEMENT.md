@@ -37,6 +37,29 @@ Different platforms come with varying storage capacities and Onyx has a way to g
 - Add the key to the `evictableKeys` option in `Onyx.init(options)`
 - A least recently accessed key will only be deleted when an Onyx operation retries after failing.
 
+## Reading Onyx data: `useOnyx` vs `Onyx.connectWithoutView`
+There are only two ways to read Onyx data, and `Onyx.connect` is deprecated:
+1. **`useOnyx`** (from `@hooks/useOnyx`) — the default for anything a React component renders.
+2. **`Onyx.connectWithoutView`** — an imperative subscription for non-render logic, used only when `useOnyx` genuinely does not fit.
+
+### - Prefer a pure function over reading Onyx at all
+A pure function does not read Onyx itself — it receives the data it needs as parameters, and its caller does the reading (with `useOnyx` or `Onyx.connectWithoutView`) and passes it in. Before adding either subscription, check whether the code can be a pure function instead: it needs no connection, is trivial to test, and cannot cause extra rerenders. Prefer this even when it means passing more arguments. This takes precedence over everything below.
+
+### - Components MUST read Onyx with `useOnyx`, never `Onyx.connectWithoutView`
+Any value used during render belongs in `useOnyx` so the UI updates when the value changes.
+
+### - `Onyx.connectWithoutView` is ONLY for data that is never used during render
+It is appropriate for module-level state in actions/libraries that is read by non-React logic (e.g. network layer, pusher subscriptions, test files, etc.), where `useOnyx` is not possible. 
+
+### - Existing `Onyx.connectWithoutView` usage is NOT a template to copy
+Do not add a new `Onyx.connectWithoutView` just because nearby code uses it. Justify each new use on its own against the rule above; when in doubt, use `useOnyx`.
+
+### - Every new `Onyx.connectWithoutView` MUST have a comment explaining why it is needed
+Add an inline comment at each new `Onyx.connectWithoutView` call stating why the data cannot come from a pure function or `useOnyx`, so reviewers and future readers can see the choice was deliberate.
+
+### - Using `Onyx.connectWithoutView` in a component for performance REQUIRES @frontend-performance approval
+In rare cases a component that subscribes to multiple large collections through `useOnyx` suffers a significant performance regression. Reaching for `Onyx.connectWithoutView` to avoid that is an explicit exception, not a self-serve option: it MUST be approved by the `@frontend-performance` team on Slack, and the PR description MUST link to that discussion.
+
 ## Onyx Derived Values
 
 Derived values are special Onyx keys which contain values derived from other Onyx values. These are available as a performance optimization, so that if the result of a common computation of Onyx values is needed in many places across the app, the computation can be done only as needed in a centralized location, and then shared across the app. Once created, Onyx derived values are stored and consumed just like any other Onyx value.
@@ -115,6 +138,11 @@ compute: ([reports, personalDetails]) => {
 - Explain the purpose and dependencies
 - Document any special cases or performance considerations
 - Include type annotations for better developer experience
+
+### - Recompute rate is monitored in production
+Every derived value flush passes through `detectOnyxDerivedLoop` (`src/libs/telemetry/detectOnyxDerivedLoop.ts`). If one derived key recomputes more than `RECOMPUTE_THRESHOLD` times inside `WINDOW_MS`, it reports `[OnyxDerived] recompute loop detected for <key>` once per key per session to Sentry (fingerprinted `['onyx-derived-loop', <key>]`) and to the server log, with a per-dependency count showing which dependency is driving the churn. Recomputes during app startup are ignored, since dependencies legitimately hydrate in bursts.
+
+If your derived value trips it, look at the dependency counts to find which dependency recomputed the most. There are two common causes: the derived value depends on a key that updates much more often than it needs, or it depends on another derived value that in turn depends back on it.
 
 ## Onyx State Export
 

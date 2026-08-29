@@ -3,16 +3,21 @@ import {
     getBankAccountState,
     getCompletedStepsForBankAccount,
     getDefaultCompanyWebsite,
+    getDisabledInternationalBankAccountFields,
+    getInternationalBankAccountDetailsValues,
     getLastFourDigits,
     getRequiredKYBDocuments,
     hasBankAccountAllowDebit,
     hasPartiallySetupBankAccount,
     hasPersonalBankAccountMissingInfo,
+    hasValidAccountDetailsInternationalFields,
+    hasValidInternationalBankAccountDetails,
     isBankAccountPartiallySetup,
     isPersonalBankAccountMissingInfo,
     isUserAddressVerificationRequired,
     isUserDOBVerificationRequired,
     PERSONAL_INFO_STEP,
+    shouldShowInternationalDetailOnConfirmation,
 } from '@libs/BankAccountUtils';
 import type {KYBVerificationResponses} from '@libs/BankAccountUtils';
 
@@ -20,6 +25,8 @@ import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {Account, BankAccountList, Session} from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
+
+import createMock from '../utils/createMock';
 
 describe('BankAccountUtils', () => {
     describe('isPersonalBankAccountMissingInfo', () => {
@@ -320,6 +327,32 @@ describe('BankAccountUtils', () => {
             });
         });
 
+        it.each([CONST.CURRENCY.USD, undefined])('keeps the confirm action for a PENDING account in currency "%s"', (currency) => {
+            expect(getBankAccountConnectionStatus(CONST.BANK_ACCOUNT.STATE.PENDING, currency)).toEqual(
+                expect.objectContaining({
+                    labelKey: 'walletPage.bankAccountStatus.pending',
+                    actionKey: 'common.confirm',
+                }),
+            );
+        });
+
+        it.each(['GBP', 'EUR', 'AUD'])('maps a PENDING account in currency "%s" to Incomplete, since only USD accounts have test transactions', (currency) => {
+            expect(getBankAccountConnectionStatus(CONST.BANK_ACCOUNT.STATE.PENDING, currency)).toEqual({
+                labelKey: 'walletPage.bankAccountStatus.incomplete',
+                messageKey: 'walletPage.bankAccountStatus.finishAddingBankAccount',
+                actionKey: 'walletPage.bankAccountStatus.finish',
+                tone: 'danger',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            });
+        });
+
+        it.each([CONST.BANK_ACCOUNT.STATE.OPEN, CONST.BANK_ACCOUNT.STATE.SETUP, CONST.BANK_ACCOUNT.STATE.VERIFYING, CONST.BANK_ACCOUNT.STATE.LOCKED])(
+            'is unaffected by a non-USD currency in state "%s"',
+            (state) => {
+                expect(getBankAccountConnectionStatus(state, 'GBP')).toEqual(getBankAccountConnectionStatus(state));
+            },
+        );
+
         it.each([undefined, '', 'UNKNOWN'])('returns undefined for unsupported state "%s"', (state) => {
             expect(getBankAccountConnectionStatus(state)).toBeUndefined();
         });
@@ -327,25 +360,25 @@ describe('BankAccountUtils', () => {
 
     describe('hasPartiallySetupBankAccount', () => {
         it('returns true when at least one account is in SETUP state', () => {
-            const bankAccountList = {
+            const bankAccountList = createMock<BankAccountList>({
                 accountOne: {accountData: {state: CONST.BANK_ACCOUNT.STATE.OPEN}, bankCurrency: 'USD', bankCountry: 'US'},
                 accountTwo: {accountData: {state: CONST.BANK_ACCOUNT.STATE.SETUP}, bankCurrency: 'USD', bankCountry: 'US'},
-            } as unknown as BankAccountList;
+            });
             expect(hasPartiallySetupBankAccount(bankAccountList)).toBe(true);
         });
 
         it('returns true when at least one account is in VERIFYING state', () => {
-            const bankAccountList = {
+            const bankAccountList = createMock<BankAccountList>({
                 accountOne: {accountData: {state: CONST.BANK_ACCOUNT.STATE.VERIFYING}, bankCurrency: 'USD', bankCountry: 'US'},
-            } as unknown as BankAccountList;
+            });
             expect(hasPartiallySetupBankAccount(bankAccountList)).toBe(true);
         });
 
         it('returns false when all accounts are in OPEN state', () => {
-            const bankAccountList = {
+            const bankAccountList = createMock<BankAccountList>({
                 accountOne: {accountData: {state: CONST.BANK_ACCOUNT.STATE.OPEN}, bankCurrency: 'USD', bankCountry: 'US'},
                 accountTwo: {accountData: {state: CONST.BANK_ACCOUNT.STATE.OPEN}, bankCurrency: 'USD', bankCountry: 'US'},
-            } as unknown as BankAccountList;
+            });
             expect(hasPartiallySetupBankAccount(bankAccountList)).toBe(false);
         });
 
@@ -391,7 +424,7 @@ describe('BankAccountUtils', () => {
 
     describe('hasPersonalBankAccountMissingInfo', () => {
         it('returns true when at least one account has missing info', () => {
-            const bankAccountList = {
+            const bankAccountList = createMock<BankAccountList>({
                 accountOne: {
                     accountData: {
                         type: CONST.BANK_ACCOUNT.TYPE.PERSONAL,
@@ -401,12 +434,12 @@ describe('BankAccountUtils', () => {
                     bankCurrency: 'USD',
                     bankCountry: 'US',
                 },
-            } as unknown as BankAccountList;
+            });
             expect(hasPersonalBankAccountMissingInfo(bankAccountList)).toBe(true);
         });
 
         it('returns false when all accounts have complete info', () => {
-            const bankAccountList = {
+            const bankAccountList = createMock<BankAccountList>({
                 accountOne: {
                     accountData: {
                         type: CONST.BANK_ACCOUNT.TYPE.PERSONAL,
@@ -425,7 +458,7 @@ describe('BankAccountUtils', () => {
                     bankCurrency: 'USD',
                     bankCountry: 'US',
                 },
-            } as unknown as BankAccountList;
+            });
             expect(hasPersonalBankAccountMissingInfo(bankAccountList)).toBe(false);
         });
 
@@ -438,7 +471,7 @@ describe('BankAccountUtils', () => {
         });
 
         it('returns false when account uses NewDot legalFirstName/legalLastName naming', () => {
-            const bankAccountList = {
+            const bankAccountList = createMock<BankAccountList>({
                 accountOne: {
                     accountData: {
                         type: CONST.BANK_ACCOUNT.TYPE.PERSONAL,
@@ -457,7 +490,7 @@ describe('BankAccountUtils', () => {
                     bankCurrency: 'USD',
                     bankCountry: 'US',
                 },
-            } as unknown as BankAccountList;
+            });
             expect(hasPersonalBankAccountMissingInfo(bankAccountList)).toBe(false);
         });
     });
@@ -477,9 +510,9 @@ describe('BankAccountUtils', () => {
         };
 
         it('returns all steps when all data is present', () => {
-            const bankAccountList = {
+            const bankAccountList = createMock<BankAccountList>({
                 [bankAccountKey]: {accountData: {additionalData: fullAdditionalData}, bankCurrency: 'USD', bankCountry: 'US'},
-            } as unknown as BankAccountList;
+            });
             const result = getCompletedStepsForBankAccount(bankAccountList, bankAccountID);
             expect(result).toEqual([PERSONAL_INFO_STEP.NAME, PERSONAL_INFO_STEP.ADDRESS, PERSONAL_INFO_STEP.PHONE]);
         });
@@ -494,77 +527,77 @@ describe('BankAccountUtils', () => {
         });
 
         it('returns only NAME step when only name fields are present', () => {
-            const bankAccountList = {
+            const bankAccountList = createMock<BankAccountList>({
                 [bankAccountKey]: {accountData: {additionalData: {firstName: 'John', lastName: 'Doe'}}, bankCurrency: 'USD', bankCountry: 'US'},
-            } as unknown as BankAccountList;
+            });
             expect(getCompletedStepsForBankAccount(bankAccountList, bankAccountID)).toEqual([PERSONAL_INFO_STEP.NAME]);
         });
 
         it('returns only ADDRESS step when only address fields are present', () => {
-            const bankAccountList = {
+            const bankAccountList = createMock<BankAccountList>({
                 [bankAccountKey]: {
                     accountData: {additionalData: {addressStreet: '123 Main St', addressCity: 'New York', addressState: 'NY', addressZipCode: '10001'}},
                     bankCurrency: 'USD',
                     bankCountry: 'US',
                 },
-            } as unknown as BankAccountList;
+            });
             expect(getCompletedStepsForBankAccount(bankAccountList, bankAccountID)).toEqual([PERSONAL_INFO_STEP.ADDRESS]);
         });
 
         it('returns only PHONE step when only phone is present', () => {
-            const bankAccountList = {
+            const bankAccountList = createMock<BankAccountList>({
                 [bankAccountKey]: {accountData: {additionalData: {companyPhone: '+15551234567'}}, bankCurrency: 'USD', bankCountry: 'US'},
-            } as unknown as BankAccountList;
+            });
             expect(getCompletedStepsForBankAccount(bankAccountList, bankAccountID)).toEqual([PERSONAL_INFO_STEP.PHONE]);
         });
 
         it('returns empty array when accountData has no additionalData', () => {
-            const bankAccountList = {
+            const bankAccountList = createMock<BankAccountList>({
                 [bankAccountKey]: {accountData: {}, bankCurrency: 'USD', bankCountry: 'US'},
-            } as unknown as BankAccountList;
+            });
             expect(getCompletedStepsForBankAccount(bankAccountList, bankAccountID)).toEqual([]);
         });
 
         it('does not include NAME when only firstName is present (lastName missing)', () => {
-            const bankAccountList = {
+            const bankAccountList = createMock<BankAccountList>({
                 [bankAccountKey]: {accountData: {additionalData: {firstName: 'John'}}, bankCurrency: 'USD', bankCountry: 'US'},
-            } as unknown as BankAccountList;
+            });
             expect(getCompletedStepsForBankAccount(bankAccountList, bankAccountID)).toEqual([]);
         });
 
         it('returns multiple steps when some groups are complete', () => {
-            const bankAccountList = {
+            const bankAccountList = createMock<BankAccountList>({
                 [bankAccountKey]: {
                     accountData: {additionalData: {firstName: 'John', lastName: 'Doe', companyPhone: '+15551234567'}},
                     bankCurrency: 'USD',
                     bankCountry: 'US',
                 },
-            } as unknown as BankAccountList;
+            });
             expect(getCompletedStepsForBankAccount(bankAccountList, bankAccountID)).toEqual([PERSONAL_INFO_STEP.NAME, PERSONAL_INFO_STEP.PHONE]);
         });
 
         it('does not include ADDRESS when one address field is missing', () => {
-            const bankAccountList = {
+            const bankAccountList = createMock<BankAccountList>({
                 [bankAccountKey]: {
                     accountData: {additionalData: {addressStreet: '123 Main St', addressCity: 'New York', addressState: 'NY'}},
                     bankCurrency: 'USD',
                     bankCountry: 'US',
                 },
-            } as unknown as BankAccountList;
+            });
             expect(getCompletedStepsForBankAccount(bankAccountList, bankAccountID)).toEqual([]);
         });
 
         it('includes NAME step when only NewDot legalFirstName/legalLastName are present', () => {
-            const bankAccountList = {
+            const bankAccountList = createMock<BankAccountList>({
                 [bankAccountKey]: {accountData: {additionalData: {legalFirstName: 'John', legalLastName: 'Doe'}}, bankCurrency: 'USD', bankCountry: 'US'},
-            } as unknown as BankAccountList;
+            });
             expect(getCompletedStepsForBankAccount(bankAccountList, bankAccountID)).toEqual([PERSONAL_INFO_STEP.NAME]);
         });
 
         it('does not include NAME when only legalFirstName is present (legalLastName missing)', () => {
-            const bankAccountList = {
+            const bankAccountList = createMock<BankAccountList>({
                 [bankAccountKey]: {accountData: {additionalData: {legalFirstName: 'John'}}, bankCurrency: 'USD', bankCountry: 'US'},
-            } as unknown as BankAccountList;
+            });
             expect(getCompletedStepsForBankAccount(bankAccountList, bankAccountID)).toEqual([]);
         });
     });
@@ -723,6 +756,92 @@ describe('BankAccountUtils', () => {
                 INPUT_IDS.KYB_DOCUMENTS.USER_ADDRESS_VERIFICATION,
                 INPUT_IDS.KYB_DOCUMENTS.USER_DOB_VERIFICATION,
             ]);
+        });
+    });
+
+    describe('hasValidAccountDetailsInternationalFields', () => {
+        const iban = 'AT483200000012345864';
+        const swiftBicCode = 'XXXXATXX';
+
+        it('is true only when accountNumber is an IBAN and swiftBicCode is set', () => {
+            expect(hasValidAccountDetailsInternationalFields(iban, swiftBicCode)).toBe(true);
+            expect(hasValidAccountDetailsInternationalFields(iban, 'XXXX')).toBe(true);
+            expect(hasValidAccountDetailsInternationalFields('123456789', swiftBicCode)).toBe(false);
+            expect(hasValidAccountDetailsInternationalFields(iban, undefined)).toBe(false);
+            expect(hasValidAccountDetailsInternationalFields(undefined, undefined)).toBe(false);
+        });
+    });
+
+    describe('hasValidInternationalBankAccountDetails', () => {
+        const iban = 'AT483200000012345864';
+        const swiftBicCode = 'XXXXATXX';
+
+        it('returns true when dedicated iban and swiftCode are valid even if account details are not', () => {
+            expect(hasValidInternationalBankAccountDetails(iban, swiftBicCode, '123456789', 'XXXX')).toBe(true);
+        });
+
+        it('returns true when accountNumber is an IBAN and swiftBicCode is set even if dedicated fields are empty', () => {
+            expect(hasValidInternationalBankAccountDetails(undefined, undefined, iban, swiftBicCode)).toBe(true);
+        });
+
+        it('returns true when dedicated IBAN is set and first-page SWIFT is a Corpay value that is not a BIC', () => {
+            expect(hasValidInternationalBankAccountDetails(iban, 'XXXX', '123456789', 'XXXX')).toBe(true);
+        });
+
+        it('returns false when there is no IBAN or no SWIFT from either source', () => {
+            expect(hasValidInternationalBankAccountDetails(undefined, swiftBicCode, '123456789', 'XXXX')).toBe(false);
+            expect(hasValidInternationalBankAccountDetails(iban, undefined, iban, undefined)).toBe(false);
+        });
+    });
+
+    describe('getDisabledInternationalBankAccountFields', () => {
+        const iban = 'AT483200000012345864';
+        const swiftBicCode = 'XXXXATXX';
+
+        it('disables IBAN when the account number is already a valid IBAN', () => {
+            expect(getDisabledInternationalBankAccountFields(iban, undefined).isIBANDisabled).toBe(true);
+        });
+
+        it('does not disable IBAN when the account number is not an IBAN', () => {
+            expect(getDisabledInternationalBankAccountFields('123456789', undefined).isIBANDisabled).toBe(false);
+        });
+
+        it('disables SWIFT/BIC when swiftBicCode is already set', () => {
+            expect(getDisabledInternationalBankAccountFields(undefined, swiftBicCode).isSwiftCodeDisabled).toBe(true);
+            expect(getDisabledInternationalBankAccountFields(undefined, 'XXXX').isSwiftCodeDisabled).toBe(true);
+        });
+
+        it('does not disable SWIFT/BIC when swiftBicCode is empty', () => {
+            expect(getDisabledInternationalBankAccountFields(iban, undefined).isSwiftCodeDisabled).toBe(false);
+        });
+    });
+
+    describe('getInternationalBankAccountDetailsValues', () => {
+        const iban = 'AT483200000012345864';
+
+        it('prefills SWIFT from a non-empty swiftBicCode and IBAN only when accountNumber is an IBAN', () => {
+            expect(getInternationalBankAccountDetailsValues(undefined, undefined, iban, 'XXXX')).toEqual({iban, swiftCode: 'XXXX'});
+            expect(getInternationalBankAccountDetailsValues(undefined, undefined, '123456789', 'XXXX')).toEqual({iban: '', swiftCode: 'XXXX'});
+        });
+    });
+
+    describe('shouldShowInternationalDetailOnConfirmation', () => {
+        const iban = 'AT483200000012345864';
+        const swiftBicCode = 'XXXXATXX';
+
+        it('hides empty values', () => {
+            expect(shouldShowInternationalDetailOnConfirmation('', iban)).toBe(false);
+            expect(shouldShowInternationalDetailOnConfirmation(undefined, iban)).toBe(false);
+        });
+
+        it('hides IBAN when it matches accountNumber and SWIFT when it matches swiftBicCode', () => {
+            expect(shouldShowInternationalDetailOnConfirmation(iban, iban)).toBe(false);
+            expect(shouldShowInternationalDetailOnConfirmation(swiftBicCode, swiftBicCode)).toBe(false);
+        });
+
+        it('shows a value entered on the international details step even if another field has the same string', () => {
+            expect(shouldShowInternationalDetailOnConfirmation(iban, '123456789')).toBe(true);
+            expect(shouldShowInternationalDetailOnConfirmation(swiftBicCode, iban)).toBe(true);
         });
     });
 });

@@ -10,6 +10,7 @@ import type {ExpenseReportListItemType, TransactionListItemType} from './types';
 
 type ExpenseReportRowDisplayValuesDeps = {
     translate: LocaleContextProps['translate'];
+    dateFnsLocale: LocaleContextProps['dateFnsLocale'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
@@ -22,7 +23,7 @@ type ExpenseReportRowDisplayItem = Pick<ExpenseReportListItemType, 'isAllScannin
  * Derives the values an expense-report row shows — scanning-aware amount, formatted date, expense-count text — so the
  * visible cells and the row's accessibility label share one source of truth and can't drift apart.
  */
-function getExpenseReportRowDisplayValues(item: ExpenseReportRowDisplayItem, {translate, convertToDisplayString}: ExpenseReportRowDisplayValuesDeps) {
+function getExpenseReportRowDisplayValues(item: ExpenseReportRowDisplayItem, {translate, dateFnsLocale, convertToDisplayString}: ExpenseReportRowDisplayValuesDeps) {
     const amount = item.isAllScanning ? translate('iou.receiptStatusTitle') : convertToDisplayString(item.totalDisplaySpend ?? 0, item.currency ?? CONST.CURRENCY.USD);
 
     const filteredTransactions = item.transactions?.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
@@ -30,7 +31,11 @@ function getExpenseReportRowDisplayValues(item: ExpenseReportRowDisplayItem, {tr
     const expenseCountText = translate('iou.expenseCount', {count: expenseCount});
 
     const date = item.created
-        ? DateUtils.formatWithUTCTimeZone(item.created, DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT)
+        ? DateUtils.formatWithUTCTimeZone(
+              item.created,
+              DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+              dateFnsLocale,
+          )
         : '';
 
     return {amount, expenseCountText, date};

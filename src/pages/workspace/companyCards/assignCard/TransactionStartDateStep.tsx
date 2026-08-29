@@ -12,7 +12,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -98,10 +97,6 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
     ];
 
     const isLoading = isLoadingOnyxValue(assignCardMeta);
-    const activityReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'TransactionStartDateStep',
-        isLoading,
-    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -120,7 +115,6 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.h100}
-                        reasonAttributes={activityReasonAttributes}
                     />
                 ) : (
                     <>

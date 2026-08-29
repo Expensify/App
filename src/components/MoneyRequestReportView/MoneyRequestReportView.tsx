@@ -24,7 +24,6 @@ import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID} 
 import {getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import Navigation from '@navigation/Navigation';
 
@@ -53,11 +52,12 @@ import {Animated, ScrollView, View} from 'react-native';
 
 import MoneyRequestReportActionsList from './MoneyRequestReportActionsList';
 
-const loadingAppReasonAttributes: SkeletonSpanReasonAttributes = {context: 'MoneyRequestReportView.isLoadingApp'};
-
 type MoneyRequestReportViewProps = {
     /** The report */
     report: OnyxEntry<OnyxTypes.Report>;
+
+    /** Report ID from the route, known before the report itself loads */
+    reportIDFromRoute: string | undefined;
 
     /** Loading state for report */
     reportLoadingState: OnyxEntry<OnyxTypes.ReportLoadingState>;
@@ -99,24 +99,21 @@ function goBackFromSearchMoneyRequest(options?: {afterTransition?: () => void}) 
     Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}), options);
 }
 
-function InitialLoadingSkeleton({styles, onLayout, reasonAttributes}: {styles: ThemeStyles; onLayout?: (event: LayoutChangeEvent) => void; reasonAttributes: SkeletonSpanReasonAttributes}) {
+function InitialLoadingSkeleton({styles, onLayout}: {styles: ThemeStyles; onLayout?: (event: LayoutChangeEvent) => void}) {
     return (
         <View
             style={[styles.flex1]}
             onLayout={onLayout}
         >
             <View style={[styles.appContentHeader, styles.borderBottom]}>
-                <ReportHeaderSkeletonView
-                    onBackButtonPress={() => {}}
-                    reasonAttributes={reasonAttributes}
-                />
+                <ReportHeaderSkeletonView onBackButtonPress={() => {}} />
             </View>
             <ReportActionsSkeletonView />
         </View>
     );
 }
 
-function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReportFooter, backToRoute, onLayout}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, shouldDisplayReportFooter, backToRoute, onLayout}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -127,6 +124,8 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     const isAppLoadPending = useIsAppLoadPending();
     const {reportPendingAction, reportErrors: allReportErrors} = getReportOfflinePendingActionAndErrors(report);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportID);
 
@@ -211,23 +210,16 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
         };
     }, [reportID]);
 
-    useMarkOpenReportEndOnSkeleton(report, shouldShowOpenReportLoadingSkeleton);
+    const shouldShowEmptyActionsSkeleton = reportActions.length === 0;
+    const shouldShowAppLoadSkeleton = !!report && isAppLoadPending;
+    // These skeletons render before the report lands in Onyx, so the mark uses the route id.
+    useMarkOpenReportEndOnSkeleton(reportIDFromRoute, shouldShowOpenReportLoadingSkeleton || shouldShowEmptyActionsSkeleton || shouldShowAppLoadSkeleton);
 
     if (shouldShowOpenReportLoadingSkeleton) {
-        const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'MoneyRequestReportView.InitialLoadingSkeleton',
-            isReportLoadPending,
-            shouldWaitForTransactions,
-        };
-        return (
-            <InitialLoadingSkeleton
-                styles={styles}
-                reasonAttributes={skeletonReasonAttributes}
-            />
-        );
+        return <InitialLoadingSkeleton styles={styles} />;
     }
 
-    if (reportActions.length === 0) {
+    if (shouldShowEmptyActionsSkeleton) {
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
@@ -235,10 +227,10 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
         return;
     }
 
-    if (isAppLoadPending) {
+    if (shouldShowAppLoadSkeleton) {
         return (
             <View style={styles.flex1}>
-                <ReportHeaderSkeletonView reasonAttributes={loadingAppReasonAttributes} />
+                <ReportHeaderSkeletonView />
                 <ReportActionsSkeletonView />
                 {shouldDisplayReportFooter ? <ReportFooter /> : null}
             </View>
@@ -287,6 +279,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
                                 <>
                                     <ReportActionsList
                                         reportID={report.reportID}
+                                        conciergeChat={conciergeChat}
                                         onLayout={onLayout}
                                     />
                                     <UserTypingEventListener report={report} />
