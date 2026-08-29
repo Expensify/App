@@ -14,7 +14,7 @@ import {convertToBackendAmount, getCurrencySymbol as getCurrencySymbolFromCurren
 import type {MachineDateFormat} from '@libs/DateUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import type {CommuterExclusionData, MileageRate} from '@libs/DistanceRequestUtils';
+import type {CommuterExclusionData} from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
@@ -206,22 +206,6 @@ function shouldUseCommuterExclusionForDisplay(transaction: OnyxEntry<Transaction
     return hasAppliedCommuterExclusion(transaction) && isPolicyExpenseChat;
 }
 
-function getDistanceRateForDisplay({
-    customUnitRateID,
-    policy,
-    policies,
-}: {
-    customUnitRateID: string | undefined;
-    policy?: OnyxEntry<Policy>;
-    policies?: OnyxCollection<Policy>;
-}): MileageRate | undefined {
-    if (!customUnitRateID) {
-        return;
-    }
-
-    return DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID, policy}) ?? DistanceRequestUtils.getEnabledRateByCustomUnitRateIDFromAnyPolicy(customUnitRateID, policies);
-}
-
 function getDisplayTransactionWithoutInvalidCommuterExclusion({
     transaction,
     isPolicyExpenseChat,
@@ -245,7 +229,7 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
         return transaction;
     }
 
-    const mileageRate = getDistanceRateForDisplay({customUnitRateID: customUnit?.customUnitRateID, policy, policies});
+    const mileageRate = DistanceRequestUtils.getRateByCustomUnitRateIDAcrossPolicies({customUnitRateID: customUnit?.customUnitRateID, policy, policies});
     const rate = mileageRate?.rate;
     const unit = customUnit?.distanceUnit ?? mileageRate?.unit;
     if (!unit || !rate) {
