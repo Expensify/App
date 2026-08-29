@@ -6,7 +6,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {useCallback, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 
 import useOnyx from './useOnyx';
 
@@ -37,6 +37,15 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
     const [hasMore, setHasMore] = useState(false);
     const [nextCursor, setNextCursor] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
+    const hasCachedData = useRef(false);
+
+    // Track if we have cached data to avoid showing loading state on remount
+    useEffect(() => {
+        if (!searchResults || Object.keys(searchResults).length === 0) {
+            return;
+        }
+        hasCachedData.current = true;
+    }, [searchResults]);
 
     const loadMore = useCallback(() => {
         if (isLoading || !hasMore) {
@@ -55,7 +64,10 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
         setSearchQuery(query);
         setNextCursor('');
         setHasMore(false);
-        setIsLoading(true);
+        // Only show loading if no cached data - otherwise fetch silently in background
+        if (!hasCachedData.current) {
+            setIsLoading(true);
+        }
         openSearchTagFiltersPage({searchQuery: query, cursor: '', limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE})
             .then(({hasMore: newHasMore, nextCursor: newCursor}) => {
                 setHasMore(newHasMore);
