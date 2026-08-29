@@ -116,6 +116,7 @@ function useAutoCreateTrackWorkspace() {
                     isSelfTourViewed,
                     conciergeChat,
                     selfDMReport,
+                    currentUserAccountID: currentUserAccountID,
                 });
 
                 if (isSidePanelReportSupported) {

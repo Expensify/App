@@ -97,6 +97,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             introSelected,
             isSelfTourViewed,
             conciergeChat,
+            currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
         });
         setOnboardingAdminsChatReportID();
         setOnboardingPolicyID(policy.policyID);

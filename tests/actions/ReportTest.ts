@@ -3032,6 +3032,7 @@ describe('actions/Report', () => {
                 userReportedIntegration: null,
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
 
             await waitForBatchedUpdates();
@@ -3069,6 +3070,7 @@ describe('actions/Report', () => {
                 selectedInterestedFeatures,
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
 
             await waitForBatchedUpdates();
@@ -3103,6 +3105,7 @@ describe('actions/Report', () => {
                 userReportedIntegrationName: 'Acme Books',
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
 
             await waitForBatchedUpdates();
@@ -3137,6 +3140,7 @@ describe('actions/Report', () => {
                 userReportedIntegration: 'other',
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
 
             await waitForBatchedUpdates();

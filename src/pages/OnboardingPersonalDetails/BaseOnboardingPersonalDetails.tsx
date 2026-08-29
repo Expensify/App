@@ -101,6 +101,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     introSelected,
                     isSelfTourViewed,
                     conciergeChat,
+                    currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 });
 
                 setOnboardingAdminsChatReportID();
