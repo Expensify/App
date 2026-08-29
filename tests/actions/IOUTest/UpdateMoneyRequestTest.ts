@@ -2782,6 +2782,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     transaction: fakeTransaction,
                     parentReport,
                     parentReportAction: undefined,
+                    conciergeChat: undefined,
                     transactionThreadReport,
                     policy: fakePolicy,
                     policyCategories: {},

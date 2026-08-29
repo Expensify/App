@@ -38,7 +38,6 @@ jest.mock('@userActions/IOU/UpdateMoneyRequest', () => ({
     updateMoneyRequestTag: jest.fn(),
 }));
 
-// Only the thread-creation boundary is replaced; everything else in the Report actions module stays real.
 jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof ReportActions>('@userActions/Report'),
     createTransactionThreadReport: jest.fn(),
