@@ -662,7 +662,7 @@ describe('libs/NextStepUtils', () => {
                     };
                     const result = buildOptimisticNextStep({
                         report,
-                        policy,
+                        policy: {...policy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO},
                         currentUserAccountIDParam: currentUserAccountID,
                         currentUserEmailParam: currentUserEmail,
                         hasViolations: false,
@@ -678,14 +678,15 @@ describe('libs/NextStepUtils', () => {
                 });
             });
 
-            test('non-payer', () => {
+            test('non-payer still waits for an admin to pay', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
                     role: 'user',
                 }).then(() => {
                     const expectedResult: ReportNextStep = {
-                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
-                        icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        actorAccountID: -1,
                     };
                     const result = buildOptimisticNextStep({
                         report,
