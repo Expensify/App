@@ -1,5 +1,7 @@
 import {act, render, screen, waitFor} from '@testing-library/react-native';
 
+import Text from '@components/Text';
+
 import HomeAddressRequiredContent from '@pages/inbox/report/actionContents/HomeAddressRequiredContent';
 
 import CONST from '@src/CONST';
@@ -9,8 +11,12 @@ import type {ReportAction} from '@src/types/onyx';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../../../../utils/createMock';
 import {getFakeReportAction} from '../../../../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
+
+const mockReact = React;
+const mockText = Text;
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -23,15 +29,12 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@components/ButtonComposed', () => {
-    const ReactModule = require('react');
-    const {Text: RNText, View: RNView} = require('react-native');
-
     function MockButton({children}: {children: React.ReactNode}) {
-        return ReactModule.createElement(RNView, null, children);
+        return mockReact.createElement('mock-button', null, children);
     }
 
     function ButtonText({children}: {children: React.ReactNode}) {
-        return ReactModule.createElement(RNText, null, children);
+        return mockReact.createElement(mockText, null, children);
     }
 
     MockButton.Text = ButtonText;
@@ -39,34 +42,28 @@ jest.mock('@components/ButtonComposed', () => {
 });
 
 jest.mock('@components/ReportActionItem/ActionableItemButtons', () => {
-    const ReactModule = require('react');
-    const {View: RNView} = require('react-native');
-
     function MockActionableItemButtons({children}: {children: React.ReactNode}) {
-        return ReactModule.createElement(RNView, null, children);
+        return mockReact.createElement('mock-actionable-item-buttons', null, children);
     }
 
     return MockActionableItemButtons;
 });
 
 jest.mock('@pages/inbox/report/ReportActionItemBasicMessage', () => {
-    const ReactModule = require('react');
-    const {Text: RNText, View: RNView} = require('react-native');
-
     function MockReportActionItemBasicMessage({message, children}: {message?: string; children?: React.ReactNode}) {
-        return ReactModule.createElement(RNView, null, !!message && ReactModule.createElement(RNText, null, message), children);
+        return mockReact.createElement('mock-report-action-item-basic-message', null, message ? mockReact.createElement(mockText, null, message) : null, children);
     }
 
     return MockReportActionItemBasicMessage;
 });
 
-const action = {
+const action = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED>>({
     ...getFakeReportAction(1),
     actionName: CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED,
     originalMessage: {
         policyID: 'policyID',
     },
-} as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED>;
+});
 
 describe('HomeAddressRequiredContent', () => {
     beforeAll(() => {
