@@ -129,6 +129,12 @@ type Response<TKey extends OnyxKey> = {
 
     /** Cache key returned from GetExpensifyCardStatementPDF */
     statementKey?: string;
+
+    /** Whether there are more pages of tag filter results */
+    hasMore?: boolean;
+
+    /** Cursor for the next page of tag filter results */
+    nextCursor?: string;
 };
 
 export default Response;

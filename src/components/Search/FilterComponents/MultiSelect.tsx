@@ -18,7 +18,7 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {ReactNode} from 'react';
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import ListFilterView from './ListFilterViewWrapper';
@@ -52,6 +52,12 @@ type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & 
 
     /** Whether to show the loading placeholder */
     shouldShowLoadingPlaceholder?: boolean;
+
+    /** Called when the scroll position gets near the end of the list */
+    onEndReached?: () => void;
+
+    /** Called when the debounced search term changes */
+    onSearchChange?: (searchTerm: string) => void;
 };
 
 function MultiSelect<T extends string>({
@@ -68,6 +74,8 @@ function MultiSelect<T extends string>({
     autoFocus,
     footer,
     onChange,
+    onEndReached,
+    onSearchChange,
 }: MultiSelectProps<T>) {
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -75,6 +83,11 @@ function MultiSelect<T extends string>({
 
     const [selectedItems, setSelectedItems] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+
+    // Notify parent when debounced search term changes (for server-side search)
+    useEffect(() => {
+        onSearchChange?.(debouncedSearchTerm);
+    }, [debouncedSearchTerm, onSearchChange]);
 
     // Snapshot the values selected when the filter first opened so they can be floated to the top of a long list on
     // first render without repinning rows that are toggled afterwards.
@@ -84,9 +97,11 @@ function MultiSelect<T extends string>({
     const orderedItems = moveInitialSelectionToTop(items, initialSelectedValues);
 
     const searchLower = debouncedSearchTerm.toLowerCase();
-    const filteredItems = isSearchable
-        ? orderedItems.filter((item) => item.text.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower))
-        : orderedItems;
+    // When onSearchChange is provided, the parent handles filtering (server-side search)
+    const filteredItems =
+        isSearchable && !onSearchChange
+            ? orderedItems.filter((item) => item.text.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower))
+            : orderedItems;
     const listData: ListItem[] = filteredItems.map((item) => ({
         text: item.text,
         alternateText: item.alternateText,
@@ -151,6 +166,7 @@ function MultiSelect<T extends string>({
                     textInputOptions={textInputOptions}
                     style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
                     footerContent={footer}
+                    onEndReached={onEndReached}
                 />
             )}
         </ListFilterView>

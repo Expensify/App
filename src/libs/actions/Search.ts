@@ -16,12 +16,13 @@ import type {
     ExportSearchWithTemplateParams,
     OpenBulkChangeApproverPageParams,
     OpenSearchPageParams,
+    OpenSearchTagFiltersPageParams,
     QueueExportSearchItemsToCSVParams,
     QueueExportSearchWithTemplateParams,
     ReportExportParams,
     SubmitReportParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -1042,6 +1043,17 @@ function openSearchCategoryFiltersPage() {
     ];
 
     read(READ_COMMANDS.OPEN_SEARCH_CATEGORY_FILTERS_PAGE, null, {optimisticData, successData, finallyData});
+}
+
+/**
+ * Fetches a page of tag filter search results from the server.
+ * Returns pagination metadata (hasMore, nextCursor) for infinite scroll.
+ */
+function openSearchTagFiltersPage(params: OpenSearchTagFiltersPageParams): Promise<{hasMore: boolean; nextCursor: string}> {
+    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE, params).then((response) => ({
+        hasMore: !!response?.hasMore,
+        nextCursor: response?.nextCursor ?? '',
+    }));
 }
 
 function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
@@ -2391,6 +2403,7 @@ export {
     handlePreventSearchAPI,
     openSearchCardFiltersPage,
     openSearchCategoryFiltersPage,
+    openSearchTagFiltersPage,
     getPolicyFromSearchSnapshot,
     getReportFromSearchSnapshot,
     resolveSearchPayPaymentMethod,
