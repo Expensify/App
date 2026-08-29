@@ -2579,6 +2579,51 @@ describe('actions/IOU/BulkEdit', () => {
                 }),
             );
 
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+            const anyError: unknown = expect.anything();
+            expect(writeSpy.mock.calls.at(0)?.[2]).toEqual(
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: transactionKey,
+                            value: expect.objectContaining({comment: {}, pendingFields: {category: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}),
+                        }),
+                    ]),
+                    successData: expect.arrayContaining([expect.objectContaining({key: transactionKey, value: {pendingFields: {category: null}}})]),
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: transactionKey,
+                            value: expect.objectContaining({comment: {}, pendingFields: {category: null}, errorFields: expect.objectContaining({category: anyError})}),
+                        }),
+                    ]),
+                }),
+            );
+
+            expect(writeSpy.mock.calls.at(1)?.[2]).toEqual(
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: transactionKey,
+                            value: expect.objectContaining({
+                                comment: {attendees: nextAttendees},
+                                pendingFields: {attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            }),
+                        }),
+                    ]),
+                    successData: [expect.objectContaining({key: transactionKey, value: {pendingFields: {attendees: null}}})],
+                    failureData: [
+                        expect.objectContaining({
+                            key: transactionKey,
+                            value: expect.objectContaining({
+                                comment: {attendees: transaction.comment?.attendees},
+                                pendingFields: {attendees: null},
+                                errorFields: expect.objectContaining({attendees: anyError}),
+                            }),
+                        }),
+                    ],
+                }),
+            );
+
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
         });
