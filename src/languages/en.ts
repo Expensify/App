@@ -2374,6 +2374,14 @@ const translations = {
             releaseOptions: 'Release options',
             testingPreferences: 'Testing preferences',
             useStagingServer: 'Use Staging Server',
+            qaAuth: 'QA auth (Cloudflare)',
+            qaAuthRunProbe: 'Run probe',
+            qaAuthSession: 'QA auth session',
+            qaAuthClearSession: 'Clear session',
+            qaAuthStatusSuccess: 'Probe succeeded',
+            qaAuthStatusReauthRequired: 'Session expired — run again to sign in',
+            qaAuthStatusSignInFailed: "Sign-in didn't complete — run again to retry",
+            qaAuthStatusError: 'Probe failed',
             forceOffline: 'Force offline',
             simulatePoorConnection: 'Simulate poor internet connection',
             simulateFailingNetworkRequests: 'Simulate failing network requests',
@@ -3099,7 +3107,6 @@ const translations = {
         cardLastFour: 'Card ending in',
         addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
         defaultPaymentMethod: 'Default',
-        bankAccountLastFour: (lastFour: string) => `Bank Account • ${lastFour}`,
     },
     agentsPage: {
         title: 'Agents',
@@ -4674,6 +4681,10 @@ const translations = {
             hotelManual:
                 'Did you know you can book and manage hotel stays right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard: 'Did you know you can book and manage hotel stays right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            hotelBlockManual:
+                'Did you know you can book and manage group trips like this right in Expensify? Save yourself the hassle next time and try out our <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> tool.',
+            hotelBlockCard:
+                'Did you know you can book and manage group trips like this right in Expensify? Save yourself the hassle next time and try out our <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> tool.',
             carManual:
                 'Did you know you can book and manage car rentals right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard: 'Did you know you can book and manage car rentals right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
@@ -6159,6 +6170,7 @@ const translations = {
                     comment: 'Description',
                     category: 'Category',
                     tag: 'Tag',
+                    uniqueID: 'Unique ID',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Please assign a column to each of the attributes: ${missingColumns}.`,
@@ -7511,6 +7523,9 @@ const translations = {
         distanceRates: {
             oopsNotSoFast: 'Oops! Not so fast...',
             workspaceNeeds: 'A workspace needs at least one enabled distance rate.',
+            requireMapOrGPSDescription: 'Manual and odometer entry will be disabled.',
+            requireMapOrGPSLockedByCommuterExclusions:
+                'Exclude commutes needs route data, so map or GPS distance is always required while it\'s on. To change this setting, set Exclude Commutes to "Do not exclude commutes".',
             commuterExclusions: {
                 title: 'Exclude commutes',
                 summaryDisabled: 'No commute exclusion',
@@ -9067,6 +9082,8 @@ const translations = {
                     return `${enabled ? 'enabled' : 'disabled'} rules`;
                 case 'tax tracking':
                     return `${enabled ? 'enabled' : 'disabled'} tax tracking`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'turned on' : 'turned off'} require GPS or map entry for distance rates`;
                 default:
                     return `${enabled ? 'enabled' : 'disabled'} ${featureName}`;
             }
@@ -9954,7 +9971,7 @@ const translations = {
         error: {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
             mapOrGpsDistanceRequired: {
-                title: 'Map or GPS distance required',
+                title: 'Require GPS or map entry',
                 description: 'This workspace requires either map-based or GPS-tracked distance expenses.',
             },
         },

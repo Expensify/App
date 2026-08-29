@@ -2292,6 +2292,14 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Gemarkeerde span-namen',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interactie.klik, navigatie, ui.laden',
             showBranchNameInTitle: 'Toon branchnaam in titel van browser',
+            qaAuth: 'QA-authenticatie (Cloudflare)',
+            qaAuthRunProbe: 'Probe uitvoeren',
+            qaAuthSession: 'QA-authsessie',
+            qaAuthClearSession: 'Sessie wissen',
+            qaAuthStatusSuccess: 'Probe gelukt',
+            qaAuthStatusReauthRequired: 'Sessie verlopen — voer het opnieuw uit om je aan te melden',
+            qaAuthStatusSignInFailed: 'Aanmelden is niet voltooid — voer het opnieuw uit om het nog eens te proberen',
+            qaAuthStatusError: 'Test is mislukt',
         },
         security: 'Beveiliging',
         signOut: 'Afmelden',
@@ -3008,7 +3016,6 @@ ${amount} voor ${merchant} - ${date}`,
         cardLastFour: 'Kaart eindigend op',
         addFirstPaymentMethod: 'Voeg een betaalmethode toe om rechtstreeks in de app betalingen te versturen en te ontvangen.',
         defaultPaymentMethod: 'Standaard',
-        bankAccountLastFour: (lastFour: string) => `Bankrekening • ${lastFour}`,
     },
     agentsPage: {
         title: 'Agenten',
@@ -4558,6 +4565,10 @@ ${amount} voor ${merchant} - ${date}`,
                 'Wist je dat je treinreizen direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Wist je dat je treinreizen rechtstreeks in Expensify kunt boeken en beheren? En dat bonnen automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            hotelBlockManual:
+                'Wist je dat je groepsreizen zoals deze direct in Expensify kunt boeken en beheren? Bespaar jezelf de moeite de volgende keer en probeer onze tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reisevenementen</a> eens uit.',
+            hotelBlockCard:
+                'Wist je dat je groepsreizen zoals deze direct in Expensify kunt boeken en beheren? Bespaar jezelf de moeite de volgende keer en probeer onze tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reisevenementen</a> eens uit.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Reizen is niet ingeschakeld',
@@ -6019,6 +6030,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     comment: 'Omschrijving',
                     category: 'Categorie',
                     tag: 'Label',
+                    uniqueID: 'Unieke ID',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Wijs een kolom toe aan elk van de attributen: ${missingColumns}.`,
@@ -7260,6 +7272,9 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
         distanceRates: {
             oopsNotSoFast: 'Oeps! Niet zo snel...',
             workspaceNeeds: 'Een workspace heeft minstens één ingeschakelde afstandstarief nodig.',
+            requireMapOrGPSDescription: 'Handmatige invoer en kilometertellerinvoer worden uitgeschakeld.',
+            requireMapOrGPSLockedByCommuterExclusions:
+                'Woon-werkverkeer uitsluiten heeft routedata nodig, dus een kaart- of GPS-afstand is altijd vereist zolang deze optie aanstaat. Om deze instelling te wijzigen, zet Woon-werkverkeer uitsluiten op ‘Woon-werkverkeer niet uitsluiten’.',
             commuterExclusions: {
                 title: 'Woon-werkverkeer uitsluiten',
                 summaryDisabled: 'Geen woon-werkuitzondering',
@@ -8637,7 +8652,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 case 'tags':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} labels`;
                 case 'workflows':
-                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'}-workflows`;
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} workflows`;
                 case 'distance rates':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} afstandstarieven`;
                 case 'accounting':
@@ -8645,11 +8660,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 case 'Expensify Cards':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} Expensify Kaarten`;
                 case 'travel invoicing':
-                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} Geconsolideerde reiskostenfacturatie`;
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} Geconsolideerde reisfacturatie`;
                 case 'company cards':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} bedrijfskaarten`;
                 case 'invoicing':
-                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} facturering`;
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} facturatie`;
                 case 'per diem':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} dagvergoeding`;
                 case 'receipt partners':
@@ -8658,6 +8673,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'}-regels`;
                 case 'tax tracking':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} belastingregistratie`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} vereisen GPS of kaartinvoer voor afstandstarieven`;
                 default:
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} ${featureName}`;
             }
@@ -9747,7 +9764,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         error: {
             selectSuggestedAddress: 'Selecteer een voorgesteld adres of gebruik de huidige locatie',
             mapOrGpsDistanceRequired: {
-                title: 'Afstand van kaart of GPS vereist',
+                title: 'GPS of kaartinvoer verplicht',
                 description: 'Deze workspace vereist afstandsdeclaraties die zijn gebaseerd op een kaart of via GPS worden bijgehouden.',
             },
         },

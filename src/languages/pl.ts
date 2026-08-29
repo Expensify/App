@@ -2323,6 +2323,14 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Wyróżnione nazwy zakresów',
             sentryHighlightedSpanOpsPlaceholder: 'kliknięcie interfejsu, nawigacja, ładowanie interfejsu',
             showBranchNameInTitle: 'Pokaż nazwę gałęzi w tytule przeglądarki',
+            qaAuth: 'Uwierzytelnianie QA (Cloudflare)',
+            qaAuthRunProbe: 'Uruchom test',
+            qaAuthSession: 'Sesja uwierzytelniania QA',
+            qaAuthClearSession: 'Wyczyść sesję',
+            qaAuthStatusSuccess: 'Próba zakończona powodzeniem',
+            qaAuthStatusReauthRequired: 'Sesja wygasła — uruchom ponownie, żeby się zalogować',
+            qaAuthStatusSignInFailed: 'Logowanie nie zostało ukończone — uruchom ponownie, żeby spróbować jeszcze raz',
+            qaAuthStatusError: 'Test się nie powiódł',
         },
         security: 'Bezpieczeństwo',
         signOut: 'Wyloguj się',
@@ -3033,7 +3041,6 @@ ${amount} dla ${merchant} - ${date}`,
         cardLastFour: 'Karta kończąca się na',
         addFirstPaymentMethod: 'Dodaj metodę płatności, aby wysyłać i odbierać płatności bezpośrednio w aplikacji.',
         defaultPaymentMethod: 'Domyślne',
-        bankAccountLastFour: (lastFour: string) => `Konto bankowe • ${lastFour}`,
     },
     agentsPage: {
         title: 'Agenci',
@@ -4585,6 +4592,10 @@ ${amount} dla ${merchant} - ${date}`,
                 'Wiesz, że możesz rezerwować i zarządzać przejazdami pociągiem bezpośrednio w Expensify? Następnym razem uniknij kłopotu z ręcznym tworzeniem wydatku i po prostu zarezerwuj przejazd przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Wiesz, że możesz rezerwować i zarządzać przejazdami pociągiem bezpośrednio w Expensify? I że paragony są automatycznie przesyłane za Ciebie? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a>',
+            hotelBlockManual:
+                'Wiesz, że możesz rezerwować i zarządzać takimi wyjazdami grupowymi bezpośrednio w Expensify? Oszczędź sobie zachodu następnym razem i wypróbuj nasze narzędzie <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
+            hotelBlockCard:
+                'Wiesz, że możesz rezerwować i zarządzać takimi wyjazdami grupowymi bezpośrednio w Expensify? Oszczędź sobie zachodu następnym razem i wypróbuj nasze narzędzie <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Podróże są wyłączone',
@@ -6044,6 +6055,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     comment: 'Opis',
                     category: 'Kategoria',
                     tag: 'Tag',
+                    uniqueID: 'Unikalny identyfikator',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Przypisz kolumnę do każdego z atrybutów: ${missingColumns}.`,
@@ -7281,6 +7293,9 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
         distanceRates: {
             oopsNotSoFast: 'Ups! Nie tak szybko...',
             workspaceNeeds: 'Miejsce pracy musi mieć włączoną co najmniej jedną stawkę za dystans.',
+            requireMapOrGPSDescription: 'Ręczne wpisy i wprowadzanie stanu licznika przebiegu zostaną wyłączone.',
+            requireMapOrGPSLockedByCommuterExclusions:
+                'Wykluczanie dojazdów wymaga danych o trasie, więc gdy ta opcja jest włączona, zawsze jest potrzebny dystans z mapy lub GPS. Żeby zmienić to ustawienie, ustaw Wykluczaj dojazdy na „Nie wykluczaj dojazdów”.',
             commuterExclusions: {
                 title: 'Wyklucz dojazdy',
                 summaryDisabled: 'Bez wykluczenia dojazdów',
@@ -8659,27 +8674,29 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 case 'tags':
                     return `${enabled ? 'włączone' : 'wyłączone'} tagi`;
                 case 'workflows':
-                    return `${enabled ? 'włączone' : 'wyłączone'} przepływy pracy`;
+                    return `${enabled ? 'włączone' : 'wyłączone'} procesy pracy`;
                 case 'distance rates':
-                    return `stawki za przejazdy ${enabled ? 'włączone' : 'wyłączone'}`;
+                    return `Stawki za przejazdy ${enabled ? 'włączone' : 'wyłączone'}`;
                 case 'accounting':
                     return `${enabled ? 'włączone' : 'wyłączone'} księgowość`;
                 case 'Expensify Cards':
                     return `${enabled ? 'włączone' : 'wyłączone'} Karty Expensify`;
                 case 'travel invoicing':
-                    return `${enabled ? 'włączone' : 'wyłączone'} Zbiorcze rozliczenie podróży`;
+                    return `${enabled ? 'włączone' : 'wyłączone'} Zbiorcze rozliczanie podróży`;
                 case 'company cards':
                     return `${enabled ? 'włączone' : 'wyłączone'} karty firmowe`;
                 case 'invoicing':
-                    return `Fakturowanie ${enabled ? 'włączone' : 'wyłączone'}`;
+                    return `Wystawianie faktur ${enabled ? 'włączone' : 'wyłączone'}`;
                 case 'per diem':
-                    return `${enabled ? 'włączone' : 'wyłączone'} diety`;
+                    return `${enabled ? 'włączone' : 'wyłączone'} diety dzienne`;
                 case 'receipt partners':
-                    return `${enabled ? 'włączone' : 'wyłączone'} paragonów od partnerów`;
+                    return `${enabled ? 'włączone' : 'wyłączone'} paragonów partnerów`;
                 case 'rules':
                     return `${enabled ? 'włączone' : 'wyłączone'} reguły`;
                 case 'tax tracking':
-                    return `Śledzenie podatku ${enabled ? 'włączone' : 'wyłączone'}`;
+                    return `śledzenie podatków ${enabled ? 'włączone' : 'wyłączone'}`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'włączono' : 'wyłączone'} wymagają GPS lub wprowadzenia na mapie dla stawek za przejazd`;
                 default:
                     return `${enabled ? 'włączone' : 'wyłączone'} ${featureName}`;
             }
@@ -9773,7 +9790,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         error: {
             selectSuggestedAddress: 'Wybierz sugerowany adres lub użyj bieżącej lokalizacji',
             mapOrGpsDistanceRequired: {
-                title: 'Wymagana odległość z mapy lub GPS',
+                title: 'Wymagaj GPS lub wpisania na mapie',
                 description: 'W tym obszarze roboczym wymagane są wydatki za przejazdy oparte na mapie lub śledzone za pomocą GPS.',
             },
         },

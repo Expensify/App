@@ -2306,6 +2306,14 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Noms de segments surlignés',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.clic, navigation, ui.chargement',
             showBranchNameInTitle: 'Afficher le nom de la branche dans le titre du navigateur',
+            qaAuth: 'Authentification QA (Cloudflare)',
+            qaAuthRunProbe: 'Lancer le test',
+            qaAuthSession: 'Session d’authentification QA',
+            qaAuthClearSession: 'Effacer la session',
+            qaAuthStatusSuccess: 'Sonde réussie',
+            qaAuthStatusReauthRequired: 'Session expirée — relancez pour vous connecter',
+            qaAuthStatusSignInFailed: 'La connexion n’a pas abouti — relancez pour réessayer',
+            qaAuthStatusError: 'Sonde échouée',
         },
         security: 'Sécurité',
         signOut: 'Se déconnecter',
@@ -3023,7 +3031,6 @@ ${amount} pour ${merchant} - ${date}`,
         cardLastFour: 'Carte se terminant par',
         addFirstPaymentMethod: 'Ajoutez un moyen de paiement pour envoyer et recevoir des paiements directement dans l’application.',
         defaultPaymentMethod: 'Par défaut',
-        bankAccountLastFour: (lastFour: string) => `Compte bancaire • ${lastFour}`,
     },
     agentsPage: {
         title: 'Agents',
@@ -4594,6 +4601,10 @@ ${amount} pour ${merchant} - ${date}`,
                 'Saviez-vous que vous pouvez réserver et gérer vos trajets en train directement dans Expensify ? La prochaine fois, évitez la corvée de créer votre dépense manuellement et réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Saviez-vous que vous pouvez réserver et gérer vos trajets en train directement dans Expensify ? Et que les reçus sont automatiquement téléchargés pour vous ? La prochaine fois, réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            hotelBlockManual:
+                'Saviez-vous que vous pouvez réserver et gérer des voyages de groupe comme celui-ci directement dans Expensify ? Évitez-vous des ennuis la prochaine fois et essayez notre outil <a href="https://help.expensify.com/travel/hubs/event-management/">Événements de voyage</a>.',
+            hotelBlockCard:
+                'Saviez-vous que vous pouvez réserver et gérer des voyages de groupe comme celui-ci directement dans Expensify ? Évitez-vous des ennuis la prochaine fois et essayez notre outil <a href="https://help.expensify.com/travel/hubs/event-management/">Événements de voyage</a>.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Voyage n’est pas activé',
@@ -6074,6 +6085,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     comment: 'Description',
                     category: 'Catégorie',
                     tag: 'Étiquette',
+                    uniqueID: 'ID unique',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Veuillez attribuer une colonne à chacun des attributs : ${missingColumns}.`,
@@ -7333,6 +7345,9 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
         distanceRates: {
             oopsNotSoFast: 'Oups ! Pas si vite...',
             workspaceNeeds: 'Un espace de travail doit avoir au moins un taux de distance activé.',
+            requireMapOrGPSDescription: 'La saisie manuelle et par odomètre sera désactivée.',
+            requireMapOrGPSLockedByCommuterExclusions:
+                'Exclure les trajets domicile-travail nécessite un itinéraire cartographié, la saisie GPS ou cartographique est donc déjà exigée. Cessez d’exclure les trajets domicile-travail pour modifier ce paramètre.',
             commuterExclusions: {
                 title: 'Exclure les trajets domicile-travail',
                 summaryDisabled: 'Pas d’exclusion du trajet domicile-travail',
@@ -8758,6 +8773,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     return `Règles de ${enabled ? 'activé' : 'Désactivé'}`;
                 case 'tax tracking':
                     return `Suivi fiscal ${enabled ? 'activé' : 'Désactivé'}`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'activé' : 'désactivé'} l’obligation de saisie GPS ou cartographique pour les taux de distance`;
                 default:
                     return `${enabled ? 'activé' : 'Désactivé'} ${featureName}`;
             }
@@ -9849,7 +9866,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         error: {
             selectSuggestedAddress: 'Veuillez sélectionner une adresse suggérée ou utiliser la position actuelle',
             mapOrGpsDistanceRequired: {
-                title: 'Distance de carte ou GPS requise',
+                title: 'Exiger une saisie GPS ou cartographique',
                 description: 'Cet espace de travail requiert des dépenses kilométriques calculées soit sur la base d’une carte, soit suivies par GPS.',
             },
         },

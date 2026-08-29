@@ -541,6 +541,7 @@ export type {ChangeTransactionsReportParams, TransactionThreadInfo} from './Chan
 export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProhibitedExpensesParams';
 export type {default as SetPolicyCommuterExclusionsParams} from './SetPolicyCommuterExclusionsParams';
 export type {default as DisablePolicyCommuterExclusionsParams} from './DisablePolicyCommuterExclusionsParams';
+export type {default as SetPolicyRequireMapOrGPSParams} from './SetPolicyRequireMapOrGPSParams';
 export type {default as CreateDigitalWalletParams} from './CreateDigitalWalletParams';
 export type {default as GetGuideCallAvailabilityScheduleParams} from './GetGuideCallAvailabilitySchedule';
 export type {default as RetractReportParams} from './RetractReportParams';

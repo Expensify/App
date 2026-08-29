@@ -187,6 +187,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     }, [transaction?.amount, iouType]);
 
     const cancelShutterSpans = () => {
+        cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_PREPARE);
         cancelSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
         cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT);
         cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);

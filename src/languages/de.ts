@@ -2300,6 +2300,14 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Hervorgehobene Spannen-Namen',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaktion.klick, navigation, ui.laden',
             showBranchNameInTitle: 'Branch-Namen im Browser-Titel anzeigen',
+            qaAuth: 'QA-Authentifizierung (Cloudflare)',
+            qaAuthRunProbe: 'Test ausführen',
+            qaAuthSession: 'QA-Authentifizierungssitzung',
+            qaAuthClearSession: 'Sitzung löschen',
+            qaAuthStatusSuccess: 'Test erfolgreich',
+            qaAuthStatusReauthRequired: 'Sitzung abgelaufen – erneut ausführen, um sich anzumelden',
+            qaAuthStatusSignInFailed: 'Anmeldung wurde nicht abgeschlossen – führen Sie den Vorgang erneut aus, um es noch einmal zu versuchen',
+            qaAuthStatusError: 'Test fehlgeschlagen',
         },
         security: 'Sicherheit',
         signOut: 'Abmelden',
@@ -3016,7 +3024,6 @@ ${amount} für ${merchant} – ${date}`,
         cardLastFour: 'Karte endet auf',
         addFirstPaymentMethod: 'Fügen Sie eine Zahlungsmethode hinzu, um Zahlungen direkt in der App zu senden und zu empfangen.',
         defaultPaymentMethod: 'Standard',
-        bankAccountLastFour: (lastFour: string) => `Bankkonto • ${lastFour}`,
     },
     agentsPage: {
         title: 'Agenten',
@@ -4586,6 +4593,10 @@ ${amount} für ${merchant} – ${date}`,
                 'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Sparen Sie sich das nächste Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Und dass Belege dabei automatisch für Sie hochgeladen werden? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            hotelBlockManual:
+                'Wussten Sie, dass Sie Gruppenreisen wie diese direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand und probieren Sie unser Tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reise-Events</a> aus.',
+            hotelBlockCard:
+                'Wussten Sie, dass Sie Gruppenreisen wie diese direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand und probieren Sie unser Tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reise-Events</a> aus.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Reisen ist nicht aktiviert',
@@ -6069,6 +6080,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     comment: 'Beschreibung',
                     category: 'Kategorie',
                     tag: 'Tag',
+                    uniqueID: 'Eindeutige ID',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Bitte weisen Sie jeder der folgenden Eigenschaften eine Spalte zu: ${missingColumns}.`,
@@ -7313,6 +7325,9 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
         distanceRates: {
             oopsNotSoFast: 'Ups! Nicht so schnell ...',
             workspaceNeeds: 'Ein Arbeitsbereich benötigt mindestens einen aktivierten Entfernungssatz.',
+            requireMapOrGPSDescription: 'Manuelle Eingabe und Kilometerzähler-Eingabe werden deaktiviert.',
+            requireMapOrGPSLockedByCommuterExclusions:
+                'Das Ausschließen von Arbeitswegen benötigt Routendaten, daher ist bei eingeschalteter Option immer eine Karten- oder GPS-Distanz erforderlich. Um diese Einstellung zu ändern, setzen Sie „Arbeitswege ausschließen“ auf „Arbeitswege nicht ausschließen“.',
             commuterExclusions: {
                 title: 'Arbeitswege ausschließen',
                 summaryDisabled: 'Kein Ausschluss von Pendelstrecken',
@@ -8709,7 +8724,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 case 'tags':
                     return `${enabled ? 'aktiviert' : 'deaktiviert'} Tags`;
                 case 'workflows':
-                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Workflows`;
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'}-Workflows`;
                 case 'distance rates':
                     return `${enabled ? 'aktiviert' : 'deaktiviert'} Entfernungssätze`;
                 case 'accounting':
@@ -8727,9 +8742,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 case 'receipt partners':
                     return `${enabled ? 'aktiviert' : 'deaktiviert'} Belegpartner`;
                 case 'rules':
-                    return `${enabled ? 'aktiviert' : 'deaktiviert'}-Regeln`;
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Regeln`;
                 case 'tax tracking':
                     return `${enabled ? 'aktiviert' : 'deaktiviert'} Steuerverfolgung`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'eingeschaltet' : 'deaktiviert'} erfordern GPS oder Karteneingabe für Entfernungsraten`;
                 default:
                     return `${enabled ? 'aktiviert' : 'deaktiviert'} ${featureName}`;
             }
@@ -9820,7 +9837,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         error: {
             selectSuggestedAddress: 'Bitte wählen Sie eine vorgeschlagene Adresse aus oder verwenden Sie den aktuellen Standort',
             mapOrGpsDistanceRequired: {
-                title: 'Karten- oder GPS-Entfernung erforderlich',
+                title: 'GPS- oder Karteneingabe erforderlich',
                 description: 'Dieser Workspace erfordert entweder kartenbasierte oder GPS-verfolgte Entfernungskosten.',
             },
         },

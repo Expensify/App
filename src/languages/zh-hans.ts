@@ -2214,6 +2214,14 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: '高亮的跨度名称',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click，navigation，ui.load',
             showBranchNameInTitle: '在浏览器标题中显示分支名称',
+            qaAuth: 'QA 认证（Cloudflare）',
+            qaAuthRunProbe: '运行探针',
+            qaAuthSession: 'QA 身份验证会话',
+            qaAuthClearSession: '清除会话',
+            qaAuthStatusSuccess: '探测成功',
+            qaAuthStatusReauthRequired: '会话已过期 — 请重新运行以登录',
+            qaAuthStatusSignInFailed: '登录未完成 — 请再次运行以重试',
+            qaAuthStatusError: '探测失败',
         },
         security: '安全',
         signOut: '退出登录',
@@ -2899,7 +2907,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         cardLastFour: '卡号末尾为',
         addFirstPaymentMethod: '在应用中添加支付方式以直接发送和接收款项。',
         defaultPaymentMethod: '默认',
-        bankAccountLastFour: (lastFour: string) => `银行账户 • ${lastFour}`,
     },
     agentsPage: {
         title: '代理人',
@@ -4407,6 +4414,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             carCard: '你知道吗？你可以直接在 Expensify 中预订和管理租车！下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚗',
             railManual: '你知道吗？你可以直接在 Expensify 中预订和管理火车行程！下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
             railCard: '你知道吗？你可以直接在 Expensify 中预订和管理火车行程，而且还会自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
+            hotelBlockManual:
+                '你知道吗？你可以直接在 Expensify 中预订和管理像这样的团队行程。下次就不用再费心了，试试我们的 <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> 工具吧。',
+            hotelBlockCard:
+                '你知道吗？你可以直接在 Expensify 中预订和管理像这样的团队行程。下次就不用再费心了，试试我们的 <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> 工具吧。',
         },
         defaultWorkspaceTravelDisabled: {title: '差旅功能未启用', message: '如需预订，请在您的默认工作区中启用差旅功能，或将默认工作区切换为已启用差旅功能的工作区。'},
     },
@@ -5816,6 +5827,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     comment: '描述',
                     category: '类别',
                     tag: '标签',
+                    uniqueID: '唯一 ID',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `请为以下每个属性分配一列：${missingColumns}`,
@@ -7004,6 +7016,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         distanceRates: {
             oopsNotSoFast: '哎呀！先别急……',
             workspaceNeeds: '一个工作区至少需要一个已启用的距离费率。',
+            requireMapOrGPSDescription: '将禁用手动输入和里程表输入。',
+            requireMapOrGPSLockedByCommuterExclusions: '排除通勤需要路线数据，因此在其开启时始终需要地图或 GPS 距离。要更改此设置，请将“排除通勤”设为“不要排除通勤”。',
             commuterExclusions: {
                 title: '排除通勤',
                 summaryDisabled: '不排除通勤',
@@ -8327,7 +8341,7 @@ ${reportName}`,
                 case 'tags':
                     return `${enabled ? '已启用' : '已禁用'} 个标签`;
                 case 'workflows':
-                    return `${enabled ? '已启用' : '已禁用'} 个工作流程`;
+                    return `${enabled ? '已启用' : '已禁用'} 个工作流`;
                 case 'distance rates':
                     return `${enabled ? '已启用' : '已禁用'} 距离费率`;
                 case 'accounting':
@@ -8335,19 +8349,21 @@ ${reportName}`,
                 case 'Expensify Cards':
                     return `${enabled ? '已启用' : '已禁用'} Expensify 卡`;
                 case 'travel invoicing':
-                    return `${enabled ? '已启用' : '已禁用'} 合并差旅账单`;
+                    return `${enabled ? '已启用' : '已禁用'} 差旅费用汇总账单`;
                 case 'company cards':
                     return `${enabled ? '已启用' : '已禁用'} 张公司卡`;
                 case 'invoicing':
-                    return `${enabled ? '已启用' : '已禁用'} 开票`;
+                    return `${enabled ? '已启用' : '已禁用'} 开具发票`;
                 case 'per diem':
-                    return `每日津贴 ${enabled ? '已启用' : '已禁用'}`;
+                    return `${enabled ? '已启用' : '已禁用'} 每日津贴`;
                 case 'receipt partners':
                     return `${enabled ? '已启用' : '已禁用'} 个收据合作伙伴`;
                 case 'rules':
                     return `${enabled ? '已启用' : '已禁用'} 条规则`;
                 case 'tax tracking':
                     return `${enabled ? '已启用' : '已禁用'} 税务跟踪`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? '已开启' : '已关闭'} 需要使用 GPS 或地图输入来计算距离费率`;
                 default:
                     return `${enabled ? '已启用' : '已禁用'} ${featureName}`;
             }
@@ -9392,10 +9408,7 @@ ${reportName}`,
         },
         error: {
             selectSuggestedAddress: '请选择一个推荐地址或使用当前位置',
-            mapOrGpsDistanceRequired: {
-                title: '需要提供地图或 GPS 距离',
-                description: '此工作区要求里程报销必须基于地图或通过 GPS 进行轨迹跟踪。',
-            },
+            mapOrGpsDistanceRequired: {title: '需要 GPS 或地图输入', description: '此工作区要求里程报销必须基于地图或通过 GPS 进行轨迹跟踪。'},
         },
         odometer: {
             startReading: '开始阅读',

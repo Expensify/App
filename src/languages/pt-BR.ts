@@ -2286,6 +2286,14 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Nomes de trechos destacados',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navegação, ui.carregar',
             showBranchNameInTitle: 'Mostrar nome da branch no título do navegador',
+            qaAuth: 'Autenticação de QA (Cloudflare)',
+            qaAuthRunProbe: 'Executar sondagem',
+            qaAuthSession: 'Sessão de autenticação de QA',
+            qaAuthClearSession: 'Limpar sessão',
+            qaAuthStatusSuccess: 'Sonda concluída com sucesso',
+            qaAuthStatusReauthRequired: 'Sessão expirada — execute novamente para entrar',
+            qaAuthStatusSignInFailed: 'O login não foi concluído — execute novamente para tentar de novo',
+            qaAuthStatusError: 'Sondagem falhou',
         },
         security: 'Segurança',
         signOut: 'Sair',
@@ -2998,7 +3006,6 @@ ${amount} para ${merchant} - ${date}`,
         cardLastFour: 'Cartão com final',
         addFirstPaymentMethod: 'Adicione uma forma de pagamento para enviar e receber pagamentos diretamente no app.',
         defaultPaymentMethod: 'Padrão',
-        bankAccountLastFour: (lastFour: string) => `Conta bancária • ${lastFour}`,
     },
     agentsPage: {
         title: 'Agentes',
@@ -4552,6 +4559,10 @@ ${amount} para ${merchant} - ${date}`,
                 'Você sabia que pode reservar e gerenciar viagens de trem direto no Expensify? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pela <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Você sabia que dá para reservar e gerenciar viagens de trem direto no Expensify? E que os recibos são enviados automaticamente para você? Da próxima vez, é só reservar pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            hotelBlockManual:
+                'Você sabia que pode reservar e gerenciar viagens em grupo como esta direto no Expensify? Poupe-se do transtorno da próxima vez e experimente nossa ferramenta de <a href="https://help.expensify.com/travel/hubs/event-management/">Eventos de Viagem</a>.',
+            hotelBlockCard:
+                'Você sabia que pode reservar e gerenciar viagens em grupo como esta direto no Expensify? Poupe-se do transtorno da próxima vez e experimente nossa ferramenta de <a href="https://help.expensify.com/travel/hubs/event-management/">Eventos de Viagem</a>.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Viagem não está ativada',
@@ -6022,6 +6033,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     comment: 'Descrição',
                     category: 'Categoria',
                     tag: 'Etiqueta',
+                    uniqueID: 'ID exclusivo',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Atribua uma coluna a cada um dos atributos: ${missingColumns}.`,
@@ -7263,6 +7275,9 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
         distanceRates: {
             oopsNotSoFast: 'Opa! Não tão rápido...',
             workspaceNeeds: 'Um workspace precisa de pelo menos uma taxa de distância ativada.',
+            requireMapOrGPSDescription: 'A entrada manual e do hodômetro será desativada.',
+            requireMapOrGPSLockedByCommuterExclusions:
+                'A opção Excluir deslocamentos exige dados de rota, portanto a distância do mapa ou do GPS sempre será obrigatória enquanto ela estiver ativada. Para alterar essa configuração, defina Excluir deslocamentos como “Não excluir deslocamentos”.',
             commuterExclusions: {
                 title: 'Excluir deslocamentos para o trabalho',
                 summaryDisabled: 'Sem exclusão de deslocamento',
@@ -8643,27 +8658,29 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 case 'tags':
                     return `${enabled ? 'ativado' : 'desativado'} tags`;
                 case 'workflows':
-                    return `Fluxos de trabalho ${enabled ? 'ativado' : 'desativado'}`;
+                    return `${enabled ? 'ativado' : 'desativado'} fluxos de trabalho`;
                 case 'distance rates':
-                    return `${enabled ? 'ativado' : 'desativado'} taxas de distância`;
+                    return `${enabled ? 'ativado' : 'desativado'} tarifas de distância`;
                 case 'accounting':
                     return `${enabled ? 'ativado' : 'desativado'} contabilidade`;
                 case 'Expensify Cards':
                     return `${enabled ? 'ativado' : 'desativado'} Cartões Expensify`;
                 case 'travel invoicing':
-                    return `${enabled ? 'ativado' : 'desativado'} Faturamento Consolidado de Viagens`;
+                    return `${enabled ? 'ativado' : 'desativado'} Faturamento Consolidado de Viagem`;
                 case 'company cards':
                     return `${enabled ? 'ativado' : 'desativado'} cartões corporativos`;
                 case 'invoicing':
-                    return `Faturamento de ${enabled ? 'ativado' : 'desativado'}`;
+                    return `Faturamento ${enabled ? 'ativado' : 'desativado'}`;
                 case 'per diem':
                     return `${enabled ? 'ativado' : 'desativado'} por dia`;
                 case 'receipt partners':
-                    return `${enabled ? 'ativado' : 'desativado'} parceiros de recibos`;
+                    return `Parceiros de recibos ${enabled ? 'ativado' : 'desativado'}`;
                 case 'rules':
                     return `Regras de ${enabled ? 'ativado' : 'desativado'}`;
                 case 'tax tracking':
-                    return `${enabled ? 'ativado' : 'desativado'} rastreamento de impostos`;
+                    return `rastreamento de impostos ${enabled ? 'ativado' : 'desativado'}`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'ativado' : 'desativado'} exige GPS ou entrada no mapa para taxas de distância`;
                 default:
                     return `${enabled ? 'ativado' : 'desativado'} ${featureName}`;
             }
@@ -9750,10 +9767,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         error: {
             selectSuggestedAddress: 'Selecione um endereço sugerido ou use a localização atual',
-            mapOrGpsDistanceRequired: {
-                title: 'Distância de mapa ou GPS obrigatória',
-                description: 'Este espaço de trabalho exige despesas de distância baseadas em mapa ou rastreadas por GPS.',
-            },
+            mapOrGpsDistanceRequired: {title: 'Exigir GPS ou inserção no mapa', description: 'Este espaço de trabalho exige despesas de distância baseadas em mapa ou rastreadas por GPS.'},
         },
         odometer: {
             startReading: 'Começar a ler',

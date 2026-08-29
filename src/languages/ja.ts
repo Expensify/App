@@ -2274,6 +2274,14 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: '強調表示されたスパン名',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click、ナビゲーション、ui.load',
             showBranchNameInTitle: 'ブラウザのタイトルにブランチ名を表示',
+            qaAuth: 'QA 認証（Cloudflare）',
+            qaAuthRunProbe: 'プローブを実行',
+            qaAuthSession: 'QA 認証セッション',
+            qaAuthClearSession: 'セッションをクリア',
+            qaAuthStatusSuccess: 'プローブが成功しました',
+            qaAuthStatusReauthRequired: 'セッションの有効期限が切れました — もう一度実行してサインインしてください',
+            qaAuthStatusSignInFailed: 'サインインが完了しませんでした — もう一度実行して再試行してください',
+            qaAuthStatusError: 'プローブに失敗しました',
         },
         security: 'セキュリティ',
         signOut: 'サインアウト',
@@ -2977,7 +2985,6 @@ ${date} の ${merchant} への ${amount}`,
         cardLastFour: '末尾番号が',
         addFirstPaymentMethod: 'アプリ内で直接支払いの送受信を行うには、支払方法を追加してください。',
         defaultPaymentMethod: 'デフォルト',
-        bankAccountLastFour: (lastFour: string) => `銀行口座・${lastFour}`,
     },
     agentsPage: {
         title: '担当者',
@@ -4516,6 +4523,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 'Expensify で列車の予約や管理ができることをご存じでしたか？次回からは、経費を手動で作成する手間を省いて、<a href="https://travel.expensify.com">Expensify Travel</a> から簡単に予約しましょう。',
             railCard:
                 'Expensify で電車の予約や管理ができることをご存じでしたか？しかも領収書も自動でアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🚂',
+            hotelBlockManual:
+                'Expensify では、このようなグループ旅行の予約と管理を直接行えることをご存じでしたか？次回は面倒を省くために、ぜひ <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ツールをお試しください。',
+            hotelBlockCard:
+                'Expensify では、このようなグループ旅行の予約と管理を直接行えることをご存じでしたか？次回は面倒を省くために、ぜひ <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ツールをお試しください。',
         },
         defaultWorkspaceTravelDisabled: {
             title: '出張機能は有効になっていません',
@@ -5956,6 +5967,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     comment: '説明',
                     category: 'カテゴリ',
                     tag: 'タグ',
+                    uniqueID: '一意の ID',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `各属性に列を割り当ててください：${missingColumns}`,
@@ -7184,6 +7196,9 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
         distanceRates: {
             oopsNotSoFast: 'おっと！ちょっと待って…',
             workspaceNeeds: 'ワークスペースには、少なくとも 1 つの有効な距離レートが必要です。',
+            requireMapOrGPSDescription: '手動入力とオドメーター入力は無効になります。',
+            requireMapOrGPSLockedByCommuterExclusions:
+                '通勤を除外するにはルートデータが必要なため、この設定がオンの間は、常にマップまたは GPS による距離情報が必要です。この設定を変更するには、「通勤を除外」を「通勤を除外しない」に設定してください。',
             commuterExclusions: {
                 title: '通勤を除外',
                 summaryDisabled: '通勤除外なし',
@@ -8545,31 +8560,33 @@ ${reportName}`,
         updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
             switch (featureName) {
                 case 'categories':
-                    return `${enabled ? '有効' : '無効'} 件のカテゴリ`;
+                    return `${enabled ? '有効' : '無効'} 個のカテゴリ`;
                 case 'tags':
                     return `${enabled ? '有効' : '無効'} 個のタグ`;
                 case 'workflows':
                     return `${enabled ? '有効' : '無効'} 個のワークフロー`;
                 case 'distance rates':
-                    return `${enabled ? '有効' : '無効'} 件の距離レート`;
+                    return `${enabled ? '有効' : '無効'} 距離レート`;
                 case 'accounting':
                     return `${enabled ? '有効' : '無効'} 会計`;
                 case 'Expensify Cards':
                     return `${enabled ? '有効' : '無効'} Expensify カード`;
                 case 'travel invoicing':
-                    return `${enabled ? '有効' : '無効'} 統合旅行請求`;
+                    return `${enabled ? '有効' : '無効'} 統合トラベル請求`;
                 case 'company cards':
-                    return `${enabled ? '有効' : '無効'} 件の会社カード`;
+                    return `${enabled ? '有効' : '無効'} 件の法人カード`;
                 case 'invoicing':
-                    return `${enabled ? '有効' : '無効'} 請求書作成`;
+                    return `${enabled ? '有効' : '無効'} の請求書作成`;
                 case 'per diem':
-                    return `${enabled ? '有効' : '無効'} 日当`;
+                    return `${enabled ? '有効' : '無効'} の日当`;
                 case 'receipt partners':
                     return `${enabled ? '有効' : '無効'} 件のレシートパートナー`;
                 case 'rules':
-                    return `${enabled ? '有効' : '無効'} 件のルール`;
+                    return `${enabled ? '有効' : '無効'} 個のルール`;
                 case 'tax tracking':
                     return `${enabled ? '有効' : '無効'} 税金の追跡`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'オンになりました' : 'オフにしました'} は距離レートに GPS もしくは地図での入力が必要です`;
                 default:
                     return `${enabled ? '有効' : '無効'} ${featureName}`;
             }
@@ -9644,7 +9661,7 @@ ${reportName}`,
         error: {
             selectSuggestedAddress: '候補の住所を選択するか、現在地を使用してください',
             mapOrGpsDistanceRequired: {
-                title: '地図またはGPSによる距離の入力が必要です',
+                title: 'GPS または地図での入力が必須です',
                 description: 'このワークスペースでは、地図に基づく距離精算または GPS で追跡された距離精算のいずれかが必要です。',
             },
         },
