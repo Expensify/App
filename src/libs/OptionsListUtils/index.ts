@@ -3461,9 +3461,9 @@ function filterUserToInvite(
     currentUserEmail: string,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
-    config?: FilterUserToInviteConfig,
+    config: FilterUserToInviteConfig,
 ): SearchOptionData | null {
-    const {canInviteUser = true, excludeLogins = {}, dateFnsLocale} = config ?? {};
+    const {canInviteUser = true, excludeLogins = {}, dateFnsLocale, currentUserAccountID} = config;
     if (!canInviteUser) {
         return null;
     }
@@ -3484,7 +3484,6 @@ function filterUserToInvite(
         ...excludeLogins,
     };
     return getUserToInviteOption({
-        dateFnsLocale,
         searchValue,
         personalDetails,
         loginsToExclude,
@@ -3492,6 +3491,8 @@ function filterUserToInvite(
         loginList,
         currentUserEmail,
         ...config,
+        dateFnsLocale,
+        currentUserAccountID,
     });
 }
 

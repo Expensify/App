@@ -3251,6 +3251,7 @@ describe('OptionsListUtils', () => {
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 sortByReportTypeInSearch: true,
             });
 
@@ -3358,6 +3359,7 @@ describe('OptionsListUtils', () => {
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS_WITH_PERIODS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 sortByReportTypeInSearch: true,
             });
 
@@ -3528,6 +3530,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value and excluded logins list
             const filterOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             });
 
@@ -3556,6 +3559,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value and excludeLogins
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             });
 
@@ -3584,6 +3588,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 2
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 maxRecentReportsToShow: 2,
             });
 
@@ -3594,6 +3599,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 0
             const limitToZeroOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 maxRecentReportsToShow: 0,
             });
 
@@ -4267,6 +4273,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a plain text name (not email or phone) without shouldAcceptName
             const filteredOptions = filterAndOrderOptions(options, 'Jeff Amazon', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 shouldAcceptName: false,
             });
 
@@ -4291,6 +4298,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a plain text name (not email or phone) with shouldAcceptName
             const filteredOptions = filterAndOrderOptions(options, 'Jeff', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 shouldAcceptName: true,
             });
 
@@ -4334,6 +4342,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value that matches an email
             const filteredOptions = filterAndOrderOptions(options, 'peterparker@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 sortByReportTypeInSearch: true,
             });
 
@@ -4361,6 +4370,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value that matches both reports and personal details and maxRecentReportsToShow param
             const filteredOptions = filterAndOrderOptions(options, '.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 maxRecentReportsToShow: 5,
             });
 
@@ -4459,7 +4469,7 @@ describe('OptionsListUtils', () => {
                         CURRENT_USER_EMAIL,
                         CURRENT_USER_ACCOUNT_ID,
                         PERSONAL_DETAILS_WITH_PERIODS,
-                        {dateFnsLocale: undefined, sortByReportTypeInSearch: true},
+                        {dateFnsLocale: undefined, sortByReportTypeInSearch: true, currentUserAccountID: CURRENT_USER_ACCOUNT_ID},
                     );
 
                     // Then only one report should be returned

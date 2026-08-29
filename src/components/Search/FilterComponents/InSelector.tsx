@@ -139,6 +139,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
         dateFnsLocale,
         selectedOptions,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+        currentUserAccountID,
     });
 
     const sections: SelectionListSections = [];
