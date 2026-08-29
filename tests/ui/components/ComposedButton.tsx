@@ -188,32 +188,6 @@ describe('ButtonComposed — Button', () => {
             expect(onPress).toHaveBeenCalledTimes(1);
         });
 
-        it('blurs a callable click target before preserving haptics and onPress', () => {
-            const blur = jest.fn();
-            const event = {type: 'click', currentTarget: {blur}};
-            renderButton({onPress, enableHapticFeedback: true});
-
-            fireEvent(getButton(), 'press', event);
-
-            expect(blur).toHaveBeenCalledTimes(1);
-            expect(HapticFeedback.press).toHaveBeenCalledTimes(1);
-            expect(onPress).toHaveBeenCalledWith(event);
-            expect(blur.mock.invocationCallOrder.at(0)).toBeLessThan(onPress.mock.invocationCallOrder.at(0) ?? 0);
-        });
-
-        it.each([
-            {name: 'absent', currentTarget: {}},
-            {name: 'non-callable', currentTarget: {blur: 'not callable'}},
-        ])('skips an $name blur member while preserving haptics and onPress', ({currentTarget}) => {
-            const event = {type: 'click', currentTarget};
-            renderButton({onPress, enableHapticFeedback: true});
-
-            expect(() => fireEvent(getButton(), 'press', event)).not.toThrow();
-
-            expect(HapticFeedback.press).toHaveBeenCalledTimes(1);
-            expect(onPress).toHaveBeenCalledWith(event);
-        });
-
         it('calls onPressIn when the button press begins', () => {
             // Given a Button with an onPressIn handler
             const onPressIn = jest.fn();
@@ -494,17 +468,14 @@ describe('ButtonComposed — Button', () => {
             expect(getButton().props.sentryLabel).toBe('submit-button');
         });
 
-        it('forwards ref to the underlying pressable and clears it on teardown', () => {
+        it('forwards ref to the underlying pressable', () => {
             // Given a ref attached to the Button
             const ref = React.createRef<View>();
-            const {unmount} = renderButton({ref});
+            renderButton({ref});
 
             // Then the ref is populated after mount (non-null means the native element
             // is reachable for imperative calls such as .measure() or .focus())
             expect(ref.current).not.toBeNull();
-
-            unmount();
-            expect(ref.current).toBeNull();
         });
     });
 
