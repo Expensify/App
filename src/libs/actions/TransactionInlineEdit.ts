@@ -499,14 +499,20 @@ function getTransactionEditPermissions({
             if (!policy?.areCategoriesEnabled && isCategoryMissing(transaction?.category)) {
                 return false;
             }
+            // Lazy-loaded accounts may not have the policy's categories in Onyx yet, and an absent collection is
+            // indistinguishable from a genuinely empty one. Treat "categories enabled but never loaded" as unknown
+            // rather than empty and keep the cell editable: opening the picker mounts CategoryPicker, which backfills
+            // the list. Without this the cell deadlocks on an expense with a missing category — the edit icon is
+            // hidden, so the picker never mounts and the categories are never fetched.
+            const areCategoriesEnabledButNotLoaded = !!policy?.areCategoriesEnabled && policyCategories === undefined;
             // Matches MoneyRequestView's shouldShowCategory logic
             // For policy expenses, check if there's a category or enabled options
             if (isGroupPolicy(policy)) {
-                return !!(transaction?.category ?? '') || hasEnabledOptions(policyCategories ?? {});
+                return !!(transaction?.category ?? '') || areCategoriesEnabledButNotLoaded || hasEnabledOptions(policyCategories ?? {});
             }
             // For unreported expenses, disable inline category editing while workspace selection is required.
             if (isUnreported) {
-                return !shouldSelectPolicyForUnreported && hasEnabledOptions(policyCategories ?? {});
+                return !shouldSelectPolicyForUnreported && (areCategoriesEnabledButNotLoaded || hasEnabledOptions(policyCategories ?? {}));
             }
         }
 

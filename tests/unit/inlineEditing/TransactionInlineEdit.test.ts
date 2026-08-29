@@ -304,6 +304,41 @@ describe('TransactionInlineEdit', () => {
 
                 expect(permissions.canEditCategory).toBe(true);
             });
+
+            it('should enable category editing when the category is missing and the policy categories have not loaded yet', () => {
+                // Lazy-loaded accounts have no policyCategories in Onyx on a fresh sign-in. Without this the cell
+                // deadlocks: the edit icon stays hidden, so the picker never mounts and never backfills the list.
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policyCategories: undefined,
+                });
+
+                expect(permissions.canEditCategory).toBe(true);
+            });
+
+            it('should disable category editing when the category is missing and the loaded policy categories are empty', () => {
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policyCategories: {},
+                });
+
+                expect(permissions.canEditCategory).toBe(false);
+            });
+
+            it('should disable category editing when categories are not enabled on policy and the policy categories have not loaded yet', () => {
+                const policyWithoutCategories: Policy = {
+                    ...basePolicy,
+                    areCategoriesEnabled: false,
+                };
+
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policy: policyWithoutCategories,
+                    policyCategories: undefined,
+                });
+
+                expect(permissions.canEditCategory).toBe(false);
+            });
         });
 
         describe('tag permissions', () => {
@@ -374,11 +409,13 @@ describe('TransactionInlineEdit', () => {
                 } satisfies TransactionEditPermissions);
             });
 
+            // `policyCategories: {}` (rather than `undefined`) is what "no available options" means here: an absent
+            // collection only tells us the lazy-loaded account hasn't fetched it yet, so it stays editable.
             it('should disable category and tag editing without available options', () => {
                 const permissions = getTransactionEditPermissions({
                     ...baseUnreportedParams,
                     transaction: unreportedTransaction,
-                    policyCategories: undefined,
+                    policyCategories: {},
                     policyTags: undefined,
                 });
 
