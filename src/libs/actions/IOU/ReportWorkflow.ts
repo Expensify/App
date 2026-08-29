@@ -24,6 +24,7 @@ import {
     getAccountIDForSubmitManagerEmail,
     getSubmitReportManagerAccountID,
     hasDynamicExternalWorkflow,
+    isArchivedOrPendingDeletePolicy,
     isGroupPolicy,
     isPaidGroupPolicy,
     isSubmitAndClose,
@@ -60,6 +61,7 @@ import {
     isOpenExpenseReport as isOpenExpenseReportReportUtils,
     isOpenInvoiceReport as isOpenInvoiceReportReportUtils,
     isPayAtEndExpenseReport as isPayAtEndExpenseReportReportUtils,
+    isPayBlockedByArchivedState,
     isPayer as isPayerReportUtils,
     isProcessingReport,
     isReportApproved,
@@ -160,6 +162,12 @@ function canApproveIOU(
         return false;
     }
 
+    // State transitions are blocked only on archived or pending-delete policies. Reports archived for other reasons
+    // (e.g. the submitter was unshared from the policy) can still move through the workflow.
+    if (isArchivedOrPendingDeletePolicy(policy)) {
+        return false;
+    }
+
     // On a Submit workspace the submitter is also the report manager, so hide Approve for reports they submitted.
     // Mark as paid stays available via the pay flow. This is checked before the paid-group gate so it keeps hiding
     // Approve for the submitter even though Submit workspaces now show Approve (which routes to the upgrade modal) for other users.
@@ -188,8 +196,6 @@ function canApproveIOU(
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(iouReport);
     const isApproved = isReportApproved({report: iouReport});
     const iouSettled = isSettled(iouReport);
-    const reportNameValuePairs = getAllReportNameValuePairs()?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
-    const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
     const reportTransactions = iouTransactions ?? getReportTransactions(iouReport?.reportID);
     const hasOnlyPendingCardOrScanningTransactions = reportTransactions.length > 0 && reportTransactions.every((transaction) => isScanning(transaction) || isPending(transaction));
     if (hasOnlyPendingCardOrScanningTransactions) {
@@ -197,9 +203,7 @@ function canApproveIOU(
     }
     const isPayAtEndExpenseReport = isPayAtEndExpenseReportReportUtils(iouReport ?? undefined, reportTransactions);
     const isClosedReport = isClosedReportUtil(iouReport);
-    return (
-        reportTransactions.length > 0 && isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedExpenseReport && !isPayAtEndExpenseReport && !isClosedReport
-    );
+    return reportTransactions.length > 0 && isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isPayAtEndExpenseReport && !isClosedReport;
 }
 
 function canIOUBePaid(
@@ -278,7 +282,7 @@ function canIOUBePaid(
         isReportFinished &&
         !iouSettled &&
         (reimbursableSpend > 0 || canShowMarkedAsPaidForNegativeAmount || isOnlyNonReimbursablePayElsewhere) &&
-        !isChatReportArchived &&
+        !isPayBlockedByArchivedState(iouReport, policy, isChatReportArchived) &&
         !isAutoReimbursable &&
         !isPayAtEndExpenseReport &&
         (!isExpenseReport(iouReport) || arePaymentsEnabled(policy as OnyxEntry<OnyxTypes.Policy>))

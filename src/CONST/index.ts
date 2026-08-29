@@ -114,7 +114,7 @@ const cardActiveStates: number[] = [2, 3, 4, 7];
 
 const brokenConnectionScrapeStatuses: number[] = [200, 434, 531, 530, 500, 666];
 
-const reauthScrapeStatuses: number[] = [438, 532];
+const reauthScrapeStatuses: number[] = [438];
 
 // Hide not issued or not activated cards (states 2, 4) from card filter options in search, as no transactions can be made on cards in these states
 const cardHiddenFromSearchStates: number[] = [2, 4];
@@ -186,6 +186,13 @@ type OnboardingInvite = ValueOf<typeof onboardingInviteTypes>;
 
 const EMAIL_WITH_OPTIONAL_DOMAIN =
     /(?=((?=[\w'#%+-]+(?:\.[\w'#%+-]+)*@?)[\w.'#%+-]{1,64}(?:@(?:(?=[a-z\d]+(?:-+[a-z\d]+)*\.)(?:[a-z\d-]{1,63}\.)+[a-z]{2,63}))?(?= |_|\b))(?<end>.*))\S{3,254}(?=\k<end>$)/;
+
+const RESERVATION_TYPE = {
+    CAR: 'car',
+    HOTEL: 'hotel',
+    FLIGHT: 'flight',
+    TRAIN: 'train',
+} as const;
 
 const EMAIL = {
     ACCOUNTING: 'accounting@expensify.com',
@@ -1022,7 +1029,6 @@ const CONST = {
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
         DUALENTRY: 'dualEntry',
-        INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         MULTIPLE_APPROVERS: 'multipleApprovers',
@@ -2251,6 +2257,7 @@ const CONST = {
         SPAN_ENTRY_TO_SCAN_READY: 'ManualEntryToScanReady',
         SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
         SPAN_RECEIPT_CAPTURE: 'ManualReceiptCapture',
+        SPAN_RECEIPT_PREPARE: 'ManualReceiptPrepare',
         SPAN_SCAN_PROCESS_AND_NAVIGATE: 'ManualScanProcessAndNavigate',
         SPAN_CONFIRMATION_MOUNT: 'ManualConfirmationMount',
         SPAN_CONFIRMATION_LIST_READY: 'ManualConfirmationListReady',
@@ -2344,9 +2351,21 @@ const CONST = {
         ATTRIBUTE_TRIGGER: 'trigger',
         ATTRIBUTE_PLATFORM: 'platform',
         ATTRIBUTE_IS_MULTI_SCAN: 'is_multi_scan',
+        ATTRIBUTE_CAPTURE_METHOD: 'capture_method',
+        ATTRIBUTE_FLASH_USED: 'flash_used',
+        ATTRIBUTE_PHOTO_WIDTH: 'photo_width',
+        ATTRIBUTE_PHOTO_HEIGHT: 'photo_height',
         ATTRIBUTE_SOURCE: 'source',
         ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
         ATTRIBUTE_DURATION_SINCE_NATIVE_APP_STARTUP_MS: 'duration_since_native_app_startup_ms',
+        CAPTURE_METHOD: {
+            PHOTO: 'photo',
+            SNAPSHOT: 'snapshot',
+        },
+        SPAN_PLATFORM: {
+            NATIVE: 'native',
+            WEB: 'web',
+        },
         /** Which report-actions skeleton cancelled a send-message span (value of the canceled_by_skeleton attribute). */
         CANCELED_BY_SKELETON: {
             REPORT_ACTIONS_REPORT_DATA_LOADING: 'report_actions_report_data_loading',
@@ -2555,6 +2574,8 @@ const CONST = {
         POLICY_DIFF_WARNING: 305,
     },
     HTTP_STATUS: {
+        // Cloudflare Access rejects an expired bearer token at the HTTP layer, before any jsonCode body
+        UNAUTHORIZED: 401,
         // When Cloudflare throttles
         TOO_MANY_REQUESTS: 429,
         INTERNAL_SERVER_ERROR: 500,
@@ -3672,6 +3693,8 @@ const CONST = {
         EXPENSE: 'expense',
         CREDIT_CARD: 'credit_card',
         BANK: 'bank',
+        ACCOUNTS_PAYABLE: 'accounts_payable',
+        OTHER_CURRENT_LIABILITY: 'other_current_liability',
     },
 
     UPDATE_PERSONAL_BANK_ACCOUNT: {
@@ -4562,6 +4585,9 @@ const CONST = {
                 DUALENTRY_SYNC_TITLE: 'dualEntrySyncTitle',
                 DUALENTRY_SYNC_CONNECTION: 'dualEntrySyncConnection',
                 DUALENTRY_SYNC_IMPORT_DATA: 'dualEntrySyncImportData',
+                DUALENTRY_SYNC_PAYMENTS: 'dualEntrySyncPayments',
+                DUALENTRY_SYNC_CARD_SETTLEMENTS: 'dualEntrySyncCardSettlements',
+                DUALENTRY_SYNC_TRAVEL_SETTLEMENTS: 'dualEntrySyncTravelSettlements',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
@@ -6791,19 +6817,21 @@ const CONST = {
             WORKSPACES_TAB: 'LAST_VISITED_PATH_WORKSPACES_TAB',
             SETTINGS_TAB: 'LAST_VISITED_PATH_SETTINGS_TAB',
         },
+        QA_AUTH_REDIRECT_FLOW: 'QA_AUTH_REDIRECT_FLOW',
     },
 
-    RESERVATION_TYPE: {
-        CAR: 'car',
-        HOTEL: 'hotel',
-        FLIGHT: 'flight',
-        TRAIN: 'train',
-    },
+    RESERVATION_TYPE,
 
     TRAVEL_NUDGE: {
         ORIGINATION: {
             CARD: 'card',
             MANUAL: 'manual',
+        },
+        // The travel-booking classifier's output. A superset of RESERVATION_TYPE. HOTEL_BLOCK has no counterpart in
+        // an actual Spotnana reservation, since a hotel block is by definition never booked through Expensify Travel.
+        TRAVEL_TYPE: {
+            ...RESERVATION_TYPE,
+            HOTEL_BLOCK: 'hotelBlock',
         },
     },
 
