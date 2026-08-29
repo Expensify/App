@@ -11078,64 +11078,118 @@ describe('OptionsListUtils', () => {
             expect(personalDetailsOption.text).toBe('Mister Fantastic');
         });
 
-        it('should use the passed currentUserAccountID for the reimbursed preview wording', async () => {
-            // Dedicated reportID: module-level report-action caches survive Onyx.clear(), so writing
-            // REPORT_ACTIONS for a shared reportID would poison later tests that reuse it.
-            const reimbursedReportID = 'create-option-reimbursed-1';
-            const ownerAccountID = 42;
-            const submitterLogin = 'submitter@expensify.com';
+        describe('reimbursed report preview', () => {
+            const SUBMITTER_LOGIN = 'submitter@expensify.com';
 
-            // Given an expense report whose last action is a Fast_ACH reimbursement paid to account 42
-            const report: Report = {
-                reportID: reimbursedReportID,
-                reportName: 'Expense Report',
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID,
-                lastMessageText: '',
-                lastActionType: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
-                lastVisibleActionCreated: '2024-01-01 10:00:00.000',
+            /**
+             * Builds an expense report whose last visible action is a REIMBURSED action, writes it to Onyx and
+             * returns the params for `createOptionFromReport`. Each case uses its own reportID because the
+             * module-level report-action caches survive `Onyx.clear()`, so a shared ID would leak across tests.
+             */
+            const setUpReimbursedReport = async (reportID: string, ownerAccountID: number, originalMessage: Record<string, unknown>) => {
+                const report: Report = {
+                    reportID,
+                    reportName: 'Expense Report',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    ownerAccountID,
+                    // Empty so the preview falls through to getLastMessageTextForReport instead of reusing lastMessageText.
+                    lastMessageText: '',
+                    lastActionType: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                    lastVisibleActionCreated: '2024-01-01 10:00:00.000',
+                };
+                const reimbursedAction = {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                    reportActionID: `reimbursed-${reportID}`,
+                    created: '2024-01-01 10:00:00.000',
+                    actorAccountID: 3,
+                    originalMessage,
+                    message: [{type: 'COMMENT', html: 'reimbursed', text: 'reimbursed'}],
+                } as unknown as ReportAction;
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reimbursedAction.reportActionID]: reimbursedAction});
+                await waitForBatchedUpdates();
+
+                return {
+                    dateFnsLocale: undefined,
+                    report,
+                    personalDetails: {...PERSONAL_DETAILS, [ownerAccountID]: {accountID: ownerAccountID, login: SUBMITTER_LOGIN, displayName: 'Submitter'}},
+                    privateIsArchived: undefined,
+                    policy: undefined,
+                    sortedActions: {[reportID]: [reimbursedAction]},
+                    conciergeReportID: undefined,
+                    config: {showChatPreviewLine: true},
+                };
             };
-            const reimbursedAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
-                reportActionID: 'reimbursed-1',
-                created: '2024-01-01 10:00:00.000',
-                actorAccountID: 3,
-                originalMessage: {
+
+            it('should address the payee directly only in the preview shown to them for a Fast ACH reimbursement', async () => {
+                // Given an expense report whose last action is a Fast_ACH reimbursement paid to account 42
+                const ownerAccountID = 42;
+                const params = await setUpReimbursedReport('create-option-reimbursed-fast-ach', ownerAccountID, {
                     paymentMethod: 'Fast_ACH',
                     creditBankAccountLast4: '1111',
                     expectedDate: '2025-03-15',
-                },
-                message: [{type: 'COMMENT', html: 'reimbursed', text: 'reimbursed'}],
-            } as unknown as ReportAction;
+                });
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reimbursedReportID}`, report);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reimbursedReportID}`, {[reimbursedAction.reportActionID]: reimbursedAction});
-            await waitForBatchedUpdates();
+                // When the option is built for the report owner, and for somebody else
+                const ownOption = createOptionFromReport({...params, currentUserAccountID: ownerAccountID});
+                const otherOption = createOptionFromReport({...params, currentUserAccountID: 999});
 
-            const personalDetailsWithSubmitter = {
-                ...PERSONAL_DETAILS,
-                [ownerAccountID]: {accountID: ownerAccountID, login: submitterLogin, displayName: 'Submitter'},
-            };
-            const params = {
-                dateFnsLocale: undefined,
-                report,
-                personalDetails: personalDetailsWithSubmitter,
-                privateIsArchived: undefined,
-                policy: undefined,
-                sortedActions: {[reimbursedReportID]: [reimbursedAction]},
-                conciergeReportID: undefined,
-                config: {showChatPreviewLine: true},
-            };
+                // Then the wording follows the passed currentUserAccountID
+                expect(ownOption.alternateText).toContain('your bank account ending in 1111');
+                expect(otherOption.alternateText).toContain(`${SUBMITTER_LOGIN}'s bank account ending in 1111`);
+            });
 
-            // When the option is built for the report owner
-            const ownOption = createOptionFromReport({...params, currentUserAccountID: ownerAccountID});
+            it('should address the payee directly only in the preview shown to them for a StripeConnect reimbursement', async () => {
+                // Given an expense report reimbursed to account 42 through StripeConnect
+                const ownerAccountID = 42;
+                const params = await setUpReimbursedReport('create-option-reimbursed-stripe', ownerAccountID, {
+                    paymentMethod: 'StripeConnect',
+                    creditBankAccountLast4: '2222',
+                    stripePaymentType: 'bank_transfer',
+                });
 
-            // And for somebody else
-            const otherOption = createOptionFromReport({...params, currentUserAccountID: 999});
+                // When the option is built for the report owner, and for somebody else
+                const ownOption = createOptionFromReport({...params, currentUserAccountID: ownerAccountID});
+                const otherOption = createOptionFromReport({...params, currentUserAccountID: 999});
 
-            // Then the wording follows the passed currentUserAccountID, not the module-level session value
-            expect(ownOption.alternateText).toContain('your bank account ending in 1111');
-            expect(otherOption.alternateText).toContain(`${submitterLogin}'s bank account ending in 1111`);
+                // Then the wording follows the passed currentUserAccountID
+                expect(ownOption.alternateText).toContain('your bank account ending in 2222');
+                expect(otherOption.alternateText).toContain(`${SUBMITTER_LOGIN}'s bank account ending in 2222`);
+            });
+
+            it('should build the preview for the account it is given rather than the signed-in session account', async () => {
+                // Given a report owned by the signed-in user (the session accountID written in beforeEach)
+                const params = await setUpReimbursedReport('create-option-reimbursed-session', CURRENT_USER_ACCOUNT_ID, {
+                    paymentMethod: 'Fast_ACH',
+                    creditBankAccountLast4: '3333',
+                    expectedDate: '2025-03-15',
+                });
+
+                // When the option is built for a different account than the one in the session
+                const option = createOptionFromReport({...params, currentUserAccountID: 999});
+
+                // Then the passed account wins over the module-level session value, so the owner is named explicitly
+                expect(option.alternateText).toContain(`${SUBMITTER_LOGIN}'s bank account ending in 3333`);
+                expect(option.alternateText).not.toContain('your bank account');
+            });
+
+            it('should build the same ACH preview for every viewer', async () => {
+                // Given an expense report reimbursed with plain ACH, whose message never names the payee
+                const params = await setUpReimbursedReport('create-option-reimbursed-ach', 42, {
+                    paymentMethod: 'ACH',
+                    debitBankAccountLast4: '9999',
+                    creditBankAccountLast4: '5678',
+                });
+
+                // When the option is built for the report owner, and for somebody else
+                const ownOption = createOptionFromReport({...params, currentUserAccountID: 42});
+                const otherOption = createOptionFromReport({...params, currentUserAccountID: 999});
+
+                // Then both previews are identical
+                expect(ownOption.alternateText).toBe(otherOption.alternateText);
+                expect(ownOption.alternateText).toContain('to the bank account ending in 5678');
+            });
         });
     });
 
