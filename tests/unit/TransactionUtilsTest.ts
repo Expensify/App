@@ -1428,6 +1428,31 @@ describe('TransactionUtils', () => {
             ).toBe(transaction);
         });
 
+        it('returns the stored transaction when the distance rate ID is missing', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 415,
+                merchant: '5.46 mi @ $0.76 / mi',
+                comment: {
+                    customUnit: {
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+
+            expect(
+                TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                    transaction,
+                    isPolicyExpenseChat: false,
+                    policy: policyWithDistanceRate,
+                    translate,
+                }),
+            ).toBe(transaction);
+        });
+
         it('uses the transaction currency when the mileage rate has no currency', () => {
             const policyWithoutRateCurrency: Policy = {
                 ...policyWithDistanceRate,
