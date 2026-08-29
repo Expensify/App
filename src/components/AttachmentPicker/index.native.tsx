@@ -92,7 +92,7 @@ const processAssetWithFallbacks = (asset: Asset): Asset => {
     };
 };
 
-const getErrorMessage = (error: unknown): string => (error instanceof Error && error.message ? error.message : 'An unknown error occurred');
+const getErrorMessage = (error: unknown, fallback: string): string => (error instanceof Error && error.message ? error.message : fallback);
 
 /**
  * Convert the picked assets one at a time, transcoding any HEIC images to JPEG.
@@ -154,13 +154,13 @@ const processPickedAssetsSequentially = async (assets: Asset[], showGeneralAlert
                     manipulatedImage.release();
                 }
             } catch (error) {
-                Log.warn('Failed to convert HEIC image, skipping asset', {error: getErrorMessage(error)});
+                Log.warn('Failed to convert HEIC image, skipping asset', {error: getErrorMessage(error, 'An unknown error occurred')});
                 failureMessages.add(translate('attachmentPicker.errorWhileConvertingHeic'));
             } finally {
                 imageManipulatorContext.release();
             }
         } catch (error) {
-            failureMessages.add(getErrorMessage(error));
+            failureMessages.add(getErrorMessage(error, translate('attachmentPicker.errorWhileSelectingAttachment')));
         }
     }
 
