@@ -39,9 +39,10 @@ jest.mock('@libs/PolicyUtils', () => {
     const CONSTANTS = jest.requireActual<{default: typeof CONST}>('@src/CONST').default;
     return {
         getDefaultChatEnabledPolicy: jest.fn((policies: Array<OnyxEntry<Policy>>, activePolicy: OnyxEntry<Policy>) => {
-            // Mirror the real helper: prefer activePolicy when it is a group workspace from the provided create-report candidates; otherwise use the only candidate.
+            // Mirror the real helper: prefer activePolicy if it's a paid group with chat enabled, otherwise the single non-personal candidate.
             if (
                 activePolicy &&
+                activePolicy.isPolicyExpenseChatEnabled &&
                 (activePolicy.type === CONSTANTS.POLICY.TYPE.TEAM || activePolicy.type === CONSTANTS.POLICY.TYPE.CORPORATE || activePolicy.type === CONSTANTS.POLICY.TYPE.SUBMIT)
             ) {
                 return activePolicy;
@@ -85,6 +86,7 @@ function makePaidPolicy(id = POLICY_ID): Policy {
         name: 'Test Workspace',
         role: CONST.POLICY.ROLE.ADMIN,
         type: CONST.POLICY.TYPE.TEAM,
+        isPolicyExpenseChatEnabled: true,
         owner: 'test@test.com',
         ownerAccountID: 1,
         outputCurrency: 'USD',

@@ -1127,9 +1127,6 @@ function updateExpensifyCardLimitType(
     validThru?: string,
     shouldClearValidityDates?: boolean,
 ) {
-    const normalizedValidFrom = validFrom ? DateUtils.normalizeDateToStartOfDay(validFrom, timeZone) : undefined;
-    const normalizedValidThru = validThru ? DateUtils.normalizeDateToEndOfDay(validThru, timeZone) : undefined;
-
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1143,8 +1140,8 @@ function updateExpensifyCardLimitType(
                             validFrom: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             validThru: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
-                        validFrom: shouldClearValidityDates ? null : normalizedValidFrom,
-                        validThru: shouldClearValidityDates ? null : normalizedValidThru,
+                        validFrom: shouldClearValidityDates ? null : validFrom,
+                        validThru: shouldClearValidityDates ? null : validThru,
                     },
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     pendingFields: {availableSpend: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
@@ -1196,8 +1193,8 @@ function updateExpensifyCardLimitType(
     const parameters: UpdateExpensifyCardLimitTypeParams = {
         cardID,
         limitType: newLimitType,
-        validFrom: normalizedValidFrom,
-        validThru: normalizedValidThru,
+        validFrom: validFrom ? DateUtils.normalizeDateToStartOfDay(validFrom, timeZone) : undefined,
+        validThru: validThru ? DateUtils.normalizeDateToEndOfDay(validThru, timeZone) : undefined,
         clearValidityDates: shouldClearValidityDates,
     };
 

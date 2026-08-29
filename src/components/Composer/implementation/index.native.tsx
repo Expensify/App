@@ -2,7 +2,6 @@ import type {ComposerProps, ComposerRef} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 
-import useBlurOnKeyboardHide from '@hooks/useBlurOnKeyboardHide';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -52,9 +51,6 @@ function Composer({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const isInLandscapeMode = useIsInLandscapeMode();
-
-    // Android keeps the input focused when the keyboard is dismissed with the back button/gesture.
-    useBlurOnKeyboardHide(textInputRef);
 
     useEffect(() => {
         if (!textInputRef.current?.setSelection || !selection || isComposerFullSize) {

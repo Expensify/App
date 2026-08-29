@@ -498,6 +498,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '前年',
         nextYear: '来年',
         avatar: 'アバター',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${total} 件中 ${current} 件目`,
         editor: '編集者',
         restrictions: '制限',
         tryAgain: '再試行',
@@ -967,7 +968,6 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `${cardName}個人カードの接続を修正` : '個人カードの連携を修正'), subtitle: 'ウォレット'},
             validateAccount: {title: 'アカウントを認証してください', subtitle: 'アカウント', cta: '検証する'},
-            addHomeAddress: {title: '距離の追跡用に自宅住所を追加してください', subtitle: 'アカウント', cta: '住所を追加'},
             fixFailedBilling: {title: '登録されているカードから請求できませんでした', subtitle: 'サブスクリプション'},
             unlockBankAccount: {
                 workspaceTitle: 'ビジネス用銀行口座がロックされました',
@@ -1274,14 +1274,6 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: '時間経費を作成',
     },
     iou: {
-        homeAddressRequired: {
-            title: '自宅住所は必須です',
-            prompt: ({workspaceName}: {workspaceName: string}) =>
-                workspaceName
-                    ? `距離を記録する前に、プライベートプロフィールに自宅住所を追加する必要があります。${workspaceName} は通勤控除のためにこの住所を使用します。`
-                    : '距離を記録する前に、プライベートプロフィールに自宅住所を追加する必要があります。このワークスペースでは、その住所を通勤控除に使用します。',
-            cta: '自宅住所を追加',
-        },
         amount: '金額',
         percent: 'パーセント',
         date: '日付',
@@ -2274,14 +2266,6 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: '強調表示されたスパン名',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click、ナビゲーション、ui.load',
             showBranchNameInTitle: 'ブラウザのタイトルにブランチ名を表示',
-            qaAuth: 'QA 認証（Cloudflare）',
-            qaAuthRunProbe: 'プローブを実行',
-            qaAuthSession: 'QA 認証セッション',
-            qaAuthClearSession: 'セッションをクリア',
-            qaAuthStatusSuccess: 'プローブが成功しました',
-            qaAuthStatusReauthRequired: 'セッションの有効期限が切れました — もう一度実行してサインインしてください',
-            qaAuthStatusSignInFailed: 'サインインが完了しませんでした — もう一度実行して再試行してください',
-            qaAuthStatusError: 'プローブに失敗しました',
         },
         security: 'セキュリティ',
         signOut: 'サインアウト',
@@ -2985,6 +2969,7 @@ ${date} の ${merchant} への ${amount}`,
         cardLastFour: '末尾番号が',
         addFirstPaymentMethod: 'アプリ内で直接支払いの送受信を行うには、支払方法を追加してください。',
         defaultPaymentMethod: 'デフォルト',
+        bankAccountLastFour: (lastFour: string) => `銀行口座・${lastFour}`,
     },
     agentsPage: {
         title: '担当者',
@@ -3599,8 +3584,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         legalName: '法的氏名',
         legalFirstName: '法的な名',
         legalLastName: '法的な姓',
-        address: '自宅住所',
-        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} は通勤手当の除外にこの住所を使用します。`,
+        address: '住所',
         error: {
             dateShouldBeBefore: (dateString: string) => `日付は${dateString}より前である必要があります`,
             dateShouldBeAfter: (dateString: string) => `日付は${dateString}より後の日付にしてください`,
@@ -3719,11 +3703,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         thisBankAccount: 'この銀行口座は、ワークスペースでのビジネス支払いに使用されます',
         accountNumber: '口座番号',
         routingNumber: 'ルーティング番号',
-        internationalBankAccountDetails: '海外銀行口座情報',
-        internationalBankAccountDetailsTitle: 'あなたの海外口座情報を教えてください',
-        internationalBankAccountDetailsSubtitle: 'あなたのワークスペースの1つが、払い戻しを処理するために海外口座情報を必要としています',
-        iban: 'IBAN',
-        swiftBicCode: 'SWIFT/BICコード',
         chooseAnAccountBelow: '下のアカウントを選択してください',
         addBankAccount: '銀行口座を追加',
         chooseAnAccount: 'アカウントを選択',
@@ -3773,8 +3752,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             restrictedBusiness: 'ビジネスが制限対象の事業一覧に含まれていないことを確認してください',
             routingNumber: '有効なルーティング番号を入力してください',
             accountNumber: '有効な口座番号を入力してください',
-            iban: '有効なIBANを入力してください',
-            swiftCode: '有効なSWIFT/BICコードを入力してください',
             routingAndAccountNumberCannotBeSame: 'ルーティング番号と口座番号を同じにすることはできません',
             companyType: '有効な会社の種類を選択してください',
             tooManyAttempts: 'ログイン試行回数が多すぎるため、このオプションは24時間無効になっています。時間をおいてから再度お試しいただくか、代わりに詳細情報を手動で入力してください。',
@@ -4523,10 +4500,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 'Expensify で列車の予約や管理ができることをご存じでしたか？次回からは、経費を手動で作成する手間を省いて、<a href="https://travel.expensify.com">Expensify Travel</a> から簡単に予約しましょう。',
             railCard:
                 'Expensify で電車の予約や管理ができることをご存じでしたか？しかも領収書も自動でアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🚂',
-            hotelBlockManual:
-                'Expensify では、このようなグループ旅行の予約と管理を直接行えることをご存じでしたか？次回は面倒を省くために、ぜひ <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ツールをお試しください。',
-            hotelBlockCard:
-                'Expensify では、このようなグループ旅行の予約と管理を直接行えることをご存じでしたか？次回は面倒を省くために、ぜひ <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ツールをお試しください。',
         },
         defaultWorkspaceTravelDisabled: {
             title: '出張機能は有効になっていません',
@@ -5823,27 +5796,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 label: 'Expensify カード口座',
                 description: 'Expensify カード取引のエクスポート先を選択してください。',
             },
-            autoSyncDescription: 'DualEntry と Expensify を毎日自動で同期します。レポートはリアルタイムで同期されます。',
-            accountingMethods: {
-                label: 'エクスポート方法',
-                description: '経費をいつエクスポートするか選択します。',
-                values: {
-                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '発生主義',
-                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '現金',
-                },
-                alternateText: {
-                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自己負担経費は、最終承認時にエクスポートされます',
-                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '立替経費は支払われるとエクスポートされます',
-                },
-            },
-            syncReimbursedReports: '精算済みレポートを同期',
-            syncReimbursedReportsDescription: 'レポートが ACH 経由で支払われると、この勘定科目で支払伝票が作成されます。',
-            billPaymentAccount: {label: '請求支払口座', description: '請求書の支払元を選択すると、DualEntry 内に支払いを作成します。'},
-            syncExpensifyCardSettlements: 'Expensify カードの清算を同期',
-            settlementAccount: {label: 'Expensify カードの決済口座', description: '精算口座を選択すると、DualEntry で支払いを作成します。'},
-            syncTravelInvoicingSettlements: '出張請求の精算を同期する',
-            travelInvoicingSettlementAccount: {label: '出張請求の精算勘定', description: '精算口座を選択すると、DualEntry で支払いを作成します。'},
-            travelInvoicingPayableAccount: {label: '旅行請求書の買掛金勘定'},
         },
         type: {
             free: '無料',
@@ -5967,7 +5919,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     comment: '説明',
                     category: 'カテゴリ',
                     tag: 'タグ',
-                    uniqueID: '一意の ID',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `各属性に列を割り当ててください：${missingColumns}`,
@@ -6945,11 +6896,11 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 },
             },
             connections: {
-                syncStageName: (stage: PolicyConnectionSyncStage, integrationName = 'QuickBooks Online') => {
+                syncStageName: (stage, integrationName = 'QuickBooks Online') => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
-                            return '顧客のインポート中';
+                            return '顧客のインポート';
                         case 'quickbooksOnlineImportEmployees':
                         case 'netSuiteSyncImportEmployees':
                         case 'intacctImportEmployees':
@@ -6962,22 +6913,22 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         case 'quickbooksDesktopImportClasses':
                             return 'クラスのインポート';
                         case 'quickbooksOnlineImportLocations':
-                            return '場所をインポートしています';
+                            return '場所をインポート中';
                         case 'quickbooksOnlineImportProcessing':
                             return 'インポートしたデータを処理しています';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
-                            return '払い戻されたレポートと支払い済み請求書の同期';
+                            return '払い戻し済みレポートと支払い済み請求書の同期';
                         case 'quickbooksOnlineSyncTaxCodes':
                             return '税コードのインポート';
                         case 'quickbooksOnlineCheckConnection':
-                            return `${integrationName} 接続を確認しています`;
+                            return `${integrationName} 接続を確認中`;
                         case 'quickbooksOnlineImportMain':
-                            return `${integrationName} のデータをインポートしています`;
+                            return `${integrationName} データのインポート`;
                         case 'startingImportXero':
                             return 'Xero データのインポート';
                         case 'startingImportQBO':
-                            return `${integrationName} のデータをインポートしています`;
+                            return `${integrationName} データのインポート`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return 'QuickBooks Desktop データのインポート';
@@ -6988,49 +6939,49 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         case 'quickbooksDesktopImportDimensions':
                             return 'ディメンションをインポート中';
                         case 'quickbooksDesktopImportSavePolicy':
-                            return '保存ポリシーをインポート中';
+                            return '保存ポリシーのインポート';
                         case 'quickbooksDesktopWebConnectorReminder':
                             return 'QuickBooks とデータを同期中です… Web Connector が実行中であることを確認してください';
                         case 'quickbooksOnlineSyncTitle':
-                            return `${integrationName} データを同期しています`;
+                            return `${integrationName} データを同期中`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':
                             return 'データを読み込んでいます';
                         case 'quickbooksOnlineSyncApplyCategories':
-                            return 'カテゴリを更新しています';
+                            return 'カテゴリを更新中';
                         case 'quickbooksOnlineSyncApplyCustomers':
                             return '顧客／プロジェクトの更新';
                         case 'quickbooksOnlineSyncApplyEmployees':
-                            return 'メンバー一覧を更新しています';
+                            return 'メンバー一覧を更新中';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
-                            return 'レポート項目を更新中';
+                            return 'レポートフィールドを更新中';
                         case 'jobDone':
                             return 'インポートしたデータの読み込みを待っています';
                         case 'xeroSyncImportChartOfAccounts':
-                            return '勘定科目表を同期しています';
+                            return '勘定科目表を同期中';
                         case 'xeroSyncImportCategories':
                             return 'カテゴリを同期しています';
                         case 'xeroSyncImportCustomers':
-                            return '顧客を同期しています';
+                            return '顧客を同期中';
                         case 'xeroSyncXeroReimbursedReports':
-                            return 'Expensify レポートを精算済みにする';
+                            return 'Expensifyレポートを精算済みとしてマークする';
                         case 'xeroSyncExpensifyReimbursedReports':
                             return 'Xero の請求書とインボイスを支払済みにする';
                         case 'xeroSyncImportTrackingCategories':
-                            return 'トラッキングカテゴリを同期しています';
+                            return 'トラッキングカテゴリを同期中';
                         case 'xeroSyncImportBankAccounts':
-                            return '銀行口座を同期しています';
+                            return '銀行口座を同期中';
                         case 'xeroSyncImportTaxRates':
                             return '税率を同期しています';
                         case 'xeroCheckConnection':
-                            return 'Xero への接続を確認しています';
+                            return 'Xero 接続を確認中';
                         case 'xeroSyncTitle':
-                            return 'Xero データを同期しています';
+                            return 'Xero データを同期中';
                         case 'netSuiteSyncConnection':
-                            return 'NetSuite への接続を初期化しています';
+                            return 'NetSuite への接続を初期化中';
                         case 'netSuiteSyncCustomers':
-                            return '顧客のインポート中';
+                            return '顧客のインポート';
                         case 'netSuiteSyncInitData':
                             return 'NetSuite からデータを取得しています';
                         case 'netSuiteSyncImportTaxes':
@@ -7038,25 +6989,25 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         case 'netSuiteSyncImportItems':
                             return '項目をインポート中';
                         case 'netSuiteSyncData':
-                            return 'Expensify へのデータインポート';
+                            return 'Expensify へのデータのインポート';
                         case 'netSuiteSyncAccounts':
-                            return 'アカウントを同期しています';
+                            return 'アカウントを同期中';
                         case 'netSuiteSyncCurrencies':
-                            return '通貨を同期しています';
+                            return '通貨を同期中';
                         case 'netSuiteSyncCategories':
                             return 'カテゴリを同期しています';
                         case 'netSuiteSyncReportFields':
-                            return 'Expensify レポート項目としてデータをインポート';
+                            return 'データをExpensifyのレポートフィールドとしてインポートする';
                         case 'netSuiteSyncTags':
-                            return 'データを Expensify タグとしてインポートする';
+                            return 'Expensify タグとしてデータをインポート';
                         case 'netSuiteSyncUpdateConnectionData':
                             return '接続情報を更新しています';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
-                            return 'Expensify レポートを精算済みにする';
+                            return 'Expensifyレポートを精算済みとしてマークする';
                         case 'netSuiteSyncExpensifyReimbursedReports':
-                            return 'NetSuite の請求書および請求書を支払済みにマークする';
+                            return 'NetSuite の請求書とインボイスを支払済みにマークする';
                         case 'netSuiteImportVendorsTitle':
-                            return '仕入先をインポート中';
+                            return '仕入先のインポート';
                         case 'netSuiteImportCustomListsTitle':
                             return 'カスタムリストのインポート';
                         case 'netSuiteSyncImportCustomLists':
@@ -7065,33 +7016,33 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                             return '子会社のインポート';
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
-                            return '仕入先をインポート中';
+                            return '仕入先のインポート';
                         case 'intacctCheckConnection':
-                            return 'Sage Intacct との接続を確認しています';
+                            return 'Sage Intacct 接続を確認しています';
                         case 'intacctImportDimensions':
                             return 'Sage Intacct ディメンションのインポート';
                         case 'intacctImportTitle':
                             return 'Sage Intacct データのインポート';
                         case 'financialForceSyncTitle':
-                            return 'Certinia データを同期しています';
+                            return 'Certinia データを同期中';
                         case 'financialForceSyncStep':
-                            return 'Certinia 接続を同期しています';
+                            return 'Certinia 接続を同期中';
                         case 'financialForceSyncCategories':
-                            return 'カテゴリをインポートしています';
+                            return 'カテゴリをインポート中';
                         case 'financialForceSyncTags':
-                            return 'タグのインポート';
+                            return 'タグをインポート中';
                         case 'financialForceSyncVendors':
-                            return '仕入先をインポート中';
+                            return 'ベンダーをインポート中';
                         case 'financialForceSyncContacts':
-                            return '連絡先のインポート';
+                            return '連絡先をインポート中';
                         case 'financialForceSyncCompanies':
-                            return '会社のインポート';
+                            return '会社をインポート中';
                         case 'financialForceSyncUsers':
-                            return 'ユーザーのインポート';
+                            return 'ユーザーをインポート中';
                         case 'financialForceSyncDimensions':
                             return 'ディメンションをインポート中';
                         case 'financialForceMarkAsReimbursed':
-                            return 'レポートを精算済みにする';
+                            return 'レポートを払い戻し済みにマーク中';
                         case 'rilletSyncTitle':
                             return 'Rillet データを同期しています';
                         case 'rilletSyncConnection':
@@ -7104,14 +7055,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                             return 'DualEntry への接続を初期化しています';
                         case 'dualEntrySyncImportData':
                             return 'データを読み込んでいます';
-                        case 'dualEntrySyncPayments':
-                            return '取引先への支払いを同期しています';
-                        case 'dualEntrySyncCardSettlements':
-                            return 'カード決済を同期しています';
-                        case 'dualEntrySyncTravelSettlements':
-                            return '出張精算を同期しています';
                         default: {
-                            return `ステージ「${stage}」の翻訳が見つかりません`;
+                            return `ステージの翻訳が見つかりません: ${stage}`;
                         }
                     }
                 },
@@ -7196,29 +7141,16 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
         distanceRates: {
             oopsNotSoFast: 'おっと！ちょっと待って…',
             workspaceNeeds: 'ワークスペースには、少なくとも 1 つの有効な距離レートが必要です。',
-            requireMapOrGPSDescription: '手動入力とオドメーター入力は無効になります。',
-            requireMapOrGPSLockedByCommuterExclusions:
-                '通勤を除外するにはルートデータが必要なため、この設定がオンの間は、常にマップまたは GPS による距離情報が必要です。この設定を変更するには、「通勤を除外」を「通勤を除外しない」に設定してください。',
             commuterExclusions: {
                 title: '通勤を除外',
                 summaryDisabled: '通勤除外なし',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `申請ごとに ${distance} ${unit} を除外します`,
                 optionDisabledTitle: '通勤を除外しない',
-                optionDisabledHelp: '通勤分は精算申請から除外されていません。',
+                optionDisabledHelp: '通勤除外は適用されていません。',
                 optionFixedDistanceTitle: '申請ごとに一定距離を除外します',
                 optionFixedDistanceHelp: '各申請から同じ通勤距離を差し引きます。1勤務日につき1件の申請を行うメンバーに最適です。',
                 distanceLabel: '距離',
-                summaryHomeAndOffice: '自宅と勤務先の所在地を使用する',
-                optionHomeAndOfficeTitle: '自宅とオフィスで按分計算します',
-                optionHomeAndOfficeHelp: 'メンバーの自宅住所、勤務形態、オフィス配属先を使用して、通勤の除外額を計算します。',
-                workspaceAddressRequired: {
-                    title: 'ちょっとお待ちください…',
-                    promptStart: '自宅とオフィスで計算する設定は、先にオフィスの所在地を追加しないと有効にできません',
-                    linkText: '概要',
-                    promptEnd: 'でオフィスの住所を追加してください。',
-                    cta: '了解です',
-                },
-                errors: {distanceMustBePositive: '距離は正の整数で入力してください。', invalidAddress: '有効な住所を入力してください', distanceTooLarge: '距離が大きすぎます。'},
+                errors: {distanceMustBePositive: '距離は正の整数で入力してください。', distanceTooLarge: '距離が大きすぎます。'},
             },
             distance: '距離',
             centrallyManage: '料金を一元管理し、マイルまたはキロメートルで追跡し、デフォルトのカテゴリを設定できます。',
@@ -8560,33 +8492,31 @@ ${reportName}`,
         updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
             switch (featureName) {
                 case 'categories':
-                    return `${enabled ? '有効' : '無効'} 個のカテゴリ`;
+                    return `${enabled ? '有効' : '無効'} 件のカテゴリ`;
                 case 'tags':
                     return `${enabled ? '有効' : '無効'} 個のタグ`;
                 case 'workflows':
                     return `${enabled ? '有効' : '無効'} 個のワークフロー`;
                 case 'distance rates':
-                    return `${enabled ? '有効' : '無効'} 距離レート`;
+                    return `${enabled ? '有効' : '無効'} 件の距離レート`;
                 case 'accounting':
                     return `${enabled ? '有効' : '無効'} 会計`;
                 case 'Expensify Cards':
                     return `${enabled ? '有効' : '無効'} Expensify カード`;
                 case 'travel invoicing':
-                    return `${enabled ? '有効' : '無効'} 統合トラベル請求`;
+                    return `${enabled ? '有効' : '無効'} 統合旅行請求`;
                 case 'company cards':
-                    return `${enabled ? '有効' : '無効'} 件の法人カード`;
+                    return `${enabled ? '有効' : '無効'} 件の会社カード`;
                 case 'invoicing':
-                    return `${enabled ? '有効' : '無効'} の請求書作成`;
+                    return `${enabled ? '有効' : '無効'} 請求書作成`;
                 case 'per diem':
-                    return `${enabled ? '有効' : '無効'} の日当`;
+                    return `${enabled ? '有効' : '無効'} 日当`;
                 case 'receipt partners':
                     return `${enabled ? '有効' : '無効'} 件のレシートパートナー`;
                 case 'rules':
-                    return `${enabled ? '有効' : '無効'} 個のルール`;
+                    return `${enabled ? '有効' : '無効'} 件のルール`;
                 case 'tax tracking':
                     return `${enabled ? '有効' : '無効'} 税金の追跡`;
-                case 'require GPS or map entry for distance rates':
-                    return `${enabled ? 'オンになりました' : 'オフにしました'} は距離レートに GPS もしくは地図での入力が必要です`;
                 default:
                     return `${enabled ? '有効' : '無効'} ${featureName}`;
             }
@@ -9661,7 +9591,7 @@ ${reportName}`,
         error: {
             selectSuggestedAddress: '候補の住所を選択するか、現在地を使用してください',
             mapOrGpsDistanceRequired: {
-                title: 'GPS または地図での入力が必須です',
+                title: '地図またはGPSによる距離の入力が必要です',
                 description: 'このワークスペースでは、地図に基づく距離精算または GPS で追跡された距離精算のいずれかが必要です。',
             },
         },

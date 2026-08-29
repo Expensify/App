@@ -739,18 +739,18 @@ function updateRilletSyncTravelBillingSettlements(policyID: string, enabled: Ril
 
 function updateRilletTravelBillingSettlementsAccount(
     policyID: string,
-    travelBillingSettlementsBankAccountID: RilletSync['travelInvoicingSettlementsBankAccountID'],
+    travelInvoicingSettlementsBankAccountID: RilletSync['travelInvoicingSettlementsBankAccountID'],
     oldTravelBillingSettlementsBankAccountID?: RilletSync['travelInvoicingSettlementsBankAccountID'],
 ) {
     const onyxData = prepareRilletSyncOnyxData(
         policyID,
         CONST.RILLET_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID,
-        travelBillingSettlementsBankAccountID,
+        travelInvoicingSettlementsBankAccountID,
         oldTravelBillingSettlementsBankAccountID ?? null,
     );
     const parameters: UpdateRilletTravelBillingSettlementsAccountParams = {
         policyID,
-        travelBillingSettlementsBankAccountID,
+        travelInvoicingSettlementsBankAccountID,
     };
     write(WRITE_COMMANDS.UPDATE_RILLET_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT, parameters, onyxData);
 }

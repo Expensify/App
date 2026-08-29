@@ -61,6 +61,7 @@ function buildPolicy(): Policy {
         employeeList,
         approver: ALICE_EMAIL,
         areWorkflowsEnabled: true,
+        isPolicyExpenseChatEnabled: true,
         outputCurrency: 'USD',
         avatarURL: '',
         lastModified: new Date().toISOString(),

@@ -704,6 +704,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                         name: '',
                         owner: '',
                         outputCurrency: '',
+                        isPolicyExpenseChatEnabled: false,
                     },
                     policyTagList: {},
                     policyCategories: {},

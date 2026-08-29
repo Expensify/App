@@ -1,6 +1,6 @@
 import FormHelpMessage from '@components/FormHelpMessage';
 
-import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
+import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -100,7 +100,7 @@ function DynamicIOURequestStepParticipants({
         isFocused,
         isWorkspacesOnly,
     });
-    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
         isManualDistanceRequest: isManualDistanceRequest(initialTransaction),
         isOdometerDistanceRequest: isOdometerDistanceRequest(initialTransaction),
     });
@@ -176,7 +176,7 @@ function DynamicIOURequestStepParticipants({
                 shouldExcludeP2P={(initialTransaction?.amount ?? 0) < 0}
                 initiallySelectedReportID={selectedParticipant?.reportID}
                 shouldMoveSelectedToTop
-                shouldBlockParticipantSelection={blockDistanceRequestIfNeeded}
+                shouldBlockParticipantSelection={blockManualOrOdometerDistanceRequestIfNeeded}
             />
         </StepScreenWrapper>
     );

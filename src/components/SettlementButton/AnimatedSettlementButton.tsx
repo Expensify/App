@@ -185,7 +185,7 @@ function AnimatedSettlementButton({
                 <SettlementButton
                     {...settlementButtonProps}
                     wrapperStyle={wrapperStyle}
-                    isDisabled={isDisabled}
+                    isDisabled={isAnimationRunning || isDisabled}
                     sentryLabel={sentryLabel}
                 />
             )}

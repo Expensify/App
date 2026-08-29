@@ -38,11 +38,17 @@ type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 type UsePaymentOptionsProps = Pick<
     SettlementButtonProps,
-    'currency' | 'iouReport' | 'chatReportID' | 'formattedAmount' | 'policyID' | 'onPress' | 'shouldHidePaymentOptions' | 'onlyShowPayElsewhere'
-> & {
-    shouldShowApproveButton?: boolean;
-    shouldDisableApproveButton?: boolean;
-};
+    | 'currency'
+    | 'iouReport'
+    | 'chatReportID'
+    | 'formattedAmount'
+    | 'policyID'
+    | 'onPress'
+    | 'shouldHidePaymentOptions'
+    | 'shouldShowApproveButton'
+    | 'shouldDisableApproveButton'
+    | 'onlyShowPayElsewhere'
+>;
 
 /**
  * Configures and returns payment options based on the context of the IOU report and user settings.

@@ -195,6 +195,7 @@ const mockPolicy: Policy = {
             role: CONST.POLICY.ROLE.ADMIN,
         },
     },
+    isPolicyExpenseChatEnabled: true,
 } as Policy;
 
 const mockTransaction: Transaction = {

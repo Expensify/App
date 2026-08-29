@@ -1,5 +1,5 @@
 import CenteredModalLayout from '@components/CenteredModalLayout';
-import FeatureTraining from '@components/FeatureTraining';
+import FeatureTrainingContent from '@components/FeatureTrainingContent';
 
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
@@ -38,23 +38,18 @@ function TrackTrainingPage() {
 
     return (
         <CenteredModalLayout onBackdropPress={handleClose}>
-            <FeatureTraining
-                onConfirm={handleClose}
+            <FeatureTrainingContent
+                shouldShowDismissModalOption
+                confirmText={translate('common.buttonConfirm')}
+                helpText={translate('common.learnMore')}
+                onHelp={onHelp}
                 onClose={handleClose}
                 onWillShowAgainChange={(willShowAgain) => {
                     willShowAgainRef.current = willShowAgain;
                 }}
-            >
-                <FeatureTraining.Illustration
-                    videoURL={CONST.FEATURE_TRAINING[CONST.FEATURE_TRAINING.CONTENT_TYPES.TRACK_EXPENSE]?.VIDEO_URL}
-                    aspectRatio={VIDEO_ASPECT_RATIO}
-                />
-                <FeatureTraining.Body>
-                    <FeatureTraining.DismissOption />
-                    <FeatureTraining.HelpButton onPress={onHelp}>{translate('common.learnMore')}</FeatureTraining.HelpButton>
-                    <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
-                </FeatureTraining.Body>
-            </FeatureTraining>
+                videoURL={CONST.FEATURE_TRAINING[CONST.FEATURE_TRAINING.CONTENT_TYPES.TRACK_EXPENSE]?.VIDEO_URL}
+                illustrationAspectRatio={VIDEO_ASPECT_RATIO}
+            />
         </CenteredModalLayout>
     );
 }

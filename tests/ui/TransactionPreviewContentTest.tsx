@@ -51,6 +51,7 @@ const corporatePolicy = {
     name: 'Corporate Policy',
     owner: '',
     outputCurrency: CONST.CURRENCY.USD,
+    isPolicyExpenseChatEnabled: true,
     employeeList: {
         [currentUserEmail]: {
             email: currentUserEmail,

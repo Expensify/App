@@ -1,7 +1,6 @@
-import {animatedSuperWideRHPWidth, useWideRHPState} from '@components/WideRHPContextProvider';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import enhanceCardStyleInterpolator from '@libs/Navigation/AppNavigator/enhanceCardStyleInterpolator';
@@ -17,9 +16,6 @@ import type {StackCardStyleInterpolator} from '@react-navigation/stack';
 
 import {CardStyleInterpolators} from '@react-navigation/stack';
 import {useCallback} from 'react';
-// Import Animated directly from 'react-native' as animations are used with navigation.
-// eslint-disable-next-line no-restricted-imports
-import {Animated} from 'react-native';
 
 function useWideModalStackScreenOptions() {
     const styles = useThemeStyles();
@@ -31,7 +27,6 @@ function useWideModalStackScreenOptions() {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {wideRHPRouteKeys, superWideRHPRouteKeys} = useWideRHPState();
-    const {sidePanelOffset} = useSidePanelState();
 
     return useCallback<({route}: {route: PlatformStackRouteProp<ParamListBase, string>}) => PlatformStackNavigationOptions>(
         ({route}) => {
@@ -44,9 +39,7 @@ function useWideModalStackScreenOptions() {
             if (!isSmallScreenWidth) {
                 if (superWideRHPRouteKeys.includes(route.key)) {
                     cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
-                        // Shrink the super wide sheet by the Side Panel width while it is open so the sheet's
-                        // left edge stays put instead of being pushed off-screen. See https://github.com/Expensify/App/issues/99035
-                        cardStyle: styles.getSuperWideRHPExtendedCardInterpolatorStyles(Animated.subtract(animatedSuperWideRHPWidth, sidePanelOffset.current)),
+                        cardStyle: styles.superWideRHPExtendedCardInterpolatorStyles,
                     });
                 } else if (wideRHPRouteKeys.includes(route.key)) {
                     cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
@@ -74,7 +67,7 @@ function useWideModalStackScreenOptions() {
                 },
             };
         },
-        [isSmallScreenWidth, modalCardStyleInterpolator, sidePanelOffset, styles, superWideRHPRouteKeys, wideRHPRouteKeys],
+        [isSmallScreenWidth, modalCardStyleInterpolator, styles, superWideRHPRouteKeys, wideRHPRouteKeys],
     );
 }
 

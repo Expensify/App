@@ -13,7 +13,6 @@ import {
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
-    isArchivedOrPendingDeletePolicy,
     isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
@@ -49,7 +48,6 @@ import {
     isInvoiceReport as isInvoiceReportUtils,
     isIOUReport as isIOUReportUtils,
     isOpenReport as isOpenReportUtils,
-    isPayBlockedByArchivedState,
     isPayer,
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
@@ -120,13 +118,12 @@ function isSubmitAction(
     reportMetadata: OnyxEntry<ReportMetadata>,
     ownerLogin: string | undefined,
     policy?: Policy,
+    reportNameValuePairs?: ReportNameValuePairs,
     violations?: OnyxCollection<TransactionViolation[]>,
     currentUserEmail?: string,
     currentUserAccountID?: number,
 ) {
-    // State transitions are blocked only on archived or pending-delete policies. Reports archived for other reasons
-    // (e.g. the submitter was unshared from the policy) can still move through the workflow.
-    if (isArchivedOrPendingDeletePolicy(policy)) {
+    if (isArchivedReport(reportNameValuePairs)) {
         return false;
     }
 
@@ -164,10 +161,6 @@ function isSubmitAction(
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy) {
-    if (isArchivedOrPendingDeletePolicy(policy)) {
-        return false;
-    }
-
     if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report.ownerAccountID, currentUserAccountID)) {
         return false;
     }
@@ -221,11 +214,10 @@ function isPrimaryPayAction({
     isSecondaryAction,
     canNonPayerAdminPay,
 }: IsPrimaryPayActionParams) {
-    const isExpenseReport = isExpenseReportUtils(report);
-
-    if (isPayBlockedByArchivedState(report, policy, isArchivedReport(reportNameValuePairs) || !!isChatReportArchived)) {
+    if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
     }
+    const isExpenseReport = isExpenseReportUtils(report);
     if (isExpenseReport && !isPaidGroupPolicy(policy)) {
         return false;
     }
@@ -547,7 +539,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
 
     if (
         isCurrentUserSubmitter(report, currentUserAccountID) &&
-        isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, violations, currentUserLogin, currentUserAccountID) &&
+        isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, reportNameValuePairs, violations, currentUserLogin, currentUserAccountID) &&
         !allExpensesHeld
     ) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;

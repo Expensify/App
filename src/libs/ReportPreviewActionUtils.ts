@@ -11,7 +11,6 @@ import {
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
-    isArchivedOrPendingDeletePolicy,
     isGroupPolicy,
     isPreferredExporter,
     isSubmitterApproveBlockedOnSubmitWorkspace,
@@ -30,7 +29,6 @@ import {
     isInvoiceReport,
     isIOUReport,
     isOpenReport,
-    isPayBlockedByArchivedState,
     isPayer,
     isProcessingReport,
     isReportApproved,
@@ -40,6 +38,7 @@ import {hasOnlyPendingCardTransactions, hasSmartScanFailedWithMissingFields, has
 
 function canSubmit(
     report: Report,
+    isReportArchived: boolean,
     currentUserAccountID: number,
     currentUserEmail: string,
     ownerLogin: string | undefined,
@@ -47,9 +46,7 @@ function canSubmit(
     policy?: Policy,
     transactions?: Transaction[],
 ) {
-    // State transitions are blocked only on archived or pending-delete policies. Reports archived for other reasons
-    // (e.g. the submitter was unshared from the policy) can still move through the workflow.
-    if (isArchivedOrPendingDeletePolicy(policy)) {
+    if (isReportArchived) {
         return false;
     }
 
@@ -81,10 +78,6 @@ function canSubmit(
 }
 
 function canApprove(report: Report, currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy, transactions?: Transaction[]) {
-    if (isArchivedOrPendingDeletePolicy(policy)) {
-        return false;
-    }
-
     if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report.ownerAccountID, currentUserAccountID)) {
         return false;
     }
@@ -130,9 +123,7 @@ function canPay(
     policy?: Policy,
     invoiceReceiverPolicy?: Policy,
 ) {
-    const isExpense = isExpenseReport(report);
-
-    if (isPayBlockedByArchivedState(report, policy, isReportArchived)) {
+    if (isReportArchived) {
         return false;
     }
 
@@ -144,6 +135,7 @@ function canPay(
         (isGroupPolicy(policy) &&
             policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
             canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
+    const isExpense = isExpenseReport(report);
     const isPaymentsEnabled = arePaymentsEnabled(policy);
     const isProcessing = isProcessingReport(report);
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
@@ -276,7 +268,7 @@ function getReportPreviewAction({
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
 
-    if (canSubmit(report, currentUserAccountID, currentUserLogin, ownerLogin, violationsData, policy, transactions)) {
+    if (canSubmit(report, isReportArchived, currentUserAccountID, currentUserLogin, ownerLogin, violationsData, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, currentUserAccountID, reportMetadata, policy, transactions)) {

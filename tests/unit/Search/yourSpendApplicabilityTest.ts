@@ -17,6 +17,7 @@ function makePolicy(overrides: Partial<Policy> = {}): Policy {
         role: 'admin',
         owner: 'test@example.com',
         ownerAccountID: 1,
+        isPolicyExpenseChatEnabled: true,
         outputCurrency: CONST.CURRENCY.USD,
         ...overrides,
     } as Policy;

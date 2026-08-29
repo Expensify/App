@@ -5,7 +5,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
-import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
+import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -157,7 +157,7 @@ function DynamicIOURequestStepDistanceManual({
         currentUserAccountIDParam,
     );
     const shouldAutoReportToDefaultWorkspace = shouldUseDefaultExpensePolicy && (!!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting);
-    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
         policyID: report?.policyID ?? (shouldAutoReportToDefaultWorkspace ? defaultExpensePolicy?.id : undefined),
         isManualDistanceRequest: true,
     });
@@ -354,7 +354,7 @@ function DynamicIOURequestStepDistanceManual({
     };
 
     const submitAndNavigateToNextPage = () => {
-        if (blockDistanceRequestIfNeeded()) {
+        if (blockManualOrOdometerDistanceRequestIfNeeded()) {
             return;
         }
 

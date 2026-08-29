@@ -90,6 +90,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const {showLockedAccountModal} = useLockedAccountActions();
 
     const isSubmitPolicyWorkspace = isSubmitPolicy(policy);
+    const canAccessWalletConnectionStatusFeatures = isSubmitPolicyWorkspace && isWalletConnectionStatusBetaEnabled;
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
 
     const policyReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
@@ -162,7 +163,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const bankAccountCurrency = bankAccountConnectedToWorkspace?.bankCurrency || bankAccountConnectedToWorkspace?.accountData?.additionalData?.currency;
-    const bankConnectionStatus = isWalletConnectionStatusBetaEnabled ? getBankAccountConnectionStatus(state, bankAccountCurrency) : undefined;
+    const bankConnectionStatus = canAccessWalletConnectionStatusFeatures ? getBankAccountConnectionStatus(state, bankAccountCurrency) : undefined;
     const bankConnectionBrickRoadIndicator = bankConnectionStatus?.brickRoadIndicator ?? (hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
     const bankConnectionStatusAddon = bankConnectionStatus ? (
         <ConnectionStatusBadge
@@ -173,10 +174,8 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     ) : undefined;
     const bankConnectionMessage = bankConnectionStatus?.messageKey ? translate(bankConnectionStatus.messageKey) : undefined;
     const bankConnectionActionText = bankConnectionStatus?.actionKey ? translate(bankConnectionStatus.actionKey) : undefined;
-    const canInteractWithBankAccountRow = canWritePayments && !isOffline && !isBankAccountPendingDelete;
-    // Only the reimburser can send the unlock request, so a locked account offers no action to anyone else rather than
-    // an Unlock button that would instead start connecting a different bank account.
-    const canPerformBankAccountAction = !isBusinessBankAccountLocked || isUserReimburser;
+    const bankBadgeIcon = !canAccessWalletConnectionStatusFeatures && (isAccountInSetupState || (isBusinessBankAccountLocked && canWritePayments)) ? expensifyIcons.DotIndicator : undefined;
+    const canInteractWithBankAccountRow = canWritePayments && !isOffline;
 
     const updateWorkspaceCurrencyPrompt = (
         <View style={[styles.renderHTML, styles.flexRow]}>
@@ -210,7 +209,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     };
 
     let bankAccountMenuItemOnPress: React.ComponentProps<typeof MenuItem>['onPress'];
-    if (isWalletConnectionStatusBetaEnabled) {
+    if (canAccessWalletConnectionStatusFeatures) {
         bankAccountMenuItemOnPress = canInteractWithBankAccountRow ? handleBankAccountPress : undefined;
     } else {
         bankAccountMenuItemOnPress = canWritePayments ? handleBankAccountPress : undefined;
@@ -227,13 +226,14 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
         iconStyles: bankIcon.iconStyles,
         titleStyle: isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined,
         descriptionTextStyle: isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined,
+        disabled: isOffline || !canWritePayments,
         sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT,
+        shouldShowRightIcon: canWritePayments,
+        interactive: canWritePayments,
         shouldGreyOutWhenDisabled: !policy?.pendingFields?.reimbursementChoice,
-        ...(isWalletConnectionStatusBetaEnabled
+        ...(canAccessWalletConnectionStatusFeatures
             ? {
-                  disabled: isOffline || !canWritePayments || isBankAccountPendingDelete,
-                  shouldShowRightIcon: canWritePayments && !isBankAccountPendingDelete,
-                  interactive: canWritePayments && !isBankAccountPendingDelete,
+                  badgeIcon: bankBadgeIcon,
                   descriptionAddon: bankConnectionStatusAddon,
                   shouldRemoveBackground: true,
                   shouldRemoveHoverBackground: true,
@@ -241,11 +241,8 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                   brickRoadIndicator: bankConnectionMessage ? undefined : bankConnectionBrickRoadIndicator,
               }
             : {
-                  disabled: isOffline || !canWritePayments,
-                  shouldShowRightIcon: canWritePayments,
-                  interactive: canWritePayments,
-                  badgeIcon: isAccountInSetupState || (isBusinessBankAccountLocked && canWritePayments) ? expensifyIcons.DotIndicator : undefined,
                   badgeText: getBadgeText(accountData?.state),
+                  badgeIcon: isAccountInSetupState || (isBusinessBankAccountLocked && canWritePayments) ? expensifyIcons.DotIndicator : undefined,
                   isBadgeSuccess: isAccountInSetupState,
                   isBadgeError: isBusinessBankAccountLocked && canWritePayments,
                   wrapperStyle: [styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3],
@@ -298,7 +295,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             <View style={[styles.sectionMenuItemTopDescription, styles.mt5, styles.pb1, styles.pt1]}>
                                 <Text style={[styles.textLabelSupportingNormal, styles.colorMuted]}>{translate('workflowsPayerPage.paymentAccount')}</Text>
                             </View>
-                            {isWalletConnectionStatusBetaEnabled ? (
+                            {canAccessWalletConnectionStatusFeatures ? (
                                 <Hoverable>
                                     {(isHovered) => (
                                         <View style={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3, isHovered && styles.hoveredComponentBG]}>
@@ -308,7 +305,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                                                     <ConnectionStatusMessage
                                                         message={bankConnectionMessage}
                                                         actionText={bankConnectionActionText}
-                                                        onActionPress={canWritePayments && canPerformBankAccountAction ? handleBankAccountPress : undefined}
+                                                        onActionPress={canInteractWithBankAccountRow ? handleBankAccountPress : undefined}
                                                         isActionDisabled={!canInteractWithBankAccountRow}
                                                         statusTone="danger"
                                                         shouldIncludeHorizontalPadding={false}

@@ -49,6 +49,7 @@ const TEST_POLICY: Policy = {
     role: CONST.POLICY.ROLE.ADMIN,
     owner: 'user1@test.com',
     ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+    isPolicyExpenseChatEnabled: true,
     outputCurrency: 'USD',
 } as Policy;
 

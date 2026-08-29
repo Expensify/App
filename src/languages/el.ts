@@ -22,7 +22,6 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
-import type {PolicyConnectionSyncStage} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -331,6 +330,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automatic: 'Αυτόματο',
         showing: 'Εμφανίζονται',
         of: 'του',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} από ${total}`,
         default: 'Προεπιλογή',
         update: 'Ενημέρωση',
         member: 'Μέλος',
@@ -1021,7 +1021,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Λογαριασμός',
                 cta: 'Επικυρώστε',
             },
-            addHomeAddress: {title: 'Προσθέστε τη διεύθυνση κατοικίας σας για παρακολούθηση αποστάσεων', subtitle: 'Λογαριασμός', cta: 'Προσθήκη διεύθυνσης'},
             fixFailedBilling: {
                 title: 'Δεν μπορέσαμε να χρεώσουμε την αποθηκευμένη κάρτα σας',
                 subtitle: 'Συνδρομή',
@@ -1342,14 +1341,6 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Δημιουργία χρονοχρέωσης',
     },
     iou: {
-        homeAddressRequired: {
-            title: 'Απαιτείται η διεύθυνση κατοικίας σας',
-            prompt: ({workspaceName}: {workspaceName: string}) =>
-                workspaceName
-                    ? `Πριν καταγράψετε αποστάσεις, πρέπει να προσθέσετε τη διεύθυνση κατοικίας σας στο ιδιωτικό προφίλ σας. Το ${workspaceName} χρησιμοποιεί αυτή τη διεύθυνση για εκπτώσεις μετακίνησης.`
-                    : 'Πριν καταγράψετε αποστάσεις, πρέπει να προσθέσετε τη διεύθυνση κατοικίας σας στο ιδιωτικό προφίλ σας. Αυτός ο χώρος εργασίας χρησιμοποιεί αυτή τη διεύθυνση για εκπτώσεις μετακίνησης.',
-            cta: 'Προσθήκη οικιακής διεύθυνσης',
-        },
         amount: 'Ποσό',
         percent: 'Ποσοστό',
         date: 'Ημερομηνία',
@@ -2354,14 +2345,6 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Καταγραφή αιτημάτων Sentry στην κονσόλα',
             sentryHighlightedSpanOps: 'Επισημασμένα ονόματα span',
             sentryHighlightedSpanOpsPlaceholder: 'κλικ αλληλεπίδρασης διεπαφής, πλοήγηση, φόρτωση διεπαφής',
-            qaAuth: 'Έλεγχος ταυτότητας QA (Cloudflare)',
-            qaAuthRunProbe: 'Εκτέλεση δοκιμής',
-            qaAuthSession: 'Δοκιμαστική συνεδρία ελέγχου ταυτότητας',
-            qaAuthClearSession: 'Εκκαθάριση συνεδρίας',
-            qaAuthStatusSuccess: 'Η δοκιμή ανίχνευσης ήταν επιτυχής',
-            qaAuthStatusReauthRequired: 'Η περίοδος σύνδεσης έληξε — εκτελέστε ξανά για να συνδεθείτε',
-            qaAuthStatusSignInFailed: 'Η σύνδεση δεν ολοκληρώθηκε — εκτελέστε ξανά για επανάληψη',
-            qaAuthStatusError: 'Η δοκιμή απέτυχε',
         },
         security: 'Ασφάλεια',
         signOut: 'Αποσύνδεση',
@@ -3073,6 +3056,7 @@ ${amount} για ${merchant} - ${date}`,
         cardLastFour: 'Κάρτα που λήγει σε',
         addFirstPaymentMethod: 'Προσθέστε έναν τρόπο πληρωμής για να στέλνετε και να λαμβάνετε πληρωμές απευθείας στην εφαρμογή.',
         defaultPaymentMethod: 'Προεπιλογή',
+        bankAccountLastFour: (lastFour: string) => `Τραπεζικός λογαριασμός • ${lastFour}`,
     },
     agentsPage: {
         title: 'Πράκτορες',
@@ -3695,8 +3679,7 @@ ${amount} για ${merchant} - ${date}`,
         legalName: 'Νομικό όνομα',
         legalFirstName: 'Επίσημο μικρό όνομα',
         legalLastName: 'Επώνυμο (όπως αναγράφεται στα επίσημα έγγραφα)',
-        address: 'Οικιακή διεύθυνση',
-        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `Το ${workspaceName} χρησιμοποιεί αυτή τη διεύθυνση για εξαιρέσεις μετακίνησης.`,
+        address: 'Διεύθυνση',
         error: {
             dateShouldBeBefore: (dateString: string) => `Η ημερομηνία πρέπει να είναι πριν από ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `Η ημερομηνία πρέπει να είναι μετά από ${dateString}`,
@@ -3819,11 +3802,6 @@ ${amount} για ${merchant} - ${date}`,
         return result;
     },
     bankAccount: {
-        internationalBankAccountDetails: 'Στοιχεία διεθνούς τραπεζικού λογαριασμού',
-        internationalBankAccountDetailsTitle: 'Ποια είναι τα στοιχεία του διεθνούς λογαριασμού σας;',
-        internationalBankAccountDetailsSubtitle: 'Ένας από τους χώρους εργασίας σας χρειάζεται στοιχεία διεθνούς λογαριασμού για την επεξεργασία των αποζημιώσεων',
-        iban: 'IBAN',
-        swiftBicCode: 'Κωδικός SWIFT/BIC',
         bankInfo: 'Στοιχεία τράπεζας',
         confirmBankInfo: 'Επιβεβαίωση στοιχείων τράπεζας',
         manuallyAdd: 'Προσθέστε χειροκίνητα τον τραπεζικό σας λογαριασμό',
@@ -3883,8 +3861,6 @@ ${amount} για ${merchant} - ${date}`,
             restrictedBusiness: 'Παρακαλούμε επιβεβαιώστε ότι η επιχείρηση δεν βρίσκεται στη λίστα με τις περιορισμένες επιχειρήσεις',
             routingNumber: 'Παρακαλούμε εισαγάγετε έναν έγκυρο αριθμό δρομολόγησης',
             accountNumber: 'Παρακαλούμε εισαγάγετε έναν έγκυρο αριθμό λογαριασμού',
-            iban: 'Παρακαλούμε εισαγάγετε έναν έγκυρο IBAN',
-            swiftCode: 'Παρακαλούμε εισαγάγετε έναν έγκυρο κωδικό SWIFT/BIC',
             routingAndAccountNumberCannotBeSame: 'Οι αριθμοί δρομολόγησης και λογαριασμού δεν μπορούν να είναι ίδιοι',
             companyType: 'Παρακαλώ επιλέξτε έναν έγκυρο τύπο εταιρείας',
             tooManyAttempts: 'Λόγω μεγάλου αριθμού προσπαθειών σύνδεσης, αυτή η επιλογή έχει απενεργοποιηθεί για 24 ώρες. Δοκιμάστε ξανά αργότερα ή εισαγάγετε τα στοιχεία χειροκίνητα.',
@@ -4657,10 +4633,6 @@ ${amount} για ${merchant} - ${date}`,
                 'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε σιδηροδρομικά ταξίδια απευθείας στο Expensify; Την επόμενη φορά αποφύγετε την ταλαιπωρία της χειροκίνητης δημιουργίας του εξόδου σας και απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ταξίδια με τρένο απευθείας στο Expensify; Και ότι ανεβάζει αυτόματα τις αποδείξεις για εσάς; Την επόμενη φορά απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
-            hotelBlockManual:
-                'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ομαδικά ταξίδια όπως αυτό απευθείας στο Expensify; Γλιτώστε ταλαιπωρία την επόμενη φορά και δοκιμάστε το εργαλείο μας <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
-            hotelBlockCard:
-                'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ομαδικά ταξίδια όπως αυτό απευθείας στο Expensify; Γλιτώστε ταλαιπωρία την επόμενη φορά και δοκιμάστε το εργαλείο μας <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Η ταξιδιωτική λειτουργία δεν είναι ενεργοποιημένη',
@@ -6036,30 +6008,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 label: 'Λογαριασμός Expensify Card',
                 description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές της Expensify Card.',
             },
-            autoSyncDescription: 'Συγχρονίστε αυτόματα το DualEntry και το Expensify κάθε μέρα. Οι αναφορές συγχρονίζονται σε πραγματικό χρόνο.',
-            accountingMethods: {
-                label: 'Μέθοδος εξαγωγής',
-                description: 'Επιλέξτε πότε θα εξαχθούν οι δαπάνες.',
-                values: {
-                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Δεδουλευμένο',
-                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Μετρητά',
-                },
-                alternateText: {
-                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Οι δαπάνες από την τσέπη σας θα εξαχθούν όταν εγκριθούν οριστικά',
-                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Οι εκτός τσέπης δαπάνες θα εξαχθούν όταν εξοφληθούν',
-                },
-            },
-            syncReimbursedReports: 'Συγχρονισμός εξοφλημένων αναφορών',
-            syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρώνεται μέσω ACH, θα δημιουργηθεί πληρωμή λογαριασμού σε αυτόν τον λογαριασμό.',
-            billPaymentAccount: {label: 'Λογαριασμός πληρωμής λογαριασμών', description: 'Επιλέξτε από πού θα πληρώνετε λογαριασμούς και θα δημιουργήσουμε την πληρωμή στο DualEntry.'},
-            syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών κάρτας Expensify',
-            settlementAccount: {label: 'λογαριασμός διακανονισμού κάρτας Expensify', description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο DualEntry.'},
-            syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών τιμολόγησης ταξιδιών',
-            travelInvoicingSettlementAccount: {
-                label: 'Λογαριασμός διακανονισμού τιμολόγησης ταξιδιών',
-                description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο DualEntry.',
-            },
-            travelInvoicingPayableAccount: {label: 'Λογαριασμός πληρωτέων τιμολόγησης ταξιδιών'},
         },
         type: {
             free: 'Δωρεάν',
@@ -6190,7 +6138,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     category: 'Κατηγορία',
                     tag: 'Ετικέτα',
                     cardName: 'Όνομα κάρτας',
-                    uniqueID: 'Μοναδικό αναγνωριστικό',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Παρακαλούμε αντιστοιχίστε μια στήλη σε καθεμία από τις ιδιότητες: ${missingColumns}.`,
@@ -7211,11 +7158,11 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 },
             },
             connections: {
-                syncStageName: (stage: PolicyConnectionSyncStage, integrationName = 'QuickBooks Online') => {
+                syncStageName: (stage, integrationName = 'QuickBooks Online') => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
-                            return 'Εισαγωγή πελατών';
+                            return 'Γίνεται εισαγωγή πελατών';
                         case 'quickbooksOnlineImportEmployees':
                         case 'netSuiteSyncImportEmployees':
                         case 'intacctImportEmployees':
@@ -7226,43 +7173,43 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             return 'Εισαγωγή λογαριασμών';
                         case 'quickbooksOnlineImportClasses':
                         case 'quickbooksDesktopImportClasses':
-                            return 'Εισαγωγή κατηγοριών';
+                            return 'Εισαγωγή κλάσεων';
                         case 'quickbooksOnlineImportLocations':
-                            return 'Εισαγωγή τοποθεσιών';
+                            return 'Γίνεται εισαγωγή τοποθεσιών';
                         case 'quickbooksOnlineImportProcessing':
-                            return 'Επεξεργασία εισαγόμενων δεδομένων';
+                            return 'Γίνεται επεξεργασία των εισαγόμενων δεδομένων';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
                             return 'Συγχρονισμός αποζημιωμένων αναφορών και πληρωμών λογαριασμών';
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Εισαγωγή κωδικών φόρου';
                         case 'quickbooksOnlineCheckConnection':
-                            return `Έλεγχος σύνδεσης ${integrationName}`;
+                            return `Γίνεται έλεγχος σύνδεσης με το ${integrationName}`;
                         case 'quickbooksOnlineImportMain':
-                            return `Γίνεται εισαγωγή δεδομένων ${integrationName}`;
+                            return `Εισαγωγή δεδομένων από το ${integrationName}`;
                         case 'startingImportXero':
-                            return 'Γίνεται εισαγωγή δεδομένων Xero';
+                            return 'Εισαγωγή δεδομένων Xero';
                         case 'startingImportQBO':
-                            return `Γίνεται εισαγωγή δεδομένων ${integrationName}`;
+                            return `Εισαγωγή δεδομένων από το ${integrationName}`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
-                            return 'Εισαγωγή δεδομένων QuickBooks Desktop';
+                            return 'Εισαγωγή δεδομένων από το QuickBooks Desktop';
                         case 'quickbooksDesktopImportTitle':
-                            return 'Γίνεται εισαγωγή τίτλου';
+                            return 'Εισαγωγή τίτλου';
                         case 'quickbooksDesktopImportApproveCertificate':
-                            return 'Γίνεται εισαγωγή πιστοποιητικού έγκρισης';
+                            return 'Εισαγωγή πιστοποιητικού έγκρισης';
                         case 'quickbooksDesktopImportDimensions':
                             return 'Γίνεται εισαγωγή διαστάσεων';
                         case 'quickbooksDesktopImportSavePolicy':
                             return 'Γίνεται εισαγωγή πολιτικής αποθήκευσης';
                         case 'quickbooksDesktopWebConnectorReminder':
-                            return 'Γίνεται ακόμη συγχρονισμός δεδομένων με το QuickBooks... Βεβαιωθείτε ότι το Web Connector εκτελείται';
+                            return 'Συνεχίζεται ο συγχρονισμός δεδομένων με το QuickBooks... Βεβαιωθείτε ότι το Web Connector εκτελείται';
                         case 'quickbooksOnlineSyncTitle':
-                            return `Γίνεται συγχρονισμός δεδομένων ${integrationName}`;
+                            return `Συγχρονισμός δεδομένων ${integrationName}`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':
-                            return 'Γίνεται φόρτωση δεδομένων';
+                            return 'Φόρτωση δεδομένων';
                         case 'quickbooksOnlineSyncApplyCategories':
                             return 'Ενημέρωση κατηγοριών';
                         case 'quickbooksOnlineSyncApplyCustomers':
@@ -7274,7 +7221,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'jobDone':
                             return 'Αναμονή για τη φόρτωση των εισαγόμενων δεδομένων';
                         case 'xeroSyncImportChartOfAccounts':
-                            return 'Συγχρονισμός λογιστικού σχεδίου';
+                            return 'Γίνεται συγχρονισμός του λογιστικού σχεδίου';
                         case 'xeroSyncImportCategories':
                             return 'Γίνεται συγχρονισμός κατηγοριών';
                         case 'xeroSyncImportCustomers':
@@ -7282,23 +7229,23 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'xeroSyncXeroReimbursedReports':
                             return 'Σήμανση αναφορών Expensify ως αποζημιωμένων';
                         case 'xeroSyncExpensifyReimbursedReports':
-                            return 'Σήμανση λογαριασμών και τιμολογίων Xero ως εξοφλημένων';
+                            return 'Σήμανση των Xero λογαριασμών και τιμολογίων ως εξοφλημένων';
                         case 'xeroSyncImportTrackingCategories':
-                            return 'Συγχρονισμός κατηγοριών παρακολούθησης';
+                            return 'Γίνεται συγχρονισμός κατηγοριών παρακολούθησης';
                         case 'xeroSyncImportBankAccounts':
                             return 'Συγχρονισμός τραπεζικών λογαριασμών';
                         case 'xeroSyncImportTaxRates':
-                            return 'Συγχρονισμός φορολογικών συντελεστών';
+                            return 'Γίνεται συγχρονισμός φορολογικών συντελεστών';
                         case 'xeroCheckConnection':
-                            return 'Γίνεται έλεγχος σύνδεσης με το Xero';
+                            return 'Έλεγχος σύνδεσης με το Xero';
                         case 'xeroSyncTitle':
-                            return 'Γίνεται συγχρονισμός δεδομένων Xero';
+                            return 'Συγχρονισμός δεδομένων Xero';
                         case 'netSuiteSyncConnection':
-                            return 'Αρχικοποίηση σύνδεσης με το NetSuite';
+                            return 'Γίνεται αρχικοποίηση σύνδεσης με το NetSuite';
                         case 'netSuiteSyncCustomers':
-                            return 'Εισαγωγή πελατών';
+                            return 'Γίνεται εισαγωγή πελατών';
                         case 'netSuiteSyncInitData':
-                            return 'Γίνεται ανάκτηση δεδομένων από το NetSuite';
+                            return 'Γίνεται λήψη δεδομένων από το NetSuite';
                         case 'netSuiteSyncImportTaxes':
                             return 'Εισαγωγή φόρων';
                         case 'netSuiteSyncImportItems':
@@ -7308,7 +7255,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'netSuiteSyncAccounts':
                             return 'Συγχρονισμός λογαριασμών';
                         case 'netSuiteSyncCurrencies':
-                            return 'Συγχρονισμός νομισμάτων';
+                            return 'Γίνεται συγχρονισμός νομισμάτων';
                         case 'netSuiteSyncCategories':
                             return 'Γίνεται συγχρονισμός κατηγοριών';
                         case 'netSuiteSyncReportFields':
@@ -7333,23 +7280,23 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'quickbooksDesktopImportVendors':
                             return 'Εισαγωγή προμηθευτών';
                         case 'intacctCheckConnection':
-                            return 'Έλεγχος σύνδεσης Sage Intacct';
+                            return 'Έλεγχος σύνδεσης με το Sage Intacct';
                         case 'intacctImportDimensions':
                             return 'Εισαγωγή διαστάσεων Sage Intacct';
                         case 'intacctImportTitle':
                             return 'Εισαγωγή δεδομένων Sage Intacct';
                         case 'financialForceSyncTitle':
-                            return 'Γίνεται συγχρονισμός δεδομένων Certinia';
+                            return 'Συγχρονισμός δεδομένων Certinia';
                         case 'financialForceSyncStep':
                             return 'Γίνεται συγχρονισμός της σύνδεσης Certinia';
                         case 'financialForceSyncCategories':
-                            return 'Εισαγωγή κατηγοριών';
+                            return 'Γίνεται εισαγωγή κατηγοριών';
                         case 'financialForceSyncTags':
                             return 'Γίνεται εισαγωγή ετικετών';
                         case 'financialForceSyncVendors':
                             return 'Εισαγωγή προμηθευτών';
                         case 'financialForceSyncContacts':
-                            return 'Εισαγωγή επαφών';
+                            return 'Γίνεται εισαγωγή επαφών';
                         case 'financialForceSyncCompanies':
                             return 'Εισαγωγή εταιρειών';
                         case 'financialForceSyncUsers':
@@ -7359,25 +7306,19 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'financialForceMarkAsReimbursed':
                             return 'Σήμανση αναφορών ως αποζημιωμένων';
                         case 'rilletSyncTitle':
-                            return 'Γίνεται συγχρονισμός δεδομένων Rillet';
+                            return 'Συγχρονισμός δεδομένων Rillet';
                         case 'rilletSyncConnection':
-                            return 'Γίνεται προετοιμασία σύνδεσης με το Rillet';
+                            return 'Γίνεται αρχικοποίηση σύνδεσης με το Rillet';
                         case 'rilletSyncImportData':
-                            return 'Γίνεται φόρτωση δεδομένων';
+                            return 'Φόρτωση δεδομένων';
                         case 'dualEntrySyncTitle':
-                            return 'Συγχρονισμός δεδομένων DualEntry';
+                            return 'Γίνεται συγχρονισμός δεδομένων DualEntry';
                         case 'dualEntrySyncConnection':
                             return 'Γίνεται προετοιμασία σύνδεσης με το DualEntry';
                         case 'dualEntrySyncImportData':
-                            return 'Γίνεται φόρτωση δεδομένων';
-                        case 'dualEntrySyncPayments':
-                            return 'Γίνεται συγχρονισμός πληρωμών προμηθευτών';
-                        case 'dualEntrySyncCardSettlements':
-                            return 'Γίνεται συγχρονισμός των διακανονισμών κάρτας';
-                        case 'dualEntrySyncTravelSettlements':
-                            return 'Γίνεται συγχρονισμός των διακανονισμών ταξιδιού';
+                            return 'Φόρτωση δεδομένων';
                         default: {
-                            return `Λείπει η μετάφραση για το στάδιο: ${stage}`;
+                            return `Λείπει μετάφραση για το στάδιο: ${stage}`;
                         }
                     }
                 },
@@ -7565,31 +7506,17 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
         distanceRates: {
             oopsNotSoFast: 'Ουπς! Όχι τόσο γρήγορα...',
             workspaceNeeds: 'Ένας χώρος εργασίας χρειάζεται τουλάχιστον έναν ενεργοποιημένο συντελεστή απόστασης.',
-            requireMapOrGPSDescription: 'Η χειροκίνητη καταχώριση και η καταχώριση χιλιομετρητή θα απενεργοποιηθούν.',
-            requireMapOrGPSLockedByCommuterExclusions:
-                'Η εξαίρεση μετακινήσεων από και προς την εργασία απαιτεί δεδομένα διαδρομής, επομένως η απόσταση από χάρτη ή GPS είναι πάντα απαραίτητη όταν είναι ενεργή. Για να αλλάξετε αυτήν τη ρύθμιση, ορίστε το «Εξαίρεση μετακινήσεων από και προς την εργασία» σε «Να μην εξαιρούνται οι μετακινήσεις από και προς την εργασία».',
             commuterExclusions: {
                 title: 'Εξαίρεση μετακινήσεων από και προς την εργασία',
                 summaryDisabled: 'Χωρίς εξαίρεση μετακίνησης',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Εξαίρεση ${distance} ${unit} ανά αίτημα`,
-                summaryHomeAndOffice: 'Χρησιμοποιήστε τις τοποθεσίες σπιτιού και γραφείου',
                 optionDisabledTitle: 'Να μην εξαιρούνται οι μετακινήσεις από και προς την εργασία',
-                optionDisabledHelp: 'Καμία μετακίνηση από και προς την εργασία δεν αφαιρείται από τις αιτήσεις.',
+                optionDisabledHelp: 'Δεν εφαρμόζεται καμία εξαίρεση μετακίνησης.',
                 optionFixedDistanceTitle: 'Εξαίρεση σταθερής απόστασης ανά αίτημα',
                 optionFixedDistanceHelp: 'Αφαιρέστε την ίδια απόσταση μετακίνησης από κάθε αίτημα. Ιδανικό για μέλη που υποβάλλουν ένα αίτημα ανά εργάσιμη ημέρα.',
-                optionHomeAndOfficeTitle: 'Υπολογισμός ανά σπίτι και γραφείο',
-                optionHomeAndOfficeHelp: 'Χρησιμοποιήστε τη διεύθυνση κατοικίας, τη ρύθμιση εργασίας και την ανάθεση γραφείου του μέλους για να υπολογίσετε τις εξαιρέσεις μετακίνησης.',
                 distanceLabel: 'Απόσταση',
-                workspaceAddressRequired: {
-                    title: 'Όχι τόσο γρήγορα...',
-                    promptStart: 'Δεν μπορείτε να ενεργοποιήσετε τη ρύθμιση υπολογισμού ανά σπίτι και γραφείο μέχρι να προσθέσετε πρώτα μια τοποθεσία γραφείου στο',
-                    linkText: 'Επισκόπηση',
-                    promptEnd: '.',
-                    cta: 'Εντάξει',
-                },
                 errors: {
                     distanceMustBePositive: 'Η απόσταση πρέπει να είναι ένας θετικός ακέραιος αριθμός.',
-                    invalidAddress: 'Παρακαλούμε εισαγάγετε έγκυρη διεύθυνση',
                     distanceTooLarge: 'Η απόσταση είναι πολύ μεγάλη.',
                 },
             },
@@ -9126,35 +9053,33 @@ ${reportName}`,
         updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
             switch (featureName) {
                 case 'categories':
-                    return `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} κατηγορίες`;
+                    return `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} κατηγορίες`;
                 case 'tags':
-                    return `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} ετικέτες`;
+                    return `ετικέτες ${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'}`;
                 case 'workflows':
-                    return `ροές εργασιών ${enabled ? 'ενεργοποιημένο' : 'ανενεργό'}`;
+                    return `ροές εργασίας ${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'}`;
                 case 'distance rates':
-                    return `τιμές χρέωσης απόστασης ${enabled ? 'ενεργοποιημένο' : 'ανενεργό'}`;
+                    return `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} χρεώσεις απόστασης`;
                 case 'accounting':
-                    return `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} λογιστική`;
+                    return `λογιστική ${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'}`;
                 case 'Expensify Cards':
-                    return `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} κάρτες Expensify`;
+                    return `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} Κάρτες Expensify`;
                 case 'travel invoicing':
-                    return `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} ενοποιημένη χρέωση ταξιδιών`;
+                    return `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} ενοποιημένη χρέωση ταξιδιών`;
                 case 'company cards':
-                    return `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} εταιρικές κάρτες`;
+                    return `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} εταιρικές κάρτες`;
                 case 'invoicing':
-                    return `τιμολόγηση ${enabled ? 'ενεργοποιημένο' : 'ανενεργό'}`;
+                    return `τιμολόγηση ${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'}`;
                 case 'per diem':
-                    return `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} ημερήσιο επίδομα`;
+                    return `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} ημερήσια αποζημίωση`;
                 case 'receipt partners':
-                    return `συνεργάτες αποδείξεων ${enabled ? 'ενεργοποιημένο' : 'ανενεργό'}`;
+                    return `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} συνεργάτες αποδείξεων`;
                 case 'rules':
-                    return `κανόνες ${enabled ? 'ενεργοποιημένο' : 'ανενεργό'}`;
+                    return `κανόνες ${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'}`;
                 case 'tax tracking':
-                    return `παρακολούθηση φόρων ${enabled ? 'ενεργοποιημένο' : 'ανενεργό'}`;
-                case 'require GPS or map entry for distance rates':
-                    return `${enabled ? 'ενεργοποιήθηκε' : 'απενεργοποιήθηκε'} απαιτούν GPS ή καταχώριση σε χάρτη για χρεώσεις απόστασης`;
+                    return `παρακολούθηση φόρου ${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'}`;
                 default:
-                    return `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} ${featureName}`;
+                    return `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} ${featureName}`;
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `παρακολούθηση συμμετεχόντων ${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'}`,
@@ -10044,7 +9969,7 @@ ${reportName}`,
         error: {
             selectSuggestedAddress: 'Παρακαλείστε να επιλέξετε μια προτεινόμενη διεύθυνση ή να χρησιμοποιήσετε την τρέχουσα τοποθεσία',
             mapOrGpsDistanceRequired: {
-                title: 'Απαίτηση GPS ή καταχώρισης χάρτη',
+                title: 'Απαιτείται απόσταση από χάρτη ή GPS',
                 description: 'Αυτός ο χώρος εργασίας απαιτεί έξοδα απόστασης είτε με βάση χάρτη είτε με παρακολούθηση GPS.',
             },
         },

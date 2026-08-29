@@ -599,13 +599,7 @@ function getQueryHashes(query: SearchQueryJSON) {
 
     // Certain filters shouldn't affect whether two searchers are similar or not, since they dont
     // actually filter out results
-    const similarSearchIgnoredFilters = new Set<SearchFilterKey>([
-        CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
-        CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
-        CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
-        CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS,
-        CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
-    ]);
+    const similarSearchIgnoredFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
 
     // Certain filters' values are significant in deciding which search we are on, so we want to include
     // their value when computing the similarSearchHash

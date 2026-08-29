@@ -77,6 +77,9 @@ type KYCWallProps = {
     /** Children to build the KYC */
     children: (continueAction: (params?: ContinueActionParams) => void, anchorRef: RefObject<View | null>) => void;
 
+    /** The policy used for payment */
+    policy?: Policy;
+
     /** Reference to the KYCWall component */
     ref: ForwardedRef<KYCWallRef>;
 };

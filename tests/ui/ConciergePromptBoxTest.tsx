@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import useAskConcierge from '@components/Search/SearchRouter/useAskConcierge';
 
@@ -17,8 +17,6 @@ import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import React, {useState} from 'react';
-
-import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const CONCIERGE_REPORT_ID = '100';
 const LONG_PLACEHOLDER = 'homePage.conciergePrompt.inputPlaceholder';
@@ -86,8 +84,6 @@ jest.mock('@libs/Browser', () => ({
     ...jest.requireActual<typeof BrowserModule>('@libs/Browser'),
     isSafari: jest.fn(() => false),
 }));
-
-jest.mock('@pages/Share/getFileSize', () => jest.fn(() => Promise.resolve(100)));
 
 jest.mock('@userActions/Modal', () => ({
     close: jest.fn(),
@@ -160,10 +156,6 @@ function pressEnter(options?: {shiftKey?: boolean}) {
         preventDefault: jest.fn(),
         nativeEvent: {key: CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey, shiftKey: options?.shiftKey ?? false},
     });
-}
-
-function pasteImage() {
-    fireEvent(getInput(), 'paste', {nativeEvent: {items: [{type: 'image/png', data: 'file:///image.png'}]}});
 }
 
 function measureLongPlaceholder(height: number) {
@@ -325,32 +317,6 @@ describe('ConciergePromptBox', () => {
             expect(mockAskConciergeWithAttachment).toHaveBeenCalledWith(files, 'Here it is');
             expect(getInput()).toHaveDisplayValue('');
         });
-
-        it('starts the attachment flow for a pasted image', async () => {
-            // Given the prompt box
-            render(<ConciergePromptBoxWrapper />);
-
-            // When an image is pasted into the input
-            pasteImage();
-
-            // Then the pasted file goes through the same validation and preview flow as the picker
-            await waitFor(() => {
-                expect(mockPickAttachments).toHaveBeenCalled();
-            });
-        });
-
-        it('ignores a pasted image until the Concierge report is ready', async () => {
-            // Given a prompt box that has nowhere to send the attachment yet
-            setAskConcierge(false);
-            render(<ConciergePromptBoxWrapper />);
-
-            // When an image is pasted into the input
-            pasteImage();
-            await waitForBatchedUpdatesWithAct();
-
-            // Then the attachment flow is not started
-            expect(mockPickAttachments).not.toHaveBeenCalled();
-        });
     });
 
     describe('anonymous user', () => {
@@ -393,32 +359,6 @@ describe('ConciergePromptBox', () => {
 
             // Then the menu stays closed and the sign in flow opens
             expect(screen.queryByLabelText(ADD_ATTACHMENT)).toBeNull();
-            expect(mockSignOutAndRedirectToSignIn).toHaveBeenCalled();
-        });
-
-        it('asks to sign in instead of starting the attachment flow for a pasted image', async () => {
-            // Given an anonymous user
-            render(<ConciergePromptBoxWrapper />);
-
-            // When an image is pasted into the input
-            pasteImage();
-            await waitForBatchedUpdatesWithAct();
-
-            // Then the attachment flow is not started and the sign in flow opens
-            expect(mockPickAttachments).not.toHaveBeenCalled();
-            expect(mockSignOutAndRedirectToSignIn).toHaveBeenCalled();
-        });
-
-        it('asks to sign in instead of sending a confirmed attachment', () => {
-            // Given an anonymous user with attachments confirmed in the preview modal
-            const files: FileObject[] = [{name: 'receipt.jpg', type: 'image/jpeg', uri: 'file://receipt.jpg'}];
-            render(<ConciergePromptBoxWrapper />);
-
-            // When the modal confirms
-            act(() => pickerHandler.onConfirm?.(files));
-
-            // Then nothing is sent and the sign in flow opens
-            expect(mockAskConciergeWithAttachment).not.toHaveBeenCalled();
             expect(mockSignOutAndRedirectToSignIn).toHaveBeenCalled();
         });
     });

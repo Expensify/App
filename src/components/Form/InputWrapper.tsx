@@ -31,11 +31,10 @@ function computeComponentSpecificRegistrationParams({
     shouldSubmitForm,
     multiline,
     autoGrowHeight,
-    autoGrowSingleLine,
     submitBehavior,
 }: InputComponentBaseProps): ComputedComponentSpecificRegistrationParams {
     if (textInputBasedComponents.has(InputComponent)) {
-        const isEffectivelyMultiline = !!multiline || !!autoGrowHeight || !!autoGrowSingleLine;
+        const isEffectivelyMultiline = !!multiline || !!autoGrowHeight;
 
         // If the user can use the hardware keyboard, they have access to an alternative way of inserting a new line
         // (like a Shift+Enter keyboard shortcut). For simplicity, we assume that when there's no touch screen, it's a
@@ -45,9 +44,7 @@ function computeComponentSpecificRegistrationParams({
         // We want to avoid a situation when the user can't insert a new line. For single-line inputs, it's not a problem and we
         // force-enable form submission. For multi-line inputs, ensure that it was requested to enable form submission for this specific
         // input and that alternative ways exist to add a new line.
-        // `autoGrowSingleLine` inputs only render as multi-line so their value can wrap - a new line is never a valid
-        // value there, so nothing has to be reserved for inserting one and the return key always submits.
-        const shouldReallySubmitForm = !!autoGrowSingleLine || (isEffectivelyMultiline ? !!shouldSubmitForm && canUseHardwareKeyboard : true);
+        const shouldReallySubmitForm = isEffectivelyMultiline ? !!shouldSubmitForm && canUseHardwareKeyboard : true;
 
         return {
             // There are inputs that don't have onBlur methods, to simulate the behavior of onBlur in e.g. checkbox, we had to

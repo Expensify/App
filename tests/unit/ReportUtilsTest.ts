@@ -195,7 +195,6 @@ import {
     isUnread,
     isUploadingAttachmentRemovedFromDraft,
     isWorkspaceMemberLeavingWorkspaceRoom,
-    parseMovedTransactionReportIDs,
     parseReportRouteParams,
     prepareOnboardingOnyxData,
     pushTransactionAutoSelectionsOnyxData,
@@ -544,6 +543,7 @@ const policy: Policy = {
     type: CONST.POLICY.TYPE.TEAM,
     owner: '',
     outputCurrency: '',
+    isPolicyExpenseChatEnabled: false,
 };
 
 describe('ReportUtils', () => {
@@ -771,18 +771,17 @@ describe('ReportUtils', () => {
             const passedCurrentUserAccountID = 50;
             const passedAccountID = 999;
 
-            const {optimisticAssigneeAddComment} = getTaskAssigneeChatOnyxData({
-                accountID: passedAccountID,
-                assigneeAccountID: 1,
-                taskReportID: 'taskReportID',
-                assigneeChatReportID: 'assigneeChatReportID',
-                parentReportID: 'parentReportID',
-                title: 'Task title',
-                assigneeChatReport: createMock<OnyxEntry<Report>>({}),
-                currentUserEmail: passedCurrentUserEmail,
-                currentUserAccountID: passedCurrentUserAccountID,
-                delegateAccountID: undefined,
-            });
+            const {optimisticAssigneeAddComment} = getTaskAssigneeChatOnyxData(
+                passedAccountID,
+                1,
+                'taskReportID',
+                'assigneeChatReportID',
+                'parentReportID',
+                'Task title',
+                createMock<OnyxEntry<Report>>({}),
+                passedCurrentUserEmail,
+                passedCurrentUserAccountID,
+            );
 
             expect(optimisticAssigneeAddComment).toBeDefined();
             const reportAction = optimisticAssigneeAddComment?.reportAction as ReportAction | undefined;
@@ -796,18 +795,17 @@ describe('ReportUtils', () => {
             const passedCurrentUserEmail = 'different-email@user.com';
             const passedCurrentUserAccountID = currentUserAccountID; // 5, which exists in `participantsPersonalDetails`
 
-            const result = getTaskAssigneeChatOnyxData({
-                accountID: 1,
-                assigneeAccountID: 2,
-                taskReportID: 'taskReportID',
-                assigneeChatReportID: 'assigneeChatReportID',
-                parentReportID: 'parentReportID',
-                title: 'Task title',
-                assigneeChatReport: createMock<OnyxEntry<Report>>({}),
-                currentUserEmail: passedCurrentUserEmail,
-                currentUserAccountID: passedCurrentUserAccountID,
-                delegateAccountID: undefined,
-            });
+            const result = getTaskAssigneeChatOnyxData(
+                1,
+                2,
+                'taskReportID',
+                'assigneeChatReportID',
+                'parentReportID',
+                'Task title',
+                createMock<OnyxEntry<Report>>({}),
+                passedCurrentUserEmail,
+                passedCurrentUserAccountID,
+            );
 
             const reportAction = result.optimisticAssigneeAddComment?.reportAction as ReportAction | undefined;
             expect(reportAction?.actorAccountID).toBe(passedCurrentUserAccountID);
@@ -817,40 +815,9 @@ describe('ReportUtils', () => {
         });
 
         it('does not create optimistic assignee comment when assigneeChatReportID equals parentReportID', () => {
-            const result = getTaskAssigneeChatOnyxData({
-                accountID: 1,
-                assigneeAccountID: 2,
-                taskReportID: 'taskReportID',
-                assigneeChatReportID: 'sameReportID',
-                parentReportID: 'sameReportID',
-                title: 'Task title',
-                assigneeChatReport: createMock<OnyxEntry<Report>>({}),
-                currentUserEmail: 'email@user.com',
-                currentUserAccountID: 50,
-                delegateAccountID: undefined,
-            });
+            const result = getTaskAssigneeChatOnyxData(1, 2, 'taskReportID', 'sameReportID', 'sameReportID', 'Task title', createMock<OnyxEntry<Report>>({}), 'email@user.com', 50);
 
             expect(result.optimisticAssigneeAddComment).toBeUndefined();
-        });
-
-        it('sets the passed delegateAccountID on the optimistic assignee comment', () => {
-            const delegateAccountID = 901;
-
-            const {optimisticAssigneeAddComment} = getTaskAssigneeChatOnyxData({
-                accountID: 1,
-                assigneeAccountID: 2,
-                taskReportID: 'taskReportID',
-                assigneeChatReportID: 'assigneeChatReportID',
-                parentReportID: 'parentReportID',
-                title: 'Task title',
-                assigneeChatReport: createMock<OnyxEntry<Report>>({}),
-                currentUserEmail: 'email@user.com',
-                currentUserAccountID: 50,
-                delegateAccountID,
-            });
-
-            const reportAction = optimisticAssigneeAddComment?.reportAction as ReportAction | undefined;
-            expect(reportAction?.delegateAccountID).toBe(delegateAccountID);
         });
     });
 
@@ -4628,6 +4595,7 @@ describe('ReportUtils', () => {
                         role: 'user',
                         owner: '',
                         outputCurrency: '',
+                        isPolicyExpenseChatEnabled: false,
                     } as const;
                     const moneyRequestOptions = temporary_getMoneyRequestOptions(
                         report,
@@ -4688,6 +4656,7 @@ describe('ReportUtils', () => {
                     role: 'user',
                     owner: '',
                     outputCurrency: '',
+                    isPolicyExpenseChatEnabled: false,
                     employeeList: {
                         [currentUserEmail]: {
                             email: currentUserEmail,
@@ -4756,6 +4725,7 @@ describe('ReportUtils', () => {
                     role: 'user',
                     owner: currentUserEmail,
                     outputCurrency: '',
+                    isPolicyExpenseChatEnabled: false,
                 };
                 Promise.all([
                     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${paidPolicy.id}`, paidPolicy),
@@ -6029,6 +5999,7 @@ describe('ReportUtils', () => {
                 type: CONST.POLICY.TYPE.CORPORATE,
                 owner: '',
                 outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: false,
                 employeeList: {
                     'lagertha2@vikings.net': {
                         email: 'lagertha2@vikings.net',
@@ -6291,6 +6262,7 @@ describe('ReportUtils', () => {
                 type: CONST.POLICY.TYPE.CORPORATE,
                 owner: '',
                 outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: false,
                 employeeList: {
                     'lagertha2@vikings.net': {
                         email: 'lagertha2@vikings.net',
@@ -6382,6 +6354,7 @@ describe('ReportUtils', () => {
                 type: CONST.POLICY.TYPE.CORPORATE,
                 owner: '',
                 outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: false,
                 employeeList: {
                     'lagertha2@vikings.net': {
                         email: 'lagertha2@vikings.net',
@@ -6981,6 +6954,7 @@ describe('ReportUtils', () => {
             role: CONST.POLICY.ROLE.USER,
             owner: `owner${ownerAccountID}@test.com`,
             outputCurrency: 'USD',
+            isPolicyExpenseChatEnabled: true,
             approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
             approver: approverEmail,
             employeeList: {
@@ -13879,6 +13853,7 @@ describe('ReportUtils', () => {
             role: CONST.POLICY.ROLE.ADMIN,
             owner: 'test@example.com',
             outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
             autoReporting: true,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
             harvesting: {
@@ -15212,27 +15187,19 @@ describe('ReportUtils', () => {
         });
 
         it('should return false if the user is not the report manager', () => {
-            expect(canRejectReportAction(buildReportToReject(), 2, undefined)).toBe(false);
+            expect(canRejectReportAction(buildReportToReject(), 2)).toBe(false);
         });
 
         it('should return false when no account ID is passed', () => {
-            expect(canRejectReportAction(buildReportToReject(), undefined, undefined)).toBe(false);
+            expect(canRejectReportAction(buildReportToReject(), undefined)).toBe(false);
         });
 
         it('should return true if the passed user is the manager of a report being processed', () => {
-            expect(canRejectReportAction(buildReportToReject(), managerAccountID, undefined)).toBe(true);
+            expect(canRejectReportAction(buildReportToReject(), managerAccountID)).toBe(true);
         });
 
         it('should return false for IOU reports even when the passed user is the manager', () => {
-            expect(canRejectReportAction({...buildReportToReject(), type: CONST.REPORT.TYPE.IOU}, managerAccountID, undefined)).toBe(false);
-        });
-
-        it('should return false when the policy is archived', () => {
-            expect(canRejectReportAction(buildReportToReject(), managerAccountID, {...createRandomPolicy(0), archivedDate: '2026-08-19 00:00:00'})).toBe(false);
-        });
-
-        it('should return false when the policy is pending deletion', () => {
-            expect(canRejectReportAction(buildReportToReject(), managerAccountID, {...createRandomPolicy(0), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})).toBe(false);
+            expect(canRejectReportAction({...buildReportToReject(), type: CONST.REPORT.TYPE.IOU}, managerAccountID)).toBe(false);
         });
     });
 
@@ -16414,6 +16381,7 @@ describe('ReportUtils', () => {
                     },
                 },
                 owner: currentUserEmail,
+                isPolicyExpenseChatEnabled: true,
             };
 
             const chatReport: Report = {
@@ -16501,6 +16469,7 @@ describe('ReportUtils', () => {
                     },
                 },
                 owner: currentUserEmail,
+                isPolicyExpenseChatEnabled: true,
             };
 
             const chatReport: Report = {
@@ -16597,6 +16566,7 @@ describe('ReportUtils', () => {
                     },
                 },
                 owner: currentUserEmail,
+                isPolicyExpenseChatEnabled: true,
             };
 
             const chatReport: Report = {
@@ -16706,6 +16676,7 @@ describe('ReportUtils', () => {
                     },
                 },
                 owner: currentUserEmail,
+                isPolicyExpenseChatEnabled: true,
             };
 
             const chatReport: Report = {
@@ -16794,6 +16765,7 @@ describe('ReportUtils', () => {
                     },
                 },
                 owner: currentUserEmail,
+                isPolicyExpenseChatEnabled: true,
             };
 
             const chatReport: Report = {
@@ -16880,6 +16852,7 @@ describe('ReportUtils', () => {
                     },
                 },
                 owner: currentUserEmail,
+                isPolicyExpenseChatEnabled: true,
             };
 
             const chatReport: Report = {
@@ -16972,6 +16945,7 @@ describe('ReportUtils', () => {
                 },
             },
             owner: currentUserEmail,
+            isPolicyExpenseChatEnabled: true,
         };
 
         const chatReport: Report = {
@@ -17117,6 +17091,7 @@ describe('ReportUtils', () => {
                 },
             },
             owner: currentUserEmail,
+            isPolicyExpenseChatEnabled: true,
         };
 
         const chatReport: Report = {
@@ -17244,6 +17219,7 @@ describe('ReportUtils', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: currentUserEmail,
             outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
         };
 
@@ -17514,6 +17490,7 @@ describe('ReportUtils', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: approverEmail,
             outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
             approver: approverEmail,
             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             employeeList: {
@@ -18170,7 +18147,15 @@ describe('ReportUtils', () => {
 
     describe('getUnreportedTransactionMessage', () => {
         it('should return unreported transaction message when fromReportID is UNREPORTED_REPORT_ID', () => {
-            const result = getUnreportedTransactionMessage({translate: translateLocal, fromReportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
+                originalMessage: {
+                    fromReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                },
+            });
+
+            const result = getUnreportedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
         });
@@ -18179,7 +18164,15 @@ describe('ReportUtils', () => {
             const fromReport = LHNTestUtils.getFakeReport();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
 
-            const result = getUnreportedTransactionMessage({translate: translateLocal, fromReportID: fromReport.reportID});
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
+                originalMessage: {
+                    fromReportID: fromReport.reportID,
+                },
+            });
+
+            const result = getUnreportedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
         });
@@ -18188,8 +18181,16 @@ describe('ReportUtils', () => {
             const fromReport = LHNTestUtils.getFakeReport();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
 
-            const result1 = getUnreportedTransactionMessage({translate: translateLocal, fromReportID: fromReport.reportID});
-            const result2 = getUnreportedTransactionMessage({translate: translateLocal, fromReportID: fromReport.reportID});
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
+                originalMessage: {
+                    fromReportID: fromReport.reportID,
+                },
+            });
+
+            const result1 = getUnreportedTransactionMessage(translateLocal, action);
+            const result2 = getUnreportedTransactionMessage(translateLocal, action);
             expect(typeof result1).toBe('string');
             expect(typeof result2).toBe('string');
         });
@@ -21087,6 +21088,7 @@ describe('ReportUtils', () => {
             type: CONST.POLICY.TYPE.CORPORATE,
             owner: 'test@test.com',
             outputCurrency: 'USD',
+            isPolicyExpenseChatEnabled: true,
             taxRates: {
                 taxes: {
                     TAX_CODE_1: {
@@ -21939,8 +21941,7 @@ describe('ReportUtils', () => {
                 },
             });
 
-            const {fromReportID, toReportID} = parseMovedTransactionReportIDs(action);
-            const result = getMovedTransactionMessage({translate: translateLocal, fromReportID, toReportID});
+            const result = getMovedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
         });
@@ -21958,148 +21959,9 @@ describe('ReportUtils', () => {
                 },
             });
 
-            const {fromReportID, toReportID} = parseMovedTransactionReportIDs(action);
-            const result = getMovedTransactionMessage({translate: translateLocal, fromReportID, toReportID});
+            const result = getMovedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
-        });
-    });
-
-    describe('parseMovedTransactionReportIDs', () => {
-        it('should return both fromReportID and toReportID when both are present', () => {
-            const action = createMock<ReportAction>({
-                ...LHNTestUtils.getFakeReportAction(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
-                originalMessage: {
-                    fromReportID: '111',
-                    toReportID: '222',
-                },
-            });
-
-            const result = parseMovedTransactionReportIDs(action);
-            expect(result).toEqual({fromReportID: '111', toReportID: '222', displayReportID: '111'});
-        });
-
-        it('should return undefined for missing IDs', () => {
-            const action = createMock<ReportAction>({
-                ...LHNTestUtils.getFakeReportAction(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
-                originalMessage: {},
-            });
-
-            const result = parseMovedTransactionReportIDs(action);
-            expect(result.fromReportID).toBeUndefined();
-            expect(result.toReportID).toBeUndefined();
-        });
-
-        it('should return only fromReportID when toReportID is missing', () => {
-            const action = createMock<ReportAction>({
-                ...LHNTestUtils.getFakeReportAction(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
-                originalMessage: {
-                    fromReportID: '111',
-                },
-            });
-
-            const result = parseMovedTransactionReportIDs(action);
-            expect(result.fromReportID).toBe('111');
-            expect(result.toReportID).toBeUndefined();
-        });
-
-        it('should return only toReportID when fromReportID is missing', () => {
-            const action = createMock<ReportAction>({
-                ...LHNTestUtils.getFakeReportAction(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
-                originalMessage: {
-                    toReportID: '222',
-                },
-            });
-
-            const result = parseMovedTransactionReportIDs(action);
-            expect(result.fromReportID).toBeUndefined();
-            expect(result.toReportID).toBe('222');
-        });
-    });
-
-    describe('parseMovedTransactionReportIDs - moved transaction', () => {
-        it('should return both fromReportID and toReportID when present', () => {
-            const action = createMock<ReportAction>({
-                ...LHNTestUtils.getFakeReportAction(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
-                originalMessage: {
-                    fromReportID: '111',
-                    toReportID: '222',
-                },
-            });
-
-            const {fromReportID, toReportID} = parseMovedTransactionReportIDs(action);
-            expect(fromReportID).toBe('111');
-            expect(toReportID).toBe('222');
-        });
-
-        it('should return only toReportID when fromReportID is undefined', () => {
-            const action = createMock<ReportAction>({
-                ...LHNTestUtils.getFakeReportAction(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
-                originalMessage: {
-                    toReportID: '222',
-                },
-            });
-
-            const {fromReportID, toReportID} = parseMovedTransactionReportIDs(action);
-            expect(fromReportID).toBeUndefined();
-            expect(toReportID).toBe('222');
-        });
-
-        it('should return undefined for both when IDs are missing', () => {
-            const action = createMock<ReportAction>({
-                ...LHNTestUtils.getFakeReportAction(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
-                originalMessage: {},
-            });
-
-            const {fromReportID, toReportID} = parseMovedTransactionReportIDs(action);
-            expect(fromReportID).toBeUndefined();
-            expect(toReportID).toBeUndefined();
-        });
-    });
-
-    describe('parseMovedTransactionReportIDs - unreported transaction', () => {
-        it('should return fromReportID', () => {
-            const action = createMock<ReportAction>({
-                ...LHNTestUtils.getFakeReportAction(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
-                originalMessage: {
-                    fromReportID: '333',
-                },
-            });
-
-            expect(parseMovedTransactionReportIDs(action).fromReportID).toBe('333');
-        });
-
-        it('should return undefined when fromReportID is missing', () => {
-            const action = createMock<ReportAction>({
-                ...LHNTestUtils.getFakeReportAction(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
-                originalMessage: {},
-            });
-
-            expect(parseMovedTransactionReportIDs(action).fromReportID).toBeUndefined();
-        });
-
-        it('should return both fromReportID and toReportID independently', () => {
-            const action = createMock<ReportAction>({
-                ...LHNTestUtils.getFakeReportAction(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
-                originalMessage: {
-                    fromReportID: '333',
-                    toReportID: '444',
-                },
-            });
-
-            const {fromReportID, toReportID} = parseMovedTransactionReportIDs(action);
-            expect(fromReportID).toBe('333');
-            expect(toReportID).toBe('444');
         });
     });
 
@@ -22278,34 +22140,6 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
         });
 
-        it('should NOT flag a report-preview action when its linked transaction is pending deletion', async () => {
-            // Mirrors the split/track guard for the report-preview path (getReportActionWithMissingSmartscanFields).
-            // Same missing-merchant shape as the positive test above, but the transaction is queued for deletion,
-            // so the RBR red-dot must clear instead of persisting until the server confirms removal (#96967).
-            const transactionMissingMerchant: Transaction = {
-                ...transaction,
-                merchant: '',
-                modifiedMerchant: '',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transactionMissingMerchant);
-            await waitForBatchedUpdates();
-
-            const reportsCollection = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]: expenseReport,
-            };
-            const allTransactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transactionMissingMerchant,
-            };
-
-            expect(hasSmartscanError([reportPreviewAction], chatReport, allTransactions, currentUserAccountID, reportsCollection)).toBe(false);
-            expect(getReportActionWithSmartscanError([reportPreviewAction], chatReport, allTransactions, currentUserAccountID, reportsCollection)).toBeUndefined();
-
-            // Restore original transaction for subsequent tests (Onyx.set fully replaces, clearing pendingAction)
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
-            await waitForBatchedUpdates();
-        });
-
         it('should NOT flag settled (reimbursed) expense reports even with missing fields', async () => {
             const settledExpenseReport: Report = {
                 ...expenseReport,
@@ -22368,108 +22202,6 @@ describe('ReportUtils', () => {
 
             expect(hasSmartscanError([splitAction], chatReport, allTransactions, currentUserAccountID)).toBe(true);
             expect(getReportActionWithSmartscanError([splitAction], chatReport, allTransactions, currentUserAccountID)).toEqual(splitAction);
-        });
-
-        it('should NOT flag a split-bill action when its linked transaction is pending deletion (revert split / delete)', () => {
-            // The missing-smartscan-fields path never excluded DELETE-pending transactions (#97706 only fixed
-            // the violations path), so a reverted expense with missing fields kept lighting the RBR (#96967).
-            const splitTransactionID = '550';
-            const splitAction: ReportAction = {
-                ...createRandomReportAction(Number(splitTransactionID)),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: currentUserAccountID,
-                originalMessage: {
-                    IOUTransactionID: splitTransactionID,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
-                    amount: 0,
-                    currency: CONST.CURRENCY.USD,
-                    comment: '',
-                    participantAccountIDs: [currentUserAccountID],
-                },
-            };
-            // Same missing-fields shape as the positive test above, but the transaction is queued for deletion.
-            const splitTransaction: Transaction = {
-                ...createRandomTransaction(Number(splitTransactionID)),
-                transactionID: splitTransactionID,
-                amount: 0,
-                merchant: 'Lunch',
-                modifiedMerchant: '',
-                created: testDate,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            };
-            const allTransactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`]: splitTransaction,
-            };
-
-            expect(hasSmartscanError([splitAction], chatReport, allTransactions, currentUserAccountID)).toBe(false);
-            expect(getReportActionWithSmartscanError([splitAction], chatReport, allTransactions, currentUserAccountID)).toBeUndefined();
-        });
-
-        it('should NOT flag a track-expense action when its linked transaction is pending deletion (revert / delete)', () => {
-            // isSplitOrTrackAction also covers the track-expense branch, so a DELETE-pending track transaction with
-            // missing fields must clear the RBR too. Guards the OR against a future refactor that splits the paths.
-            const trackTransactionID = '575';
-            const trackAction: ReportAction = {
-                ...createRandomReportAction(Number(trackTransactionID)),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: currentUserAccountID,
-                originalMessage: {
-                    IOUTransactionID: trackTransactionID,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
-                    amount: 0,
-                    currency: CONST.CURRENCY.USD,
-                    comment: '',
-                    participantAccountIDs: [currentUserAccountID],
-                },
-            };
-            // Same missing-fields shape as the split test above, but the transaction is queued for deletion.
-            const trackTransaction: Transaction = {
-                ...createRandomTransaction(Number(trackTransactionID)),
-                transactionID: trackTransactionID,
-                amount: 0,
-                merchant: 'Lunch',
-                modifiedMerchant: '',
-                created: testDate,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            };
-            const allTransactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${trackTransactionID}`]: trackTransaction,
-            };
-
-            expect(hasSmartscanError([trackAction], chatReport, allTransactions, currentUserAccountID)).toBe(false);
-            expect(getReportActionWithSmartscanError([trackAction], chatReport, allTransactions, currentUserAccountID)).toBeUndefined();
-        });
-
-        it('should flag a track-expense action when its linked transaction has missing smartscan fields', () => {
-            // Positive control for the track branch: a non-DELETE track transaction with missing fields still lights the RBR.
-            const trackTransactionID = '585';
-            const trackAction: ReportAction = {
-                ...createRandomReportAction(Number(trackTransactionID)),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: currentUserAccountID,
-                originalMessage: {
-                    IOUTransactionID: trackTransactionID,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
-                    amount: 0,
-                    currency: CONST.CURRENCY.USD,
-                    comment: '',
-                    participantAccountIDs: [currentUserAccountID],
-                },
-            };
-            const trackTransaction: Transaction = {
-                ...createRandomTransaction(Number(trackTransactionID)),
-                transactionID: trackTransactionID,
-                amount: 0,
-                merchant: 'Lunch',
-                modifiedMerchant: '',
-                created: testDate,
-            };
-            const allTransactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${trackTransactionID}`]: trackTransaction,
-            };
-
-            expect(hasSmartscanError([trackAction], chatReport, allTransactions, currentUserAccountID)).toBe(true);
-            expect(getReportActionWithSmartscanError([trackAction], chatReport, allTransactions, currentUserAccountID)).toEqual(trackAction);
         });
 
         it('should NOT flag a split-bill action when its linked transaction has all required fields', () => {

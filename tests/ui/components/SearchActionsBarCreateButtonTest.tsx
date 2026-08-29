@@ -75,6 +75,7 @@ const MOCK_POLICY = {
     name: 'Test Workspace',
     type: CONST.POLICY.TYPE.TEAM,
     role: CONST.POLICY.ROLE.ADMIN,
+    isPolicyExpenseChatEnabled: true,
     pendingAction: null,
     avatarURL: '',
     areInvoicesEnabled: false,
@@ -176,7 +177,7 @@ describe('SearchActionsBarCreateButton', () => {
             shouldNavigateToUpgradePath: false,
         });
 
-        // Set up multiple eligible group workspaces
+        // Set up multiple policies with chat enabled
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, MOCK_POLICY);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy-456`, {

@@ -21,7 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailOptionsListUtils/types';
-import {getLoginByAccountID, getPersonalDetailForAccountID, getPersonalDetailsForAccountIDs, getPersonalDetailsListByIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getLoginByAccountID, getPersonalDetailsListByIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {
     canSendInvoiceFromWorkspace,
@@ -131,7 +131,6 @@ import {
     getIcons,
     getMovedActionMessage,
     getMovedTransactionMessage,
-    parseMovedTransactionReportIDs,
     getParticipantsAccountIDsForDisplay,
     getPolicyChangeLogCopyMessage,
     getPolicyChangeMessage,
@@ -203,6 +202,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {SetNonNullable} from 'type-fest';
 
 import {Str} from 'expensify-common';
 import deburr from 'lodash/deburr';
@@ -308,6 +308,44 @@ Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyID = value),
 });
+
+/** Single-account lookup without the allocations required by the plural helper. */
+function getPersonalDetailForAccountID(accountID: number, personalDetails: OnyxInputOrEntry<PersonalDetailsList>): PersonalDetails | undefined {
+    const cleanAccountID = Number(accountID);
+    if (!personalDetails || !cleanAccountID) {
+        return undefined;
+    }
+
+    const personalDetail: PersonalDetails = personalDetails[accountID] ?? ({} as PersonalDetails);
+
+    if (cleanAccountID === CONST.ACCOUNT_ID.CONCIERGE) {
+        personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
+    }
+
+    personalDetail.accountID = cleanAccountID;
+    return personalDetail;
+}
+
+/**
+ * Returns the personal details for an array of accountIDs
+ * @returns keys of the object are emails, values are PersonalDetails objects.
+ */
+function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, personalDetails: OnyxInputOrEntry<PersonalDetailsList>): SetNonNullable<PersonalDetailsList> {
+    const personalDetailsForAccountIDs: SetNonNullable<PersonalDetailsList> = {};
+    if (!personalDetails) {
+        return personalDetailsForAccountIDs;
+    }
+    if (accountIDs) {
+        for (const accountID of accountIDs) {
+            const personalDetail = getPersonalDetailForAccountID(accountID, personalDetails);
+            if (!personalDetail) {
+                continue;
+            }
+            personalDetailsForAccountIDs[personalDetail.accountID] = personalDetail;
+        }
+    }
+    return personalDetailsForAccountIDs;
+}
 
 /**
  * Return true if personal details data is ready, i.e. report list options can be created.
@@ -508,15 +546,18 @@ function getAlternateText(
  * Searches for a match when provided with a value
  */
 function isSearchStringMatch(searchValue: string, searchText?: string | null, participantNames = new Set<string>(), isReportChatRoom = false): boolean {
-    const searchWords = Array.from(new Set(searchValue.replaceAll(',', ' ').split(/\s+/).filter(Boolean)));
+    const searchWords = new Set(searchValue.replaceAll(',', ' ').split(/\s+/));
     const valueToSearch = searchText?.replaceAll(new RegExp(/&nbsp;/g), '');
+    let matching = true;
     for (const word of searchWords) {
-        const regex = new RegExp(Str.escapeForRegExp(word), 'i');
-        if (!(regex.test(valueToSearch ?? '') || (!isReportChatRoom && participantNames.has(word)))) {
-            return false;
+        // if one of the word is not matching, we don't need to check further
+        if (!matching) {
+            continue;
         }
+        const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
+        matching = matchRegex.test(valueToSearch ?? '') || (!isReportChatRoom && participantNames.has(word));
     }
-    return true;
+    return matching;
 }
 
 function getLatestVisibleMoneyRequestAction(
@@ -744,15 +785,7 @@ function getLastMessageTextForReport({
         const properSchemaForModifiedExpenseMessage = Parser.htmlToText(properSchemaForModifiedExpenseMessageWithHTML);
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
-        const {fromReportID, toReportID, displayReportID} = parseMovedTransactionReportIDs(lastReportAction);
-        lastMessageTextFromReport = Parser.htmlToText(
-            getMovedTransactionMessage({
-                translate,
-                fromReportID,
-                toReportID,
-                derivedReportName: displayReportID ? reportAttributesDerived?.[displayReportID]?.reportName : undefined,
-            }),
-        );
+        lastMessageTextFromReport = Parser.htmlToText(getMovedTransactionMessage(translate, lastReportAction, reportAttributesDerived));
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(translate, lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
@@ -865,14 +898,7 @@ function getLastMessageTextForReport({
     } else if (isMovedAction(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getMovedActionMessage(translate, lastReportAction, report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        const {fromReportID} = parseMovedTransactionReportIDs(lastReportAction);
-        lastMessageTextFromReport = Parser.htmlToText(
-            getUnreportedTransactionMessage({
-                translate,
-                fromReportID,
-                derivedReportName: fromReportID ? reportAttributesDerived?.[fromReportID]?.reportName : undefined,
-            }),
-        );
+        lastMessageTextFromReport = Parser.htmlToText(getUnreportedTransactionMessage(translate, lastReportAction, reportAttributesDerived));
     } else if (isActionableMentionWhisper(lastReportAction)) {
         const targetAccountIDs = getOriginalMessage(lastReportAction)?.inviteeAccountIDs;
         lastMessageTextFromReport = Parser.htmlToText(getActionableMentionWhisperMessage(translate, lastReportAction, getPersonalDetailsListByIDs(targetAccountIDs, personalDetails)));
@@ -3675,6 +3701,7 @@ export {
     getLastMessageTextForReport,
     getNoneOption,
     getParticipantsOption,
+    getPersonalDetailsForAccountIDs,
     getPolicyExpenseReportOption,
     getReportDisplayOption,
     getReportOption,

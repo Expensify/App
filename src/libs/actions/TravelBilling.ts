@@ -183,7 +183,7 @@ function toggleTravelBillingContinuousReconciliation(
         ? {
               policyAccountID: workspaceAccountID,
               shouldUseContinuousReconciliation,
-              travelBillingContinuousReconciliationConnection: connectionName,
+              travelInvoicingContinuousReconciliationConnection: connectionName,
           }
         : {
               policyAccountID: workspaceAccountID,
@@ -259,7 +259,7 @@ function setTravelBillingReconciliationBankAccount(
 ) {
     const parameters: SetTravelBillingReconciliationBankAccountParams = {
         domainName,
-        travelBillingReconciliationBankAccountID,
+        travelInvoicingReconciliationBankAccountID: travelBillingReconciliationBankAccountID,
     };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRAVEL_BILLING_RECONCILIATION_BANK_ACCOUNT_ID>> = [

@@ -8,7 +8,6 @@ import type {
     SetPolicyCommuterExclusionsParams,
     SetPolicyDistanceRatesEnabledParams,
     SetPolicyDistanceRatesUnitParams,
-    SetPolicyRequireMapOrGPSParams,
     SetWorkspaceDistanceAutoUpdateParams,
     UpdatePolicyDistanceRateParams,
     UpdatePolicyDistanceRateValueParams,
@@ -28,7 +27,6 @@ import type {CommuterExclusions, CustomUnit, Rate} from '@src/types/onyx/Policy'
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -531,25 +529,27 @@ function updateDistanceTaxRate(policyID: string, customUnit: CustomUnit, customU
 }
 
 /**
- * Set the commuter exclusion for a policy. Two methods are supported:
- *   - "fixedDistance" - subtracts a fixed distance per claim. `fixedDistance` (> 0) and `fixedDistanceUnit`
- *                       (mirrors the policy's distance custom unit) are required.
- *   - "homeAndOffice" - subtracts each member's home-to-office distance, computed per-claim from the
- *                       member's saved addresses. No client-side distance/unit needed.
+ * Set the commuter exclusion for a workspace. Currently only `fixedDistance` is supported; the
+ * distance unit is owned by the workspace's distance custom unit (Auth resolves it server-side and
+ * snapshots it into the change log), so we only echo it into Onyx optimistically.
  *
- * Callers should pass the policy's current `commuterExclusions` so the failure path can restore
+ * Callers should pass the workspace's current `commuterExclusions` so the failure path can restore
  * the prior state.
  */
 function setPolicyCommuterExclusions(
     policyID: string,
-    method: ValueOf<typeof CONST.POLICY.COMMUTER_EXCLUSION_METHOD>,
-    fixedDistance: number | undefined,
-    fixedDistanceUnit: string | undefined,
+    method: 'fixedDistance',
+    fixedDistance: number,
+    fixedDistanceUnit: string,
     previousCommuterExclusions: CommuterExclusions | undefined,
 ) {
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
-    const optimisticCommuterExclusions: CommuterExclusions = method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE ? {method, fixedDistance, fixedDistanceUnit} : {method};
+    const optimisticCommuterExclusions: CommuterExclusions = {
+        method,
+        fixedDistance,
+        fixedDistanceUnit,
+    };
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
@@ -585,9 +585,7 @@ function setPolicyCommuterExclusions(
         ],
     };
 
-    // Only send distance when the server actually needs it. HomeAndOffice ignores the field.
-    const parameters: SetPolicyCommuterExclusionsParams =
-        method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE ? {policyID, commuterExclusionMethod: method, distance: fixedDistance} : {policyID, commuterExclusionMethod: method};
+    const parameters: SetPolicyCommuterExclusionsParams = {policyID, commuterExclusionMethod: method, distance: fixedDistance};
     API.write(WRITE_COMMANDS.SET_POLICY_COMMUTER_EXCLUSIONS, parameters, onyxData);
 }
 
@@ -634,58 +632,6 @@ function disablePolicyCommuterExclusions(policyID: string, previousCommuterExclu
 
     const parameters: DisablePolicyCommuterExclusionsParams = {policyID};
     API.write(WRITE_COMMANDS.DISABLE_POLICY_COMMUTER_EXCLUSIONS, parameters, onyxData);
-}
-
-/**
- * Turn the "Require GPS or map entry" setting on or off for a policy. When it's on, the manual and odometer
- * distance flows are unavailable because neither can produce a mapped route.
- */
-function setPolicyRequireMapOrGPS(policyID: string, requireMapOrGPS: boolean, previousRequireMapOrGPS: boolean | undefined) {
-    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
-
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: policyKey,
-                value: {
-                    requireMapOrGPS,
-                    pendingFields: {requireMapOrGPS: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                    errorFields: {requireMapOrGPS: null},
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: policyKey,
-                value: {
-                    pendingFields: {requireMapOrGPS: null},
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: policyKey,
-                value: {
-                    requireMapOrGPS: previousRequireMapOrGPS ?? false,
-                    pendingFields: {requireMapOrGPS: null},
-                    errorFields: {requireMapOrGPS: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
-                },
-            },
-        ],
-    };
-
-    const parameters: SetPolicyRequireMapOrGPSParams = {policyID, enabled: requireMapOrGPS};
-    API.write(WRITE_COMMANDS.SET_POLICY_REQUIRE_MAP_OR_GPS, parameters, onyxData);
-}
-
-function clearPolicyRequireMapOrGPSErrors(policyID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        errorFields: {requireMapOrGPS: null},
-        pendingFields: {requireMapOrGPS: null},
-    });
 }
 
 /**
@@ -861,8 +807,6 @@ export {
     setPolicyCommuterExclusions,
     disablePolicyCommuterExclusions,
     clearPolicyCommuterExclusionsErrors,
-    setPolicyRequireMapOrGPS,
-    clearPolicyRequireMapOrGPSErrors,
     setWorkspaceDistanceAutoUpdate,
     clearWorkspaceDistanceAutoUpdateErrors,
 };

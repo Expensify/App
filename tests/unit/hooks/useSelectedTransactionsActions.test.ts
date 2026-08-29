@@ -892,6 +892,7 @@ describe('useSelectedTransactionsActions', () => {
         };
         const policy = {
             ...createRandomPolicy(1),
+            isPolicyExpenseChatEnabled: true,
             role: CONST.POLICY.ROLE.ADMIN,
             employeeList: {
                 [CURRENT_USER_LOGIN]: {role: CONST.POLICY.ROLE.ADMIN},

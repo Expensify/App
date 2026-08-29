@@ -46,6 +46,7 @@ const createMockPolicy = (policyID: string, overrides: Partial<Policy> = {}): Po
     type: CONST.POLICY.TYPE.TEAM,
     owner: CURRENT_USER_EMAIL,
     outputCurrency: 'USD',
+    isPolicyExpenseChatEnabled: true,
     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
     ...overrides,
 });

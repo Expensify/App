@@ -14,7 +14,6 @@ import {setAddNewPersonalCardStepAndData} from '@libs/actions/PersonalCards';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
-import getPlaidInstitutionID from '@libs/PlaidUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -155,9 +154,8 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
         // on success we need to move to bank connection screen with token, bank name = plaid
         Log.info('[PlaidLink] Success!');
 
-        const institution = metadata.institution;
-        const plaidConnectedFeed = getPlaidInstitutionID(institution);
-        const plaidConnectedFeedName = institution?.name;
+        const plaidConnectedFeed = (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.id;
+        const plaidConnectedFeedName = (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.name ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.name;
 
         setAddNewPersonalCardStepAndData({
             step: CONST.PERSONAL_CARDS.STEP.BANK_CONNECTION,
@@ -165,7 +163,7 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
                 publicToken,
                 plaidConnectedFeed,
                 plaidConnectedFeedName,
-                plaidAccounts: metadata.accounts,
+                plaidAccounts: metadata?.accounts,
             },
         });
     };

@@ -4695,30 +4695,6 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/dualentry/export/default-company-card-vendor',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/default-company-card-vendor` as const,
     },
-    POLICY_ACCOUNTING_DUALENTRY_ADVANCED: {
-        route: 'workspaces/:policyID/accounting/dualentry/advanced',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced` as const,
-    },
-    POLICY_ACCOUNTING_DUALENTRY_EXPORT_METHOD: {
-        route: 'workspaces/:policyID/accounting/dualentry/advanced/export-method',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/export-method` as const,
-    },
-    POLICY_ACCOUNTING_DUALENTRY_BILL_PAYMENT_ACCOUNT: {
-        route: 'workspaces/:policyID/accounting/dualentry/advanced/bill-payment-account',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/bill-payment-account` as const,
-    },
-    POLICY_ACCOUNTING_DUALENTRY_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT: {
-        route: 'workspaces/:policyID/accounting/dualentry/advanced/expensify-card-settlement-account',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/expensify-card-settlement-account` as const,
-    },
-    POLICY_ACCOUNTING_DUALENTRY_TRAVEL_BILLING_SETTLEMENT_ACCOUNT: {
-        route: 'workspaces/:policyID/accounting/dualentry/advanced/travel-invoicing-settlement-account',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/travel-invoicing-settlement-account` as const,
-    },
-    POLICY_ACCOUNTING_DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT: {
-        route: 'workspaces/:policyID/accounting/dualentry/advanced/travel-invoicing-payable-account',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/travel-invoicing-payable-account` as const,
-    },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',
         getRoute: (reportID: string | undefined, backToReport?: string) => `search/r/${reportID}/add-existing-expense/${backToReport ?? ''}` as const,

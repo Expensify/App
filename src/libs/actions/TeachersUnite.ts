@@ -119,6 +119,7 @@ function addSchoolPrincipal(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 id: policyID,
+                isPolicyExpenseChatEnabled: true,
                 type: CONST.POLICY.TYPE.CORPORATE,
                 name: policyName,
                 role: CONST.POLICY.ROLE.USER,

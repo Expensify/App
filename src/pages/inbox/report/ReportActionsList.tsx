@@ -77,9 +77,6 @@ type ReportActionsListContentProps = {
     /** The ID of the report to display actions for */
     reportID: string;
 
-    /** The Concierge chat report */
-    conciergeChat: OnyxEntry<OnyxTypes.Report>;
-
     /** Callback executed on list layout */
     onLayout?: (event: LayoutChangeEvent) => void;
 };
@@ -105,7 +102,7 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
  * UI-close hooks (`useUnreadMarker` / `useMarkAsRead` / `useReportActionsScroll`). `ReportActionsSkeletonGuard`
  * mounts it only once content is ready, so those hooks never run while a skeleton shows.
  */
-function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportActionsListContentProps) {
+function ReportActionsListContent({reportID, onLayout}: ReportActionsListContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
@@ -278,7 +275,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         onLoad,
     } = useReportActionsScroll({
         reportID,
-        conciergeChat,
         report,
         transactionThreadReport,
         parentReportAction,
@@ -508,12 +504,11 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
  * Public report-actions list. Thin composition that wraps the content in `ReportActionsSkeletonGuard`,
  * which owns the data pipeline + skeleton decision and only mounts the content once it is ready.
  */
-function ReportActionsList({reportID, conciergeChat, onLayout}: ReportActionsListProps) {
+function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     return (
         <ReportActionsSkeletonGuard reportID={reportID}>
             <ReportActionsListContent
                 reportID={reportID}
-                conciergeChat={conciergeChat}
                 onLayout={onLayout}
             />
         </ReportActionsSkeletonGuard>

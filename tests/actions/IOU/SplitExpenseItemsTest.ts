@@ -23,6 +23,7 @@ describe('initSplitExpenseItemData stale tax handling', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: 'owner@test.com',
             outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
             role: CONST.POLICY.ROLE.ADMIN,
             tax: {trackingEnabled: true},
             taxRates: {
@@ -44,6 +45,7 @@ describe('initSplitExpenseItemData stale tax handling', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: 'owner@test.com',
             outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
             role: CONST.POLICY.ROLE.ADMIN,
             tax: {trackingEnabled: true},
             taxRates: {
@@ -66,6 +68,7 @@ describe('initSplitExpenseItemData stale tax handling', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: 'owner@test.com',
             outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
             role: CONST.POLICY.ROLE.ADMIN,
             tax: {trackingEnabled: true},
             taxRates: {
@@ -88,6 +91,7 @@ describe('initSplitExpenseItemData stale tax handling', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: 'owner@test.com',
             outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
             role: CONST.POLICY.ROLE.ADMIN,
             tax: {trackingEnabled: true},
             taxRates: {
@@ -109,6 +113,7 @@ describe('initSplitExpenseItemData stale tax handling', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: 'owner@test.com',
             outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
             role: CONST.POLICY.ROLE.ADMIN,
             tax: {trackingEnabled: true},
             taxRates: {

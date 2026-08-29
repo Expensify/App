@@ -81,6 +81,7 @@ describe('TransactionInlineEdit', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: '',
             outputCurrency: 'USD',
+            isPolicyExpenseChatEnabled: false,
             areCategoriesEnabled: true,
         };
 

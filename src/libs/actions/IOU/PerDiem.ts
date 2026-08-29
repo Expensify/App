@@ -11,6 +11,8 @@ import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {validateAmount} from '@libs/MoneyRequestUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
@@ -41,6 +43,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report';
+import {removeDraftTransaction} from '@userActions/TransactionEdit';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -199,20 +202,6 @@ function isValidPerDiemExpenseAmount(customUnit: TransactionCustomUnit, decimals
     return validateAmount(perDiemAmountString, decimals, undefined, true);
 }
 
-type CompletePerDiemCustomUnit = TransactionCustomUnit & Required<Pick<TransactionCustomUnit, 'customUnitID' | 'customUnitRateID' | 'attributes'>>;
-
-/** Shared so the UI can gate cleanup/nav on the same check the actions bail on. The type-predicate form narrows `customUnit` for the builders. */
-function hasCompletePerDiemCustomUnit(customUnit: TransactionCustomUnit | undefined): customUnit is CompletePerDiemCustomUnit {
-    return (
-        !!customUnit &&
-        !isEmptyObject(customUnit) &&
-        !!customUnit.customUnitID &&
-        !!customUnit.customUnitRateID &&
-        (customUnit.subRates ?? []).length > 0 &&
-        !isEmptyObject(customUnit.attributes)
-    );
-}
-
 function computeDefaultPerDiemExpenseComment(customUnit: TransactionCustomUnit, currency: string) {
     const subRates = customUnit.subRates ?? [];
     const subRateComments = subRates.map((subRate) => {
@@ -258,7 +247,6 @@ type PerDiemExpenseInformation = {
     shouldDeferAutoSubmit?: boolean;
     optimisticChatReportID?: string;
     optimisticTransactionID?: string;
-    notifyReportID?: string;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
@@ -1018,7 +1006,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         shouldDeferAutoSubmit,
         optimisticChatReportID,
         optimisticTransactionID,
-        notifyReportID,
         formatPhoneNumber,
         delegateAccountID,
         isTrackIntentUser,
@@ -1027,7 +1014,14 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
     } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
 
-    if (isEmptyObject(policyParams.policy) || !hasCompletePerDiemCustomUnit(customUnit)) {
+    if (
+        isEmptyObject(policyParams.policy) ||
+        isEmptyObject(customUnit) ||
+        !customUnit.customUnitID ||
+        !customUnit.customUnitRateID ||
+        (customUnit.subRates ?? []).length === 0 ||
+        isEmptyObject(customUnit.attributes)
+    ) {
         return;
     }
 
@@ -1075,6 +1069,8 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         isTrackIntentUser,
         getCurrencyDecimals,
     });
+
+    const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;
 
     const customUnitRate = getPerDiemRateCustomUnitRate(policyParams.policy, customUnit.customUnitRateID);
 
@@ -1126,9 +1122,13 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });
 
+    TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
+
     highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
 
-    notifyNewAction(notifyReportID ?? chatReport.reportID, undefined, participantParams.payeeAccountID === currentUserAccountIDParam);
+    if (activeReportID) {
+        notifyNewAction(activeReportID, undefined, participantParams.payeeAccountID === currentUserAccountIDParam);
+    }
 
     return {iouReport, transactionID: transaction.transactionID};
 }
@@ -1152,7 +1152,14 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
     } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, billable, reimbursable} = transactionParams;
 
-    if (isEmptyObject(policy) || !hasCompletePerDiemCustomUnit(customUnit)) {
+    if (
+        isEmptyObject(policy) ||
+        isEmptyObject(customUnit) ||
+        !customUnit.customUnitID ||
+        !customUnit.customUnitRateID ||
+        (customUnit.subRates ?? []).length === 0 ||
+        isEmptyObject(customUnit.attributes)
+    ) {
         return;
     }
 
@@ -1213,6 +1220,8 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });
 
+    TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
+
     notifyNewAction(chatReport.reportID, undefined, true);
 }
 
@@ -1223,7 +1232,6 @@ export {
     addSubrate,
     computePerDiemExpenseAmount,
     isValidPerDiemExpenseAmount,
-    hasCompletePerDiemCustomUnit,
     getPerDiemExpensePolicyID,
     getPerDiemExpenseInformation,
     submitPerDiemExpense,

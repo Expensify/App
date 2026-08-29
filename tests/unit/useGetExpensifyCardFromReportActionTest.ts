@@ -68,6 +68,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
         isAttendeeTrackingEnabled: false,
         owner: '1',
         outputCurrency: 'USD',
+        isPolicyExpenseChatEnabled: false,
         policyAccountID: 123,
     };
 
@@ -143,6 +144,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
                     isAttendeeTrackingEnabled: false,
                     owner: '1',
                     outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: false,
                     policyAccountID: 123,
                 });
             });
@@ -211,6 +213,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
                 isAttendeeTrackingEnabled: false,
                 owner: '1',
                 outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: false,
                 policyAccountID: 123,
             });
 
@@ -243,6 +246,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
                 isAttendeeTrackingEnabled: false,
                 owner: '1',
                 outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: false,
                 policyAccountID: 123,
             };
             mockUsePolicy.mockReturnValue(testPolicy);

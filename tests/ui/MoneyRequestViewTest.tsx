@@ -113,6 +113,7 @@ const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.get
                     name: 'Test Policy',
                     owner: currentUserEmail,
                     outputCurrency: CONST.CURRENCY.USD,
+                    isPolicyExpenseChatEnabled: true,
                     ...policy,
                 })}
                 shouldShowAnimatedBackground={false}
@@ -172,6 +173,7 @@ describe('MoneyRequestView edit fields', () => {
                 name: 'Test Policy',
                 owner: currentUserEmail,
                 outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {
                 reportID: expenseReportID,
