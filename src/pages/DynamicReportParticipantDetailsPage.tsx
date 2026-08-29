@@ -1,8 +1,8 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/ButtonComposed';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -89,11 +89,10 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
             />
             <ScrollView contentContainerStyle={[!isInLandscapeMode && [styles.containerWithSpaceBetween, styles.justifyContentStart], styles.pointerEventsBoxNone]}>
                 <View style={[styles.avatarSectionWrapper, styles.pb0]}>
-                    <Avatar
+                    <UserAvatar
                         containerStyles={[styles.mv5, styles.noOutline]}
                         source={details.avatar}
-                        avatarID={accountID}
-                        type={CONST.ICON_TYPE_AVATAR}
+                        accountID={accountID}
                         size={CONST.AVATAR_SIZE.XXXX_LARGE}
                         fallbackIcon={fallbackIcon}
                     />
@@ -143,11 +142,10 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
                             />
                         </OfflineWithFeedback>
                     )}
-                    <MenuItem
+                    <MenuItemNavigation
                         title={translate('common.profile')}
                         icon={icons.Info}
                         onPress={navigateToProfile}
-                        shouldShowRightIcon
                     />
                 </View>
             </ScrollView>

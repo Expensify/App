@@ -4,7 +4,7 @@ import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -20,6 +20,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useUserSecurityGroup from '@hooks/useUserSecurityGroup';
 
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {
@@ -62,13 +63,12 @@ type DynamicContactMethodDetailsPageProps = PlatformStackScreenProps<SettingsNav
 function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPageProps) {
     const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION);
-    const [myDomainSecurityGroups, myDomainSecurityGroupsResult] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
-    const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP);
+    const {securityGroup, isLoadingSecurityGroup} = useUserSecurityGroup();
     const [isLoadingReportData = true, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [isValidateCodeFormVisible, setIsValidateCodeFormVisible] = useState(true);
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
+    const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, isLoadingReportDataResult) || isLoadingSecurityGroup;
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
@@ -106,28 +106,8 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM.getRoute(contactMethod, backTo));
     }, [contactMethod, backTo]);
 
-    /**
-     * Determines whether the user's primary login switching is restricted
-     * by their domain security group.
-     *
-     * If:
-     * - The user does not belong to a private domain security group → NOT restricted.
-     * - The security group exists and has `enableRestrictedPrimaryLogin` enabled → restricted.
-     */
-    const isRestrictedDefaultContactMethodSwitch = useMemo(() => {
-        const domainName = Str.extractEmailDomain(session?.email ?? '');
-        const primaryDomainSecurityGroupID = myDomainSecurityGroups?.[domainName];
-
-        // If there's no security group associated with the user for the primary domain,
-        // default to NOT restricting the user from switching their default contact method.
-        if (!primaryDomainSecurityGroupID) {
-            return false;
-        }
-
-        /// Restrict the user from switching their default contact method if their security group
-        // restricts primary login switching.
-        return !!securityGroups?.[`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`]?.enableRestrictedPrimaryLogin;
-    }, [session?.email, myDomainSecurityGroups, securityGroups]);
+    // Restrict switching the default contact method if the user's domain security group restricts primary login switching.
+    const isRestrictedDefaultContactMethodSwitch = !!securityGroup?.enableRestrictedPrimaryLogin;
 
     /**
      * Checks if the user is allowed to change their default contact method.
@@ -274,7 +254,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
                     errorRowStyles={[themeStyles.ml8, themeStyles.mr5]}
                     onClose={() => clearContactMethodErrors(contactMethod, 'defaultLogin')}
                 >
-                    <MenuItem
+                    <MenuItemAction
                         title={translate('contacts.setAsDefault')}
                         icon={icons.Star}
                         onPress={isAccountLocked ? showLockedAccountModal : navigateToSetDefaultConfirm}
@@ -299,7 +279,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
                     errorRowStyles={[themeStyles.mt6, themeStyles.ph5]}
                     onClose={() => clearContactMethodErrors(contactMethod, 'deletedLogin')}
                 >
-                    <MenuItem
+                    <MenuItemAction
                         title={translate('common.remove')}
                         icon={icons.Trashcan}
                         onPress={() => {

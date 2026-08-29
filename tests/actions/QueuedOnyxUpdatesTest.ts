@@ -68,12 +68,12 @@ jest.mock('@src/CONFIG', () => ({
 // the (mocked, partial) CONFIG at load time. Mock Log so that chain never loads.
 jest.mock('@libs/Log');
 
-function getOnyxUpdateValue<T>(key: string): T | undefined {
-    return queuedOnyxUpdates.find((item) => item.key === key)?.value as T | undefined;
+function getOnyxUpdateValue(key: string) {
+    return queuedOnyxUpdates.find((item) => item.key === key)?.value;
 }
 
-async function testOnyxKeyValue<T>(key: OnyxKey): Promise<void> {
-    const expectedValue = getOnyxUpdateValue<T>(key);
+async function testOnyxKeyValue(key: OnyxKey): Promise<void> {
+    const expectedValue = getOnyxUpdateValue(key);
     return new Promise<void>((resolve) => {
         const connection = Onyx.connect({
             key,

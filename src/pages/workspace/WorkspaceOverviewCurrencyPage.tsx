@@ -5,6 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -43,13 +44,14 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
     const isForcedToChangeCurrency = !!route.params?.isForcedToChangeCurrency;
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const shouldBlockCurrencyChange = useShouldBlockCurrencyChange(policy?.id);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     const onSelectCurrency = (item: CurrencyListItem) => {
         if (!policy) {
             return;
         }
         clearDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
-        updateGeneralSettings(policy, policy?.name ?? '', item.currencyCode);
+        updateGeneralSettings(policy, policy?.name ?? '', item.currencyCode, getReviewWorkspaceSettingsTaskCompletion());
         clearCorpayBankAccountFields();
 
         if (isForcedToChangeCurrency) {
@@ -59,7 +61,11 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
                     Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policy.id, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id)));
                     return;
                 }
-                navigateToBankAccountRoute({policyID: policy.id, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id), navigationOptions: {forceReplace: true}});
+                navigateToBankAccountRoute({
+                    policyID: policy.id,
+                    backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id),
+                    navigationOptions: {forceReplace: true},
+                });
                 return;
             }
         }

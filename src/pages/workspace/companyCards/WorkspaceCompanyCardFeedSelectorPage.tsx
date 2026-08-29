@@ -1,6 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -155,7 +155,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         if (!feed.fundID) {
             return;
         }
-        const feedValue = getCardFeedWithDomainID(feed.feed, feed.fundID) as CompanyCardFeedWithDomainID;
+        const feedValue = getCardFeedWithDomainID(feed.feed, feed.fundID);
         linkCardFeedToPolicy(feed.fundID, policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.COMPANY_CARD, feed?.country, feed.feed)
             .then(() => {
                 updateSelectedFeed(feedValue, policyID);
@@ -175,7 +175,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
 
     const otherMenuItemFeeds = canWriteCompanyCards ? (
         <View style={[styles.w100, styles.flexColumn]}>
-            <MenuItem
+            <MenuItemAction
                 title={translate('workspace.companyCards.addCards')}
                 icon={icons.Plus}
                 onPress={onAddCardsPress}

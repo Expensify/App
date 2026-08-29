@@ -1,7 +1,7 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -144,25 +144,26 @@ function EditAgentPage({route}: EditAgentPageProps) {
                         description={translate('editAgentPage.instructions')}
                         title={Str.htmlDecode(agent?.prompt?.trim() ?? '')}
                         shouldParseTitle
+                        excludedMarkdownRules={['reportMentions']}
                         shouldTruncateTitle
                         characterLimit={CONST.AGENT_PROMPT_LIMIT}
                         shouldShowRightIcon
                         onPress={handleEditPromptPress}
                     />
                 </OfflineWithFeedback>
-                <MenuItem
+                <MenuItemAction
                     title={translate('editAgentPage.chatWithAgent')}
                     icon={icons.ChatBubble}
                     onPress={handleChatPress}
-                    disabled={areActionsDisabled}
+                    isDisabled={areActionsDisabled}
                 />
-                <MenuItem
+                <MenuItemAction
                     title={translate('editAgentPage.copilotIntoAccount')}
                     icon={icons.Users}
                     onPress={handleCopilotPress}
-                    disabled={areActionsDisabled}
+                    isDisabled={areActionsDisabled}
                 />
-                <MenuItem
+                <MenuItemAction
                     title={translate('editAgentPage.deleteAgent')}
                     icon={icons.Trashcan}
                     onPress={handleDeletePress}

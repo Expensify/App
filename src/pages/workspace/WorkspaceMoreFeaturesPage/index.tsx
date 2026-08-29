@@ -41,7 +41,7 @@ import {
     isTimeTrackingEnabled,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
-import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -140,20 +140,27 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
 
-    const [travelCardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+    const [travelCardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
 
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
     const isSmartLimitEnabled = isSmartLimitEnabledUtil(workspaceCards);
     const settings = getCardSettings(cardSettings);
     const paymentBankAccountID = settings?.paymentBankAccountID;
-    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(getCardSettings(travelCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US));
+    const isTravelBillingEnabled = getIsTravelBillingEnabled(getCardSettings(travelCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US));
     const {canWrite: canWriteMoreFeatures, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
-    // The Vendors toggle's active state reads policy.connections (via hasVendorFeature), which is
-    // empty on a non-active workspace until a connections-aware read runs. OpenPolicyMoreFeaturesPage
-    // doesn't hydrate the detailed connection config, so prefetch it here (gated on the beta) to keep
-    // the toggle from showing off/non-navigable when the workspace actually supports vendors.
-    usePolicyConnectionsPrefetch(policy, isVendorMatchingEnabled);
+    // The Vendors toggle reads policy.connections (via hasVendorFeature), which is empty on a
+    // non-active workspace until a connections-aware read runs. OpenPolicyMoreFeaturesPage doesn't
+    // hydrate the detailed connection config, so prefetch it here to keep the toggle from showing
+    // off and non-navigable when the workspace actually supports vendors. It can't be narrowed to
+    // vendor-capable workspaces because that answer lives in the very data being fetched. The hook
+    // already skips the fetch when the app is offline, when the workspace has no accounting
+    // connection, and when the data has already been fetched.
+    usePolicyConnectionsPrefetch(policy, true);
+
+    // Beta members see the row on any workspace so they can tell the feature exists. Everyone else
+    // only sees it once a connection actually scopes the vendor field, which post-GA means QBO.
+    const shouldShowVendorsFeature = isVendorMatchingEnabled || hasVendorFeature(policy, isVendorMatchingEnabled);
 
     const warnAccountingManagesOrganizeFeature = async () => {
         if (!hasAccountingConnection || !policyID) {
@@ -293,7 +300,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
-                    icon={illustrations.Gears}
                     shouldUseHeadlineHeader
                     title={translate('workspace.common.moreFeatures')}
                     shouldShowBackButton={shouldUseNarrowLayout}
@@ -458,7 +464,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 Navigation.navigate(ROUTES.WORKSPACE_TAXES.getRoute(policyID));
                             }}
                         />
-                        {isVendorMatchingEnabled && (
+                        {shouldShowVendorsFeature && (
                             <MoreFeatureToggle
                                 icon={illustrations.Briefcase}
                                 title={translate('workspace.moreFeatures.vendors.title')}
@@ -565,7 +571,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             subtitle={translate('workspace.moreFeatures.travel.subtitle')}
                             isActive={policy?.isTravelEnabled ?? false}
                             pendingAction={policy?.pendingFields?.isTravelEnabled}
-                            disabled={!canWriteMoreFeatures || isTravelInvoicingEnabled}
+                            disabled={!canWriteMoreFeatures || isTravelBillingEnabled}
                             disabledAction={withReadOnlyFallback(promptDisableTravelViaInvoicing)}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {

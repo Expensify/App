@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import type AttachmentPickerProps from '@components/AttachmentPicker/types';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -18,7 +19,9 @@ import Onyx from 'react-native-onyx';
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
-const mockOpenPicker = jest.fn();
+type OpenPicker = Parameters<AttachmentPickerProps['children']>[0]['openPicker'];
+
+const mockOpenPicker = jest.fn<ReturnType<OpenPicker>, Parameters<OpenPicker>>();
 
 jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -31,7 +34,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('@components/AttachmentPicker', () => {
-    function MockAttachmentPicker({children}: {children: (props: {openPicker: (opts: {onPicked: (files: unknown[]) => void}) => void}) => React.ReactNode}) {
+    function MockAttachmentPicker({children}: AttachmentPickerProps) {
         return <>{children({openPicker: mockOpenPicker})}</>;
     }
     return MockAttachmentPicker;
@@ -51,10 +54,9 @@ jest.mock(
 );
 
 jest.mock('@components/ReportActionItem/ReportActionItemImage', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const {useEffect} = require('react');
+    const {useEffect} = jest.requireActual<typeof React>('react');
     function MockReportActionItemImage({onLoad}: {onLoad?: () => void}) {
-        (useEffect as typeof React.useEffect)(() => {
+        useEffect(() => {
             onLoad?.();
         }, [onLoad]);
         return null;
@@ -266,7 +268,7 @@ describe('MoneyRequestReceiptView', () => {
             fireEvent.press(uploadButton);
             expect(mockOpenPicker).toHaveBeenCalledTimes(1);
 
-            const firstCall = (mockOpenPicker.mock.calls as Array<[{onPicked: (files: FileObject[]) => void}]>).at(0);
+            const firstCall = mockOpenPicker.mock.calls.at(0);
             const onPicked = firstCall?.at(0)?.onPicked;
             expect(onPicked).toBeDefined();
         });

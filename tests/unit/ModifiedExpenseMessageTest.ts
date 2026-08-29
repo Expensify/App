@@ -127,7 +127,6 @@ describe('ModifiedExpenseMessage', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                     owner: CURRENT_USER_LOGIN,
                     outputCurrency: CONST.CURRENCY.USD,
-                    isPolicyExpenseChatEnabled: true,
                 };
                 const result = getMovedFromOrToReportMessage(translateLocal, undefined, selfDMReport, CURRENT_USER_LOGIN, policy);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedToPersonalSpace');
@@ -160,7 +159,6 @@ describe('ModifiedExpenseMessage', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                     owner: CURRENT_USER_LOGIN,
                     outputCurrency: CONST.CURRENCY.USD,
-                    isPolicyExpenseChatEnabled: true,
                 };
                 const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_LOGIN, policy);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', policyExpenseReport.reportName, policy.name);
@@ -188,7 +186,6 @@ describe('ModifiedExpenseMessage', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                     owner: CURRENT_USER_LOGIN,
                     outputCurrency: CONST.CURRENCY.USD,
-                    isPolicyExpenseChatEnabled: true,
                 };
                 const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_LOGIN, policy);
                 // When a valid policy provides a name, the movedFromPersonalSpace message is returned
@@ -237,7 +234,6 @@ describe('ModifiedExpenseMessage', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                     owner: CURRENT_USER_LOGIN,
                     outputCurrency: CONST.CURRENCY.USD,
-                    isPolicyExpenseChatEnabled: true,
                 };
                 const result = getMovedFromOrToReportMessage(translateLocal, movedFromReport, undefined, CURRENT_USER_LOGIN, policy);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', movedFromReport.reportName ?? '');
@@ -1117,7 +1113,6 @@ describe('ModifiedExpenseMessage', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                     owner: 'test@example.com',
                     outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
                 };
 
                 jest.spyOn(PolicyUtils, 'isPolicyAdmin').mockReturnValue(true);
@@ -1553,7 +1548,6 @@ describe('ModifiedExpenseMessage', () => {
                         type: CONST.POLICY.TYPE.TEAM,
                         owner: 'test@example.com',
                         outputCurrency: CONST.CURRENCY.USD,
-                        isPolicyExpenseChatEnabled: true,
                     },
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
@@ -1760,7 +1754,6 @@ describe('ModifiedExpenseMessage', () => {
                         type: CONST.POLICY.TYPE.TEAM,
                         owner: 'test@example.com',
                         outputCurrency: CONST.CURRENCY.USD,
-                        isPolicyExpenseChatEnabled: true,
                     },
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
@@ -1810,7 +1803,6 @@ describe('ModifiedExpenseMessage', () => {
                         type: CONST.POLICY.TYPE.TEAM,
                         owner: 'test@example.com',
                         outputCurrency: CONST.CURRENCY.USD,
-                        isPolicyExpenseChatEnabled: true,
                     },
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
@@ -1862,7 +1854,6 @@ describe('ModifiedExpenseMessage', () => {
                         type: CONST.POLICY.TYPE.TEAM,
                         owner: 'owner@example.com',
                         outputCurrency: CONST.CURRENCY.USD,
-                        isPolicyExpenseChatEnabled: true,
                     },
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
@@ -1879,7 +1870,6 @@ describe('ModifiedExpenseMessage', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                     owner: 'test@example.com',
                     outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
                 };
 
                 jest.spyOn(PolicyUtils, 'isPolicyAdmin').mockReturnValue(true);
@@ -1972,7 +1962,6 @@ describe('ModifiedExpenseMessage', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                     owner: CURRENT_USER_LOGIN,
                     outputCurrency: CONST.CURRENCY.USD,
-                    isPolicyExpenseChatEnabled: true,
                 };
 
                 const result = getForReportAction({
@@ -2006,7 +1995,6 @@ describe('ModifiedExpenseMessage', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                     owner: CURRENT_USER_LOGIN,
                     outputCurrency: CONST.CURRENCY.USD,
-                    isPolicyExpenseChatEnabled: true,
                 };
 
                 const result = getForReportAction({
@@ -2078,7 +2066,6 @@ describe('ModifiedExpenseMessage', () => {
                         type: CONST.POLICY.TYPE.TEAM,
                         owner: 'test@example.com',
                         outputCurrency: CONST.CURRENCY.USD,
-                        isPolicyExpenseChatEnabled: true,
                     },
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
@@ -2124,7 +2111,6 @@ describe('ModifiedExpenseMessage', () => {
                         type: CONST.POLICY.TYPE.TEAM,
                         owner: 'test@example.com',
                         outputCurrency: CONST.CURRENCY.USD,
-                        isPolicyExpenseChatEnabled: true,
                     },
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
@@ -2173,7 +2159,6 @@ describe('ModifiedExpenseMessage', () => {
                         type: CONST.POLICY.TYPE.TEAM,
                         owner: 'test@example.com',
                         outputCurrency: CONST.CURRENCY.USD,
-                        isPolicyExpenseChatEnabled: true,
                     },
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
@@ -2222,7 +2207,6 @@ describe('ModifiedExpenseMessage', () => {
                         type: CONST.POLICY.TYPE.TEAM,
                         owner: 'test@example.com',
                         outputCurrency: CONST.CURRENCY.USD,
-                        isPolicyExpenseChatEnabled: true,
                     },
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
@@ -2268,7 +2252,6 @@ describe('ModifiedExpenseMessage', () => {
                         type: CONST.POLICY.TYPE.TEAM,
                         owner: 'test@example.com',
                         outputCurrency: CONST.CURRENCY.USD,
-                        isPolicyExpenseChatEnabled: true,
                     },
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
@@ -2291,7 +2274,6 @@ describe('ModifiedExpenseMessage', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 owner: 'test@example.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 connections: {
                     quickbooksOnline: {
                         data: {
@@ -2313,7 +2295,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                     originalMessage: {
-                        vendor: {externalID: 'v-acme', isManuallySet: true},
+                        vendor: {externalID: 'v-acme', wasManuallySet: true},
                     },
                 };
 
@@ -2335,8 +2317,8 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                     originalMessage: {
-                        oldVendor: {externalID: 'v-acme', isManuallySet: false},
-                        vendor: {externalID: 'v-office', isManuallySet: true},
+                        oldVendor: {externalID: 'v-acme', wasManuallySet: false},
+                        vendor: {externalID: 'v-office', wasManuallySet: true},
                     },
                 };
 
@@ -2358,7 +2340,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                     originalMessage: {
-                        oldVendor: {externalID: 'v-acme', isManuallySet: true},
+                        oldVendor: {externalID: 'v-acme', wasManuallySet: true},
                     },
                 };
 
@@ -2380,7 +2362,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                     originalMessage: {
-                        vendor: {externalID: 'v-deleted', isManuallySet: false},
+                        vendor: {externalID: 'v-deleted', wasManuallySet: false},
                     },
                 };
 
@@ -2402,7 +2384,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                     originalMessage: {
-                        vendor: {externalID: 'v-deleted', name: 'Amazon', isManuallySet: false},
+                        vendor: {externalID: 'v-deleted', name: 'Amazon', wasManuallySet: false},
                     },
                 };
 
@@ -2430,7 +2412,6 @@ describe('ModifiedExpenseMessage', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                     owner: 'test@example.com',
                     outputCurrency: CONST.CURRENCY.USD,
-                    isPolicyExpenseChatEnabled: true,
                     connections: {
                         xero: {
                             config: {isConfigured: true},
@@ -2449,7 +2430,7 @@ describe('ModifiedExpenseMessage', () => {
                         ...createRandomReportAction(1),
                         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                         originalMessage: {
-                            vendor: {externalID: 'xcAcme', isManuallySet: true},
+                            vendor: {externalID: 'xcAcme', wasManuallySet: true},
                         },
                     };
                     const result = getForReportAction({
@@ -2468,8 +2449,8 @@ describe('ModifiedExpenseMessage', () => {
                         ...createRandomReportAction(1),
                         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                         originalMessage: {
-                            oldVendor: {externalID: 'xcAcme', isManuallySet: false},
-                            vendor: {externalID: 'xcOffice', isManuallySet: true},
+                            oldVendor: {externalID: 'xcAcme', wasManuallySet: false},
+                            vendor: {externalID: 'xcOffice', wasManuallySet: true},
                         },
                     };
                     const result = getForReportAction({
@@ -2488,7 +2469,7 @@ describe('ModifiedExpenseMessage', () => {
                         ...createRandomReportAction(1),
                         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                         originalMessage: {
-                            vendor: {externalID: 'xcDeleted', isManuallySet: false},
+                            vendor: {externalID: 'xcDeleted', wasManuallySet: false},
                         },
                     };
                     const result = getForReportAction({

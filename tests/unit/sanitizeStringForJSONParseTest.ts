@@ -1,8 +1,5 @@
 import sanitizeStringForJSONParse from '../../.github/libs/sanitizeStringForJSONParse';
-
-type ParsedJSON = {
-    key?: string;
-};
+import {parseJSONRecord} from '../utils/typeGuards';
 
 // Bad inputs should cause an error to be thrown
 const badInputs: Array<null | undefined | number | boolean> = [null, undefined, 42, true];
@@ -41,15 +38,17 @@ describe('sanitizeStringForJSONParse', () => {
     describe.each(invalidJSONData)('canHandleInvalidJSON', (input, expectedOutput) => {
         test('sanitizeStringForJSONParse', () => {
             const badJSON = `{"key": "${input}"}`;
-            expect(() => JSON.parse(badJSON) as unknown).toThrow();
-            const goodJSON = JSON.parse(`{"key": "${sanitizeStringForJSONParse(input)}"}`) as ParsedJSON;
+            expect(() => {
+                JSON.parse(badJSON);
+            }).toThrow();
+            const goodJSON = parseJSONRecord(`{"key": "${sanitizeStringForJSONParse(input)}"}`);
             expect(goodJSON.key).toStrictEqual(expectedOutput);
         });
     });
 
     describe.each(validJSONData)('canHandleValidJSON', (input, expectedOutput) => {
         test('sanitizeStringForJSONParse', () => {
-            const goodJSON = JSON.parse(`{"key": "${sanitizeStringForJSONParse(input)}"}`) as ParsedJSON;
+            const goodJSON = parseJSONRecord(`{"key": "${sanitizeStringForJSONParse(input)}"}`);
             expect(goodJSON.key).toStrictEqual(expectedOutput);
         });
     });
