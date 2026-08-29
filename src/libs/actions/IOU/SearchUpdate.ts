@@ -3,6 +3,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import {isExpenseReport, isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches, isEligibleForStatus} from '@libs/SearchUIUtils';
+import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,7 +12,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -156,7 +157,7 @@ function getSearchOnyxUpdate({
     }
 
     // Common transaction payload merged into every matching snapshot.
-    const baseSnapshotData: SearchResultDataType = {};
+    const baseSnapshotData: NullishDeep<SearchResultDataType> = {};
     baseSnapshotData[ONYXKEYS.PERSONAL_DETAILS_LIST] = {
         [toAccountID]: {
             accountID: toAccountID,
@@ -170,10 +171,15 @@ function getSearchOnyxUpdate({
             login: deprecatedCurrentUserPersonalDetails?.login,
         },
     };
+    const hasGenuineModifiedMerchant = !!transaction.modifiedMerchant && !isInvalidMerchantValue(transaction.modifiedMerchant);
     baseSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
         ...(transactionThreadReportID && {transactionThreadReportID}),
         ...(isFromOneTransactionReport && {isFromOneTransactionReport}),
         ...transaction,
+        // Onyx.merge can't clear a key by spreading `undefined`, so a stale snapshot `modifiedMerchant` (e.g. the
+        // `(none)`/`Expense` placeholder a self-DM split inherits) would win over `merchant` in `isMerchantMissing`
+        // and show a false "Missing Merchant". Clear it with `null` unless it's a genuine user edit (#99500).
+        modifiedMerchant: hasGenuineModifiedMerchant ? transaction.modifiedMerchant : null,
     };
     if (policy) {
         baseSnapshotData[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`] = policy;
@@ -199,7 +205,7 @@ function getSearchOnyxUpdate({
             return;
         }
 
-        const snapshotData: SearchResultDataType = {...baseSnapshotData};
+        const snapshotData: NullishDeep<SearchResultDataType> = {...baseSnapshotData};
 
         if (queryJSON.groupBy === CONST.SEARCH.GROUP_BY.FROM) {
             const groupKey = `${CONST.SEARCH.GROUP_PREFIX}${fromAccountID}` as const;

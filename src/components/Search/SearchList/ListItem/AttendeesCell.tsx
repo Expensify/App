@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
@@ -11,7 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getUserDetailTooltipText, sortIconsByName} from '@libs/ReportUtils';
-import {getDefaultAvatar} from '@libs/UserAvatarUtils';
+import {getAccountIDFromAvatarID, getDefaultAvatar} from '@libs/UserAvatarUtils';
 
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
@@ -38,6 +38,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
         return {
             id: accountID,
             name: attendee.displayName ?? attendee.email,
+            displayName: attendee.displayName ?? attendee.email ?? '',
             source: (attendee.avatarUrl || getDefaultAvatar({accountID, accountEmail: attendee.email, defaultAvatars})) ?? '',
             type: CONST.ICON_TYPE_AVATAR,
         };
@@ -48,8 +49,6 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
     const StyleUtils = useStyleUtils();
     const {localeCompare, formatPhoneNumber, translate} = useLocalize();
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-
     const size = CONST.AVATAR_SIZE.X_SMALL;
     const maxAvatarsPerRow = CONST.AVATAR_ROW_SIZE.DEFAULT;
     const oneAvatarSize = StyleUtils.getAvatarStyle(size);
@@ -58,8 +57,9 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
     const height = StyleUtils.getAvatarSizeWithBorder(size);
     const avatarContainerStyles = StyleUtils.combineStyles([styles.alignItemsCenter, styles.flexRow, StyleUtils.getHeight(height), styles.overflowHidden]);
 
-    const icons = sortIconsByName(attendeeIcons, personalDetails, localeCompare);
-    const tooltipTexts = icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, translate, icon.name));
+    // Attendee icons carry their own `displayName`, so sorting needs no personal-details subscription
+    const icons = sortIconsByName(attendeeIcons, undefined, localeCompare);
+    const tooltipTexts = icons.map((icon) => getUserDetailTooltipText(getAccountIDFromAvatarID(icon.id), formatPhoneNumber, translate, icon.name));
 
     return (
         <View
@@ -70,7 +70,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
                 <UserDetailsTooltip
                     // eslint-disable-next-line react/no-array-index-key
                     key={`stackedAvatars-${icon.id}-${index}`}
-                    accountID={Number(icon.id)}
+                    accountID={getAccountIDFromAvatarID(icon.id)}
                     icon={icon}
                     fallbackUserDetails={{
                         displayName: icon.name,
@@ -78,7 +78,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
                     shouldRender
                 >
                     <View style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize, -oneAvatarBorderWidth), StyleUtils.getAvatarBorderRadius(size, icon.type)]}>
-                        <Avatar
+                        <UserAvatar
                             iconAdditionalStyles={[
                                 StyleUtils.getHorizontalStackedAvatarBorderStyle({
                                     theme,
@@ -93,9 +93,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
                             ]}
                             source={icon.source}
                             size={size}
-                            name={icon.name}
-                            avatarID={icon.id}
-                            type={icon.type}
+                            accountID={getAccountIDFromAvatarID(icon.id)}
                             fallbackIcon={icon.fallbackIcon}
                             testID="AttendeesCell-Avatar"
                         />
