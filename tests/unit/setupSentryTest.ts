@@ -39,4 +39,8 @@ describe('setupSentry', () => {
     it('keeps unhandled rejections that do not come from that third-party OnyxDB read', () => {
         expect(isIgnored(rejectionMessage("undefined is not an object (evaluating 'report.reportID')"))).toBe(false);
     });
+
+    it('keeps a thrown Error carrying the same text, which unlike a bare rejection has a stack to act on', () => {
+        expect(isIgnored('No data found for key reportActions_123')).toBe(false);
+    });
 });
