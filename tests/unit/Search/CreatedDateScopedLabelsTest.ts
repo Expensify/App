@@ -4,13 +4,6 @@ import {FILTER_VIEW_MAP, getFilterViewLabelKey, getSearchColumnTranslationKey, g
 
 import CONST from '@src/CONST';
 
-/**
- * Issue #98148: the "Created" / "Created date" rename is scoped to the types whose date column is a non-editable
- * created timestamp: `type:expense-report` and `type:task`. Every other Search type keeps "Date": invoice, expense
- * and trip render the editable transaction date, chat has no date column, and the opened single-report table (which
- * reuses getExpenseHeaders) keeps "Date" too. These tests lock that scoping in on the column label, the filter label
- * and the column width so a future edit can't silently widen it to every type or flip invoice back to "Created".
- */
 describe('Created date scoped labels (#98148)', () => {
     const DATE = CONST.SEARCH.TABLE_COLUMNS.DATE;
     const {EXPENSE, EXPENSE_REPORT, TASK, TRIP, INVOICE} = CONST.SEARCH.DATA_TYPES;

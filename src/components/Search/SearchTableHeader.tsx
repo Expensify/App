@@ -204,7 +204,6 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
 
 const taskHeaders: SearchColumnConfig[] = [
     {
-        // A task's date column is its non-editable created timestamp, so it reads "Created" like expense reports.
         columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
         translationKey: 'search.filters.created',
     },

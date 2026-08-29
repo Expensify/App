@@ -1997,7 +1997,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(isExportedColumnWide ? variables.w102 : variables.w62)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.DATE: {
-                // "Created" (expense-report) needs the wider w80. "Date" (expense/task/single report) keeps w62.
                 const normalDateWidth = isDateColumnCreated ? variables.w80 : variables.w62;
                 columnWidth = {
                     ...getWidthStyle(isDateColumnWide ? variables.w102 : normalDateWidth),

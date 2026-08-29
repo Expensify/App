@@ -5872,10 +5872,6 @@ function isMappedFilterKey(key: string): key is MappedFilterKey {
     return hasKey(FILTER_VIEW_MAP, removeNegation(key));
 }
 
-/**
- * Returns the label key for a filter, accounting for the active Search type.
- * The date filter reads "Created date" only for report-style types (expense report, invoice). Every other type keeps its base label ("Date").
- */
 function getFilterViewLabelKey(filterKey: keyof typeof FILTER_VIEW_MAP, type?: SearchDataTypes): TranslationPaths {
     if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE && isCreatedDateType(type)) {
         return 'search.filters.createdDate';
