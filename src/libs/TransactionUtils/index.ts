@@ -214,19 +214,19 @@ function getDistanceRateForDisplay({customUnitRateID, policy, policies}: {custom
     return DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID, policy}) ?? DistanceRequestUtils.getEnabledRateByCustomUnitRateIDFromAnyPolicy(customUnitRateID, policies);
 }
 
-function getDisplayTransactionWithoutInvalidCommuterExclusion<TTransaction extends OnyxInputOrEntry<Transaction>>({
+function getDisplayTransactionWithoutInvalidCommuterExclusion({
     transaction,
     isPolicyExpenseChat,
     policy,
     policies,
     translate,
 }: {
-    transaction: TTransaction;
+    transaction: OnyxEntry<Transaction>;
     isPolicyExpenseChat: boolean;
     policy?: OnyxEntry<Policy>;
     policies?: OnyxCollection<Policy>;
     translate: LocaleContextProps['translate'];
-}): TTransaction {
+}): OnyxEntry<Transaction> {
     if (!transaction || shouldUseCommuterExclusionForDisplay(transaction, isPolicyExpenseChat)) {
         return transaction;
     }
@@ -269,7 +269,7 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion<TTransaction exten
         merchant: normalizedMerchant,
         modifiedMerchant: undefined,
         currency,
-    } as TTransaction;
+    };
 }
 
 /**

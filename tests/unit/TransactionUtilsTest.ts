@@ -1346,6 +1346,10 @@ describe('TransactionUtils', () => {
                 translate,
             });
 
+            expect(displayTransaction).toBeDefined();
+            if (!displayTransaction) {
+                throw new Error('Expected a normalized display transaction');
+            }
             expect(displayTransaction.amount).toBe(491);
             expect(displayTransaction.convertedAmount).toBeUndefined();
             expect(displayTransaction.modifiedAmount).toBeUndefined();
