@@ -14,6 +14,7 @@ import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
+import useIsFinishedJoinWorkspaceTask from '@hooks/useIsFinishedJoinWorkspaceTask';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -69,7 +70,6 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     useEffect(() => {
@@ -82,15 +82,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const taskTitlePlainText = Parser.htmlToText(taskTitleWithoutPre);
     const isCompletedFromOnyx = isCompletedTaskReport(report);
 
-    // Mirrors TaskPreview: a finished join-workspace task cannot be reopened, because AddWorkEmail rejects a second
-    // attempt from an account that validated in the meantime. Ticking it by hand without adding a work email is still
-    // reversible, so the lock only applies once shouldValidate shows AddWorkEmail actually ran.
-    const hasAddedWorkEmail = onboardingValues?.shouldValidate !== undefined;
-    const isFinishedJoinWorkspaceTask =
-        isCompletedFromOnyx &&
-        hasAddedWorkEmail &&
-        !!report?.reportID &&
-        (report.reportID === introSelected?.addWorkEmail || report.reportID === introSelected?.validateEmail || report.reportID === introSelected?.joinWorkspace);
+    const isFinishedJoinWorkspaceTask = useIsFinishedJoinWorkspaceTask(report?.reportID, isCompletedFromOnyx);
     const {
         isCompleted,
         shouldSplitTaskAccessibilityTargets,
