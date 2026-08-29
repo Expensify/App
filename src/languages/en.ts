@@ -3669,13 +3669,14 @@ const translations = {
                 `),
             },
             addWorkEmailTask: {
-                title: 'Add your work email',
-                description: Str.dedent(`
-                    1. Open *Add work email*.
-                    2. Enter your company email address.
-                    3. Enter the code we email you.
-                    4. Pick a workspace to join, or click *Ask to join* to send a request to the workspace owner.
-                `),
+                title: ({workEmailLink = ''}) => `Add [work email](${workEmailLink})`,
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. Open [Add work email](${workEmailLink}).
+                        2. Enter your company email address.
+                        3. Enter the code we email you.
+                        4. Pick a workspace to join, or click *Ask to join* to send a request to the workspace owner.
+                    `),
             },
             validateEmailTask: {
                 title: 'Validate your email',
@@ -3687,12 +3688,13 @@ const translations = {
                     `),
             },
             joinWorkspaceTask: {
-                title: "Join your company's workspace",
-                description: Str.dedent(`
-                    1. Open *Join a workspace*.
-                    2. Find your team in the list. Each one shows its owner and how many people are on it, largest first. Click *Show more* if you don't see yours.
-                    3. Click *Join now*, or *Ask to join* if it needs admin approval.
-                `),
+                title: ({joinWorkspaceLink = ''}) => `Join [your company's workspace](${joinWorkspaceLink})`,
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. Open [Join a workspace](${joinWorkspaceLink}).
+                        2. Find your team in the list. Each one shows its owner and how many people are on it, largest first. Click *Show more* if you don't see yours.
+                        3. Click *Join now*, or *Ask to join* if it needs admin approval.
+                    `),
             },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {

@@ -12540,7 +12540,10 @@ function prepareOnboardingOnyxData({
         corporateCardLink: `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(onboardingPolicyID)}`,
         companyDomain: companyDomain ?? '',
         workEmail: workEmail ?? '',
-        verifyAccountLink: `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path, ROUTES.HOME)}`,
+        // Routes back into the join-workspace list after validation, per Garrett's spec: validating from this task should chain into picking a workspace.
+        verifyAccountLink: `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path, ROUTES.ONBOARDING_WORKSPACES.getRoute())}`,
+        workEmailLink: `${environmentURL}/${ROUTES.ONBOARDING_WORK_EMAIL.getRoute()}`,
+        joinWorkspaceLink: `${environmentURL}/${ROUTES.ONBOARDING_WORKSPACES.getRoute()}`,
     };
 
     // Text message

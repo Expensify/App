@@ -54,6 +54,8 @@ type OnboardingTaskLinks = Partial<{
     companyDomain: string;
     workEmail: string;
     verifyAccountLink: string;
+    workEmailLink: string;
+    joinWorkspaceLink: string;
 }>;
 
 type OnboardingTask = {
@@ -269,8 +271,8 @@ const getOnboardingMessages = (locale?: Locale) => {
     const addWorkEmailTask: OnboardingTask = {
         type: CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL,
         autoCompleted: false,
-        title: translate(resolvedLocale, 'onboarding.tasks.addWorkEmailTask.title'),
-        description: translate(resolvedLocale, 'onboarding.tasks.addWorkEmailTask.description'),
+        title: ({workEmailLink}) => translate(resolvedLocale, 'onboarding.tasks.addWorkEmailTask.title', {workEmailLink}),
+        description: ({workEmailLink}) => translate(resolvedLocale, 'onboarding.tasks.addWorkEmailTask.description', {workEmailLink}),
     };
     const validateEmailTask: OnboardingTask = {
         type: CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL,
@@ -281,8 +283,8 @@ const getOnboardingMessages = (locale?: Locale) => {
     const joinWorkspaceTask: OnboardingTask = {
         type: CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE,
         autoCompleted: false,
-        title: translate(resolvedLocale, 'onboarding.tasks.joinWorkspaceTask.title'),
-        description: translate(resolvedLocale, 'onboarding.tasks.joinWorkspaceTask.description'),
+        title: ({joinWorkspaceLink}) => translate(resolvedLocale, 'onboarding.tasks.joinWorkspaceTask.title', {joinWorkspaceLink}),
+        description: ({joinWorkspaceLink}) => translate(resolvedLocale, 'onboarding.tasks.joinWorkspaceTask.description', {joinWorkspaceLink}),
     };
     const testDriveAdminTask: OnboardingTask = {
         type: CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR,
