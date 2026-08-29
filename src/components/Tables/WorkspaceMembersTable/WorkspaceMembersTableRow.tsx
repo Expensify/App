@@ -1,5 +1,4 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
-import {COPYABLE_ROW_DATA_SET, COPYABLE_TEXT_DATA_SET} from '@components/CopyableText/selection';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
@@ -10,6 +9,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {COPYABLE_ROW_DATA_SET, COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper/selection';
 
 import variables from '@styles/variables';
 

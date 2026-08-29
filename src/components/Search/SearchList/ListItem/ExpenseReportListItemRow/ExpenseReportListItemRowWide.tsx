@@ -1,5 +1,4 @@
 import Checkbox from '@components/Checkbox';
-import {COPYABLE_TEXT_DATA_SET} from '@components/CopyableText/selection';
 import Icon from '@components/Icon';
 import {ReportSubmitToPopoverMeasurableAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import DeferredActionCell from '@components/Search/SearchList/ListItem/ActionCell/DeferredActionCell';
@@ -18,6 +17,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getBase62ReportID from '@libs/getBase62ReportID';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper/selection';
 
 import variables from '@styles/variables';
 

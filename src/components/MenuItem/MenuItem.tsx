@@ -4,7 +4,6 @@ import UserAvatar from '@components/Avatar/UserAvatar';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import Badge from '@components/Badge';
 import {useIsCompactMenu} from '@components/CompactMenuContext';
-import {COPYABLE_TEXT_DATA_SET, useCopyableTextRowPress} from '@components/CopyableText/selection';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import DisplayNames from '@components/DisplayNames';
 import type {DisplayNameWithTooltip} from '@components/DisplayNames/types';
@@ -40,6 +39,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
+import {COPYABLE_TEXT_DATA_SET, useCopyableTextRowPress} from '@libs/SelectionScraper/selection';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
 

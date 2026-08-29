@@ -1,5 +1,4 @@
 import Checkbox from '@components/Checkbox';
-import {COPYABLE_TEXT_DATA_SET} from '@components/CopyableText/selection';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
@@ -27,6 +26,7 @@ import getBase62ReportID from '@libs/getBase62ReportID';
 import {isTaxCodeCustomized, getTagGLCode} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getReimbursableTotal, isExpenseReport} from '@libs/ReportUtils';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper/selection';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import {
     getAmount,

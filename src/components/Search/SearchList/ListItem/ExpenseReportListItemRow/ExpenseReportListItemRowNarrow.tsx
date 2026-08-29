@@ -1,11 +1,12 @@
 import Checkbox from '@components/Checkbox';
-import {COPYABLE_TEXT_DATA_SET} from '@components/CopyableText/selection';
 import getExpenseReportRowDisplayValues from '@components/Search/SearchList/ListItem/getExpenseReportRowDisplayValues';
 import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper/selection';
 
 import CONST from '@src/CONST';
 

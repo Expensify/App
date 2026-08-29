@@ -1,10 +1,10 @@
-import {COPYABLE_TEXT_DATA_SET} from '@components/CopyableText/selection';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper/selection';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import type {RefObject} from 'react';
