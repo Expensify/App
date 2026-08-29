@@ -3218,6 +3218,7 @@ ${amount} για ${merchant} - ${date}`,
         unread: 'Μη αναγνωσμένα',
         markAllAsRead: 'Επισήμανση όλων ως αναγνωσμένων',
         markAllAsReadConfirmationPrompt: 'Είστε βέβαιοι ότι θέλετε να επισημάνετε όλες τις συνομιλίες ως αναγνωσμένες;',
+        markAllTodosAsReadConfirmationPrompt: 'Είστε βέβαιοι ότι θέλετε να επισημάνετε ως αναγνωσμένες όλες τις συνομιλίες σε εκκρεμότητα;',
     },
     reportDetailsPage: {
         goToRoom: 'Μετάβαση στο δωμάτιο',

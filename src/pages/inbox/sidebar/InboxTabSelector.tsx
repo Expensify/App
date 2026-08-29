@@ -20,6 +20,8 @@ import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ValueOf} from 'type-fest';
+
 import {reportNameValuePairsArchivedSelector} from '@selectors/ReportNameValuePairs';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -33,41 +35,52 @@ function InboxTabSelector() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {activeTab, inboxTabCounts} = useSidebarOrderedReportsState();
-    const {setActiveTab} = useSidebarOrderedReportsActions();
+    const {setActiveTab, getReportIDsForTab} = useSidebarOrderedReportsActions();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: reportNameValuePairsArchivedSelector});
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const {showConfirmModal} = useConfirmModal();
 
-    // Anchor the popover to the Unread tab itself (not the whole tab row) so it opens at that tab's left edge.
+    // Anchor the popover to the tab it was opened from (not the whole tab row) so it opens at that tab's left edge.
+    const allTabRef = useRef<View | HTMLDivElement>(null);
     const unreadTabRef = useRef<View | HTMLDivElement>(null);
+    const todoTabRef = useRef<View | HTMLDivElement>(null);
+    const tabRefs = {
+        [CONST.INBOX_TAB.ALL]: allTabRef,
+        [CONST.INBOX_TAB.UNREAD]: unreadTabRef,
+        [CONST.INBOX_TAB.TODO]: todoTabRef,
+    };
     const {calculatePopoverPosition} = usePopoverPosition();
     const [popoverPosition, setPopoverPosition] = useState<AnchorPosition>();
     const [isMenuVisible, setIsMenuVisible] = useState(false);
+    const [menuTab, setMenuTab] = useState<ValueOf<typeof CONST.INBOX_TAB>>(CONST.INBOX_TAB.ALL);
 
     const getBadgeText = (count: number) => (count > 0 ? count.toString() : undefined);
 
     const openMarkAllAsReadMenu = (key: string) => {
-        // The bulk "mark all as read" affordance only makes sense on the Unread tab.
-        if (key !== CONST.INBOX_TAB.UNREAD) {
+        if (key !== CONST.INBOX_TAB.ALL && key !== CONST.INBOX_TAB.UNREAD && key !== CONST.INBOX_TAB.TODO) {
             return;
         }
-        calculatePopoverPosition(unreadTabRef, anchorAlignment).then((position) => {
+        calculatePopoverPosition(tabRefs[key], anchorAlignment).then((position) => {
+            setMenuTab(key);
             setPopoverPosition(position);
             setIsMenuVisible(true);
         });
     };
 
     const confirmMarkAllAsRead = () => {
+        const isTodoTab = menuTab === CONST.INBOX_TAB.TODO;
         showConfirmModal({
             title: translate('inboxTabs.markAllAsRead'),
-            prompt: translate('inboxTabs.markAllAsReadConfirmationPrompt'),
+            prompt: translate(isTodoTab ? 'inboxTabs.markAllTodosAsReadConfirmationPrompt' : 'inboxTabs.markAllAsReadConfirmationPrompt'),
             confirmText: translate('inboxTabs.markAllAsRead'),
             cancelText: translate('common.cancel'),
         }).then(({action}) => {
             if (action !== ModalActions.CONFIRM) {
                 return;
             }
-            markAllMessagesAsRead(reportNameValuePairs);
+            // From the To-dos tab only the chats listed there are marked read. The All and Unread tabs both cover every
+            // unread chat, so they mark all of them.
+            markAllMessagesAsRead(reportNameValuePairs, isTodoTab ? getReportIDsForTab(CONST.INBOX_TAB.TODO) : undefined);
         });
     };
 
@@ -85,6 +98,10 @@ function InboxTabSelector() {
         {
             key: CONST.INBOX_TAB.ALL,
             title: translate('inboxTabs.all'),
+            tabRef: allTabRef,
+            // Every tab opens the "Mark all as read" menu on long-press / right-click, so they all wire the secondary
+            // interaction (which suppresses the native browser context menu on web).
+            shouldEnableLongPress: true,
         },
         {
             key: CONST.INBOX_TAB.UNREAD,
@@ -93,8 +110,6 @@ function InboxTabSelector() {
             isBadgeCondensed: true,
             badgeStyles: styles.tabSelectorBadge,
             tabRef: unreadTabRef,
-            // Only the Unread tab opens the "Mark all as read" menu on long-press / right-click, so it's the
-            // only tab that wires the secondary interaction. All/To-dos keep the native browser context menu.
             shouldEnableLongPress: true,
         },
         {
@@ -103,6 +118,8 @@ function InboxTabSelector() {
             badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.TODO]),
             isBadgeCondensed: true,
             badgeStyles: styles.tabSelectorBadge,
+            tabRef: todoTabRef,
+            shouldEnableLongPress: true,
         },
     ];
 
@@ -126,7 +143,7 @@ function InboxTabSelector() {
                 onClose={() => setIsMenuVisible(false)}
                 onItemSelected={() => setIsMenuVisible(false)}
                 menuItems={menuItems}
-                anchorRef={unreadTabRef}
+                anchorRef={tabRefs[menuTab]}
                 anchorPosition={popoverPosition ?? {horizontal: 0, vertical: 0}}
                 anchorAlignment={anchorAlignment}
                 // Safari ignores shouldCallAfterModalHide by default, which would show the confirmation modal while the

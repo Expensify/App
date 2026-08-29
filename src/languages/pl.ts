@@ -3181,6 +3181,7 @@ ${amount} dla ${merchant} - ${date}`,
         unread: 'Nieprzeczytane',
         markAllAsRead: 'Oznacz wszystkie jako przeczytane',
         markAllAsReadConfirmationPrompt: 'Czy na pewno chcesz oznaczyć wszystkie czaty jako przeczytane?',
+        markAllTodosAsReadConfirmationPrompt: 'Czy na pewno chcesz oznaczyć wszystkie czaty do zrobienia jako przeczytane?',
     },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `w ${policyName}`,
