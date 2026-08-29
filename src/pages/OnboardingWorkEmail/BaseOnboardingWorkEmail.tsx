@@ -79,6 +79,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
+    const [hasSubmittedWorkEmail, setHasSubmittedWorkEmail] = useState(false);
     const {isOffline} = useNetwork();
     const ICON_SIZE = 48;
     const operatingSystem = getOperatingSystem();
@@ -112,27 +113,31 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
             };
 
-            // The work email was already added, so the task this screen belongs to is done. Re-opening it from the
-            // completed Concierge task should be inert rather than advancing the user anywhere.
+            // The task is done, so this screen has nothing left to offer. This also closes the screen right after a
+            // successful submission, since that optimistically completes the task.
             if (isAddWorkEmailTaskCompleted) {
                 returnToConciergeChat();
                 return;
             }
+
+            // A validated account cannot add a work email at all (AddWorkEmail rejects it), so send those users to the
+            // workspace list instead of a form they cannot submit.
             if (account?.validated) {
                 Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute());
                 return;
             }
-            // Nothing submitted yet this visit — show the form and wait for AddWorkEmail to resolve shouldValidate.
-            if (onboardingValues?.shouldValidate === undefined) {
+
+            // The task is open, either because it was never done or because the user unticked it to add a different
+            // work email. Show the form and ignore any shouldValidate left over from an earlier submission, which
+            // would otherwise skip them straight past the form to the code screen.
+            if (!hasSubmittedWorkEmail) {
                 return;
             }
-            // A code is needed to confirm the work email (an account already exists under that domain).
-            if (onboardingValues.shouldValidate) {
+
+            // A code is needed to confirm the work email just submitted (an account already exists under that domain).
+            if (onboardingValues?.shouldValidate) {
                 Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
-                return;
             }
-            // The work email was added outright with no code needed, so there is nothing left to do on this screen.
-            returnToConciergeChat();
             return;
         }
 
@@ -171,6 +176,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         isFocused,
         isJoiningCompanyWorkspace,
         isAddWorkEmailTaskCompleted,
+        hasSubmittedWorkEmail,
         conciergeReportID,
         onboardingValues?.isMergeAccountStepCompleted,
         onboardingValues?.isMergeAccountStepSkipped,
@@ -178,6 +184,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
 
     const submitWorkEmail = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
+            setHasSubmittedWorkEmail(true);
             AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim(), addWorkEmailTaskReportID);
         },
         [addWorkEmailTaskReportID],
