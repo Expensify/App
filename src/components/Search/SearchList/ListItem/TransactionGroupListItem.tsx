@@ -22,7 +22,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {COPYABLE_ROW_DATA_SET, useCopyableTextRowPress} from '@libs/SelectionScraper/selection';
+import {COPYABLE_ROW_DATA_SET, useCopyableTextRowPress} from '@libs/SelectionScraper';
 import {getVisibleTransactionViolations, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';

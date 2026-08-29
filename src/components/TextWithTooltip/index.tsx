@@ -1,7 +1,7 @@
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 
-import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper/selection';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 
 import React, {useState} from 'react';
 

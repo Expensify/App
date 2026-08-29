@@ -4,7 +4,7 @@ import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
-import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper/selection';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import type {AvatarSizeName} from '@styles/utils';

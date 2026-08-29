@@ -12,7 +12,7 @@ import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {COPYABLE_ROW_DATA_SET, useCopyableTextRowPress} from '@libs/SelectionScraper/selection';
+import {COPYABLE_ROW_DATA_SET, useCopyableTextRowPress} from '@libs/SelectionScraper';
 
 import variables from '@styles/variables';
 

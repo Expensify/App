@@ -6,15 +6,87 @@ import render from 'dom-serializer';
 import {DataNode, Element} from 'domhandler';
 import {Str} from 'expensify-common';
 import {parseDocument} from 'htmlparser2';
+import {useRef} from 'react';
 
 import type GetCurrentSelection from './types';
-
-import {COPYABLE_ROW_SELECTOR, COPYABLE_TEXT_SELECTOR} from './selection';
 
 const markdownElements = new Set(['h1', 'strong', 'em', 'del', 'blockquote', 'q', 'code', 'pre', 'a', 'br', 'li', 'ul', 'ol', 'b', 'i', 's', 'mention-user']);
 const tagAttribute = 'data-testid';
 const hiddenElementAttribute = `data-${CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT}`;
 const hiddenElementSelector = `[${hiddenElementAttribute}=true]`;
+const COPYABLE_TEXT_SELECTOR = `[data-${CONST.COPYABLE_TEXT_ELEMENT}=true]`;
+const COPYABLE_TEXT_DATA_SET = {[CONST.COPYABLE_TEXT_ELEMENT]: true} as const;
+const COPYABLE_ROW_SELECTOR = `[data-${CONST.COPYABLE_ROW_ELEMENT}=true]`;
+const COPYABLE_ROW_DATA_SET = {[CONST.COPYABLE_ROW_ELEMENT]: true} as const;
+
+function getCopyableTextElement(target: EventTarget | Node | null | undefined): HTMLElement | null {
+    if (typeof HTMLElement === 'undefined') {
+        return null;
+    }
+
+    try {
+        if (target instanceof HTMLElement) {
+            return target.closest(COPYABLE_TEXT_SELECTOR);
+        }
+
+        if (typeof Node !== 'undefined' && target instanceof Node) {
+            return target.parentElement?.closest(COPYABLE_TEXT_SELECTOR) ?? null;
+        }
+    } catch {
+        return null;
+    }
+
+    return null;
+}
+
+function isCopyableTextTarget(target: EventTarget | null | undefined): boolean {
+    return !!getCopyableTextElement(target);
+}
+
+// Row press handlers use this after mouseup/click to suppress navigation only for the drag-select gesture that started on copyable text.
+function shouldSuppressCopyableTextPress(didMouseDownStartOnCopyableText: boolean): boolean {
+    if (!didMouseDownStartOnCopyableText) {
+        return false;
+    }
+
+    if (typeof window === 'undefined' || typeof window.getSelection !== 'function') {
+        return false;
+    }
+
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed || selection.toString().length === 0) {
+        return false;
+    }
+
+    const anchorCopyableElement = getCopyableTextElement(selection.anchorNode);
+    const focusCopyableElement = getCopyableTextElement(selection.focusNode);
+    return !!anchorCopyableElement || !!focusCopyableElement;
+}
+
+function useCopyableTextRowPress() {
+    const wasMouseDownOnCopyableTextRef = useRef(false);
+
+    const markMouseDownOnCopyableText = (target: EventTarget | null | undefined, shouldCheck = true): boolean => {
+        const isCopyableTarget = shouldCheck && isCopyableTextTarget(target);
+        wasMouseDownOnCopyableTextRef.current = isCopyableTarget;
+        return isCopyableTarget;
+    };
+
+    const shouldSuppressCopyableTextRowPress = (shouldCheck = true): boolean => {
+        const shouldSuppressPress = shouldCheck && shouldSuppressCopyableTextPress(wasMouseDownOnCopyableTextRef.current);
+        wasMouseDownOnCopyableTextRef.current = false;
+        return shouldSuppressPress;
+    };
+
+    // Pointer focus from copyable text should not make virtualized lists scroll the row into view.
+    const shouldSuppressCopyableTextRowFocus = () => wasMouseDownOnCopyableTextRef.current;
+
+    return {
+        markMouseDownOnCopyableText,
+        shouldSuppressCopyableTextRowFocus,
+        shouldSuppressCopyableTextRowPress,
+    };
+}
 
 function getCopyableElementText(element: globalThis.Element, selection: Selection): string {
     const elementRange = document.createRange();
@@ -299,6 +371,8 @@ const getCurrentSelection: GetCurrentSelection = () => {
     const newHtml = render(domRepresentation).replaceAll('<br>\n', '<br>');
     return newHtml || '';
 };
+
+export {COPYABLE_ROW_DATA_SET, COPYABLE_TEXT_DATA_SET, useCopyableTextRowPress};
 
 export default {
     getCurrentSelection,

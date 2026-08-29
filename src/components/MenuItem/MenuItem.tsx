@@ -39,7 +39,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
-import {COPYABLE_TEXT_DATA_SET, useCopyableTextRowPress} from '@libs/SelectionScraper/selection';
+import {COPYABLE_TEXT_DATA_SET, useCopyableTextRowPress} from '@libs/SelectionScraper';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
 

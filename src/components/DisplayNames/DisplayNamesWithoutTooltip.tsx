@@ -3,7 +3,7 @@ import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper/selection';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 
 import type {StyleProp, TextStyle} from 'react-native';
 

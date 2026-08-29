@@ -11,7 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {useCopyableTextRowPress} from '@libs/SelectionScraper/selection';
+import {useCopyableTextRowPress} from '@libs/SelectionScraper';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 
 import variables from '@styles/variables';

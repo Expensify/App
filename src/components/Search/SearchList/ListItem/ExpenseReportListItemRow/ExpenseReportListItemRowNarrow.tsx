@@ -6,7 +6,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper/selection';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 
 import CONST from '@src/CONST';
 

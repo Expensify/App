@@ -17,7 +17,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getBase62ReportID from '@libs/getBase62ReportID';
-import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper/selection';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 
 import variables from '@styles/variables';
 

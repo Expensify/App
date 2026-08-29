@@ -4,7 +4,7 @@ import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {formatReportLastMessageText} from '@libs/ReportUtils';
-import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper/selection';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 
 // eslint-disable-next-line no-restricted-imports
 import type {Text as RNText} from 'react-native';

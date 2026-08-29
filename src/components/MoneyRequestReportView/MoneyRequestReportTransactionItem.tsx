@@ -17,7 +17,7 @@ import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {hasFlexColumn} from '@libs/SearchUIUtils';
-import {COPYABLE_ROW_DATA_SET, useCopyableTextRowPress} from '@libs/SelectionScraper/selection';
+import {COPYABLE_ROW_DATA_SET, useCopyableTextRowPress} from '@libs/SelectionScraper';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
