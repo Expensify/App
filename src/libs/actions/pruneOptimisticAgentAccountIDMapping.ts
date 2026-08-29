@@ -1,3 +1,5 @@
+import AppStateMonitor from '@libs/AppStateMonitor';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OptimisticAgentAccountIDMappingCreatedAt} from '@src/types/onyx';
 
@@ -15,9 +17,13 @@ import Onyx from 'react-native-onyx';
  * to trigger it explicitly. Onyx.connectWithoutView is used because this runs outside any component's render; no
  * UI subscribes to it.
  *
- * The one caller that does still trigger it explicitly is openAgentsPage() (Agent.ts): an entry can go stale
- * purely from time passing with no new write to fire this callback, and opening the agents list is the only
- * realistic moment to re-check for that.
+ * Staleness itself is just elapsed time (now - createdAt), which keeps growing on its own without any Onyx write
+ * to notice it — so the callback above only catches an entry going stale at the exact moment something else
+ * happens to write to this key. Two explicit re-checks cover the rest: openAgentsPage() (Agent.ts), since
+ * visiting the agents list is the one moment this data is guaranteed relevant, and the AppState listener below,
+ * since resuming from background is when the most time is likely to have silently passed. A plain interval timer
+ * was considered instead, but this codebase already avoids that for periodic checks on mobile — see
+ * checkForUpdates.ts, which is deliberately a no-op on native (platformSetup/index.native.ts).
  */
 
 const OPTIMISTIC_ACCOUNT_ID_MAPPING_MAX_AGE_IN_DAYS = 7;
@@ -31,6 +37,8 @@ Onyx.connectWithoutView({
         pruneStaleOptimisticAccountIDMappingEntries();
     },
 });
+
+AppStateMonitor.addBecameActiveListener(() => pruneStaleOptimisticAccountIDMappingEntries());
 
 function pruneStaleOptimisticAccountIDMappingEntries() {
     const now = Date.now();

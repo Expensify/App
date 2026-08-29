@@ -1,3 +1,5 @@
+import type AppStateMonitorType from '@libs/AppStateMonitor';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
@@ -5,9 +7,26 @@ import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-// Registers the connectWithoutView subscription under test — nothing else in this file calls into the module
-// directly, since the whole point is that pruning happens reactively without any caller invoking it.
+// Registers the connectWithoutView subscription and the AppStateMonitor listener under test — nothing else in
+// this file calls into the module directly, since the whole point is that pruning happens automatically without
+// any caller invoking it.
 import '@libs/actions/pruneOptimisticAgentAccountIDMapping';
+
+jest.mock('@libs/AppStateMonitor', () => ({
+    __esModule: true,
+    default: {
+        addBecameActiveListener: jest.fn(() => jest.fn()),
+    },
+}));
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access -- extracting callback captured during module load
+const AppStateMonitor: typeof AppStateMonitorType = require('@libs/AppStateMonitor').default;
+
+const becameActiveCall = jest.mocked(AppStateMonitor.addBecameActiveListener).mock.calls.at(-1);
+if (!becameActiveCall) {
+    throw new Error('AppStateMonitor.addBecameActiveListener was not called during pruneOptimisticAgentAccountIDMapping.ts module load');
+}
+const becameActiveCallback: () => void = becameActiveCall[0];
 
 const STALE_OPTIMISTIC_ACCOUNT_ID = 111;
 const FRESH_OPTIMISTIC_ACCOUNT_ID = 222;
@@ -41,5 +60,36 @@ describe('pruneStaleOptimisticAccountIDMappingEntries (reactive)', () => {
         expect(mapping?.[FRESH_OPTIMISTIC_ACCOUNT_ID]).toBe(666);
         expect(timestamps?.[STALE_OPTIMISTIC_ACCOUNT_ID]).toBeUndefined();
         expect(timestamps?.[FRESH_OPTIMISTIC_ACCOUNT_ID]).toBeDefined();
+    });
+
+    it('prunes an entry that only became stale after it was written, when the app becomes active', async () => {
+        const writeTime = Date.now();
+        jest.useFakeTimers();
+        jest.setSystemTime(writeTime);
+
+        // FRESH is written 7 days after STALE, so once time jumps 8 days past STALE, STALE is 8 days old
+        // (past the 7-day window) while FRESH is only 1 day old (still within it). Both are fresh at write
+        // time, so this write alone doesn't trigger the reactive callback to prune anything yet.
+        const freshWriteTime = writeTime + 7 * 24 * 60 * 60 * 1000;
+        await Onyx.multiSet({
+            [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: {[STALE_OPTIMISTIC_ACCOUNT_ID]: 555, [FRESH_OPTIMISTIC_ACCOUNT_ID]: 666},
+            [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT]: {[STALE_OPTIMISTIC_ACCOUNT_ID]: writeTime, [FRESH_OPTIMISTIC_ACCOUNT_ID]: freshWriteTime},
+        });
+        await waitForBatchedUpdates();
+
+        // Advance time past the retention window with no further write, then simulate the app resuming
+        // from background — no call to createAgent()/openAgentsPage() at all.
+        jest.setSystemTime(writeTime + 8 * 24 * 60 * 60 * 1000);
+        becameActiveCallback();
+        await waitForBatchedUpdates();
+        jest.useRealTimers();
+
+        const mapping = await OnyxUtils.get(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
+        const timestamps = await OnyxUtils.get(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT);
+
+        expect(mapping?.[STALE_OPTIMISTIC_ACCOUNT_ID]).toBeUndefined();
+        expect(mapping?.[FRESH_OPTIMISTIC_ACCOUNT_ID]).toBe(666);
+        expect(timestamps?.[STALE_OPTIMISTIC_ACCOUNT_ID]).toBeUndefined();
+        expect(timestamps?.[FRESH_OPTIMISTIC_ACCOUNT_ID]).toBe(freshWriteTime);
     });
 });
