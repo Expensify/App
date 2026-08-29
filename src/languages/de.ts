@@ -499,7 +499,6 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorheriges Jahr',
         nextYear: 'Nächstes Jahr',
         avatar: 'Avatar',
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} von ${total}`,
         editor: 'Editor',
         restrictions: 'Beschränkungen',
         tryAgain: 'Erneut versuchen',
@@ -2301,6 +2300,14 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Hervorgehobene Spannen-Namen',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaktion.klick, navigation, ui.laden',
             showBranchNameInTitle: 'Branch-Namen im Browser-Titel anzeigen',
+            qaAuth: 'QA-Authentifizierung (Cloudflare)',
+            qaAuthRunProbe: 'Test ausführen',
+            qaAuthSession: 'QA-Authentifizierungssitzung',
+            qaAuthClearSession: 'Sitzung löschen',
+            qaAuthStatusSuccess: 'Test erfolgreich',
+            qaAuthStatusReauthRequired: 'Sitzung abgelaufen – erneut ausführen, um sich anzumelden',
+            qaAuthStatusSignInFailed: 'Anmeldung wurde nicht abgeschlossen – führen Sie den Vorgang erneut aus, um es noch einmal zu versuchen',
+            qaAuthStatusError: 'Test fehlgeschlagen',
         },
         security: 'Sicherheit',
         signOut: 'Abmelden',
@@ -3017,7 +3024,6 @@ ${amount} für ${merchant} – ${date}`,
         cardLastFour: 'Karte endet auf',
         addFirstPaymentMethod: 'Fügen Sie eine Zahlungsmethode hinzu, um Zahlungen direkt in der App zu senden und zu empfangen.',
         defaultPaymentMethod: 'Standard',
-        bankAccountLastFour: (lastFour: string) => `Bankkonto • ${lastFour}`,
     },
     agentsPage: {
         title: 'Agenten',
@@ -4587,6 +4593,10 @@ ${amount} für ${merchant} – ${date}`,
                 'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Sparen Sie sich das nächste Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Und dass Belege dabei automatisch für Sie hochgeladen werden? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            hotelBlockManual:
+                'Wussten Sie, dass Sie Gruppenreisen wie diese direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand und probieren Sie unser Tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reise-Events</a> aus.',
+            hotelBlockCard:
+                'Wussten Sie, dass Sie Gruppenreisen wie diese direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand und probieren Sie unser Tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reise-Events</a> aus.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Reisen ist nicht aktiviert',
@@ -5915,6 +5925,33 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 label: 'Expensify Card-Konto',
                 description: 'Wählen Sie aus, wohin die Expensify Card-Transaktionen exportiert werden sollen.',
             },
+            autoSyncDescription: 'Synchronisieren Sie DualEntry und Expensify automatisch, jeden Tag. Berichte werden in Echtzeit synchronisiert.',
+            accountingMethods: {
+                label: 'Exportmethode',
+                description: 'Wählen Sie, wann Ausgaben exportiert werden sollen.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Periodenabgrenzung',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Bargeld',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Ausgelegte Ausgaben werden nach endgültiger Genehmigung exportiert',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagen werden beim Bezahlen exportiert',
+                },
+            },
+            syncReimbursedReports: 'Abgerechnete Berichte synchronisieren',
+            syncReimbursedReportsDescription: 'Wenn ein Bericht per ACH bezahlt wird, wird in diesem Konto eine Rechnungszahlung erzeugt.',
+            billPaymentAccount: {
+                label: 'Konto für Rechnungszahlungen',
+                description: 'Wählen Sie aus, von wo aus Rechnungen bezahlt werden sollen, und wir erstellen die Zahlung in DualEntry.',
+            },
+            syncExpensifyCardSettlements: 'Expensify Karten-Abrechnungen synchronisieren',
+            settlementAccount: {label: 'Expensify Karte Verrechnungskonto', description: 'Wählen Sie Ihr Verrechnungskonto, und wir erstellen die Zahlung in DualEntry.'},
+            syncTravelInvoicingSettlements: 'Abstimmungen der Reiseabrechnungen synchronisieren',
+            travelInvoicingSettlementAccount: {
+                label: 'Reisekostenabrechnungs-Verrechnungskonto',
+                description: 'Wählen Sie Ihr Verrechnungskonto, und wir erstellen die Zahlung in DualEntry.',
+            },
+            travelInvoicingPayableAccount: {label: 'Verbindlichkeitenkonto für Reiseabrechnungen'},
         },
         type: {
             free: 'Kostenlos',
@@ -6043,6 +6080,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     comment: 'Beschreibung',
                     category: 'Kategorie',
                     tag: 'Tag',
+                    uniqueID: 'Eindeutige ID',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Bitte weisen Sie jeder der folgenden Eigenschaften eine Spalte zu: ${missingColumns}.`,
@@ -7033,7 +7071,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 },
             },
             connections: {
-                syncStageName: (stage, integrationName = 'QuickBooks Online') => {
+                syncStageName: (stage: PolicyConnectionSyncStage, integrationName = 'QuickBooks Online') => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -7048,37 +7086,37 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                             return 'Konten werden importiert';
                         case 'quickbooksOnlineImportClasses':
                         case 'quickbooksDesktopImportClasses':
-                            return 'Importieren von Klassen';
+                            return 'Klassen werden importiert';
                         case 'quickbooksOnlineImportLocations':
                             return 'Standorte werden importiert';
                         case 'quickbooksOnlineImportProcessing':
                             return 'Importierte Daten werden verarbeitet';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
-                            return 'Synchronisierung erstatteter Berichte und Rechnungszahlungen';
+                            return 'Synchronisieren von erstatteten Berichten und Rechnungszahlungen';
                         case 'quickbooksOnlineSyncTaxCodes':
-                            return 'Steuercodes importieren';
+                            return 'Steuercodes werden importiert';
                         case 'quickbooksOnlineCheckConnection':
-                            return `${integrationName}-Verbindung wird geprüft`;
+                            return `${integrationName}-Verbindung wird überprüft`;
                         case 'quickbooksOnlineImportMain':
-                            return `${integrationName}-Daten werden importiert`;
+                            return `Importieren von ${integrationName}-Daten`;
                         case 'startingImportXero':
                             return 'Xero-Daten werden importiert';
                         case 'startingImportQBO':
-                            return `${integrationName}-Daten werden importiert`;
+                            return `Importieren von ${integrationName}-Daten`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
-                            return 'QuickBooks-Desktop-Daten importieren';
+                            return 'QuickBooks Desktop-Daten importieren';
                         case 'quickbooksDesktopImportTitle':
                             return 'Titel wird importiert';
                         case 'quickbooksDesktopImportApproveCertificate':
-                            return 'Importieren des Genehmigungszertifikats';
+                            return 'Genehmigungszertifikat wird importiert';
                         case 'quickbooksDesktopImportDimensions':
-                            return 'Dimensionen werden importiert';
+                            return 'Importieren von Dimensionen';
                         case 'quickbooksDesktopImportSavePolicy':
-                            return 'Speicherrichtlinie wird importiert';
+                            return 'Richtlinie zum Speichern importieren';
                         case 'quickbooksDesktopWebConnectorReminder':
-                            return 'Synchronisiere weiterhin Daten mit QuickBooks … Bitte stelle sicher, dass der Web Connector ausgeführt wird';
+                            return 'Daten werden noch mit QuickBooks synchronisiert … Bitte stellen Sie sicher, dass der Web Connector ausgeführt wird';
                         case 'quickbooksOnlineSyncTitle':
                             return `${integrationName}-Daten werden synchronisiert`;
                         case 'quickbooksOnlineSyncLoadData':
@@ -7088,11 +7126,11 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'quickbooksOnlineSyncApplyCategories':
                             return 'Kategorien werden aktualisiert';
                         case 'quickbooksOnlineSyncApplyCustomers':
-                            return 'Kund:innen/Projekte werden aktualisiert';
+                            return 'Kunden/Projekte werden aktualisiert';
                         case 'quickbooksOnlineSyncApplyEmployees':
                             return 'Personenliste wird aktualisiert';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
-                            return 'Berichtsfelder aktualisieren';
+                            return 'Berichts­felder werden aktualisiert';
                         case 'jobDone':
                             return 'Warten auf das Laden der importierten Daten';
                         case 'xeroSyncImportChartOfAccounts':
@@ -7108,7 +7146,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'xeroSyncImportTrackingCategories':
                             return 'Tracking-Kategorien werden synchronisiert';
                         case 'xeroSyncImportBankAccounts':
-                            return 'Bankkonten werden synchronisiert';
+                            return 'Bankkonten synchronisieren';
                         case 'xeroSyncImportTaxRates':
                             return 'Steuersätze werden synchronisiert';
                         case 'xeroCheckConnection':
@@ -7122,9 +7160,9 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'netSuiteSyncInitData':
                             return 'Daten werden aus NetSuite abgerufen';
                         case 'netSuiteSyncImportTaxes':
-                            return 'Steuern importieren';
+                            return 'Steuern werden importiert';
                         case 'netSuiteSyncImportItems':
-                            return 'Importiere Positionen';
+                            return 'Elemente werden importiert';
                         case 'netSuiteSyncData':
                             return 'Daten in Expensify importieren';
                         case 'netSuiteSyncAccounts':
@@ -7136,19 +7174,19 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'netSuiteSyncReportFields':
                             return 'Daten als Expensify-Berichts­felder importieren';
                         case 'netSuiteSyncTags':
-                            return 'Daten als Expensify-Tags importieren';
+                            return 'Import von Daten als Expensify-Tags';
                         case 'netSuiteSyncUpdateConnectionData':
                             return 'Verbindungsinformationen werden aktualisiert';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
                             return 'Expensify-Berichte als erstattet markieren';
                         case 'netSuiteSyncExpensifyReimbursedReports':
-                            return 'NetSuite-Rechnungen und -Gutschriften als bezahlt markieren';
+                            return 'NetSuite-Rechnungen als bezahlt markieren';
                         case 'netSuiteImportVendorsTitle':
                             return 'Lieferanten importieren';
                         case 'netSuiteImportCustomListsTitle':
-                            return 'Benutzerdefinierte Listen importieren';
+                            return 'Import benutzerdefinierter Listen';
                         case 'netSuiteSyncImportCustomLists':
-                            return 'Benutzerdefinierte Listen importieren';
+                            return 'Import benutzerdefinierter Listen';
                         case 'netSuiteSyncImportSubsidiaries':
                             return 'Import von Tochtergesellschaften';
                         case 'netSuiteSyncImportVendors':
@@ -7157,9 +7195,9 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'intacctCheckConnection':
                             return 'Sage Intacct-Verbindung wird überprüft';
                         case 'intacctImportDimensions':
-                            return 'Sage Intacct-Dimensionen werden importiert';
+                            return 'Sage-Intacct-Dimensionen importieren';
                         case 'intacctImportTitle':
-                            return 'Sage Intacct-Daten importieren';
+                            return 'Import von Sage-Intacct-Daten';
                         case 'financialForceSyncTitle':
                             return 'Certinia-Daten werden synchronisiert';
                         case 'financialForceSyncStep':
@@ -7169,21 +7207,21 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'financialForceSyncTags':
                             return 'Tags werden importiert';
                         case 'financialForceSyncVendors':
-                            return 'Lieferanten werden importiert';
+                            return 'Lieferanten importieren';
                         case 'financialForceSyncContacts':
                             return 'Kontakte werden importiert';
                         case 'financialForceSyncCompanies':
                             return 'Unternehmen werden importiert';
                         case 'financialForceSyncUsers':
-                            return 'Benutzer werden importiert';
+                            return 'Benutzer importieren';
                         case 'financialForceSyncDimensions':
-                            return 'Dimensionen werden importiert';
+                            return 'Importieren von Dimensionen';
                         case 'financialForceMarkAsReimbursed':
-                            return 'Berichte werden als erstattet markiert';
+                            return 'Berichte als erstattet markieren';
                         case 'rilletSyncTitle':
                             return 'Rillet-Daten werden synchronisiert';
                         case 'rilletSyncConnection':
-                            return 'Verbindung mit Rillet wird initialisiert';
+                            return 'Verbindung zu Rillet wird initialisiert';
                         case 'rilletSyncImportData':
                             return 'Daten werden geladen';
                         case 'dualEntrySyncTitle':
@@ -7192,8 +7230,14 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                             return 'Verbindung zu DualEntry wird initialisiert';
                         case 'dualEntrySyncImportData':
                             return 'Daten werden geladen';
+                        case 'dualEntrySyncPayments':
+                            return 'Anbieterzahlungen werden synchronisiert';
+                        case 'dualEntrySyncCardSettlements':
+                            return 'Kartenausgleiche werden synchronisiert';
+                        case 'dualEntrySyncTravelSettlements':
+                            return 'Reiseabrechnungen werden synchronisiert';
                         default: {
-                            return `Übersetzung fehlt für Stufe: ${stage}`;
+                            return `Übersetzung für Stufe fehlt: ${stage}`;
                         }
                     }
                 },
@@ -7281,6 +7325,9 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
         distanceRates: {
             oopsNotSoFast: 'Ups! Nicht so schnell ...',
             workspaceNeeds: 'Ein Arbeitsbereich benötigt mindestens einen aktivierten Entfernungssatz.',
+            requireMapOrGPSDescription: 'Manuelle Eingabe und Kilometerzähler-Eingabe werden deaktiviert.',
+            requireMapOrGPSLockedByCommuterExclusions:
+                'Das Ausschließen von Arbeitswegen benötigt Routendaten, daher ist bei eingeschalteter Option immer eine Karten- oder GPS-Distanz erforderlich. Um diese Einstellung zu ändern, setzen Sie „Arbeitswege ausschließen“ auf „Arbeitswege nicht ausschließen“.',
             commuterExclusions: {
                 title: 'Arbeitswege ausschließen',
                 summaryDisabled: 'Kein Ausschluss von Pendelstrecken',
@@ -8677,7 +8724,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 case 'tags':
                     return `${enabled ? 'aktiviert' : 'deaktiviert'} Tags`;
                 case 'workflows':
-                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Workflows`;
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'}-Workflows`;
                 case 'distance rates':
                     return `${enabled ? 'aktiviert' : 'deaktiviert'} Entfernungssätze`;
                 case 'accounting':
@@ -8695,9 +8742,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 case 'receipt partners':
                     return `${enabled ? 'aktiviert' : 'deaktiviert'} Belegpartner`;
                 case 'rules':
-                    return `${enabled ? 'aktiviert' : 'deaktiviert'}-Regeln`;
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Regeln`;
                 case 'tax tracking':
                     return `${enabled ? 'aktiviert' : 'deaktiviert'} Steuerverfolgung`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'eingeschaltet' : 'deaktiviert'} erfordern GPS oder Karteneingabe für Entfernungsraten`;
                 default:
                     return `${enabled ? 'aktiviert' : 'deaktiviert'} ${featureName}`;
             }
@@ -9788,7 +9837,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         error: {
             selectSuggestedAddress: 'Bitte wählen Sie eine vorgeschlagene Adresse aus oder verwenden Sie den aktuellen Standort',
             mapOrGpsDistanceRequired: {
-                title: 'Karten- oder GPS-Entfernung erforderlich',
+                title: 'GPS- oder Karteneingabe erforderlich',
                 description: 'Dieser Workspace erfordert entweder kartenbasierte oder GPS-verfolgte Entfernungskosten.',
             },
         },
