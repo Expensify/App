@@ -58,6 +58,9 @@ type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & 
 
     /** Called when the debounced search term changes */
     onSearchChange?: (searchTerm: string) => void;
+
+    /** Whether more items are being loaded (shows spinner at bottom of list) */
+    isLoadingMore?: boolean;
 };
 
 function MultiSelect<T extends string>({
@@ -76,6 +79,7 @@ function MultiSelect<T extends string>({
     onChange,
     onEndReached,
     onSearchChange,
+    isLoadingMore,
 }: MultiSelectProps<T>) {
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -141,6 +145,17 @@ function MultiSelect<T extends string>({
         disableAutoFocus: !autoFocus,
     };
 
+    const footerContent = isLoadingMore ? (
+        <View style={[styles.alignItemsCenter, styles.pv4]}>
+            <ActivityIndicator
+                size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
+                color={theme.spinner}
+            />
+        </View>
+    ) : (
+        footer
+    );
+
     return (
         <ListFilterView
             itemCount={listData.length}
@@ -165,7 +180,7 @@ function MultiSelect<T extends string>({
                     onSelectRow={updateSelectedItems}
                     textInputOptions={textInputOptions}
                     style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
-                    footerContent={footer}
+                    footerContent={footerContent}
                     onEndReached={onEndReached}
                 />
             )}

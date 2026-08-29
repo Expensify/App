@@ -4,15 +4,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {useCallback, useState} from 'react';
 
 import useOnyx from './useOnyx';
 
 type UseSearchTagFiltersResult = {
-    /** The paginated tag search results from Onyx */
-    searchResults: OnyxEntry<OnyxTypes.SearchPolicyTags>;
+    /** The paginated tag search results from Onyx, keyed by full Onyx key (searchPolicyTags_<policyID>) */
+    searchResults: OnyxCollection<OnyxTypes.SearchPolicyTags>;
 
     /** Whether a request is currently in flight */
     isLoading: boolean;

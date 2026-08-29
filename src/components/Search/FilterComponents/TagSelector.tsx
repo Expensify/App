@@ -4,7 +4,6 @@ import useLocalize from '@hooks/useLocalize';
 import useSearchTagFilters from '@hooks/useSearchTagFilters';
 
 import {getCleanedTagName} from '@libs/PolicyUtils';
-import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 
@@ -17,28 +16,26 @@ type TagSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
 };
 
 function TagSelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TagSelectorProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
     const {searchResults, isLoading, hasMore, loadMore, search} = useSearchTagFilters();
 
     const tagItems = useMemo(() => {
         const items = [{text: translate('search.noTag'), value: CONST.SEARCH.TAG_EMPTY_VALUE as string}];
-        const uniqueTagNames = new Set<string>();
+        const seenTagNames = new Set<string>();
 
-        // Extract unique tag names from all policies in the search results
+        // Preserve backend order - new items append at end for infinite scroll
         for (const policyTags of Object.values(searchResults ?? {})) {
             for (const tag of Object.values(policyTags ?? {})) {
-                uniqueTagNames.add(tag.tagName);
+                if (seenTagNames.has(tag.tagName)) {
+                    continue;
+                }
+                seenTagNames.add(tag.tagName);
+                items.push({text: getCleanedTagName(tag.tagName), value: tag.tagName});
             }
         }
 
-        items.push(
-            ...Array.from(uniqueTagNames)
-                .map((tagName) => ({text: getCleanedTagName(tagName), value: tagName}))
-                .toSorted((a, b) => sortOptionsWithEmptyValue(a.text.toString(), b.text.toString(), localeCompare)),
-        );
-
         return items;
-    }, [searchResults, translate, localeCompare]);
+    }, [searchResults, translate]);
 
     const selectedTagsItems = value.map((tag) => {
         if (tag === CONST.SEARCH.TAG_EMPTY_VALUE) {
@@ -60,6 +57,7 @@ function TagSelector({value = [], policyID, selectionListTextInputStyle, selecti
             onEndReached={hasMore ? loadMore : undefined}
             onSearchChange={search}
             loading={isLoading && tagItems.length <= 1}
+            isLoadingMore={isLoading && tagItems.length > 1}
         />
     );
 }
