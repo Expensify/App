@@ -71,6 +71,76 @@ function setIsReadyPromisePending() {
     isReadyPromisePending = true;
 }
 
+/**
+ * A deferred write's hold on the read gate. Exactly one of these settles the hold, and both are idempotent.
+ */
+type DeferredWriteReadGateClaim = {
+    /** The write is on its way to `push()`: the queue owns the gate from here, so stop holding `flush()` open. */
+    handOff: () => void;
+
+    /** The write never reached the queue (offline, or `write()` threw): stop holding `flush()` open and resolve the gate. */
+    release: () => void;
+};
+
+// How many deferred writes hold the gate but have not pushed yet. flush() consults this before treating an
+// empty queue as "nothing is coming".
+let deferredWriteGateClaims = 0;
+
+/**
+ * Claims the read gate for a write that has not been pushed yet, so READs consulting waitForIdle()
+ * park behind a deferred write exactly as they park behind a queued one.
+ *
+ * Without this, deferring a write silently drops the read-after-write ordering that write() gives
+ * every caller for free: the queue is empty for as long as the write waits, so a refetch of the same
+ * data resolves immediately and can come back with pre-write server state.
+ *
+ * push() marks the gate pending again once the write lands - idempotently, so it adopts this claim
+ * rather than opening a second one - and the queue drain resolves it. The handover therefore has no
+ * gap for a READ to slip through.
+ *
+ * No-op while offline, matching push(), which returns before claiming the gate in that state, and
+ * flush(), which resolves it: neither parks READs behind a queue that isn't running.
+ */
+function claimReadGateForDeferredWrite(): DeferredWriteReadGateClaim {
+    if (isOfflineNetwork()) {
+        return {handOff: () => {}, release: () => {}};
+    }
+
+    setIsReadyPromisePending();
+    deferredWriteGateClaims += 1;
+
+    const claimedPromise = isReadyPromise;
+    const releaseClaimedPromise = resolveIsReadyPromise;
+    let hasSettled = false;
+
+    /** Drops this claim's hold on flush(). Returns false if the claim was already settled. */
+    function settleOnce(): boolean {
+        if (hasSettled) {
+            return false;
+        }
+        hasSettled = true;
+        deferredWriteGateClaims -= 1;
+        return true;
+    }
+
+    return {
+        handOff: () => {
+            settleOnce();
+        },
+        release: () => {
+            if (!settleOnce()) {
+                return;
+            }
+            // A later write may have opened a new gate since; resolving that one would let READs through
+            // while somebody else's write is still pending.
+            if (isReadyPromise !== claimedPromise) {
+                return;
+            }
+            releaseClaimedPromise?.();
+        },
+    };
+}
+
 let isSequentialQueueRunning = false;
 let currentRequestPromise: Promise<void> | null = null;
 let isQueuePaused = false;
@@ -470,7 +540,15 @@ function flush(shouldResetPromise = true) {
         // push() may have marked isReadyPromise pending in its sync prelude (e.g. a conflict
         // resolver deleted the only request without pushing a replacement). Resolve here so READs
         // parked on waitForIdle() don't hang until unrelated queue activity releases them.
-        resolveIsReadyPromise?.();
+        //
+        // Unless a deferred write is holding the gate: an empty queue then means its write hasn't been
+        // pushed *yet*, not that nothing is coming, and resolving would let through the very READs that
+        // write is meant to be ordered before. Its own claim resolves the gate if it never reaches the queue.
+        // Only this branch is guarded - the follower branch below must still resolve, since a tab that
+        // never processes the queue would otherwise park READs forever.
+        if (deferredWriteGateClaims === 0) {
+            resolveIsReadyPromise?.();
+        }
         return;
     }
 
@@ -791,9 +869,11 @@ function resetQueue(): void {
     isReadyPromise = Promise.resolve();
     isReadyPromisePending = false;
     resolveIsReadyPromise = undefined;
+    deferredWriteGateClaims = 0;
 }
 
 export {
+    claimReadGateForDeferredWrite,
     flush,
     getCurrentRequest,
     isPaused,
@@ -809,4 +889,4 @@ export {
     saveQueueFlushedData,
     clearQueueFlushedData,
 };
-export type {RequestError};
+export type {DeferredWriteReadGateClaim, RequestError};

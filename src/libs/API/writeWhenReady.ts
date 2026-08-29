@@ -1,5 +1,7 @@
 import Log from '@libs/Log';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {claimReadGateForDeferredWrite} from '@libs/Network/SequentialQueue';
+import {getIsOffline} from '@libs/NetworkState';
 
 import CONST from '@src/CONST';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -116,6 +118,14 @@ function armTransitionBarrier(waitFor: true | 'navigation' = true): ArmedTransit
  *     queue or considered for conflict resolution until it actually executes.
  *   - Call order isn't preserved across independent `writeWhenReady` calls - their barriers race.
  *
+ * Read ordering is preserved: the sequential queue's read gate is claimed synchronously here, so a READ
+ * (`API.read`, `search()`) that consults `waitForIdle()` parks behind the deferred write just as it would
+ * behind a queued one. The cost is that READs wait out the barrier on top of the write's own round trip.
+ * Without the claim the queue sits empty for the length of the deferral, and a destination screen that
+ * fetches the same data again races ahead of the write and repopulates itself from pre-write server state.
+ * A barrier must therefore not wait on a READ of its own - it would be parked behind this very write, and
+ * only `safetyTimeoutMs` would break the deadlock.
+ *
  * Caution:
  *   - The default barrier waits for any transition (~2s worst case if none starts). Pass
  *     `createTransitionBarrier('navigation')` to gate on a screen transition only, or a custom barrier.
@@ -153,6 +163,10 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
         const abortController = new AbortController();
         let barrierError: unknown;
 
+        // Claimed synchronously, before the barrier is even built: a READ firing on the next line has to
+        // see the gate already pending, exactly as it would had `write()` queued the request right here.
+        const readGateClaim = claimReadGateForDeferredWrite();
+
         const execute = (reason: ReleaseReason) => {
             if (hasExecuted) {
                 return;
@@ -183,6 +197,15 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
 
                 write(command, apiCommandParameters, onyxData).then(resolve, reject);
 
+                // `push()` ran synchronously inside `write()` above. Online it adopted the gate, so hand
+                // over and let the queue drain resolve it. Offline it returned before claiming anything,
+                // so give the gate back rather than parking READs until an unrelated reconnect.
+                if (getIsOffline()) {
+                    readGateClaim.release();
+                } else {
+                    readGateClaim.handOff();
+                }
+
                 // Isolated so a throwing side effect can't be mistaken for a failed write.
                 try {
                     onWriteStarted?.();
@@ -193,6 +216,8 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
                     });
                 }
             } catch (error) {
+                // Nothing reached the queue, so the gate would otherwise stay claimed indefinitely.
+                readGateClaim.release();
                 reject(error);
             }
         };
