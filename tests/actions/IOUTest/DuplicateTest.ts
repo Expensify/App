@@ -1948,7 +1948,6 @@ describe('actions/Duplicate', () => {
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
-                        customUnitRateID: 'deleted-workspace-rate',
                         distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
                         name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                         quantity: 56.78,
@@ -1961,10 +1960,6 @@ describe('actions/Duplicate', () => {
             };
 
             await Onyx.clear();
-            await Onyx.set(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE, {
-                rate: 70,
-                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
-            });
 
             duplicateExpenseTransaction({
                 dateFnsLocale: undefined,
@@ -2002,8 +1997,7 @@ describe('actions/Duplicate', () => {
             expect(trackExpenseCall).toBeDefined();
             expect(trackExpenseCall?.[1]).toEqual(
                 expect.objectContaining({
-                    customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
-                    distance: 91.38,
+                    distance: 56.78,
                     distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
                     waypoints: undefined,
                 }),
@@ -2020,9 +2014,7 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.transactionID).not.toBe(transactionID);
             expect(duplicatedTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL);
             expect(duplicatedTransaction?.comment?.waypoints).toBeUndefined();
-            expect(duplicatedTransaction?.comment?.customUnit?.customUnitRateID).toBeUndefined();
-            expect(duplicatedTransaction?.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
-            expect(duplicatedTransaction?.comment?.customUnit?.quantity).toBe(91.38);
+            expect(duplicatedTransaction?.comment?.customUnit?.quantity).toBe(56.78);
         });
 
         it('should create a duplicate expense successfully (previously with transaction drafts)', async () => {

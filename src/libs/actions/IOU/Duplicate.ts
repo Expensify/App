@@ -8,7 +8,6 @@ import * as API from '@libs/API';
 import type {MergeDuplicatesParams, ResolveDuplicatesParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
-import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -28,7 +27,6 @@ import {
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {
-    getCurrency,
     getReimbursable,
     getRequestType,
     getTransactionType,
@@ -80,7 +78,7 @@ function getIOUActionForTransactions(
         if (!isMoneyRequestAction(reportAction)) {
             return false;
         }
-        const message = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction);
+        const message = getOriginalMessage(reportAction);
         if (!message?.IOUTransactionID) {
             return false;
         }
@@ -609,18 +607,6 @@ function shouldDuplicateAsManualDistance(transaction: OnyxTypes.Transaction, sho
     return shouldDuplicateSelfDMExpense && isGPSDistanceRequest(transaction);
 }
 
-function getManualDuplicateDistance(transaction: OnyxTypes.Transaction) {
-    const distance = transaction.comment?.customUnit?.quantity ?? undefined;
-    const sourceUnit = transaction.comment?.customUnit?.distanceUnit;
-    const targetUnit = DistanceRequestUtils.getRateForP2P(getCurrency(transaction), transaction).unit;
-    if (distance === undefined || !sourceUnit || sourceUnit === targetUnit) {
-        return distance;
-    }
-
-    const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, sourceUnit);
-    return NumberUtils.roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, targetUnit));
-}
-
 /**
  * Builds the transactionParams object and computes waypoints used when duplicating a transaction.
  * Shared between duplicateExpenseTransaction and duplicateReport.
@@ -642,7 +628,7 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
         attendees: transactionDetails?.attendees as Attendee[] | undefined,
         comment: Parser.htmlToMarkdown(transactionDetails?.comment ?? ''),
         created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-        customUnitRateID: duplicateAsManualDistance ? CONST.CUSTOM_UNITS.FAKE_P2P_ID : transaction.comment?.customUnit?.customUnitRateID,
+        customUnitRateID: transaction.comment?.customUnit?.customUnitRateID,
         isFromGlobalCreate: undefined,
         isLinkedTrackedExpenseReportArchived: undefined,
         isTestDrive: transaction.receipt?.isTestDriveReceipt,
@@ -662,7 +648,7 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
     };
 
     if (isDistanceRequest(transaction) && (isExpenseSplit(transaction) || isOdometerDistanceRequest(transaction) || duplicateAsManualDistance)) {
-        transactionParams.distance = duplicateAsManualDistance ? getManualDuplicateDistance(transaction) : (transaction.comment?.customUnit?.quantity ?? undefined);
+        transactionParams.distance = transaction.comment?.customUnit?.quantity ?? undefined;
     }
 
     return {transactionParams, waypoints};
@@ -866,7 +852,6 @@ function duplicateExpenseTransaction({
     // A duplicate mirrors the source, so an unreported source stays unreported even when a workspace is available
     const isSourceUnreported = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const shouldDuplicateSelfDMExpense = !targetPolicy;
-    const duplicateAsManualDistance = shouldDuplicateAsManualDistance(transaction, shouldDuplicateSelfDMExpense);
     const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails, shouldDuplicateSelfDMExpense);
     const duplicateRequestType = getDuplicateRequestType(transaction, shouldDuplicateSelfDMExpense);
 
@@ -931,12 +916,6 @@ function duplicateExpenseTransaction({
                 transactionID: '1',
                 comment: {
                     ...transaction.comment,
-                    ...(duplicateAsManualDistance && {
-                        customUnit: {
-                            ...transaction.comment?.customUnit,
-                            customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
-                        },
-                    }),
                     hold: undefined,
                     originalTransactionID: undefined,
                     source: undefined,
