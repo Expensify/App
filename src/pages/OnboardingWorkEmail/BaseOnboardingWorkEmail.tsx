@@ -127,9 +127,8 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 return;
             }
 
-            // The task is open, either because it was never done or because the user unticked it to add a different
-            // work email. Show the form and ignore any shouldValidate left over from an earlier submission, which
-            // would otherwise skip them straight past the form to the code screen.
+            // The task is still open, so show the form. Any shouldValidate left over from an earlier attempt is ignored
+            // until this visit submits something, otherwise a stale value would skip straight past the form.
             if (!hasSubmittedWorkEmail) {
                 return;
             }

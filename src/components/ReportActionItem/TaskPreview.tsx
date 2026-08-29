@@ -97,8 +97,10 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     // The join-workspace intent's tasks each point at an onboarding screen that only makes sense until the step is
-    // done. Once completed there is nothing left to act on, so they lose their link, their press target and their
-    // disclosure arrow. Other tasks keep the standard behaviour of staying openable after completion.
+    // done. Once completed there is nothing left to act on, so they lose their link, their press target, their
+    // disclosure arrow and their checkbox - AddWorkEmail rejects a second attempt from an account that validated in
+    // the meantime, so reopening one would only lead to a request that cannot succeed. Other tasks keep the standard
+    // behaviour of staying openable and reopenable after completion.
     const isFinishedJoinWorkspaceTask =
         isTaskCompletedFromOnyx &&
         !!taskReportID &&
@@ -191,7 +193,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                         <Checkbox
                             style={[styles.mr2]}
                             isChecked={isTaskCompleted}
-                            disabled={!isTaskActionable}
+                            disabled={!isTaskActionable || isFinishedJoinWorkspaceTask}
                             shouldSelectOnPressEnter
                             onPress={callFunctionIfActionIsAllowed(() => {
                                 updateTaskCheckboxStateForAccessibility(isTaskCompleted);
