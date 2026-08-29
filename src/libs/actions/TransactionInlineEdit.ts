@@ -504,15 +504,15 @@ function getTransactionEditPermissions({
             // rather than empty and keep the cell editable: opening the picker mounts CategoryPicker, which backfills
             // the list. Without this the cell deadlocks on an expense with a missing category — the edit icon is
             // hidden, so the picker never mounts and the categories are never fetched.
-            const areCategoriesEnabledButNotLoaded = !!policy?.areCategoriesEnabled && policyCategories === undefined;
+            const areCategoriesEnabledButUnloaded = !!policy?.areCategoriesEnabled && policyCategories === undefined;
             // Matches MoneyRequestView's shouldShowCategory logic
             // For policy expenses, check if there's a category or enabled options
             if (isGroupPolicy(policy)) {
-                return !!(transaction?.category ?? '') || areCategoriesEnabledButNotLoaded || hasEnabledOptions(policyCategories ?? {});
+                return !!(transaction?.category ?? '') || areCategoriesEnabledButUnloaded || hasEnabledOptions(policyCategories ?? {});
             }
             // For unreported expenses, disable inline category editing while workspace selection is required.
             if (isUnreported) {
-                return !shouldSelectPolicyForUnreported && (areCategoriesEnabledButNotLoaded || hasEnabledOptions(policyCategories ?? {}));
+                return !shouldSelectPolicyForUnreported && (areCategoriesEnabledButUnloaded || hasEnabledOptions(policyCategories ?? {}));
             }
         }
 
