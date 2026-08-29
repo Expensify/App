@@ -20,7 +20,7 @@ Report previews are summaries shown directly in your workspace chat in the **Inb
 ## Preview Details
 - Report title and status (e.g., Approved, Paid)  
 - Up to 10 expense previews with:
-  - Date, category, tag
+  - Date and category
   - Merchant or description
   - Receipt thumbnail  
 - Carousel navigation  

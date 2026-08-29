@@ -8,7 +8,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     getInvoiceReceiverPolicyID,
