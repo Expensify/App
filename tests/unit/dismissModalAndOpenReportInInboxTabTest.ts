@@ -1,19 +1,25 @@
 import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
+import type isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import Navigation from '@libs/Navigation/Navigation';
 
-const mockIsSearchTopmostFullScreenRoute = jest.fn();
-const mockIsReportOpenInRHP = jest.fn();
-const mockGetTrackingState = jest.fn();
+const mockIsSearchTopmostFullScreenRoute = jest.fn<boolean, []>();
+const mockIsReportOpenInRHP = jest.fn<ReturnType<typeof isReportOpenInRHP>, Parameters<typeof isReportOpenInRHP>>();
+const mockGetTrackingState = jest.fn<boolean, []>();
 
-jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => mockIsSearchTopmostFullScreenRoute() as boolean);
-jest.mock('@libs/Navigation/helpers/isReportOpenInRHP', () => () => mockIsReportOpenInRHP() as boolean);
-jest.mock('@libs/Navigation/helpers/isReportOpenInSuperWideRHP', () => () => false as boolean);
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => mockIsSearchTopmostFullScreenRoute());
+jest.mock(
+    '@libs/Navigation/helpers/isReportOpenInRHP',
+    () =>
+        (...args: Parameters<typeof isReportOpenInRHP>) =>
+            mockIsReportOpenInRHP(...args),
+);
+jest.mock('@libs/Navigation/helpers/isReportOpenInSuperWideRHP', () => () => false);
 jest.mock('@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue', () => (callback: () => void) => {
     callback();
 });
-jest.mock('@libs/getIsNarrowLayout', () => () => false as boolean);
+jest.mock('@libs/getIsNarrowLayout', () => () => false);
 jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
-    isTracking: (...args: unknown[]) => mockGetTrackingState(...args) as boolean,
+    isTracking: () => mockGetTrackingState(),
     endSubmitFollowUpActionSpan: jest.fn(),
     setPendingSubmitFollowUpAction: jest.fn(),
 }));
@@ -36,7 +42,7 @@ jest.mock('@react-navigation/native');
 describe('dismissModalAndOpenReportInInboxTab', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockGetTrackingState.mockReturnValue(null);
+        mockGetTrackingState.mockReturnValue(false);
         mockIsReportOpenInRHP.mockReturnValue(false);
         mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
     });
