@@ -19,6 +19,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {navigateAfterOnboardingWithMicrotaskQueue, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import {dismissOnboardingModalBeforeExit} from '@libs/Navigation/helpers/OnboardingNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
@@ -79,6 +80,14 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
     const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboardingValues);
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
+
+    // This screen can be opened from a Concierge task on top of whichever report the user was reading, so remember it
+    // and return there rather than to a fixed destination. goBack() is unreliable here and falls through to Home.
+    const [originReportID] = useState(() => Navigation.getTopmostReportId());
+    const returnToOriginReport = () => {
+        dismissOnboardingModalBeforeExit();
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(originReportID ?? conciergeReportID));
+    };
     const shouldHideBackButton = onboardingValues?.shouldValidate === false && route.params?.backTo === ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
 
     const handleJoinWorkspace = (policy: JoinablePolicy) => {
@@ -86,9 +95,18 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         const shouldUseSubmitFlow = policy.automaticJoiningEnabled && isJoiningSubmitPolicy;
 
         if (policy.automaticJoiningEnabled) {
-            joinAccessiblePolicy(policy.policyID);
+            joinAccessiblePolicy(policy.policyID, introSelected?.joinWorkspace);
         } else {
+            // Asking to join only sends a request, so the task stays open until an admin approves it.
             askToJoinPolicy(policy.policyID);
+        }
+
+        // Reached from a Concierge task rather than as an onboarding step. Onboarding is already finished, so
+        // completing it again would post the whole welcome message and task list a second time - just join and return
+        // the user to wherever they opened this from.
+        if (hasCompletedGuidedSetupFlow) {
+            returnToOriginReport();
+            return;
         }
 
         completeOnboarding({
@@ -168,7 +186,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             // Opened from a Concierge task after onboarding finished: there is no onboarding step to continue into,
             // so just close instead of completing onboarding again.
             if (hasCompletedGuidedSetupFlow) {
-                Navigation.goBack();
+                returnToOriginReport();
                 return;
             }
 

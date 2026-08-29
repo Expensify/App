@@ -1146,11 +1146,11 @@ function inviteMemberToWorkspace(policyID: string, inviterEmail?: string) {
  * NotFoundPage flash in `WorkspaceInitialPage` / `AccessOrNotFoundWrapper`
  * until the backend response hydrates the policy with its actual shape.
  */
-function joinAccessiblePolicy(policyID: string) {
+function joinAccessiblePolicy(policyID: string, onboardingTaskReportID?: string) {
     const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER | typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER | typeof ONYXKEYS.COLLECTION.POLICY | `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
@@ -1163,6 +1163,19 @@ function joinAccessiblePolicy(policyID: string) {
         },
     ];
 
+    // Auth auto-completes the join workspace task as part of JoinAccessiblePolicy, but it forwards a separate
+    // CompleteTask command whose Onyx updates only arrive over Pusher, so tick the task here to avoid a stale checkbox.
+    if (onboardingTaskReportID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${onboardingTaskReportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            },
+        });
+    }
+
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1171,7 +1184,7 @@ function joinAccessiblePolicy(policyID: string) {
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER | typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER | typeof ONYXKEYS.COLLECTION.POLICY | `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
@@ -1183,6 +1196,17 @@ function joinAccessiblePolicy(policyID: string) {
             value: {isLoading: false},
         },
     ];
+
+    if (onboardingTaskReportID) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${onboardingTaskReportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            },
+        });
+    }
 
     API.write(WRITE_COMMANDS.JOIN_ACCESSIBLE_POLICY, {policyID}, {optimisticData, successData, failureData});
 }
