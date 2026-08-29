@@ -1967,6 +1967,7 @@ type CreateOptionFromReportParams = {
     policyTags?: OnyxEntry<PolicyTagLists>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     isTrackIntentUser?: boolean;
+    currentUserAccountID: number;
 };
 
 function createOptionFromReport({
@@ -1982,6 +1983,7 @@ function createOptionFromReport({
     policyTags,
     visibleReportActionsData = {},
     isTrackIntentUser,
+    currentUserAccountID,
 }: CreateOptionFromReportParams) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
@@ -2001,6 +2003,7 @@ function createOptionFromReport({
             visibleReportActionsData,
             sortedActions,
             isTrackIntentUser,
+            currentUserAccountID,
         }),
     };
 }

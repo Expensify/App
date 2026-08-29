@@ -5368,7 +5368,7 @@ describe('ReportActionsUtils', () => {
                 creditedAmount: 8050,
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString, CONST.DEFAULT_NUMBER_ID);
 
             // Then we describe the payment without an amount rather than guessing a currency
             expect(result).toBe(

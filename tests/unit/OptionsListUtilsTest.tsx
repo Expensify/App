@@ -10842,6 +10842,7 @@ describe('OptionsListUtils', () => {
             // When the threaded conciergeReportID matches the report
             const conciergeOption = createOptionFromReport({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 personalDetails: PERSONAL_DETAILS,
                 privateIsArchived: undefined,
@@ -10854,6 +10855,7 @@ describe('OptionsListUtils', () => {
             // And an identical report with a non-matching conciergeReportID is not treated as Concierge
             const regularOption = createOptionFromReport({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 personalDetails: PERSONAL_DETAILS,
                 privateIsArchived: undefined,
@@ -10883,6 +10885,7 @@ describe('OptionsListUtils', () => {
 
             const result = createOptionFromReport({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 personalDetails: PERSONAL_DETAILS,
                 privateIsArchived: undefined,
@@ -10915,6 +10918,7 @@ describe('OptionsListUtils', () => {
 
             const result = createOptionFromReport({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 personalDetails: PERSONAL_DETAILS,
                 privateIsArchived: true,
@@ -10946,6 +10950,7 @@ describe('OptionsListUtils', () => {
 
             const result = createOptionFromReport({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 personalDetails: PERSONAL_DETAILS,
                 privateIsArchived: undefined,
@@ -10977,6 +10982,7 @@ describe('OptionsListUtils', () => {
 
             const result = createOptionFromReport({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 personalDetails: PERSONAL_DETAILS,
                 privateIsArchived: undefined,
@@ -11009,6 +11015,7 @@ describe('OptionsListUtils', () => {
             const config = {showPersonalDetails: true};
             const result = createOptionFromReport({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 personalDetails: PERSONAL_DETAILS,
                 privateIsArchived: undefined,
@@ -11046,6 +11053,7 @@ describe('OptionsListUtils', () => {
 
             const roomOption = createOptionFromReport({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 personalDetails: PERSONAL_DETAILS,
                 privateIsArchived: undefined,
@@ -11055,6 +11063,7 @@ describe('OptionsListUtils', () => {
             });
             const personalDetailsOption = createOptionFromReport({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 personalDetails: PERSONAL_DETAILS,
                 privateIsArchived: undefined,
@@ -11067,6 +11076,66 @@ describe('OptionsListUtils', () => {
             expect(roomOption.text).toBe('#admins');
             // With showPersonalDetails the option is named after the other participant (account 1 in PERSONAL_DETAILS).
             expect(personalDetailsOption.text).toBe('Mister Fantastic');
+        });
+
+        it('should use the passed currentUserAccountID for the reimbursed preview wording', async () => {
+            // Dedicated reportID: module-level report-action caches survive Onyx.clear(), so writing
+            // REPORT_ACTIONS for a shared reportID would poison later tests that reuse it.
+            const reimbursedReportID = 'create-option-reimbursed-1';
+            const ownerAccountID = 42;
+            const submitterLogin = 'submitter@expensify.com';
+
+            // Given an expense report whose last action is a Fast_ACH reimbursement paid to account 42
+            const report: Report = {
+                reportID: reimbursedReportID,
+                reportName: 'Expense Report',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID,
+                lastMessageText: '',
+                lastActionType: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                lastVisibleActionCreated: '2024-01-01 10:00:00.000',
+            };
+            const reimbursedAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: 'reimbursed-1',
+                created: '2024-01-01 10:00:00.000',
+                actorAccountID: 3,
+                originalMessage: {
+                    paymentMethod: 'Fast_ACH',
+                    creditBankAccountLast4: '1111',
+                    expectedDate: '2025-03-15',
+                },
+                message: [{type: 'COMMENT', html: 'reimbursed', text: 'reimbursed'}],
+            } as unknown as ReportAction;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reimbursedReportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reimbursedReportID}`, {[reimbursedAction.reportActionID]: reimbursedAction});
+            await waitForBatchedUpdates();
+
+            const personalDetailsWithSubmitter = {
+                ...PERSONAL_DETAILS,
+                [ownerAccountID]: {accountID: ownerAccountID, login: submitterLogin, displayName: 'Submitter'},
+            };
+            const params = {
+                dateFnsLocale: undefined,
+                report,
+                personalDetails: personalDetailsWithSubmitter,
+                privateIsArchived: undefined,
+                policy: undefined,
+                sortedActions: {[reimbursedReportID]: [reimbursedAction]},
+                conciergeReportID: undefined,
+                config: {showChatPreviewLine: true},
+            };
+
+            // When the option is built for the report owner
+            const ownOption = createOptionFromReport({...params, currentUserAccountID: ownerAccountID});
+
+            // And for somebody else
+            const otherOption = createOptionFromReport({...params, currentUserAccountID: 999});
+
+            // Then the wording follows the passed currentUserAccountID, not the module-level session value
+            expect(ownOption.alternateText).toContain('your bank account ending in 1111');
+            expect(otherOption.alternateText).toContain(`${submitterLogin}'s bank account ending in 1111`);
         });
     });
 
@@ -11539,6 +11608,7 @@ describe('OptionsListUtils', () => {
 
             const result = createOptionFromReport({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 personalDetails: PERSONAL_DETAILS,
                 privateIsArchived: undefined,
