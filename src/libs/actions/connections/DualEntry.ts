@@ -1,6 +1,9 @@
 import {write} from '@libs/API';
 import type {
     ConnectPolicyToDualEntryParams,
+    UpdateDualEntryAccountingMethodParams,
+    UpdateDualEntryAutoSyncParams,
+    UpdateDualEntryBillPaymentAccountParams,
     UpdateDualEntryCreditCardAccountParams,
     UpdateDualEntryDefaultVendorParams,
     UpdateDualEntryEnableNewCategoriesParams,
@@ -8,15 +11,21 @@ import type {
     UpdateDualEntryExportDateParams,
     UpdateDualEntryExporterParams,
     UpdateDualEntryFieldMappingParams,
+    UpdateDualEntrySettlementsAccountParams,
     UpdateDualEntrySubsidiaryParams,
+    UpdateDualEntrySyncExpensifyCardSettlementsParams,
+    UpdateDualEntrySyncReimbursedReportsParams,
     UpdateDualEntrySyncTaxRatesParams,
+    UpdateDualEntrySyncTravelInvoicingSettlementsParams,
+    UpdateDualEntryTravelInvoicingPayableAccountParams,
+    UpdateDualEntryTravelInvoicingSettlementsAccountParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {DualEntryCoding, DualEntryConnectionsConfig, DualEntryExport} from '@src/types/onyx/Policy';
+import type {DualEntryAutoSync, DualEntryCoding, DualEntryConnectionsConfig, DualEntryExport, DualEntrySync} from '@src/types/onyx/Policy';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -356,6 +365,151 @@ function prepareDualEntryExportOnyxData<TSettingName extends keyof DualEntryExpo
     return {optimisticData, successData, failureData};
 }
 
+function prepareDualEntryAutoSyncOnyxData(policyID: string, enabled: DualEntryAutoSync['enabled'], oldEnabled?: DualEntryAutoSync['enabled'] | null) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    dualEntry: {
+                        config: {
+                            autoSync: {
+                                enabled,
+                            },
+                            pendingFields: {
+                                [CONST.DUALENTRY_CONFIG.AUTO_SYNC]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [CONST.DUALENTRY_CONFIG.AUTO_SYNC]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    dualEntry: {
+                        config: {
+                            pendingFields: {
+                                [CONST.DUALENTRY_CONFIG.AUTO_SYNC]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    dualEntry: {
+                        config: {
+                            autoSync: {
+                                enabled: oldEnabled ?? null,
+                            },
+                            pendingFields: {
+                                [CONST.DUALENTRY_CONFIG.AUTO_SYNC]: null,
+                            },
+                            errorFields: {
+                                [CONST.DUALENTRY_CONFIG.AUTO_SYNC]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, successData, failureData};
+}
+
+function prepareDualEntrySyncOnyxData<TSettingName extends keyof DualEntrySync>(
+    policyID: string,
+    settingName: TSettingName,
+    settingValue: Partial<DualEntrySync[TSettingName]>,
+    oldSettingValue: Partial<DualEntrySync[TSettingName]> | null,
+) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    dualEntry: {
+                        config: {
+                            sync: {
+                                [settingName]: settingValue ?? null,
+                            },
+                            pendingFields: {
+                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    dualEntry: {
+                        config: {
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    dualEntry: {
+                        config: {
+                            sync: {
+                                [settingName]: oldSettingValue ?? null,
+                            },
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, successData, failureData};
+}
+
 function updateDualEntrySubsidiary(policyID: string, subsidiaryID: DualEntryConnectionsConfig['subsidiaryID'], oldSubsidiaryID?: DualEntryConnectionsConfig['subsidiaryID']) {
     const onyxData = prepareDualEntryOnyxData(policyID, CONST.DUALENTRY_CONFIG.SUBSIDIARY_ID, subsidiaryID, oldSubsidiaryID ?? null);
     const params: UpdateDualEntrySubsidiaryParams = {
@@ -447,6 +601,113 @@ function updateDualEntryExpensifyCardAccount(
     write(WRITE_COMMANDS.UPDATE_DUALENTRY_EXPENSIFY_CARD_ACCOUNT, parameters, onyxData);
 }
 
+function updateDualEntryAutoSync(policyID: string, enabled: DualEntryAutoSync['enabled'], oldEnabled?: DualEntryAutoSync['enabled']) {
+    const onyxData = prepareDualEntryAutoSyncOnyxData(policyID, enabled, oldEnabled ?? null);
+    const parameters: UpdateDualEntryAutoSyncParams = {
+        policyID,
+        enabled,
+    };
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_AUTO_SYNC, parameters, onyxData);
+}
+
+function updateDualEntryAccountingMethod(policyID: string, accountingMethod: DualEntryExport['accountingMethod'], oldAccountingMethod?: DualEntryExport['accountingMethod']) {
+    const onyxData = prepareDualEntryExportOnyxData(policyID, CONST.DUALENTRY_CONFIG.ACCOUNTING_METHOD, accountingMethod, oldAccountingMethod ?? null);
+    const parameters: UpdateDualEntryAccountingMethodParams = {
+        policyID,
+        accountingMethod,
+    };
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_ACCOUNTING_METHOD, parameters, onyxData);
+}
+
+function updateDualEntrySyncReimbursedReports(policyID: string, enabled: DualEntrySync['syncReimbursedReports'], oldEnabled?: DualEntrySync['syncReimbursedReports']) {
+    const onyxData = prepareDualEntrySyncOnyxData(policyID, CONST.DUALENTRY_CONFIG.SYNC_REIMBURSED_REPORTS, enabled, oldEnabled ?? null);
+    const parameters: UpdateDualEntrySyncReimbursedReportsParams = {
+        policyID,
+        enabled,
+    };
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_REIMBURSED_REPORTS, parameters, onyxData);
+}
+
+function updateDualEntryBillPaymentAccount(policyID: string, billPaymentAccountID: DualEntrySync['billPaymentAccountID'], oldBillPaymentAccountID?: DualEntrySync['billPaymentAccountID']) {
+    const onyxData = prepareDualEntrySyncOnyxData(policyID, CONST.DUALENTRY_CONFIG.BILL_PAYMENT_ACCOUNT_ID, billPaymentAccountID, oldBillPaymentAccountID ?? null);
+    const parameters: UpdateDualEntryBillPaymentAccountParams = {
+        policyID,
+        billPaymentAccountID,
+    };
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_BILL_PAYMENT_ACCOUNT, parameters, onyxData);
+}
+
+function updateDualEntrySyncExpensifyCardSettlements(policyID: string, enabled: DualEntrySync['syncExpensifyCardSettlements'], oldEnabled?: DualEntrySync['syncExpensifyCardSettlements']) {
+    const onyxData = prepareDualEntrySyncOnyxData(policyID, CONST.DUALENTRY_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS, enabled, oldEnabled ?? null);
+    const parameters: UpdateDualEntrySyncExpensifyCardSettlementsParams = {
+        policyID,
+        enabled,
+    };
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_EXPENSIFY_CARD_SETTLEMENTS, parameters, onyxData);
+}
+
+function updateDualEntrySettlementsAccount(
+    policyID: string,
+    settlementsBankAccountID: DualEntrySync['settlementsBankAccountID'],
+    oldSettlementsBankAccountID?: DualEntrySync['settlementsBankAccountID'],
+) {
+    const onyxData = prepareDualEntrySyncOnyxData(policyID, CONST.DUALENTRY_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID, settlementsBankAccountID, oldSettlementsBankAccountID ?? null);
+    const parameters: UpdateDualEntrySettlementsAccountParams = {
+        policyID,
+        settlementsBankAccountID,
+    };
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_SETTLEMENTS_ACCOUNT, parameters, onyxData);
+}
+
+function updateDualEntrySyncTravelInvoicingSettlements(
+    policyID: string,
+    enabled: DualEntrySync['syncTravelInvoicingSettlements'],
+    oldEnabled?: DualEntrySync['syncTravelInvoicingSettlements'],
+) {
+    const onyxData = prepareDualEntrySyncOnyxData(policyID, CONST.DUALENTRY_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS, enabled, oldEnabled ?? null);
+    const parameters: UpdateDualEntrySyncTravelInvoicingSettlementsParams = {
+        policyID,
+        enabled,
+    };
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_TRAVEL_INVOICING_SETTLEMENTS, parameters, onyxData);
+}
+
+function updateDualEntryTravelInvoicingSettlementsAccount(
+    policyID: string,
+    travelInvoicingSettlementsBankAccountID: DualEntrySync['travelInvoicingSettlementsBankAccountID'],
+    oldTravelInvoicingSettlementsBankAccountID?: DualEntrySync['travelInvoicingSettlementsBankAccountID'],
+) {
+    const onyxData = prepareDualEntrySyncOnyxData(
+        policyID,
+        CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID,
+        travelInvoicingSettlementsBankAccountID,
+        oldTravelInvoicingSettlementsBankAccountID ?? null,
+    );
+    const parameters: UpdateDualEntryTravelInvoicingSettlementsAccountParams = {
+        policyID,
+        travelInvoicingSettlementsBankAccountID,
+    };
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT, parameters, onyxData);
+}
+
+function updateDualEntryTravelInvoicingPayableAccount(
+    policyID: string,
+    travelInvoicingPayableAccountID: DualEntryExport['travelInvoicingPayableAccountID'],
+    oldTravelInvoicingPayableAccountID?: DualEntryExport['travelInvoicingPayableAccountID'],
+) {
+    const onyxData = prepareDualEntryExportOnyxData(
+        policyID,
+        CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID,
+        travelInvoicingPayableAccountID,
+        oldTravelInvoicingPayableAccountID ?? null,
+    );
+    const parameters: UpdateDualEntryTravelInvoicingPayableAccountParams = {
+        policyID,
+        travelInvoicingPayableAccountID,
+    };
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, onyxData);
+}
+
 export {
     connectToDualEntry,
     clearDualEntryErrorField,
@@ -459,4 +720,13 @@ export {
     updateDualEntryDefaultVendor,
     updateDualEntryCreditCardAccount,
     updateDualEntryExpensifyCardAccount,
+    updateDualEntryAutoSync,
+    updateDualEntryAccountingMethod,
+    updateDualEntrySyncReimbursedReports,
+    updateDualEntryBillPaymentAccount,
+    updateDualEntrySyncExpensifyCardSettlements,
+    updateDualEntrySettlementsAccount,
+    updateDualEntrySyncTravelInvoicingSettlements,
+    updateDualEntryTravelInvoicingSettlementsAccount,
+    updateDualEntryTravelInvoicingPayableAccount,
 };
