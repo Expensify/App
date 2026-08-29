@@ -246,6 +246,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
                 textInputOptions={textInputOptions}
                 isLoadingNewOptions={canInviteMembers && !!isSearchingForReports}
                 initiallyFocusedItemKey={initialAssigneeEmail}
+                shouldScrollToFocusedIndexOnMount={false}
                 disableMaintainingScrollPosition
                 shouldUpdateFocusedIndex
                 addBottomSafeAreaPadding
