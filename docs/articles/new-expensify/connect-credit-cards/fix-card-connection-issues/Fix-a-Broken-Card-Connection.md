@@ -104,7 +104,7 @@ If you see an error while reconnecting, use the guidance below:
 Some banks have known connection quirks with a more reliable path than repeatedly reconnecting:
 
 **Bank of America (persistent disconnects)**
-If a direct or Plaid connection to Bank of America keeps breaking, the most reliable fix is to switch to a **commercial card feed** (Visa/Mastercard) or an **OFX feed** rather than reconnecting again and again. See [Set up a Commercial Card Feed](/articles/new-expensify/connect-credit-cards/Set-up-a-Commercial-Card-Feed-Connection).
+If a direct or Plaid connection to Bank of America keeps breaking, the most reliable fix is to switch to a **commercial card feed** (Visa/Mastercard) or an **OFX feed** rather than reconnecting again and again. See [Set up a Commercial Card Feed](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Card-Feed-Connection).
 
 **American Express (repeated reconnect prompts / authorization loop)**
 If American Express keeps prompting you to reconnect or loops during authorization, first clear your browser cache, try a different browser, and disable browser extensions, then reconnect. If it still loops, the connection needs a token refresh on Expensify's side — contact Concierge (see below) so it can be reset, rather than continuing to retry.
@@ -138,8 +138,8 @@ When the connection is restored:
 
 If a connection keeps failing, you can connect using an alternative method:
 
-- **Plaid** is supported as a fallback for both personal cards (select **Other** when choosing your bank) and company cards. It often stays connected more reliably than a direct bank login. [Learn how to set up a direct company card feed connection using Plaid](/articles/new-expensify/connect-credit-cards/Set-up-a-Direct-Company-Card-Feed-Connection).
-- **Spreadsheet (CSV) import** always works as a backstop and won't create duplicates on re-import. [Import personal card transactions from a spreadsheet](/articles/new-expensify/connect-credit-cards/Import-Personal-Card-Transactions-From-a-Spreadsheet) or [import company card transactions from a spreadsheet](/articles/new-expensify/connect-credit-cards/Import-Company-Card-Transactions-From-a-Spreadsheet).
+- **Plaid** is supported as a fallback for both personal cards (select **Other** when choosing your bank) and company cards. It often stays connected more reliably than a direct bank login. [Learn how to set up a direct company card feed connection using Plaid](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Direct-Company-Card-Feed-Connection).
+- **Spreadsheet (CSV) import** always works as a backstop and won't create duplicates on re-import. [Import personal card transactions from a spreadsheet](/articles/new-expensify/connect-credit-cards/Import-Personal-Card-Transactions-From-a-Spreadsheet) or [import company card transactions from a spreadsheet](/articles/new-expensify/connect-credit-cards/connect-company-cards/Import-Company-Card-Transactions-From-a-Spreadsheet).
 
 ---
 
