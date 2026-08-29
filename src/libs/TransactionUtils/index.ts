@@ -219,13 +219,14 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
     policies?: OnyxCollection<Policy>;
     translate: LocaleContextProps['translate'];
 }): OnyxEntry<Transaction> {
-    if (!transaction || shouldUseCommuterExclusionForDisplay(transaction, isPolicyExpenseChat)) {
+    const hasCommuterExclusion = hasAppliedCommuterExclusion(transaction);
+    if (!transaction || (hasCommuterExclusion && isPolicyExpenseChat)) {
         return transaction;
     }
 
     const customUnit = transaction.comment?.customUnit;
     const fullDistance = customUnit?.quantity;
-    if (!hasAppliedCommuterExclusion(transaction) || typeof fullDistance !== 'number') {
+    if (!hasCommuterExclusion || typeof fullDistance !== 'number') {
         return transaction;
     }
 
