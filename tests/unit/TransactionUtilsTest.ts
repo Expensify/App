@@ -1325,6 +1325,7 @@ describe('TransactionUtils', () => {
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
                 amount: 415,
                 convertedAmount: 415,
+                currency: CONST.CURRENCY.EUR,
                 modifiedAmount: 415,
                 merchant: '5.46 mi @ $0.76 / mi',
                 modifiedMerchant: '5.46 mi @ $0.76 / mi',
@@ -1356,6 +1357,103 @@ describe('TransactionUtils', () => {
             expect(displayTransaction.merchant).toContain('6.46 mi');
             expect(displayTransaction.merchant).not.toContain('5.46 mi');
             expect(displayTransaction.modifiedMerchant).toBeUndefined();
+            expect(displayTransaction.currency).toBe(CONST.CURRENCY.USD);
+        });
+
+        it('preserves a negative sign when rebuilding from the base amount', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: -415,
+                modifiedAmount: undefined,
+                merchant: '5.46 mi @ $0.76 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+
+            const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction,
+                isPolicyExpenseChat: false,
+                policy: policyWithDistanceRate,
+                translate,
+            });
+
+            expect(displayTransaction?.amount).toBe(-491);
+        });
+
+        it('returns the stored transaction when the full distance is missing', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 415,
+                merchant: '5.46 mi @ $0.76 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+
+            expect(
+                TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                    transaction,
+                    isPolicyExpenseChat: false,
+                    policy: policyWithDistanceRate,
+                    translate,
+                }),
+            ).toBe(transaction);
+        });
+
+        it('uses the transaction currency when the mileage rate has no currency', () => {
+            const policyWithoutRateCurrency: Policy = {
+                ...policyWithDistanceRate,
+                customUnits: {
+                    distance: {
+                        ...policyWithDistanceRate.customUnits?.distance,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            rate1: {
+                                ...policyWithDistanceRate.customUnits?.distance?.rates?.rate1,
+                                customUnitRateID: 'rate1',
+                                currency: undefined,
+                            },
+                        },
+                    },
+                },
+            };
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 415,
+                currency: CONST.CURRENCY.EUR,
+                merchant: '5.46 mi @ EUR0.76 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+
+            const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction,
+                isPolicyExpenseChat: false,
+                policy: policyWithoutRateCurrency,
+                translate,
+            });
+
+            expect(displayTransaction?.currency).toBe(CONST.CURRENCY.EUR);
         });
 
         it('keeps commuter-excluded values for policy expense chats', () => {
