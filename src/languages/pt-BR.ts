@@ -10100,7 +10100,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `A tarifa só é válida até ${endDate}`,
         cannotMergeDuplicates: 'Você só pode mesclar despesas em relatórios rascunho ou pendentes. Retraia o relatório e tente novamente.',
         overCategoryLimitPerNight: (formattedLimit: string) => `Tarifa por noite acima do limite de categoria de ${formattedLimit}/pessoa`,
-        overLimitPerNight: (formattedLimit: string) => `Tarifa por noite acima do limite de ${formattedLimit}/pessoa`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} é obrigatório`,

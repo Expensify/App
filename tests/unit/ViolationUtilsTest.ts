@@ -1117,6 +1117,91 @@ describe('getViolationsOnyxData', () => {
                 expect(getViolations().find((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED)).toBeDefined();
             });
         });
+
+        describe('multi-day reservations are measured against the category nightly rate', () => {
+            const getViolations = (): TransactionViolation[] => {
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                return Array.isArray(result.value) ? result.value : [];
+            };
+
+            const findCategoryOverLimit = (violations: TransactionViolation[]) => violations.find((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
+
+            beforeEach(() => {
+                transaction.category = 'Hotel';
+                policyCategories = {
+                    Hotel: {
+                        name: 'Hotel',
+                        enabled: true,
+                        maxExpenseAmount: 150000,
+                    },
+                };
+            });
+
+            it('should add overCategoryLimit violation when the nightly rate exceeds the category limit', () => {
+                // 5 nights: nightly average (200000) exceeds category limit (150000)
+                transaction.amount = -1000000;
+                transaction.receipt = {
+                    hotelReservationStartDate: '2026-03-01',
+                    hotelReservationEndDate: '2026-03-06',
+                };
+
+                const violation = findCategoryOverLimit(getViolations());
+                expect(violation).toBeDefined();
+                expect(violation?.data?.nights).toBe(5);
+            });
+
+            it('should not add overCategoryLimit violation when the nightly rate is within the category limit', () => {
+                // 5 nights: nightly average (120000) is under category limit (150000), even though total (600000) exceeds it
+                transaction.amount = -600000;
+                transaction.receipt = {
+                    hotelReservationStartDate: '2026-03-01',
+                    hotelReservationEndDate: '2026-03-06',
+                };
+
+                expect(findCategoryOverLimit(getViolations())).toBeUndefined();
+            });
+
+            it('should flag the full amount and omit the night count when the receipt has no reservation dates', () => {
+                // No hotel dates: full amount (200000) is compared, exceeds category limit (150000)
+                transaction.amount = -200000;
+
+                const violation = findCategoryOverLimit(getViolations());
+                expect(violation).toBeDefined();
+                expect(violation?.data?.nights).toBeUndefined();
+            });
+
+            it('should replace a stale overCategoryLimit violation when the night count changes', () => {
+                // Existing violation recorded 3 nights; receipt now reflects a 5-night stay
+                transactionViolations = [
+                    {
+                        name: CONST.VIOLATIONS.OVER_CATEGORY_LIMIT,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                        data: {amount: 150000, currency: CONST.CURRENCY.USD, nights: 3},
+                    },
+                ];
+                transaction.amount = -1000000;
+                transaction.receipt = {
+                    hotelReservationStartDate: '2026-03-01',
+                    hotelReservationEndDate: '2026-03-06',
+                };
+
+                const violations = getViolations();
+                const violation = findCategoryOverLimit(violations);
+                expect(violation).toBeDefined();
+                expect(violation?.data?.nights).toBe(5);
+                expect(violations.filter((v) => v.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)).toHaveLength(1);
+            });
+        });
     });
 
     describe('policyCategoryRules', () => {

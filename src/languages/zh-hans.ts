@@ -9734,7 +9734,6 @@ ${reportName}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `该费率仅在 ${endDate} 之前有效`,
         cannotMergeDuplicates: '您只能在草稿或未结报销单中合并报销。请先撤回后重试。',
         overCategoryLimitPerNight: (formattedLimit: string) => `每晚价格超过每人类别限额 ${formattedLimit}`,
-        overLimitPerNight: (formattedLimit: string) => `每晚房价超出每人 ${formattedLimit} 的限额`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} 为必填项`,

@@ -10396,7 +10396,6 @@ ${reportName}`,
         noRoute: 'Παρακαλούμε επιλέξτε μια έγκυρη διεύθυνση',
         cannotMergeDuplicates: 'Μπορείτε να συγχωνεύετε έξοδα μόνο σε πρόχειρες ή εκκρεμείς αναφορές. Ανακαλέστε την και δοκιμάστε ξανά.',
         overCategoryLimitPerNight: (formattedLimit: string) => `Νυχτερινή χρέωση πάνω από το όριο κατηγορίας ${formattedLimit}/άτομο`,
-        overLimitPerNight: (formattedLimit: string) => `Νυχτερινή χρέωση πάνω από το όριο ${formattedLimit}/άτομο`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `Απαιτείται το πεδίο ${fieldName}`,

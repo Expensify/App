@@ -10137,7 +10137,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `La tariffa è valida solo fino al ${endDate}`,
         cannotMergeDuplicates: 'Puoi unire le spese solo nei report in bozza o in sospeso. Revoca il report e riprova.',
         overCategoryLimitPerNight: (formattedLimit: string) => `Tariffa per notte oltre il limite di categoria di ${formattedLimit}/persona`,
-        overLimitPerNight: (formattedLimit: string) => `Tariffa notturna oltre il limite di ${formattedLimit}/persona`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} è obbligatorio`,

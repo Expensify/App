@@ -10100,7 +10100,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Tarief is alleen geldig tot ${endDate}`,
         cannotMergeDuplicates: 'Je kunt alleen onkosten samenvoegen op concept- of openstaande rapporten. Trek het rapport in en probeer het opnieuw.',
         overCategoryLimitPerNight: (formattedLimit: string) => `Nachtelijk tarief boven de categorielimiet van ${formattedLimit}/persoon`,
-        overLimitPerNight: (formattedLimit: string) => `Nachtprijs boven limiet van ${formattedLimit} per persoon`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} is verplicht`,

@@ -10173,7 +10173,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Satz gilt nur bis ${endDate}`,
         cannotMergeDuplicates: 'Sie können Ausgaben nur in Entwürfen oder offenen Berichten zusammenführen. Ziehen Sie den Bericht zurück und versuchen Sie es erneut.',
         overCategoryLimitPerNight: (formattedLimit: string) => `Nächtlicher Preis über dem Kategorienlimit von ${formattedLimit}/Person`,
-        overLimitPerNight: (formattedLimit: string) => `Übernachtungspreis über dem Limit von ${formattedLimit} pro Person`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} ist erforderlich`,
