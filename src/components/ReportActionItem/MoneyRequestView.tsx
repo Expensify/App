@@ -303,8 +303,7 @@ function MoneyRequestView({
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isTrackExpense = !mergeTransactionID && isTrackExpenseReportNew(transactionThreadReport, moneyRequestReport, parentReportAction);
     const [reportPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {selector: policyTypeSelector});
-    // A flag for verifying that the current report is a sub-report of a expense chat
-    // if the policy of the report is either Collect or Control, then this report must be tied to expense chat
+    // Collect/Control (group) policies are always tied to an expense chat, so a group policy type means this is a policy expense chat.
     const isPolicyExpenseChat = isGroupPolicyByType(reportPolicyType);
 
     let iouType: ValueOf<typeof CONST.IOU.TYPE>;
