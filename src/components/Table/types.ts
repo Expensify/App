@@ -6,7 +6,7 @@ import type {FilterConfig, FilteringMethods, IsItemInFilterCallback} from './mid
 import type {HighlightingMethods} from './middlewares/highlight';
 import type {IsItemInSearchCallback, SearchingMethods} from './middlewares/searching';
 import type {SelectionMethods} from './middlewares/selection';
-import type {CompareItemsCallback, SortingMethods} from './middlewares/sorting';
+import type {ActiveSorting, CompareItemsCallback, SortingMethods} from './middlewares/sorting';
 
 /**
  * Defines the required minimum shape for each row of data in the table
@@ -205,7 +205,7 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
         onSearchStringChange?: (searchString: string) => void;
 
         /** Optional callback fired when the active sorting configuration changes. */
-        onSortingChange?: (sorting: {columnKey: string | undefined; order: 'asc' | 'desc'}) => void;
+        onSortingChange?: (sorting: ActiveSorting<ColumnKey>) => void;
     }>;
 
 export type {
@@ -217,6 +217,7 @@ export type {
     TableHandle,
     TableProps,
     SharedListProps,
+    ActiveSorting,
     CompareItemsCallback,
     IsItemInFilterCallback,
     IsItemInSearchCallback,

@@ -43,8 +43,6 @@ type WorkspaceRoomsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorP
 
 type WorkspaceRoomsTableSortColumn = 'name' | 'members';
 
-const ROOMS_PAGE_SIZE = 25;
-
 function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -71,7 +69,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const [roomsMetadata] = useOnyx(ONYXKEYS.POLICY_ROOMS_METADATA, {selector: (metadata) => metadata?.[policyID]});
 
     const searchValue = debouncedSearchTerm.trim();
-    const sortBy = roomSort.columnKey === 'members' ? 'memberCount' : 'name';
+    const sortBy = roomSort.columnKey;
 
     // The backend applies the search term and the sorting, so a change to either produces a different result set that
     // has to restart at the first page. The requested page is derived from the query rather than reset in an effect,
@@ -128,13 +126,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
             return;
         }
 
-        openPolicyRoomsPage(policyID, {
-            pageNumber,
-            pageSize: ROOMS_PAGE_SIZE,
-            searchValue,
-            sortBy,
-            sortOrder: roomSort.order,
-        });
+        openPolicyRoomsPage(policyID, pageNumber, sortBy, roomSort.order, searchValue);
     }, [isFocused, isOffline, pageNumber, policyID, roomSort.order, searchValue, sortBy]);
 
     const loadMoreRooms = () => {
@@ -193,14 +185,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     highlightedReportID={highlightedReportID}
                     onSearchStringChange={setSearchTerm}
                     onEndReached={loadMoreRooms}
-                    onSortingChange={(sorting: {columnKey: string | undefined; order: SortOrder}) => {
-                        if (!sorting.columnKey || sorting.columnKey === 'name') {
-                            setRoomSort({columnKey: 'name', order: sorting.order});
-                            return;
-                        }
-
-                        setRoomSort({columnKey: 'members', order: sorting.order});
-                    }}
+                    onSortingChange={(sorting) => setRoomSort({columnKey: sorting.columnKey === 'members' ? 'members' : 'name', order: sorting.order})}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

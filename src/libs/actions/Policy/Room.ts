@@ -8,13 +8,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-type OpenPolicyRoomsPageOptions = {
-    pageNumber?: number;
-    pageSize?: number;
-    sortBy?: 'name' | 'memberCount';
-    sortOrder?: 'asc' | 'desc';
-    searchValue?: string;
-};
+const DEFAULT_ROOMS_PAGE_SIZE = 25;
 
 /**
  * Fetches a single page of the policy's rooms. The rooms are merged into the report collection by the response's
@@ -22,10 +16,21 @@ type OpenPolicyRoomsPageOptions = {
  * `isLoading` and `pageNumber` are written here so the page can tell a first load (full skeleton) apart from loading
  * another page (footer spinner).
  */
-function openPolicyRoomsPage(policyID: string, options: OpenPolicyRoomsPageOptions = {}) {
+function openPolicyRoomsPage(
+    policyID: string,
+    pageNumber?: number,
+    sortBy?: OpenPolicyRoomsPageParams['sortBy'],
+    sortOrder?: OpenPolicyRoomsPageParams['sortOrder'],
+    searchValue?: string,
+    pageSize: number = DEFAULT_ROOMS_PAGE_SIZE,
+) {
     const params: OpenPolicyRoomsPageParams = {
         policyID,
-        ...options,
+        pageNumber,
+        pageSize,
+        sortBy,
+        sortOrder,
+        searchValue,
     };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.POLICY_ROOMS_METADATA>> = [
@@ -35,7 +40,7 @@ function openPolicyRoomsPage(policyID: string, options: OpenPolicyRoomsPageOptio
             value: {
                 [policyID]: {
                     isLoading: true,
-                    pageNumber: options.pageNumber,
+                    pageNumber,
                 },
             },
         },

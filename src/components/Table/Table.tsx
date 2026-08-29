@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 
 import type {FlashListRef} from '@shopify/flash-list';
 
-import React, {useEffect, useImperativeHandle, useRef} from 'react';
+import React, {useImperativeHandle, useRef} from 'react';
 
 import type {TableContextValue} from './TableContext';
 import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
@@ -224,6 +224,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         initialSortColumn,
         narrowLayoutSortColumn,
         shouldUseNarrowTableLayout,
+        onSortingChange,
     });
     const sortedData = sortMiddleware(searchedData);
 
@@ -255,10 +256,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
     const originalDataLength = data?.length ?? 0;
     const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasActiveSearchString || hasActiveFilters);
-
-    useEffect(() => {
-        onSortingChange?.(activeSorting);
-    }, [activeSorting, onSortingChange]);
 
     const handleMobileSelectionPress = () => {
         turnOnMobileSelectionMode();

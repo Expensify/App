@@ -2,7 +2,7 @@ type OpenPolicyRoomsPageParams = {
     policyID: string;
     pageNumber?: number;
     pageSize?: number;
-    sortBy?: 'name' | 'memberCount';
+    sortBy?: 'name' | 'members';
     sortOrder?: 'asc' | 'desc';
     searchValue?: string;
 };

@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import type {ActiveSorting, CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Table from '@components/Table';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -44,7 +44,7 @@ type WorkspaceRoomsTableProps = {
     onEndReachedThreshold?: number;
 
     /** Callback when the active sorting configuration changes */
-    onSortingChange?: (sorting: {columnKey: string | undefined; order: 'asc' | 'desc'}) => void;
+    onSortingChange?: (sorting: ActiveSorting<WorkspaceRoomsTableColumnKey>) => void;
 };
 
 function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStringChange, onEndReached, onEndReachedThreshold, onSortingChange}: WorkspaceRoomsTableProps) {
