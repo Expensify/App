@@ -2356,6 +2356,7 @@ describe('ModifiedExpenseMessage', () => {
                     policy: undefined,
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
+                    formatPhoneNumber,
                 });
 
                 expect(result).toEqual('changed the attendees to Alice, Bob (previously Alice)');
@@ -2378,6 +2379,7 @@ describe('ModifiedExpenseMessage', () => {
                     policy: undefined,
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
+                    formatPhoneNumber,
                 });
 
                 expect(result).toEqual('set the attendees to Alice');
@@ -2400,6 +2402,7 @@ describe('ModifiedExpenseMessage', () => {
                     policy: undefined,
                     policyTags: undefined,
                     currentUserLogin: 'test@example.com',
+                    formatPhoneNumber,
                 });
 
                 expect(result).toEqual('removed the attendees (previously Alice)');
