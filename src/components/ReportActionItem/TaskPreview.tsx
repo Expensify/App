@@ -87,17 +87,14 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
             statusNum: action?.childStatusNum,
         } as Report);
 
+    const taskTitleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitle), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
+
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
     // Other linked reportActions will only contain the taskReportID and we will grab the details from there
     const isTaskCompletedFromOnyx = !isEmptyObject(taskReport)
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
-
-    // A completed task has nothing left to act on, so render any link in its title as plain text rather than
-    // something the user can still follow.
-    const disabledTitleRules = isTaskCompletedFromOnyx ? [...CONST.TASK_TITLE_DISABLED_RULES, 'link', 'autolink'] : [...CONST.TASK_TITLE_DISABLED_RULES];
-    const taskTitleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitle), {disabledRules: disabledTitleRules});
 
     const taskTitlePlainText = Parser.htmlToText(taskTitle);
     const {
