@@ -67,6 +67,8 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const addWorkEmailTaskReportID = introSelected?.addWorkEmail;
+    const [addWorkEmailTask] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${addWorkEmailTaskReportID}`);
+    const isAddWorkEmailTaskCompleted = addWorkEmailTask?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
     const [onboardingErrorMessageTranslationKey] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
@@ -100,6 +102,12 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         // Opened from a Concierge task after onboarding is done: this screen is a standalone destination, not a step
         // in the guided flow, so go straight to the workspace list once validated instead of resuming onboarding.
         if (isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow) {
+            // The work email was already added, so the task this screen belongs to is done. Re-opening it from the
+            // completed Concierge task should be inert rather than advancing the user anywhere.
+            if (isAddWorkEmailTaskCompleted) {
+                Navigation.goBack();
+                return;
+            }
             if (account?.validated) {
                 Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute());
                 return;
@@ -113,9 +121,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
                 return;
             }
-            // The work email was added outright with no code needed. The task is already marked complete on the
-            // server at this point, so there's nothing left to do here, whether this is the initial submission or a
-            // re-click of the same (already completed) Concierge task — close the modal instead of showing the form again.
+            // The work email was added outright with no code needed, so there is nothing left to do on this screen.
             Navigation.goBack();
             return;
         }
@@ -154,6 +160,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         isSmb,
         isFocused,
         isJoiningCompanyWorkspace,
+        isAddWorkEmailTaskCompleted,
         onboardingValues?.isMergeAccountStepCompleted,
         onboardingValues?.isMergeAccountStepSkipped,
     ]);
