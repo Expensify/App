@@ -12,6 +12,8 @@ import {submitReport} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type * as ReactNavigation from '@react-navigation/native';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -38,6 +40,14 @@ jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: jest.fn(() => ({currentSearchQueryJSON: undefined, currentSearchKey: undefined})),
     useSearchResultsContext: jest.fn(() => ({currentSearchResults: undefined})),
 }));
+// useInitialSelection (via the new pin-to-top logic) calls useFocusEffect, which needs a navigation context this test doesn't set up.
+jest.mock('@react-navigation/native', () => {
+    const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
+    return {
+        ...actualNavigation,
+        useFocusEffect: jest.fn(),
+    };
+});
 
 jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: jest.fn(() => ({getCurrencyDecimals: jest.fn(() => 2)})),

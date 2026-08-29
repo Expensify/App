@@ -53,7 +53,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
-type WorkspaceMemberItem = ListItem & {email: string; accountID?: number};
+type WorkspaceMemberItem = ListItem & {email: string; accountID?: number; value?: string};
 
 type ReportSubmitToContentProps = {
     report: OnyxEntry<Report>;
@@ -493,7 +493,8 @@ function ReportSubmitToContent({
                 shouldShowTextInput
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 shouldSingleExecuteRowSelect
-                initiallyFocusedItemKey={submitToSelectionData.find((m) => m.isSelected)?.keyForList}
+                initiallyFocusedItemKey={initialManagerEmail}
+                shouldScrollToFocusedIndexOnMount={false}
                 style={{containerStyle: styles.flex1}}
                 disableMaintainingScrollPosition
                 addBottomSafeAreaPadding={!isInLandscapeMode}
