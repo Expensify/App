@@ -10528,6 +10528,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 loginList: {},
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
             expect(result).toBeNull();
         });
@@ -10540,6 +10541,7 @@ describe('OptionsListUtils', () => {
                 shouldAcceptName: true,
                 loginList: {},
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
             expect(result).not.toBeNull();
             expect(result?.login).toBe('Jeff Amazon');
@@ -10640,6 +10642,7 @@ describe('OptionsListUtils', () => {
                 searchValue: 'newuser@example.com',
                 loginList: {},
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: PERSONAL_DETAILS,
             });
 

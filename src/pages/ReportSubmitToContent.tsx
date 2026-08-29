@@ -215,6 +215,7 @@ function ReportSubmitToContent({
             personalDetails,
             loginList,
             currentUserEmail: currentUserDetails.email ?? '',
+            currentUserAccountID: currentUserDetails.accountID,
             countryCode,
             selectedOptions: [],
             loginsToExclude: CONST.EXPENSIFY_EMAILS_OBJECT,
