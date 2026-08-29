@@ -1360,6 +1360,22 @@ describe('TransactionUtils', () => {
             expect(displayTransaction.currency).toBe(CONST.CURRENCY.USD);
         });
 
+        it('returns an ordinary transaction unchanged when no commuter exclusion is applied', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                amount: 415,
+                merchant: 'Lunch',
+            });
+
+            expect(
+                TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                    transaction,
+                    isPolicyExpenseChat: false,
+                    translate,
+                }),
+            ).toBe(transaction);
+        });
+
         it('preserves a negative sign when rebuilding from the base amount', () => {
             const transaction = generateTransaction({
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
