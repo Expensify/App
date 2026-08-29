@@ -120,7 +120,7 @@ import {openUnreportedExpense} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {removeDraftTransactionsByIDs} from './actions/TransactionEdit';
 import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
-import {convertAttendeesToArray} from './AttendeeUtils';
+import {convertAttendeesToArray, normalizeAttendees} from './AttendeeUtils';
 import {getCategoryGLCode} from './CategoryUtils';
 import {convertToDisplayStringEnLocale} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -6351,7 +6351,12 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.merchant = transactionChanges?.merchant;
     }
     if ('attendees' in transactionChanges) {
-        originalMessage.oldAttendees = getAttendees(oldTransaction);
+        // Only `modifiedAttendees` counts as a previous edit, so we deliberately ignore `comment.attendees` (the default
+        // attendee the app adds when the expense is created). Otherwise the optimistic message would read
+        // "changed the attendees from <self> to X" while the server returns "set the attendees to X", causing a flicker.
+        // Note: this must stay an empty array rather than being omitted, because ModifiedExpenseMessage checks
+        // `'oldAttendees' in originalMessage` to decide whether to build the attendees fragment at all.
+        originalMessage.oldAttendees = normalizeAttendees(convertAttendeesToArray(oldTransaction?.modifiedAttendees));
         originalMessage.newAttendees = transactionChanges?.attendees;
     }
 

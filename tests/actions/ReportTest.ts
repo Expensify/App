@@ -37,6 +37,7 @@ import type * as SearchQueryUtilsType from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Attendee} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
@@ -9782,6 +9783,33 @@ describe('actions/Report', () => {
         it('does not set delegateAccountID when delegateAccountIDParam is undefined', () => {
             const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, undefined, {}, false, undefined, undefined);
             expect(result.delegateAccountID).toBeUndefined();
+        });
+    });
+
+    describe('buildOptimisticModifiedExpenseReportAction attendees', () => {
+        const TRANSACTION_ID = '888';
+        const ownerAttendee: Attendee = {email: 'owner@example.com', displayName: 'Owner', avatarUrl: ''};
+        const otherAttendee: Attendee = {email: 'other@example.com', displayName: 'Other', avatarUrl: ''};
+
+        const getAttendeesOriginalMessage = (oldTransaction: OnyxTypes.Transaction, newAttendees: Attendee[]) => {
+            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, oldTransaction, {attendees: newAttendees}, false, undefined, undefined);
+            return getOriginalMessage(result as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>);
+        };
+
+        it('treats oldAttendees as empty (set message) on the first edit, when attendees have never been modified', () => {
+            // Only the auto-added default attendee is present (comment.attendees), with no modifiedAttendees history.
+            const oldTransaction = createMock<OnyxTypes.Transaction>({transactionID: TRANSACTION_ID, comment: {attendees: [ownerAttendee]}});
+            const originalMessage = getAttendeesOriginalMessage(oldTransaction, [otherAttendee]);
+            expect(originalMessage?.oldAttendees).toEqual([]);
+            expect(originalMessage?.newAttendees).toEqual([otherAttendee]);
+        });
+
+        it('keeps oldAttendees (changed message) on subsequent edits, even when the previous value is just the owner', () => {
+            // After previous edits, modifiedAttendees holds the last value - here it happens to be only the owner.
+            const oldTransaction = createMock<OnyxTypes.Transaction>({transactionID: TRANSACTION_ID, modifiedAttendees: [ownerAttendee], comment: {attendees: [ownerAttendee]}});
+            const originalMessage = getAttendeesOriginalMessage(oldTransaction, [ownerAttendee, otherAttendee]);
+            expect(originalMessage?.oldAttendees).toEqual([ownerAttendee]);
+            expect(originalMessage?.newAttendees).toEqual([ownerAttendee, otherAttendee]);
         });
     });
 
