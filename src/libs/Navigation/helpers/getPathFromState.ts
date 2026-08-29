@@ -164,22 +164,27 @@ function getPathFromStateWithDynamicRoute(state: State): string {
     }
     const queryString = mergedParams.toString();
 
-    return `${basePathWithoutQuery}/${suffixPath}${queryString ? `?${queryString}` : ''}`;
+    // Mirror the root-base join in `createDynamicRoute.ts` so a `/` base yields `/suffix`, never `//suffix`.
+    const combinedPath = basePathWithoutQuery === '/' ? `/${suffixPath}` : `${basePathWithoutQuery}/${suffixPath}`;
+
+    // Safety net for this hand-built dynamic branch: guarantee exactly one leading slash and no internal `//`,
+    // so the browser never parses a segment as a host and `history.pushState` can't throw a SecurityError.
+    // React Navigation's own `getPathFromState` already normalizes slashes, so the standard-screen branch
+    // doesn't need this.
+    const normalizedPath = `/${combinedPath}`.replaceAll(/\/{2,}/g, '/');
+    if (normalizedPath !== combinedPath) {
+        // Log `screenName` only - the path can carry sensitive query params that shouldn't be shared.
+        Log.alert('[Navigation] getPathFromStateWithDynamicRoute produced a malformed path', {screenName});
+    }
+
+    return `${normalizedPath}${queryString ? `?${queryString}` : ''}`;
 }
 
 function getPathFromState(state: State): string {
     const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
     const screenName = focusedRoute?.name ?? '';
 
-    const rawPath = isDynamicRouteScreen(screenName as Screen) ? getPathFromStateWithDynamicRoute(state) : RNGetPathFromState(state, config);
-
-    const [pathOnly, query] = splitPathAndQuery(rawPath);
-    // Exactly one leading slash and no internal `//`, so the browser never parses a segment as a host.
-    const normalizedPath = `/${pathOnly}`.replaceAll(/\/{2,}/g, '/');
-    if (normalizedPath !== pathOnly) {
-        Log.alert('[Navigation] getPathFromState produced a malformed path', {screenName, rawPath});
-    }
-    return `${normalizedPath}${query ? `?${query}` : ''}`;
+    return isDynamicRouteScreen(screenName as Screen) ? getPathFromStateWithDynamicRoute(state) : RNGetPathFromState(state, config);
 }
 
 export default getPathFromState;

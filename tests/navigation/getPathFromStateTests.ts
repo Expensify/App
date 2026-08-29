@@ -86,17 +86,28 @@ describe('getPathFromState', () => {
         expect(result).toBe('/settings/wallet/test-dynamic');
     });
 
-    it('normalizes a doubled leading slash to a single slash', () => {
-        // A base screen that resolves to root ('/') is concatenated with the suffix, which would otherwise
-        // produce a '//'-prefixed protocol-relative URL that makes history.pushState throw a SecurityError.
-        // getPathFromState collapses any repeated slashes to a single one. Regression test for the AI Features
-        // Promo crash (issue #97470).
+    it('does not log an alert for a well-formed path built from a root base', () => {
+        // With the root-base join restored, a base screen that resolves to '/' yields '/test-dynamic'
+        // (never '//test-dynamic'), so this is a happy path that must not trip the safety-net alert.
+        // Regression guard for the AI Features Promo crash (issue #97470).
         mockRNGetPathFromState.mockReturnValue('/');
 
         const state = buildState([{name: 'StandardScreen'}, {name: 'TestDynamicScreen'}]);
 
         expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/test-dynamic');
-        expect(mockLogAlert).toHaveBeenCalledWith(expect.stringContaining('malformed path'), expect.objectContaining({rawPath: '//test-dynamic'}));
+        expect(mockLogAlert).not.toHaveBeenCalled();
+    });
+
+    it('normalizes a malformed doubled slash and alerts with the screen name only', () => {
+        // If an upstream base ever carries a doubled slash, the safety net collapses it to a single slash
+        // (so history.pushState can't throw a SecurityError) and alerts. The alert must carry only the
+        // screen name - never the path, which can hold sensitive query params.
+        mockRNGetPathFromState.mockReturnValue('//settings');
+
+        const state = buildState([{name: 'StandardScreen'}, {name: 'TestDynamicScreen'}]);
+
+        expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/test-dynamic');
+        expect(mockLogAlert).toHaveBeenCalledWith(expect.stringContaining('malformed path'), {screenName: 'TestDynamicScreen'});
     });
 
     it('should use RN getPathFromState for standard screens', () => {
