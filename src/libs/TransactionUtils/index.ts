@@ -249,17 +249,15 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
     const storedAmount = hasValidModifiedAmount(transaction) ? Number(transaction.modifiedAmount) : (transaction.amount ?? 0);
     const normalizedAmount = storedAmount < 0 ? -fullDistanceAmount : fullDistanceAmount;
     const currency = mileageRate?.currency ?? getCurrency(transaction);
-    const normalizedMerchant = DistanceRequestUtils.getDistanceMerchant(
-        true,
-        fullDistanceInMeters,
+    const normalizedMerchant = getDistanceMerchantForTransaction({
+        transaction,
+        distanceInMeters: fullDistanceInMeters,
         unit,
         rate,
         currency,
         translate,
-        (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
-        getCurrencySymbolFromCurrencyUtils,
-        isManualDistanceRequest(transaction),
-    );
+        getCurrencySymbol: getCurrencySymbolFromCurrencyUtils,
+    });
 
     return {
         ...transaction,
@@ -723,6 +721,39 @@ function getClearedPendingFields(transactionChanges: TransactionChanges) {
     };
 }
 
+function getDistanceMerchantForTransaction({
+    transaction,
+    distanceInMeters,
+    unit,
+    rate,
+    currency,
+    translate,
+    getCurrencySymbol,
+    commuterExclusionData,
+}: {
+    transaction: OnyxEntry<Transaction>;
+    distanceInMeters: number;
+    unit: Unit | undefined;
+    rate: number | undefined;
+    currency: string;
+    translate: LocaleContextProps['translate'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    commuterExclusionData?: CommuterExclusionData | null;
+}): string {
+    return DistanceRequestUtils.getDistanceMerchant(
+        true,
+        distanceInMeters,
+        unit,
+        rate,
+        currency,
+        translate,
+        (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+        getCurrencySymbol,
+        isManualDistanceRequest(transaction),
+        commuterExclusionData,
+    );
+}
+
 /**
  * Build the distance merchant string (e.g. "5.00 mi @ $0.70 / mi") for a recalculated distance, using the
  * imperative locale accessors the optimistic update paths below have to rely on.
@@ -736,18 +767,16 @@ function getRecalculatedDistanceMerchant(
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
     commuterExclusionData?: CommuterExclusionData | null,
 ): string {
-    return DistanceRequestUtils.getDistanceMerchant(
-        true,
+    return getDistanceMerchantForTransaction({
+        transaction,
         distanceInMeters,
         unit,
         rate,
         currency,
-        translateLocal,
-        (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+        translate: translateLocal,
         getCurrencySymbol,
-        isManualDistanceRequest(transaction),
         commuterExclusionData,
-    );
+    });
 }
 
 /**
