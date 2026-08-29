@@ -6,6 +6,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isSentMoneyReportAction} from '@libs/ReportActionsUtils';
+import {isOneTransactionReport} from '@libs/ReportUtils';
 
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 
@@ -39,9 +40,13 @@ function OneTransactionThreadRedirectHandler() {
     const parentReportID = getNonEmptyStringOnyxID(report?.parentReportID);
     const parentReportAction = useParentReportAction(report);
 
-    // Resolving this against the parent report tells us both that the parent holds exactly one expense and that
-    // the current route is the thread of that expense, so no separate transaction-count check is needed.
+    // Tells us the current route is the thread of the parent's only IOU action.
     const oneTransactionThreadReportID = useOneTransactionThreadReportID(parentReportID);
+
+    // The server-provided count is checked as well because the action-based derivation above reads whatever report
+    // actions are in Onyx: while a multi-expense report is still paginating in, only one IOU action may be present
+    // and the report would briefly look like a single-expense one.
+    const [isParentOneTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {selector: isOneTransactionReport});
 
     // A message deep link is left alone: it points at an action inside the thread, and dropping the thread
     // route would drop the anchor the link was opened for.
@@ -50,7 +55,11 @@ function OneTransactionThreadRedirectHandler() {
     // Sending money keeps its own thread - `isOneTransactionThread` excludes it too - because the report and the
     // thread are not interchangeable there.
     const shouldRedirectToParentReport =
-        !!parentReportID && !hasLinkedReportAction && oneTransactionThreadReportID === reportIDFromRoute && !isSentMoneyReportAction(parentReportAction);
+        !!parentReportID &&
+        !hasLinkedReportAction &&
+        !!isParentOneTransactionReport &&
+        oneTransactionThreadReportID === reportIDFromRoute &&
+        !isSentMoneyReportAction(parentReportAction);
 
     // The replace unmounts this screen, but Onyx updates can land before the transition finishes. Keyed by the
     // report we redirected away from so a later route onto a different thread still redirects.

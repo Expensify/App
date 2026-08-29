@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-type-assertion */
 import {render, waitFor} from '@testing-library/react-native';
 
 import CONST from '@src/CONST';
@@ -35,10 +36,16 @@ jest.mock('@react-navigation/native', () => {
 });
 
 let mockParentReportID: string | undefined = EXPENSE_REPORT_ID;
+let mockParentTransactionCount = 1;
 
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
-    default: () => [{reportID: '12345', parentReportID: mockParentReportID, parentReportActionID: '1'}, {status: 'loaded'}],
+    default: (key: string, options?: {selector?: (value: unknown) => unknown}) => {
+        const value = key.endsWith(EXPENSE_REPORT_ID)
+            ? {reportID: EXPENSE_REPORT_ID, type: 'expense', transactionCount: mockParentTransactionCount}
+            : {reportID: THREAD_REPORT_ID, parentReportID: mockParentReportID, parentReportActionID: '1'};
+        return [options?.selector ? options.selector(value) : value, {status: 'loaded'}];
+    },
 }));
 
 let mockOneTransactionThreadReportID: string | undefined = THREAD_REPORT_ID;
@@ -71,6 +78,7 @@ describe('OneTransactionThreadRedirectHandler', () => {
         mockRouteParams = {reportID: THREAD_REPORT_ID};
         mockIsFocused = true;
         mockParentReportID = EXPENSE_REPORT_ID;
+        mockParentTransactionCount = 1;
         mockOneTransactionThreadReportID = THREAD_REPORT_ID;
         mockParentReportAction = createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
     });
@@ -84,6 +92,14 @@ describe('OneTransactionThreadRedirectHandler', () => {
 
     it('keeps the thread route when the parent report holds more than one expense', async () => {
         mockOneTransactionThreadReportID = undefined;
+
+        render(<OneTransactionThreadRedirectHandler />);
+
+        await waitFor(() => expect(mockNavigate).not.toHaveBeenCalled());
+    });
+
+    it("keeps the thread route while a multi-expense report is still paginating in and only one of its IOU actions has loaded", async () => {
+        mockParentTransactionCount = 3;
 
         render(<OneTransactionThreadRedirectHandler />);
 
