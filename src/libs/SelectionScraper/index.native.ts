@@ -7,8 +7,8 @@ const COPYABLE_ROW_DATA_SET = {[CONST.COPYABLE_ROW_ELEMENT]: true} as const;
 
 function useCopyableTextRowPress() {
     // Native does not expose browser selection APIs, so copyable text never suppresses row interactions here.
-    const markMouseDownOnCopyableText = (_target: EventTarget | null | undefined, _shouldCheck = true): boolean => false;
-    const shouldSuppressCopyableTextRowPress = (_shouldCheck = true): boolean => false;
+    const markMouseDownOnCopyableText = (_target: EventTarget | null | undefined, _shouldCheck?: boolean): boolean => false;
+    const shouldSuppressCopyableTextRowPress = (_shouldCheck?: boolean): boolean => false;
     const shouldSuppressCopyableTextRowFocus = () => false;
 
     return {
