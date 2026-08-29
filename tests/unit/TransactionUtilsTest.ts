@@ -1453,6 +1453,57 @@ describe('TransactionUtils', () => {
             ).toBe(transaction);
         });
 
+        it('uses the mileage rate unit when the transaction distance unit is missing', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 415,
+                merchant: '5.46 mi @ $0.76 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                    },
+                },
+            });
+
+            const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction,
+                isPolicyExpenseChat: false,
+                policy: policyWithDistanceRate,
+                translate,
+            });
+
+            expect(displayTransaction?.amount).toBe(491);
+            expect(displayTransaction?.merchant).toContain('6.46 mi');
+        });
+
+        it('returns the stored transaction when the distance unit cannot be resolved', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 415,
+                merchant: '5.46 mi @ $0.76 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'missingRate',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                    },
+                },
+            });
+
+            expect(
+                TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                    transaction,
+                    isPolicyExpenseChat: false,
+                    policy: policyWithDistanceRate,
+                    translate,
+                }),
+            ).toBe(transaction);
+        });
+
         it('uses the transaction currency when the mileage rate has no currency', () => {
             const policyWithoutRateCurrency: Policy = {
                 ...policyWithDistanceRate,
