@@ -13,13 +13,14 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
@@ -72,6 +73,7 @@ function WorkspaceReportFieldsPage({
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {translate, localeCompare} = useLocalize();
     const policy = usePolicy(policyID);
     const {showConfirmModal} = useConfirmModal();
@@ -86,7 +88,6 @@ function WorkspaceReportFieldsPage({
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
 
-    const illustrations = useMemoizedLazyIllustrations(['ReportReceipt']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const onDisabledOrganizeSwitchPress = () => {
@@ -222,7 +223,6 @@ function WorkspaceReportFieldsPage({
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
-                    icon={illustrations.ReportReceipt}
                     title={translate('common.reports')}
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
@@ -236,7 +236,10 @@ function WorkspaceReportFieldsPage({
                     />
                 )}
                 {!isLoading && (
-                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <ScrollView
+                        addBottomSafeAreaPadding
+                        contentContainerStyle={[styles.flexGrow1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}
+                    >
                         <Section
                             isCentralPane
                             renderTitle={renderReportTitle}
@@ -279,7 +282,12 @@ function WorkspaceReportFieldsPage({
                                         return;
                                     }
 
-                                    setPolicyPreventMemberCreatedTitle(policyID, isEnabled, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]);
+                                    setPolicyPreventMemberCreatedTitle(
+                                        policyID,
+                                        isEnabled,
+                                        policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE],
+                                        getReviewWorkspaceSettingsTaskCompletion(),
+                                    );
                                 }}
                                 disabled={!canWriteReportFields}
                                 disabledAction={withReadOnlyFallback()}

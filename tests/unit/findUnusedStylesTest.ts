@@ -1,29 +1,23 @@
 import type {Stats} from 'fs';
+import type * as GlobModule from 'glob';
 
 import {Str} from 'expensify-common';
 import * as fs from 'fs';
 import {globSync} from 'glob';
 
 import {ComprehensiveStylesFinder} from '../../scripts/findUnusedStyles';
+import createMock from '../utils/createMock';
 
-jest.mock(
-    'fs',
-    () =>
-        ({
-            ...jest.requireActual('fs'),
-            readFileSync: jest.fn(),
-            lstatSync: jest.fn(),
-        }) as typeof fs,
-);
+jest.mock('fs', () => ({
+    ...jest.requireActual<typeof fs>('fs'),
+    readFileSync: jest.fn(),
+    lstatSync: jest.fn(),
+}));
 
-jest.mock(
-    'glob',
-    () =>
-        ({
-            ...jest.requireActual('glob'),
-            globSync: jest.fn(),
-        }) as unknown as typeof globSync,
-);
+jest.mock('glob', () => ({
+    ...jest.requireActual<typeof GlobModule>('glob'),
+    globSync: jest.fn(),
+}));
 
 const mockReadFileSync = jest.mocked(fs.readFileSync);
 const mockLstatSync = jest.mocked(fs.lstatSync);
@@ -34,9 +28,11 @@ describe('findUnusedStyles', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockLstatSync.mockReturnValue({
-            isFile: () => true,
-        } as Stats);
+        mockLstatSync.mockReturnValue(
+            createMock<Stats>({
+                isFile: () => true,
+            }),
+        );
     });
 
     afterEach(() => {
@@ -326,9 +322,11 @@ describe('findUnusedStyles', () => {
             mockReadFileSync.mockReturnValueOnce('const styles = () => ({});');
 
             // Mock lstatSync to indicate it's a directory, not a file
-            mockLstatSync.mockReturnValueOnce({
-                isFile: () => false,
-            } as Stats);
+            mockLstatSync.mockReturnValueOnce(
+                createMock<Stats>({
+                    isFile: () => false,
+                }),
+            );
 
             finder = new ComprehensiveStylesFinder('/test');
 
