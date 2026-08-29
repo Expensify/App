@@ -238,7 +238,6 @@ describe('DistanceRequestStartPage', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 name: 'Workspace',
                 role: CONST.POLICY.ROLE.USER,
-                isPolicyExpenseChatEnabled: true,
                 autoReporting: true,
                 commuterExclusions: {
                     method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
@@ -342,7 +341,6 @@ describe('DistanceRequestStartPage', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                     name: policyID,
                     role: CONST.POLICY.ROLE.USER,
-                    isPolicyExpenseChatEnabled: true,
                     autoReporting: false,
                     commuterExclusions: {
                         method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
