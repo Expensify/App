@@ -461,6 +461,7 @@ function useSelectedTransactionsActions({
 
             const canMoveExpense = canEditFieldOfMoneyRequest({
                 reportAction: iouReportAction,
+                reportActions,
                 fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                 outstandingReportsByPolicyID,
                 transaction,

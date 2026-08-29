@@ -202,7 +202,15 @@ function updateMultipleMoneyRequests({
                 return true;
             }
 
-            return canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report: iouReport, policy: transactionPolicy, reportNameValuePairs});
+            return canEditFieldOfMoneyRequest({
+                reportAction,
+                fieldToEdit: field,
+                transaction,
+                report: iouReport,
+                policy: transactionPolicy,
+                reportNameValuePairs,
+                reportActions: reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`],
+            });
         };
 
         let transactionChanges: TransactionChanges = {};

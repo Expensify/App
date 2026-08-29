@@ -879,6 +879,7 @@ describe('useSelectedTransactionsActions', () => {
         }
         expect(lastCall.fieldToEdit).toBe(CONST.EDIT_REQUEST_FIELD.REPORT);
         expect(lastCall.transaction).toEqual(expect.objectContaining({transactionID}));
+        expect(lastCall.reportActions).toBe(reportActions);
     });
 
     it('should show split option when transaction can be split', async () => {

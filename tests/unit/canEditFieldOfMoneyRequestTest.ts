@@ -4,7 +4,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, ReportAction} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
 import Onyx from 'react-native-onyx';
@@ -840,6 +840,116 @@ describe('canEditFieldOfMoneyRequest', () => {
 
             // Then they should be able to edit the receipt on an open report
             expect(canEditReceipt).toBe(true);
+        });
+    });
+
+    describe('reportActions', () => {
+        // A corporate workspace where the current user submits to the second user, who is also the report's manager,
+        // so whether the submitter can still edit restricted fields depends only on the passed report actions
+        const secondUserEmail = 'floki@vikings.net';
+        const forwardedPolicyID = '77';
+        const forwardedReportID = '770';
+        const forwardedTransactionID = '771';
+        const corporatePolicy: Policy = {
+            id: forwardedPolicyID,
+            name: 'Advanced approval policy',
+            role: CONST.POLICY.ROLE.USER,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            owner: '',
+            outputCurrency: CONST.CURRENCY.USD,
+            employeeList: {
+                [currentUserEmail]: {email: currentUserEmail, role: CONST.POLICY.ROLE.USER, submitsTo: secondUserEmail},
+            },
+        };
+        const submittedExpenseReport = {
+            ...createExpenseReport(Number(forwardedReportID)),
+            policyID: forwardedPolicyID,
+            ownerAccountID: currentUserAccountID,
+            managerID: secondUserAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+        const transaction = {
+            ...createRandomTransaction(Number(forwardedTransactionID)),
+            transactionID: forwardedTransactionID,
+            reportID: forwardedReportID,
+            managedCard: false,
+        };
+        const moneyRequestAction: ReportAction = {
+            ...createRandomReportAction(772),
+            reportID: forwardedReportID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: currentUserAccountID,
+            originalMessage: {
+                IOUTransactionID: forwardedTransactionID,
+                IOUReportID: forwardedReportID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 50,
+                currency: CONST.CURRENCY.USD,
+            },
+        };
+        const submittedAction: ReportAction = {
+            ...createRandomReportAction(773),
+            actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+            created: '2026-04-21 17:00:00',
+        };
+        const forwardedAction: ReportAction = {
+            ...createRandomReportAction(774),
+            actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+            created: '2026-04-21 17:10:00',
+        };
+        const submitOnlyActions = {[submittedAction.reportActionID]: submittedAction};
+        const forwardedActions = {[submittedAction.reportActionID]: submittedAction, [forwardedAction.reportActionID]: forwardedAction};
+
+        beforeEach(async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail},
+                    [secondUserAccountID]: {accountID: secondUserAccountID, login: secondUserEmail},
+                },
+                [`${ONYXKEYS.COLLECTION.POLICY}${forwardedPolicyID}`]: corporatePolicy,
+                [`${ONYXKEYS.COLLECTION.REPORT}${forwardedReportID}`]: submittedExpenseReport,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${forwardedTransactionID}`]: transaction,
+            });
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        const canEditAmount = (reportActions: Parameters<typeof canEditFieldOfMoneyRequest>[0]['reportActions']) =>
+            canEditFieldOfMoneyRequest({
+                reportAction: moneyRequestAction,
+                fieldToEdit: CONST.EDIT_REQUEST_FIELD.AMOUNT,
+                transaction,
+                report: submittedExpenseReport,
+                policy: corporatePolicy,
+                reportActions,
+            });
+
+        it('should let the submitter edit a restricted field when the passed reportActions show no forward since the last submit', () => {
+            expect(canEditAmount(submitOnlyActions)).toBe(true);
+        });
+
+        it('should block the submitter from editing a restricted field when the passed reportActions show the report was forwarded since the last submit', () => {
+            expect(canEditAmount(forwardedActions)).toBe(false);
+        });
+
+        it('should accept the report actions as an array', () => {
+            expect(canEditAmount([submittedAction])).toBe(true);
+            expect(canEditAmount([submittedAction, forwardedAction])).toBe(false);
+        });
+
+        it('should read the passed reportActions rather than the report actions stored in Onyx', async () => {
+            // The Onyx-stored actions say the report was forwarded...
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${forwardedReportID}`, forwardedActions);
+            await waitForBatchedUpdates();
+
+            // ...but the passed reportActions only contain the submit, and they must win
+            expect(canEditAmount(submitOnlyActions)).toBe(true);
         });
     });
 });

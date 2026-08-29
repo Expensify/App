@@ -246,6 +246,7 @@ function MoneyRequestReceiptView({
         isEditable &&
         canEditFieldOfMoneyRequest({
             reportAction: parentReportAction,
+            reportActions: parentReportActions,
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
             isChatReportArchived,
             reportNameValuePairs,

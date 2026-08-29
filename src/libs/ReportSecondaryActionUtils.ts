@@ -1132,6 +1132,7 @@ function getSecondaryReportActions({
             const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
             const canMoveExpense = canEditFieldOfMoneyRequest({
                 reportAction: iouReportAction,
+                reportActions,
                 fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                 isChatReportArchived,
                 outstandingReportsByPolicyID,

@@ -2063,7 +2063,7 @@ function isReportOpenOrUnsubmitted(reportID: string | undefined, reports: OnyxCo
     return report.stateNum === CONST.REPORT.STATE_NUM.OPEN;
 }
 
-function hasReportBeenForwardedSinceLastSubmit(report: OnyxEntry<Report>, reportActions?: OnyxEntry<ReportActions>): boolean {
+function hasReportBeenForwardedSinceLastSubmit(report: OnyxEntry<Report>, reportActions?: OnyxEntry<ReportActions> | ReportAction[]): boolean {
     if (!report?.reportID) {
         return false;
     }
@@ -5127,7 +5127,7 @@ function canEditMoneyRequest(
     isChatReportArchived = false,
     report?: OnyxInputOrEntry<Report>,
     policy?: OnyxEntry<Policy>,
-    reportActions?: OnyxEntry<ReportActions>,
+    reportActions?: OnyxEntry<ReportActions> | ReportAction[],
 ): boolean {
     const isDeleted = isDeletedAction(reportAction);
 
@@ -5335,7 +5335,16 @@ function canEditMultipleTransactions(
             CONST.EDIT_REQUEST_FIELD.TAX_RATE,
         ];
 
-        const isTransactionEditable = fieldsToCheck.some((field) => canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report, policy}));
+        const isTransactionEditable = fieldsToCheck.some((field) =>
+            canEditFieldOfMoneyRequest({
+                reportAction,
+                fieldToEdit: field,
+                transaction,
+                report,
+                policy,
+                reportActions: reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`],
+            }),
+        );
 
         if (!isTransactionEditable) {
             return false;
@@ -5371,6 +5380,7 @@ function canEditFieldOfMoneyRequest({
     report,
     policy,
     reportNameValuePairs,
+    reportActions,
 }: {
     reportAction: OnyxInputOrEntry<ReportAction>;
     fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>;
@@ -5382,6 +5392,8 @@ function canEditFieldOfMoneyRequest({
     policy?: OnyxEntry<Policy>;
     // Temporarily optional while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
+    // Temporarily optional while callers are migrated in smaller PRs. Once every caller passes it, the module-level fallback in hasReportBeenForwardedSinceLastSubmit is removed as part of https://github.com/Expensify/App/issues/66419.
+    reportActions?: OnyxEntry<ReportActions> | ReportAction[];
 }): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
     const restrictedFields: string[] = [
@@ -5403,7 +5415,7 @@ function canEditFieldOfMoneyRequest({
         return canUnreportedBeMoved(transaction, allPolicies);
     }
 
-    if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, transaction, isChatReportArchived, report, policy)) {
+    if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, transaction, isChatReportArchived, report, policy, reportActions)) {
         return false;
     }
 

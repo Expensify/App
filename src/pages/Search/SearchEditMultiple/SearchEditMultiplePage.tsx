@@ -98,7 +98,15 @@ function SearchEditMultiplePage() {
             if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 return false;
             }
-            return !canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report, policy: transactionPolicy, reportNameValuePairs});
+            return !canEditFieldOfMoneyRequest({
+                reportAction,
+                fieldToEdit: field,
+                transaction,
+                report,
+                policy: transactionPolicy,
+                reportNameValuePairs,
+                reportActions: mergedReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`],
+            });
         });
 
     const hasPartiallyEditableTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.AMOUNT);

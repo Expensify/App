@@ -20528,6 +20528,11 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, null);
             await waitForBatchedUpdates();
         });
+
+        it('should accept the report actions as an array', () => {
+            expect(hasReportBeenForwardedSinceLastSubmit(report, [submittedAction, forwardedAfterSubmitAction])).toBe(true);
+            expect(hasReportBeenForwardedSinceLastSubmit(report, [submittedAction, forwardedBeforeSubmitAction])).toBe(false);
+        });
     });
 
     describe('getOriginalReportID', () => {
