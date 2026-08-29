@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
+import {dismissOnboardingModalBeforeExit} from '@libs/Navigation/helpers/OnboardingNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {AddWorkEmail} from '@userActions/Session';
@@ -69,6 +70,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const addWorkEmailTaskReportID = introSelected?.addWorkEmail;
     const [addWorkEmailTask] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${addWorkEmailTaskReportID}`);
     const isAddWorkEmailTaskCompleted = addWorkEmailTask?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
     const [onboardingErrorMessageTranslationKey] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
@@ -102,10 +104,18 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         // Opened from a Concierge task after onboarding is done: this screen is a standalone destination, not a step
         // in the guided flow, so go straight to the workspace list once validated instead of resuming onboarding.
         if (isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow) {
+            // This screen was reached from a Concierge task link rather than pushed on top of the chat, so there is no
+            // reliable entry to go back to - goBack() falls through to Home. Return to the Concierge chat explicitly,
+            // using the same dismiss-then-navigate pair that navigateAfterOnboarding uses when onboarding finishes.
+            const returnToConciergeChat = () => {
+                dismissOnboardingModalBeforeExit();
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
+            };
+
             // The work email was already added, so the task this screen belongs to is done. Re-opening it from the
             // completed Concierge task should be inert rather than advancing the user anywhere.
             if (isAddWorkEmailTaskCompleted) {
-                Navigation.goBack();
+                returnToConciergeChat();
                 return;
             }
             if (account?.validated) {
@@ -122,7 +132,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 return;
             }
             // The work email was added outright with no code needed, so there is nothing left to do on this screen.
-            Navigation.goBack();
+            returnToConciergeChat();
             return;
         }
 
@@ -161,6 +171,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         isFocused,
         isJoiningCompanyWorkspace,
         isAddWorkEmailTaskCompleted,
+        conciergeReportID,
         onboardingValues?.isMergeAccountStepCompleted,
         onboardingValues?.isMergeAccountStepSkipped,
     ]);
@@ -294,8 +305,11 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
 
                                     setOnboardingMergeAccountStepValue(true, true);
 
+                                    // Reached from a Concierge task link, so skipping returns to that chat rather than
+                                    // continuing onboarding. goBack() is unreliable here and falls through to Home.
                                     if (isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow) {
-                                        Navigation.goBack();
+                                        dismissOnboardingModalBeforeExit();
+                                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
                                         return;
                                     }
 
