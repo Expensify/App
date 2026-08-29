@@ -4582,11 +4582,7 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
     }
 }
 
-/**
- * The date column/filter reads "Created"/"Created date" for the types whose date column is a non-editable
- * created timestamp: expense reports and tasks. Every other type keeps "Date" because it renders the editable
- * transaction date (invoice, expense, trip) or has no date column (chat).
- */
+/** Expense reports and tasks show a non-editable created timestamp, so their date column reads "Created"; every other type keeps the editable "Date". */
 function isCreatedDateType(type?: SearchDataTypes): boolean {
     return type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || type === CONST.SEARCH.DATA_TYPES.TASK;
 }
@@ -6706,7 +6702,7 @@ function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes, i
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.ACTION) {
             minWidth += (isActionColumnWide ?? type === CONST.SEARCH.DATA_TYPES.TASK) ? 80 : 68;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.DATE) {
-            // The "Created" header (expense reports, tasks) is a longer label, so it uses the same width as the sibling date columns (Submitted/Approved/Posted = 72); the short "Date" header stays at 48.
+            // The longer "Created" header needs the same 72 as the sibling date columns (Submitted/Approved/Posted); the short "Date" stays at 48.
             minWidth += isCreatedDateType(type) ? 72 : 48;
         } else if (
             column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED ||
