@@ -2257,6 +2257,7 @@ const CONST = {
         SPAN_ENTRY_TO_SCAN_READY: 'ManualEntryToScanReady',
         SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
         SPAN_RECEIPT_CAPTURE: 'ManualReceiptCapture',
+        SPAN_RECEIPT_PREPARE: 'ManualReceiptPrepare',
         SPAN_SCAN_PROCESS_AND_NAVIGATE: 'ManualScanProcessAndNavigate',
         SPAN_CONFIRMATION_MOUNT: 'ManualConfirmationMount',
         SPAN_CONFIRMATION_LIST_READY: 'ManualConfirmationListReady',
@@ -2350,9 +2351,21 @@ const CONST = {
         ATTRIBUTE_TRIGGER: 'trigger',
         ATTRIBUTE_PLATFORM: 'platform',
         ATTRIBUTE_IS_MULTI_SCAN: 'is_multi_scan',
+        ATTRIBUTE_CAPTURE_METHOD: 'capture_method',
+        ATTRIBUTE_FLASH_USED: 'flash_used',
+        ATTRIBUTE_PHOTO_WIDTH: 'photo_width',
+        ATTRIBUTE_PHOTO_HEIGHT: 'photo_height',
         ATTRIBUTE_SOURCE: 'source',
         ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
         ATTRIBUTE_DURATION_SINCE_NATIVE_APP_STARTUP_MS: 'duration_since_native_app_startup_ms',
+        CAPTURE_METHOD: {
+            PHOTO: 'photo',
+            SNAPSHOT: 'snapshot',
+        },
+        SPAN_PLATFORM: {
+            NATIVE: 'native',
+            WEB: 'web',
+        },
         /** Which report-actions skeleton cancelled a send-message span (value of the canceled_by_skeleton attribute). */
         CANCELED_BY_SKELETON: {
             REPORT_ACTIONS_REPORT_DATA_LOADING: 'report_actions_report_data_loading',
@@ -5534,6 +5547,7 @@ const CONST = {
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
         REIMBURSABLE: 'reimbursable',
+        ATTENDEES: 'attendees',
         BILLABLE: 'billable',
         REPORT: 'report',
     },
