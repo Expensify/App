@@ -95,14 +95,20 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+
+    // AddWorkEmail is what writes shouldValidate, so an undefined value means no work email has been submitted yet and
+    // the task can only have been ticked by hand.
+    const hasAddedWorkEmail = onboardingValues?.shouldValidate !== undefined;
 
     // The join-workspace intent's tasks each point at an onboarding screen that only makes sense until the step is
-    // done. Once completed there is nothing left to act on, so they lose their link, their press target, their
-    // disclosure arrow and their checkbox - AddWorkEmail rejects a second attempt from an account that validated in
-    // the meantime, so reopening one would only lead to a request that cannot succeed. Other tasks keep the standard
-    // behaviour of staying openable and reopenable after completion.
+    // actually done. Once it is, they lose their link, their press target, their disclosure arrow and their checkbox -
+    // AddWorkEmail rejects a second attempt from an account that validated in the meantime, so reopening one would only
+    // lead to a request that cannot succeed. A task ticked by hand without the work email being added keeps everything
+    // active so the tick can be undone. Other tasks keep the standard behaviour of staying openable after completion.
     const isFinishedJoinWorkspaceTask =
         isTaskCompletedFromOnyx &&
+        hasAddedWorkEmail &&
         !!taskReportID &&
         (taskReportID === introSelected?.addWorkEmail || taskReportID === introSelected?.validateEmail || taskReportID === introSelected?.joinWorkspace);
 

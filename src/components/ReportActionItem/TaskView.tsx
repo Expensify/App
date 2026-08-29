@@ -69,6 +69,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     useEffect(() => {
@@ -80,6 +81,16 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const taskTitle = `<task-title>${titleWithoutImage}</task-title>`;
     const taskTitlePlainText = Parser.htmlToText(taskTitleWithoutPre);
     const isCompletedFromOnyx = isCompletedTaskReport(report);
+
+    // Mirrors TaskPreview: a finished join-workspace task cannot be reopened, because AddWorkEmail rejects a second
+    // attempt from an account that validated in the meantime. Ticking it by hand without adding a work email is still
+    // reversible, so the lock only applies once shouldValidate shows AddWorkEmail actually ran.
+    const hasAddedWorkEmail = onboardingValues?.shouldValidate !== undefined;
+    const isFinishedJoinWorkspaceTask =
+        isCompletedFromOnyx &&
+        hasAddedWorkEmail &&
+        !!report?.reportID &&
+        (report.reportID === introSelected?.addWorkEmail || report.reportID === introSelected?.validateEmail || report.reportID === introSelected?.joinWorkspace);
     const {
         isCompleted,
         shouldSplitTaskAccessibilityTargets,
@@ -226,7 +237,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                         caretSize={16}
                                                         accessibilityLabel={taskCheckboxAccessibilityLabel}
                                                         accessibilityHint={taskCheckboxAccessibilityHint}
-                                                        disabled={!isTaskActionable}
+                                                        disabled={!isTaskActionable || isFinishedJoinWorkspaceTask}
                                                         sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
                                                     />
                                                     {shouldSplitTaskAccessibilityTargets ? (
