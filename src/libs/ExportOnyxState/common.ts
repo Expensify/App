@@ -33,6 +33,8 @@ const onyxKeysToRemove = new Set<ValueOf<typeof ONYXKEYS> | ValueOf<typeof ONYXK
     ONYXKEYS.ONFIDO_APPLICANT_ID,
     // maskFragileData won't catch this one, since the secret sits in a field named "token"
     ONYXKEYS.MAPBOX_ACCESS_TOKEN,
+    // Same story: the QA OAuth tokens sit in fields maskFragileData doesn't key on
+    ONYXKEYS.CLOUDFLARE_SESSION,
     // All three hold the picked image itself in "uri", as a base64 data URL on web. Masking it would only
     // trade a copy of the user's photo for an equally large blob of random characters.
     ONYXKEYS.AVATAR_CROP_DRAFT,
@@ -140,7 +142,7 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         maskList: ['merchant', 'description', 'comment'],
     },
     [ONYXKEYS.COLLECTION.POLICY]: {
-        allowList: ['id', 'type', 'role', 'outputCurrency', 'isPolicyExpenseChatEnabled', 'areCategoriesEnabled', 'areTagsEnabled'],
+        allowList: ['id', 'type', 'role', 'outputCurrency', 'areCategoriesEnabled', 'areTagsEnabled'],
         maskList: ['name', 'avatar'],
     },
     [ONYXKEYS.USER_WALLET]: {

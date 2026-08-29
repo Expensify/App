@@ -43,6 +43,7 @@ import type {
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type ChronosTimeTracking from './ChronosTimeTracking';
+import type CloudflareSession from './CloudflareSession';
 import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
 import type CompanyCardsLoadingState from './CompanyCardsLoadingState';
 import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
@@ -445,6 +446,7 @@ export type {
     DomainPendingActions,
     DomainSecurityGroup,
     ChronosTimeTracking,
+    CloudflareSession,
     CodingRuleMatchingTransaction,
     UserSecurityGroupData,
     DeviceBiometrics,
