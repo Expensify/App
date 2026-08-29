@@ -15,6 +15,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -62,8 +63,10 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             isFromPublicDomain: acc?.isFromPublicDomain,
         }),
     });
-    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
-    const isJoiningCompanyWorkspace = onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
+    const onboardingIntent = useOnboardingIntent();
+    const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const addWorkEmailTaskReportID = introSelected?.addWorkEmail;
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
     const [onboardingErrorMessageTranslationKey] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
@@ -99,7 +102,21 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         if (isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow) {
             if (account?.validated) {
                 Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute());
+                return;
             }
+            // Nothing submitted yet this visit — show the form and wait for AddWorkEmail to resolve shouldValidate.
+            if (onboardingValues?.shouldValidate === undefined) {
+                return;
+            }
+            // A code is needed to confirm the work email (an account already exists under that domain).
+            if (onboardingValues.shouldValidate) {
+                Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
+                return;
+            }
+            // The work email was added outright with no code needed. The task is already marked complete on the
+            // server at this point, so there's nothing left to do here, whether this is the initial submission or a
+            // re-click of the same (already completed) Concierge task — close the modal instead of showing the form again.
+            Navigation.goBack();
             return;
         }
 
@@ -141,9 +158,12 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         onboardingValues?.isMergeAccountStepSkipped,
     ]);
 
-    const submitWorkEmail = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
-        AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim());
-    }, []);
+    const submitWorkEmail = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
+            AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim(), addWorkEmailTaskReportID);
+        },
+        [addWorkEmailTaskReportID],
+    );
 
     useEffect(() => {
         if (!onboardingErrorMessageTranslationKey) {
