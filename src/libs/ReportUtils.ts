@@ -120,7 +120,7 @@ import {openUnreportedExpense} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {removeDraftTransactionsByIDs} from './actions/TransactionEdit';
 import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
-import {convertAttendeesToArray} from './AttendeeUtils';
+import {convertAttendeesToArray, normalizeAttendees} from './AttendeeUtils';
 import {getCategoryGLCode} from './CategoryUtils';
 import {convertToDisplayStringEnLocale} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -163,6 +163,7 @@ import {
     canMemberWrite as canMemberWritePolicyUtils,
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasDynamicExternalWorkflow,
+    isArchivedOrPendingDeletePolicy,
     isExpensifyTeam,
     isGroupPolicyByType,
     isGroupPolicy as isGroupPolicyPolicyUtils,
@@ -274,6 +275,7 @@ import {
     getTransactionID,
     getWaypoints,
     hasMissingSmartscanFields as hasMissingSmartscanFieldsTransactionUtils,
+    hasMissingSmartscanFieldsForRBR,
     hasNoticeTypeViolation,
     hasReceipt as hasReceiptTransactionUtils,
     hasViolation,
@@ -5770,7 +5772,8 @@ function getReportActionWithMissingSmartscanFields(
         if (!wasActionTakenByCurrentUser(action, currentUserAccountID)) {
             return false;
         }
-        return hasMissingSmartscanFieldsTransactionUtils(transaction, iouReport);
+        // hasMissingSmartscanFieldsForRBR skips DELETE-pending transactions (see its doc).
+        return hasMissingSmartscanFieldsForRBR(transaction, iouReport);
     });
 }
 
@@ -6348,7 +6351,12 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.merchant = transactionChanges?.merchant;
     }
     if ('attendees' in transactionChanges) {
-        originalMessage.oldAttendees = getAttendees(oldTransaction);
+        // Only `modifiedAttendees` counts as a previous edit, so we deliberately ignore `comment.attendees` (the default
+        // attendee the app adds when the expense is created). Otherwise the optimistic message would read
+        // "changed the attendees from <self> to X" while the server returns "set the attendees to X", causing a flicker.
+        // Note: this must stay an empty array rather than being omitted, because ModifiedExpenseMessage checks
+        // `'oldAttendees' in originalMessage` to decide whether to build the attendees fragment at all.
+        originalMessage.oldAttendees = normalizeAttendees(convertAttendeesToArray(oldTransaction?.modifiedAttendees));
         originalMessage.newAttendees = transactionChanges?.attendees;
     }
 
@@ -11518,7 +11526,8 @@ function getReportActionWithSmartscanError(
 
         const transactionID = isSplitOrTrackAction ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        const isTransactionThreadError = isSplitOrTrackAction && hasMissingSmartscanFieldsTransactionUtils(transaction, report);
+        // hasMissingSmartscanFieldsForRBR skips DELETE-pending transactions (see its doc).
+        const isTransactionThreadError = isSplitOrTrackAction && hasMissingSmartscanFieldsForRBR(transaction, report);
 
         return isTransactionThreadError;
     });
@@ -13714,13 +13723,18 @@ function getReportPersonalDetailsParticipants(report: Report, personalDetailsPar
     };
 }
 
-function canRejectReportAction(report: Report, currentUserAccountID: number | undefined): boolean {
+function canRejectReportAction(report: Report, currentUserAccountID: number | undefined, policy: OnyxEntry<Policy>): boolean {
     const isReportBeingProcessed = isProcessingReport(report);
     const isIOU = isIOUReport(report);
     const isInvoice = isInvoiceReport(report);
     const isCurrentUserManager = !!currentUserAccountID && report?.managerID === currentUserAccountID;
 
     if (!isCurrentUserManager) {
+        return false;
+    }
+
+    // Rejecting changes the report state, which is blocked on archived or pending-delete policies.
+    if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 
@@ -13737,6 +13751,15 @@ function canRejectReportAction(report: Report, currentUserAccountID: number | un
     }
 
     return false;
+}
+
+/**
+ * Whether Pay is blocked by archived state. Expense reports key on the policy archived or pending-delete state,
+ * so reports archived for other reasons (e.g. the submitter was unshared from the policy) can still be paid.
+ * IOU and invoice reports have no policy archived state, so the passed report/chat archived flag blocks instead.
+ */
+function isPayBlockedByArchivedState(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>, isReportOrChatArchived: boolean): boolean {
+    return isExpenseReport(report) ? isArchivedOrPendingDeletePolicy(policy) : isReportOrChatArchived;
 }
 
 function hasReportBeenReopened(report: OnyxEntry<Report>, reportActions?: OnyxEntry<ReportActions> | ReportAction[]): boolean {
@@ -14691,6 +14714,7 @@ export {
     pushTransactionAutoSelectionsOnyxData,
     navigateOnDeleteExpense,
     canRejectReportAction,
+    isPayBlockedByArchivedState,
     hasReportBeenReopened,
     hasReportBeenRetracted,
     getNextApproverAccountID,

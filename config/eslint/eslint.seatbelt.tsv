@@ -342,7 +342,7 @@
 "../../src/components/SelectionList/hooks/useFlattenedSections.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/SelectionList/utils/getListboxRole/index.web.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/SettlementButton/AnimatedSettlementButton.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/SettlementButton/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	11
+"../../src/components/SettlementButton/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../src/components/SettlementButton/index.tsx"	"no-restricted-imports"	1
 "../../src/components/SidePanel/SidePanelOverlay.tsx"	"no-restricted-syntax"	1
 "../../src/components/SidePanel/SidePanelReport/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -814,7 +814,7 @@
 "../../src/libs/actions/Task.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/libs/actions/Task.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/actions/Task.ts"	"no-restricted-imports"	1
-"../../src/libs/actions/Task.ts"	"no-restricted-syntax"	6
+"../../src/libs/actions/Task.ts"	"no-restricted-syntax"	5
 "../../src/libs/actions/TaxRate.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/TeachersUnite.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Transaction.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
