@@ -140,7 +140,7 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         maskList: ['merchant', 'description', 'comment'],
     },
     [ONYXKEYS.COLLECTION.POLICY]: {
-        allowList: ['id', 'type', 'role', 'outputCurrency', 'isPolicyExpenseChatEnabled', 'areCategoriesEnabled', 'areTagsEnabled'],
+        allowList: ['id', 'type', 'role', 'outputCurrency', 'areCategoriesEnabled', 'areTagsEnabled'],
         maskList: ['name', 'avatar'],
     },
     [ONYXKEYS.USER_WALLET]: {
