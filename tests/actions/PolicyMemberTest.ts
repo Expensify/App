@@ -246,7 +246,7 @@ describe('actions/PolicyMember', () => {
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.merge(ONYXKEYS.SESSION, {email: fakeEmail, accountID: fakeAccountID});
-            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail, fakeCard);
+            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy, fakeAccountID, fakeEmail, fakeCard);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -292,7 +292,7 @@ describe('actions/PolicyMember', () => {
             };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail, fakeCard);
+            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy, fakeAccountID, fakeEmail, fakeCard);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -318,7 +318,7 @@ describe('actions/PolicyMember', () => {
 
             mockFetch?.pause?.();
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail);
+            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy, fakeAccountID, fakeEmail);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -342,7 +342,7 @@ describe('actions/PolicyMember', () => {
             const fakeAccountID = 42;
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail);
+            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy, fakeAccountID, fakeEmail);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
