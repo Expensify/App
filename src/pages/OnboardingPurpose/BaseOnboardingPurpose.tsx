@@ -173,7 +173,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const onboardingLocalRef = useRef<TOnboardingRef>(null);
     useImperativeHandle(isFocused ? OnboardingRefManager.ref : onboardingLocalRef, () => ({handleOuterClick}), [handleOuterClick]);
 
-    useOnboardingHeaderConfig({shouldShowBackButton: false});
+    const keyboardVerticalOffset = useOnboardingHeaderConfig({shouldShowBackButton: false});
 
     if (isLoadingOnyxValue(onboardingErrorMessageResult)) {
         return null;
@@ -182,6 +182,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             includePaddingTop={false}
+            keyboardVerticalOffset={keyboardVerticalOffset}
             testID="BaseOnboardingPurpose"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
             shouldEnableMaxHeight={shouldEnableMaxHeight}

@@ -263,7 +263,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         );
     }
 
-    useOnboardingHeaderConfig({
+    const keyboardVerticalOffset = useOnboardingHeaderConfig({
         shouldShowBackButton: true,
         onBackButtonPress: () => Navigation.goBack(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute()),
     });
@@ -295,6 +295,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     return (
         <ScreenWrapper
             includePaddingTop={false}
+            keyboardVerticalOffset={keyboardVerticalOffset}
             testID="BaseOnboardingAccounting"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
             shouldEnableMaxHeight={!isMobileSafari()}

@@ -19,7 +19,7 @@ function OnboardingModalNavigatorContentWrapper({children, onboardingIsMediumOrL
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
-    const {paddingTop, paddingLeft, paddingRight} = StyleUtils.getPlatformSafeAreaPadding(insets);
+    const {paddingLeft, paddingRight} = StyleUtils.getPlatformSafeAreaPadding(insets);
 
     // Add padding left and right to the style to account for the safe area insets
     return (
@@ -30,9 +30,7 @@ function OnboardingModalNavigatorContentWrapper({children, onboardingIsMediumOrL
             >
                 {/* Sticky back-caret header rendered once above the Stack.Navigator so it stays put across screen transitions. */}
                 {/* It owns the top safe area inset because it renders outside the per screen ScreenWrapper, which is why those screens pass includePaddingTop false. */}
-                <View style={{paddingTop}}>
-                    <OnboardingStickyHeader />
-                </View>
+                <OnboardingStickyHeader />
                 {children}
             </View>
         </OnboardingHeaderContextProvider>

@@ -80,7 +80,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         MergeIntoAccountAndLogin(workEmail, validateCode, session?.accountID);
     };
 
-    useOnboardingHeaderConfig({
+    const keyboardVerticalOffset = useOnboardingHeaderConfig({
         shouldShowBackButton: !onboardingValues?.isMergingAccountBlocked,
         onBackButtonPress: () => {
             updateOnboardingValuesAndNavigation(onboardingValues);
@@ -91,6 +91,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             includePaddingTop={false}
+            keyboardVerticalOffset={keyboardVerticalOffset}
             testID="BaseOnboardingWorkEmailValidation"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >

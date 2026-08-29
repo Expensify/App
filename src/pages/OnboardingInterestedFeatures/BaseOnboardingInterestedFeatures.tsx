@@ -235,7 +235,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         [styles, renderItem, translate],
     );
 
-    useOnboardingHeaderConfig({
+    const keyboardVerticalOffset = useOnboardingHeaderConfig({
         shouldShowBackButton: true,
         onBackButtonPress: () => Navigation.goBack(ROUTES.ONBOARDING_EMPLOYEES.getRoute()),
     });
@@ -243,6 +243,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     return (
         <ScreenWrapper
             includePaddingTop={false}
+            keyboardVerticalOffset={keyboardVerticalOffset}
             testID="BaseOnboardingInterestedFeatures"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
             shouldEnableMaxHeight

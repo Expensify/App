@@ -197,7 +197,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         [illustrations.EnvelopeReceipt, illustrations.Profile, illustrations.Gears],
     );
 
-    useOnboardingHeaderConfig({shouldShowBackButton: false});
+    const keyboardVerticalOffset = useOnboardingHeaderConfig({shouldShowBackButton: false});
 
     return (
         <ScreenWrapper
@@ -205,6 +205,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
             includeSafeAreaPaddingBottom
             includePaddingTop={false}
+            keyboardVerticalOffset={keyboardVerticalOffset}
             testID="BaseOnboardingWorkEmail"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >

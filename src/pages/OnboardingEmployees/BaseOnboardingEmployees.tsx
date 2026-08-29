@@ -141,7 +141,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
         </>
     );
 
-    useOnboardingHeaderConfig({
+    const keyboardVerticalOffset = useOnboardingHeaderConfig({
         shouldShowBackButton: !isEmployeesFirstStep,
         onBackButtonPress: handleBackButtonPress,
     });
@@ -149,6 +149,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     return (
         <ScreenWrapper
             includePaddingTop={false}
+            keyboardVerticalOffset={keyboardVerticalOffset}
             testID="BaseOnboardingEmployees"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >

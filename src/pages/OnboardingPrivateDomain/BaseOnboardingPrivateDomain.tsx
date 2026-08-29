@@ -118,7 +118,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         }
     }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, shouldBlockPublicDomain, navigateToNextOnboardingStep]);
 
-    useOnboardingHeaderConfig({
+    const keyboardVerticalOffset = useOnboardingHeaderConfig({
         shouldShowBackButton: !shouldBlockPublicDomain,
         onBackButtonPress: handleBackButtonPress,
     });
@@ -132,6 +132,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
             includePaddingTop={false}
+            keyboardVerticalOffset={keyboardVerticalOffset}
             testID="BaseOnboardingPrivateDomain"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >

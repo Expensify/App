@@ -234,7 +234,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         return errors;
     };
 
-    useOnboardingHeaderConfig({
+    const keyboardVerticalOffset = useOnboardingHeaderConfig({
         shouldShowBackButton: !isPrivateDomainAndHasAccessiblePolicies,
         onBackButtonPress: () => {
             // Based on the `handleSubmit` function to reverse where to return
@@ -257,6 +257,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
             includePaddingTop={false}
+            keyboardVerticalOffset={keyboardVerticalOffset}
             testID="BaseOnboardingPersonalDetails"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
