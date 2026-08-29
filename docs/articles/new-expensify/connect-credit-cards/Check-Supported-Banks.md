@@ -22,7 +22,7 @@ Any Expensify user can check whether their bank or card issuer is supported. No 
 ## How to check if your bank or card issuer is supported in Expensify
 
 1. Review the list of commonly supported banks and card issuers below.
-2. If your bank is listed, learn how to set up a [direct feed](/articles/new-expensify/connect-credit-cards/Direct-feeds) or [commercial feed](/articles/new-expensify/connect-credit-cards/Commercial-feeds) to connect it.
+2. If your bank is listed, learn how to set up a [direct feed](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Direct-Company-Card-Feed-Connection) or [commercial feed](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Card-Feed-Connection) to connect it.
 3. If your bank is not listed, check the Plaid coverage pages for your region:
    - US/Canada: https://plaid.com/docs/institutions/
    - UK/Europe: https://plaid.com/docs/institutions/europe/
@@ -156,4 +156,4 @@ New banks are added regularly through Plaid's network. Even if your bank isn't s
 
 ## What if my bank isn't supported by Plaid?
 
-If your bank isn't supported through Plaid, you may still be able to connect it using a [commercial feed](/articles/new-expensify/connect-credit-cards/Commercial-feeds). Commercial feeds work directly with your bank to establish a connection. Contact your bank to confirm whether they support commercial card feeds with Expensify.
+If your bank isn't supported through Plaid, you may still be able to connect it using a [commercial feed](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Card-Feed-Connection). Commercial feeds work directly with your bank to establish a connection. Contact your bank to confirm whether they support commercial card feeds with Expensify.

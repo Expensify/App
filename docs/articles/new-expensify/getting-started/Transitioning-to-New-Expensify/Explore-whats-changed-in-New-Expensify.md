@@ -105,7 +105,7 @@ This includes:
 
 Workspace Admins can view all unassigned cards on a card feed at a glance, making it easier to find and assign cards to the right Workspace members. 
 
-[Learn how to assign company cards](/articles/new-expensify/connect-credit-cards/Assign-Company-Cards).
+[Learn how to assign company cards](/articles/new-expensify/connect-credit-cards/configure-and-manage-company-cards/Assign-Company-Cards).
 
 ### Amend the transaction start date on an assigned card at any time
 
