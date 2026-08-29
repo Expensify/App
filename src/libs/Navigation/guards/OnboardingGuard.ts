@@ -12,7 +12,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {Account, Onboarding} from '@src/types/onyx';
+import type {Account, IntroSelected, Onboarding} from '@src/types/onyx';
 
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -42,6 +42,7 @@ let onboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
 let onboardingInitialPath: OnyxEntry<string>;
 let hasNonPersonalPolicy: OnyxEntry<boolean>;
 let wasInvitedToNewDot: boolean | undefined;
+let introSelected: OnyxEntry<IntroSelected>;
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_ONBOARDING,
@@ -102,6 +103,7 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_INTRO_SELECTED,
     callback: (value) => {
+        introSelected = value;
         wasInvitedToNewDot = value ? wasInvitedToNewDotSelector(value) : undefined;
     },
 });
@@ -217,10 +219,22 @@ const OnboardingGuard: NavigationGuard = {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
 
-        // Redirect completed users who try to navigate to onboarding routes (e.g. via deep link)
-        // The OnboardingModalNavigator is not mounted when onboarding is complete, so the route would silently fail
-        if ((isOnboardingCompleted || CONFIG.SKIP_ONBOARDING) && isNavigatingToOnboardingFlow(action)) {
+        // The join-workspace intent hands out Concierge task links (add work email, validate email, join workspace)
+        // that reopen these onboarding screens after the flow has already completed, so those users are exempt from
+        // the redirect below. ONBOARDING_PURPOSE_SELECTED is local-only and does not survive a reload, so
+        // fall back to the server-persisted introSelected NVP, like useOnboardingIntent does.
+        const isJoiningCompanyWorkspaceIntent = (introSelected?.choice ?? onboardingPurposeSelected) === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
+
+        // Redirect completed users who try to navigate to onboarding routes (e.g. via deep link), since onboarding
+        // is not something they should be able to re-enter once it is done.
+        if (isOnboardingCompleted && isNavigatingToOnboardingFlow(action) && !isJoiningCompanyWorkspaceIntent) {
             Log.info('[OnboardingGuard] Redirecting user away from onboarding route to home');
+            return {type: 'REDIRECT', route: ROUTES.HOME};
+        }
+
+        // Test builds must never enter onboarding, even for the join-workspace exemption above.
+        if (CONFIG.SKIP_ONBOARDING && isNavigatingToOnboardingFlow(action)) {
+            Log.info('[OnboardingGuard] SKIP_ONBOARDING: redirecting user away from onboarding route to home');
             return {type: 'REDIRECT', route: ROUTES.HOME};
         }
 
