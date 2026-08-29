@@ -889,4 +889,4 @@ export {
     saveQueueFlushedData,
     clearQueueFlushedData,
 };
-export type {DeferredWriteReadGateClaim, RequestError};
+export type {RequestError};
