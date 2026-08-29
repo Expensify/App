@@ -1575,8 +1575,15 @@ const canAnonymousUserAccessRoute = (route: string) => {
     return false;
 };
 
-function AddWorkEmail(workEmail: string) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY>> = [
+/**
+ * @param onboardingTaskReportID Task report for the join-workspace intent's "add work email" Concierge task, when one
+ * exists. Auth auto-completes that task as part of AddWorkEmail, but it does so by forwarding a separate CompleteTask
+ * command whose Onyx updates only arrive over Pusher, so the checkbox would otherwise stay unticked until a reload.
+ */
+function AddWorkEmail(workEmail: string, onboardingTaskReportID?: string) {
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY | `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
@@ -1592,6 +1599,17 @@ function AddWorkEmail(workEmail: string) {
         },
     ];
 
+    if (onboardingTaskReportID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${onboardingTaskReportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            },
+        });
+    }
+
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1602,7 +1620,7 @@ function AddWorkEmail(workEmail: string) {
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
@@ -1611,6 +1629,17 @@ function AddWorkEmail(workEmail: string) {
             },
         },
     ];
+
+    if (onboardingTaskReportID) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${onboardingTaskReportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            },
+        });
+    }
 
     // We need to inspect the response to detect the closed-account error and surface a specific translation key, which API.write cannot do.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method

@@ -37,6 +37,15 @@ type IntroSelected = {
     /** Task reportID for 'setupCategoriesAndTags' type */
     setupCategoriesAndTags?: string;
 
+    /** Task reportID for 'addWorkEmail' type */
+    addWorkEmail?: string;
+
+    /** Task reportID for 'validateEmail' type */
+    validateEmail?: string;
+
+    /** Task reportID for 'joinWorkspace' type */
+    joinWorkspace?: string;
+
     /** The previous onboarding choices of the user */
     previousChoices?: OnboardingPurpose[];
 
