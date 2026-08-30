@@ -32,7 +32,15 @@ type WorkspaceDistanceRatesTableProps = {
     selectedKeys: string[];
     canWriteDistanceRates: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+
+    /** Optional header content rendered above the filter bar, scrolling with the table rows */
     headerComponent?: React.ReactElement;
+
+    /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
+
+    /** When rows are selected, replaces the entire filter bar with this bulk-actions button */
+    selectionButton?: React.ReactNode;
 };
 
 const STATUS_ORDER: Record<string, number> = {
@@ -42,7 +50,17 @@ const STATUS_ORDER: Record<string, number> = {
     [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: 3,
 };
 
-function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, selectedKeys, canWriteDistanceRates, onRowSelectionChange, headerComponent}: WorkspaceDistanceRatesTableProps) {
+function WorkspaceDistanceRatesTable({
+    ratesData,
+    policyID,
+    selectionEnabled,
+    selectedKeys,
+    canWriteDistanceRates,
+    onRowSelectionChange,
+    headerComponent,
+    headerButton,
+    selectionButton,
+}: WorkspaceDistanceRatesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
@@ -147,7 +165,14 @@ function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, sel
         />
     );
 
-    const searchBarComponent = <Table.FilterBar label={translate('workspace.distanceRates.findRate')} />;
+    const searchBarComponent = (
+        <Table.FilterBar
+            label={translate('workspace.distanceRates.findRate')}
+            selectionButton={selectionButton}
+        >
+            {headerButton}
+        </Table.FilterBar>
+    );
     const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (

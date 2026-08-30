@@ -33,9 +33,12 @@ type DomainAdminRowData = TableData & {
 type DomainAdminsTableProps = {
     domainAccountID: number;
     admins: DomainAdminRowData[];
+
+    /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
 };
 
-export default function DomainAdminsTable({domainAccountID, admins}: DomainAdminsTableProps) {
+export default function DomainAdminsTable({domainAccountID, admins, headerButton}: DomainAdminsTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const tableRef = useRef<TableHandle<DomainAdminRowData, DomainAdminsTableColumnKey>>(null);
@@ -74,7 +77,7 @@ export default function DomainAdminsTable({domainAccountID, admins}: DomainAdmin
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
         />
     );
-    const tableHeaderComponent = <Table.FilterBar label={translate('domain.admins.findAdmin')} />;
+    const tableHeaderComponent = <Table.FilterBar label={translate('domain.admins.findAdmin')}>{headerButton}</Table.FilterBar>;
 
     return (
         <Table

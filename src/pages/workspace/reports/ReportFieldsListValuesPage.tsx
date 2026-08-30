@@ -61,7 +61,7 @@ function ReportFieldsListValuesPage({
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here to use the mobile selection mode on small screens only
     // See https://github.com/Expensify/App/issues/48724 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {showConfirmModal} = useConfirmModal();
@@ -179,7 +179,7 @@ function ReportFieldsListValuesPage({
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
-    const getHeaderButtons = () => {
+    const getSelectionButton = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         if (canWriteReportFields && (isSmallScreenWidth ? isMobileSelectionModeEnabled : selectedKeys.length > 0)) {
             if (selectedKeys.length > 0 && !hasAccountingConnections) {
@@ -296,29 +296,33 @@ function ReportFieldsListValuesPage({
                     customText={translate('workspace.common.selected', {count: selectedKeys.length})}
                     options={options}
                     isSplitButton={false}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                     isDisabled={!selectedKeys.length}
+                    anchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                    }}
                 />
-            );
-        }
-
-        if (canWriteReportFields && !hasAccountingConnections) {
-            return (
-                <Button
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_ADD_VALUE.getRoute(policyID, reportFieldID))}
-                >
-                    <Button.Icon src={icons.Plus} />
-                    <Button.Text>{translate('workspace.reportFields.addValue')}</Button.Text>
-                </Button>
             );
         }
     };
 
+    const getHeaderButtons = () => undefined;
+
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
 
     const headerButtons = getHeaderButtons();
+
+    const addValueButton =
+        canWriteReportFields && !hasAccountingConnections ? (
+            <Button
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_ADD_VALUE.getRoute(policyID, reportFieldID))}
+            >
+                <Button.Icon src={icons.Plus} />
+                <Button.Text>{translate('workspace.reportFields.addValue')}</Button.Text>
+            </Button>
+        ) : undefined;
 
     return (
         <AccessOrNotFoundWrapper
@@ -355,6 +359,8 @@ function ReportFieldsListValuesPage({
                     selectionEnabled={canWriteReportFields}
                     selectedKeys={selectedKeys}
                     onRowSelectionChange={setSelectedKeys}
+                    headerButton={addValueButton}
+                    selectionButton={getSelectionButton()}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

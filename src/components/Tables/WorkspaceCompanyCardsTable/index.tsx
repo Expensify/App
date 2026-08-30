@@ -350,8 +350,8 @@ function WorkspaceCompanyCardsTable({
             key={feedName}
             iconProps={{
                 additionalStyles: styles.cardIcon,
-                width: shouldUseNarrowTableLayout ? variables.cardIconWidth : variables.cardIconSmallWidth,
-                height: shouldUseNarrowTableLayout ? variables.cardIconHeight : variables.cardIconSmallHeight,
+                width: variables.cardIconWidth,
+                height: variables.cardIconHeight,
             }}
             selectedFeed={feedName}
             useSkeletonLoader

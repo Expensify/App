@@ -210,60 +210,67 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
               },
           ]
         : [];
-    const getHeaderButtons = () => {
-        const headerButtonsRowStyle = [styles.flexRow, styles.gap2, !shouldShowSelector && shouldDisplayButtonsInSeparateLine && styles.mb3];
-
+    const getSelectionButton = () => {
         const shouldShowBulkSelectionDropdown = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : selectedCardIDs.length > 0;
 
-        if (shouldShowBulkSelectionDropdown) {
-            return (
-                <View style={headerButtonsRowStyle}>
-                    <ButtonWithDropdownMenu<typeof CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV>
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        onPress={() => {}}
-                        customText={translate('workspace.common.selected', {
-                            count: selectedCardIDs.length,
-                        })}
-                        options={bulkExportOptions}
-                        isSplitButton={false}
-                        shouldAlwaysShowDropdownMenu
-                        isDisabled={!selectedCardIDs.length}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_EXPENSIFY_CARD.BULK_ACTIONS_DROPDOWN}
-                        wrapperStyle={[!isInLandscapeMode && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.flexShrink1]}
-                    />
-                </View>
-            );
+        if (!shouldShowBulkSelectionDropdown) {
+            return undefined;
         }
 
         return (
+            <ButtonWithDropdownMenu<typeof CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV>
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                onPress={() => {}}
+                customText={translate('workspace.common.selected', {
+                    count: selectedCardIDs.length,
+                })}
+                options={bulkExportOptions}
+                isSplitButton={false}
+                shouldAlwaysShowDropdownMenu
+                isDisabled={!selectedCardIDs.length}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_EXPENSIFY_CARD.BULK_ACTIONS_DROPDOWN}
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
+            />
+        );
+    };
+
+    const getHeaderButtons = () => {
+        const headerButtonsRowStyle = [styles.flexRow, styles.gap2, !shouldShowSelector && shouldDisplayButtonsInSeparateLine && styles.mb3];
+
+        if (secondaryActions.length === 0) {
+            return null;
+        }
+        return (
             <View style={headerButtonsRowStyle}>
-                {!isCardListEmpty && (
-                    <Button
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        onPress={handleIssueCardPress}
-                        style={shouldDisplayButtonsInSeparateLine && styles.flex1}
-                        innerStyles={!canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined}
-                        hoverStyles={!canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
-                    >
-                        <Button.Icon src={icons.Plus} />
-                        <Button.Text>{translate('workspace.expensifyCard.issueCard')}</Button.Text>
-                    </Button>
-                )}
-                {secondaryActions.length > 0 && (
-                    <ButtonWithDropdownMenu
-                        onPress={() => {}}
-                        customText={translate('common.more')}
-                        options={secondaryActions}
-                        isSplitButton={false}
-                        shouldUseOptionIcon
-                        wrapperStyle={isCardListEmpty && !isInLandscapeMode ? styles.flexGrow1 : styles.flexGrow0}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_DROPDOWN}
-                    />
-                )}
+                <ButtonWithDropdownMenu
+                    onPress={() => {}}
+                    customText={translate('common.more')}
+                    options={secondaryActions}
+                    isSplitButton={false}
+                    shouldUseOptionIcon
+                    wrapperStyle={shouldDisplayButtonsInSeparateLine || (isCardListEmpty && !isInLandscapeMode) ? styles.flexGrow1 : styles.flexGrow0}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_DROPDOWN}
+                />
             </View>
         );
     };
+
+    const issueCardButton = !isCardListEmpty ? (
+        <Button
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
+            onPress={handleIssueCardPress}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
+            innerStyles={!canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined}
+            hoverStyles={!canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined}
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>{translate('workspace.expensifyCard.issueCard')}</Button.Text>
+        </Button>
+    ) : undefined;
 
     const handleBackButtonPress = () => {
         if (isMobileSelectionModeEnabled) {
@@ -296,23 +303,26 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         pageHeaderContent = <View style={styles.ph5}>{getHeaderButtons()}</View>;
     } else if (shouldShowSelector) {
         pageHeaderContent = (
-            <View
-                style={[
-                    styles.w100,
-                    styles.ph5,
-                    styles.pb3,
-                    styles.gap3,
-                    (!shouldChangeLayout || isInLandscapeMode) && [styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween],
-                ]}
-            >
+            <View style={[styles.w100, styles.ph5, styles.pb3, styles.gap3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                 <FeedSelector
-                    wrapperStyle={isInLandscapeMode ? styles.flex1 : undefined}
+                    wrapperStyle={shouldChangeLayout || isInLandscapeMode ? styles.flex1 : undefined}
                     onFeedSelect={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path))}
                     CardFeedIcon={cardFeedIcon}
                     feedName={translate('workspace.common.expensifyCard')}
                     supportingText={getExpensifyCardFeedDescription(cardSettings, allPolicies, domains, fundID, cardList)}
                 />
-                {isBankAccountVerified && (canWriteExpensifyCard || secondaryActions.length > 0 || !isCardListEmpty) && getHeaderButtons()}
+                {isBankAccountVerified &&
+                    (shouldChangeLayout
+                        ? canWriteExpensifyCard && (
+                              <Button
+                                  onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID))}
+                                  accessibilityLabel={translate('common.settings')}
+                                  sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_DROPDOWN}
+                              >
+                                  <Button.Icon src={icons.Gear} />
+                              </Button>
+                          )
+                        : (canWriteExpensifyCard || secondaryActions.length > 0 || !isCardListEmpty) && getHeaderButtons())}
             </View>
         );
     }
@@ -366,6 +376,8 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         listFooterComponent={disclaimerFooter}
                         listFooterComponentStyle={[styles.flexGrow1, styles.justifyContentEnd]}
                         listContentContainerStyle={[styles.flexGrow1, {minHeight: windowHeight - headerHeight + footerHeight}]}
+                        headerButton={issueCardButton}
+                        selectionButton={getSelectionButton()}
                     />
                 </View>
             )}

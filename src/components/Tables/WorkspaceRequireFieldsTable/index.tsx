@@ -19,9 +19,12 @@ type WorkspaceRequireFieldsTableProps = {
     emptyState: TableEmptyStateProps;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
+
+    /** Action button (e.g. create) rendered in the table filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
 };
 
-function WorkspaceRequireFieldsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent, emptyState}: WorkspaceRequireFieldsTableProps) {
+function WorkspaceRequireFieldsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent, headerButton, emptyState}: WorkspaceRequireFieldsTableProps) {
     const {translate} = useLocalize();
 
     const renderRow = ({item, rowIndex, shouldUseNarrowTableLayout}: TableRenderRowProps<RequireFieldsTableItem>) => (
@@ -40,6 +43,7 @@ function WorkspaceRequireFieldsTable({rulesData, selectionEnabled, selectedKeys,
             selectedKeys={selectedKeys}
             onRowSelectionChange={onRowSelectionChange}
             headerComponent={headerComponent}
+            headerButton={headerButton}
             emptyState={emptyState}
             tableTitle={translate('workspace.rules.tabs.requireFields')}
             findRuleLabel={translate('workspace.rules.requireFieldsTable.findRule')}

@@ -1,4 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {FilterConfig, IsItemInFilterCallback} from '@components/Table';
 import DomainMembersTable from '@components/Tables/DomainMembersTable';
@@ -6,13 +7,11 @@ import type {DomainMemberRowData, DomainMembersTableFilterKey} from '@components
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@navigation/Navigation';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
 
@@ -26,8 +25,11 @@ type BaseDomainMembersPageProps = {
     /** The title of the header */
     headerTitle: string;
 
-    /** Content to display in the header (e.g., Add/Settings buttons) */
-    headerContent?: React.ReactNode;
+    /** Whether the header three-dots overflow button should be shown */
+    shouldShowThreeDotsButton?: boolean;
+
+    /** Menu items for the header three-dots overflow menu */
+    threeDotsMenuItems?: PopoverMenuItem[];
 
     /** Stores list of selected members */
     selectedMembers?: string[];
@@ -52,13 +54,20 @@ type BaseDomainMembersPageProps = {
 
     /** Whether the group column should be shown in the table */
     shouldShowGroupColumn: boolean;
+
+    /** Action button (e.g. create) rendered in the table filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
+
+    /** When rows are selected, replaces the entire table filter bar with this bulk-actions button */
+    selectionButton?: React.ReactNode;
 };
 
 function BaseDomainMembersPage({
     domainAccountID,
     members,
     headerTitle,
-    headerContent,
+    shouldShowThreeDotsButton,
+    threeDotsMenuItems,
     selectedMembers = [],
     setSelectedMembers,
     useSelectionModeHeader,
@@ -67,11 +76,12 @@ function BaseDomainMembersPage({
     isItemInFilter,
     shouldShowGroupFilter,
     shouldShowGroupColumn,
+    headerButton,
+    selectionButton,
 }: BaseDomainMembersPageProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+    const styles = useThemeStyles();
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -87,10 +97,10 @@ function BaseDomainMembersPage({
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader={!useSelectionModeHeader}
                     shouldDisplayHelpButton
-                >
-                    {!shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
-                </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                    shouldShowThreeDotsButton={shouldShowThreeDotsButton}
+                    threeDotsMenuItems={threeDotsMenuItems}
+                    threeDotsMenuIconStyles={styles.mr3}
+                />
                 <DomainMembersTable
                     domainAccountID={domainAccountID}
                     members={members}
@@ -100,6 +110,8 @@ function BaseDomainMembersPage({
                     shouldShowGroupColumn={shouldShowGroupColumn}
                     filterConfig={shouldShowGroupFilter ? filterConfig : undefined}
                     isItemInFilter={shouldShowGroupFilter ? isItemInFilter : undefined}
+                    headerButton={headerButton}
+                    selectionButton={selectionButton}
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>

@@ -39,10 +39,15 @@ type DomainRowData = {
 
 type DomainListTableProps = {
     domains: DomainRowData[];
+
+    /** Optional header content rendered above the filter bar, scrolling with the table rows */
     headerComponent?: React.ReactElement;
+
+    /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
 };
 
-export default function DomainListTable({domains, headerComponent}: DomainListTableProps) {
+export default function DomainListTable({domains, headerComponent, headerButton}: DomainListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['EarthWithControls']);
@@ -74,7 +79,7 @@ export default function DomainListTable({domains, headerComponent}: DomainListTa
         return item.title.toLowerCase().includes(searchValue.toLowerCase());
     };
 
-    const searchBarComponent = <Table.FilterBar label={translate('workspace.common.findDomain')} />;
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.common.findDomain')}>{headerButton}</Table.FilterBar>;
     const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     const renderTableItem = ({item, index}: ListRenderItemInfo<DomainRowData>) => {

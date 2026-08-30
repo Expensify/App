@@ -18,11 +18,14 @@ type TableFilterBarProps = PropsWithChildren<{
     /** Label and accessibility label for the search input. */
     label: string;
 
+    /** When provided (e.g. rows are selected), replaces the entire bar with this bulk-actions button, matching the Search pages */
+    selectionButton?: React.ReactNode;
+
     /** Whether to show a "Clear" button that resets all active filters. */
     shouldShowClearFiltersButton?: boolean;
 }>;
 
-export default function TableFilterBar({label, shouldShowClearFiltersButton, children}: TableFilterBarProps) {
+export default function TableFilterBar({label, children, selectionButton, shouldShowClearFiltersButton}: TableFilterBarProps) {
     const styles = useThemeStyles();
     const {filterConfig, tableMethods, activeFilters, onSearchStringChange, columns, narrowLayoutSortColumn, originalDataLength, shouldUseNarrowTableLayout} = useTableContext();
 
@@ -77,6 +80,14 @@ export default function TableFilterBar({label, shouldShowClearFiltersButton, chi
         return null;
     }
 
+    if (selectionButton) {
+        return (
+            <View style={[styles.pb3, styles.ph5]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.tableFilterBarSelectionButton]}>{selectionButton}</View>
+            </View>
+        );
+    }
+
     return (
         <View style={[styles.w100, styles.gap3, styles.pb3, styles.ph5]}>
             <View style={[styles.flexRow, styles.gap3, styles.justifyContentBetween, shouldUseNarrowTableLayout && styles.alignItemsCenter]}>
@@ -86,7 +97,7 @@ export default function TableFilterBar({label, shouldShowClearFiltersButton, chi
                 </View>
 
                 {actionColumnVisible && (
-                    <View style={[styles.flexRow, styles.gap1]}>
+                    <View style={[styles.flexRow, styles.gap1, styles.alignItemsCenter, styles.flexShrink0]}>
                         <TableFilterTrigger />
                         <TableDisplaySettingsTrigger />
                         {children}

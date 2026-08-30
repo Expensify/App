@@ -27,7 +27,6 @@ import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
@@ -101,7 +100,7 @@ function getPendingAction(policyTagList: PolicyTagList): PendingAction | undefin
 function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -121,7 +120,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const connectedIntegration = getConnectedIntegration(policy) ?? syncingAccountingIntegration;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Plus', 'Trashcan', 'Close', 'Trashcan', 'Checkmark']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow', 'Gear', 'Table', 'Download', 'Plus', 'Trashcan', 'Close', 'Trashcan', 'Checkmark']);
 
     const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = useMemo(
         () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
@@ -572,46 +571,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         canWriteTags,
     ]);
 
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
-
-    const getHeaderButtons = () => {
-        if (!canWriteTags && secondaryActions.length === 0) {
-            return null;
+    const getSelectionButton = () => {
+        // Without selection there are no bulk actions, so keep the normal header even if selection mode lingered from elsewhere.
+        if (!canWriteTags || !isSelectionEnabled || (shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedTagKeys.length === 0)) {
+            return undefined;
         }
 
         const selectedTagsObject = selectedTagKeys.map((key) => policyTagLists.at(0)?.tags?.[key]);
         const selectedTagLists = selectedTagKeys.map((selectedTag) => policyTagLists.find((policyTagList) => policyTagList.name === selectedTag));
-
-        // Without selection there are no bulk actions, so keep the normal header even if selection mode lingered from elsewhere.
-        if (!canWriteTags || !isSelectionEnabled || (shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedTagKeys.length === 0)) {
-            const hasPrimaryActions = canWriteTags && !hasAccountingConnections && !isMultiLevelTags && hasVisibleTags;
-            return (
-                <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
-                    {hasPrimaryActions && (
-                        <Button
-                            variant={CONST.BUTTON_VARIANT.SUCCESS}
-                            onPress={navigateToCreateTagPage}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.ADD_BUTTON}
-                            style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                        >
-                            <Button.Icon src={expensifyIcons.Plus} />
-                            <Button.Text>{translate('workspace.tags.addTag')}</Button.Text>
-                        </Button>
-                    )}
-                    {secondaryActions.length > 0 && (
-                        <ButtonWithDropdownMenu
-                            onPress={() => {}}
-                            shouldAlwaysShowDropdownMenu
-                            customText={translate('common.more')}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_DROPDOWN}
-                            options={secondaryActions}
-                            isSplitButton={false}
-                            wrapperStyle={isInLandscapeMode || hasPrimaryActions ? styles.flexGrow0 : styles.flexGrow1}
-                        />
-                    )}
-                </View>
-            );
-        }
 
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
 
@@ -761,10 +728,13 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 size={CONST.BUTTON_SIZE.MEDIUM}
                 customText={translate('workspace.common.selected', {count: selectedTagKeys.length})}
                 options={options}
-                style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                 isDisabled={!selectedTagKeys.length}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.BULK_ACTIONS_DROPDOWN}
                 testID="WorkspaceTagsPage-header-dropdown-menu-button"
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
             />
         );
     };
@@ -843,6 +813,19 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 : undefined,
     };
 
+    const hasPrimaryActions = canWriteTags && !hasAccountingConnections && !isMultiLevelTags && hasVisibleTags;
+    const addTagButton = hasPrimaryActions ? (
+        <Button
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
+            onPress={navigateToCreateTagPage}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.ADD_BUTTON}
+        >
+            <Button.Icon src={expensifyIcons.Plus} />
+            <Button.Text>{translate('common.tag')}</Button.Text>
+        </Button>
+    ) : undefined;
+
     return (
         <>
             <AccessOrNotFoundWrapper
@@ -861,8 +844,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 >
                     <HeaderWithBackButton
                         shouldUseHeadlineHeader={!selectionModeHeader}
-                        title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
+                        title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.tags')}
                         shouldShowBackButton={shouldUseNarrowLayout}
+                        shouldShowThreeDotsButton={secondaryActions.length > 0}
+                        threeDotsMenuItems={secondaryActions}
+                        threeDotsMenuIconStyles={styles.mr3}
                         shouldDisplayHelpButton
                         onBackButtonPress={() => {
                             if (isMobileSelectionModeEnabled) {
@@ -878,10 +864,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
                             Navigation.goBack();
                         }}
-                    >
-                        {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
-                    </HeaderWithBackButton>
-                    {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                    />
                     {(!hasVisibleTags || isLoading) && headerContent}
                     {isLoading && (
                         <ActivityIndicator
@@ -901,6 +884,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             emptyState={tagsTableEmptyState}
                             onRowSelectionChange={setSelectedTagKeys}
                             headerComponent={hasVisibleTags ? headerContent : undefined}
+                            headerButton={addTagButton}
+                            selectionButton={getSelectionButton()}
                         />
                     )}
                 </ScreenWrapper>

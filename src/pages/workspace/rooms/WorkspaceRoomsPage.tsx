@@ -20,7 +20,7 @@ import {openReport} from '@libs/actions/Report';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {isArchivedPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 
@@ -36,7 +36,6 @@ import type SCREENS from '@src/SCREENS';
 import {useFocusEffect} from '@react-navigation/native';
 import {policyChatRoomsSelector} from '@selectors/Report';
 import React from 'react';
-import {View} from 'react-native';
 
 type WorkspaceRoomsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.ROOMS>;
 
@@ -48,7 +47,6 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const isAdmin = isPolicyAdmin(policy);
-    const isArchived = isArchivedPolicy(policy);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rooms');
 
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -109,19 +107,16 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         openPolicyRoomsPage(policyID);
     });
 
-    const roomsTableHeader =
-        shouldUseNarrowLayout && !isArchived ? (
-            <View style={[styles.ph5, styles.pb3]}>
-                <Button
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
-                    style={styles.w100}
-                >
-                    <Button.Icon src={headerIcons.Plus} />
-                    <Button.Text>{translate('common.create')}</Button.Text>
-                </Button>
-            </View>
-        ) : undefined;
+    const createRoomButton = (
+        <Button
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
+            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
+        >
+            <Button.Icon src={headerIcons.Plus} />
+            <Button.Text>{translate('common.room')}</Button.Text>
+        </Button>
+    );
 
     return (
         <AccessOrNotFoundWrapper policyID={policyID}>
@@ -138,23 +133,13 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={Navigation.goBack}
                     shouldDisplayHelpButton
-                >
-                    {!shouldUseNarrowLayout && !isArchived && (
-                        <Button
-                            variant={CONST.BUTTON_VARIANT.SUCCESS}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
-                        >
-                            <Button.Icon src={headerIcons.Plus} />
-                            <Button.Text>{translate('common.create')}</Button.Text>
-                        </Button>
-                    )}
-                </HeaderWithBackButton>
+                />
 
                 <WorkspaceRoomsTable
                     rooms={rooms}
                     policyID={policyID}
                     highlightedReportID={highlightedReportID}
-                    headerComponent={roomsTableHeader}
+                    headerButton={createRoomButton}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

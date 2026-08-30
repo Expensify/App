@@ -23,7 +23,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDomainMemberError, closeUserAccount, exportMembersToCSV, setDomainMembersSelectedForMove} from '@libs/actions/Domain';
@@ -57,7 +56,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['LaptopWithMembers', 'LockClosed', 'BuildingCross', 'Encryption']);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers', 'Download', 'Transfer']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers', 'Download', 'Transfer', 'DownArrow']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
     const clearSelectedMembers = () => {
@@ -68,7 +67,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
 
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
     const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {selector: memberPendingActionSelector});
@@ -237,8 +235,11 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     };
 
     const hasSettingsErrors = hasDomainMembersSettingsErrors(domainErrors);
-    const getHeaderButtons = () => {
-        return (shouldUseNarrowLayout ? canSelectMultiple : selectedMembers.length > 0) ? (
+    const getSelectionButton = () => {
+        if (!(shouldUseNarrowLayout ? canSelectMultiple : selectedMembers.length > 0)) {
+            return undefined;
+        }
+        return (
             <ButtonWithDropdownMenu<DomainMemberBulkActionType>
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 shouldAlwaysShowDropdownMenu
@@ -247,48 +248,40 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 onPress={() => null}
                 options={getBulkActionsButtonOptions()}
                 isSplitButton={false}
-                style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : undefined}
                 isDisabled={!selectedMembers.length}
                 testID="DomainMembersPage-header-dropdown-menu-button"
-                wrapperStyle={shouldDisplayButtonsInSeparateLine && styles.flexGrow1}
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
             />
-        ) : (
-            <View style={[styles.flexRow, styles.gap2]}>
-                <Button
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
-                    innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
-                    style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : undefined}
-                >
-                    <Button.Icon src={icons.Plus} />
-                    <Button.Text>{translate('domain.members.addMember')}</Button.Text>
-                </Button>
-                <ButtonWithDropdownMenu
-                    onPress={() => {}}
-                    shouldAlwaysShowDropdownMenu
-                    customText={translate('common.more')}
-                    brickRoadIndicator={hasSettingsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    options={[
-                        {
-                            value: CONST.DOMAIN.MEMBERS.SECONDARY_ACTIONS.SETTINGS,
-                            text: translate('domain.common.settings'),
-                            icon: icons.Gear,
-                            onSelected: () => Navigation.navigate(ROUTES.DOMAIN_MEMBERS_SETTINGS.getRoute(domainAccountID)),
-                            brickRoadIndicator: hasSettingsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                        },
-                        {
-                            text: translate('spreadsheet.downloadCSV'),
-                            icon: icons.Download,
-                            onSelected: onDownloadCSV,
-                            value: CONST.DOMAIN.MEMBERS.SECONDARY_ACTIONS.SAVE_TO_CSV,
-                        },
-                    ]}
-                    isSplitButton={false}
-                    wrapperStyle={styles.flexGrow0}
-                />
-            </View>
         );
     };
+
+    const headerThreeDotsMenuItems = [
+        {
+            text: translate('domain.common.settings'),
+            icon: icons.Gear,
+            onSelected: () => Navigation.navigate(ROUTES.DOMAIN_MEMBERS_SETTINGS.getRoute(domainAccountID)),
+            brickRoadIndicator: hasSettingsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+        },
+        {
+            text: translate('spreadsheet.downloadCSV'),
+            icon: icons.Download,
+            onSelected: onDownloadCSV,
+        },
+    ];
+
+    const addMemberButton = (
+        <Button
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
+            onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>{translate('common.member')}</Button.Text>
+        </Button>
+    );
 
     if (!domain?.validated) {
         return (
@@ -345,7 +338,9 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 domainAccountID={domainAccountID}
                 members={members}
                 headerTitle={translate('domain.members.title')}
-                headerContent={getHeaderButtons()}
+                shouldShowThreeDotsButton={headerThreeDotsMenuItems.length > 0}
+                threeDotsMenuItems={headerThreeDotsMenuItems}
+                selectionButton={getSelectionButton()}
                 selectedMembers={selectedMembers}
                 setSelectedMembers={setSelectedMembers}
                 useSelectionModeHeader={selectionModeHeader}
@@ -353,6 +348,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 isItemInFilter={isItemInFilter}
                 shouldShowGroupFilter={shouldShowGroupFilter}
                 shouldShowGroupColumn={shouldShowGroupColumn}
+                headerButton={addMemberButton}
                 onBackButtonPress={() => {
                     if (isMobileSelectionModeEnabled) {
                         clearSelectedMembers();

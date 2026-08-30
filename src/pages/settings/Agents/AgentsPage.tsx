@@ -25,7 +25,6 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useSearchBackPress from '@hooks/useSearchBackPress';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -52,7 +51,6 @@ function AgentsPage() {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Trashcan']);
     const chatWithAgent = useChatWithAgent();
     const switchToDelegator = useSwitchToDelegator();
@@ -214,40 +212,35 @@ function AgentsPage() {
 
     const newAgentButton = (
         <Button
-            variant="success"
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
             onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_NEW.getRoute())}
         >
             <Button.Icon src={icons.Plus} />
-            <Button.Text>{translate('agentsPage.newAgent')}</Button.Text>
+            <Button.Text>{translate('common.agent')}</Button.Text>
         </Button>
     );
 
-    const headerButtons = shouldShowBulkActionsButton ? (
-        <ButtonWithDropdownMenu<DeepValueOf<typeof CONST.AGENTS.BULK_ACTION_TYPES>>
-            variant={CONST.BUTTON_VARIANT.SUCCESS}
-            shouldAlwaysShowDropdownMenu
-            customText={translate('workspace.common.selected', {count: selectedAgentKeys.length})}
-            size={CONST.BUTTON_SIZE.MEDIUM}
-            onPress={() => null}
-            options={bulkActionsButtonOptions}
-            isSplitButton={false}
-            isDisabled={!selectedAgentKeys.length}
-            testID="AgentsPage-header-dropdown-menu-button"
-        />
-    ) : (
-        newAgentButton
-    );
+    const getSelectionButton = () =>
+        shouldShowBulkActionsButton ? (
+            <ButtonWithDropdownMenu<DeepValueOf<typeof CONST.AGENTS.BULK_ACTION_TYPES>>
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                shouldAlwaysShowDropdownMenu
+                customText={translate('workspace.common.selected', {count: selectedAgentKeys.length})}
+                size={CONST.BUTTON_SIZE.MEDIUM}
+                onPress={() => null}
+                options={bulkActionsButtonOptions}
+                isSplitButton={false}
+                isDisabled={!selectedAgentKeys.length}
+                testID="AgentsPage-header-dropdown-menu-button"
+            />
+        ) : undefined;
 
-    const agentsTableHeaderComponent = (
-        <>
-            {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pb3]}>{headerButtons}</View>}
-            {hasAgents && (
-                <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
-                    <RenderHTML html={translate('agentsPage.subtitle')} />
-                </View>
-            )}
-        </>
-    );
+    const agentsTableHeaderComponent = hasAgents ? (
+        <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
+            <RenderHTML html={translate('agentsPage.subtitle')} />
+        </View>
+    ) : undefined;
 
     if (!isCustomAgentEnabled) {
         return <NotFoundPage />;
@@ -277,14 +270,14 @@ function AgentsPage() {
                     shouldDisplaySearchRouter
                     shouldDisplayHelpButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('agentsPage.title')}
-                >
-                    {!shouldDisplayButtonsInSeparateLine && headerButtons}
-                </HeaderWithBackButton>
+                />
             </CollapsibleHeaderOnKeyboard>
             <AgentsTable
                 ref={tableRef}
                 agents={agents}
                 headerComponent={agentsTableHeaderComponent}
+                headerButton={newAgentButton}
+                selectionButton={getSelectionButton()}
                 canSelectAgents
                 selectedKeys={selectedAgentKeys}
                 onRowSelectionChange={setSelectedAgents}

@@ -114,15 +114,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
 
     return (
         <View>
-            <View
-                style={[
-                    styles.w100,
-                    styles.ph5,
-                    styles.gap5,
-                    styles.pb2,
-                    !shouldShowNarrowLayout && [styles.flexColumn, styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween],
-                ]}
-            >
+            <View style={[styles.w100, styles.ph5, styles.gap5, styles.pb2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                 {isLoading ? (
                     <AccountSwitcherSkeletonView
                         avatarSize={CONST.AVATAR_SIZE.DEFAULT}
@@ -131,6 +123,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     />
                 ) : (
                     <FeedSelector
+                        wrapperStyle={shouldShowNarrowLayout ? styles.flex1 : undefined}
                         onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID ?? String(CONST.DEFAULT_NUMBER_ID)))}
                         CardFeedIcon={CardFeedIcon}
                         feedName={formattedFeedName}
@@ -143,11 +136,10 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     <Button
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID ?? String(CONST.DEFAULT_NUMBER_ID)))}
                         accessibilityLabel={translate('common.settings')}
-                        style={shouldShowNarrowLayout ? styles.w100 : undefined}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.SETTINGS_BUTTON}
                     >
                         <Button.Icon src={icons.Gear} />
-                        <Button.Text>{translate('common.settings')}</Button.Text>
+                        {!shouldShowNarrowLayout && <Button.Text>{translate('common.settings')}</Button.Text>}
                     </Button>
                 )}
             </View>

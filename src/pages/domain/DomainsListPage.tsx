@@ -11,6 +11,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {hasDomainErrors} from '@libs/DomainUtils';
@@ -33,6 +34,7 @@ function DomainsListPage() {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     useDocumentTitle(translate('common.domains'));
 
@@ -78,6 +80,7 @@ function DomainsListPage() {
     const headerButton = !!domainRows.length && (
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
             accessibilityLabel={translate('common.new')}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_DOMAIN_BUTTON}
             onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN))}
@@ -86,17 +89,11 @@ function DomainsListPage() {
             <Button.Text>{translate('common.new')}</Button.Text>
         </Button>
     );
-    const headerComponent = (
-        <WorkspaceListHeaderContent
-            activeTabKey="domains"
-            headerButton={headerButton}
-        />
-    );
+    const headerComponent = <WorkspaceListHeaderContent activeTabKey="domains" />;
 
     return (
         <WorkspaceListLayout
             activeTabKey="domains"
-            headerButton={headerButton}
             headerComponent={headerComponent}
             scrollHeaderWithTable
         >
@@ -114,6 +111,7 @@ function DomainsListPage() {
                     <DomainListTable
                         domains={domainRows}
                         headerComponent={headerComponent}
+                        headerButton={headerButton}
                     />
                 )}
             </View>

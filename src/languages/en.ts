@@ -376,6 +376,9 @@ const translations = {
         currency: 'Currency',
         groupCurrency: 'Group currency',
         rate: 'Rate',
+        room: 'Room',
+        agent: 'Agent',
+        rule: 'Rule',
         emptyLHN: {
             title: 'Woohoo! All caught up.',
             subtitleText1: 'Find a chat using the',
@@ -8029,6 +8032,7 @@ const translations = {
             goToSubscription: 'Go to Subscription',
         },
         rules: {
+            findRule: 'Find rule',
             tabs: {
                 general: 'General',
                 cardRestrictions: 'Card restrictions',

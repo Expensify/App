@@ -30,10 +30,14 @@ import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
 import PublicReceiptVisibilityToggle from './PublicReceiptVisibilityToggle';
+import RulesTabNoResults from './tabs/RulesTabNoResults';
 
 type IndividualExpenseRulesSectionRevampProps = {
     policyID: string;
     canWriteRules: boolean;
+
+    /** Filters the listed rules by title/description */
+    searchQuery?: string;
 };
 
 const RULE_MENU_ITEM_KEYS = {
@@ -57,7 +61,7 @@ type BasicRuleMenuItem = {
 
 const COLLECT_ALLOWED_RULE_KEYS = new Set<string>([RULE_MENU_ITEM_KEYS.REQUIRE_FIELDS, RULE_MENU_ITEM_KEYS.BILLABLE_EXPENSES]);
 
-function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: IndividualExpenseRulesSectionRevampProps) {
+function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules, searchQuery}: IndividualExpenseRulesSectionRevampProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -220,6 +224,24 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
         },
     ];
 
+    const normalizedQuery = (searchQuery ?? '').trim().toLowerCase();
+    const matchesQuery = (...texts: Array<string | undefined>) => !normalizedQuery || texts.some((text) => !!text && text.toLowerCase().includes(normalizedQuery));
+
+    const filteredPolicyControlItems = policyControlItems.filter((item) => matchesQuery(item.title, item.description));
+    const filteredProductDefaultItems = productDefaultItems.filter((item) => matchesQuery(item.title, item.description));
+
+    const eReceiptsTitle = translate('workspace.rules.individualExpenseRules.eReceipts');
+    const attendeeTrackingTitle = translate('workspace.rules.individualExpenseRules.attendeeTracking');
+    const publicReceiptVisibilityTitle = translate('workspace.rules.individualExpenseRules.publicReceiptVisibility');
+
+    const hasAnyResult =
+        filteredPolicyControlItems.length > 0 ||
+        filteredProductDefaultItems.length > 0 ||
+        matchesQuery(eReceiptsTitle) ||
+        matchesQuery(attendeeTrackingTitle) ||
+        matchesQuery(publicReceiptVisibilityTitle);
+    const showNoResults = !!normalizedQuery && !hasAnyResult;
+
     const renderMenuItems = (items: BasicRuleMenuItem[]) =>
         items.map((item) => (
             <OfflineWithFeedback
@@ -258,41 +280,48 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             containerStyles={styles.mh5}
         >
             <View style={styles.mt3}>
-                {renderMenuItems(policyControlItems)}
-                <View style={[styles.sectionDividerLine, styles.mv3]} />
-                {renderMenuItems(productDefaultItems)}
-                <ToggleSettingOptionRow
-                    title={translate('workspace.rules.individualExpenseRules.eReceipts')}
-                    subtitle={translate('workspace.rules.individualExpenseRules.eReceiptsHint')}
-                    switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.eReceipts')}
-                    shouldParseSubtitle
-                    wrapperStyle={[styles.pv3]}
-                    isActive={areEReceiptsEnabled}
-                    disabled={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD || isCollect}
-                    showLockIcon={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD || isCollect}
-                    disabledAction={isCollect && canWriteRules ? navigateToRulesControlUpgrade : undefined}
-                    onToggle={() => (canWriteRules ? setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled, policy?.eReceipts) : undefined)}
-                    pendingAction={policy?.pendingFields?.eReceipts}
-                    rowIcon={icons.Receipt}
-                />
-                <ToggleSettingOptionRow
-                    title={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
-                    subtitle={translate('workspace.rules.individualExpenseRules.attendeeTrackingHint')}
-                    switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
-                    wrapperStyle={[styles.pv3]}
-                    isActive={isAttendeeTrackingEnabledForPolicy}
-                    disabled={!canWriteRules || isCollect}
-                    showLockIcon={!canWriteRules || isCollect}
-                    disabledAction={isCollect && canWriteRules ? navigateToRulesControlUpgrade : undefined}
-                    onToggle={() => (canWriteRules ? handleAttendeeTrackingToggle(!isAttendeeTrackingEnabledForPolicy) : undefined)}
-                    pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
-                    rowIcon={icons.Users}
-                />
-                <PublicReceiptVisibilityToggle
-                    policyID={policyID}
-                    canWriteRules={canWriteRules}
-                    rowIcon={icons.Eye}
-                />
+                {showNoResults && <RulesTabNoResults />}
+                {renderMenuItems(filteredPolicyControlItems)}
+                {filteredPolicyControlItems.length > 0 && filteredProductDefaultItems.length > 0 && <View style={[styles.sectionDividerLine, styles.mv3]} />}
+                {renderMenuItems(filteredProductDefaultItems)}
+                {matchesQuery(eReceiptsTitle) && (
+                    <ToggleSettingOptionRow
+                        title={eReceiptsTitle}
+                        subtitle={translate('workspace.rules.individualExpenseRules.eReceiptsHint')}
+                        switchAccessibilityLabel={eReceiptsTitle}
+                        shouldParseSubtitle
+                        wrapperStyle={[styles.pv3]}
+                        isActive={areEReceiptsEnabled}
+                        disabled={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD || isCollect}
+                        showLockIcon={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD || isCollect}
+                        disabledAction={isCollect && canWriteRules ? navigateToRulesControlUpgrade : undefined}
+                        onToggle={() => (canWriteRules ? setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled, policy?.eReceipts) : undefined)}
+                        pendingAction={policy?.pendingFields?.eReceipts}
+                        rowIcon={icons.Receipt}
+                    />
+                )}
+                {matchesQuery(attendeeTrackingTitle) && (
+                    <ToggleSettingOptionRow
+                        title={attendeeTrackingTitle}
+                        subtitle={translate('workspace.rules.individualExpenseRules.attendeeTrackingHint')}
+                        switchAccessibilityLabel={attendeeTrackingTitle}
+                        wrapperStyle={[styles.pv3]}
+                        isActive={isAttendeeTrackingEnabledForPolicy}
+                        disabled={!canWriteRules || isCollect}
+                        showLockIcon={!canWriteRules || isCollect}
+                        disabledAction={isCollect && canWriteRules ? navigateToRulesControlUpgrade : undefined}
+                        onToggle={() => (canWriteRules ? handleAttendeeTrackingToggle(!isAttendeeTrackingEnabledForPolicy) : undefined)}
+                        pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
+                        rowIcon={icons.Users}
+                    />
+                )}
+                {matchesQuery(publicReceiptVisibilityTitle) && (
+                    <PublicReceiptVisibilityToggle
+                        policyID={policyID}
+                        canWriteRules={canWriteRules}
+                        rowIcon={icons.Eye}
+                    />
+                )}
             </View>
         </Section>
     );

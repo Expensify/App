@@ -4,7 +4,7 @@ import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericE
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
@@ -12,24 +12,28 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getVisibleAgentRules} from '@libs/AgentRulesUtils';
+import {getAgentRuleDisplayTitle, getVisibleAgentRules} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
 import ROUTES from '@src/ROUTES';
 
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
+
+import RulesTabNoResults from './RulesTabNoResults';
+import RulesTabSearchBar from './RulesTabSearchBar';
 
 type RulesAgentsTabProps = {
     policyID: string;
     canWriteRules: boolean;
     showReadOnlyModal: () => void;
     headerComponent?: React.ReactElement;
+    headerButton?: React.ReactNode;
 };
 
-function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal, headerComponent}: RulesAgentsTabProps) {
+function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal, headerComponent, headerButton}: RulesAgentsTabProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -37,10 +41,12 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal, headerCompo
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const illustrations = useMemoizedLazyIllustrations(['AgentsIceCream']);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const visibleRules = getVisibleAgentRules(policy?.rules?.agentRules, isOffline);
     const hasRules = visibleRules.length > 0;
+    const [searchQuery, setSearchQuery] = useState('');
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const filteredRules = normalizedQuery ? visibleRules.filter((rule) => getAgentRuleDisplayTitle(rule).toLowerCase().includes(normalizedQuery)) : visibleRules;
     const {renderTitle, renderSubtitle} = useAgentRulesSectionHeader({
         policyID,
         subtitle: translate('workspace.rules.agentRules.revampSubtitle'),
@@ -76,10 +82,9 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal, headerCompo
                         containerStyles={[styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)]}
                         buttons={[
                             {
-                                buttonText: translate('workspace.rules.agentRulesEmptyState.cta'),
+                                buttonText: translate('workspace.rules.agentRules.addRule'),
                                 buttonAction: handleAddAgentRule,
                                 success: true,
-                                icon: icons.Plus,
                                 isDisabled: !canWriteRules,
                             },
                         ]}
@@ -96,21 +101,31 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal, headerCompo
             addBottomSafeAreaPadding
         >
             {headerComponent}
-            <View style={[styles.w100, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+            <View style={[styles.w100, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, styles.mw100]}>
+                <RulesTabSearchBar
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                >
+                    {headerButton}
+                </RulesTabSearchBar>
                 <Section
                     isCentralPane
                     renderTitle={renderTitle}
                     renderSubtitle={renderSubtitle}
                     containerStyles={styles.mh5}
                 >
-                    <AgentRulesList
-                        policyID={policyID}
-                        rules={visibleRules}
-                        canWriteRules={canWriteRules}
-                        showReadOnlyModal={showReadOnlyModal}
-                        listContainerStyle={[styles.mt6, styles.gap2]}
-                        menuItemWrapperStyle={styles.justifyContentCenter}
-                    />
+                    {normalizedQuery && filteredRules.length === 0 ? (
+                        <RulesTabNoResults />
+                    ) : (
+                        <AgentRulesList
+                            policyID={policyID}
+                            rules={filteredRules}
+                            canWriteRules={canWriteRules}
+                            showReadOnlyModal={showReadOnlyModal}
+                            listContainerStyle={[styles.mt6, styles.gap2]}
+                            menuItemWrapperStyle={styles.justifyContentCenter}
+                        />
+                    )}
                 </Section>
             </View>
         </ScrollView>

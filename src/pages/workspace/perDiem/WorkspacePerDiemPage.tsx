@@ -91,7 +91,7 @@ type WorkspacePerDiemPageProps = PlatformStackScreenProps<WorkspaceSplitNavigato
 function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -104,7 +104,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.perDiem');
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Trashcan']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow', 'Gear', 'Table', 'Download', 'Trashcan']);
 
     const [customUnit, allSubRates] = useMemo(() => {
         const customUnits = getPerDiemCustomUnit(policy);
@@ -304,23 +304,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
             );
         }
 
-        if (secondaryActions.length === 0) {
-            return null;
-        }
-
-        return (
-            <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
-                <ButtonWithDropdownMenu
-                    onPress={() => {}}
-                    shouldAlwaysShowDropdownMenu
-                    customText={translate('common.more')}
-                    options={secondaryActions}
-                    isSplitButton={false}
-                    wrapperStyle={isInLandscapeMode ? undefined : styles.flexGrow1}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.MORE_DROPDOWN}
-                />
-            </View>
-        );
+        return null;
     };
 
     const isLoading = !isOffline && customUnit === undefined;
@@ -384,8 +368,11 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
             >
                 <HeaderWithBackButton
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    title={translate(selectionModeHeader ? 'common.selectMultiple' : 'common.perDiem')}
+                    title={selectionModeHeader ? translate('common.selectMultiple') : translate('common.perDiem')}
                     shouldUseHeadlineHeader={!selectionModeHeader}
+                    shouldShowThreeDotsButton={secondaryActions.length > 0}
+                    threeDotsMenuItems={secondaryActions}
+                    threeDotsMenuIconStyles={styles.mr3}
                     shouldDisplayHelpButton
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {

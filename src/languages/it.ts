@@ -338,6 +338,9 @@ const translations: TranslationDeepObject<typeof en> = {
         currency: 'Valuta',
         groupCurrency: 'Valuta del gruppo',
         rate: 'Valuta',
+        room: 'Stanza',
+        agent: 'Agente',
+        rule: 'Regola',
         emptyLHN: {
             title: 'Fantastico! Sei in pari con tutto.',
             subtitleText1: 'Trova una chat usando la',
@@ -7806,6 +7809,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             goToSubscription: 'Vai all’abbonamento',
         },
         rules: {
+            findRule: 'Trova regola',
             individualExpenseRules: {
                 title: 'Spese',
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>

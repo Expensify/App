@@ -42,7 +42,15 @@ type DomainMembersTableProps = {
     shouldShowGroupColumn: boolean;
     filterConfig?: FilterConfig<DomainMembersTableFilterKey>;
     isItemInFilter?: IsItemInFilterCallback<DomainMemberRowData>;
+
+    /** Optional header content rendered above the filter bar, scrolling with the table rows */
     headerComponent?: React.ReactElement;
+
+    /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
+
+    /** When rows are selected, replaces the entire filter bar with this bulk-actions button */
+    selectionButton?: React.ReactNode;
 };
 
 /**
@@ -82,6 +90,8 @@ export default function DomainMembersTable({
     filterConfig,
     isItemInFilter,
     headerComponent,
+    headerButton,
+    selectionButton,
 }: DomainMembersTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -141,7 +151,17 @@ export default function DomainMembersTable({
     );
 
     const shouldShowTableControls = !isEmpty;
-    const tableHeaderComponent = composeTableListHeader(headerComponent, shouldShowTableControls ? <Table.FilterBar label={translate('domain.members.findMember')} /> : undefined);
+    const tableHeaderComponent = composeTableListHeader(
+        headerComponent,
+        shouldShowTableControls ? (
+            <Table.FilterBar
+                label={translate('domain.members.findMember')}
+                selectionButton={selectionButton}
+            >
+                {headerButton}
+            </Table.FilterBar>
+        ) : undefined,
+    );
 
     return (
         <Table

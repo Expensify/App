@@ -81,7 +81,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Flag', 'Bot', 'Trashcan', 'Table']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Flag', 'Bot', 'Trashcan', 'Table', 'Gear', 'DownArrow']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
@@ -302,46 +302,26 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             );
         }
 
-        if (!shouldShowAddRuleButton) {
-            return null;
-        }
-
-        const moreOptions: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [
-            getImportMerchantRulesOption({
-                policyID,
-                canWriteRules,
-                showReadOnlyModal,
-                translate,
-                icon: icons.Table,
-                // Collect sees More on General, so gate it like New rule. backTo only applies after a successful upgrade.
-                tryNavigateToUpgrade: () => tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, ROUTES.RULES_MERCHANT_IMPORT.getRoute(policyID)),
-            }),
-        ];
-
-        return (
-            <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.w100]}>
-                <Button
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    onPress={handleNewRule}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                >
-                    <Button.Icon src={icons.Plus} />
-                    <Button.Text>{translate('workspace.rules.merchantRules.addRuleTitle')}</Button.Text>
-                </Button>
-                <ButtonWithDropdownMenu
-                    // onPress is required by ButtonWithDropdownMenu but never fires for a non-split button, where pressing only opens the dropdown menu
-                    onPress={() => {}}
-                    shouldAlwaysShowDropdownMenu
-                    customText={translate('common.more')}
-                    options={moreOptions}
-                    isSplitButton={false}
-                    wrapperStyle={styles.flexGrow0}
-                />
-            </View>
-        );
+        // The create button now lives in each tab's table filter bar (or the General tab's filter bar).
+        return null;
     };
 
+    const moreOptions: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [
+        getImportMerchantRulesOption({
+            policyID,
+            canWriteRules,
+            showReadOnlyModal,
+            translate,
+            icon: icons.Table,
+            // Collect sees More on General, so gate it like New rule. backTo only applies after a successful upgrade.
+            tryNavigateToUpgrade: () => tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, ROUTES.RULES_MERCHANT_IMPORT.getRoute(policyID)),
+        }),
+    ];
+
+    const shouldShowThreeDotsButton = !selectionModeHeader && !shouldShowBulkActions && shouldShowAddRuleButton;
+
     const headerButtons = getHeaderContent();
+    const rulesHeaderTitle = selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.rules');
     const rulesTabSelector = (
         <View style={[styles.flexShrink0, styles.w100]}>
             <View style={[styles.flexRow, styles.mb1, styles.w100]}>
@@ -355,10 +335,21 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             </View>
         </View>
     );
+    const addRuleButton = (
+        <Button
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
+            onPress={handleNewRule}
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>{translate('common.rule')}</Button.Text>
+        </Button>
+    );
     const sharedTableTabProps = {
         policyID,
         canWriteRules,
         headerComponent: rulesTabSelector,
+        headerButton: addRuleButton,
     };
 
     return (
@@ -372,7 +363,9 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             <WorkspacePageWithSections
                 testID="PolicyRulesPage"
                 shouldUseScrollView={activeTab === RULES_TAB.GENERAL}
-                headerText={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.rules')}
+                headerText={rulesHeaderTitle}
+                shouldShowThreeDotsButton={shouldShowThreeDotsButton}
+                threeDotsMenuItems={moreOptions}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
                 shouldUseHeadlineHeader={!selectionModeHeader}
@@ -386,21 +379,14 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 <View style={[styles.flex1, styles.w100, styles.mnh0]}>
                     {!isTableTab && !isAgentsTab && rulesTabSelector}
                     {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.flexShrink0, styles.pl5, styles.pr5, styles.pb5, styles.w100]}>{headerButtons}</View>}
-                    <View
-                        style={[
-                            styles.flex1,
-                            styles.mnh0,
-                            styles.w100,
-                            shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
-                            (isTableTab || isAgentsTab) && styles.mw100,
-                        ]}
-                    >
+                    <View style={[styles.flex1, styles.mnh0, styles.w100, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, styles.mw100]}>
                         {activeTab === RULES_TAB.GENERAL && (
                             <RulesGeneralTab
                                 policyID={policyID}
                                 canWriteRules={canWriteRules}
                                 isAgentsRulesBannerDismissed={isAgentsRulesBannerDismissed}
                                 onOpenAgentsTab={() => handleTabPress(RULES_TAB.AGENTS)}
+                                onAddRule={handleNewRule}
                             />
                         )}
                         {isTableTab && (
@@ -444,6 +430,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                     canWriteRules={canWriteRules}
                                     showReadOnlyModal={showReadOnlyModal}
                                     headerComponent={rulesTabSelector}
+                                    headerButton={addRuleButton}
                                 />
                             </View>
                         )}

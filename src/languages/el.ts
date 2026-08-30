@@ -341,6 +341,9 @@ const translations: TranslationDeepObject<typeof en> = {
         currency: 'Νόμισμα',
         groupCurrency: 'Νόμισμα ομάδας',
         rate: 'Βαθμός',
+        room: 'Δωμάτιο',
+        agent: 'Πράκτορας',
+        rule: 'Κανόνας',
         emptyLHN: {
             title: 'Τέλεια! Τα έχετε δει όλα.',
             subtitleText1: 'Βρείτε μια συνομιλία χρησιμοποιώντας το',
@@ -8094,6 +8097,7 @@ ${reportName}`,
             goToSubscription: 'Μετάβαση στη συνδρομή',
         },
         rules: {
+            findRule: 'Εύρεση κανόνα',
             tabs: {
                 general: 'Γενικά',
                 cardRestrictions: 'Περιορισμοί κάρτας',

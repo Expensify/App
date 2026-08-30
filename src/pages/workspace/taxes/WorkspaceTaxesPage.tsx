@@ -20,7 +20,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
@@ -64,8 +63,7 @@ function WorkspaceTaxesPage({
     },
 }: WorkspaceTaxesPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.taxes');
-    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
@@ -302,36 +300,9 @@ function WorkspaceTaxesPage({
         [icons.Gear, policyID, translate],
     );
 
-    const getHeaderButtons = () => {
-        if (!canWriteTaxes) {
-            return null;
-        }
-
+    const getSelectionButton = () => {
         if (!shouldShowBulkActionsButton) {
-            return (
-                <View style={[!isInLandscapeMode && styles.w100, styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
-                    {!hasAccountingConnections && (
-                        <Button
-                            variant={CONST.BUTTON_VARIANT.SUCCESS}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID))}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.ADD_BUTTON}
-                            style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                        >
-                            <Button.Icon src={icons.Plus} />
-                            <Button.Text>{translate('workspace.taxes.addRate')}</Button.Text>
-                        </Button>
-                    )}
-                    <ButtonWithDropdownMenu
-                        onPress={() => {}}
-                        shouldUseOptionIcon
-                        customText={translate('common.more')}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.MORE_DROPDOWN}
-                        options={secondaryActions}
-                        isSplitButton={false}
-                        wrapperStyle={hasAccountingConnections ? styles.flexGrow1 : styles.flexGrow0}
-                    />
-                </View>
-            );
+            return undefined;
         }
 
         return (
@@ -343,14 +314,28 @@ function WorkspaceTaxesPage({
                 customText={translate('workspace.common.selected', {count: selectedTaxesIDs.length})}
                 shouldAlwaysShowDropdownMenu
                 isSplitButton={false}
-                style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                 isDisabled={!selectedTaxesIDs.length}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.BULK_ACTIONS_DROPDOWN}
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
             />
         );
     };
 
-    const headerButtons = getHeaderButtons();
+    const addTaxButton =
+        canWriteTaxes && !hasAccountingConnections ? (
+            <Button
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID))}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.ADD_BUTTON}
+            >
+                <Button.Icon src={icons.Plus} />
+                <Button.Text>{translate('workspace.taxes.addRate')}</Button.Text>
+            </Button>
+        ) : undefined;
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
@@ -389,6 +374,9 @@ function WorkspaceTaxesPage({
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.taxes')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplayHelpButton
+                    shouldShowThreeDotsButton={!selectionModeHeader && canWriteTaxes}
+                    threeDotsMenuItems={secondaryActions}
+                    threeDotsMenuIconStyles={styles.mr3}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             clearTableSelection();
@@ -397,10 +385,7 @@ function WorkspaceTaxesPage({
                         }
                         Navigation.goBack();
                     }}
-                >
-                    {!shouldDisplayButtonsInSeparateLine && headerButtons}
-                </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+                />
                 {(!hasVisibleTaxes || isLoading) && headerContent}
                 {isLoading && (
                     <ActivityIndicator
@@ -415,6 +400,8 @@ function WorkspaceTaxesPage({
                         selectedKeys={selectedTaxesIDs}
                         onRowSelectionChange={setSelectedTaxesIDs}
                         headerComponent={hasVisibleTaxes ? headerContent : undefined}
+                        headerButton={addTaxButton}
+                        selectionButton={getSelectionButton()}
                     />
                 )}
             </ScreenWrapper>

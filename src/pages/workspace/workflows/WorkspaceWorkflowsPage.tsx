@@ -1,4 +1,3 @@
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 
@@ -52,7 +51,7 @@ function WorkspaceWorkflowsPage(props: WorkspaceWorkflowsPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.workflows');
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Table', 'Download']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Table', 'Download', 'Gear', 'DownArrow']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
@@ -170,22 +169,6 @@ function WorkspaceWorkflowsPage(props: WorkspaceWorkflowsPageProps) {
     const isGroupPolicy = isGroupPolicyUtil(policy);
     const isLoading = !!(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
-    // Show the More dropdown whenever the user can manage workflows. When editing is blocked it renders download-only
-    // (the Import action is filtered out of approvalSecondaryActions above).
-    const headerButtons = canWriteApprovals ? (
-        <View style={[styles.flexRow, styles.gap2]}>
-            <ButtonWithDropdownMenu
-                onPress={() => {}}
-                shouldAlwaysShowDropdownMenu
-                customText={translate('common.more')}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.MORE_DROPDOWN}
-                options={approvalSecondaryActions}
-                isSplitButton={false}
-                wrapperStyle={styles.flexGrow0}
-            />
-        </View>
-    ) : undefined;
-
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -194,8 +177,9 @@ function WorkspaceWorkflowsPage(props: WorkspaceWorkflowsPageProps) {
         >
             <WorkspacePageWithSections
                 headerText={translate('workspace.common.workflows')}
+                shouldShowThreeDotsButton={canWriteApprovals}
+                threeDotsMenuItems={approvalSecondaryActions}
                 route={route}
-                headerContent={headerButtons}
                 shouldShowOfflineIndicatorInWideScreen
                 shouldShowNotFoundPage={!isGroupPolicy || !canReadWorkflows}
                 policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS}

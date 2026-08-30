@@ -329,6 +329,9 @@ const translations: TranslationDeepObject<typeof en> = {
         currency: 'Divisa',
         groupCurrency: 'Moneda del grupo',
         rate: 'Tarifa',
+        room: 'Sala',
+        agent: 'Agente',
+        rule: 'Regla',
         emptyLHN: {
             title: 'Woohoo! Todo al día.',
             subtitleText1: 'Encuentra un chat usando el botón',
@@ -7825,6 +7828,7 @@ ${reportName}`,
             goToSubscription: 'Ir a Suscripción',
         },
         rules: {
+            findRule: 'Buscar regla',
             individualExpenseRules: {
                 title: 'Gastos',
                 subtitle: (categoriesPageLink, tagsPageLink) =>

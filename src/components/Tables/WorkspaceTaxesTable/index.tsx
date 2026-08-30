@@ -24,10 +24,18 @@ type WorkspaceTaxesTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+
+    /** Optional header content rendered above the filter bar, scrolling with the table rows */
     headerComponent?: React.ReactElement;
+
+    /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
+
+    /** When rows are selected, replaces the entire filter bar with this bulk-actions button */
+    selectionButton?: React.ReactNode;
 };
 
-export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent}: WorkspaceTaxesTableProps) {
+export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent, headerButton, selectionButton}: WorkspaceTaxesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -81,7 +89,14 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
         />
     );
 
-    const searchBarComponent = <Table.FilterBar label={translate('workspace.taxes.findTaxRate')} />;
+    const searchBarComponent = (
+        <Table.FilterBar
+            label={translate('workspace.taxes.findTaxRate')}
+            selectionButton={selectionButton}
+        >
+            {headerButton}
+        </Table.FilterBar>
+    );
     const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (

@@ -82,7 +82,7 @@ function TableSearchBar({label}: TableSearchBarProps) {
 
     const containerStyles = shouldUseNarrowTableLayout && styles.flex1;
 
-    const touchableInputWrapperStyle = [styles.mnw200, !shouldUseNarrowTableLayout ? styles.h8 : styles.h11];
+    const touchableInputWrapperStyle = [!shouldUseNarrowTableLayout && styles.mnw200, shouldUseNarrowTableLayout ? styles.h11 : styles.h8];
 
     const textInputContainerStyles = [styles.border, styles.borderRadiusComponentNormal, styles.appBG, styles.p2, inputFocused && styles.borderColorFocus];
 

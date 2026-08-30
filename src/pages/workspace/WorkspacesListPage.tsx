@@ -220,6 +220,7 @@ function WorkspacesListPage() {
     const headerButton = !isRestrictedPolicyCreation && !!workspaceRows.length && (
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
             accessibilityLabel={translate('common.new')}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_WORKSPACE_BUTTON}
             onPress={() => interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route)))}
@@ -228,12 +229,7 @@ function WorkspacesListPage() {
             <Button.Text>{translate('common.new')}</Button.Text>
         </Button>
     );
-    const headerComponent = (
-        <WorkspaceListHeaderContent
-            activeTabKey="workspaces"
-            headerButton={headerButton}
-        />
-    );
+    const headerComponent = <WorkspaceListHeaderContent activeTabKey="workspaces" />;
 
     const onBackButtonPress = () => {
         Navigation.goBack(route.params?.backTo);
@@ -245,7 +241,6 @@ function WorkspacesListPage() {
     return (
         <WorkspaceListLayout
             activeTabKey="workspaces"
-            headerButton={headerButton}
             headerComponent={headerComponent}
             scrollHeaderWithTable
         >
@@ -262,6 +257,7 @@ function WorkspacesListPage() {
                         ref={tableRef}
                         workspaces={workspaceRows}
                         headerComponent={headerComponent}
+                        headerButton={headerButton}
                         onDeleteWorkspace={setPolicyIDToDelete}
                         pendingDeletePolicyID={policyIDToDelete}
                     />

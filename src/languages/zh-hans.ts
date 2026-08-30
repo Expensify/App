@@ -337,6 +337,9 @@ const translations: TranslationDeepObject<typeof en> = {
         currency: '货币',
         groupCurrency: '群组货币',
         rate: '评分',
+        room: '房间',
+        agent: '代理',
+        rule: '规则',
         emptyLHN: {
             title: '哇哦！全部处理完了。',
             subtitleText1: '使用以下方式查找聊天',
@@ -7511,6 +7514,7 @@ ${reportName}`,
             goToSubscription: '前往订阅',
         },
         rules: {
+            findRule: '查找规则',
             individualExpenseRules: {
                 title: '报销费用',
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>

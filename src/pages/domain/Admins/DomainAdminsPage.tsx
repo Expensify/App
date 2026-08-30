@@ -11,8 +11,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {hasDomainAdminsSettingsErrors} from '@libs/DomainUtils';
@@ -35,7 +33,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {adminAccountIDsSelector, adminPendingActionSelector, domainNameSelector, technicalContactSettingsSelector} from '@selectors/Domain';
 import React from 'react';
-import {View} from 'react-native';
 
 type DomainAdminsPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.ADMINS>;
 
@@ -44,10 +41,9 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     useDomainDocumentTitle(domainName, 'domain.domainAdmins');
     const {translate, formatPhoneNumber} = useLocalize();
-    const styles = useThemeStyles();
-    const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus', 'DotIndicator']);
+    const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus', 'DotIndicator', 'DownArrow']);
 
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: adminAccountIDsSelector,
@@ -105,33 +101,17 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         });
 
     const hasSettingsErrors = hasDomainAdminsSettingsErrors(domainErrors);
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
-    const headerContent = isAdmin ? (
-        <View style={[styles.flexRow, styles.gap2]}>
-            <Button
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_ADMIN.getRoute(domainAccountID))}
-                innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
-                style={shouldDisplayButtonsInSeparateLine && [styles.flexGrow1, styles.mb3]}
-            >
-                <Button.Icon src={icons.Plus} />
-                <Button.Text>{translate('domain.admins.addAdmin')}</Button.Text>
-            </Button>
-            <Button
-                onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID))}
-                innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
-                style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow0, styles.mb3] : undefined}
-            >
-                <Button.Icon
-                    src={hasSettingsErrors ? icons.DotIndicator : icons.Gear}
-                    fill={hasSettingsErrors ? theme.danger : undefined}
-                    hoverFill={hasSettingsErrors ? theme.dangerHover : undefined}
-                />
-                <Button.Text>{translate('domain.common.settings')}</Button.Text>
-            </Button>
-        </View>
-    ) : null;
+    const addAdminButton = isAdmin ? (
+        <Button
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={CONST.BUTTON_SIZE.SMALL}
+            onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_ADMIN.getRoute(domainAccountID))}
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>{translate('common.admin')}</Button.Text>
+        </Button>
+    ) : undefined;
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -146,14 +126,22 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     onBackButtonPress={Navigation.goBack}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
+                    shouldShowThreeDotsButton={isAdmin}
+                    threeDotsMenuIconStyles={styles.mr3}
+                    threeDotsMenuItems={[
+                        {
+                            text: translate('domain.common.settings'),
+                            icon: icons.Gear,
+                            onSelected: () => Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID)),
+                            brickRoadIndicator: hasSettingsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                        },
+                    ]}
                     shouldDisplayHelpButton
-                >
-                    {!shouldDisplayButtonsInSeparateLine && headerContent}
-                </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                />
                 <DomainAdminsTable
                     domainAccountID={domainAccountID}
                     admins={admins}
+                    headerButton={addAdminButton}
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>

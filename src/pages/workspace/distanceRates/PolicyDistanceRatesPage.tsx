@@ -20,7 +20,6 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolation from '@hooks/useTransactionViolation';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -62,8 +61,8 @@ function PolicyDistanceRatesPage({
         params: {policyID},
     },
 }: PolicyDistanceRatesPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Gear', 'Plus', 'Trashcan']);
-    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'DownArrow', 'Gear', 'Plus', 'Trashcan']);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -396,32 +395,9 @@ function PolicyDistanceRatesPage({
         [icons.Gear, openSettings, translate],
     );
 
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
-
-    const headerButtons = canWriteDistanceRates ? (
-        <View style={[!isInLandscapeMode && styles.w100, styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
-            {(shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedDistanceRates.length === 0) ? (
-                <>
-                    <Button
-                        onPress={addRate}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.ADD_BUTTON}
-                        style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    >
-                        <Button.Icon src={icons.Plus} />
-                        <Button.Text>{translate('workspace.distanceRates.addRate')}</Button.Text>
-                    </Button>
-                    <ButtonWithDropdownMenu
-                        onPress={() => {}}
-                        shouldUseOptionIcon
-                        customText={translate('common.more')}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.MORE_DROPDOWN}
-                        options={secondaryActions}
-                        isSplitButton={false}
-                        wrapperStyle={styles.flexGrow0}
-                    />
-                </>
-            ) : (
+    const getSelectionButton = () => {
+        if (!(shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedDistanceRates.length === 0)) {
+            return (
                 <ButtonWithDropdownMenu<WorkspaceDistanceRatesBulkActionType>
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     shouldAlwaysShowDropdownMenu
@@ -430,15 +406,19 @@ function PolicyDistanceRatesPage({
                     size={CONST.BUTTON_SIZE.MEDIUM}
                     onPress={() => null}
                     options={getBulkActionsButtonOptions()}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1]}
-                    wrapperStyle={!isInLandscapeMode ? styles.w100 : undefined}
                     isSplitButton={false}
                     isDisabled={!selectedDistanceRates.length}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.BULK_ACTIONS_DROPDOWN}
+                    anchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                    }}
                 />
-            )}
-        </View>
-    ) : null;
+            );
+        }
+
+        return undefined;
+    };
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
     const distanceRatesTableHeader =
@@ -447,6 +427,18 @@ function PolicyDistanceRatesPage({
                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
             </View>
         ) : undefined;
+
+    const addRateButton = canWriteDistanceRates ? (
+        <Button
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
+            onPress={addRate}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.ADD_BUTTON}
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>{translate('common.rate')}</Button.Text>
+        </Button>
+    ) : undefined;
 
     return (
         <AccessOrNotFoundWrapper
@@ -464,8 +456,11 @@ function PolicyDistanceRatesPage({
             >
                 <HeaderWithBackButton
                     shouldUseHeadlineHeader={!selectionModeHeader}
-                    title={translate(!selectionModeHeader ? 'workspace.common.distanceRates' : 'common.selectMultiple')}
+                    title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.distanceRates')}
                     shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldShowThreeDotsButton={canWriteDistanceRates}
+                    threeDotsMenuItems={secondaryActions}
+                    threeDotsMenuIconStyles={styles.mr3}
                     shouldDisplayHelpButton
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
@@ -475,10 +470,7 @@ function PolicyDistanceRatesPage({
                         }
                         Navigation.goBack();
                     }}
-                >
-                    {!shouldDisplayButtonsInSeparateLine && headerButtons}
-                </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.ph5]}>{headerButtons}</View>}
+                />
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -494,6 +486,8 @@ function PolicyDistanceRatesPage({
                         onRowSelectionChange={setSelectedDistanceRates}
                         canWriteDistanceRates={canWriteDistanceRates}
                         headerComponent={distanceRatesTableHeader}
+                        headerButton={addRateButton}
+                        selectionButton={getSelectionButton()}
                     />
                 )}
             </ScreenWrapper>

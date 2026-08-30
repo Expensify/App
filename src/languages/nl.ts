@@ -337,6 +337,9 @@ const translations: TranslationDeepObject<typeof en> = {
         currency: 'Valuta',
         groupCurrency: 'Groepsvaluta',
         rate: 'Beoordeling',
+        room: 'Ruimte',
+        agent: 'Agent',
+        rule: 'Regel',
         emptyLHN: {
             title: 'Woohoo! Helemaal bij.',
             subtitleText1: 'Zoek een chat met de',
@@ -7782,6 +7785,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             goToSubscription: 'Ga naar abonnement',
         },
         rules: {
+            findRule: 'Regel zoeken',
             individualExpenseRules: {
                 title: 'Declaraties',
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>

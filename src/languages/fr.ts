@@ -337,6 +337,9 @@ const translations: TranslationDeepObject<typeof en> = {
         currency: 'Devise',
         groupCurrency: 'Devise du groupe',
         rate: 'Taux',
+        room: 'Salle',
+        agent: 'Agent',
+        rule: 'Règle',
         emptyLHN: {
             title: 'Youpi ! Tout est à jour.',
             subtitleText1: 'Recherchez une discussion à l’aide de la',
@@ -7868,6 +7871,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             goToSubscription: 'Accéder à l’abonnement',
         },
         rules: {
+            findRule: 'Rechercher une règle',
             individualExpenseRules: {
                 title: 'Dépenses',
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>

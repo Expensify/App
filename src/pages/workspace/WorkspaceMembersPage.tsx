@@ -24,7 +24,6 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useSearchBackPress from '@hooks/useSearchBackPress';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
@@ -108,7 +107,7 @@ function invertObject(object: Record<string, string>): Record<string, string> {
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
     const tableRef = useRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>(null);
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'User', 'UserEye']);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'DownArrow', 'FallbackAvatar', 'Gear', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'User', 'UserEye']);
     const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
@@ -732,14 +731,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         policy,
     ]);
 
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
-
-    const getHeaderButtons = () => {
-        if (!canWriteMembers) {
-            return null;
+    const getSelectionButton = () => {
+        if (!canWriteMembers || !(shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0)) {
+            return undefined;
         }
         const bulkActionOptions = getBulkActionsButtonOptions();
-        return (shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
+        return (
             <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 shouldAlwaysShowDropdownMenu
@@ -749,35 +746,28 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 options={bulkActionOptions}
                 shouldPopoverUseScrollView={getShouldPopoverUseScrollView(bulkActionOptions)}
                 isSplitButton={false}
-                style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                 isDisabled={!selectedEmployees.length}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.BULK_ACTIONS_DROPDOWN}
                 testID="WorkspaceMembersPage-header-dropdown-menu-button"
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
             />
-        ) : (
-            <View style={[styles.flexRow, styles.gap2]}>
-                <Button
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    onPress={inviteUser}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_BUTTON}
-                    innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
-                >
-                    <Button.Icon src={icons.Plus} />
-                    <Button.Text>{translate('workspace.invite.member')}</Button.Text>
-                </Button>
-                <ButtonWithDropdownMenu
-                    onPress={() => {}}
-                    shouldAlwaysShowDropdownMenu
-                    customText={translate('common.more')}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.MORE_DROPDOWN}
-                    options={secondaryActions}
-                    isSplitButton={false}
-                    wrapperStyle={styles.flexGrow0}
-                />
-            </View>
         );
     };
+
+    const inviteMemberButton = canWriteMembers ? (
+        <Button
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
+            onPress={inviteUser}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_BUTTON}
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>{translate('common.member')}</Button.Text>
+        </Button>
+    ) : undefined;
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
     let tableHeaderComponent: React.ReactElement | undefined;
@@ -796,11 +786,15 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         );
     }
 
+    const membersHeaderTitle = selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members');
+    const shouldShowThreeDotsButton = !selectionModeHeader && canWriteMembers && secondaryActions.length > 0;
+
     return (
         <WorkspacePageWithSections
-            headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
+            headerText={membersHeaderTitle}
+            shouldShowThreeDotsButton={shouldShowThreeDotsButton}
+            threeDotsMenuItems={secondaryActions}
             route={route}
-            headerContent={!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
             testID="WorkspaceMembersPage"
             shouldShowLoading={false}
             shouldUseHeadlineHeader={!selectionModeHeader}
@@ -818,7 +812,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         >
             {() => (
                 <>
-                    {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                     <DecisionModal
                         title={translate('common.downloadFailedTitle')}
                         prompt={translate('common.downloadFailedDescription')}
@@ -850,6 +843,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         shouldShowCustomField2Column={shouldShowCustomField2Column}
                         onRowSelectionChange={setSelectedEmployees}
                         headerComponent={tableHeaderComponent}
+                        headerButton={inviteMemberButton}
+                        selectionButton={getSelectionButton()}
                     />
                 </>
             )}

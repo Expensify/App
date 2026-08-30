@@ -337,6 +337,9 @@ const translations: TranslationDeepObject<typeof en> = {
         currency: '通貨',
         groupCurrency: 'グループ通貨',
         rate: '評価',
+        room: '部屋',
+        agent: 'エージェント',
+        rule: 'ルール',
         emptyLHN: {
             title: 'やった！すべて片付きました。',
             subtitleText1: 'チャットを検索するには',
@@ -7701,6 +7704,7 @@ ${reportName}`,
             goToSubscription: 'サブスクリプションに移動',
         },
         rules: {
+            findRule: 'ルールを検索',
             individualExpenseRules: {
                 title: '経費',
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>

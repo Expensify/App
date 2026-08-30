@@ -36,9 +36,22 @@ type PersonalExpenseRulesTableProps = {
     personalExpenseRules: PersonalExpenseRuleRowData[];
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+
+    /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
+
+    /** When rows are selected, replaces the entire filter bar with this bulk-actions button */
+    selectionButton?: React.ReactNode;
 };
 
-export default function PersonalExpenseRulesTable({headerComponent, personalExpenseRules, selectedKeys, onRowSelectionChange}: PersonalExpenseRulesTableProps) {
+export default function PersonalExpenseRulesTable({
+    headerComponent,
+    personalExpenseRules,
+    selectedKeys,
+    onRowSelectionChange,
+    headerButton,
+    selectionButton,
+}: PersonalExpenseRulesTableProps) {
     const {translate, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -95,7 +108,14 @@ export default function PersonalExpenseRulesTable({headerComponent, personalExpe
         Navigation.navigate(ROUTES.SETTINGS_RULES_ADD.getRoute());
     };
 
-    const searchBarComponent = <Table.FilterBar label={translate('expenseRulesPage.findRule')} />;
+    const searchBarComponent = (
+        <Table.FilterBar
+            label={translate('expenseRulesPage.findRule')}
+            selectionButton={selectionButton}
+        >
+            {headerButton}
+        </Table.FilterBar>
+    );
     const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (

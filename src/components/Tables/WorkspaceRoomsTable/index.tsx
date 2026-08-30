@@ -33,9 +33,12 @@ type WorkspaceRoomsTableProps = {
 
     /** Content rendered above the table header inside the scrollable list */
     headerComponent?: React.ReactElement;
+
+    /** Action button (e.g. create) rendered in the filter bar, to the right of the display settings trigger */
+    headerButton?: React.ReactNode;
 };
 
-function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, headerComponent}: WorkspaceRoomsTableProps) {
+function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, headerComponent, headerButton}: WorkspaceRoomsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -111,7 +114,8 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, headerCompon
         );
     }
 
-    const tableHeaderComponent = composeTableListHeader(headerComponent, <Table.FilterBar label={translate('workspace.common.findRoom')} />);
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.common.findRoom')}>{headerButton}</Table.FilterBar>;
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (
         <Table

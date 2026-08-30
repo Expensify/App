@@ -341,6 +341,9 @@ const translations: TranslationDeepObject<typeof en> = {
         currency: 'Waluta',
         groupCurrency: 'Waluta grupy',
         rate: 'Oceń',
+        room: 'Pokój',
+        agent: 'Agent',
+        rule: 'Reguła',
         emptyLHN: {
             title: 'Hurra! Wszystko nadrobione.',
             subtitleText1: 'Znajdź czat za pomocą',
@@ -7808,6 +7811,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             goToSubscription: 'Przejdź do subskrypcji',
         },
         rules: {
+            findRule: 'Znajdź regułę',
             individualExpenseRules: {
                 title: 'Wydatki',
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>

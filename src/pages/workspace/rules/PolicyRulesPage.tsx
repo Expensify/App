@@ -1,5 +1,4 @@
 import AgentPromotionalBanner from '@components/AgentPromotionalBanner';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import SpendRulesSection from '@components/SpendRules/SpendRulesSection';
 
@@ -10,7 +9,6 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
@@ -53,8 +51,7 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
-    const icons = useMemoizedLazyExpensifyIcons(['Table']);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'DownArrow']);
     const {canWrite: canWriteRules, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
@@ -81,19 +78,6 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
         getImportMerchantRulesOption({policyID, canWriteRules, showReadOnlyModal, translate, icon: icons.Table}),
     ];
 
-    const headerButtons = (
-        <ButtonWithDropdownMenu
-            onPress={() => {}}
-            shouldAlwaysShowDropdownMenu
-            customText={translate('common.more')}
-            options={moreOptions}
-            isSplitButton={false}
-            wrapperStyle={styles.flexGrow0}
-            style={[shouldDisplayButtonsInSeparateLine && styles.w100]}
-            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.IMPORT_MERCHANT_RULES}
-        />
-    );
-
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -105,15 +89,15 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
                 testID="PolicyRulesPage"
                 shouldUseScrollView
                 headerText={translate('workspace.common.rules')}
+                shouldShowThreeDotsButton={moreOptions.length > 0}
+                threeDotsMenuItems={moreOptions}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
                 policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
                 shouldShowNotFoundPage={false}
                 shouldShowLoading={false}
                 addBottomSafeAreaPadding
-                headerContent={!shouldDisplayButtonsInSeparateLine && headerButtons}
             >
-                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {isCustomAgentBetaEnabled && !isAgentsRulesBannerDismissed && (
                         <AgentPromotionalBanner

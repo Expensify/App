@@ -29,9 +29,10 @@ type RulesRequireFieldsTabProps = {
     onSelectionChange: (selectedRowKeys: string[]) => void;
     showReadOnlyModal: () => void;
     headerComponent?: React.ReactElement;
+    headerButton?: React.ReactNode;
 };
 
-function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelectionChange, showReadOnlyModal, headerComponent}: RulesRequireFieldsTabProps) {
+function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelectionChange, showReadOnlyModal, headerComponent, headerButton}: RulesRequireFieldsTabProps) {
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -92,6 +93,7 @@ function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelecti
             selectedKeys={selectedKeys}
             onRowSelectionChange={onSelectionChange}
             headerComponent={headerComponent}
+            headerButton={headerButton}
             emptyState={requireFieldsEmptyState}
         />
     );

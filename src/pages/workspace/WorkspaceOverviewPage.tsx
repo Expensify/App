@@ -2,10 +2,10 @@ import AttachmentPicker from '@components/AttachmentPicker';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/ButtonComposed';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -92,7 +92,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencySymbol} = useCurrencyListActions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'Gear', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus', 'DownArrow']);
 
     const backTo = route.params.backTo;
     const routePolicyID = route.params.policyID;
@@ -266,7 +266,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         />
     );
 
-    const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
+    const dropdownMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean} | null>(null);
 
     const handleLeaveWorkspace = () => {
         if (!policy) {
@@ -281,7 +281,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (isLoadingBill) {
             return;
         }
-        dropdownMenuRef.current?.setIsMenuVisible(false);
+        dropdownMenuRef.current?.hidePopoverMenu();
     }, [isLoadingBill]);
 
     const handleBackButtonPress = () => {
@@ -408,39 +408,20 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
     }
 
-    const dropdownMenu = secondaryActions.length > 0 && (
-        <ButtonWithDropdownMenu
-            ref={dropdownMenuRef}
-            onPress={() => {}}
-            shouldAlwaysShowDropdownMenu
-            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_DROPDOWN}
-            customText={translate('common.more')}
-            options={secondaryActions}
-            isSplitButton={false}
-            wrapperStyle={isPolicyAdmin ? styles.flexGrow0 : styles.flexGrow1}
-        />
-    );
+    // On mobile the overflow menu moves into the top bar next to the Concierge icon (built-in header three-dots below),
+    // so the inline cog only renders on wide layouts.
+    const settingsCog =
+        !shouldUseNarrowLayout && secondaryActions.length > 0 ? (
+            <ThreeDotsMenu
+                threeDotsMenuRef={dropdownMenuRef}
+                menuItems={secondaryActions}
+                shouldSelfPosition
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_DROPDOWN}
+            />
+        ) : null;
 
-    const headerButtons = readOnly ? (
-        dropdownMenu || null
-    ) : (
-        <View style={[styles.flexRow, styles.gap2]}>
-            {isPolicyAdmin && (
-                <Button
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.INVITE_BUTTON}
-                    onPress={handleInvitePress}
-                    size={CONST.BUTTON_SIZE.MEDIUM}
-                    innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
-                >
-                    <Button.Icon src={expensifyIcons.UserPlus} />
-                    <Button.Text>{translate('common.invite')}</Button.Text>
-                </Button>
-            )}
-            {dropdownMenu}
-        </View>
-    );
+    const showInviteButton = !readOnly && isPolicyAdmin;
+    const headerButtons = settingsCog ? <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>{settingsCog}</View> : null;
 
     const modals = (
         <>
@@ -497,11 +478,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             shouldShowNotFoundPage={policy === undefined}
             onBackButtonPress={handleBackButtonPress}
             addBottomSafeAreaPadding
+            shouldShowThreeDotsButton={shouldUseNarrowLayout && secondaryActions.length > 0}
+            threeDotsMenuItems={secondaryActions}
             headerContent={!shouldDisplayButtonsInSeparateLine && headerButtons}
             modals={modals}
         >
             <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{headerButtons}</View>}
+                {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{headerButtons}</View>}
                 <Section
                     isCentralPane
                     title=""
@@ -666,6 +649,16 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 />
                             </View>
                         </OfflineWithFeedback>
+                    )}
+                    {showInviteButton && (
+                        <MenuItem
+                            title={translate('workspace.invite.members')}
+                            icon={expensifyIcons.UserPlus}
+                            onPress={handleInvitePress}
+                            shouldShowRightIcon
+                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.INVITE_BUTTON}
+                        />
                     )}
                 </Section>
                 {shouldShowExpensePolicySection ? (
