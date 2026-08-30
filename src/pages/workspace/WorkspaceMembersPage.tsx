@@ -277,7 +277,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
 
         showConfirmModal({
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             title: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
             prompt: confirmModalPrompt,
             confirmText: translate('common.remove'),

@@ -176,7 +176,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                 title={translate('walletPage.unshareErrorModalTitle')}
                 isVisible={showExpensifyCardErrorModal}
                 onConfirm={hideUnshareErrorModal}
-                success
+                buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
                 prompt={
                     <View style={[styles.renderHTML, styles.flexRow]}>
                         <RenderHTML html={translate('walletPage.reachOutForHelp')} />
@@ -193,7 +193,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                 prompt={translate('walletPage.unshareBankAccountWarning', {admin: unshareUser?.text})}
                 confirmText={translate('common.unshare')}
                 cancelText={translate('common.cancel')}
-                danger
+                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
             />
         </ScreenWrapper>
     );
