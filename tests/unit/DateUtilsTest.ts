@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -22,6 +23,10 @@ jest.mock('@src/libs/Log');
 
 const LOCALE = CONST.LOCALES.EN;
 const UTC = 'UTC';
+const getTranslateFn =
+    (locale: Locale): LocaleContextProps['translate'] =>
+    (path, ...params) =>
+        translate(locale, path, ...params);
 describe('DateUtils', () => {
     beforeAll(() => {
         Onyx.init({
@@ -76,7 +81,7 @@ describe('DateUtils', () => {
         expect(weekDay).toBe('Monday');
     });
     it('formatToLocalTime should return a date in a local format', () => {
-        const localTime = DateUtils.formatToLocalTime(datetime, undefined);
+        const localTime = DateUtils.formatToLocalTime(translateLocal, datetime);
         expect(localTime).toBe('12:00 AM');
     });
 
@@ -679,7 +684,7 @@ describe('DateUtils', () => {
             jest.useFakeTimers();
             jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
             // 2026-04-19T15:00:00+07:00 — venue is UTC+7, device timezone is UTC
-            const result = DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', undefined);
+            const result = DateUtils.getFormattedCancellationDate(translateLocal, undefined, '2026-04-19T15:00:00+07:00');
             // Should display 3:00 PM in the venue's +07:00 timezone, not converted to device-local time
             expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM, GMT+7');
         });
@@ -688,19 +693,19 @@ describe('DateUtils', () => {
             // Pin "now" to 2026 so the 2026 date is treated as the current year and the year is omitted.
             jest.useFakeTimers();
             jest.setSystemTime(new Date('2026-06-01T00:00:00Z'));
-            const result = DateUtils.getFormattedCancellationDate('2026-06-15T10:30:00+00:00', undefined);
+            const result = DateUtils.getFormattedCancellationDate(translateLocal, undefined, '2026-06-15T10:30:00+00:00');
             expect(result).toBe('Monday, Jun 15 10:30 AM, UTC');
         });
 
         it('should return empty string for falsy input', () => {
-            expect(DateUtils.getFormattedCancellationDate('', undefined)).toBe('');
+            expect(DateUtils.getFormattedCancellationDate(translateLocal, undefined, '')).toBe('');
         });
 
         it('should fall back to UTC when no timezone offset is present in the ISO string', () => {
             // Pin "now" before 2026 so the 2026 date is treated as a non-current year and the year is shown.
             jest.useFakeTimers();
             jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
-            const result = DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00', undefined);
+            const result = DateUtils.getFormattedCancellationDate(translateLocal, undefined, '2026-04-19T15:00:00');
             expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM, UTC');
         });
     });
@@ -725,6 +730,29 @@ describe('DateUtils', () => {
         });
     });
 
+    describe('getTimeOfDayGreetingKey', () => {
+        const atHour = (hour: number, minute = 0) => set(new Date(), {hours: hour, minutes: minute, seconds: 0, milliseconds: 0});
+
+        it('should return goodMorning from 4am up to noon', () => {
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(4))).toBe('goodMorning');
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(8, 30))).toBe('goodMorning');
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(11, 59))).toBe('goodMorning');
+        });
+
+        it('should return goodAfternoon from noon up to 5pm', () => {
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(12))).toBe('goodAfternoon');
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(14, 15))).toBe('goodAfternoon');
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(16, 59))).toBe('goodAfternoon');
+        });
+
+        it('should return goodEvening from 5pm up to 4am', () => {
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(17))).toBe('goodEvening');
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(21))).toBe('goodEvening');
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(0))).toBe('goodEvening');
+            expect(DateUtils.getTimeOfDayGreetingKey(atHour(3, 59))).toBe('goodEvening');
+        });
+    });
+
     describe('time picker helpers with a non-English date-fns locale', () => {
         beforeEach(() => IntlStore.load(CONST.LOCALES.DE));
 
@@ -744,6 +772,48 @@ describe('DateUtils', () => {
             const newStart = DateUtils.combineDateAndTime('08:00 AM', '2026-08-04');
             const newEnd = DateUtils.combineDateAndTime('02:00 PM', '2026-08-04');
             expect(DateUtils.isValidStartEndTimeRange({startTime: newStart, endTime: newEnd})).toBe(true);
+        });
+
+        it('getTime12HourWithTranslatedPeriod shows the same period the picker offers', () => {
+            const translateDE = getTranslateFn(CONST.LOCALES.DE);
+            expect(DateUtils.getTime12HourWithTranslatedPeriod(translateDE, '2026-08-04 00:00:00')).toBe('12:00 AM');
+            expect(DateUtils.getTime12HourWithTranslatedPeriod(translateDE, '2026-08-04 12:00:00')).toBe('12:00 PM');
+            expect(DateUtils.getTime12HourWithTranslatedPeriod(translateDE, '2026-08-04 08:30:00')).toBe('08:30 AM');
+        });
+
+        it('getTime12HourWithTranslatedPeriod returns an empty string when there is no date', () => {
+            expect(DateUtils.getTime12HourWithTranslatedPeriod(getTranslateFn(CONST.LOCALES.DE), '')).toBe('');
+        });
+
+        it('formatDateTimeTo12Hour and the Until label use the same period as the row', () => {
+            const translateDE = getTranslateFn(CONST.LOCALES.DE);
+            expect(DateUtils.formatDateTimeTo12Hour(translateDE, '2026-08-04 14:30:00')).toBe('2026-08-04 02:30 PM');
+            expect(DateUtils.getLocalizedTimePeriodDescription(translateDE, undefined, '2026-08-04 14:30:00')).toBe('2026-08-04 02:30 PM');
+        });
+
+        it('datetimeToCalendarTime uses the same period as the row', () => {
+            // Pinned so the date lands outside the current week and the branch under test is stable.
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2026-08-25T00:00:00Z'));
+            expect(DateUtils.datetimeToCalendarTime(CONST.LOCALES.DE, '2026-08-04 14:30:00', timezone)).toBe('Aug. 4, 2026 um 2:30 PM');
+            jest.useRealTimers();
+        });
+
+        it('a time in the hour skipped by the local DST change keeps its own hour', () => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date(2026, 2, 8, 0, 30));
+            expect(DateUtils.getTime12HourWithTranslatedPeriod(getTranslateFn(CONST.LOCALES.DE), '2026-08-04 02:30:00')).toBe('02:30 AM');
+            jest.useRealTimers();
+        });
+    });
+
+    describe('getTime12HourWithTranslatedPeriod in a locale that translates the period', () => {
+        beforeEach(() => IntlStore.load(CONST.LOCALES.JA));
+
+        it('keeps the translated marker', () => {
+            const translateJA = getTranslateFn(CONST.LOCALES.JA);
+            expect(DateUtils.getTime12HourWithTranslatedPeriod(translateJA, '2026-08-04 14:00:00')).toBe('02:00 午後');
+            expect(DateUtils.getTime12HourWithTranslatedPeriod(translateJA, '2026-08-04 08:00:00')).toBe('08:00 午前');
         });
     });
 });
