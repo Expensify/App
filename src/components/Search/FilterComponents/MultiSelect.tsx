@@ -145,15 +145,18 @@ function MultiSelect<T extends string>({
         disableAutoFocus: !autoFocus,
     };
 
-    const footerContent = isLoadingMore ? (
-        <View style={[styles.alignItemsCenter, styles.pv4]}>
-            <ActivityIndicator
-                size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
-                color={theme.spinner}
-            />
-        </View>
-    ) : (
-        footer
+    const footerContent = (
+        <>
+            {!!isLoadingMore && (
+                <View style={[styles.alignItemsCenter, styles.pv4]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
+                        color={theme.spinner}
+                    />
+                </View>
+            )}
+            {footer}
+        </>
     );
 
     return (
