@@ -38,7 +38,7 @@ index 86c767e..ec3b49e 100644
 +    if (!surface) {
 +      this.surface = null;
 +      // Let the host application know the chart cannot render, so it can show a fallback instead of a
-+      // blank canvas. Without a listener this is a no-op. Deferred a frame so a listener attached in a
++      // blank canvas. Without a listener, this is a no-op. Deferred a frame so a listener attached in a
 +      // React effect during the same commit that mounted this view is registered before the event fires.
 +      requestAnimationFrame(() => {
 +        canvas.dispatchEvent(new CustomEvent("skia-surface-unavailable", {
@@ -89,7 +89,7 @@ index 2563277..e1cd87b 100644
 +    if (!surface) {
 +      this.surface = null;
 +      // Let the host application know the chart cannot render, so it can show a fallback instead of a
-+      // blank canvas. Without a listener this is a no-op. Deferred a frame so a listener attached in a
++      // blank canvas. Without a listener, this is a no-op. Deferred a frame so a listener attached in a
 +      // React effect during the same commit that mounted this view is registered before the event fires.
 +      requestAnimationFrame(() => {
 +        canvas.dispatchEvent(new CustomEvent("skia-surface-unavailable", {
