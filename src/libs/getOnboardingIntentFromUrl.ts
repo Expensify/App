@@ -16,7 +16,7 @@ function isOnboardingIntent(value: string | null): value is OnboardingIntent {
 }
 
 // Matching on the boundary rather than the prefix keeps sibling routes like `onboarding/work-email` out.
-function isOnboardingPath(path: string | null): boolean {
+function isOnboardingPath(path: string | null): path is string {
     return path === ROUTES.ONBOARDING_ROOT.route || !!path?.startsWith(`${ROUTES.ONBOARDING_ROOT.route}?`);
 }
 
