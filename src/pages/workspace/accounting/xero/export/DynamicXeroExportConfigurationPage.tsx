@@ -42,7 +42,7 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
     // stale from the prior tenant — allowing the admin to persist a defaultVendor that flips
     // invalid the moment the new sync completes.
     const isVendorFeatureAvailable = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING) && isXeroVendorMatchingActive(policy);
-    const defaultSupplierName = getXeroSupplierByID(policy, defaultVendor)?.name ?? '';
+    const defaultVendorName = getXeroSupplierByID(policy, defaultVendor)?.name ?? '';
     const exportPath = policyID ? `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path}` : undefined;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
@@ -115,9 +115,10 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
         ...(isVendorFeatureAvailable
             ? [
                   {
-                      description: translate('workspace.xero.defaultSupplier'),
+                      description: translate('workspace.accounting.defaultVendor'),
                       onPress: () => (!policyID ? undefined : Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_NON_REIMBURSABLE_DEFAULT_CONTACT_SELECT.path))),
-                      title: defaultSupplierName,
+                      title: defaultVendorName,
+                      helperText: translate('workspace.accounting.defaultVendorHelperText', !!defaultVendorName),
                       subscribedSettings: [CONST.XERO_CONFIG.DEFAULT_VENDOR],
                   },
               ]
