@@ -10858,6 +10858,7 @@ const translations = {
         gpsTooltip: "<tooltip>GPS tracking in progress! When you're done, stop tracking below.</tooltip>",
         hasFilterNegation: '<tooltip>Search for expenses without receipts using <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>We updated the rate based on your travel date.</tooltip>',
+        markAllAsRead: '<tooltip>Right-click or long-press to <strong>mark all as read</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',

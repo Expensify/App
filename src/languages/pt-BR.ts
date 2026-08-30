@@ -10615,6 +10615,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         gpsTooltip: '<tooltip>Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.</tooltip>',
         hasFilterNegation: '<tooltip>Pesquise despesas sem recibos usando <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>Nós atualizamos a taxa com base na sua data de viagem.</tooltip>',
+        markAllAsRead: '<tooltip>Clique com o botão direito ou mantenha pressionado para <strong>marcar tudo como lido</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Descartar alterações?',

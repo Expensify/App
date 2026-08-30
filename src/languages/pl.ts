@@ -10642,6 +10642,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         gpsTooltip: '<tooltip>Śledzenie GPS w toku! Gdy skończysz, zatrzymaj śledzenie poniżej.</tooltip>',
         hasFilterNegation: '<tooltip>Wyszukaj wydatki bez paragonów za pomocą <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>Zaktualizowaliśmy stawkę na podstawie daty twojej podróży.</tooltip>',
+        markAllAsRead: '<tooltip>Kliknij prawym przyciskiem myszy lub przytrzymaj, aby <strong>oznaczyć wszystko jako przeczytane</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Odrzucić zmiany?',

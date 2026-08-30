@@ -5,7 +5,7 @@ import type {TranslationPaths} from '@src/languages/types';
 
 import type {ValueOf} from 'type-fest';
 
-const {CONCIERGE_LHN_GBR, OUTSTANDING_FILTER, ACCOUNT_SWITCHER, SCAN_TEST_DRIVE_CONFIRMATION, GPS_TOOLTIP, HAS_FILTER_NEGATION, MILEAGE_RATE_AUTO_UPDATED} =
+const {CONCIERGE_LHN_GBR, OUTSTANDING_FILTER, ACCOUNT_SWITCHER, SCAN_TEST_DRIVE_CONFIRMATION, GPS_TOOLTIP, HAS_FILTER_NEGATION, MILEAGE_RATE_AUTO_UPDATED, MARK_ALL_AS_READ} =
     CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 type ProductTrainingTooltipName = Exclude<
@@ -81,6 +81,13 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(MILEAGE_RATE_AUTO_UPDATED, isDismissedUsingCloseButton),
         name: MILEAGE_RATE_AUTO_UPDATED,
         priority: 800,
+        shouldShow: () => true,
+    },
+    [MARK_ALL_AS_READ]: {
+        content: 'productTrainingTooltip.markAllAsRead',
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(MARK_ALL_AS_READ, isDismissedUsingCloseButton),
+        name: MARK_ALL_AS_READ,
+        priority: 900,
         shouldShow: () => true,
     },
 };

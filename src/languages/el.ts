@@ -10894,6 +10894,7 @@ ${reportName}`,
         gpsTooltip: '<tooltip>Η παρακολούθηση GPS βρίσκεται σε εξέλιξη! Όταν τελειώσετε, διακόψτε την παρακολούθηση παρακάτω.</tooltip>',
         hasFilterNegation: '<tooltip>Αναζητήστε δαπάνες χωρίς αποδείξεις χρησιμοποιώντας το <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>Ενημερώσαμε την τιμή με βάση την ημερομηνία του ταξιδιού σας.</tooltip>',
+        markAllAsRead: '<tooltip>Δεξί κλικ ή παρατεταμένο πάτημα για <strong>επισήμανση όλων ως αναγνωσμένων</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Απόρριψη αλλαγών;',

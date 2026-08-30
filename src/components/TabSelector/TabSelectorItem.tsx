@@ -1,6 +1,7 @@
 import Badge from '@components/Badge';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Tooltip from '@components/Tooltip';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -45,6 +46,7 @@ function TabSelectorItem({
     isDisabled = false,
     disabledAction,
     pendingAction,
+    educationalTooltipProps,
 }: TabSelectorItemProps) {
     const {isOffline} = useNetwork();
 
@@ -113,6 +115,10 @@ function TabSelectorItem({
             )}
         </AnimatedPressableWithSecondaryInteraction>
     );
+
+    if (educationalTooltipProps?.shouldRender) {
+        return <EducationalTooltip {...educationalTooltipProps}>{children}</EducationalTooltip>;
+    }
 
     return (
         <Tooltip

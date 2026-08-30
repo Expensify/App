@@ -10616,6 +10616,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         gpsTooltip: '<tooltip>GPS-tracking bezig! Als je klaar bent, stop dan hieronder met bijhouden.</tooltip>',
         hasFilterNegation: '<tooltip>Zoek naar uitgaven zonder bonnen met <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>We hebben het tarief bijgewerkt op basis van je reisdatum.</tooltip>',
+        markAllAsRead: '<tooltip>Klik met de rechtermuisknop of houd ingedrukt om <strong>alles als gelezen te markeren</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Wijzigingen negeren?',
