@@ -11,10 +11,13 @@ import ROUTES from '@src/ROUTES';
 import {getRouteFromLink} from './ReportUtils';
 import {getSearchParamFromPath} from './Url';
 
-const ONBOARDING_INTENT_VALUES = new Set<string>(Object.values(CONST.ONBOARDING_INTENTS));
-
 function isOnboardingIntent(value: string | null): value is OnboardingIntent {
-    return !!value && ONBOARDING_INTENT_VALUES.has(value);
+    return !!value && Object.values<string>(CONST.ONBOARDING_INTENTS).includes(value);
+}
+
+// Matching on the boundary rather than the prefix keeps sibling routes like `onboarding/work-email` out.
+function isOnboardingPath(path: string | null): boolean {
+    return path === ROUTES.ONBOARDING_ROOT.route || !!path?.startsWith(`${ROUTES.ONBOARDING_ROOT.route}?`);
 }
 
 function getOnboardingIntentFromUrl(url: string | null | undefined): OnboardingIntent | undefined {
@@ -25,9 +28,9 @@ function getOnboardingIntentFromUrl(url: string | null | undefined): OnboardingI
     // getRouteFromLink strips whichever linking-config prefix matched, so web URLs, the desktop `app://-/` origin and
     // the native scheme all reduce to the same route. It leaves the leading slash on in-app paths.
     const pathWithQuery = getRouteFromLink(url).replace(/^\/+/, '');
-    const onboardingPathWithQuery = pathWithQuery.startsWith(ROUTES.ONBOARDING_ROOT.route) ? pathWithQuery : getSearchParamFromPath(pathWithQuery, 'exitTo');
+    const onboardingPathWithQuery = isOnboardingPath(pathWithQuery) ? pathWithQuery : getSearchParamFromPath(pathWithQuery, 'exitTo');
 
-    if (!onboardingPathWithQuery?.startsWith(ROUTES.ONBOARDING_ROOT.route)) {
+    if (!isOnboardingPath(onboardingPathWithQuery)) {
         return undefined;
     }
 

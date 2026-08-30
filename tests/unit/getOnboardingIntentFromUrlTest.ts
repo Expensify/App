@@ -59,6 +59,7 @@ describe('getOnboardingIntentFromUrl', () => {
         ['an onboarding link without an intent', 'https://new.expensify.com/onboarding'],
         ['an unknown intent value', 'https://new.expensify.com/onboarding?intent=notARealIntent'],
         ['an intent on a non-onboarding route', 'https://new.expensify.com/settings/profile?intent=submit'],
+        ['an intent on a route that merely starts with onboarding', 'https://new.expensify.com/onboarding/work-email?intent=submit'],
         ['an intent on a non-onboarding exitTo', `https://new.expensify.com/transition?exitTo=${encodeURIComponent('workspace/new?intent=submit')}`],
     ])('returns undefined for %s', (_description, url) => {
         expect(getOnboardingIntentFromUrl(url)).toBeUndefined();
