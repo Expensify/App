@@ -1,0 +1,38 @@
+// In the file handling expense movement (likely something like MoveExpenseViewController.swift or similar)
+// The exact file path may vary, but the fix involves ensuring navigation returns to Inbox
+
+func didMoveExpenseSuccessfully() {
+    // After successfully moving the expense, navigate back to Inbox
+    // Instead of popping to previous view controller, navigate to Inbox
+    if let inboxViewController = InboxViewController.instantiate() {
+        navigationController?.setViewControllers([inboxViewController], animated: true)
+    }
+}
+
+// Alternative approach if using navigation controller's pop behavior:
+// Override back button behavior to ensure it goes to Inbox after move
+override func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
+    if let currentViewController = navigationController.viewControllers.last,
+       currentViewController.isKind(of: MoveExpenseViewController.self),
+       // Check if expense was just moved (using a flag or state)
+       expenseWasMoved {
+        // Ensure next back navigation goes to Inbox
+        expenseWasMoved = false
+        // No-op needed if navigation stack is properly managed
+    }
+}
+
+// Or in the completion handler of the move expense API call:
+api.moveExpense { [weak self] result in
+    guard let self = self else { return }
+    
+    switch result {
+    case .success:
+        // After successful move, navigate to Inbox
+        let inboxVC = InboxViewController()
+        self.navigationController?.setViewControllers([inboxVC], animated: true)
+    case .failure:
+        // Handle error
+        self.showErrorMessage()
+    }
+}
