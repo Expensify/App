@@ -1097,6 +1097,8 @@ const translations: TranslationDeepObject<typeof en> = {
             inviteAccountant: 'Inviter votre comptable',
             customizeSpendCategories: 'Personnaliser les catégories de dépenses',
             customizeSpendCategoriesSubText: 'Organiser et classer les dépenses',
+            customizeExpenseCategories: 'Personnalisez vos catégories de dépenses',
+            customizeExpenseCategoriesSubText: 'Ajoutez les catégories de votre entreprise pour coder vos dépenses.',
             createExpense: 'Créer une dépense',
             createExpenseSubText: 'Numérisez, faites glisser-déposer ou saisissez manuellement une dépense à l’aide du bouton +',
             linkPersonalCard: 'Lier une carte personnelle',
