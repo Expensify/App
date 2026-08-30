@@ -25,6 +25,9 @@ type UseSearchTagFiltersResult = {
 
     /** Start a new search with the given query */
     search: (query: string) => void;
+
+    /** Whether there are cached results from a previous fetch */
+    hasCachedData: boolean;
 };
 
 /**
@@ -43,7 +46,7 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
     const searchQuery = paginationState?.searchQuery ?? '';
 
     // Track if we have cached data to avoid showing loading state on remount
-    const hasCachedData = searchResults && Object.keys(searchResults).length > 0;
+    const hasCachedData = !!searchResults && Object.keys(searchResults).length > 0;
 
     // Keep ref updated with latest values for use in stable callbacks
     const stateRef = useRef({hasMore, nextCursor, searchQuery, hasCachedData, isLoading});
@@ -87,7 +90,7 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
             .finally(() => setIsLoading(false));
     }, []);
 
-    return {searchResults, isLoading, hasMore, loadMore, search};
+    return {searchResults, isLoading, hasMore, loadMore, search, hasCachedData};
 }
 
 export default useSearchTagFilters;

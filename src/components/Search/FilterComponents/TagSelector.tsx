@@ -15,7 +15,7 @@ type TagSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
     policyID: Filter | undefined;
 };
 
-function TagSelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TagSelectorProps) {
+function TagSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TagSelectorProps) {
     const {translate} = useLocalize();
     const {searchResults, isLoading, hasMore, loadMore, search, hasCachedData} = useSearchTagFilters();
 
