@@ -3,16 +3,21 @@ import {
     getBankAccountState,
     getCompletedStepsForBankAccount,
     getDefaultCompanyWebsite,
+    getDisabledInternationalBankAccountFields,
+    getInternationalBankAccountDetailsValues,
     getLastFourDigits,
     getRequiredKYBDocuments,
     hasBankAccountAllowDebit,
     hasPartiallySetupBankAccount,
     hasPersonalBankAccountMissingInfo,
+    hasValidAccountDetailsInternationalFields,
+    hasValidInternationalBankAccountDetails,
     isBankAccountPartiallySetup,
     isPersonalBankAccountMissingInfo,
     isUserAddressVerificationRequired,
     isUserDOBVerificationRequired,
     PERSONAL_INFO_STEP,
+    shouldShowInternationalDetailOnConfirmation,
 } from '@libs/BankAccountUtils';
 import type {KYBVerificationResponses} from '@libs/BankAccountUtils';
 
@@ -751,6 +756,92 @@ describe('BankAccountUtils', () => {
                 INPUT_IDS.KYB_DOCUMENTS.USER_ADDRESS_VERIFICATION,
                 INPUT_IDS.KYB_DOCUMENTS.USER_DOB_VERIFICATION,
             ]);
+        });
+    });
+
+    describe('hasValidAccountDetailsInternationalFields', () => {
+        const iban = 'AT483200000012345864';
+        const swiftBicCode = 'XXXXATXX';
+
+        it('is true only when accountNumber is an IBAN and swiftBicCode is set', () => {
+            expect(hasValidAccountDetailsInternationalFields(iban, swiftBicCode)).toBe(true);
+            expect(hasValidAccountDetailsInternationalFields(iban, 'XXXX')).toBe(true);
+            expect(hasValidAccountDetailsInternationalFields('123456789', swiftBicCode)).toBe(false);
+            expect(hasValidAccountDetailsInternationalFields(iban, undefined)).toBe(false);
+            expect(hasValidAccountDetailsInternationalFields(undefined, undefined)).toBe(false);
+        });
+    });
+
+    describe('hasValidInternationalBankAccountDetails', () => {
+        const iban = 'AT483200000012345864';
+        const swiftBicCode = 'XXXXATXX';
+
+        it('returns true when dedicated iban and swiftCode are valid even if account details are not', () => {
+            expect(hasValidInternationalBankAccountDetails(iban, swiftBicCode, '123456789', 'XXXX')).toBe(true);
+        });
+
+        it('returns true when accountNumber is an IBAN and swiftBicCode is set even if dedicated fields are empty', () => {
+            expect(hasValidInternationalBankAccountDetails(undefined, undefined, iban, swiftBicCode)).toBe(true);
+        });
+
+        it('returns true when dedicated IBAN is set and first-page SWIFT is a Corpay value that is not a BIC', () => {
+            expect(hasValidInternationalBankAccountDetails(iban, 'XXXX', '123456789', 'XXXX')).toBe(true);
+        });
+
+        it('returns false when there is no IBAN or no SWIFT from either source', () => {
+            expect(hasValidInternationalBankAccountDetails(undefined, swiftBicCode, '123456789', 'XXXX')).toBe(false);
+            expect(hasValidInternationalBankAccountDetails(iban, undefined, iban, undefined)).toBe(false);
+        });
+    });
+
+    describe('getDisabledInternationalBankAccountFields', () => {
+        const iban = 'AT483200000012345864';
+        const swiftBicCode = 'XXXXATXX';
+
+        it('disables IBAN when the account number is already a valid IBAN', () => {
+            expect(getDisabledInternationalBankAccountFields(iban, undefined).isIBANDisabled).toBe(true);
+        });
+
+        it('does not disable IBAN when the account number is not an IBAN', () => {
+            expect(getDisabledInternationalBankAccountFields('123456789', undefined).isIBANDisabled).toBe(false);
+        });
+
+        it('disables SWIFT/BIC when swiftBicCode is already set', () => {
+            expect(getDisabledInternationalBankAccountFields(undefined, swiftBicCode).isSwiftCodeDisabled).toBe(true);
+            expect(getDisabledInternationalBankAccountFields(undefined, 'XXXX').isSwiftCodeDisabled).toBe(true);
+        });
+
+        it('does not disable SWIFT/BIC when swiftBicCode is empty', () => {
+            expect(getDisabledInternationalBankAccountFields(iban, undefined).isSwiftCodeDisabled).toBe(false);
+        });
+    });
+
+    describe('getInternationalBankAccountDetailsValues', () => {
+        const iban = 'AT483200000012345864';
+
+        it('prefills SWIFT from a non-empty swiftBicCode and IBAN only when accountNumber is an IBAN', () => {
+            expect(getInternationalBankAccountDetailsValues(undefined, undefined, iban, 'XXXX')).toEqual({iban, swiftCode: 'XXXX'});
+            expect(getInternationalBankAccountDetailsValues(undefined, undefined, '123456789', 'XXXX')).toEqual({iban: '', swiftCode: 'XXXX'});
+        });
+    });
+
+    describe('shouldShowInternationalDetailOnConfirmation', () => {
+        const iban = 'AT483200000012345864';
+        const swiftBicCode = 'XXXXATXX';
+
+        it('hides empty values', () => {
+            expect(shouldShowInternationalDetailOnConfirmation('', iban)).toBe(false);
+            expect(shouldShowInternationalDetailOnConfirmation(undefined, iban)).toBe(false);
+        });
+
+        it('hides IBAN when it matches accountNumber and SWIFT when it matches swiftBicCode', () => {
+            expect(shouldShowInternationalDetailOnConfirmation(iban, iban)).toBe(false);
+            expect(shouldShowInternationalDetailOnConfirmation(swiftBicCode, swiftBicCode)).toBe(false);
+        });
+
+        it('shows a value entered on the international details step even if another field has the same string', () => {
+            expect(shouldShowInternationalDetailOnConfirmation(iban, '123456789')).toBe(true);
+            expect(shouldShowInternationalDetailOnConfirmation(swiftBicCode, iban)).toBe(true);
         });
     });
 });

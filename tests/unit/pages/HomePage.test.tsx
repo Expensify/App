@@ -81,7 +81,6 @@ function mockSection(name: string) {
 }
 
 jest.mock('@pages/home/FreeTrialSection', () => mockSection('FreeTrialSection'));
-jest.mock('@pages/home/TimeSensitiveSection', () => mockSection('TimeSensitiveSection'));
 jest.mock('@pages/home/GettingStartedSection', () => mockSection('GettingStartedSection'));
 jest.mock('@pages/home/ForYouSection', () => mockSection('ForYouSection'));
 jest.mock('@pages/home/UpcomingTravelSection', () => mockSection('UpcomingTravelSection'));
@@ -139,23 +138,25 @@ describe('HomePage', () => {
         await waitForBatchedUpdates();
     });
 
-    // Locks in the canonical mobile ordering from https://github.com/Expensify/App/issues/85075:
-    // Getting started must always sit above For you on narrow layouts, regardless of the onboarding intent.
-    describe('mobile ordering (issue 85075)', () => {
+    // For you sits above Getting started on narrow layouts, regardless of the onboarding intent.
+    describe('mobile ordering', () => {
         it.each([
             ['no onboarding intent set', undefined],
             ['MANAGE_TEAM intent', CONST.ONBOARDING_CHOICES.MANAGE_TEAM],
             ['TRACK_WORKSPACE intent', CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE],
-        ])('renders GettingStartedSection before ForYouSection on narrow layout with %s', async (_label, choice) => {
+        ])('renders ForYouSection before GettingStartedSection on narrow layout with %s', async (_label, choice) => {
+            // Given an onboarding intent
             if (choice) {
                 await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice});
             }
             await waitForBatchedUpdates();
 
+            // When the Home page renders on a narrow layout
             renderHomePage();
 
+            // Then For you comes before Getting started
             const order = renderedSectionOrder();
-            expect(order.indexOf('section-GettingStartedSection')).toBeLessThan(order.indexOf('section-ForYouSection'));
+            expect(order.indexOf('section-ForYouSection')).toBeLessThan(order.indexOf('section-GettingStartedSection'));
         });
     });
 
@@ -169,9 +170,8 @@ describe('HomePage', () => {
 
             expect(renderedSectionOrder()).toEqual([
                 'section-FreeTrialSection',
-                'section-TimeSensitiveSection',
-                'section-GettingStartedSection',
                 'section-ForYouSection',
+                'section-GettingStartedSection',
                 'section-UpcomingTravelSection',
                 'section-YourSpendSection',
                 'section-RecentlyAddedSection',
@@ -237,13 +237,16 @@ describe('HomePage', () => {
             expect(screen.queryByTestId('section-AnnouncementSection')).not.toBeOnTheScreen();
         });
 
-        // Promote Getting started into the left column above For you on wide layout (matching mobile placement).
-        it('renders Getting started in the left column above For you and not in the right column', async () => {
+        // Getting started lives in the left column below For you, matching mobile placement.
+        it('renders Getting started in the left column below For you and not in the right column', async () => {
+            // Given a wide layout
             setWideLayout();
             await waitForBatchedUpdates();
 
+            // When the Home page renders
             renderHomePage();
 
+            // Then Getting started is in the left column, below For you
             const leftColumn = screen.getByTestId('homePageLeftColumn');
             const rightColumn = screen.getByTestId('homePageRightColumn');
 
@@ -253,7 +256,7 @@ describe('HomePage', () => {
             const leftOrder = within(leftColumn)
                 .getAllByTestId(/^section-/)
                 .map((el) => String(el.props.testID));
-            expect(leftOrder.indexOf('section-GettingStartedSection')).toBeLessThan(leftOrder.indexOf('section-ForYouSection'));
+            expect(leftOrder.indexOf('section-GettingStartedSection')).toBeGreaterThan(leftOrder.indexOf('section-ForYouSection'));
         });
     });
 });
