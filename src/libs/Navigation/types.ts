@@ -1620,6 +1620,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_REIMBURSABLE_DEFAULT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_HR_SYNC_RESULTS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.HR_GUSTO_APPROVAL_MODE]: {
         policyID: string;
     };

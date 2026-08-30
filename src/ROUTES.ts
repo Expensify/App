@@ -1144,6 +1144,14 @@ const DYNAMIC_ROUTES = {
         path: 'owner-change-failure',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK, SCREENS.WORKSPACE.MEMBER_DETAILS],
     },
+    WORKSPACE_HR_SYNC_RESULTS: {
+        // `policyID` is not repeated here: both entry screens are already workspace-scoped, so the
+        // suffix inherits their `:policyID` (same as WORKSPACE_INVITE above).
+        path: 'hr-sync-results',
+        // The results screen opens automatically when an HR sync finishes, and a sync can complete
+        // while the user is on either the HR page or the members list, so both are entry screens.
+        entryScreens: [SCREENS.WORKSPACE.HR, SCREENS.WORKSPACE.MEMBERS],
+    },
     WORKSPACE_OWNER_CHANGE_CHECK: {
         path: 'change-owner/:policyID/:accountID/:error',
         entryScreens: [SCREENS.WORKSPACE.MEMBER_DETAILS, SCREENS.WORKSPACE.PROFILE, SCREENS.WORKSPACES_LIST],

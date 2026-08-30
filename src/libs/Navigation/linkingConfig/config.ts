@@ -1249,6 +1249,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_REIMBURSABLE_DEFAULT]: {
                             path: ROUTES.RULES_REIMBURSABLE_DEFAULT.route,
                         },
+                        [SCREENS.WORKSPACE.DYNAMIC_HR_SYNC_RESULTS]: DYNAMIC_ROUTES.WORKSPACE_HR_SYNC_RESULTS.path,
                         [SCREENS.WORKSPACE.HR_GUSTO_APPROVAL_MODE]: {
                             path: ROUTES.WORKSPACE_HR_GUSTO_APPROVAL_MODE.route,
                         },
