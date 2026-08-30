@@ -1392,6 +1392,7 @@ describe('ReportUtils', () => {
                 actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
                 created: '2024-01-15 12:00:00.000',
                 message: [{type: 'COMMENT', html: 'existing message', text: 'existing message'}],
+                originalMessage: {html: 'existing message', lastModified: '2024-01-15 12:00:00.000'},
             };
 
             const chatReport: Report = {
@@ -1427,6 +1428,8 @@ describe('ReportUtils', () => {
             expect(failureReport?.lastActorAccountID).toBe(existingAction.actorAccountID);
 
             await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_CHAT_REPORT_ID}`, null);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_CHAT_REPORT_ID}`, null);
             await waitForBatchedUpdates();
         });
     });
