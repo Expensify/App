@@ -3,6 +3,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
+import HapticFeedback from '@libs/HapticFeedback';
 import Navigation from '@libs/Navigation/Navigation';
 import {markQueryAsRefinement} from '@libs/SearchQueryRefinement';
 import {buildFilterQueryWithSortDefaults} from '@libs/SearchQueryUtils';
@@ -50,6 +51,7 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
             return;
         }
 
+        HapticFeedback.press();
         markQueryAsRefinement(queryString);
         Navigation.setParams({q: queryString, rawQuery: undefined});
     }
