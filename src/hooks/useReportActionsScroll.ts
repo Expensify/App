@@ -37,6 +37,9 @@ import useScrollToEndOnNewMessageReceived from './useScrollToEndOnNewMessageRece
 import useWindowDimensions from './useWindowDimensions';
 
 type UseReportActionsScrollParams = {
+    /** The Concierge chat report */
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
+
     /** The ID of the report currently being looked at */
     reportID: string;
 
@@ -136,6 +139,7 @@ type UseReportActionsScrollResult = {
 };
 
 function useReportActionsScroll({
+    conciergeChat,
     reportID,
     report,
     transactionThreadReport,
@@ -223,6 +227,7 @@ function useReportActionsScroll({
         });
 
     const {isScrollToBottomEnabled, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom} = useReportActionsNewActionLiveTail({
+        conciergeChat,
         reportID,
         introSelected,
         betas,
@@ -352,6 +357,7 @@ function useReportActionsScroll({
             openReport({
                 reportID,
                 introSelected,
+                conciergeChat,
                 betas,
                 hasReportActions: true,
                 currentUserAccountID,

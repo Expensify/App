@@ -98,6 +98,7 @@ jest.mock('@components/ProductTrainingContext', () => ({
 // Stands in for the participant picker so a test can hand the page a selection without driving the real selector.
 // The picker is only rendered under the new manual expense flow beta, so this is inert for every other test here.
 let mockSelectedParticipants: Participant[] = [];
+let mockSelectedPolicy: OnyxEntry<Policy>;
 jest.mock('@components/ParticipantPicker', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {Text, TouchableOpacity} = jest.requireActual<{
@@ -106,10 +107,10 @@ jest.mock('@components/ParticipantPicker', () => {
     }>('react-native');
     return {
         __esModule: true,
-        default: ({onParticipantsAdded}: {onParticipantsAdded: (participants: Participant[]) => void}) =>
+        default: ({onParticipantsAdded}: {onParticipantsAdded: (participants: Participant[], selectedPolicy?: OnyxEntry<Policy>) => void}) =>
             ReactModule.createElement(
                 TouchableOpacity,
-                {testID: 'MockParticipantPicker', onPress: () => onParticipantsAdded(mockSelectedParticipants)},
+                {testID: 'MockParticipantPicker', onPress: () => onParticipantsAdded(mockSelectedParticipants, mockSelectedPolicy)},
                 ReactModule.createElement(Text, null, 'Select participant'),
             ),
     };
@@ -1515,6 +1516,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
         beforeEach(async () => {
             mockSelectedParticipants = [];
+            mockSelectedPolicy = undefined;
             await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
             await act(async () => {
                 await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW]);
@@ -1587,8 +1589,26 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
         }
 
+        function getPolicyByID(policyID?: string) {
+            return new Promise<OnyxEntry<Policy>>((resolve) => {
+                if (!policyID) {
+                    resolve(undefined);
+                    return;
+                }
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (value) => {
+                        resolve(value);
+                        Onyx.disconnect(connection);
+                    },
+                });
+            });
+        }
+
         async function selectParticipants(participants: Participant[]) {
             mockSelectedParticipants = participants;
+            // Mirror the real picker: resolve the chosen workspace's policy and pass it to onParticipantsAdded.
+            mockSelectedPolicy = await getPolicyByID(participants.at(0)?.policyID);
             fireEvent.press(await screen.findByTestId('MockParticipantPicker'));
             await waitForBatchedUpdatesWithAct();
         }
