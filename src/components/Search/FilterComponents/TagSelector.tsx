@@ -7,7 +7,7 @@ import {getCleanedTagName} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import MultiSelect from './MultiSelect';
 
@@ -17,23 +17,19 @@ function TagSelector({value = [], selectionListTextInputStyle, selectionListStyl
     const {translate} = useLocalize();
     const {searchResults, isLoading, hasMore, loadMore, search, hasCachedData} = useSearchTagFilters();
 
-    const tagItems = useMemo(() => {
-        const items = [{text: translate('search.noTag'), value: CONST.SEARCH.TAG_EMPTY_VALUE as string}];
-        const seenTagNames = new Set<string>();
+    const tagItems = [{text: translate('search.noTag'), value: CONST.SEARCH.TAG_EMPTY_VALUE as string}];
+    const seenTagNames = new Set<string>();
 
-        // Preserve backend order - new items append at end for infinite scroll
-        for (const policyTags of Object.values(searchResults ?? {})) {
-            for (const tag of Object.values(policyTags ?? {})) {
-                if (seenTagNames.has(tag.tagName)) {
-                    continue;
-                }
-                seenTagNames.add(tag.tagName);
-                items.push({text: getCleanedTagName(tag.tagName), value: tag.tagName});
+    // Preserve backend order - new items append at end for infinite scroll
+    for (const policyTags of Object.values(searchResults ?? {})) {
+        for (const tag of Object.values(policyTags ?? {})) {
+            if (seenTagNames.has(tag.tagName)) {
+                continue;
             }
+            seenTagNames.add(tag.tagName);
+            tagItems.push({text: getCleanedTagName(tag.tagName), value: tag.tagName});
         }
-
-        return items;
-    }, [searchResults, translate]);
+    }
 
     const selectedTagsItems = value.map((tag) => {
         if (tag === CONST.SEARCH.TAG_EMPTY_VALUE) {
