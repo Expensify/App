@@ -72,6 +72,9 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
             return;
         }
 
+        // Reset pagination state immediately so loadMore doesn't fire with stale query/cursor
+        setSearchTagFiltersPagination(false, '', query);
+
         // Only show loading if no cached data - otherwise fetch silently in background
         if (!currentHasCachedData) {
             setIsLoading(true);
