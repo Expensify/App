@@ -11,7 +11,6 @@ import useOnyx from './hooks/useOnyx';
 import {openReportFromDeepLink} from './libs/actions/Link';
 import * as Report from './libs/actions/Report';
 import {hasAuthToken, isAnonymousUser} from './libs/actions/Session';
-import getOnboardingIntentFromUrl from './libs/getOnboardingIntentFromUrl';
 import Log from './libs/Log';
 import {getReportIDFromLink} from './libs/ReportUtils';
 import {endSpan} from './libs/telemetry/activeSpans';
@@ -143,10 +142,10 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 Log.info('[Deep link] introSelected is undefined when processing URL change', false, {url: state.url});
             }
             const isCurrentlyAuthenticated = hasAuthToken();
-            // A Submit-via-PDF secure access link, or an onboarding deeplink carrying an intent, can arrive while the
-            // app is already running (warm), where getInitialURL() is empty. Record it so the handlers reading the
-            // initial URL have a session-sticky signal, the same way the cold path does via onInitialUrl above.
-            if (hasSecureLinkKey(state.url) || getOnboardingIntentFromUrl(state.url)) {
+            // A Submit-via-PDF secure access link can arrive while the app is already running (warm), where
+            // getInitialURL() is empty. Record it so onboarding suppression has a session-sticky signal, the same
+            // way the cold path does via onInitialUrl above. Scoped to secure links so other deep links are unaffected.
+            if (hasSecureLinkKey(state.url)) {
                 onInitialUrl(state.url as Route);
             }
             openReportFromDeepLink(
