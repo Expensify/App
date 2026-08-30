@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 
 import React, {useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Animated} from 'react-native';
+import {Animated, View} from 'react-native';
 
 import type {TabSelectorItemProps as BaseTabSelectorItemProps} from './types';
 
@@ -46,7 +46,7 @@ function TabSelectorItem({
     isDisabled = false,
     disabledAction,
     pendingAction,
-    educationalTooltipProps,
+    badgeEducationalTooltipProps,
 }: TabSelectorItemProps) {
     const {isOffline} = useNetwork();
 
@@ -106,19 +106,19 @@ function TabSelectorItem({
                 />
             )}
             {!!badgeText && (
-                <Badge
-                    text={badgeText}
-                    success
-                    isCondensed={isBadgeCondensed}
-                    badgeStyles={badgeStyles}
-                />
+                <EducationalTooltip {...badgeEducationalTooltipProps}>
+                    <View style={styles.ml2}>
+                        <Badge
+                            text={badgeText}
+                            success
+                            isCondensed={isBadgeCondensed}
+                            badgeStyles={[badgeStyles, styles.ml0]}
+                        />
+                    </View>
+                </EducationalTooltip>
             )}
         </AnimatedPressableWithSecondaryInteraction>
     );
-
-    if (educationalTooltipProps?.shouldRender) {
-        return <EducationalTooltip {...educationalTooltipProps}>{children}</EducationalTooltip>;
-    }
 
     return (
         <Tooltip

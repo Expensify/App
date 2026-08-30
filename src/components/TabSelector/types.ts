@@ -70,10 +70,11 @@ type TabSelectorBaseItem<K extends string = string> = WithSentryLabel & {
     shouldEnableLongPress?: boolean;
 
     /**
-     * Props for an educational tooltip anchored to this tab. EducationalTooltip has to wrap the tab's pressable to
-     * measure it, so the config is passed down here rather than applied around the whole tab row.
+     * Props for an educational tooltip anchored to this tab's badge. EducationalTooltip has to wrap the badge to
+     * measure it, so the config is passed down here rather than applied around the whole tab row. Requires
+     * `badgeText`, since the tooltip is rendered alongside the badge.
      */
-    educationalTooltipProps?: Omit<EducationalTooltipProps, 'children'>;
+    badgeEducationalTooltipProps?: Omit<EducationalTooltipProps, 'children'>;
 };
 
 type TabSelectorBaseProps<K extends string = string> = {
@@ -163,8 +164,8 @@ type TabSelectorItemProps = WithSentryLabel & {
     /** Optional ref forwarded to the tab's pressable element. */
     tabRef?: Ref<View | HTMLDivElement>;
 
-    /** Props for an educational tooltip wrapped around this tab's pressable element. */
-    educationalTooltipProps?: Omit<EducationalTooltipProps, 'children'>;
+    /** Props for an educational tooltip wrapped around this tab's badge. */
+    badgeEducationalTooltipProps?: Omit<EducationalTooltipProps, 'children'>;
 };
 
 type AnimationConfigBase = {
