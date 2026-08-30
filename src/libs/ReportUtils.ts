@@ -6593,7 +6593,7 @@ function getParentNavigationSubtitle(
         const invoiceReceiverPolicy = invoiceReceiverPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
         const isCurrentUserReceiver = isCurrentUserInvoiceReceiver(parentReport);
         const invoiceReceiverPersonalDetail = getInvoiceReceiverPersonalDetail(parentReport, allPersonalDetails);
-        const invoicePayerName = getInvoicePayerName(parentReport, translate, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
+        const invoicePayerName = getInvoicePayerName(parentReport, translate, formatPhoneNumberPhoneUtils, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
 
         let reportName = senderWorkspaceName;
         if (!isCurrentUserReceiver && invoicePayerName) {
@@ -13610,7 +13610,7 @@ function getChatListItemReportName(
         // Search snapshots of invoice reports may only carry `parentReportID` as the invoice room ID, so fall back to it
         // when `chatReportID` is missing (without mutating the Onyx report) so `getInvoiceReportName` resolves the NewDot title.
         const invoiceReport = reportForHeader.chatReportID ? reportForHeader : {...reportForHeader, chatReportID: reportForHeader.parentReportID};
-        return getInvoiceReportName(invoiceReport, linkedTransactions, translate, personalDetailsList);
+        return getInvoiceReportName(invoiceReport, linkedTransactions, translate, formatPhoneNumberPhoneUtils, personalDetailsList);
     }
 
     if (action?.reportName) {
