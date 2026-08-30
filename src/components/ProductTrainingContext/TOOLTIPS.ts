@@ -23,8 +23,12 @@ type ShouldShowConditionProps = {
     isUserInPaidPolicy: boolean;
 };
 
+type ContentConditionProps = {
+    shouldUseNarrowLayout: boolean;
+};
+
 type TooltipData = {
-    content: TranslationPaths;
+    content: TranslationPaths | ((props: ContentConditionProps) => TranslationPaths);
     onHideTooltip: (isDismissedUsingCloseButton?: boolean) => void;
     name: ProductTrainingTooltipName;
     priority: number;
@@ -84,7 +88,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         shouldShow: () => true,
     },
     [MARK_ALL_AS_READ]: {
-        content: 'productTrainingTooltip.markAllAsRead',
+        content: ({shouldUseNarrowLayout}) => (shouldUseNarrowLayout ? 'productTrainingTooltip.markAllAsReadSmallScreen' : 'productTrainingTooltip.markAllAsRead'),
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(MARK_ALL_AS_READ, isDismissedUsingCloseButton),
         name: MARK_ALL_AS_READ,
         priority: 900,

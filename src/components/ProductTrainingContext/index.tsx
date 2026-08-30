@@ -237,6 +237,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const theme = useTheme();
     const {shouldHideToolTip} = useSidePanelState();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close', 'Lightbulb']);
 
     if (!context) {
@@ -273,6 +274,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
 
     const renderProductTrainingTooltip = useCallback(() => {
         const tooltip = TOOLTIPS[tooltipName];
+        const content = typeof tooltip.content === 'function' ? tooltip.content({shouldUseNarrowLayout}) : tooltip.content;
 
         return (
             <View
@@ -286,7 +288,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                         size={CONST.ICON_SIZE.MEDIUM}
                     />
                     <View style={[styles.renderHTML, styles.dFlex, styles.flexShrink1]}>
-                        <RenderHTML html={translate(tooltip.content)} />
+                        <RenderHTML html={translate(content)} />
                     </View>
                     <PressableWithoutFeedback
                         sentryLabel={CONST.SENTRY_LABEL.PRODUCT_TRAINING.TOOLTIP}
@@ -307,6 +309,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         );
     }, [
         tooltipName,
+        shouldUseNarrowLayout,
         styles.alignItemsCenter,
         styles.flexRow,
         styles.justifyContentCenter,
