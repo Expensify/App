@@ -68,12 +68,7 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
     }, []);
 
     const search = useCallback((query: string) => {
-        const {hasCachedData: currentHasCachedData, searchQuery: currentQuery} = stateRef.current;
-
-        // Skip fetch if same query and we already have data (e.g., on remount with cached data)
-        if (query === currentQuery && currentHasCachedData) {
-            return;
-        }
+        const {hasCachedData: currentHasCachedData} = stateRef.current;
 
         // Reset pagination state immediately so loadMore doesn't fire with stale query/cursor
         setSearchTagFiltersPagination(false, '', query);
