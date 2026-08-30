@@ -51,6 +51,8 @@ function ChatTransactionPreview({action, reportID, chatReport, iouReport, should
     const personalDetails = usePersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, 1, undefined, undefined);
 
@@ -75,6 +77,7 @@ function ChatTransactionPreview({action, reportID, chatReport, iouReport, should
                     if (!action.childReportID) {
                         const createdTransactionThreadReport = createTransactionThreadReport({
                             introSelected,
+                            conciergeChat,
                             currentUserLogin: personalDetail.email ?? '',
                             currentUserAccountID: personalDetail.accountID,
                             betas,

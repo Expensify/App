@@ -34,7 +34,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useEffect, useRef} from 'react';
 
-import useCommuterExclusionGuard from './useCommuterExclusionGuard';
+import useBlockDistanceRequest from './useBlockDistanceRequest';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
@@ -53,7 +53,6 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         role: policy.role,
         owner: policy.owner,
         outputCurrency: policy.outputCurrency,
-        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         customUnits: policy.customUnits,
     };
 
@@ -67,6 +66,7 @@ type UseParticipantSubmissionParams = {
     isSplitRequest: boolean;
     isMovingTransactionFromTrackExpense: boolean;
     isFocused: boolean;
+    isWorkspacesOnly: boolean;
 };
 
 function useParticipantSubmission({
@@ -79,6 +79,7 @@ function useParticipantSubmission({
     isSplitRequest,
     isMovingTransactionFromTrackExpense,
     isFocused,
+    isWorkspacesOnly,
 }: UseParticipantSubmissionParams) {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {translate} = useLocalize();
@@ -103,7 +104,8 @@ function useParticipantSubmission({
     // explicit useMemo is needed here.
     const transactionIDs = draftTransactions?.map((transaction) => transaction.transactionID);
     const [transactions] = useTransactionsByID(transactionIDs);
-    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        isDistanceRequest: isDistanceRequest(initialTransaction),
         isManualDistanceRequest: isManualDistanceRequest(initialTransaction),
         isOdometerDistanceRequest: isOdometerDistanceRequest(initialTransaction),
     });
@@ -236,7 +238,7 @@ function useParticipantSubmission({
 
         // Block selecting a workspace with commuter exclusions before participants/workspace are committed.
         const selectedPolicyID = firstParticipant?.policyID ?? (firstParticipant?.reportID ? getReportOrDraftReport(firstParticipant.reportID)?.policyID : undefined);
-        if (blockManualOrOdometerDistanceRequestIfNeeded(selectedPolicyID)) {
+        if (blockDistanceRequestIfNeeded(selectedPolicyID)) {
             return;
         }
 
@@ -404,6 +406,36 @@ function useParticipantSubmission({
             return;
         }
 
+        // Moving a tracked expense via "Send to someone"/"Submit it to someone" (SUBMIT) or "Share with accountant" (SHARE)
+        // replaces the picker in the RHP stack, so the confirmation page needs an explicit backTo to return to it. Without it,
+        // back falls through to navigateToStartMoneyRequestStep, which dismisses the whole RHP to the report. CATEGORIZE is
+        // excluded because it routes through the category step, which carries its own back path. See #99145.
+        const shouldReturnToParticipantPicker = isMovingTransactionFromTrackExpense && !isCategorizing;
+
+        // For SUBMIT we reconstruct the backTo rather than snapshotting Navigation.getActiveRoute(): pinning the picker's
+        // writable-report guard (its reportID param) to the persistent self DM keeps back writable after goToNextStep moves the
+        // draft off the source report, and carrying isWorkspacesOnly keeps the "Submit to my employer" picker workspaces-only on
+        // back (a positive transaction cannot re-infer that). The base path stays the report the user was viewing (reportID) so
+        // back does not swap the visible report. If the self DM is unresolved (cold start) we fall back to the active route. See
+        // #99371. SHARE always uses the active route because it routes back through the accountant step, not the picker.
+        let participantPickerBackTo: string | undefined;
+        if (shouldReturnToParticipantPicker) {
+            if (isShareAction || !currentSelfDMReportID) {
+                participantPickerBackTo = Navigation.getActiveRoute();
+            } else {
+                participantPickerBackTo = createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({
+                        action,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID: initialTransactionID,
+                        reportID: currentSelfDMReportID,
+                        isWorkspacesOnly,
+                    }),
+                    ROUTES.REPORT_WITH_ID.getRoute(reportID),
+                );
+            }
+        }
+
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
             action,
             iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.SUBMIT : iouType,
@@ -411,7 +443,7 @@ function useParticipantSubmission({
             newReportID,
             undefined,
             undefined,
-            action === CONST.IOU.ACTION.SHARE ? Navigation.getActiveRoute() : undefined,
+            participantPickerBackTo,
         );
 
         const route = isCategorizing
@@ -434,3 +466,4 @@ function useParticipantSubmission({
 }
 
 export default useParticipantSubmission;
+export type {UseParticipantSubmissionParams};
