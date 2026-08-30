@@ -140,48 +140,27 @@ describe('useAdvancedSearchFilters', () => {
             });
         });
 
-        it('hides tag filter when tags are enabled but no tags exist', async () => {
+        it('shows tag filter when tags are enabled but no tags exist', async () => {
             const policy = buildPolicy(1, {areTagsEnabled: true});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
-
-            const emptyTagList: PolicyTagLists = {
-                Department: {
-                    name: 'Department',
-                    orderWeight: 0,
-                    required: false,
-                    tags: {},
-                },
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, emptyTagList);
 
             const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
 
-            // Tag filter is hidden because the tag list contains no actual tags
             await waitFor(() => {
                 const allKeys = result.current.flat();
-                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
+                expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
             });
         });
 
-        it('hides tag filter when a selected policy has tags enabled but no tags exist', async () => {
+        it('shows tag filter when a selected policy has tags enabled but no tags exist', async () => {
             const policy = buildPolicy(1, {areTagsEnabled: true});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
-
-            const emptyTagList: PolicyTagLists = {
-                Department: {
-                    name: 'Department',
-                    orderWeight: 0,
-                    required: false,
-                    tags: {},
-                },
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, emptyTagList);
 
             const {result} = renderHook(() => useAdvancedSearchFilters(undefined, {value: ['1'], isNegated: false}), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
-                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
+                expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
             });
         });
 
