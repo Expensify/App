@@ -435,6 +435,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     isReportArchived,
                     isOriginalReportArchived,
                     email ?? '',
+                    isOffline,
                     visibleReportActionsData ?? undefined,
                 );
             };
@@ -465,6 +466,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         reportTransactions,
         bankAccountList,
         isOriginalReportArchived,
+        isOffline,
         visibleReportActionsData,
         iouTransaction,
         iouOriginalTransaction,

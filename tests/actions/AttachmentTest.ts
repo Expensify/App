@@ -300,7 +300,7 @@ describe('AttachmentStorage', () => {
         }
 
         // Delete attachment
-        deleteReportComment({reportID}, attachmentAction, undefined, undefined, [], false, false, 'test@user.com');
+        deleteReportComment({reportID}, attachmentAction, undefined, undefined, [], false, false, 'test@user.com', false);
         await waitForBatchedUpdates();
 
         // Then the attachment should be removed
@@ -363,7 +363,7 @@ describe('AttachmentStorage', () => {
         }
 
         // Delete attachment
-        deleteReportComment({reportID}, attachmentAction, undefined, undefined, [], false, false, 'test@user.com');
+        deleteReportComment({reportID}, attachmentAction, undefined, undefined, [], false, false, 'test@user.com', false);
         await waitForBatchedUpdates();
 
         const removedAttachment = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
