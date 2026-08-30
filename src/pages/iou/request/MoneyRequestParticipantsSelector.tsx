@@ -8,9 +8,11 @@ import getPlatform from '@libs/getPlatform';
 
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
 import type {Ref} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import {Activity, useImperativeHandle, useRef, useState} from 'react';
@@ -21,8 +23,8 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
     onFinish?: (value?: string, participants?: Participant[]) => void;
 
-    /** Callback to add participants in MoneyRequestModal */
-    onParticipantsAdded: (value: Participant[]) => void;
+    /** Callback to add participants in MoneyRequestModal. selectedPolicy is forwarded to the confirmation step. */
+    onParticipantsAdded: (value: Participant[], selectedPolicy?: OnyxEntry<Policy>) => void;
 
     /** Selected participants from MoneyRequestModal with login */
     participants?: Participant[] | typeof CONST.EMPTY_ARRAY;
