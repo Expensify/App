@@ -501,8 +501,8 @@ function getTransactionEditPermissions({
             }
             // Lazy-loaded accounts may not have the policy's categories in Onyx yet, and an absent collection is
             // indistinguishable from a genuinely empty one. Treat "categories enabled but never loaded" as unknown
-            // rather than empty and keep the cell editable: opening the picker mounts CategoryPicker, which backfills
-            // the list. Without this the cell deadlocks on an expense with a missing category — the edit icon is
+            // rather than empty and keep the cell editable. Opening the picker mounts CategoryPicker, which backfills
+            // the list. Without this the cell deadlocks on an expense with a missing category. The edit icon stays
             // hidden, so the picker never mounts and the categories are never fetched.
             const areCategoriesEnabledButUnloaded = !!policy?.areCategoriesEnabled && policyCategories === undefined;
             // Matches MoneyRequestView's shouldShowCategory logic
@@ -521,7 +521,12 @@ function getTransactionEditPermissions({
             if (isMultiLevelTags(policyTags)) {
                 return false;
             }
-            return !!transaction?.tag || hasEnabledTags(getTagLists(policyTags));
+            // Same reasoning as categories above. An absent collection only means the lazy-loaded account has not
+            // fetched the tags yet, so treat it as unknown and keep the cell editable. Opening the picker mounts
+            // TagPicker, which backfills the list. If the tags turn out to be multi-level once they arrive, the
+            // check above flips this back to false and usePopoverEditState closes the open popover.
+            const areTagsEnabledButUnloaded = !!policy?.areTagsEnabled && policyTags === undefined;
+            return !!transaction?.tag || areTagsEnabledButUnloaded || hasEnabledTags(getTagLists(policyTags));
         }
 
         return (
