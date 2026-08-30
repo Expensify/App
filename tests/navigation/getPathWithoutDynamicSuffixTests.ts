@@ -97,6 +97,16 @@ describe('getPathWithoutDynamicSuffix', () => {
 
             expect(result).toBe('/r/123');
         });
+
+        it('should keep params owned by any suffix the base path could match, not just the first one', () => {
+            // `/r/123/merge/1/details` matches several registered suffixes: `details` (owns `reportID`) comes first,
+            // but `merge/:transactionID/details` is the one that owns `isOnSearch`. We can't tell which candidate is
+            // the real one without the navigation state, so we keep the union - dropping `isOnSearch` here would
+            // strip a param the base path still needs.
+            const result = getPathWithoutDynamicSuffix('/r/123/merge/1/details/merge/2/confirmation?isOnSearch=true&reportID=5', 'merge/2/confirmation', 'merge/:transactionID/confirmation');
+
+            expect(result).toBe('/r/123/merge/1/details?isOnSearch=true&reportID=5');
+        });
     });
 
     describe('actualSuffix shorter than registered pattern (optional absent)', () => {

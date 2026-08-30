@@ -15,7 +15,9 @@ import splitPathAndQuery from './splitPathAndQuery';
  * suffixes deliberately share param names - every money-request step declares `action`, `iouType`,
  * `transactionID` and `reportID` - so a collision is not an invariant violation and must not be fatal.
  * A collision on *differing* values is still worth knowing about, so it is reported via `Log.alert`,
- * which is forwarded to Sentry (see `FORWARDED_LOG_PREFIXES`) with the call site's stack attached.
+ * which is forwarded to Sentry (see `FORWARDED_LOG_PREFIXES`) with the call site's stack attached. Only the
+ * param name and the stack reach Sentry - the colliding values are not whitelisted because a query param
+ * value can carry private data (see `PREFIX_SCOPED_PARAMETERS_WHITELIST`).
  *
  * @param baseQuery - The query string of the base path
  * @param suffixQuery - The query string of the suffix
