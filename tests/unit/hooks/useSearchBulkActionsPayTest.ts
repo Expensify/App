@@ -7,7 +7,7 @@ import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import type {SearchHeaderOptionValue} from '@hooks/useSearchBulkActions';
 
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
-import {getLastPolicyPaymentMethod} from '@libs/actions/Search';
+import {getLastPolicyPaymentMethod, queueBulkPayReports} from '@libs/actions/Search';
 import type * as SearchActions from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
@@ -39,6 +39,7 @@ jest.mock('@libs/actions/Search', () => {
         exportSearchItemsToCSV: jest.fn(),
         queueExportSearchItemsToCSV: jest.fn(),
         queueExportSearchWithTemplate: jest.fn(),
+        queueBulkPayReports: jest.fn(),
         getSearchApproveOnyxData: jest.fn(() => ({})),
         getSearchPayOnyxData: jest.fn(() => ({})),
         bulkDeleteReports: jest.fn(),
@@ -319,6 +320,31 @@ describe('useSearchBulkActions - Pay option', () => {
         // Then the offline modal should open and no payment should be triggered because payments must not be queued while offline
         expect(result.current.isOfflineModalVisible).toBe(true);
         expect(payMoneyRequest).not.toHaveBeenCalled();
+    });
+
+    it('queues a server-side bulk payment instead of paying per report when all matching items are selected', async () => {
+        // Given "Select all" is checked, so the selection can span more reports than are loaded on the current page
+        mockAreAllMatchingItemsSelected = true;
+        // Mark as paid is the only option offered in this mode
+        mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        // When the user selects the Pay option
+        const payOption = getPayOptionFromResult(result.current.headerButtonsOptions);
+        await act(async () => {
+            await payOption?.onSelected?.();
+        });
+
+        // Then the payment is handed to the backend via the search query (which covers every page), not looped per loaded report
+        expect(queueBulkPayReports).toHaveBeenCalledTimes(1);
+        expect(queueBulkPayReports).toHaveBeenCalledWith(expect.any(String));
+        expect(payMoneyRequest).not.toHaveBeenCalled();
+        expect(mockClearSelectedTransactions).toHaveBeenCalled();
     });
 
     it('hides the Pay option when bulk pay is not enabled', async () => {

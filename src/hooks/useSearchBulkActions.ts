@@ -31,6 +31,7 @@ import {
     getSearchPayOnyxData,
     getTotalFormattedAmount,
     isCurrencySupportWalletBulkPay,
+    queueBulkPayReports,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     resolveSearchPayPaymentMethod,
@@ -680,7 +681,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isCurrencySupportedWallet: isCurrencySupportedBulkWallet,
         currency: selectedBulkCurrency,
         formattedAmount: totalFormattedAmount,
-        onlyShowPayElsewhere,
+        // When "Select all" spans pages, the selection can cover many workspaces/currencies whose per-report payment
+        // methods aren't all loaded, and QueueBulkPayReports only carries the query (no payment method). So offer only
+        // the manual "Pay elsewhere" option in that mode, which routes to QueueBulkPayReports in onBulkPaySelected.
+        onlyShowPayElsewhere: onlyShowPayElsewhere || areAllMatchingItemsSelected,
     });
 
     const {hash} = queryJSON ?? {};
@@ -1299,6 +1303,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
 
+            // "Select all" can cover more reports than are loaded on the current page(s), so the client can't enumerate them.
+            // Hand the search query to the backend, which pages through every matching report and queues a payment for each.
+            if (areAllMatchingItemsSelected) {
+                const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
+                queueBulkPayReports(serializedQuery);
+                playSound(SOUNDS.SUCCESS);
+                clearSelectedTransactions();
+                return;
+            }
+
             const activeRoute = Navigation.getActiveRoute();
             const searchData = searchResults?.data;
             const policyExpenseChatReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
@@ -1541,6 +1555,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         },
         [
             hash,
+            areAllMatchingItemsSelected,
+            queryJSON,
             isOffline,
             isDelegateAccessRestricted,
             selectedReports,
@@ -2106,8 +2122,26 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                   subMenuItems,
               };
 
+        // Pay is offered for both "Select all" (all matching) and normal selections, so build it once here and reuse it in both branches below.
+        const {shouldEnableBulkPayOption} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs, personalPolicyID);
+        // Keep Pay visible while offline: selecting it is handled by onBulkPaySelected, which shows the offline modal
+        // rather than attempting a payment. Gating on !isOffline here would hide Pay entirely offline, which is wrong.
+        const shouldShowPayOption = !isAnyTransactionOnHold && shouldEnableBulkPayOption && !!bulkPayButtonOptions?.length;
+        const payButtonOption: DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'rightIcon'> = {
+            icon: expensifyIcons.MoneyBag,
+            text: translate('search.bulkActions.pay'),
+            backButtonText: translate('search.bulkActions.pay'),
+            rightIcon: expensifyIcons.ArrowRight,
+            value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
+            shouldCloseModalOnSelect: true,
+            subMenuItems: bulkPayButtonOptions,
+            onSelected: () => onBulkPaySelected(undefined),
+        };
+
+        // With "Select all" the selection can span more reports than are loaded, so per-report actions other than Pay
+        // (which the backend resolves from the query) can't be built. Offer the manual bulk Pay alongside Export only.
         if (areAllMatchingItemsSelected) {
-            return [exportButtonOption];
+            return shouldShowPayOption ? [payButtonOption, exportButtonOption] : [exportButtonOption];
         }
 
         if (allSelectedAreDeleted) {
@@ -2362,25 +2396,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 },
             });
         }
-        const {shouldEnableBulkPayOption} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs, personalPolicyID);
-
-        // Keep Pay visible while offline: selecting it is handled by onBulkPaySelected, which shows the offline modal
-        // rather than attempting a payment. Gating on !isOffline here would hide Pay entirely offline, which is wrong.
-        const shouldShowPayOption = !isAnyTransactionOnHold && shouldEnableBulkPayOption && !!bulkPayButtonOptions?.length;
-
         if (shouldShowPayOption) {
-            const shouldShowPaySubmenu = !!bulkPayButtonOptions?.length;
-
-            const payButtonOption = {
-                icon: expensifyIcons.MoneyBag,
-                text: translate('search.bulkActions.pay'),
-                backButtonText: shouldShowPaySubmenu ? translate('search.bulkActions.pay') : undefined,
-                rightIcon: shouldShowPaySubmenu ? expensifyIcons.ArrowRight : undefined,
-                value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
-                shouldCloseModalOnSelect: true,
-                subMenuItems: shouldShowPaySubmenu ? bulkPayButtonOptions : undefined,
-                onSelected: () => onBulkPaySelected(undefined),
-            };
             options.push(payButtonOption);
         }
 
