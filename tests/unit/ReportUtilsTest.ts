@@ -1385,13 +1385,14 @@ describe('ReportUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test+test@example.com', accountID: OTHER_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            const existingAction: ReportAction = {
-                reportActionID: '200',
+            const existingAction = {
+                ...createRandomReportAction(200),
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: '200',
                 actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
                 created: '2024-01-15 12:00:00.000',
-                message: {type: 'COMMENT', html: 'existing message', text: 'existing message'},
-            } as unknown as ReportAction;
+                message: [{type: 'COMMENT', html: 'existing message', text: 'existing message'}],
+            };
 
             const chatReport: Report = {
                 reportID: CONCIERGE_CHAT_REPORT_ID,
@@ -1419,10 +1420,14 @@ describe('ReportUtils', () => {
 
             expect(result).toBeTruthy();
 
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Onyx update value needs narrowing for test assertions
             const failureReport = result?.failureData.find((d) => d.key === `${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_CHAT_REPORT_ID}`)?.value as Partial<Report> | undefined;
 
             expect(failureReport?.lastVisibleActionCreated).toBe(existingAction.created);
             expect(failureReport?.lastActorAccountID).toBe(existingAction.actorAccountID);
+
+            await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await waitForBatchedUpdates();
         });
     });
 
