@@ -1,4 +1,4 @@
-import type {Filter, SearchFilterCommonProps} from '@components/Search/types';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
 import useSearchTagFilters from '@hooks/useSearchTagFilters';
@@ -11,9 +11,7 @@ import React, {useMemo} from 'react';
 
 import MultiSelect from './MultiSelect';
 
-type TagSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
-    policyID: Filter | undefined;
-};
+type TagSelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
 function TagSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TagSelectorProps) {
     const {translate} = useLocalize();
