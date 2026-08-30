@@ -31,6 +31,14 @@ type UseSearchTagFiltersResult = {
     hasCachedData: boolean;
 };
 
+/** Logs tag filter request failures; aborted requests are expected when a newer search supersedes them */
+function logRequestFailure(message: string, error: Error) {
+    if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
+        return;
+    }
+    Log.warn(message, {error});
+}
+
 /**
  * Hook for managing paginated tag filter search.
  * Handles API calls, pagination state, and Onyx data subscription.
@@ -55,37 +63,51 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
         stateRef.current = {hasMore, nextCursor, searchQuery, hasCachedData, isLoading};
     }, [hasMore, nextCursor, searchQuery, hasCachedData, isLoading]);
 
+    // Incremented on every new search so a cancelled request doesn't clear the loading state of its successor
+    const requestSeqRef = useRef(0);
+
     const loadMore = useCallback(() => {
         const {hasMore: currentHasMore, nextCursor: currentCursor, searchQuery: currentQuery, isLoading: currentIsLoading} = stateRef.current;
         if (currentIsLoading || !currentHasMore) {
             return;
         }
+        const requestSeq = requestSeqRef.current;
         setIsLoading(true);
         openSearchTagFiltersPage({searchQuery: currentQuery, cursor: currentCursor, limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE})
             .then(({hasMore: newHasMore, nextCursor: newCursor}) => {
                 setSearchTagFiltersPagination(newHasMore, newCursor, currentQuery);
             })
-            .catch((error: Error) => Log.warn('Failed to load the next tag filters page', {error}))
-            .finally(() => setIsLoading(false));
+            .catch((error: Error) => logRequestFailure('Failed to load the next tag filters page', error))
+            .finally(() => {
+                if (requestSeq !== requestSeqRef.current) {
+                    return;
+                }
+                setIsLoading(false);
+            });
     }, []);
 
     const search = useCallback((query: string) => {
         const {hasCachedData: currentHasCachedData} = stateRef.current;
+        const requestSeq = ++requestSeqRef.current;
 
         // Reset pagination state immediately so loadMore doesn't fire with stale query/cursor
         setSearchTagFiltersPagination(false, '', query);
 
-        // Only show loading if no cached data - otherwise fetch silently in background
-        if (!currentHasCachedData) {
-            setIsLoading(true);
-        }
+        // A new search cancels any in-flight request, so it owns the loading state from here on.
+        // With cached data the fetch runs silently in the background.
+        setIsLoading(!currentHasCachedData);
 
-        openSearchTagFiltersPage({searchQuery: query, cursor: '', limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE})
+        openSearchTagFiltersPage({searchQuery: query, cursor: '', limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE}, true)
             .then(({hasMore: newHasMore, nextCursor: newCursor}) => {
                 setSearchTagFiltersPagination(newHasMore, newCursor, query);
             })
-            .catch((error: Error) => Log.warn('Failed to fetch tag filters', {error}))
-            .finally(() => setIsLoading(false));
+            .catch((error: Error) => logRequestFailure('Failed to fetch tag filters', error))
+            .finally(() => {
+                if (requestSeq !== requestSeqRef.current) {
+                    return;
+                }
+                setIsLoading(false);
+            });
     }, []);
 
     // Fetch the first page on mount; cached results are shown immediately and refreshed in the background

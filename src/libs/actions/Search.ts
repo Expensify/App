@@ -28,6 +28,7 @@ import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentat
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {getExportFileName} from '@libs/fileDownload/FileUtils';
+import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -1048,9 +1049,13 @@ function openSearchCategoryFiltersPage() {
 /**
  * Fetches a page of tag filter search results from the server.
  * Returns pagination metadata (hasMore, nextCursor) for infinite scroll.
+ * A new search passes `shouldCancelPendingRequests` so a superseded in-flight request cannot overwrite the fresh results.
  */
-function openSearchTagFiltersPage(params: OpenSearchTagFiltersPageParams): Promise<{hasMore: boolean; nextCursor: string}> {
-    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE, params).then((response) => ({
+function openSearchTagFiltersPage(params: OpenSearchTagFiltersPageParams, shouldCancelPendingRequests = false): Promise<{hasMore: boolean; nextCursor: string}> {
+    if (shouldCancelPendingRequests) {
+        HttpUtils.cancelPendingRequests(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE);
+    }
+    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE, {...params, canCancel: true}).then((response) => ({
         hasMore: !!response?.hasMore,
         nextCursor: response?.nextCursor ?? '',
     }));

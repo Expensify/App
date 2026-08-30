@@ -7,6 +7,9 @@ type OpenSearchTagFiltersPageParams = {
 
     /** Maximum number of tags to return per page */
     limit?: number;
+
+    /** Whether the request can be aborted when superseded by a newer search */
+    canCancel?: boolean;
 };
 
 export default OpenSearchTagFiltersPageParams;
