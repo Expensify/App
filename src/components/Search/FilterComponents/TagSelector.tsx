@@ -17,7 +17,7 @@ type TagSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
 
 function TagSelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TagSelectorProps) {
     const {translate} = useLocalize();
-    const {searchResults, isLoading, hasMore, loadMore, search} = useSearchTagFilters();
+    const {searchResults, isLoading, hasMore, loadMore, search, hasCachedData} = useSearchTagFilters();
 
     const tagItems = useMemo(() => {
         const items = [{text: translate('search.noTag'), value: CONST.SEARCH.TAG_EMPTY_VALUE as string}];
@@ -56,7 +56,7 @@ function TagSelector({value = [], policyID, selectionListTextInputStyle, selecti
             onChange={(tags) => onChange(tags.map((tag) => tag.value))}
             onEndReached={hasMore ? loadMore : undefined}
             onSearchChange={search}
-            loading={isLoading && tagItems.length <= 1}
+            loading={isLoading && tagItems.length <= 1 && !hasCachedData}
             isLoadingMore={isLoading && tagItems.length > 1}
         />
     );
