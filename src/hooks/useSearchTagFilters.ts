@@ -68,7 +68,7 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
 
     // Gates the full-list spinner to the initial load. Once any search settles, the list stays mounted
     // so the search input keeps focus while the user types, even when the latest results are empty.
-    const hasCompletedSearchRef = useRef(hasCachedData);
+    const [hasCompletedSearch, setHasCompletedSearch] = useState(hasCachedData);
 
     const loadMore = useCallback(() => {
         const {hasMore: currentHasMore, nextCursor: currentCursor, searchQuery: currentQuery, isLoading: currentIsLoading} = stateRef.current;
@@ -110,7 +110,7 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
                 if (requestSeq !== requestSeqRef.current) {
                     return;
                 }
-                hasCompletedSearchRef.current = true;
+                setHasCompletedSearch(true);
                 setIsLoading(false);
             });
     }, []);
@@ -120,7 +120,7 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
         search('');
     }, [search]);
 
-    const isInitialLoading = isLoading && !hasCompletedSearchRef.current;
+    const isInitialLoading = isLoading && !hasCompletedSearch;
 
     return {searchResults, isLoading, hasMore, loadMore, search, isInitialLoading};
 }
