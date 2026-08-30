@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -54,22 +55,27 @@ function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormView
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
                 isSubmitActionDangerous
+                submitFlexEnabled={false}
             >
                 <View style={styles.mb6}>
                     <Text>{translate('iou.reject.reasonPageDescription')}</Text>
                 </View>
-                <View>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.COMMENT}
-                        valueType="string"
-                        name="comment"
-                        defaultValue={undefined}
-                        label={translate('iou.reject.rejectReason')}
-                        accessibilityLabel={translate('iou.reject.rejectReason')}
-                        ref={inputCallbackRef}
-                    />
-                </View>
+                <AutoGrowHeightInputContainer>
+                    {(maxAutoGrowHeight) => (
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.COMMENT}
+                            valueType="string"
+                            name="comment"
+                            defaultValue={undefined}
+                            label={translate('iou.reject.rejectReason')}
+                            accessibilityLabel={translate('iou.reject.rejectReason')}
+                            ref={inputCallbackRef}
+                            autoGrowHeight
+                            maxAutoGrowHeight={maxAutoGrowHeight}
+                        />
+                    )}
+                </AutoGrowHeightInputContainer>
             </FormProvider>
         </ScreenWrapper>
     );
