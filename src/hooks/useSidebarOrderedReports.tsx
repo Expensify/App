@@ -1,4 +1,5 @@
 import {setInboxTab} from '@libs/actions/User';
+import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import SidebarUtils from '@libs/SidebarUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -10,6 +11,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
+import {startOfDay, subMonths} from 'date-fns';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 
 import useCollectionDelta from './useCollectionDelta';
@@ -36,6 +38,8 @@ type SidebarOrderedReportsStateContextValue = {
     chatTabBrickRoad: BrickRoad;
     activeTab: ValueOf<typeof CONST.INBOX_TAB>;
     inboxTabCounts: Record<typeof CONST.INBOX_TAB.TODO | typeof CONST.INBOX_TAB.UNREAD, number>;
+    /** Whether the Unread tab holds a report whose newest message is older than CONST.INBOX_TAB_STALE_UNREAD_MONTHS. */
+    hasStaleUnreadReport: boolean;
 };
 
 type SidebarOrderedReportsActionsContextValue = {
@@ -56,6 +60,7 @@ const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsSta
         [CONST.INBOX_TAB.TODO]: 0,
         [CONST.INBOX_TAB.UNREAD]: 0,
     },
+    hasStaleUnreadReport: false,
 });
 
 const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsActionsContextValue>({
@@ -204,7 +209,7 @@ function SidebarOrderedReportsContextProvider({
         // reports, recheck only the already-displayed reports with the new reportAttributes.
         const effectiveUpdatedReports = updatedReports.length === 0 && hasCachedReports ? Object.keys(currentReportsToDisplay) : updatedReports;
         const shouldDoIncrementalUpdate = effectiveUpdatedReports.length > 0 && hasCachedReports;
-        let reportsToDisplay = {};
+        let reportsToDisplay: ReportsToDisplayInLHN = {};
         if (shouldDoIncrementalUpdate) {
             reportsToDisplay = SidebarUtils.updateReportsToDisplayInLHN({
                 displayedReports: currentReportsToDisplay,
@@ -321,6 +326,14 @@ function SidebarOrderedReportsContextProvider({
     // The count shown in each tab's badge, derived from the full "All" set (not the currently filtered view).
     const inboxTabCounts = useMemo(() => SidebarUtils.getInboxTabCounts(orderedReportIDs, reportsToDisplayInLHN), [orderedReportIDs, reportsToDisplayInLHN]);
 
+    const hasStaleUnreadReport = useMemo(() => {
+        const staleUnreadTime = DateUtils.getDBTime(subMonths(startOfDay(new Date()), CONST.INBOX_TAB_STALE_UNREAD_MONTHS).valueOf());
+        return orderedReportIDs.some((reportID) => {
+            const report = reportsToDisplayInLHN[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            return !!report?.isUnreadReport && (report.lastVisibleActionCreated ?? '') < staleUnreadTime;
+        });
+    }, [orderedReportIDs, reportsToDisplayInLHN]);
+
     // Get the actual reports based on the filtered IDs
     const getOrderedReports = useCallback(
         (reportIDs: string[]): OnyxTypes.Report[] => {
@@ -390,6 +403,7 @@ function SidebarOrderedReportsContextProvider({
                 chatTabBrickRoad: getChatTabBrickRoad(updatedReportIDs, reportAttributes),
                 activeTab,
                 inboxTabCounts,
+                hasStaleUnreadReport,
             };
         }
 
@@ -400,6 +414,7 @@ function SidebarOrderedReportsContextProvider({
             chatTabBrickRoad: getChatTabBrickRoad(orderedReportIDs, reportAttributes),
             activeTab,
             inboxTabCounts,
+            hasStaleUnreadReport,
         };
     }, [
         getOrderedReportIDs,
@@ -412,6 +427,7 @@ function SidebarOrderedReportsContextProvider({
         reportAttributes,
         activeTab,
         inboxTabCounts,
+        hasStaleUnreadReport,
         reportsToDisplayInLHN,
     ]);
 

@@ -10238,7 +10238,7 @@ ${reportName}`,
         hasFilterNegation: '<tooltip>使用 <strong>-has:receipt</strong> 搜索没有收据的报销。</tooltip>',
         mileageRateAutoUpdated: '<tooltip>我们已根据您的出行日期更新了汇率。</tooltip>',
         markAllAsRead: '<tooltip>右键点击即可<strong>将所有内容标记为已读</strong>。</tooltip>',
-        markAllAsReadSmallScreen: '<tooltip>长按即可<strong>将所有内容标记为已读</strong>。</tooltip>',
+        markAllAsReadTouchScreen: '<tooltip>长按即可<strong>将所有内容标记为已读</strong>。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '放弃更改？',

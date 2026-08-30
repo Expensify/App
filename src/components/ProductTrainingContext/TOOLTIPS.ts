@@ -1,4 +1,5 @@
 import {dismissProductTraining} from '@libs/actions/Welcome';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -23,12 +24,8 @@ type ShouldShowConditionProps = {
     isUserInPaidPolicy: boolean;
 };
 
-type ContentConditionProps = {
-    shouldUseNarrowLayout: boolean;
-};
-
 type TooltipData = {
-    content: TranslationPaths | ((props: ContentConditionProps) => TranslationPaths);
+    content: TranslationPaths | (() => TranslationPaths);
     onHideTooltip: (isDismissedUsingCloseButton?: boolean) => void;
     name: ProductTrainingTooltipName;
     priority: number;
@@ -94,7 +91,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         shouldShow: () => true,
     },
     [MARK_ALL_AS_READ]: {
-        content: ({shouldUseNarrowLayout}) => (shouldUseNarrowLayout ? 'productTrainingTooltip.markAllAsReadSmallScreen' : 'productTrainingTooltip.markAllAsRead'),
+        content: () => (canUseTouchScreen() ? 'productTrainingTooltip.markAllAsReadTouchScreen' : 'productTrainingTooltip.markAllAsRead'),
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(MARK_ALL_AS_READ, isDismissedUsingCloseButton),
         name: MARK_ALL_AS_READ,
         priority: 900,

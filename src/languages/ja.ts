@@ -10505,7 +10505,7 @@ ${reportName}`,
         hasFilterNegation: '<tooltip><strong>-has:receipt</strong> を使って、レシートのない経費を検索します。</tooltip>',
         mileageRateAutoUpdated: '<tooltip>出張日にもとづいてレートを更新しました。</tooltip>',
         markAllAsRead: '<tooltip>右クリックで<strong>すべて既読にする</strong>ことができます。</tooltip>',
-        markAllAsReadSmallScreen: '<tooltip>長押しで<strong>すべて既読にする</strong>ことができます。</tooltip>',
+        markAllAsReadTouchScreen: '<tooltip>長押しで<strong>すべて既読にする</strong>ことができます。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '変更を破棄しますか？',

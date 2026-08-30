@@ -241,7 +241,6 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const theme = useTheme();
     const {shouldHideToolTip} = useSidePanelState();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close', 'Lightbulb']);
 
     if (!context) {
@@ -278,7 +277,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
 
     const renderProductTrainingTooltip = useCallback(() => {
         const tooltip = TOOLTIPS[tooltipName];
-        const content = typeof tooltip.content === 'function' ? tooltip.content({shouldUseNarrowLayout}) : tooltip.content;
+        const content = typeof tooltip.content === 'function' ? tooltip.content() : tooltip.content;
 
         return (
             <View
@@ -313,7 +312,6 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         );
     }, [
         tooltipName,
-        shouldUseNarrowLayout,
         styles.alignItemsCenter,
         styles.flexRow,
         styles.justifyContentCenter,

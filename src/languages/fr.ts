@@ -10726,7 +10726,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         hasFilterNegation: '<tooltip>Recherchez les dépenses sans reçus à l’aide de <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>Nous avons mis à jour le taux en fonction de votre date de voyage.</tooltip>',
         markAllAsRead: '<tooltip>Faites un clic droit pour <strong>tout marquer comme lu</strong>.</tooltip>',
-        markAllAsReadSmallScreen: '<tooltip>Faites un appui long pour <strong>tout marquer comme lu</strong>.</tooltip>',
+        markAllAsReadTouchScreen: '<tooltip>Faites un appui long pour <strong>tout marquer comme lu</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Ignorer les modifications ?',

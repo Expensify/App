@@ -2,14 +2,12 @@ import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
 import {
     canShowReportRecipientLocalTime,
     getPolicyIDsWithEmptyReportsForAccount,
-    getReportNotificationPreference,
     isArchivedReport,
     isChatRoom,
     isClosedReport,
     isOpenExpenseReport,
     isPolicyExpenseChat,
     isThread,
-    isUnread,
 } from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -18,8 +16,6 @@ import type {OutstandingReportsByPolicyIDDerivedValue, PersonalDetailsList, Repo
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
-
-import type {ReportNameValuePairsArchivedState} from './ReportNameValuePairs';
 
 import {getLastClosedReportAction} from './ReportAction';
 
@@ -275,26 +271,6 @@ function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
     return !!draft;
 }
 
-/**
- * Builds a selector telling whether any report would show in the Unread Inbox tab with a newest message older than
- * `unreadTime`. It returns a plain boolean so subscribers only re-render when the answer flips.
- *
- */
-function hasStaleUnreadReportSelector(archivedStates: OnyxCollection<ReportNameValuePairsArchivedState>, unreadTime: string) {
-    return (reports: OnyxCollection<Report>): boolean =>
-        Object.values(reports ?? {}).some((report) => {
-            if (!report || (report.lastVisibleActionCreated ?? '') >= unreadTime) {
-                return false;
-            }
-
-            if (!report.lastActorAccountID || getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE) {
-                return false;
-            }
-
-            return isUnread(report, undefined, isArchivedReport(archivedStates?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]));
-        });
-}
-
 export {
     getArchiveReason,
     getReportChatType,
@@ -308,7 +284,6 @@ export {
     openExpenseReportIDsSelector,
     getStableReportSelector,
     isDraftReportSelector,
-    hasStaleUnreadReportSelector,
 };
 
 export type {StableReport};
