@@ -48,6 +48,12 @@ function suppressWelcomeModalForSubmitDeeplink() {
     hasPendingSubmitDeeplink = true;
 }
 
+// Called when the deeplink decides not to create anything, so a later account in this process isn't left with the
+// modal suppressed by an intent that never acted.
+function releaseWelcomeModalForSubmitDeeplink() {
+    hasPendingSubmitDeeplink = false;
+}
+
 const SUBMIT_PLAN_WELCOME_ENTRY_SCREENS = new Set<string>(DYNAMIC_ROUTES.SUBMIT_PLAN_WELCOME.entryScreens);
 
 /**
@@ -316,4 +322,4 @@ const SubmitPlanWelcomeModalGuard: NavigationGuard = {
 };
 
 export default SubmitPlanWelcomeModalGuard;
-export {resetSessionFlag, suppressWelcomeModalForSubmitDeeplink};
+export {resetSessionFlag, suppressWelcomeModalForSubmitDeeplink, releaseWelcomeModalForSubmitDeeplink};

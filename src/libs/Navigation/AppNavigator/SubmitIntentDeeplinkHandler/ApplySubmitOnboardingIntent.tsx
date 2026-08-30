@@ -2,19 +2,19 @@ import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 
-import {suppressWelcomeModalForSubmitDeeplink} from '@libs/Navigation/guards/SubmitPlanWelcomeModalGuard';
+import {releaseWelcomeModalForSubmitDeeplink, suppressWelcomeModalForSubmitDeeplink} from '@libs/Navigation/guards/SubmitPlanWelcomeModalGuard';
+import {getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
 
 import {setSubmitMigrationModalShown} from '@userActions/User';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
-import {isSupportalSessionSelector} from '@selectors/Session';
+import {emailSelector, isSupportalSessionSelector} from '@selectors/Session';
 import {useEffect} from 'react';
 
-// Module scope rather than a ref so it survives this component remounting. The deeplink is read from the initial URL,
-// which the provider above the navigator keeps for the life of the process, so signing out and into another account
-// remounts this component with the same intent still readable and would create a workspace for that second account.
+// Module scope rather than a ref so it survives a remount: the initial URL outlives sign-out, so signing into a second
+// account would otherwise replay the intent and create that account a workspace it never asked for.
 let hasAppliedIntent = false;
 
 /**
@@ -32,9 +32,15 @@ function ApplySubmitOnboardingIntent() {
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
     const [isOnboardingCompleted] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
     const [isSupportalSession] = useOnyx(ONYXKEYS.SESSION, {selector: isSupportalSessionSelector});
+    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
-    // Runs at mount rather than alongside the work below, which waits on HAS_LOADED_APP — the same signal the guard
-    // uses to decide whether to open its modal.
+    // Plain membership counts here, unlike the admin-level check inside useAutoCreateSubmitWorkspace, which would
+    // hand a personal Submit workspace to someone who can already submit on their employer's.
+    const [belongsToWorkspaceForReports] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (policies) => getGroupPoliciesWhereReportCanBeCreated(policies, currentUserEmail).length > 0,
+    });
+
+    // At mount, ahead of the work below that waits on HAS_LOADED_APP — the same signal that opens the guard's modal.
     useEffect(() => {
         suppressWelcomeModalForSubmitDeeplink();
     }, []);
@@ -47,17 +53,17 @@ function ApplySubmitOnboardingIntent() {
 
         // Marked applied above before these checks, since they are reasons to drop the intent rather than to wait for
         // it to become actionable. Returning without consuming would leave it live for whoever signs in next.
-        if (!isOnboardingCompleted || isSupportalSession) {
+        if (!isOnboardingCompleted || isSupportalSession || belongsToWorkspaceForReports) {
+            releaseWelcomeModalForSubmitDeeplink();
             return;
         }
 
         // Persists the suppression applied above, so the modal stays away in later sessions too.
         setSubmitMigrationModalShown();
 
-        // `false` skips CompleteGuidedSetup, which is already done. The hook navigates to the user's existing Submit
-        // workspace rather than creating a second one, which is what makes repeat clicks idempotent.
+        // `false` skips CompleteGuidedSetup, which is already done.
         autoCreateSubmitWorkspace(firstName ?? '', lastName ?? '', false);
-    }, [autoCreateSubmitWorkspace, firstName, hasLoadedApp, isOnboardingCompleted, isSupportalSession, lastName]);
+    }, [autoCreateSubmitWorkspace, belongsToWorkspaceForReports, firstName, hasLoadedApp, isOnboardingCompleted, isSupportalSession, lastName]);
 
     return null;
 }
