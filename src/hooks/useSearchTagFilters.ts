@@ -27,8 +27,8 @@ type UseSearchTagFiltersResult = {
     /** Start a new search with the given query */
     search: (query: string) => void;
 
-    /** Whether there are cached results from a previous fetch */
-    hasCachedData: boolean;
+    /** Whether the first fetch is still in flight with no results to show yet */
+    isInitialLoading: boolean;
 };
 
 /** Logs tag filter request failures; aborted requests are expected when a newer search supersedes them */
@@ -65,6 +65,10 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
 
     // Incremented on every new search so a cancelled request doesn't clear the loading state of its successor
     const requestSeqRef = useRef(0);
+
+    // Gates the full-list spinner to the initial load. Once any search settles, the list stays mounted
+    // so the search input keeps focus while the user types, even when the latest results are empty.
+    const hasCompletedSearchRef = useRef(hasCachedData);
 
     const loadMore = useCallback(() => {
         const {hasMore: currentHasMore, nextCursor: currentCursor, searchQuery: currentQuery, isLoading: currentIsLoading} = stateRef.current;
@@ -106,6 +110,7 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
                 if (requestSeq !== requestSeqRef.current) {
                     return;
                 }
+                hasCompletedSearchRef.current = true;
                 setIsLoading(false);
             });
     }, []);
@@ -115,7 +120,9 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
         search('');
     }, [search]);
 
-    return {searchResults, isLoading, hasMore, loadMore, search, hasCachedData};
+    const isInitialLoading = isLoading && !hasCompletedSearchRef.current;
+
+    return {searchResults, isLoading, hasMore, loadMore, search, isInitialLoading};
 }
 
 export default useSearchTagFilters;
