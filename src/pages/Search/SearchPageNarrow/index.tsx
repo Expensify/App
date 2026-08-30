@@ -43,7 +43,7 @@ import type {SearchResults} from '@src/types/onyx';
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState, useTransition} from 'react';
 import {StyleSheet, View} from 'react-native';
-import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {clamp, FadeIn, FadeOut, LayoutAnimationConfig, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
 import {SearchActionsBarSwitch, SearchFiltersBarSwitch, SearchPageInputSwitch, SearchTypeMenuSwitch} from './Switches';
@@ -334,22 +334,34 @@ function SearchPageNarrow({
                         )}
                         {!useStaticRendering && (
                             <>
-                                {shouldShowLoadingSkeleton ? (
-                                    <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles(hasFilterBars)} />
-                                ) : (
-                                    <SearchWithNavigationDeferredMount
-                                        searchResults={searchResults}
-                                        queryJSON={queryJSON}
+                                {/* skipEntering keeps the delayed fade off the very first mount, so opening Search cold paints immediately. */}
+                                <LayoutAnimationConfig skipEntering>
+                                    {/* Changing the search type or a filter changes the hash, which remounts this layer: the outgoing one
+                                        fades out and the incoming one waits for it to finish before fading in. Both layers are absolutely
+                                        filled so the outgoing fade overlays the incoming layer instead of sharing the column layout. */}
+                                    <Animated.View
                                         key={queryJSON.hash}
-                                        onSearchListScroll={scrollHandler}
-                                        contentContainerStyle={contentContainerStyle}
-                                        handleSearch={handleSearchAction}
-                                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                        onDestinationVisible={endSubmitNavigationSpans}
-                                        onContentReady={onSearchContentReady}
-                                        hasFilterBars={hasFilterBars}
-                                    />
-                                )}
+                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION).delay(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                        exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                        style={StyleSheet.absoluteFill}
+                                    >
+                                        {shouldShowLoadingSkeleton ? (
+                                            <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles(hasFilterBars)} />
+                                        ) : (
+                                            <SearchWithNavigationDeferredMount
+                                                searchResults={searchResults}
+                                                queryJSON={queryJSON}
+                                                onSearchListScroll={scrollHandler}
+                                                contentContainerStyle={contentContainerStyle}
+                                                handleSearch={handleSearchAction}
+                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                                onDestinationVisible={endSubmitNavigationSpans}
+                                                onContentReady={onSearchContentReady}
+                                                hasFilterBars={hasFilterBars}
+                                            />
+                                        )}
+                                    </Animated.View>
+                                </LayoutAnimationConfig>
                                 {shouldRenderLayoutProbe && <View onLayout={onSearchLayout} />}
                                 {!!searchOverlayContent && (
                                     <View
