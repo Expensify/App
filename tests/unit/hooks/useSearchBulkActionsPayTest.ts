@@ -276,24 +276,32 @@ describe('useSearchBulkActions - Pay option', () => {
     });
 
     it('shows the Pay option when online', async () => {
+        // Given a payable selected transaction while the user is online (set up in beforeEach)
+
+        // When the bulk actions hook computes the header dropdown options
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
 
+        // Then the Pay option should be offered because the selection is payable and nothing blocks the payment
         await waitFor(() => {
             expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
         });
     });
 
     it('still shows the Pay option when offline', async () => {
+        // Given a payable selected transaction while the user is offline
         mockIsOffline = true;
 
+        // When the bulk actions hook computes the header dropdown options
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
 
+        // Then the Pay option should still be offered because being offline only defers the payment
         await waitFor(() => {
             expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
         });
     });
 
     it('opens the offline modal instead of paying when Pay is selected offline', async () => {
+        // Given a payable selected transaction while the user is offline
         mockIsOffline = true;
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
@@ -302,23 +310,29 @@ describe('useSearchBulkActions - Pay option', () => {
             expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
         });
 
+        // When the user selects the Pay option from the header dropdown
         const payOption = getPayOptionFromResult(result.current.headerButtonsOptions);
         await act(async () => {
             await payOption?.onSelected?.();
         });
 
+        // Then the offline modal should open and no payment should be triggered because payments must not be queued while offline
         expect(result.current.isOfflineModalVisible).toBe(true);
         expect(payMoneyRequest).not.toHaveBeenCalled();
     });
 
     it('hides the Pay option when bulk pay is not enabled', async () => {
+        // Given a selection for which bulk pay is not enabled (getPayOption rejected it)
         mockShouldEnableBulkPayOption = false;
 
+        // When the bulk actions hook computes the header dropdown options
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions).toBeDefined();
         });
+
+        // Then the Pay option should be hidden because offering it would let the user attempt a payment that cannot succeed
         expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeUndefined();
     });
 });
@@ -371,8 +385,12 @@ describe('useSearchBulkActions - bulk pay chat report fallback', () => {
     }
 
     it('pays with a fallback chat report when the chat is not loaded', async () => {
+        // Given a payable selected expense report whose chat report is not loaded in Onyx while its chatReportID is known (set up in beforeEach)
+
+        // When the user selects bulk Pay
         await selectBulkPay();
 
+        // Then the payment should proceed with a minimal fallback chat report built from the known IDs
         expect(payMoneyRequest).toHaveBeenCalledWith(
             expect.objectContaining({
                 chatReport: {reportID: '2', policyID: 'policy1'},
@@ -382,10 +400,13 @@ describe('useSearchBulkActions - bulk pay chat report fallback', () => {
     });
 
     it('pays with the loaded chat report when it is available', async () => {
+        // Given a payable selected expense report whose chat report is loaded in Onyx
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {reportID: '2', type: CONST.REPORT.TYPE.CHAT, policyID: 'policy1'});
 
+        // When the user selects bulk Pay
         await selectBulkPay();
 
+        // Then the payment should use the loaded chat report
         expect(payMoneyRequest).toHaveBeenCalledWith(
             expect.objectContaining({
                 chatReport: expect.objectContaining({reportID: '2', type: CONST.REPORT.TYPE.CHAT}),
@@ -395,10 +416,13 @@ describe('useSearchBulkActions - bulk pay chat report fallback', () => {
     });
 
     it('skips an invoice whose chat is not loaded', async () => {
+        // Given a payable selected invoice report whose invoice chat is not loaded in Onyx
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {type: CONST.REPORT.TYPE.INVOICE});
 
+        // When the user selects bulk Pay
         await selectBulkPay();
 
+        // Then the invoice should be skipped and the skip logged because paying an invoice needs the real invoice chat data and a minimal fallback could produce a wrong payment
         expect(payMoneyRequest).not.toHaveBeenCalled();
         expect(payInvoice).not.toHaveBeenCalled();
         expect(mockLogInfo).toHaveBeenCalledWith(
@@ -409,6 +433,7 @@ describe('useSearchBulkActions - bulk pay chat report fallback', () => {
     });
 
     it('skips a report when the chat is not loaded and no chatReportID is available', async () => {
+        // Given a payable selected expense report whose chat report is not loaded and which has no chatReportID to build a fallback from
         mockSelectedReports = [
             {
                 reportID: '1',
@@ -424,8 +449,10 @@ describe('useSearchBulkActions - bulk pay chat report fallback', () => {
         ];
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'});
 
+        // When the user selects bulk Pay
         await selectBulkPay();
 
+        // Then the report should be skipped and both the skip and the final summary logged because there is no way to resolve any chat report for the payment
         expect(payMoneyRequest).not.toHaveBeenCalled();
         expect(mockLogInfo).toHaveBeenCalledWith(
             '[BulkPay] Skipping report: chat report not found in the search snapshot or Onyx',
