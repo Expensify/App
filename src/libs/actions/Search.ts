@@ -639,12 +639,13 @@ function getPayActionCallback({
         return;
     }
 
+    const paymentPolicy = policy ?? snapshotPolicy;
+
     if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
         // One-tap pay here always funds the payment from the workspace bank account, so it's only valid for someone the
         // account is actually shared with. Anyone else has to pay from an account of their own, so open the report and let
         // them pick it instead of silently paying with (and reporting) the workspace one.
-        // Prefer the live policy so the ACH account the check reads is current; fall back to the search snapshot.
-        if (!canAccessPolicyBankAccount(policy ?? snapshotPolicy, getBankAccountList())) {
+        if (!canAccessPolicyBankAccount(paymentPolicy, getBankAccountList())) {
             goToItem();
             return;
         }
@@ -666,14 +667,14 @@ function getPayActionCallback({
         currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
         currentUserLogin: currentUserLogin ?? '',
         activePolicy,
-        policy: snapshotPolicy ?? policy,
+        policy: paymentPolicy,
         chatReportPolicy: chatReportPolicyForPayment,
         betas,
         isSelfTourViewed,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
-        methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? snapshotPolicy?.achAccount?.bankAccountID : undefined,
+        methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? paymentPolicy?.achAccount?.bankAccountID : undefined,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
         chatReportActions,
         delegateAccountID,
