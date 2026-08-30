@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
+import FeatureTraining from './FeatureTraining';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import HoldMenuSectionList from './HoldMenuSectionList';
 
@@ -32,22 +33,27 @@ function HoldSubmitterEducationalModal({onClose, onConfirm, isDM}: HoldSubmitter
 
     return (
         <FeatureTrainingModal
-            title={translate('iou.holdEducationalTitle')}
-            description={translate(isDM ? 'iou.whatIsHoldExplainDM' : 'iou.whatIsHoldExplain')}
-            confirmText={translate('common.buttonConfirm')}
-            image={illustrations.HoldExpense}
-            contentFitImage="cover"
             width={variables.holdEducationModalWidth}
-            illustrationAspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
-            contentInnerContainerStyles={styles.mb5}
             modalInnerContainerStyle={styles.pt0}
-            illustrationOuterContainerStyle={styles.p0}
             onClose={onClose}
             onConfirm={onConfirm}
             shouldCloseOnConfirm={false}
             shouldUseScrollView
         >
-            <HoldMenuSectionList isDM={isDM} />
+            <FeatureTraining.Illustration
+                image={illustrations.HoldExpense}
+                contentFitImage="cover"
+                aspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
+                outerContainerStyle={styles.p0}
+            />
+            <FeatureTraining.Body>
+                <FeatureTraining.BodyText style={styles.mb5}>
+                    <FeatureTraining.Title>{translate('iou.holdEducationalTitle')}</FeatureTraining.Title>
+                    <FeatureTraining.Description>{translate(isDM ? 'iou.whatIsHoldExplainDM' : 'iou.whatIsHoldExplain')}</FeatureTraining.Description>
+                    <HoldMenuSectionList isDM={isDM} />
+                </FeatureTraining.BodyText>
+                <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
+            </FeatureTraining.Body>
         </FeatureTrainingModal>
     );
 }

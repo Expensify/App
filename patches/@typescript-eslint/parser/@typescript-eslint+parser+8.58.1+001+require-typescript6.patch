@@ -1,0 +1,13 @@
+diff --git a/node_modules/@typescript-eslint/parser/dist/parser.js b/node_modules/@typescript-eslint/parser/dist/parser.js
+index c13ab5f..924f954 100644
+--- a/node_modules/@typescript-eslint/parser/dist/parser.js
++++ b/node_modules/@typescript-eslint/parser/dist/parser.js
+@@ -9,7 +9,7 @@ const scope_manager_1 = require("@typescript-eslint/scope-manager");
+ const typescript_estree_1 = require("@typescript-eslint/typescript-estree");
+ const visitor_keys_1 = require("@typescript-eslint/visitor-keys");
+ const debug_1 = __importDefault(require("debug"));
+-const typescript_1 = require("typescript");
++const typescript_1 = require("@typescript/typescript6");
+ const log = (0, debug_1.default)('typescript-eslint:parser:parser');
+ function validateBoolean(value, fallback = false) {
+     if (typeof value !== 'boolean') {
