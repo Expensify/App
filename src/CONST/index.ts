@@ -147,8 +147,8 @@ const createExpenseOnboardingChoices = {
     SUBMIT: backendOnboardingChoices.SUBMIT,
 } as const;
 
-// Values accepted by the `intent` param on the onboarding deeplink. Kept separate from the internal onboarding
-// choice strings because they are embedded in emails we can't redeploy.
+// Values accepted by the `intent` param on the onboarding deeplink. Deliberately not the internal onboarding choice
+// strings (`newDotEmployer`), so renaming those can't break links already sitting in someone's inbox.
 const onboardingIntents = {
     SUBMIT: 'submit',
 } as const;

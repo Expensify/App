@@ -9,7 +9,7 @@ import type {UpperCaseCharacters} from 'type-fest/source/internal';
 
 import type {SearchFilterKey, SearchQueryString, UserFriendlyKey} from './components/Search/types';
 import type CONST from './CONST';
-import type {EnablePaymentsPageType, EnablePaymentsSubPageType, IOUAction, IOURequestType, IOUType, OdometerImageType, OnboardingIntent} from './CONST';
+import type {EnablePaymentsPageType, EnablePaymentsSubPageType, IOUAction, IOURequestType, IOUType, OdometerImageType} from './CONST';
 import type {ReplacementReason} from './libs/actions/Card';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
 import type {Screen} from './SCREENS';
@@ -4009,7 +4009,7 @@ const ROUTES = {
     ONBOARDING_ROOT: {
         route: 'onboarding',
 
-        getRoute: (intent?: OnboardingIntent) => (intent ? (`onboarding?intent=${intent}` as const) : ('onboarding' as const)),
+        getRoute: () => 'onboarding' as const,
     },
     ONBOARDING_PERSONAL_DETAILS: {
         route: 'onboarding/personal-details',

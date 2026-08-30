@@ -10,8 +10,9 @@ import {useState} from 'react';
 /**
  * Resolves the onboarding outcome requested by the deeplink this session was opened with, e.g. `onboarding?intent=submit`.
  *
- * The URL is latched at mount because the app rewrites it as soon as it navigates. The initial URL covers native,
- * where the browser URL is empty, and links opened while the app is already running.
+ * Two sources because neither covers both platforms. On web the link is in the address bar, but only until the app
+ * navigates and rewrites it, hence latching at mount. On native there is no address bar, so it arrives instead through
+ * the initial-URL context. Links opened while the app is already running reach neither, so they are not supported.
  */
 function useOnboardingDeeplinkIntent(): OnboardingIntent | undefined {
     const {initialURL} = useInitialURLState();
