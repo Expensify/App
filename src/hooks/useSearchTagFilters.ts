@@ -1,4 +1,5 @@
 import {openSearchTagFiltersPage, setSearchTagFiltersPagination} from '@libs/actions/Search';
+import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -64,6 +65,7 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
             .then(({hasMore: newHasMore, nextCursor: newCursor}) => {
                 setSearchTagFiltersPagination(newHasMore, newCursor, currentQuery);
             })
+            .catch((error: Error) => Log.warn('Failed to load the next tag filters page', {error}))
             .finally(() => setIsLoading(false));
     }, []);
 
@@ -82,6 +84,7 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
             .then(({hasMore: newHasMore, nextCursor: newCursor}) => {
                 setSearchTagFiltersPagination(newHasMore, newCursor, query);
             })
+            .catch((error: Error) => Log.warn('Failed to fetch tag filters', {error}))
             .finally(() => setIsLoading(false));
     }, []);
 
