@@ -88,7 +88,7 @@ import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@re
 import * as Sentry from '@sentry/react-native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import Animated, {FadeIn, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps} from './searchViewProps';
@@ -1064,10 +1064,7 @@ function Search({
     ) {
         cancelNavigationSpans();
         return (
-            <Animated.View
-                entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                style={[styles.flex1, isInLandscapeMode ? undefined : [shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3]]}
-            >
+            <View style={[styles.flex1, isInLandscapeMode ? undefined : [shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3]]}>
                 <EmptySearchView
                     similarSearchHash={similarSearchHash}
                     type={type}
@@ -1077,7 +1074,7 @@ function Search({
                     onScroll={onSearchListScroll}
                     contentContainerStyle={isInLandscapeMode ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined}
                 />
-            </Animated.View>
+            </View>
         );
     }
 
@@ -1114,10 +1111,7 @@ function Search({
                     onLayout={onLayoutChart}
                     scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 >
-                    <Animated.View
-                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                        style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}
-                    >
+                    <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}>
                         <SearchChartWrapper
                             title={chartTitle}
                             groupBy={validGroupBy}
@@ -1130,7 +1124,7 @@ function Search({
                                 isLoading={shouldShowLoadingState}
                             />
                         </SearchChartWrapper>
-                    </Animated.View>
+                    </View>
                 </Animated.ScrollView>
             </SearchScopeProvider>
         );
@@ -1238,15 +1232,7 @@ function Search({
                 isExpenseReportType={isExpenseReportType}
                 isSearchResultsEmpty={isSearchResultsEmpty}
             >
-                <Animated.View style={[styles.flex1, animatedStyle]}>
-                    {/* The inner view owns the mount fade so it composes with the outer column-change opacity instead of fighting it. */}
-                    <Animated.View
-                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                        style={styles.flex1}
-                    >
-                        {searchListContent}
-                    </Animated.View>
-                </Animated.View>
+                <Animated.View style={[styles.flex1, animatedStyle]}>{searchListContent}</Animated.View>
             </SearchWriteActionsProvider>
         </SearchScopeProvider>
     );

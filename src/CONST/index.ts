@@ -7759,7 +7759,15 @@ const CONST = {
         SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
         ANIMATION: {
-            FADE_DURATION: 150,
+            FADE_DURATION: 120,
+
+            // How long the outgoing results stay put before they start fading. The incoming results mount straight
+            // away but hydrate behind them, so this window is what keeps their placeholder skeleton off screen.
+            SWAP_HOLD_DURATION: 100,
+
+            // How long the results area may keep showing the previous query's results while a new query loads. Past
+            // this, a slow query gives up the stale results and swaps to the skeleton so the wait is visible.
+            MAX_STALE_HOLD_DURATION: 1000,
         },
         TODO_BADGE_MAX_COUNT: 50,
         TOP_SEARCH_LIMIT: 10,
