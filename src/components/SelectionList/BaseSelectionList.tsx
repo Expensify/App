@@ -248,7 +248,7 @@ function BaseSelectionListImpl({
         selectRow(focusedOption);
     };
 
-    const hasSelectedItems = selectedItems.length > 0;
+    const hasSelectedItems = dataDetails.selectedOptions.length > 0;
     const isFooterConfirmEnabled = confirmButtonOptions?.isFooterConfirmEnabled ?? hasSelectedItems;
     const isCustomFooterConfirmEnabled = isFooterConfirmEnabled && confirmButtonOptions?.isDisabled !== true && confirmButtonOptions?.isFooterConfirmEnterKeyEnabled !== false;
     // Whether Enter should trigger an enabled confirm button instead of the list.
