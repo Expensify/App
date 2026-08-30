@@ -12,6 +12,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import HapticFeedback from '@libs/HapticFeedback';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -53,6 +54,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
         if (selectedTab === NAVIGATION_TABS.HOME) {
             return;
         }
+        HapticFeedback.press();
         Navigation.navigate(ROUTES.HOME);
     };
 
@@ -60,6 +62,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
         if (selectedTab === NAVIGATION_TABS.SETTINGS) {
             return;
         }
+        HapticFeedback.press();
         interceptAnonymousUser(() => {
             Navigation.navigate(ROUTES.SETTINGS);
         });

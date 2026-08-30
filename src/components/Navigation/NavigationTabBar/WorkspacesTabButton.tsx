@@ -6,6 +6,8 @@ import useRestoreWorkspacesTabOnNavigate from '@hooks/useRestoreWorkspacesTabOnN
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
+import HapticFeedback from '@libs/HapticFeedback';
+
 import CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
@@ -28,13 +30,22 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
 
     const navigateToWorkspaces = useRestoreWorkspacesTabOnNavigate();
 
+    // Pressing the tab you're already on restores the last workspace route rather than moving tabs, so it gets no
+    // haptic. The other tabs get the same treatment through their own early returns.
+    const handleWorkspacesPress = () => {
+        if (selectedTab !== NAVIGATION_TABS.WORKSPACES) {
+            HapticFeedback.press();
+        }
+        navigateToWorkspaces();
+    };
+
     const workspacesAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.WORKSPACES};
     const workspacesStatusIndicatorColor = workspacesTabIndicatorStatus ? workspacesTabIndicatorColor : undefined;
 
     if (isWideLayout) {
         return (
             <PressableWithFeedback
-                onPress={navigateToWorkspaces}
+                onPress={handleWorkspacesPress}
                 role={CONST.ROLE.TAB}
                 accessibilityLabel={`${translate('common.workspacesTabTitle')}${workspacesTabIndicatorStatus ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
                 accessibilityState={workspacesAccessibilityState}
@@ -57,7 +68,7 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
 
     return (
         <PressableWithFeedback
-            onPress={navigateToWorkspaces}
+            onPress={handleWorkspacesPress}
             role={CONST.ROLE.TAB}
             accessibilityLabel={`${translate('common.workspacesTabTitle')}${workspacesTabIndicatorStatus ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
             accessibilityState={workspacesAccessibilityState}

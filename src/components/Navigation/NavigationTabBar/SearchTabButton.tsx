@@ -6,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
+import HapticFeedback from '@libs/HapticFeedback';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -40,6 +41,7 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
         if (selectedTab === NAVIGATION_TABS.SEARCH) {
             return;
         }
+        HapticFeedback.press();
         clearSelectedText();
         interceptAnonymousUser(() => {
             startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
