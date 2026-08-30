@@ -79,7 +79,9 @@ describe('forwardLogsToSentry', () => {
     });
 
     it('forwards a dynamic route query param collision without the colliding values', () => {
-        // Given a [createDynamicRoute] collision whose values are user data (an email address and a full URL)
+        // Given a [createDynamicRoute] collision whose values are user data (an email address and a full URL).
+        // `mergeQueryStrings` no longer logs those values at all - this locks the whitelist as a second guard,
+        // so re-adding them at the call site still would not leak them to Sentry.
         const packet = packetWith('[alrt] [createDynamicRoute] Query param exists in both base path and dynamic suffix with different values; suffix value takes precedence', {
             key: 'contactMethod',
             baseValue: 'user@example.com',
@@ -91,7 +93,10 @@ describe('forwardLogsToSentry', () => {
         forwardLogsToSentry(packet);
 
         // Then the param name and the call site are forwarded, so the collision is still locatable...
-        expect(Sentry.logger.error).toHaveBeenCalledWith(expect.stringContaining('[createDynamicRoute]'), expect.objectContaining({key: 'contactMethod', stack: expect.any(String)}));
+        expect(Sentry.logger.error).toHaveBeenCalledWith(
+            expect.stringContaining('[createDynamicRoute]'),
+            expect.objectContaining({key: 'contactMethod', stack: 'Error\n    at MoneyRequestConfirmationList'}),
+        );
 
         // ...but the colliding values never leave the device
         const data = jest.mocked(Sentry.logger.error).mock.calls.at(0)?.[1];

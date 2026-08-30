@@ -15,9 +15,10 @@ import splitPathAndQuery from './splitPathAndQuery';
  * suffixes deliberately share param names - every money-request step declares `action`, `iouType`,
  * `transactionID` and `reportID` - so a collision is not an invariant violation and must not be fatal.
  * A collision on *differing* values is still worth knowing about, so it is reported via `Log.alert`,
- * which is forwarded to Sentry (see `FORWARDED_LOG_PREFIXES`) with the call site's stack attached. Only the
- * param name and the stack reach Sentry - the colliding values are not whitelisted because a query param
- * value can carry private data (see `PREFIX_SCOPED_PARAMETERS_WHITELIST`).
+ * which is forwarded to Sentry (see `FORWARDED_LOG_PREFIXES`) with the call site's stack attached.
+ * Only the param name is logged - the colliding values are deliberately left out because a query param
+ * value can carry private data (an email address, a full URL), and the name plus the stack are enough
+ * to locate the collision.
  *
  * @param baseQuery - The query string of the base path
  * @param suffixQuery - The query string of the suffix
@@ -38,11 +39,7 @@ const mergeQueryStrings = (baseQuery = '', suffixQuery = ''): string => {
     const suffixParamsEntries = suffixParams.entries();
     for (const [key, value] of suffixParamsEntries) {
         if (params.has(key) && params.get(key) !== value) {
-            Log.alert('[createDynamicRoute] Query param exists in both base path and dynamic suffix with different values; suffix value takes precedence', {
-                key,
-                baseValue: params.get(key),
-                suffixValue: value,
-            });
+            Log.alert('[createDynamicRoute] Query param exists in both base path and dynamic suffix with different values; suffix value takes precedence', {key});
         }
         params.set(key, value);
     }

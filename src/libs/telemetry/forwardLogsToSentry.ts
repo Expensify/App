@@ -46,8 +46,8 @@ const PREFIX_SCOPED_PARAMETERS_WHITELIST = new Map<ForwardedLogPrefix, ReadonlyA
     ['[PDFStall]', ['reportID']],
     ['[OpenReportStall]', ['reportID']],
     ['[withNavigationFallback]', ['method', 'stack']],
-    // The colliding values are deliberately not whitelisted - query param values can carry private data
-    // (e.g. an email address or a full URL). The param name and the stack are enough to locate the collision.
+    // The colliding values are never logged in the first place (see `mergeQueryStrings`) because a query param
+    // value can carry private data. The param name and the stack are enough to locate the collision.
     ['[createDynamicRoute]', ['key', 'stack']],
 ]);
 

@@ -157,7 +157,7 @@ describe('createDynamicRoute', () => {
         expect(result).toBe(expectedPath);
     });
 
-    it('should report a colliding query param with a differing value', () => {
+    it('should report the name of a colliding query param without its values', () => {
         const activeRoute = 'settings/profile/address?country=GB';
         const suffixWithQuery = 'country?country=US';
 
@@ -167,7 +167,8 @@ describe('createDynamicRoute', () => {
 
         expect(mockLogAlert).toHaveBeenCalledTimes(1);
         // The `[createDynamicRoute]` prefix is what routes this line to Sentry, see FORWARDED_LOG_PREFIXES.
-        expect(mockLogAlert).toHaveBeenCalledWith(expect.stringContaining('[createDynamicRoute]'), {key: 'country', baseValue: 'GB', suffixValue: 'US'});
+        // Only the param name is logged - a query param value can carry private data, so it must never be logged.
+        expect(mockLogAlert).toHaveBeenCalledWith(expect.stringContaining('[createDynamicRoute]'), {key: 'country'});
     });
 
     it('should not report when a colliding query param has the same value in base and suffix', () => {
