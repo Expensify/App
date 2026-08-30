@@ -17,7 +17,6 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
 import {Keyboard} from 'react-native';
 
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultParticipants from './useDefaultParticipants';
 import useOdometerDraftHydrator from './useOdometerDraftHydrator';
 import useOnyx from './useOnyx';
@@ -84,7 +83,6 @@ function useResetIOUType({
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const personalPolicy = usePersonalPolicy();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const hydrateOdometerOnLanding = useOdometerDraftHydrator({
         transaction,
@@ -96,7 +94,7 @@ function useResetIOUType({
     // For the new manual flow, derive participants from the current report (or the global-create fallback) so the
     // freshly-rebuilt transaction already includes them. This prevents the embedded confirmation's auto-assign
     // useEffect from re-firing on every cleanup and dragging back unrelated draft state (receipt, billable, etc.).
-    const resolvedDefaultParticipants = useDefaultParticipants({
+    const {participants: resolvedDefaultParticipants} = useDefaultParticipants({
         sourceReport: report,
         transaction,
         iouType,
@@ -135,7 +133,6 @@ function useResetIOUType({
             parentReport,
             currentDate,
             lastSelectedDistanceRates,
-            currentUserPersonalDetails,
             hasOnlyPersonalPolicies: hasOnlyPersonalPolicies ?? true,
             draftTransactionIDs,
             defaultParticipants: isSelfDMDefault ? undefined : defaultParticipants,

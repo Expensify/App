@@ -12,7 +12,6 @@ function VictoryChartRenderer(props: VictoryChartRendererProps) {
         <SkiaWebChart
             getComponent={getBaseVictoryChartRenderer}
             componentProps={props}
-            reasonContext="VictoryChartRenderer.SkiaWebLoading"
         />
     );
 }

@@ -13,6 +13,9 @@ import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import {getDefaultWorkspaceAvatarTestID} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
+import createThemeStyles from '@src/styles';
+import {defaultTheme} from '@src/styles/theme';
+import createStyleUtils from '@src/styles/utils';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -28,6 +31,9 @@ const FALLBACK_ICON_TEST_ID = 'SvgFallbackAvatar Icon';
 const CUSTOM_FALLBACK_ICON_TEST_ID = 'CustomFallback Icon';
 const AVATAR_IMAGE_TEST_ID = 'AvatarImage';
 const WORKSPACE_NAME = "Cathy's Croissants";
+const HEX_POLICY_ID_STARTING_WITH_LETTER = 'A1B2C3D4E5F67890';
+
+const {getDefaultWorkspaceAvatarColor} = createStyleUtils(defaultTheme, createThemeStyles(defaultTheme));
 
 function CustomFallbackIcon() {
     return mockRenderView({testID: 'CustomFallbackIconSvg'});
@@ -94,6 +100,14 @@ function renderAvatar(props: React.ComponentProps<typeof Avatar>) {
     );
 }
 
+function renderUserAvatar(props: React.ComponentProps<typeof UserAvatar>) {
+    return render(
+        <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider]}>
+            <UserAvatar {...props} />
+        </ComposeProviders>,
+    );
+}
+
 describe('Avatar', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -102,10 +116,9 @@ describe('Avatar', () => {
 
     describe('user avatar', () => {
         it('renders the Image branch for an uploaded URL source', async () => {
-            renderAvatar({
-                type: CONST.ICON_TYPE_AVATAR,
+            renderUserAvatar({
                 source: UPLOADED_AVATAR_URL,
-                avatarID: 1,
+                accountID: 1,
             });
 
             await waitForBatchedUpdates();
@@ -117,10 +130,9 @@ describe('Avatar', () => {
         });
 
         it('renders the Icon branch for a default catalog avatar URL', async () => {
-            renderAvatar({
-                type: CONST.ICON_TYPE_AVATAR,
+            renderUserAvatar({
                 source: DEFAULT_AVATAR_URL,
-                avatarID: 1,
+                accountID: 1,
             });
 
             await waitForBatchedUpdates();
@@ -130,9 +142,8 @@ describe('Avatar', () => {
         });
 
         it('renders the fallback Icon when no source is provided', async () => {
-            renderAvatar({
-                type: CONST.ICON_TYPE_AVATAR,
-                avatarID: 1,
+            renderUserAvatar({
+                accountID: 1,
             });
 
             await waitForBatchedUpdates();
@@ -142,10 +153,9 @@ describe('Avatar', () => {
         });
 
         it('switches from the Image branch to the fallback Icon when the image fails to load', async () => {
-            renderAvatar({
-                type: CONST.ICON_TYPE_AVATAR,
+            renderUserAvatar({
                 source: UPLOADED_AVATAR_URL,
-                avatarID: 1,
+                accountID: 1,
             });
 
             await waitForBatchedUpdates();
@@ -162,9 +172,8 @@ describe('Avatar', () => {
         });
 
         it('renders the custom fallback Icon when no source is provided', async () => {
-            renderAvatar({
-                type: CONST.ICON_TYPE_AVATAR,
-                avatarID: 1,
+            renderUserAvatar({
+                accountID: 1,
                 fallbackIcon: CustomFallbackIcon,
                 fallbackIconTestID: CUSTOM_FALLBACK_ICON_TEST_ID,
             });
@@ -177,10 +186,9 @@ describe('Avatar', () => {
         });
 
         it('switches from the Image branch to the custom fallback Icon when the image fails to load', async () => {
-            renderAvatar({
-                type: CONST.ICON_TYPE_AVATAR,
+            renderUserAvatar({
                 source: UPLOADED_AVATAR_URL,
-                avatarID: 1,
+                accountID: 1,
                 fallbackIcon: CustomFallbackIcon,
                 fallbackIconTestID: CUSTOM_FALLBACK_ICON_TEST_ID,
             });
@@ -201,10 +209,9 @@ describe('Avatar', () => {
         });
 
         it('renders locally drawn initials for a generated letter-avatar URL instead of fetching the image', async () => {
-            renderAvatar({
-                type: CONST.ICON_TYPE_AVATAR,
+            renderUserAvatar({
                 source: LETTER_AVATAR_URL,
-                avatarID: 1,
+                accountID: 1,
             });
 
             await waitForBatchedUpdates();
@@ -215,10 +222,9 @@ describe('Avatar', () => {
         });
 
         it('renders locally drawn initials for the small-size (_128) letter-avatar URL variant', async () => {
-            renderAvatar({
-                type: CONST.ICON_TYPE_AVATAR,
+            renderUserAvatar({
                 source: SMALL_LETTER_AVATAR_URL,
-                avatarID: 1,
+                accountID: 1,
             });
 
             await waitForBatchedUpdates();
@@ -298,15 +304,12 @@ describe('Avatar', () => {
     });
 
     describe('UserAvatar and WorkspaceAvatar', () => {
-        it('UserAvatar renders the same as the back-compat default for user avatars', async () => {
-            render(
-                <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider]}>
-                    <UserAvatar
-                        source={UPLOADED_AVATAR_URL}
-                        accountID={1}
-                    />
-                </ComposeProviders>,
-            );
+        it('the back-compat facade renders the user branch the same as UserAvatar', async () => {
+            renderAvatar({
+                type: CONST.ICON_TYPE_AVATAR,
+                source: UPLOADED_AVATAR_URL,
+                avatarID: 1,
+            });
 
             await waitForBatchedUpdates();
 
@@ -330,6 +333,27 @@ describe('Avatar', () => {
 
             expect(screen.queryByTestId(AVATAR_IMAGE_TEST_ID)).toBeNull();
             expect(getHiddenTestId(workspaceFallbackTestID)).toBeTruthy();
+        });
+
+        it('assigns different workspace avatar colors for distinct hex policy IDs', () => {
+            const naNColor = getDefaultWorkspaceAvatarColor('NaN');
+            const hexPolicyColor = getDefaultWorkspaceAvatarColor(HEX_POLICY_ID_STARTING_WITH_LETTER);
+
+            // parseInt('A1B2...', 10) is NaN — workspace avatars must not collapse to the NaN palette entry.
+            expect(hexPolicyColor.fill).not.toBe(naNColor.fill);
+
+            let secondDistinctFill: string | undefined;
+            for (let index = 0; index < 32; index += 1) {
+                const candidateID = index.toString(16).padStart(16, '0');
+                const candidateColor = getDefaultWorkspaceAvatarColor(candidateID);
+
+                if (candidateColor.fill !== hexPolicyColor.fill) {
+                    secondDistinctFill = candidateColor.fill;
+                    break;
+                }
+            }
+
+            expect(secondDistinctFill).toBeDefined();
         });
     });
 });

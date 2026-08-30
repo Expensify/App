@@ -14,7 +14,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
@@ -200,15 +199,6 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
     const isALocalFile = isLocalFile(uri);
     const shouldShowOfflineIndicator = isOffline && !isLoading && !isALocalFile;
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'Lightbox',
-        isImageLoaded,
-        isLoadingPreviousUri: false,
-        isOffline,
-        isLoading,
-        isALocalFile,
-    };
-
     return (
         <View
             testID="lightbox-wrapper"
@@ -283,7 +273,6 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={StyleSheet.absoluteFill}
-                            reasonAttributes={reasonAttributes}
                         />
                     )}
                     {!isImageLoaded && shouldShowOfflineIndicator && <AttachmentOfflineIndicator />}

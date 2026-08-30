@@ -205,9 +205,11 @@ function ReportActionItem({
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
-    const {translate, datetimeToCalendarTime} = useLocalize();
+    const {translate, datetimeToCalendarTime, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const [actorDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsDisplayNameSelector(action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID, translate)});
+    const [actorDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsDisplayNameSelector(action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID, translate, formatPhoneNumber),
+    });
     const {showConfirmModal} = useConfirmModal();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();

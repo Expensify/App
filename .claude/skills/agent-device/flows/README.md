@@ -3,17 +3,28 @@
 ## Directory layout
 
 - `macros/` - reusable helpers for common setup/navigation actions that stop in a navigable state for further interactive work.
+- `macros/<platform>/` - platform-specific overrides of a `macros/` flow, for flows whose selectors differ per platform. See [Platform scoping](#platform-scoping).
 - `tests/` - critical-scenario scripts for QA/perf verification that assert explicit outcomes (for example Sentry spans) and then stop.
-- `lib/` - bash drive libraries for flows that need conditional steering the linear `.ad` format cannot express (snapshot classification, state-dependent branching). Each file documents its own contract; the caller always owns the session lifecycle (`open`/`close`/`record`). Source them from an orchestrator or run them standalone against an already-open session (for example `lib/sign-in-drive.sh --platform web --session <name> --email <email>`).
 
 Composable `.ad` snippets - bounded units of work. A flow may span one or multiple screens as long as it represents a coherent, reusable action with clear start (`@pre`) and completion (`@post`) checkpoints. Each flow advertises machine-matchable metadata (`@pre`, `@post`, `@tag`, `@param`) via `# @`-prefixed comment headers, while flow type is derived from location (`flows/macros/` or `flows/tests/`).
+
+## Platform scoping
+
+Most flows are platform-neutral and live directly in `macros/`. A flow whose selectors genuinely differ per platform gets a copy per platform under `macros/<platform>/`, where `<platform>` is the value passed to `--platform`.
+
+A caller driving platform `P` resolves a macro by name:
+
+1. `macros/<P>/<name>.ad` when that file exists.
+2. `macros/<name>.ad` otherwise.
+
+Split flows today: `sign-in.ad`, `send-message.ad`, `complete-onboarding.ad`. All three fill text inputs, whose accessibility shape differs between web and native. The unscoped copy of a split flow stays in `macros/` as the fallback for platforms that have no folder yet; it is not the contract for any platform that does have one. (Exception: `sign-in.ad` is fully platform-scoped - `web` and `android` only - and has no unscoped fallback; a new platform such as iOS must add its own `macros/<platform>/sign-in.ad`.) Everything else stays shared - split a flow only after confirming the divergence per platform with `agent-device is visible "<selector>"`.
 
 ## Agent decision loop (interactive)
 
 Before manually navigating, use this human-in-the-loop loop:
 
 1. `agent-device snapshot -i` - see current state.
-2. `grep -H '^# @' .claude/skills/agent-device/flows/macros/*.ad` - interactive catalog.
+2. `grep -H '^# @' .claude/skills/agent-device/flows/macros/*.ad .claude/skills/agent-device/flows/macros/<platform>/*.ad` - interactive catalog. Where both list the same name, the platform copy wins.
 3. For each candidate flow, run `agent-device is exists "<selector>"` per `@pre`. Keep flows where every `@pre` passes.
 4. Rank survivors by goal closeness and present top macro candidates to the user with a short "why this flow" note:
    - Prefer flows whose `@post` selectors literally match destination language from the user request (same `text`, `label`, or selector phrase).
@@ -69,6 +80,7 @@ agent-device replay <flow>.ad -e EMAIL=other@example.com
 - **No `open`, no `close`, no `context` header.** Caller owns lifecycle.
 - **No fixed `wait` calls.** `fill`/`press` resolve selectors with retry. Only add `wait <selector>` for real post-action blocks.
 - **Durable selectors.** Prefer `id=...` first, then `role=... label=...`, with `||` fallbacks. Avoid `@eN` refs.
+- **Confirm every selector on the platform it is written for.** `snapshot -i` prints display tags, which are not selector values - a node printed as `[text-field]` may only match `role="textbox"`. Check the exit code of `agent-device is visible "<selector>"` before committing a selector, and never carry one across platforms unchecked.
 - **Every flow declares `@desc` and `@pre`.** Add `@post` for outcome-bearing flows; utility flows (for example `go-back`) may omit it. Add `@tag` when applicable.
 - **Choose directory intentionally.** Put reusable setup/navigation steps in `flows/macros/`; put outcome verification scenarios in `flows/tests/`.
 - **Keep scope coherent, not artificially tiny.** Flows can span multiple screens when that sequence is the reusable intent (for example "create and submit manual expense").

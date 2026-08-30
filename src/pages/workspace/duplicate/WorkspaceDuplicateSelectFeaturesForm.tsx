@@ -64,8 +64,8 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const [totalMembers = 0] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: totalMembersSelector,
     });
-    const invoiceCompany = [policy?.invoice?.companyName, policy?.invoice?.companyWebsite].filter(Boolean).join(', ');
-    const invoiceConfigurationTextSelector = useMemo(() => createInvoiceConfigurationTextSelector(translate, invoiceCompany), [translate, invoiceCompany]);
+    // The invoicing company details are provisioned per workspace, so they aren't copied over to the duplicate and shouldn't be advertised here.
+    const invoiceConfigurationTextSelector = useMemo(() => createInvoiceConfigurationTextSelector(translate, ''), [translate]);
     const [invoiceConfigurationText = ''] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
         selector: invoiceConfigurationTextSelector,
     });
@@ -178,11 +178,11 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                   }
                 : undefined,
 
-            policy?.areInvoicesEnabled && !!invoiceConfigurationText
+            policy?.areInvoicesEnabled
                 ? {
                       translation: translate('workspace.common.invoices'),
                       value: 'invoices',
-                      alternateText: invoiceConfigurationText,
+                      alternateText: invoiceConfigurationText || undefined,
                   }
                 : undefined,
             policy?.isTravelEnabled

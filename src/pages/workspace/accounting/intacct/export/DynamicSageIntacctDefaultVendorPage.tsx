@@ -75,9 +75,7 @@ function DynamicSageIntacctDefaultVendorPage() {
                 <Text style={[styles.pb5, styles.textNormal]}>
                     {isReimbursable
                         ? translate('workspace.sageIntacct.defaultVendorDescription', true)
-                        : translate('workspace.accounting.defaultVendorSelectHeader', {
-                              connectionName: translate('workspace.accounting.connectionName', {connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}),
-                          })}
+                        : translate('workspace.accounting.defaultVendorSelectHeader', translate('workspace.accounting.connectionName', CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT))}
                 </Text>
             </View>
         ),

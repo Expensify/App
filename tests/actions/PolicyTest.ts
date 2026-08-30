@@ -83,6 +83,69 @@ describe('actions/Policy', () => {
             mockFetch?.resume?.();
         });
 
+        it('forwards the user-reported integration name to CreateWorkspace', async () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+            Policy.createWorkspace({
+                conciergeChat: undefined,
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID: Policy.generatePolicyID(),
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                currency: CONST.CURRENCY.USD,
+                userReportedIntegration: 'other',
+                userReportedIntegrationName: 'Acme Books',
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: false,
+                activePolicy: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.CREATE_WORKSPACE,
+                expect.objectContaining({
+                    userReportedIntegration: 'other',
+                    userReportedIntegrationName: 'Acme Books',
+                }),
+                expect.anything(),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('omits the user-reported integration name from CreateWorkspace when it is undefined', async () => {
+            Policy.createWorkspace({
+                conciergeChat: undefined,
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID: Policy.generatePolicyID(),
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                currency: CONST.CURRENCY.USD,
+                userReportedIntegration: 'other',
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: false,
+                activePolicy: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const calls = TestHelper.getFetchMockCalls(WRITE_COMMANDS.CREATE_WORKSPACE);
+            expect(calls.length).toBeGreaterThan(0);
+            const body = calls.at(-1)?.[1]?.body;
+            expect(body).toBeInstanceOf(FormData);
+            const formEntries = body instanceof FormData ? Object.fromEntries(body) : {};
+            expect(formEntries.userReportedIntegrationName).toBeUndefined();
+        });
+
         it('creates a new workspace', async () => {
             mockFetch?.pause?.();
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
@@ -153,7 +216,6 @@ describe('actions/Policy', () => {
             expect(policy?.arePerDiemRatesEnabled).toBe(false);
             expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
             expect(policy?.approver).toBe(ESH_EMAIL);
-            expect(policy?.isPolicyExpenseChatEnabled).toBe(true);
             expect(policy?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
             expect(policy?.employeeList).toEqual({[ESH_EMAIL]: {email: ESH_EMAIL, submitsTo: ESH_EMAIL, errors: {}, role: CONST.POLICY.ROLE.ADMIN}});
             expect(policy?.mccGroup).toBeDefined();
@@ -304,6 +366,12 @@ describe('actions/Policy', () => {
             const fakePolicy = {
                 ...createRandomPolicy(10, CONST.POLICY.TYPE.PERSONAL),
                 employeeList: {},
+                areInvoicesEnabled: true,
+                invoice: {
+                    companyName: 'Source company',
+                    companyWebsite: 'https://source.company',
+                    bankAccount: {stripeConnectAccountID: 'acct_123'},
+                },
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.NVP_ACTIVE_POLICY_ID}`, fakePolicy.id);
@@ -363,10 +431,11 @@ describe('actions/Policy', () => {
             expect(policy?.areWorkflowsEnabled).toBe(true);
             expect(policy?.areDistanceRatesEnabled).toBe(true);
             expect(policy?.areInvoicesEnabled).toBe(true);
+            // The invoicing details are provisioned per workspace, so they must not be copied from the source policy
+            expect(policy?.invoice).toBeUndefined();
             expect(policy?.arePerDiemRatesEnabled).toBe(true);
             expect(policy?.approvalMode).toBe(fakePolicy.approvalMode);
             expect(policy?.approver).toBe(fakePolicy.approver);
-            expect(policy?.isPolicyExpenseChatEnabled).toBe(fakePolicy.isPolicyExpenseChatEnabled);
             expect(policy?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
             expect(policy?.employeeList).toEqual(fakePolicy.employeeList);
             expect(policy?.mccGroup).toBe(fakePolicy.mccGroup);
@@ -4272,6 +4341,98 @@ describe('actions/Policy', () => {
             expect(activePolicyID).toBe(mostRecentlyCreatedGroupPolicy.id);
         });
 
+        it('should clear reimbursement account errors when no admin group workspace remains after deleting a workspace', async () => {
+            const reimbursementAccountError = {};
+            const policyToDelete = createRandomPolicy(0, CONST.POLICY.TYPE.TEAM);
+            policyToDelete.pendingAction = null;
+            policyToDelete.role = CONST.POLICY.ROLE.ADMIN;
+
+            const personalPolicy = createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL);
+            personalPolicy.pendingAction = null;
+            personalPolicy.role = CONST.POLICY.ROLE.ADMIN;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyToDelete.id}`, policyToDelete);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`, personalPolicy);
+            await Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors: reimbursementAccountError});
+            await waitForBatchedUpdates();
+
+            mockFetch.pause();
+
+            Policy.deleteWorkspace({
+                policies: {
+                    [`${ONYXKEYS.COLLECTION.POLICY}${policyToDelete.id}`]: policyToDelete,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`]: personalPolicy,
+                },
+                policyID: policyToDelete.id,
+                personalPolicyID: personalPolicy.id,
+                activePolicyID: undefined,
+                policyName: policyToDelete.name,
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
+                reportsToArchive: [],
+                transactionViolations: undefined,
+                reimbursementAccountError,
+                lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                accountIDToLogin: {},
+            });
+            await waitForBatchedUpdates();
+
+            const reimbursementAccount = await getOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+            expect(reimbursementAccount?.errors).toBeUndefined();
+
+            await mockFetch.resume?.();
+        });
+
+        it('should keep reimbursement account errors when another admin group workspace remains after deleting a workspace', async () => {
+            const reimbursementAccountError = {};
+            const policyToDelete = createRandomPolicy(0, CONST.POLICY.TYPE.TEAM);
+            policyToDelete.pendingAction = null;
+            policyToDelete.role = CONST.POLICY.ROLE.ADMIN;
+
+            const remainingGroupPolicy = createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT);
+            remainingGroupPolicy.pendingAction = null;
+            remainingGroupPolicy.role = CONST.POLICY.ROLE.ADMIN;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyToDelete.id}`, policyToDelete);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${remainingGroupPolicy.id}`, remainingGroupPolicy);
+            await Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors: reimbursementAccountError});
+            await waitForBatchedUpdates();
+
+            mockFetch.pause();
+
+            Policy.deleteWorkspace({
+                policies: {
+                    [`${ONYXKEYS.COLLECTION.POLICY}${policyToDelete.id}`]: policyToDelete,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${remainingGroupPolicy.id}`]: remainingGroupPolicy,
+                },
+                policyID: policyToDelete.id,
+                personalPolicyID: undefined,
+                activePolicyID: undefined,
+                policyName: policyToDelete.name,
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
+                reportsToArchive: [],
+                transactionViolations: undefined,
+                reimbursementAccountError,
+                lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                accountIDToLogin: {},
+            });
+            await waitForBatchedUpdates();
+
+            const reimbursementAccount = await getOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+            expect(reimbursementAccount?.errors).toEqual(reimbursementAccountError);
+
+            await mockFetch.resume?.();
+        });
+
         it('should reset lastAccessedWorkspacePolicyID when deleting the last accessed workspace', async () => {
             const policyToDelete = createRandomPolicy(0, CONST.POLICY.TYPE.TEAM);
             const lastAccessedWorkspacePolicyID = policyToDelete.id;
@@ -7125,7 +7286,6 @@ describe('actions/Policy', () => {
             expect(policyDraft?.role).toBe(CONST.POLICY.ROLE.ADMIN);
             expect(policyDraft?.outputCurrency).toBe('USD');
             expect(policyDraft?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-            expect(policyDraft?.isPolicyExpenseChatEnabled).toBe(true);
             expect(policyDraft?.areCategoriesEnabled).toBe(true);
             expect(policyDraft?.areCompanyCardsEnabled).toBe(true);
             expect(policyDraft?.areExpensifyCardsEnabled).toBe(false);
@@ -7345,6 +7505,7 @@ describe('actions/Policy', () => {
                 localeTranslate: TestHelper.translateLocal,
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
 
@@ -7385,6 +7546,7 @@ describe('actions/Policy', () => {
                 localeTranslate: TestHelper.translateLocal,
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             expect(result).toBeUndefined();
         });
@@ -7442,6 +7604,7 @@ describe('actions/Policy', () => {
                 localeTranslate: TestHelper.translateLocal,
                 reportActionsList,
                 doesEmployeePersonalDetailExist: true,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
 
             // Verify the function returns a valid result (not undefined)
@@ -7495,6 +7658,7 @@ describe('actions/Policy', () => {
                 localeTranslate: TestHelper.translateLocal,
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
 
@@ -7564,6 +7728,7 @@ describe('actions/Policy', () => {
                 localeTranslate: TestHelper.translateLocal,
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
 

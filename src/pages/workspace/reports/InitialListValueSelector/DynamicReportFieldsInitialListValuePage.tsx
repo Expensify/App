@@ -84,10 +84,7 @@ function DynamicReportFieldsInitialListValuePage({
                 />
                 {isLoadingFormDraft || shouldRedirectToCreatePage ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
-                        <ActivityIndicator
-                            size="large"
-                            reasonAttributes={{context: 'DynamicReportFieldsInitialListValuePage', isLoadingFormDraft: !!isLoadingFormDraft}}
-                        />
+                        <ActivityIndicator size="large" />
                     </View>
                 ) : (
                     <>

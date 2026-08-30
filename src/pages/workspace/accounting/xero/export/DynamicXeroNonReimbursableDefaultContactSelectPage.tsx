@@ -25,7 +25,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React, {useCallback, useMemo, useState} from 'react';
 
-// Sentinel value persisted to defaultVendor when the admin wants to disable the fallback
+// Empty string persisted to defaultVendor when the admin wants to disable the fallback
 // supplier altogether — gives them a way out when a previously chosen Xero contact was deleted
 // or the workspace no longer wants any default applied to card transactions on export.
 const CLEAR_DEFAULT_VENDOR_VALUE = '';

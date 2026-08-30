@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
@@ -16,12 +16,13 @@ import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -47,7 +48,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isDisablingOrDeletingLastEnabledTag, isMakingLastRequiredTagListOptional} from '@libs/OptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
     arePolicyRulesEnabled,
     getCleanedTagName,
@@ -62,7 +62,6 @@ import {
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
@@ -85,6 +84,20 @@ type WorkspaceTagsPageProps =
     | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>
     | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT>;
 
+// The pending-switch spinner exists to give feedback while a toggle's optimistic update blocks the JS thread,
+// which is only noticeable on very large single-level tag lists. Below this size the toggle is effectively
+// instant, so the spinner would just add visual noise — only show it once the list is large enough to lag.
+const PENDING_SWITCH_TAG_COUNT_THRESHOLD = 5000;
+
+function getPendingAction(policyTagList: PolicyTagList): PendingAction | undefined {
+    if (!policyTagList) {
+        return undefined;
+    }
+    return ((policyTagList.pendingAction as PendingAction) ?? Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction))
+        ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE
+        : undefined;
+}
+
 function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -101,6 +114,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {environmentURL} = useEnvironment();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const syncingAccountingIntegration = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.find((connectionName) => connectionName === connectionSyncProgress?.connectionName);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
@@ -117,8 +131,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {canWrite: canWriteTags, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const shouldShowTagsSettings = canWriteTags && !(isRulesRevampEnabled && isMultiLevelTags);
-    const canSelectMultiple = canWriteTags && !hasDependentTags && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
+    // The revamp moves the multi-level tag settings to Rules, but the GL codes toggle stays here and needs a way in.
+    const shouldShowTagsSettings = canWriteTags && (!(isRulesRevampEnabled && isMultiLevelTags) || !!policy?.glCodes);
+    // Multi-level tag rows only ever offered the Required bulk actions, and those moved to Rules, so selecting them
+    // would open a dropdown with nothing in it.
+    const isSelectionEnabled = canWriteTags && !hasDependentTags && !(isRulesRevampEnabled && isMultiLevelTags);
+    const canSelectMultiple = isSelectionEnabled && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
     const tagApproverEmails = useMemo(() => {
         const approverEmails: Record<string, string> = {};
@@ -143,7 +161,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         openPolicyTagsPage(policyID);
     }, [policyID]);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT;
-    const illustrations = useMemoizedLazyIllustrations(['Tag']);
 
     const tagsList = useMemo(() => {
         if (isMultiLevelTags) {
@@ -223,15 +240,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         onClearSelection: clearTableSelection,
         onNavigationCallBack: () => Navigation.goBack(backTo),
     });
-
-    const getPendingAction = (policyTagList: PolicyTagList): PendingAction | undefined => {
-        if (!policyTagList) {
-            return undefined;
-        }
-        return ((policyTagList.pendingAction as PendingAction) ?? Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction))
-            ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE
-            : undefined;
-    };
 
     const updateWorkspaceTagEnabled = useCallback(
         (value: boolean, tagName: string) => {
@@ -368,7 +376,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     pendingAction: getPendingAction(policyTagList),
                     isLocked: !canWriteTags || isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList]),
                     showEnabledSwitch: false,
-                    showRequiredSwitch: !hasDependentTags,
+                    // Required is configured from Rules once the revamp is on.
+                    showRequiredSwitch: !hasDependentTags && !isRulesRevampEnabled,
                     action: () => navigateToTagSettings(policyTagList.name, policyTagList.orderWeight),
                     onToggleRequired: (required: boolean) => handleTagListRequiredToggle(required, policyTagList),
                     onClose: () => {},
@@ -381,6 +390,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         const firstTagList = policyTagLists.at(0);
         const enabledTagsCount = getCountOfEnabledTagsOfList(firstTagList?.tags);
         const isLastEnabledTagLocked = !!firstTagList?.required && enabledTagsCount === 1;
+        const shouldShowPendingSwitch = Object.keys(firstTagList?.tags ?? {}).length > PENDING_SWITCH_TAG_COUNT_THRESHOLD;
 
         return Object.values(firstTagList?.tags ?? {}).reduce<WorkspaceTagTableRowData[]>((acc, tag) => {
             const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -390,7 +400,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             }
 
             const approverEmail = shouldShowApproverColumn ? tagApproverEmails[tag.name] : undefined;
-            const approverPersonalDetail = getPersonalDetailByEmail(approverEmail);
+            const approverPersonalDetail = employeePersonalDetails[approverEmail ?? ''];
             const {avatar: approverAvatar, displayName = approverEmail, accountID: approverAccountID} = approverPersonalDetail ?? {};
             const approverDisplayName = displayName ? formatPhoneNumber(displayName) : '';
             const isLastEnabledTagAndEnabled = isLastEnabledTagLocked && tag.enabled;
@@ -407,6 +417,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 disabled: isDisabled,
                 errors: tag.errors ?? undefined,
                 pendingAction: tag.pendingAction,
+                pending: shouldShowPendingSwitch && tag.pendingFields?.enabled === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 isLocked: !canWriteTags || isLastEnabledTagAndEnabled,
                 showEnabledSwitch: true,
                 showRequiredSwitch: false,
@@ -424,6 +435,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         hasDependentTags,
         isMultiLevelTags,
         isOffline,
+        isRulesRevampEnabled,
         navigateToTagSettings,
         policy,
         policyID,
@@ -431,6 +443,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         policyTags,
         shouldShowApproverColumn,
         tagApproverEmails,
+        employeePersonalDetails,
         formatPhoneNumber,
     ]);
 
@@ -461,7 +474,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const isLoading = !isOffline && policyTags === undefined;
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspaceTagsPage', isOffline, isPolicyTagsUndefined: policyTags === undefined};
     const hasVisibleTags = tagRows.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     const navigateToImportSpreadsheet = useCallback(() => {
@@ -570,19 +582,21 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         const selectedTagsObject = selectedTagKeys.map((key) => policyTagLists.at(0)?.tags?.[key]);
         const selectedTagLists = selectedTagKeys.map((selectedTag) => policyTagLists.find((policyTagList) => policyTagList.name === selectedTag));
 
-        if (!canWriteTags || (shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedTagKeys.length === 0)) {
+        // Without selection there are no bulk actions, so keep the normal header even if selection mode lingered from elsewhere.
+        if (!canWriteTags || !isSelectionEnabled || (shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedTagKeys.length === 0)) {
             const hasPrimaryActions = canWriteTags && !hasAccountingConnections && !isMultiLevelTags && hasVisibleTags;
             return (
                 <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
                     {hasPrimaryActions && (
                         <Button
-                            success
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={navigateToCreateTagPage}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.ADD_BUTTON}
-                            icon={expensifyIcons.Plus}
-                            text={translate('workspace.tags.addTag')}
                             style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                        />
+                        >
+                            <Button.Icon src={expensifyIcons.Plus} />
+                            <Button.Text>{translate('workspace.tags.addTag')}</Button.Text>
+                        </Button>
                     )}
                     {secondaryActions.length > 0 && (
                         <ButtonWithDropdownMenu
@@ -606,6 +620,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 icon: expensifyIcons.Trashcan,
                 text: translate(selectedTagKeys.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), selectedTagsObject)) {
                         showConfirmModal({
@@ -656,6 +671,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 icon: expensifyIcons.Close,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+                shouldSkipFocusRestore: isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), selectedTagsObject),
                 onSelected: () => {
                     if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), selectedTagsObject)) {
                         showConfirmModal({
@@ -702,11 +718,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             }
         }
 
-        if (requiredTagCount > 0 && !hasDependentTags && isMultiLevelTags) {
+        if (requiredTagCount > 0 && !hasDependentTags && isMultiLevelTags && !isRulesRevampEnabled) {
             options.push({
                 icon: expensifyIcons.Close,
                 text: translate('workspace.tags.notRequireTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.REQUIRE,
+                shouldSkipFocusRestore: isMakingLastRequiredTagListOptional(policy, policyTags, selectedTagLists),
                 onSelected: () => {
                     if (isMakingLastRequiredTagListOptional(policy, policyTags, selectedTagLists)) {
                         showConfirmModal({
@@ -723,7 +740,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             });
         }
 
-        if (optionalTagCount > 0 && !hasDependentTags && isMultiLevelTags) {
+        if (optionalTagCount > 0 && !hasDependentTags && isMultiLevelTags && !isRulesRevampEnabled) {
             options.push({
                 icon: expensifyIcons.Checkmark,
                 text: translate(requiredTagCount === 1 ? 'workspace.tags.requireTag' : 'workspace.tags.requireTags'),
@@ -843,7 +860,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     offlineIndicatorStyle={styles.mtAuto}
                 >
                     <HeaderWithBackButton
-                        icon={!selectionModeHeader ? illustrations.Tag : undefined}
                         shouldUseHeadlineHeader={!selectionModeHeader}
                         title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
                         shouldShowBackButton={shouldUseNarrowLayout}
@@ -871,25 +887,21 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={[styles.flex1]}
-                            reasonAttributes={reasonAttributes}
                         />
                     )}
                     {!isLoading && (
-                        <>
-                            {hasVisibleTags && headerContent}
-
-                            <WorkspaceTagsTable
-                                tags={tagRows}
-                                selectionEnabled={canWriteTags && !hasDependentTags}
-                                selectedKeys={selectedTagKeys}
-                                isMultiLevelTags={isMultiLevelTags}
-                                hasDependentTags={hasDependentTags}
-                                shouldShowApproverColumn={shouldShowApproverColumn}
-                                shouldShowGLCodeColumn={shouldShowGLCodeColumn}
-                                emptyState={tagsTableEmptyState}
-                                onRowSelectionChange={setSelectedTagKeys}
-                            />
-                        </>
+                        <WorkspaceTagsTable
+                            tags={tagRows}
+                            selectionEnabled={isSelectionEnabled}
+                            selectedKeys={selectedTagKeys}
+                            isMultiLevelTags={isMultiLevelTags}
+                            hasDependentTags={hasDependentTags}
+                            shouldShowApproverColumn={shouldShowApproverColumn}
+                            shouldShowGLCodeColumn={shouldShowGLCodeColumn}
+                            emptyState={tagsTableEmptyState}
+                            onRowSelectionChange={setSelectedTagKeys}
+                            headerComponent={hasVisibleTags ? headerContent : undefined}
+                        />
                     )}
                 </ScreenWrapper>
             </AccessOrNotFoundWrapper>

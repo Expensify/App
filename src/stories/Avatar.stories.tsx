@@ -1,5 +1,6 @@
-import type {AvatarProps} from '@components/Avatar';
-import Avatar from '@components/Avatar';
+import type {UserAvatarProps} from '@components/Avatar/UserAvatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
+import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import {getExpensifyIcon} from '@components/Icon/chunks/expensify-icons.chunk';
 
 import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
@@ -13,52 +14,65 @@ import {View} from 'react-native';
 
 const AVATAR_URL = USER_AVATARS.entries['car-blue100'].url;
 
-type AvatarStory = StoryFn<typeof Avatar>;
+type UserAvatarStory = StoryFn<typeof UserAvatar>;
+type WorkspaceAvatarStoryFn = StoryFn<typeof WorkspaceAvatar>;
 
-const story: Meta<typeof Avatar> = {
+const story: Meta<typeof UserAvatar> = {
     title: 'Components/Avatar',
-    component: Avatar,
+    component: UserAvatar,
 };
 
-function Template(props: AvatarProps) {
+function Template(props: UserAvatarProps) {
     return (
         <View style={{flexDirection: 'row', padding: 10}}>
-            <Avatar {...props} />
+            <UserAvatar {...props} />
         </View>
     );
 }
 
-const Default: AvatarStory = Template.bind({});
+function WorkspaceAvatarTemplate(props: React.ComponentProps<typeof WorkspaceAvatar>) {
+    return (
+        <View style={{flexDirection: 'row', padding: 10}}>
+            <WorkspaceAvatar {...props} />
+        </View>
+    );
+}
+
+const Default: UserAvatarStory = Template.bind({});
 Default.args = {
-    type: CONST.ICON_TYPE_AVATAR,
     source: AVATAR_URL,
-    name: 'John Doe',
+    accountID: 1,
     size: CONST.AVATAR_SIZE.DEFAULT,
 };
 
-const WorkspaceAvatar: AvatarStory = Template.bind({});
-WorkspaceAvatar.args = {
-    type: CONST.ICON_TYPE_WORKSPACE,
+const WorkspaceAvatarStory: WorkspaceAvatarStoryFn = WorkspaceAvatarTemplate.bind({});
+WorkspaceAvatarStory.args = {
     name: 'Cathy’s Croissants',
     avatarID: 'policy_123',
     size: CONST.AVATAR_SIZE.XXX_LARGE,
 };
 
-const FallbackAvatar: AvatarStory = Template.bind({});
+const WorkspaceAvatarWithImageStory: WorkspaceAvatarStoryFn = WorkspaceAvatarTemplate.bind({});
+WorkspaceAvatarWithImageStory.args = {
+    name: 'Cathy’s Croissants',
+    avatarID: 'policy_123',
+    size: CONST.AVATAR_SIZE.LARGE,
+    source: AVATAR_URL,
+};
+
+const FallbackAvatar: UserAvatarStory = Template.bind({});
 FallbackAvatar.args = {
-    type: CONST.ICON_TYPE_AVATAR,
     fallbackIcon: getExpensifyIcon('FallbackAvatar'),
-    name: 'Offline User',
+    accountID: 1,
     size: CONST.AVATAR_SIZE.DEFAULT,
 };
 
-const SmallAvatar: AvatarStory = Template.bind({});
+const SmallAvatar: UserAvatarStory = Template.bind({});
 SmallAvatar.args = {
-    type: CONST.ICON_TYPE_AVATAR,
     source: AVATAR_URL,
-    name: 'Jane',
+    accountID: 1,
     size: CONST.AVATAR_SIZE.SMALL,
 };
 
 export default story;
-export {Default, WorkspaceAvatar, FallbackAvatar, SmallAvatar};
+export {Default, WorkspaceAvatarStory as WorkspaceAvatar, WorkspaceAvatarWithImageStory as WorkspaceAvatarWithImage, FallbackAvatar, SmallAvatar};

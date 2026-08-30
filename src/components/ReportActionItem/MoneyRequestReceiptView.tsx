@@ -9,7 +9,6 @@ import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import ReceiptHoverZoom from '@components/ReceiptHoverZoom';
 import Tooltip from '@components/Tooltip';
 
-import useActiveRoute from '@hooks/useActiveRoute';
 import useAncestors from '@hooks/useAncestors';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -36,6 +35,7 @@ import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isGroupPolicyByType} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction, wasActionTakenByCurrentUser} from '@libs/ReportActionsUtils';
@@ -72,7 +72,7 @@ import {clearError, getLastModifiedExpense, revert} from '@userActions/Transacti
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -138,11 +138,10 @@ function MoneyRequestReceiptView({
     hasParentPendingAction = false,
 }: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {environmentURL} = useEnvironment();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
-    const {getReportRHPActiveRoute} = useActiveRoute();
     const route = useRoute();
     const routeBackTo = (route.params as {backTo?: string} | undefined)?.backTo;
     const parentReportID = report?.parentReportID;
@@ -237,7 +236,7 @@ function MoneyRequestReceiptView({
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
-    const isActionTakenByCurrentUser = isMoneyRequestAction(parentReportAction) && wasActionTakenByCurrentUser(parentReportAction);
+    const isActionTakenByCurrentUser = isMoneyRequestAction(parentReportAction) && wasActionTakenByCurrentUser(parentReportAction, currentUserAccountID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
@@ -272,7 +271,7 @@ function MoneyRequestReceiptView({
         });
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal: AttachmentErrorModal} = useFilesValidation(onAttachmentFilesValidated);
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(onAttachmentFilesValidated);
 
     const iouType = useMemo(() => {
         if (isTrackExpense) {
@@ -326,6 +325,7 @@ function MoneyRequestReceiptView({
                 const cardID = violation.data?.cardID;
                 const card = cardID ? cardList?.[cardID] : undefined;
                 const violationMessage = ViolationsUtils.getViolationTranslation({
+                    dateFnsLocale,
                     violation,
                     translate,
                     convertToDisplayString,
@@ -356,6 +356,7 @@ function MoneyRequestReceiptView({
         isMarkAsCash,
         routeDistanceMeters,
         distanceUnit,
+        dateFnsLocale,
     ]);
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
@@ -600,7 +601,7 @@ function MoneyRequestReceiptView({
                                 return;
                             }
                             Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
+                                createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID)),
                             );
                         }}
                         isThumbnail={!canEditReceipt}
@@ -774,7 +775,6 @@ function MoneyRequestReceiptView({
             )}
             {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
             {!hasReceiptUploadError && !!shouldShowAuditMessage && !hasReceipt && receiptAuditMessagesRow}
-            {AttachmentErrorModal}
             {PDFValidationComponent}
         </View>
     );

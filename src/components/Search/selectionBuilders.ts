@@ -1,7 +1,7 @@
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getReimbursableTotal, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
 import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
-import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold} from '@libs/TransactionUtils';
+import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePairs, Transaction} from '@src/types/onyx';
@@ -36,9 +36,6 @@ type MapTransactionItemToSelectedEntryParams = {
     /** The current user's self-DM report, used as the parent for unreported (track) expenses */
     selfDMReport: OnyxEntry<Report>;
 
-    /** Whether the app is running in production (affects split eligibility) */
-    isProduction: boolean;
-
     /** Keep the amount signed instead of taking its absolute value */
     allowNegativeAmount: boolean;
 
@@ -60,12 +57,11 @@ function mapTransactionItemToSelectedEntry({
     reportNameValuePairs,
     outstandingReportsByPolicyID,
     selfDMReport,
-    isProduction,
     allowNegativeAmount,
     parentReport,
 }: MapTransactionItemToSelectedEntryParams): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID);
-    const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report) : false;
+    const canRejectRequest = item.report ? canRejectReportAction(item.report, currentUserAccountID, item.policy) : false;
     const amount = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount;
     const isUnreported = isExpenseUnreported(item);
     const reportForSplit = item.report ?? (isUnreported ? selfDMReport : undefined);
@@ -79,7 +75,7 @@ function mapTransactionItemToSelectedEntry({
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
-            canSplit: isSplitAction(reportForSplit, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, item.policy, parentReport, isProduction),
+            canSplit: isSplitAction(reportForSplit, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, item.policy, parentReport),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest({
                 reportAction: item.reportAction,
@@ -184,9 +180,6 @@ type PrepareTransactionsListParams = {
     /** The current user's self-DM report, used as the parent for unreported (track) expenses */
     selfDMReport: OnyxEntry<Report>;
 
-    /** Whether the app is running in production (affects split eligibility) */
-    isProduction: boolean;
-
     /** The row's parent report, used for split eligibility */
     parentReport: OnyxEntry<Report> | undefined;
 };
@@ -205,7 +198,6 @@ function prepareTransactionsList({
     reportNameValuePairs,
     outstandingReportsByPolicyID,
     selfDMReport,
-    isProduction,
     parentReport,
 }: PrepareTransactionsListParams) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
@@ -223,7 +215,6 @@ function prepareTransactionsList({
         reportNameValuePairs,
         outstandingReportsByPolicyID,
         selfDMReport,
-        isProduction,
         allowNegativeAmount: false,
         parentReport,
     });
@@ -309,4 +300,77 @@ function deriveSelectedReports(transactionIDs: SelectedTransactions, data: Searc
     return [];
 }
 
-export {mapTransactionItemToSelectedEntry, mapEmptyReportToSelectedEntry, prepareTransactionsList, deriveSelectedReports};
+type GroupSelectionParams = {
+    /** The group's own key, which is where a group selected before its children loaded is stored */
+    groupKey: string | undefined;
+
+    /** The group's loaded rows */
+    children: TransactionListItemType[];
+
+    /** The rows with a selection entry of their own */
+    selectedTransactions: SelectedTransactions;
+
+    /** Rows taken back out of a wider selection */
+    excludedTransactions: SelectedTransactions;
+
+    /** Whether every matching item is selected, which checks rows that have no entry of their own */
+    areAllMatchingItemsSelected: boolean;
+};
+
+/** What a group's checkbox shows: fully checked, and whether only some of its rows are. Rows being deleted count for neither. */
+function getGroupCheckboxState({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): {
+    isSelectAllChecked: boolean;
+    isIndeterminate: boolean;
+} {
+    let selectableCount = 0;
+    let checkedCount = 0;
+    for (const child of children) {
+        if (isTransactionPendingDelete(child)) {
+            continue;
+        }
+        selectableCount++;
+        if (isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected})) {
+            checkedCount++;
+        }
+    }
+    // A group carrying no rows answers from its own key. One whose rows are all being deleted has rows, so it does not.
+    if (children.length === 0) {
+        return {
+            isSelectAllChecked: !!groupKey && isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}),
+            isIndeterminate: false,
+        };
+    }
+    return {isSelectAllChecked: selectableCount > 0 && checkedCount === selectableCount, isIndeterminate: checkedCount > 0 && checkedCount !== selectableCount};
+}
+
+type RowCheckedParams = {
+    /** The row's own selection key */
+    rowKey: string;
+
+    /** The group the row is rendered under, whose exclusion covers the row as well */
+    parentGroupKey: string | undefined;
+
+    /** The rows with a selection entry of their own */
+    selectedTransactions: SelectedTransactions;
+
+    /** Rows taken back out of a wider selection */
+    excludedTransactions: SelectedTransactions;
+
+    /** Whether every matching item is selected, which checks rows that have no entry of their own */
+    areAllMatchingItemsSelected: boolean;
+};
+
+/** Whether a row's checkbox reads as checked, which is what a click has to toggle. */
+function isRowChecked({rowKey, parentGroupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: RowCheckedParams): boolean {
+    // An entry of its own wins, since a row picked individually is not covered by anything wider.
+    if (selectedTransactions[rowKey]?.isSelected) {
+        return true;
+    }
+    if (Object.hasOwn(excludedTransactions, rowKey) || (!!parentGroupKey && Object.hasOwn(excludedTransactions, parentGroupKey))) {
+        return false;
+    }
+    // Otherwise it is checked by whatever covers it: every matching item, or its group being selected as a whole.
+    return areAllMatchingItemsSelected || !!(parentGroupKey && selectedTransactions[parentGroupKey]?.isSelected);
+}
+
+export {mapTransactionItemToSelectedEntry, mapEmptyReportToSelectedEntry, prepareTransactionsList, deriveSelectedReports, getGroupCheckboxState, isRowChecked};

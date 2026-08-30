@@ -11,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobile} from '@libs/Browser';
 import {getSpan} from '@libs/telemetry/activeSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 
@@ -25,7 +24,7 @@ function BaseSidebarScreen() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {shouldShowSkeleton, isAppLoadPending, hasLoadedApp, isLoadingHasLoadedApp, isColdRestartRecoveryFallback} = useAppLoadSkeletonState();
+    const {shouldShowSkeleton} = useAppLoadSkeletonState();
 
     // Tag an in-flight inbox-tab navigation span when the app-loading skeleton is shown instead of the
     // report list, so durations that include the openApp wait can be queried separately in Sentry.
@@ -52,24 +51,7 @@ function BaseSidebarScreen() {
                         shouldDisplayHelpButton={shouldUseNarrowLayout}
                     />
                     {!shouldShowSkeleton && <InboxTabSelector />}
-                    <View style={[styles.flex1]}>
-                        {shouldShowSkeleton ? (
-                            <OptionsListSkeletonView
-                                shouldAnimate
-                                reasonAttributes={
-                                    {
-                                        context: 'BaseSidebarScreen',
-                                        isAppLoadPending,
-                                        hasLoadedApp,
-                                        isLoadingHasLoadedApp,
-                                        isColdRestartRecoveryFallback,
-                                    } satisfies SkeletonSpanReasonAttributes
-                                }
-                            />
-                        ) : (
-                            <SidebarLinksData insets={insets} />
-                        )}
-                    </View>
+                    <View style={[styles.flex1]}>{shouldShowSkeleton ? <OptionsListSkeletonView shouldAnimate /> : <SidebarLinksData insets={insets} />}</View>
                 </>
             )}
         </ScreenWrapper>

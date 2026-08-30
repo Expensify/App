@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 
+import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -45,12 +46,13 @@ function DynamicDomainPermissionInfoPage({route}: DomainPermissionInfoPageProps)
             </View>
             <FixedFooter>
                 <Button
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100]}
                     onPress={() => Navigation.closeRHPFlow()}
-                    text={translate('common.buttonConfirm')}
-                />
+                >
+                    <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
+                </Button>
             </FixedFooter>
         </ScreenWrapper>
     );

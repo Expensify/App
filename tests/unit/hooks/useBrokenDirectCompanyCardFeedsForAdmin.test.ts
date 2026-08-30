@@ -23,6 +23,7 @@ const DEFAULT_CARD_FEED_ERROR_STATE = {
     hasFeedErrors: false,
     hasWorkspaceErrors: false,
     isFeedConnectionBroken: false,
+    shouldPromptBrokenConnection: false,
 };
 
 function createDefaultCardFeedErrors(): CardFeedErrors {
@@ -52,7 +53,6 @@ function createAdminPolicy(overrides: Partial<Policy> & {id: string} = {id: POLI
         name: POLICY_NAME,
         role: CONST.POLICY.ROLE.ADMIN,
         type: CONST.POLICY.TYPE.TEAM,
-        isPolicyExpenseChatEnabled: true,
         policyAccountID: WORKSPACE_ACCOUNT_ID,
         ...overrides,
     } as Policy;
@@ -120,6 +120,29 @@ describe('useBrokenDirectCompanyCardFeedsForAdmin', () => {
             getCardFeedWithDomainID(OAUTH_CHASE_FEED, WORKSPACE_ACCOUNT_ID),
             getCardFeedWithDomainID(OAUTH_AMEX_FEED, WORKSPACE_ACCOUNT_ID),
         ]);
+    });
+
+    // `cardsWithBrokenFeedConnection` stays truthful past the grace period so the Company cards page can still fix the
+    // feed, so the time-sensitive task has to stop prompting here instead.
+    it('returns no connections for a direct feed broken past the grace period', () => {
+        setMockBrokenCards({
+            card1: {...createBrokenCard(1, OAUTH_CHASE_FEED), lastScrape: '2020-01-01 00:00:00'},
+        });
+
+        const {result} = renderHook(() => useBrokenDirectCompanyCardFeedsForAdmin(adminPolicies));
+
+        expect(result.current).toHaveLength(0);
+    });
+
+    it('returns the connection for a direct feed broken within the grace period', () => {
+        const recentScrape = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+        setMockBrokenCards({
+            card1: {...createBrokenCard(1, OAUTH_CHASE_FEED), lastScrape: recentScrape},
+        });
+
+        const {result} = renderHook(() => useBrokenDirectCompanyCardFeedsForAdmin(adminPolicies));
+
+        expect(result.current).toHaveLength(1);
     });
 
     it('returns no connections for commercial feeds', () => {

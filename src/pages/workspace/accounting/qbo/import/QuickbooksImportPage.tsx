@@ -90,7 +90,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
             displayName="QuickbooksImportPage"
             headerTitle="workspace.accounting.import"
             title="workspace.qbo.importDescription"
-            titleAlreadyTranslated={translate('workspace.qbo.importDescription', {integrationName})}
+            titleAlreadyTranslated={translate('workspace.qbo.importDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
