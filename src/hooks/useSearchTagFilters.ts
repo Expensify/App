@@ -88,6 +88,11 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
             .finally(() => setIsLoading(false));
     }, []);
 
+    // Fetch the first page on mount; cached results are shown immediately and refreshed in the background
+    useEffect(() => {
+        search('');
+    }, [search]);
+
     return {searchResults, isLoading, hasMore, loadMore, search, hasCachedData};
 }
 

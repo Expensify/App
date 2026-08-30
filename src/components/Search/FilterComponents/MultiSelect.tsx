@@ -5,6 +5,7 @@ import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectL
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import type {TextInputOptions} from '@components/SelectionList/types';
 
+import useDebounce from '@hooks/useDebounce';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
@@ -18,10 +19,13 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {ReactNode} from 'react';
 
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import ListFilterView from './ListFilterViewWrapper';
+
+// Stable fallback so the debounced search callback keeps its identity when no search handler is provided
+function noop() {}
 
 type MultiSelectItem<T> = {
     text: string;
@@ -88,10 +92,13 @@ function MultiSelect<T extends string>({
     const [selectedItems, setSelectedItems] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
-    // Notify parent when debounced search term changes (for server-side search)
-    useEffect(() => {
-        onSearchChange?.(debouncedSearchTerm);
-    }, [debouncedSearchTerm, onSearchChange]);
+    // Server-side search is fired from the text change handler so typing and the API call stay in the same event path
+    const debouncedOnSearchChange = useDebounce<(term: string) => void>(onSearchChange ?? noop, CONST.TIMING.USE_DEBOUNCED_STATE_DELAY);
+
+    const updateSearchTerm = (text: string) => {
+        setSearchTerm(text);
+        debouncedOnSearchChange(text);
+    };
 
     // Snapshot the values selected when the filter first opened so they can be floated to the top of a long list on
     // first render without repinning rows that are toggled afterwards.
@@ -137,7 +144,7 @@ function MultiSelect<T extends string>({
     const textInputOptions: TextInputOptions = {
         value: searchTerm,
         label: isSearchable ? (searchPlaceholder ?? translate('common.search')) : undefined,
-        onChangeText: setSearchTerm,
+        onChangeText: updateSearchTerm,
         headerMessage,
         style: {
             containerStyle: selectionListTextInputStyle,
