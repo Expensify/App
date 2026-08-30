@@ -33,6 +33,12 @@ type TooltipData = {
     name: ProductTrainingTooltipName;
     priority: number;
     shouldShow: (props: ShouldShowConditionProps) => boolean;
+
+    /**
+     * How long a dismissal suppresses the tooltip, in milliseconds. Omit it for tooltips that are dismissed
+     * permanently, which is the default.
+     */
+    reappearsAfterMs?: number;
 };
 
 const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
@@ -93,6 +99,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: MARK_ALL_AS_READ,
         priority: 900,
         shouldShow: () => true,
+        reappearsAfterMs: CONST.PRODUCT_TRAINING_TOOLTIP_REAPPEAR_WINDOW.SEVEN_DAYS,
     },
 };
 

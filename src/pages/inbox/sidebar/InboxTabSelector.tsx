@@ -15,13 +15,16 @@ import {useSidebarOrderedReportsActions, useSidebarOrderedReportsState} from '@h
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
+import DateUtils from '@libs/DateUtils';
 
 import type {AnchorPosition} from '@styles/index';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {hasStaleUnreadReportSelector} from '@selectors/Report';
 import {reportNameValuePairsArchivedSelector} from '@selectors/ReportNameValuePairs';
+import {startOfDay, subMonths} from 'date-fns';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -38,8 +41,10 @@ function InboxTabSelector() {
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: reportNameValuePairsArchivedSelector});
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const {showConfirmModal} = useConfirmModal();
-    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MARK_ALL_AS_READ);
-
+    const threeMonthsAgo = DateUtils.getDBTime(subMonths(startOfDay(new Date()), CONST.INBOX_TAB_STALE_UNREAD_MONTHS).valueOf());
+    const [hasStaleUnreadReport = false] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: hasStaleUnreadReportSelector(reportNameValuePairs, threeMonthsAgo)});
+    // Only show the tooltip if we have unread message > 3 months old.
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MARK_ALL_AS_READ, hasStaleUnreadReport);
     // Anchor the popover to the Unread tab itself (not the whole tab row) so it opens at that tab's left edge.
     const unreadTabRef = useRef<View | HTMLDivElement>(null);
     const {calculatePopoverPosition} = usePopoverPosition();
