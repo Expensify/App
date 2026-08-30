@@ -1335,6 +1335,7 @@ function buildFilterFormValuesFromQuery(
     exportedToFilterOptions?: string[],
     currentUserAccountID?: number,
     bankAccountList?: OnyxTypes.BankAccountList,
+    searchPolicyTags?: OnyxCollection<OnyxTypes.SearchPolicyTags>,
 ) {
     const filters = queryJSON.flatFilters;
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
@@ -1468,6 +1469,12 @@ function buildFilterFormValuesFromQuery(
                     for (const tag of Object.values(policyTagList.tags ?? {})) {
                         uniqueTags.add(tag.name);
                     }
+                }
+            }
+            // Tags fetched through the paginated tag filter endpoint may not exist in the full policy tags cache
+            for (const searchTags of Object.values(searchPolicyTags ?? {})) {
+                for (const tag of Object.values(searchTags ?? {})) {
+                    uniqueTags.add(tag.tagName);
                 }
             }
             uniqueTags.add(CONST.SEARCH.TAG_EMPTY_VALUE);

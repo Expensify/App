@@ -85,6 +85,7 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
     // lookups (`in:` filter), so projecting via a selector would just waste an O(n) pass over every report.
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: policyTagsSelector});
+    const [searchPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.SEARCH_POLICY_TAGS);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyCategoriesSelector});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -107,6 +108,7 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
               exportedToFilterOptions,
               currentUserPersonalDetails.accountID,
               bankAccountList,
+              searchPolicyTags,
           )
         : getEmptyObject<Partial<SearchAdvancedFiltersForm>>();
 
