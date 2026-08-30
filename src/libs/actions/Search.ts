@@ -1056,6 +1056,18 @@ function openSearchTagFiltersPage(params: OpenSearchTagFiltersPageParams): Promi
     }));
 }
 
+/**
+ * Updates the pagination state for tag filter search.
+ * Stored in RAM-only Onyx key so it survives component remounts but resets on app restart.
+ */
+function setSearchTagFiltersPagination(hasMore: boolean, nextCursor: string, searchQuery: string) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION, {
+        hasMore,
+        nextCursor,
+        searchQuery,
+    });
+}
+
 function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE>> = [
         {
@@ -2404,6 +2416,7 @@ export {
     openSearchCardFiltersPage,
     openSearchCategoryFiltersPage,
     openSearchTagFiltersPage,
+    setSearchTagFiltersPagination,
     getPolicyFromSearchSnapshot,
     getReportFromSearchSnapshot,
     resolveSearchPayPaymentMethod,

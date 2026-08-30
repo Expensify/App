@@ -1,4 +1,4 @@
-import {openSearchTagFiltersPage} from '@libs/actions/Search';
+import {openSearchTagFiltersPage, setSearchTagFiltersPagination} from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,46 +30,56 @@ type UseSearchTagFiltersResult = {
 /**
  * Hook for managing paginated tag filter search.
  * Handles API calls, pagination state, and Onyx data subscription.
+ * Pagination state is persisted in Onyx (RAM-only) to survive component remounts.
  */
 function useSearchTagFilters(): UseSearchTagFiltersResult {
     const [searchResults] = useOnyx(ONYXKEYS.COLLECTION.SEARCH_POLICY_TAGS);
+    const [paginationState] = useOnyx(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION);
     const [isLoading, setIsLoading] = useState(false);
-    const [hasMore, setHasMore] = useState(false);
-    const [nextCursor, setNextCursor] = useState('');
-    const [searchQuery, setSearchQuery] = useState('');
 
-    // Keep ref updated with latest searchResults for use in stable callbacks
-    const searchResultsRef = useRef(searchResults);
+    // Derive pagination state from Onyx
+    const hasMore = paginationState?.hasMore ?? false;
+    const nextCursor = paginationState?.nextCursor ?? '';
+    const searchQuery = paginationState?.searchQuery ?? '';
+
+    // Track if we have cached data to avoid showing loading state on remount
+    const hasCachedData = searchResults && Object.keys(searchResults).length > 0;
+
+    // Keep ref updated with latest values for use in stable callbacks
+    const stateRef = useRef({hasMore, nextCursor, searchQuery, hasCachedData, isLoading});
     useEffect(() => {
-        searchResultsRef.current = searchResults;
-    }, [searchResults]);
+        stateRef.current = {hasMore, nextCursor, searchQuery, hasCachedData, isLoading};
+    }, [hasMore, nextCursor, searchQuery, hasCachedData, isLoading]);
 
     const loadMore = useCallback(() => {
-        if (isLoading || !hasMore) {
+        const {hasMore: currentHasMore, nextCursor: currentCursor, searchQuery: currentQuery, isLoading: currentIsLoading} = stateRef.current;
+        if (currentIsLoading || !currentHasMore) {
             return;
         }
         setIsLoading(true);
-        openSearchTagFiltersPage({searchQuery, cursor: nextCursor, limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE})
+        openSearchTagFiltersPage({searchQuery: currentQuery, cursor: currentCursor, limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE})
             .then(({hasMore: newHasMore, nextCursor: newCursor}) => {
-                setHasMore(newHasMore);
-                setNextCursor(newCursor);
+                setSearchTagFiltersPagination(newHasMore, newCursor, currentQuery);
             })
             .finally(() => setIsLoading(false));
-    }, [isLoading, hasMore, searchQuery, nextCursor]);
+    }, []);
 
     const search = useCallback((query: string) => {
-        setSearchQuery(query);
-        setNextCursor('');
-        setHasMore(false);
+        const {hasCachedData: currentHasCachedData, searchQuery: currentQuery} = stateRef.current;
+
+        // Skip fetch if same query and we already have data (e.g., on remount with cached data)
+        if (query === currentQuery && currentHasCachedData) {
+            return;
+        }
+
         // Only show loading if no cached data - otherwise fetch silently in background
-        const hasCachedData = searchResultsRef.current && Object.keys(searchResultsRef.current).length > 0;
-        if (!hasCachedData) {
+        if (!currentHasCachedData) {
             setIsLoading(true);
         }
+
         openSearchTagFiltersPage({searchQuery: query, cursor: '', limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE})
             .then(({hasMore: newHasMore, nextCursor: newCursor}) => {
-                setHasMore(newHasMore);
-                setNextCursor(newCursor);
+                setSearchTagFiltersPagination(newHasMore, newCursor, query);
             })
             .finally(() => setIsLoading(false));
     }, []);
