@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import AccountUtils from '@libs/AccountUtils';
@@ -19,7 +20,6 @@ import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIs
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import {getUserNameByEmail} from '@libs/PersonalDetailsUtils';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 
 import createDynamicRoute from '@navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -45,7 +45,7 @@ type ConfirmationStepProps = {
 };
 
 function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationStepProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -57,6 +57,10 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
     const {cardRules} = useExpensifyCardRules(policyID);
 
     const data = issueNewCard?.data;
+    const cardholder = usePersonalDetailByLogin(data?.assigneeEmail, (personalDetail) => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return formatPhoneNumber(personalDetail?.displayName || data?.assigneeEmail || '');
+    });
     const isSuccessful = issueNewCard?.isSuccessful;
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
     const isSpendRuleApplied = !!issueNewCard?.data.spendRuleEnabled;
@@ -125,7 +129,6 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
     };
 
     const translationForLimitType = getTranslationKeyForLimitType(data?.limitType);
-    const cardholderTitle = getUserNameByEmail(data?.assigneeEmail ?? '', 'displayName');
     const limitTitle = convertToShortDisplayString(data?.limit, data?.currency);
 
     const isPhysicalCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL;
@@ -187,10 +190,10 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.card.issueNewCard.letsDoubleCheck')}</Text>
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate(cardReadyTranslationKey)}</Text>
-                {cardholderTitle ? (
+                {cardholder ? (
                     <MenuItemField
                         description={translate('workspace.card.issueNewCard.cardholder')}
-                        title={cardholderTitle}
+                        title={cardholder}
                         onPress={!issueNewCard?.isChangeAssigneeDisabled ? () => editStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE) : undefined}
                     />
                 ) : (

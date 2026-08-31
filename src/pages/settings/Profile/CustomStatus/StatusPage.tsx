@@ -252,7 +252,7 @@ function StatusPage() {
                         />
                     ) : (
                         <>
-                            <Text style={[styles.mh5]}>{translate('statusPage.setVacationDelegate')}</Text>
+                            <Text style={[styles.mh5, styles.mb1]}>{translate('statusPage.setVacationDelegate')}</Text>
                             <VacationDelegateMenuItem
                                 vacationDelegate={vacationDelegate}
                                 errors={vacationDelegate?.errors}

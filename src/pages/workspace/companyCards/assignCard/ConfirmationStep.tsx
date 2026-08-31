@@ -23,6 +23,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -202,7 +203,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                     <MenuItemAvatarNavigation
                         title={cardholderName}
                         description={cardholderEmail}
-                        avatarSource={cardholder?.avatar}
+                        avatarSource={cardholder?.avatar ?? getDefaultAvatarURL({accountID: cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID})}
                         accountID={cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID}
                         testID={CONST.ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID}
                         onPress={() => editStep(CONST.COMPANY_CARD.STEP.ASSIGNEE)}
