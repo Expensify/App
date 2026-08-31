@@ -20,6 +20,9 @@ import {close} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Session} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
@@ -29,6 +32,8 @@ import Button from './ButtonComposed';
 import Modal from './Modal';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
+
+const selectEncryptedAuthToken = (session: OnyxEntry<Session>) => session?.encryptedAuthToken;
 
 type ExportDownloadStatusModalProps = {
     /** The export ID to subscribe to */
@@ -53,7 +58,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {environment} = useEnvironment();
 
-    const [encryptedAuthToken] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.encryptedAuthToken});
+    const [encryptedAuthToken] = useOnyx(ONYXKEYS.SESSION, {selector: selectEncryptedAuthToken});
 
     const [exportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
     const displayedExport = usePreviousDefined(exportDownload);
@@ -109,6 +114,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         sendExportFileFromConcierge(exportID, displayedExport ?? undefined);
     };
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: isSmallScreenWidth, addOfflineIndicatorBottomSafeAreaPadding: false, style: styles.m5});
 
     if (wasRecordCleared) {
         return null;
@@ -126,7 +132,6 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     };
 
     const isNonDismissible = isPreparing;
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: isSmallScreenWidth, addOfflineIndicatorBottomSafeAreaPadding: false, style: styles.m5});
 
     const renderContent = () => {
         if (isPreparing) {
