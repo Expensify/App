@@ -284,6 +284,7 @@ export default {
     reportActionItemImagesMoreCornerTriangleWidth: 40,
     popoverZIndex: 10000,
     modalBaseZIndex: 9999,
+    autoCompleteSuggestionsZIndex: 9999,
     sidePanelZIndex: 9998,
     modalRightDockedZIndex: 9997,
     modalLowestZIndex: 9996,

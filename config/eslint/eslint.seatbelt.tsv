@@ -973,6 +973,7 @@
 "../../src/pages/ValidateLoginPage/index.web.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/domain/Groups/PreferredWorkspaceToggle.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/domain/Saml/SamlLoginSectionContent.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
+"../../src/pages/home/ForYouSection/ConciergePromptBox.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/home/GettingStartedSection/hooks/useGettingStartedItems.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/home/GettingStartedSection/hooks/useGettingStartedItems.ts"	"no-restricted-imports"	1
 "../../src/pages/home/TimeSensitiveSection/items/FixCompanyCardConnection.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2

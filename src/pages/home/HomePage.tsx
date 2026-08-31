@@ -16,6 +16,7 @@ import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {PortalHost} from '@gorhom/portal';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -114,6 +115,7 @@ function HomePage() {
                             )}
                         </View>
                     </ScrollView>
+                    <PortalHost name="suggestions" />
                 </ScreenWrapper>
             </View>
             <ReceiptScanDropZone

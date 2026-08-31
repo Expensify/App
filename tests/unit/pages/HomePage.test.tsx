@@ -9,6 +9,7 @@ import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {PortalProvider} from '@gorhom/portal';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -63,6 +64,16 @@ jest.mock('@components/Navigation/TopBar', () => {
     }
     return MockTopBar;
 });
+
+jest.mock('@gorhom/portal', () => {
+    const ReactModule = require('react');
+    const {View: RNView} = require('react-native');
+    return {
+        ...jest.requireActual('@gorhom/portal'),
+        PortalHost: ({name}: {name: string}) => ReactModule.createElement(RNView, {testID: `portal-host-${name}`}),
+    };
+});
+
 jest.mock('@components/ReceiptScanDropZone', () => {
     function MockReceiptScanDropZone() {
         return null;
@@ -117,9 +128,11 @@ function setWideLayout() {
 
 const renderHomePage = () =>
     render(
-        <OnyxListItemProvider>
-            <HomePage />
-        </OnyxListItemProvider>,
+        <PortalProvider>
+            <OnyxListItemProvider>
+                <HomePage />
+            </OnyxListItemProvider>
+        </PortalProvider>,
     );
 
 function renderedSectionOrder() {
@@ -136,6 +149,23 @@ describe('HomePage', () => {
         setNarrowLayout();
         await Onyx.clear();
         await waitForBatchedUpdates();
+    });
+
+    describe('suggestion portal host', () => {
+        it.each([
+            ['narrow', setNarrowLayout],
+            ['wide', setWideLayout],
+        ])('renders the suggestions host on %s layout', async (_label, setLayout) => {
+            // Given a layout
+            setLayout();
+            await waitForBatchedUpdates();
+
+            // When the Home page renders
+            renderHomePage();
+
+            // Then the suggestions portal host is on the page
+            expect(screen.getByTestId('portal-host-suggestions')).toBeOnTheScreen();
+        });
     });
 
     // For you sits above Getting started on narrow layouts, regardless of the onboarding intent.

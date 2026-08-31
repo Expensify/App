@@ -1,13 +1,11 @@
 import type {Emoji} from '@assets/emojis/types';
 
-import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import Composer from '@components/Composer';
 import type {ComposerRef, TextSelection} from '@components/Composer/types';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 
-import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -37,24 +35,17 @@ import {isBlockedFromConcierge} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-// eslint-disable-next-line no-restricted-imports
-import findNodeHandle from '@src/utils/findNodeHandle';
 
-import type {MeasureInWindowOnSuccessCallback, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
+import type {TextInputKeyPressEvent} from 'react-native';
 
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useFocusedInputHandler} from 'react-native-keyboard-controller';
-import {useSharedValue} from 'react-native-reanimated';
-
-import type {SuggestionsRef} from './ReportActionCompose/ReportActionCompose';
 
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
-import getCursorPosition from './ReportActionCompose/getCursorPosition';
-import getScrollPosition from './ReportActionCompose/getScrollPosition';
 import MessageEditCancelButton from './ReportActionCompose/MessageEditCancelButton';
 import SubmitDraftButton from './ReportActionCompose/SubmitDraftButton';
 import Suggestions from './ReportActionCompose/Suggestions';
+import useComposerSuggestions from './ReportActionCompose/useComposerSuggestions';
 import useDebouncedCommentMaxLengthValidation from './ReportActionCompose/useDebouncedCommentMaxLengthValidation';
 import useEditMessage from './ReportActionCompose/useEditMessage';
 import {useReportActionActiveEdit, useReportActionActiveEditActions} from './ReportActionEditMessageContext';
@@ -105,10 +96,6 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
     const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const suggestionsRef = useRef<SuggestionsRef>(null);
-    const mobileInputScrollPosition = useRef(0);
-    const cursorPositionValue = useSharedValue({x: 0, y: 0});
-    const tag = useSharedValue(-1);
     const emojisPresentBefore = useRef<Emoji[]>([]);
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 
@@ -144,14 +131,18 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
         isEditing: true,
     });
 
-    const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
-
     const [modal = DEFAULT_MODAL_VALUE] = useOnyx(ONYXKEYS.MODAL);
     const [onyxInputFocused = false] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
 
     const composerRef = useRef<ComposerRef | null>(null);
     const draftRef = useRef(draft);
     const emojiPickerSelectionRef = useRef<Selection | undefined>(undefined);
+
+    const {suggestionsRef, measureParentContainerAndReportCursor, hideSuggestionMenu, onSaveScrollAndHideSuggestionMenu, raiseIsScrollLayoutTriggered} = useComposerSuggestions({
+        composerRef,
+        selection,
+        measureParentContainer: (callback) => containerRef.current?.measureInWindow(callback),
+    });
 
     // Save the draft of the comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
     // allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
@@ -285,24 +276,6 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
         updateDraft(insertText(draft, selection, `${emoji} `));
     };
 
-    const hideSuggestionMenu = useCallback(() => {
-        if (!suggestionsRef.current) {
-            return;
-        }
-        suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
-    }, [suggestionsRef]);
-    const onSaveScrollAndHideSuggestionMenu = useCallback(
-        (e: TextInputScrollEvent) => {
-            if (isScrollLayoutTriggered.current) {
-                return;
-            }
-            mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
-
-            hideSuggestionMenu();
-        },
-        [isScrollLayoutTriggered, hideSuggestionMenu],
-    );
-
     /**
      * Key event handlers that short cut to saving/canceling.
      *
@@ -333,56 +306,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
                 deleteDraft();
             }
         },
-        [shouldUseNarrowLayout, isKeyboardShown, hideSuggestionMenu, publishDraft, draft, deleteDraft],
-    );
-
-    const measureContainer = useCallback((callback: MeasureInWindowOnSuccessCallback) => {
-        if (!containerRef.current) {
-            return;
-        }
-        containerRef.current.measureInWindow(callback);
-    }, []);
-
-    const measureParentContainerAndReportCursor = useCallback(
-        (callback: MeasureParentContainerAndCursorCallback) => {
-            const performMeasurement = () => {
-                const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef: composerRef});
-                const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.get(), positionOnWeb: selection});
-                measureContainer((x, y, width, height) => {
-                    callback({
-                        x,
-                        y,
-                        width,
-                        height,
-                        scrollValue,
-                        cursorCoordinates: {x: xPosition, y: yPosition},
-                    });
-                });
-            };
-
-            performMeasurement();
-        },
-        [cursorPositionValue, measureContainer, selection],
-    );
-
-    useEffect(() => {
-        // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
-        tag.set(findNodeHandle(composerRef.current) ?? -1);
-    }, [tag]);
-    useFocusedInputHandler(
-        {
-            onSelectionChange: (event) => {
-                'worklet';
-
-                if (event.target === tag.get()) {
-                    cursorPositionValue.set({
-                        x: event.selection.end.x,
-                        y: event.selection.end.y,
-                    });
-                }
-            },
-        },
-        [],
+        [shouldUseNarrowLayout, isKeyboardShown, hideSuggestionMenu, publishDraft, draft, deleteDraft, suggestionsRef],
     );
 
     useEffect(() => {
