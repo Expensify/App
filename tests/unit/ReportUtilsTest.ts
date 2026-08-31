@@ -16944,6 +16944,112 @@ describe('ReportUtils', () => {
 
             await Onyx.clear();
         });
+
+        it('should return null for a processing report whose remaining notice is RECEIPT_NOT_SMART_SCANNED (hidden from the submitter)', async () => {
+            await Onyx.clear();
+
+            const policyID = 'policy-rbr-receipt-notice-processing';
+            const chatReportID = 'chat-rbr-receipt-notice-processing';
+            const expenseReportID = 'expense-rbr-receipt-notice-processing';
+            const completeTransactionID = 'transaction-rbr-receipt-notice-complete';
+            const incompleteTransactionID = 'transaction-rbr-receipt-notice-incomplete';
+
+            const policyData: Policy = {
+                id: policyID,
+                name: 'Receipt Notice Processing Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.USER,
+                outputCurrency: CONST.CURRENCY.USD,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                employeeList: {
+                    [currentUserEmail]: {
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                },
+                owner: currentUserEmail,
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            const chatReport: Report = {
+                ...createPolicyExpenseChat(824),
+                reportID: chatReportID,
+                ownerAccountID: currentUserAccountID,
+                policyID,
+                iouReportID: expenseReportID,
+            };
+
+            const expenseReport: Report = {
+                ...createExpenseReport(825),
+                reportID: expenseReportID,
+                chatReportID,
+                ownerAccountID: currentUserAccountID,
+                managerID: 42,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: 10000,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            const completeTransaction: Transaction = {
+                ...createRandomTransaction(824),
+                transactionID: completeTransactionID,
+                reportID: expenseReportID,
+                amount: 5000,
+                currency: CONST.CURRENCY.USD,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                reimbursable: true,
+            };
+            const incompleteTransaction: Transaction = {
+                ...createRandomTransaction(825),
+                transactionID: incompleteTransactionID,
+                reportID: expenseReportID,
+                amount: 5000,
+                currency: CONST.CURRENCY.USD,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                reimbursable: true,
+            };
+
+            const completeViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${completeTransactionID}` as OnyxKey;
+            const incompleteViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${incompleteTransactionID}` as OnyxKey;
+            const transactionViolationsCollection: OnyxCollection<TransactionViolation[]> = {
+                [completeViolationsKey]: [
+                    {
+                        name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
+                        type: CONST.VIOLATION_TYPES.NOTICE,
+                        showInReview: true,
+                    },
+                ],
+                [incompleteViolationsKey]: [
+                    {
+                        name: CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+                        type: CONST.VIOLATION_TYPES.NOTICE,
+                        showInReview: true,
+                    },
+                ],
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await waitForBatchedUpdates();
+
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyData),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${completeTransaction.transactionID}`, completeTransaction),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${incompleteTransaction.transactionID}`, incompleteTransaction),
+                Onyx.merge(completeViolationsKey, transactionViolationsCollection[completeViolationsKey]),
+                Onyx.merge(incompleteViolationsKey, transactionViolationsCollection[incompleteViolationsKey]),
+            ]);
+            await waitForBatchedUpdates();
+
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            expect(result).toBeNull();
+
+            await Onyx.clear();
+        });
     });
 
     it('should surface a GBR for the admin who placed the hold on an all-held report requiring approval, and avoid showing an RBR', async () => {

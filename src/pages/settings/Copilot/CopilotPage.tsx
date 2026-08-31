@@ -1,6 +1,7 @@
 import Badge from '@components/Badge';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
@@ -66,6 +67,18 @@ type SearchableCopilot = Delegate & {
 
 const filterCopilot = (copilot: SearchableCopilot, searchInput: string) => tokenizedSearch([copilot], searchInput, (option) => [option.sortKey, option.email]).length > 0;
 
+/**
+ * Resolves the title and description a copilot row shows for one account.
+ * A name-less SMS account resolves to the formatted number, which is what the formatted email already holds,
+ * so the resolved title is compared to it to keep the row from printing the same number twice.
+ */
+function getCopilotRowText(displayName: string | undefined, email: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
+    const formattedEmail = formatPhoneNumber(email);
+    const titleText = formatPhoneNumber(displayName ?? email);
+
+    return {titleText, descriptionText: titleText === formattedEmail ? '' : formattedEmail};
+}
+
 function CopilotPage() {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'CircleSlash', 'Pencil', 'ThreeDots', 'UserPlus']);
     const illustrations = useMemoizedLazyIllustrations(['Copilots']);
@@ -102,7 +115,7 @@ function CopilotPage() {
 
     const showRemoveDelegatorModal = (delegatorEmail: string) => {
         const personalDetail = personalDetailsByLogin[delegatorEmail.toLowerCase()];
-        const delegatorName = personalDetail?.displayName ?? formatPhoneNumber(delegatorEmail);
+        const delegatorName = formatPhoneNumber(personalDetail?.displayName ?? delegatorEmail);
 
         return showConfirmModal({
             title: translate('delegate.removeCopilotAccessTitle'),
@@ -208,12 +221,12 @@ function CopilotPage() {
     );
 
     const sortedDelegates = sortAlphabetically(
-        delegates.filter((d) => !d.optimisticAccountID).map((d) => ({...d, sortKey: personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? formatPhoneNumber(d.email)})),
+        delegates.filter((d) => !d.optimisticAccountID).map((d) => ({...d, sortKey: formatPhoneNumber(personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? d.email)})),
         'sortKey',
         localeCompare,
     );
     const sortedDelegators = sortAlphabetically(
-        delegators.map((d) => ({...d, sortKey: personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? formatPhoneNumber(d.email)})),
+        delegators.map((d) => ({...d, sortKey: formatPhoneNumber(personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? d.email)})),
         'sortKey',
         localeCompare,
     );
@@ -252,9 +265,7 @@ function CopilotPage() {
                 Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(email, role));
             };
 
-            const formattedEmail = formatPhoneNumber(email);
-            const titleText = personalDetail?.displayName ?? formattedEmail;
-            const descriptionText = personalDetail?.displayName ? formattedEmail : '';
+            const {titleText, descriptionText} = getCopilotRowText(personalDetail?.displayName, email, formatPhoneNumber);
             return {
                 key: email,
                 titleComponent: renderTitleWithRole(titleText, descriptionText, role),
@@ -291,14 +302,12 @@ function CopilotPage() {
 
     const delegatorMenuItems: MenuItemProps[] = filteredDelegators.map(({email, role, pendingAction}) => {
         const personalDetail = personalDetailsByLogin[email.toLowerCase()];
-        const formattedEmail = formatPhoneNumber(email);
         const connectError = getLatestError(errorFields?.connect?.[email]);
         const removeDelegatorError = getLatestError(errorFields?.removeDelegator?.[email]);
         const error = getLatestError({...connectError, ...removeDelegatorError});
         const isCurrentUser = email === session?.email;
         const isPending = !!pendingAction;
-        const titleText = personalDetail?.displayName ?? formattedEmail;
-        const descriptionText = personalDetail?.displayName ? formattedEmail : '';
+        const {titleText, descriptionText} = getCopilotRowText(personalDetail?.displayName, email, formatPhoneNumber);
 
         return {
             key: email,

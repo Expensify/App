@@ -685,7 +685,7 @@
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../src/libs/UnreadIndicatorUpdater/index.ts"	"no-restricted-imports"	1
 "../../src/libs/UnreadIndicatorUpdater/index.ts"	"no-restricted-syntax"	1
-"../../src/libs/Url.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/libs/Url.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/UserAvatarUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/ValidationUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/Violations/ViolationsUtils.ts"	"no-restricted-syntax"	1

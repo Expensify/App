@@ -100,11 +100,14 @@ function useBlockDistanceRequest({policyID, isManualDistanceRequest = false, isO
             const baseModalProps = {
                 image: illustrations.HouseWithMap,
                 titleStyles: styles.textHeadline,
-                promptStyles: styles.textSupporting,
+                titleContainerStyles: styles.mb2,
+                promptStyles: [styles.textSupporting, styles.mb4],
                 shouldShowCancelButton: false,
                 shouldUseSuccessStyleForConfirm: true,
                 shouldFitImageToContainer: true,
-                imageStyles: styles.commuterExclusionStaticIllustration,
+                imageStyles: [styles.mt5, styles.mh5],
+                imageWidth: styles.commuterExclusionStaticIllustration.width,
+                imageHeight: styles.commuterExclusionStaticIllustration.height,
                 shouldShowDismissIcon: false,
             };
             if (reason === 'homeAddressRequired') {
