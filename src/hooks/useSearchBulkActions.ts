@@ -124,7 +124,6 @@ import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDelegateAccountID from './useDelegateAccountID';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
-import useExportDownloadStatusModal from './useExportDownloadStatusModal';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -496,10 +495,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     > | null>(null);
 
     const [emptyReportsCount, setEmptyReportsCount] = useState<number>(0);
-    const {trackExport, exportDownloadStatusModal} = useExportDownloadStatusModal(() => {
-        selectAllMatchingItems(false);
-        clearSelectedTransactions(undefined, true);
-    });
 
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
@@ -675,9 +670,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentUserPersonalDetails.accountID,
     ]);
 
+    const selectedBulkPayReportID = selectedTransactionReportIDs.at(0) ?? selectedReportIDs.at(0);
+    const selectedBulkPayReport = selectedBulkPayReportID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedBulkPayReportID}`] : undefined;
+    const selectedBulkPayChatReportID = selectedBulkPayReport?.chatReportID;
     const {bulkPayButtonOptions, businessBankAccountOptions} = useBulkPayOptions({
         selectedPolicyID: selectedPolicyIDs.at(0),
-        selectedReportID: selectedTransactionReportIDs.at(0) ?? selectedReportIDs.at(0),
+        selectedReportID: selectedBulkPayReportID,
+        selectedReport: selectedBulkPayReport,
+        selectedChatReport: selectedBulkPayChatReportID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedBulkPayChatReportID}`] : undefined,
         isCurrencySupportedWallet: isCurrencySupportedBulkWallet,
         currency: selectedBulkCurrency,
         formattedAmount: totalFormattedAmount,
@@ -828,10 +828,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
             const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
-            let exportID: string;
 
             if (areAllMatchingItemsSelected) {
-                exportID = queueExportSearchWithTemplate(
+                queueExportSearchWithTemplate(
                     {
                         templateName,
                         templateType,
@@ -845,7 +844,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 );
             } else {
                 const isGroupExport = !!queryJSON?.groupBy && selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX));
-                exportID = queueExportSearchWithTemplate(
+                queueExportSearchWithTemplate(
                     {
                         templateName,
                         templateType,
@@ -863,7 +862,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     true,
                 );
             }
-            trackExport(exportID);
+
+            // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
+            selectAllMatchingItems(false);
+            clearSelectedTransactions(undefined, true);
         },
         [
             selectedReports,
@@ -874,7 +876,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             queryJSON,
             selectedTransactionReportIDs,
             selectedTransactionsKeys,
-            trackExport,
+            selectAllMatchingItems,
+            clearSelectedTransactions,
         ],
     );
 
@@ -922,8 +925,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 exportColumnLabels[column] = translate(getSearchColumnTranslationKey(column));
             }
 
+            // searchKey changes what the backend query matches (e.g. reconciliation includes Expensify Card cash back),
+            // so the export must send it exactly as search() does or the exported set differs from the viewed set.
             const jsonQuery = queryJSONToExport
-                ? serializeQueryJSONForBackend({...queryJSONToExport, columns: columnsToExport}, exactMatchFilterKeys)
+                ? serializeQueryJSONForBackend({...queryJSONToExport, columns: columnsToExport, searchKey: currentSearchKey}, exactMatchFilterKeys)
                 : (JSON.stringify(queryJSONToExport) ?? '');
 
             return {
@@ -955,7 +960,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
                 const reportIDList = selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [];
                 const exportParameters = getCSVExportParameters(isBasicExport, allMatchingExportData?.queryJSON ?? queryJSON);
-                const exportID = queueExportSearchItemsToCSV({
+                queueExportSearchItemsToCSV({
                     jsonQuery: exportParameters.jsonQuery,
                     reportIDList,
                     transactionIDList: selectedTransactionsKeys,
@@ -964,7 +969,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     exportColumnLabels: exportParameters.exportColumnLabels,
                     exportName,
                 });
-                trackExport(exportID);
+
+                // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
+                selectAllMatchingItems(false);
+                clearSelectedTransactions(undefined, true);
                 return;
             }
 
@@ -1009,10 +1017,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             excludedTransactions,
             translate,
             clearSelectedTransactions,
+            selectAllMatchingItems,
             hash,
             currentSearchResults?.data,
             getCSVExportParameters,
-            trackExport,
         ],
     );
 
@@ -1170,7 +1178,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             prompt: deleteModalPrompt,
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         if (result.action !== ModalActions.CONFIRM) {
             return;
@@ -2406,8 +2414,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         setIsPdfModalVisible(true);
                         return;
                     }
-                    const exportID = exportReportsToPDF(selectedReportIDs);
-                    trackExport(exportID);
+                    exportReportsToPDF(selectedReportIDs);
+
+                    // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
+                    selectAllMatchingItems(false);
+                    clearSelectedTransactions(undefined, true);
                 },
             });
         }
@@ -2426,8 +2437,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         setIsOfflineModalVisible(true);
                         return;
                     }
-                    const exportID = exportReceiptsToZip({reportIDs: selectedReportIDs});
-                    trackExport(exportID);
+                    exportReceiptsToZip({reportIDs: selectedReportIDs});
+
+                    // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
+                    selectAllMatchingItems(false);
+                    clearSelectedTransactions(undefined, true);
                 },
             });
         }
@@ -2453,8 +2467,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         setIsOfflineModalVisible(true);
                         return;
                     }
-                    const exportID = exportReceiptsToZip({transactionIDs});
-                    trackExport(exportID);
+                    exportReceiptsToZip({transactionIDs});
+
+                    // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
+                    selectAllMatchingItems(false);
+                    clearSelectedTransactions(undefined, true);
                 },
             });
         }
@@ -2786,7 +2803,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         openSearchReportSubmitToPopover,
         firstTransactionReport,
         styles.textWrap,
-        trackExport,
+        selectAllMatchingItems,
         allReportsShouldMarkAsDone,
         noReportsShouldMarkAsDone,
         queryJSON?.groupBy,
@@ -2867,7 +2884,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         handleExpensifyCardStatementPDFModalHide,
         isExpensifyCardStatementMultiFeedAlertVisible,
         handleExpensifyCardStatementMultiFeedAlertClose,
-        exportDownloadStatusModal,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
