@@ -11,15 +11,15 @@ title: Collection selectors return only what the consumer uses
 
 A selector that returns an array or map of records when the consumer only reads an ID and a `length > 1` check pays that compare for nothing. On a large account the collection can hold thousands of records, so a single compare costs tens of milliseconds and a render cycle that triggers several of them costs hundreds. Returning the scalars removes the compare entirely.
 
-When the component also needs one full record, subscribe to that single member key separately. A single-key subscription without a selector compares by reference, which is free, so you get the scalars cheaply and the one object you actually render.
+When the component also needs one full record, subscribe to that single member key separately. A single-key subscription without a selector compares by reference, so the extra subscription costs nothing.
 
-This is a narrower case than [PERF-11](perf-11-optimize-data-selection.md), which covers selector sizing in general. PERF-19 applies only when the fix is provable from the code in front of you: nothing the component keeps from the selector output is an object, and every function needed to produce the scalars is already reachable from the selector. If either is untrue, this rule does not apply.
+This is a narrower case than [PERF-11](perf-11-optimize-data-selection.md), which covers selector sizing in general. PERF-19 applies only when the fix is provable from the code you can see: nothing the component keeps from the selector output is an object, and every function needed to produce the scalars is already reachable from the selector. If either is untrue, this rule does not apply.
 
 ### Incorrect
 
 ```tsx
-// BAD: the selector returns every matching report, so useOnyx deep-compares all of them on
-// each report_ update — and the component only asks whether there are any.
+// BAD: the selector returns every matching report, so useOnyx deep-compares all of them
+// on each report_ update. The component only asks whether there are any.
 const [reportsWithErrors] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
     selector: (reports) => Object.values(reports ?? {}).filter((report) => !!report?.errors),
 });
@@ -85,9 +85,9 @@ const [user] = useOnyx(`${ONYXKEYS.USER}${userId}`, {
 
 **Flag when ALL of these are true:**
 
-- The `useOnyx` call subscribes to a collection key (`ONYXKEYS.COLLECTION.*`, or a derived key whose value is a collection) **and** passes a `selector`. The selector may be inline or imported from `src/selectors/*` — if it is imported, read its definition before judging its return shape.
+- The `useOnyx` call subscribes to a collection key (`ONYXKEYS.COLLECTION.*`, or a derived key whose value is a collection) **and** passes a `selector`. The selector may be inline or imported from `src/selectors/*`. If it is imported, read its definition before judging its return shape.
 - The selector returns an object graph: an array of Onyx records, a keyed object of records, or an object with nested records. A scalar or a flat record of primitives is already correct.
-- **Nothing derived from the selector output escapes as an object or array.** Trace each usage to what the component ultimately keeps, following intermediate calls: passing the output whole into a util is not disqualifying if the component only reads a scalar off that util's result — the entire chain can move into the selector. The output escapes when a branch of the data flow ends in JSX, a prop, `useState`, a context value, a ref, or the return value of an exported hook in the file. Enumerate every usage site, including aliases and re-destructuring, and name what each one finally yields before flagging.
+- **Nothing derived from the selector output escapes as an object or array.** Trace each usage to what the component ultimately keeps, following intermediate calls. Passing the output whole into a util is not disqualifying if the component only reads a scalar off that util's result, because the entire chain can move into the selector. The output escapes when a branch of the data flow ends in JSX, a prop, `useState`, a context value, a ref, or the return value of an exported hook in the file. Enumerate every usage site, including aliases and re-destructuring, and name what each one finally yields before flagging.
 - **Every function needed to compute the scalars is already reachable from the selector**: defined in the file, imported into it, or exported from a module the file already imports. Moving the chain into the selector must not require new branching, a new data source, or an Onyx value the selector does not already receive. A named wrapper that only calls those reachable functions and returns their scalar results counts as reachable; logic those functions do not already provide does not.
 
 Increase confidence (not required):
@@ -97,7 +97,7 @@ Increase confidence (not required):
 
 **DO NOT flag if:**
 
-- Any branch of the data flow ends with the objects themselves — rendered in a list, passed as a prop, stored in state, or returned from an exported hook.
+- Any branch of the data flow ends with the objects themselves: rendered in a list, passed as a prop, stored in state, or returned from an exported hook.
 - The chain cannot be traced. If the output goes into a callee whose body is not in the diff, search the callee; if what it yields still cannot be confirmed, do not flag.
 - The key is a single-item key rather than a collection. Picking a few fields from one record is already the correct pattern.
 - Computing the scalars needs logic that does not exist yet, a value the selector has no access to, or a new Onyx subscription to feed the selector itself.
