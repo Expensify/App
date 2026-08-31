@@ -206,7 +206,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         const policyName = policy?.name;
 
         showConfirmModal({
-            title: translate('workspace.common.delete'),
+            title: translate('workspace.common.deleteWorkspaceTitle', policyName ?? ''),
             prompt: hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
