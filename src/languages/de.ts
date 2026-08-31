@@ -9396,8 +9396,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             describeSearch: {
                 title: 'Beschreiben Sie Ihre Suche',
                 inputLabel: 'Ihre Suche',
-                description: 'Beschreiben Sie in einfachem Englisch, wonach Sie suchen, zum Beispiel „meals over $50 last month”.',
-                buttonText: 'Filter erstellen',
+                description: 'Beschreiben Sie auf einfachem Englisch, wonach Sie suchen, zum Beispiel „meals over $50 last month”.',
+                buttonText: 'Anwenden',
             },
             filterType: {label: 'Filtertyp', has: {positive: 'hat', negative: 'hat nicht'}, is: {positive: 'ist', negative: 'ist nicht'}},
         },
