@@ -498,7 +498,6 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorig jaar',
         nextYear: 'Volgend jaar',
         avatar: 'Avatar',
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} van ${total}`,
         editor: 'Editor',
         restrictions: 'Beperkingen',
         tryAgain: 'Probeer het opnieuw',
@@ -2293,6 +2292,14 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Gemarkeerde span-namen',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interactie.klik, navigatie, ui.laden',
             showBranchNameInTitle: 'Toon branchnaam in titel van browser',
+            qaAuth: 'QA-authenticatie (Cloudflare)',
+            qaAuthRunProbe: 'Probe uitvoeren',
+            qaAuthSession: 'QA-authsessie',
+            qaAuthClearSession: 'Sessie wissen',
+            qaAuthStatusSuccess: 'Probe gelukt',
+            qaAuthStatusReauthRequired: 'Sessie verlopen — voer het opnieuw uit om je aan te melden',
+            qaAuthStatusSignInFailed: 'Aanmelden is niet voltooid — voer het opnieuw uit om het nog eens te proberen',
+            qaAuthStatusError: 'Test is mislukt',
         },
         security: 'Beveiliging',
         signOut: 'Afmelden',
@@ -3009,7 +3016,6 @@ ${amount} voor ${merchant} - ${date}`,
         cardLastFour: 'Kaart eindigend op',
         addFirstPaymentMethod: 'Voeg een betaalmethode toe om rechtstreeks in de app betalingen te versturen en te ontvangen.',
         defaultPaymentMethod: 'Standaard',
-        bankAccountLastFour: (lastFour: string) => `Bankrekening • ${lastFour}`,
     },
     agentsPage: {
         title: 'Agenten',
@@ -3750,6 +3756,11 @@ ${amount} voor ${merchant} - ${date}`,
         thisBankAccount: 'Deze bankrekening wordt gebruikt voor zakelijke betalingen in je workspace',
         accountNumber: 'Rekeningnummer',
         routingNumber: 'Routingnummer',
+        internationalBankAccountDetails: 'Internationale bankrekeninggegevens',
+        internationalBankAccountDetailsTitle: 'Wat zijn je internationale rekeninggegevens?',
+        internationalBankAccountDetailsSubtitle: 'Een van je werkruimtes heeft internationale rekeninggegevens nodig om onkostenvergoedingen te verwerken',
+        iban: 'IBAN',
+        swiftBicCode: 'SWIFT/BIC-code',
         chooseAnAccountBelow: 'Kies een account hieronder',
         addBankAccount: 'Bankrekening toevoegen',
         chooseAnAccount: 'Kies een account',
@@ -3799,6 +3810,8 @@ ${amount} voor ${merchant} - ${date}`,
             restrictedBusiness: 'Bevestig dat het bedrijf niet op de lijst met beperkte bedrijven staat',
             routingNumber: 'Voer een geldig routingnummer in',
             accountNumber: 'Voer een geldig rekeningnummer in',
+            iban: 'Voer een geldige IBAN in',
+            swiftCode: 'Voer een geldige SWIFT/BIC-code in',
             routingAndAccountNumberCannotBeSame: 'Routing- en rekeningnummers mogen niet hetzelfde zijn',
             companyType: 'Selecteer een geldig bedrijfstype',
             tooManyAttempts: 'Vanwege een groot aantal inlogpogingen is deze optie voor 24 uur uitgeschakeld. Probeer het later opnieuw of voer de gegevens in plaats daarvan handmatig in.',
@@ -4552,6 +4565,10 @@ ${amount} voor ${merchant} - ${date}`,
                 'Wist je dat je treinreizen direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Wist je dat je treinreizen rechtstreeks in Expensify kunt boeken en beheren? En dat bonnen automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            hotelBlockManual:
+                'Wist je dat je groepsreizen zoals deze direct in Expensify kunt boeken en beheren? Bespaar jezelf de moeite de volgende keer en probeer onze tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reisevenementen</a> eens uit.',
+            hotelBlockCard:
+                'Wist je dat je groepsreizen zoals deze direct in Expensify kunt boeken en beheren? Bespaar jezelf de moeite de volgende keer en probeer onze tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reisevenementen</a> eens uit.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Reizen is niet ingeschakeld',
@@ -5868,6 +5885,27 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 label: 'Expensify Card-account',
                 description: 'Kies waar je Expensify Card-transacties naartoe wilt exporteren.',
             },
+            autoSyncDescription: 'Synchroniseer DualEntry en Expensify automatisch, elke dag. Rapporten worden in realtime gesynchroniseerd.',
+            accountingMethods: {
+                label: 'Exportmethode',
+                description: 'Kies wanneer je onkosten wilt exporteren.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Op transactiebasis',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contant',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Buitengewone onkosten worden geëxporteerd zodra ze definitief zijn goedgekeurd',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contante uitgaven worden geëxporteerd zodra ze zijn betaald',
+                },
+            },
+            syncReimbursedReports: 'Terugbetaalde rapporten synchroniseren',
+            syncReimbursedReportsDescription: 'Wanneer een rapport via ACH wordt betaald, wordt er een rekeningbetaling in deze rekening gegenereerd.',
+            billPaymentAccount: {label: 'Rekening voor rekeningbetalingen', description: 'Kies vanwaar je rekeningen wilt betalen en wij maken de betaling aan in DualEntry.'},
+            syncExpensifyCardSettlements: 'Expensify Kaart-afrekeningen synchroniseren',
+            settlementAccount: {label: 'Rekening voor afwikkeling van Expensify Kaart', description: 'Kies je afwikkelingsrekening en wij maken de betaling aan in DualEntry.'},
+            syncTravelInvoicingSettlements: 'Reisfacturatie-afrekeningen synchroniseren',
+            travelInvoicingSettlementAccount: {label: 'Verrekeningsrekening voor reisfacturatie', description: 'Kies je afwikkelingsrekening en wij maken de betaling aan in DualEntry.'},
+            travelInvoicingPayableAccount: {label: 'Te betalen rekening voor reisfacturatie'},
         },
         type: {
             free: 'Gratis',
@@ -5992,6 +6030,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     comment: 'Omschrijving',
                     category: 'Categorie',
                     tag: 'Label',
+                    uniqueID: 'Unieke ID',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Wijs een kolom toe aan elk van de attributen: ${missingColumns}.`,
@@ -6469,7 +6508,12 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 defaultHourlyRate: 'Standaard uurtarief',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Om HR uit te schakelen, koppel eerst ${integration} los van deze workspace.`},
-            vendors: {title: 'Leveranciers', subtitle: 'Koppel kaartuitgaven aan leveranciers die zijn geïmporteerd uit je boekhoudsoftware.'},
+            vendors: {
+                title: 'Leveranciers',
+                subtitle: 'Koppel kaartuitgaven aan leveranciers die zijn geïmporteerd uit je boekhoudsoftware.',
+                disabledTitle: 'Niet zo snel...',
+                disabledMessage: 'Om deze functie in of uit te schakelen, moet je je boekhoudimportinstellingen wijzigen.',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
@@ -6980,7 +7024,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 },
             },
             connections: {
-                syncStageName: (stage, integrationName = 'QuickBooks Online') => {
+                syncStageName: (stage: PolicyConnectionSyncStage, integrationName = 'QuickBooks Online') => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -7002,11 +7046,11 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                             return 'Geïmporteerde gegevens verwerken';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
-                            return 'Rapporten met terugbetaling en rekeningbetalingen synchroniseren';
+                            return 'Gerapporteerde terugbetalingen en rekeningbetalingen synchroniseren';
                         case 'quickbooksOnlineSyncTaxCodes':
-                            return 'Belastingscodes importeren';
+                            return 'Belastingcodes importeren';
                         case 'quickbooksOnlineCheckConnection':
-                            return `${integrationName}-verbinding controleren`;
+                            return `Verbinding met ${integrationName} controleren`;
                         case 'quickbooksOnlineImportMain':
                             return `${integrationName}-gegevens importeren`;
                         case 'startingImportXero':
@@ -7019,13 +7063,13 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'quickbooksDesktopImportTitle':
                             return 'Titel importeren';
                         case 'quickbooksDesktopImportApproveCertificate':
-                            return 'Bevestigingscertificaat importeren';
+                            return 'Bezig met importeren van goedkeuringscertificaat';
                         case 'quickbooksDesktopImportDimensions':
                             return 'Dimensies importeren';
                         case 'quickbooksDesktopImportSavePolicy':
-                            return 'Beleid voor opslaan importeren';
+                            return 'Bezig met importeren van spaarbeleid';
                         case 'quickbooksDesktopWebConnectorReminder':
-                            return 'Nog steeds gegevens synchroniseren met QuickBooks... Zorg ervoor dat de Web Connector actief is';
+                            return 'Data wordt nog steeds met QuickBooks gesynchroniseerd... Zorg ervoor dat de Web Connector actief is';
                         case 'quickbooksOnlineSyncTitle':
                             return `${integrationName}-gegevens synchroniseren`;
                         case 'quickbooksOnlineSyncLoadData':
@@ -7049,7 +7093,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'xeroSyncImportCustomers':
                             return 'Klanten synchroniseren';
                         case 'xeroSyncXeroReimbursedReports':
-                            return 'Expensify-rapporten als vergoed gemarkeerd';
+                            return 'Expensify-rapporten markeren als vergoed';
                         case 'xeroSyncExpensifyReimbursedReports':
                             return 'Xero-facturen en -rekeningen als betaald markeren';
                         case 'xeroSyncImportTrackingCategories':
@@ -7077,7 +7121,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'netSuiteSyncAccounts':
                             return 'Accounts synchroniseren';
                         case 'netSuiteSyncCurrencies':
-                            return 'Valuta’s synchroniseren';
+                            return "Valuta's synchroniseren";
                         case 'netSuiteSyncCategories':
                             return 'Categorieën synchroniseren';
                         case 'netSuiteSyncReportFields':
@@ -7085,9 +7129,9 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'netSuiteSyncTags':
                             return 'Gegevens importeren als Expensify-tags';
                         case 'netSuiteSyncUpdateConnectionData':
-                            return 'Verbindingsgegevens bijwerken';
+                            return 'Verbindingsinformatie bijwerken';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
-                            return 'Expensify-rapporten als vergoed gemarkeerd';
+                            return 'Expensify-rapporten markeren als vergoed';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'NetSuite-facturen en -rekeningen als betaald markeren';
                         case 'netSuiteImportVendorsTitle':
@@ -7097,7 +7141,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'netSuiteSyncImportCustomLists':
                             return 'Aangepaste lijsten importeren';
                         case 'netSuiteSyncImportSubsidiaries':
-                            return 'Dochterondernemingen importeren';
+                            return 'Subondernemingen importeren';
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
                             return 'Leveranciers importeren';
@@ -7112,7 +7156,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'financialForceSyncStep':
                             return 'Certinia-verbinding synchroniseren';
                         case 'financialForceSyncCategories':
-                            return 'Categorieen importeren';
+                            return 'Categorieën importeren';
                         case 'financialForceSyncTags':
                             return 'Tags importeren';
                         case 'financialForceSyncVendors':
@@ -7126,7 +7170,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'financialForceSyncDimensions':
                             return 'Dimensies importeren';
                         case 'financialForceMarkAsReimbursed':
-                            return 'Rapporten als vergoed markeren';
+                            return 'Rapporten als terugbetaald markeren';
                         case 'rilletSyncTitle':
                             return 'Rillet-gegevens synchroniseren';
                         case 'rilletSyncConnection':
@@ -7139,6 +7183,12 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                             return 'Verbinding met DualEntry initialiseren';
                         case 'dualEntrySyncImportData':
                             return 'Gegevens laden';
+                        case 'dualEntrySyncPayments':
+                            return 'Leveranciersbetalingen synchroniseren';
+                        case 'dualEntrySyncCardSettlements':
+                            return 'Kaartafrekeningen synchroniseren';
+                        case 'dualEntrySyncTravelSettlements':
+                            return 'Reisafrekeningen synchroniseren';
                         default: {
                             return `Vertaling ontbreekt voor fase: ${stage}`;
                         }
@@ -7227,6 +7277,9 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
         distanceRates: {
             oopsNotSoFast: 'Oeps! Niet zo snel...',
             workspaceNeeds: 'Een workspace heeft minstens één ingeschakelde afstandstarief nodig.',
+            requireMapOrGPSDescription: 'Handmatige invoer en kilometertellerinvoer worden uitgeschakeld.',
+            requireMapOrGPSLockedByCommuterExclusions:
+                'Woon-werkverkeer uitsluiten heeft routedata nodig, dus een kaart- of GPS-afstand is altijd vereist zolang deze optie aanstaat. Om deze instelling te wijzigen, zet Woon-werkverkeer uitsluiten op ‘Woon-werkverkeer niet uitsluiten’.',
             commuterExclusions: {
                 title: 'Woon-werkverkeer uitsluiten',
                 summaryDisabled: 'Geen woon-werkuitzondering',
@@ -8236,6 +8289,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 confirmErrorCategory: 'Selecteer een categorie.',
                 confirmErrorAmount: 'Voer een bedrag in.',
                 thenFlagForReview: 'Vlag dan voor controle wanneer:',
+                thenDoTheFollowing: 'Doe dan het volgende:',
+                flagType: 'Vlagtype',
+                flagTypeWarning: 'Waarschuwing',
+                flagTypeWarningDescription: 'Indiener krijgt een waarschuwing, maar kan de uitgave nog steeds indienen',
             },
             agentRulesEmptyState: {title: 'Geen agentregels toegevoegd', subtitle: 'Maak een regel om je werkruimtebeleid te automatiseren.', cta: 'AI-regel toevoegen'},
             categoriesDisabledEmptyState: {title: 'Categorieën zijn niet ingeschakeld', subtitle: 'Schakel categorieën in om meer controle te krijgen over je uitgaven.'},
@@ -8604,7 +8661,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 case 'tags':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} labels`;
                 case 'workflows':
-                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'}-workflows`;
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} workflows`;
                 case 'distance rates':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} afstandstarieven`;
                 case 'accounting':
@@ -8612,11 +8669,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 case 'Expensify Cards':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} Expensify Kaarten`;
                 case 'travel invoicing':
-                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} Geconsolideerde reiskostenfacturatie`;
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} Geconsolideerde reisfacturatie`;
                 case 'company cards':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} bedrijfskaarten`;
                 case 'invoicing':
-                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} facturering`;
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} facturatie`;
                 case 'per diem':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} dagvergoeding`;
                 case 'receipt partners':
@@ -8625,6 +8682,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'}-regels`;
                 case 'tax tracking':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} belastingregistratie`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} vereisen GPS of kaartinvoer voor afstandstarieven`;
                 default:
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} ${featureName}`;
             }
@@ -9714,7 +9773,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         error: {
             selectSuggestedAddress: 'Selecteer een voorgesteld adres of gebruik de huidige locatie',
             mapOrGpsDistanceRequired: {
-                title: 'Afstand van kaart of GPS vereist',
+                title: 'GPS of kaartinvoer verplicht',
                 description: 'Deze workspace vereist afstandsdeclaraties die zijn gebaseerd op een kaart of via GPS worden bijgehouden.',
             },
         },

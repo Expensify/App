@@ -380,7 +380,7 @@ function WalletPage() {
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
 
         if (result.action === ModalActions.CONFIRM) {
@@ -468,7 +468,7 @@ function WalletPage() {
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         resetSelectedPaymentMethodData();
         if (result.action !== ModalActions.CONFIRM) {

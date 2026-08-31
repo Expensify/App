@@ -2858,8 +2858,6 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
                     url = nonReimbursableUrls.at(0)?.substring(0, nonReimbursableUrls.at(0)?.lastIndexOf('/')) ?? '';
                     break;
                 case CONST.EXPORT_LABELS.DUALENTRY:
-                    // s77rt Test in R2
-                    // https://github.com/Expensify/App/issues/97238
                     url = nonReimbursableUrls.at(0)?.substring(0, nonReimbursableUrls.at(0)?.lastIndexOf('/')) ?? '';
                     break;
                 default:
@@ -4799,13 +4797,15 @@ function getTravelNudgeMessage(translate: LocalizedTranslate, reportAction: Repo
     }
     const isCardCreated = originalMessage.origination === CONST.TRAVEL_NUDGE.ORIGINATION.CARD;
     switch (originalMessage.travelType) {
-        case CONST.RESERVATION_TYPE.FLIGHT:
+        case CONST.TRAVEL_NUDGE.TRAVEL_TYPE.FLIGHT:
             return translate(isCardCreated ? 'travel.nudge.airfareCard' : 'travel.nudge.airfareManual');
-        case CONST.RESERVATION_TYPE.HOTEL:
+        case CONST.TRAVEL_NUDGE.TRAVEL_TYPE.HOTEL:
             return translate(isCardCreated ? 'travel.nudge.hotelCard' : 'travel.nudge.hotelManual');
-        case CONST.RESERVATION_TYPE.CAR:
+        case CONST.TRAVEL_NUDGE.TRAVEL_TYPE.HOTEL_BLOCK:
+            return translate(isCardCreated ? 'travel.nudge.hotelBlockCard' : 'travel.nudge.hotelBlockManual');
+        case CONST.TRAVEL_NUDGE.TRAVEL_TYPE.CAR:
             return translate(isCardCreated ? 'travel.nudge.carCard' : 'travel.nudge.carManual');
-        case CONST.RESERVATION_TYPE.TRAIN:
+        case CONST.TRAVEL_NUDGE.TRAVEL_TYPE.TRAIN:
             return translate(isCardCreated ? 'travel.nudge.railCard' : 'travel.nudge.railManual');
         default:
             return '';
