@@ -6512,7 +6512,12 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 defaultHourlyRate: 'Taxa horária padrão',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Para desativar RH, desconecte primeiro a integração ${integration} deste workspace.`},
-            vendors: {title: 'Fornecedores', subtitle: 'Combine as despesas do cartão com fornecedores importados do seu software de contabilidade.'},
+            vendors: {
+                title: 'Fornecedores',
+                subtitle: 'Combine as despesas do cartão com fornecedores importados do seu software de contabilidade.',
+                disabledTitle: 'Calma lá...',
+                disabledMessage: 'Para ativar ou desativar este recurso, você precisará alterar suas configurações de importação contábil.',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Exemplos:',

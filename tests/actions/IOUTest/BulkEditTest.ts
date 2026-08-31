@@ -2317,6 +2317,316 @@ describe('actions/IOU/BulkEdit', () => {
             canEditFieldSpy.mockRestore();
             await Onyx.clear();
         });
+
+        it('writes attendees via UpdateMoneyRequestAttendees and updates the optimistic transaction', () => {
+            const transactionID = 'transaction-attendees-1';
+            const transactionThreadReportID = 'thread-attendees-1';
+            const iouReportID = 'iou-attendees-1';
+            const policy = {
+                ...createRandomPolicy(100, CONST.POLICY.TYPE.CORPORATE),
+                isAttendeeTrackingEnabled: true,
+            };
+
+            const transactionThread: Report = {
+                ...createRandomReport(100, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID: iouReportID,
+                policyID: policy.id,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(101, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(100),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID,
+                amount: -5000,
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    attendees: [{avatarUrl: '', displayName: 'Original Attendee', email: 'original@example.com'}],
+                },
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const nextAttendees = [
+                {avatarUrl: '', displayName: 'Alice', email: 'alice@example.com'},
+                {avatarUrl: '', displayName: 'Bob', email: 'bob@example.com'},
+            ];
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spying on API.write to assert the attendees command and optimistic data.
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
+                transactionIDs: [transactionID],
+                changes: {attendees: nextAttendees},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+                allPolicies: {
+                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy,
+                },
+            });
+
+            expect(writeSpy).toHaveBeenCalledTimes(1);
+            expect(writeSpy.mock.calls.at(0)?.[0]).toBe('UpdateMoneyRequestAttendees');
+            expect(writeSpy.mock.calls.at(0)?.[1]).toEqual(
+                expect.objectContaining({
+                    transactionID,
+                    reportID: iouReportID,
+                    attendees: JSON.stringify([
+                        {avatarUrl: '', displayName: 'Alice', email: 'alice@example.com'},
+                        {avatarUrl: '', displayName: 'Bob', email: 'bob@example.com'},
+                    ]),
+                }),
+            );
+            expect(writeSpy.mock.calls.at(0)?.[2]).toEqual(
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                            value: expect.objectContaining({
+                                comment: expect.objectContaining({attendees: nextAttendees}),
+                                pendingFields: expect.objectContaining({attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                            }),
+                        }),
+                    ]),
+                }),
+            );
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('omits reportActionID for attendees-only edits when the transaction thread was created only locally', () => {
+            const transactionID = 'transaction-attendees-no-thread-1';
+            const iouReportID = 'iou-attendees-no-thread-1';
+            const policy = {
+                ...createRandomPolicy(102, CONST.POLICY.TYPE.CORPORATE),
+                isAttendeeTrackingEnabled: true,
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(104, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(102),
+                transactionID,
+                reportID: iouReportID,
+                amount: -5000,
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    attendees: [{avatarUrl: '', displayName: 'Original Attendee', email: 'original@example.com'}],
+                },
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const nextAttendees = [{avatarUrl: '', displayName: 'Alice', email: 'alice@example.com'}];
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spying on API.write to assert attendees params omit phantom reportActionID.
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
+                transactionIDs: [transactionID],
+                changes: {attendees: nextAttendees},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+                allPolicies: {
+                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy,
+                },
+            });
+
+            expect(writeSpy).toHaveBeenCalledTimes(1);
+            expect(writeSpy.mock.calls.at(0)?.[0]).toBe('UpdateMoneyRequestAttendees');
+            expect(writeSpy.mock.calls.at(0)?.[1]).toEqual({
+                transactionID,
+                reportID: iouReportID,
+                attendees: JSON.stringify([{avatarUrl: '', displayName: 'Alice', email: 'alice@example.com'}]),
+            });
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('writes generic fields and attendees as separate commands when both change', () => {
+            const transactionID = 'transaction-attendees-mixed-1';
+            const transactionThreadReportID = 'thread-attendees-mixed-1';
+            const iouReportID = 'iou-attendees-mixed-1';
+            const policy = {
+                ...createRandomPolicy(101, CONST.POLICY.TYPE.CORPORATE),
+                isAttendeeTrackingEnabled: true,
+            };
+
+            const transactionThread: Report = {
+                ...createRandomReport(102, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID: iouReportID,
+                policyID: policy.id,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(103, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(101),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID,
+                amount: -5000,
+                currency: CONST.CURRENCY.USD,
+                category: 'Travel',
+                comment: {
+                    attendees: [{avatarUrl: '', displayName: 'Original Attendee', email: 'original@example.com'}],
+                },
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const nextAttendees = [{avatarUrl: '', displayName: 'Alice', email: 'alice@example.com'}];
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spying on API.write to assert both persist commands.
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
+                transactionIDs: [transactionID],
+                changes: {category: 'Meals', attendees: nextAttendees},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+                allPolicies: {
+                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy,
+                },
+            });
+
+            expect(writeSpy).toHaveBeenCalledTimes(2);
+            expect(writeSpy.mock.calls.at(0)?.[0]).toBe('UpdateMoneyRequest');
+            expect(writeSpy.mock.calls.at(0)?.[1]).toEqual(
+                expect.objectContaining({
+                    transactionID,
+                    updates: JSON.stringify({category: 'Meals'}),
+                }),
+            );
+            expect(writeSpy.mock.calls.at(1)?.[0]).toBe('UpdateMoneyRequestAttendees');
+            expect(writeSpy.mock.calls.at(1)?.[1]).toEqual(
+                expect.objectContaining({
+                    transactionID,
+                    reportID: iouReportID,
+                    attendees: JSON.stringify([{avatarUrl: '', displayName: 'Alice', email: 'alice@example.com'}]),
+                }),
+            );
+
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+            const anyError: unknown = expect.anything();
+            expect(writeSpy.mock.calls.at(0)?.[2]).toEqual(
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: transactionKey,
+                            value: expect.objectContaining({comment: {}, pendingFields: {category: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}),
+                        }),
+                    ]),
+                    successData: expect.arrayContaining([expect.objectContaining({key: transactionKey, value: {pendingFields: {category: null}}})]),
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: transactionKey,
+                            value: expect.objectContaining({comment: {}, pendingFields: {category: null}, errorFields: expect.objectContaining({category: anyError})}),
+                        }),
+                    ]),
+                }),
+            );
+
+            expect(writeSpy.mock.calls.at(1)?.[2]).toEqual(
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: transactionKey,
+                            value: expect.objectContaining({
+                                comment: {attendees: nextAttendees},
+                                pendingFields: {attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            }),
+                        }),
+                    ]),
+                    successData: [expect.objectContaining({key: transactionKey, value: {pendingFields: {attendees: null}}})],
+                    failureData: [
+                        expect.objectContaining({
+                            key: transactionKey,
+                            value: expect.objectContaining({
+                                comment: {attendees: transaction.comment?.attendees},
+                                pendingFields: {attendees: null},
+                                errorFields: expect.objectContaining({attendees: anyError}),
+                            }),
+                        }),
+                    ],
+                }),
+            );
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
     });
 
     describe('bulk edit draft transaction', () => {
