@@ -17,7 +17,7 @@ index 2b5f16b..f716161 100644
 -    if (getMainJsRuntime() != rt) {
 +    if (getMainJsRuntime() == rt) {
 +      // Release the primary cache here, while the runtime is still valid, instead
-+      // of in ~RuntimeAwareCache which may run later (main queue) after the
++      // of in ~RuntimeAwareCache, which may run later on the main queue after the
 +      // runtime is freed -> UAF. See patches/@shopify/react-native-skia.
 +      std::lock_guard<std::mutex> lock(_primaryCacheMutex);
 +      if (!_primaryCacheHandled) {

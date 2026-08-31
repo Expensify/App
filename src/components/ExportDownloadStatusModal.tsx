@@ -1,3 +1,4 @@
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -109,6 +110,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     };
 
     const isNonDismissible = isPreparing;
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: isSmallScreenWidth, addOfflineIndicatorBottomSafeAreaPadding: false, style: styles.m5});
 
     const renderContent = () => {
         if (isPreparing) {
@@ -244,8 +246,9 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
             shouldTreatModalAsCovering
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View style={styles.m5}>{renderContent()}</View>
+            <View style={bottomSafeAreaPaddingStyle}>{renderContent()}</View>
         </Modal>
     );
 }
