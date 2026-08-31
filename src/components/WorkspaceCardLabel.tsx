@@ -1,3 +1,4 @@
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -70,8 +71,14 @@ function WorkspaceCardLabel({title, description, displayValue, valueStyle, value
     const styles = useThemeStyles();
     const theme = useTheme();
     const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match Popover's dock decision (bottom-docked only when isSmallScreenWidth)
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Info']);
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: isSmallScreenWidth,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
+        style: [styles.p4, styles.pb4],
+    });
 
     const [isVisible, setVisible] = useState(false);
     const [anchorPosition, setAnchorPosition] = useState({top: 0, left: 0});
@@ -128,8 +135,9 @@ function WorkspaceCardLabel({title, description, displayValue, valueStyle, value
                 innerContainerStyle={!shouldUseNarrowLayout ? styles.cardLabelTooltipContainer : undefined}
                 anchorRef={anchorRef}
                 anchorPosition={anchorPosition}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <View style={styles.p4}>
+                <View style={bottomSafeAreaPaddingStyle}>
                     <Text
                         numberOfLines={1}
                         style={[styles.optionDisplayName, styles.textStrong, styles.mb2]}
