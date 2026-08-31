@@ -14,6 +14,7 @@ import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -64,8 +65,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const {showConfirmModal} = useConfirmModal();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
-    const isGlobalReimbursementsBetaEnabled = isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS);
-    const isGlobalReimbursementFXBetaEnabled = isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENT_FX);
+    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
     const isWalletConnectionStatusBetaEnabled = isBetaEnabled(CONST.BETAS.WALLET_CONNECTION_STATUS);
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -90,7 +90,6 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const {showLockedAccountModal} = useLockedAccountActions();
 
     const isSubmitPolicyWorkspace = isSubmitPolicy(policy);
-    const canAccessWalletConnectionStatusFeatures = isSubmitPolicyWorkspace && isWalletConnectionStatusBetaEnabled;
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
 
     const policyReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
@@ -163,7 +162,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const bankAccountCurrency = bankAccountConnectedToWorkspace?.bankCurrency || bankAccountConnectedToWorkspace?.accountData?.additionalData?.currency;
-    const bankConnectionStatus = canAccessWalletConnectionStatusFeatures ? getBankAccountConnectionStatus(state, bankAccountCurrency) : undefined;
+    const bankConnectionStatus = isWalletConnectionStatusBetaEnabled ? getBankAccountConnectionStatus(state, bankAccountCurrency) : undefined;
     const bankConnectionBrickRoadIndicator = bankConnectionStatus?.brickRoadIndicator ?? (hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
     const bankConnectionStatusAddon = bankConnectionStatus ? (
         <ConnectionStatusBadge
@@ -174,8 +173,10 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     ) : undefined;
     const bankConnectionMessage = bankConnectionStatus?.messageKey ? translate(bankConnectionStatus.messageKey) : undefined;
     const bankConnectionActionText = bankConnectionStatus?.actionKey ? translate(bankConnectionStatus.actionKey) : undefined;
-    const bankBadgeIcon = !canAccessWalletConnectionStatusFeatures && (isAccountInSetupState || (isBusinessBankAccountLocked && canWritePayments)) ? expensifyIcons.DotIndicator : undefined;
-    const canInteractWithBankAccountRow = canWritePayments && !isOffline;
+    const canInteractWithBankAccountRow = canWritePayments && !isOffline && !isBankAccountPendingDelete;
+    // Only the reimburser can send the unlock request, so a locked account offers no action to anyone else rather than
+    // an Unlock button that would instead start connecting a different bank account.
+    const canPerformBankAccountAction = !isBusinessBankAccountLocked || isUserReimburser;
 
     const updateWorkspaceCurrencyPrompt = (
         <View style={[styles.renderHTML, styles.flexRow]}>
@@ -209,7 +210,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     };
 
     let bankAccountMenuItemOnPress: React.ComponentProps<typeof MenuItem>['onPress'];
-    if (canAccessWalletConnectionStatusFeatures) {
+    if (isWalletConnectionStatusBetaEnabled) {
         bankAccountMenuItemOnPress = canInteractWithBankAccountRow ? handleBankAccountPress : undefined;
     } else {
         bankAccountMenuItemOnPress = canWritePayments ? handleBankAccountPress : undefined;
@@ -226,14 +227,13 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
         iconStyles: bankIcon.iconStyles,
         titleStyle: isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined,
         descriptionTextStyle: isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined,
-        disabled: isOffline || !canWritePayments,
         sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT,
-        shouldShowRightIcon: canWritePayments,
-        interactive: canWritePayments,
         shouldGreyOutWhenDisabled: !policy?.pendingFields?.reimbursementChoice,
-        ...(canAccessWalletConnectionStatusFeatures
+        ...(isWalletConnectionStatusBetaEnabled
             ? {
-                  badgeIcon: bankBadgeIcon,
+                  disabled: isOffline || !canWritePayments || isBankAccountPendingDelete,
+                  shouldShowRightIcon: canWritePayments && !isBankAccountPendingDelete,
+                  interactive: canWritePayments && !isBankAccountPendingDelete,
                   descriptionAddon: bankConnectionStatusAddon,
                   shouldRemoveBackground: true,
                   shouldRemoveHoverBackground: true,
@@ -241,8 +241,11 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                   brickRoadIndicator: bankConnectionMessage ? undefined : bankConnectionBrickRoadIndicator,
               }
             : {
-                  badgeText: getBadgeText(accountData?.state),
+                  disabled: isOffline || !canWritePayments,
+                  shouldShowRightIcon: canWritePayments,
+                  interactive: canWritePayments,
                   badgeIcon: isAccountInSetupState || (isBusinessBankAccountLocked && canWritePayments) ? expensifyIcons.DotIndicator : undefined,
+                  badgeText: getBadgeText(accountData?.state),
                   isBadgeSuccess: isAccountInSetupState,
                   isBadgeError: isBusinessBankAccountLocked && canWritePayments,
                   wrapperStyle: [styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3],
@@ -295,7 +298,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             <View style={[styles.sectionMenuItemTopDescription, styles.mt5, styles.pb1, styles.pt1]}>
                                 <Text style={[styles.textLabelSupportingNormal, styles.colorMuted]}>{translate('workflowsPayerPage.paymentAccount')}</Text>
                             </View>
-                            {canAccessWalletConnectionStatusFeatures ? (
+                            {isWalletConnectionStatusBetaEnabled ? (
                                 <Hoverable>
                                     {(isHovered) => (
                                         <View style={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3, isHovered && styles.hoveredComponentBG]}>
@@ -305,7 +308,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                                                     <ConnectionStatusMessage
                                                         message={bankConnectionMessage}
                                                         actionText={bankConnectionActionText}
-                                                        onActionPress={canInteractWithBankAccountRow ? handleBankAccountPress : undefined}
+                                                        onActionPress={canWritePayments && canPerformBankAccountAction ? handleBankAccountPress : undefined}
                                                         isActionDisabled={!canInteractWithBankAccountRow}
                                                         statusTone="danger"
                                                         shouldIncludeHorizontalPadding={false}
@@ -391,32 +394,29 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             />
                         </OfflineWithFeedback>
                     )}
-                    {policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES &&
-                        canWritePayments &&
-                        isGlobalReimbursementsBetaEnabled &&
-                        isGlobalReimbursementFXBetaEnabled && (
-                            <OfflineWithFeedback
-                                pendingAction={policy?.pendingFields?.globalReimbursementFXPreferCompany}
-                                errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
-                                onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
-                                errorRowStyles={[styles.mt3]}
-                            >
-                                <MenuItemWithTopDescription
-                                    title={
-                                        policy?.globalReimbursementFXPreferCompany
-                                            ? translate('workflowsCurrencyConversionFeesPage.companyPays')
-                                            : translate('workflowsCurrencyConversionFeesPage.employeePays')
-                                    }
-                                    titleStyle={styles.textNormalThemeText}
-                                    descriptionTextStyle={styles.textLabelSupportingNormal}
-                                    description={translate('workflowsCurrencyConversionFeesPage.title')}
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES.getRoute(policyID))}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.CURRENCY_CONVERSION_FEES}
-                                    shouldShowRightIcon
-                                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                                />
-                            </OfflineWithFeedback>
-                        )}
+                    {policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && canWritePayments && isGlobalReimbursementFXEnabled && (
+                        <OfflineWithFeedback
+                            pendingAction={policy?.pendingFields?.globalReimbursementFXPreferCompany}
+                            errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
+                            onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
+                            errorRowStyles={[styles.mt3]}
+                        >
+                            <MenuItemWithTopDescription
+                                title={
+                                    policy?.globalReimbursementFXPreferCompany
+                                        ? translate('workflowsCurrencyConversionFeesPage.companyPays')
+                                        : translate('workflowsCurrencyConversionFeesPage.employeePays')
+                                }
+                                titleStyle={styles.textNormalThemeText}
+                                descriptionTextStyle={styles.textLabelSupportingNormal}
+                                description={translate('workflowsCurrencyConversionFeesPage.title')}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES.getRoute(policyID))}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.CURRENCY_CONVERSION_FEES}
+                                shouldShowRightIcon
+                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                            />
+                        </OfflineWithFeedback>
+                    )}
                 </>
             }
             isActive={policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO}

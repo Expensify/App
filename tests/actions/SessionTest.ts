@@ -12,6 +12,7 @@ import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
+import * as NetworkStore from '@libs/Network/NetworkStore';
 import {setHasRadio} from '@libs/NetworkState';
 import PushNotification from '@libs/Notification/PushNotification';
 import {isRecord} from '@libs/ObjectUtils';
@@ -35,6 +36,7 @@ import {openAuthSessionAsync} from 'expo-web-browser';
 import {clearTokenRefresh, removeAllFromAutoprefetch} from 'react-native-nitro-fetch';
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -798,6 +800,60 @@ describe('Session', () => {
         });
     });
 
+    describe('validateTwoFactorAuth', () => {
+        test('forced onboarding path updates auth token before clearing Onyx without openApp', async () => {
+            const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({
+                authToken: 'newAuthToken',
+                encryptedAuthToken: 'newEncryptedAuthToken',
+            });
+            const setAuthTokenSpy = jest.spyOn(NetworkStore, 'setAuthToken');
+            const multiSetSpy = jest.spyOn(Onyx, 'multiSet').mockResolvedValue(undefined);
+            const clearSpy = jest.spyOn(Onyx, 'clear').mockResolvedValue(undefined);
+            const writeWithNoDuplicatesSpy = jest.spyOn(API, 'writeWithNoDuplicatesConflictAction').mockResolvedValue(undefined);
+
+            SessionUtil.validateTwoFactorAuth('123456', false, {shouldKeepTwoFactorAuthFlowOpen: true});
+            await waitForBatchedUpdates();
+
+            expect(makeRequestSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.TWO_FACTOR_AUTH_VALIDATE, {twoFactorAuthCode: '123456'}, expect.any(Object));
+            expect(setAuthTokenSpy).toHaveBeenCalledWith('newAuthToken');
+            expect(setAuthTokenSpy.mock.invocationCallOrder.at(0)).toBeLessThan(multiSetSpy.mock.invocationCallOrder.at(0) ?? Number.MAX_SAFE_INTEGER);
+            expect(multiSetSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    [ONYXKEYS.ACCOUNT]: {
+                        requiresTwoFactorAuth: true,
+                        twoFactorAuthSetupInProgress: true,
+                        needsTwoFactorAuthSetup: false,
+                        isLoading: false,
+                    },
+                    [ONYXKEYS.NVP_ONBOARDING]: {
+                        hasCompletedGuidedSetupFlow: false,
+                    },
+                }),
+            );
+            expect(clearSpy).toHaveBeenCalled();
+            expect(clearSpy.mock.calls.at(0)?.at(0)).toEqual(
+                expect.arrayContaining([
+                    ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                    ONYXKEYS.NVP_ONBOARDING,
+                    ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
+                    ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
+                    ONYXKEYS.ONBOARDING_COMPANY_SIZE,
+                    ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
+                    ONYXKEYS.ACCOUNT,
+                    ONYXKEYS.SESSION,
+                ]),
+            );
+            // openApp must stay deferred until DynamicSuccessPage Got it
+            expect(writeWithNoDuplicatesSpy).not.toHaveBeenCalled();
+
+            makeRequestSpy.mockRestore();
+            setAuthTokenSpy.mockRestore();
+            multiSetSpy.mockRestore();
+            clearSpy.mockRestore();
+            writeWithNoDuplicatesSpy.mockRestore();
+        });
+    });
+
     describe('clearTwoFactorAuthSecretKey', () => {
         test('removes twoFactorAuthSecretKey from account state', async () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {twoFactorAuthSecretKey: 'SOMESECRETKEY123'});
@@ -1093,6 +1149,45 @@ describe('Session', () => {
 
         test('returns false when session is undefined', () => {
             expect(SessionUtil.isSupportAuthToken(undefined)).toBe(false);
+        });
+    });
+
+    describe('GPS trip on the sign in redirect', () => {
+        const gpsTrip = {
+            gpsPoints: [[{lat: 1, long: 2}]],
+            distanceInMeters: 100,
+            isTracking: true,
+            reportID: '1',
+            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+        };
+
+        beforeEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        test('keeps the in-progress trip when a SAML re-auth forces the redirect', async () => {
+            await TestHelper.signInWithTestUser();
+            const accountID = (await getOnyxValue(ONYXKEYS.SESSION))?.accountID;
+            await Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {...gpsTrip, accountID});
+            await waitForBatchedUpdates();
+
+            await SignInRedirect.default(undefined, true);
+            await waitForBatchedUpdates();
+
+            const draft = await getOnyxValue(ONYXKEYS.GPS_DRAFT_DETAILS);
+            expect(draft?.isTracking).toBe(true);
+            expect(draft?.accountID).toBe(accountID);
+        });
+
+        test('discards the in-progress trip on a sign out redirect', async () => {
+            await TestHelper.signInWithTestUser();
+            await Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, gpsTrip);
+            await waitForBatchedUpdates();
+
+            await SignInRedirect.default();
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.GPS_DRAFT_DETAILS)).toBeUndefined();
         });
     });
 

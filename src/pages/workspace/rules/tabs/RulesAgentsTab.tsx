@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
@@ -26,9 +27,10 @@ type RulesAgentsTabProps = {
     policyID: string;
     canWriteRules: boolean;
     showReadOnlyModal: () => void;
+    headerComponent?: React.ReactElement;
 };
 
-function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgentsTabProps) {
+function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal, headerComponent}: RulesAgentsTabProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -58,29 +60,32 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
         return (
             <ScrollView
                 style={[styles.flex1, styles.mnh0]}
-                contentContainerStyle={[styles.flexGrow1, styles.flexShrink0, styles.justifyContentCenter, styles.w100]}
+                contentContainerStyle={[styles.flexGrow1, styles.flexShrink0, styles.w100]}
                 addBottomSafeAreaPadding
             >
-                <GenericEmptyStateComponent
-                    headerMedia={illustrations.AgentsIceCream}
-                    headerStyles={styles.emptyStateCardIllustrationContainer}
-                    headerContentStyles={styles.agentsRulesEmptyStateIllustration}
-                    title={translate('workspace.rules.agentRulesEmptyState.title')}
-                    subtitle={translate('workspace.rules.agentRulesEmptyState.subtitle')}
-                    subtitleStyles={[styles.textLabel, styles.textSupporting]}
-                    minModalHeight={0}
-                    cardContentStyles={styles.ph0}
-                    containerStyles={[styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)]}
-                    buttons={[
-                        {
-                            buttonText: translate('workspace.rules.agentRulesEmptyState.cta'),
-                            buttonAction: handleAddAgentRule,
-                            success: true,
-                            icon: icons.Plus,
-                            isDisabled: !canWriteRules,
-                        },
-                    ]}
-                />
+                {headerComponent}
+                <View style={[styles.flexGrow1, styles.justifyContentCenter, styles.w100]}>
+                    <GenericEmptyStateComponent
+                        headerMedia={illustrations.AgentsIceCream}
+                        headerStyles={styles.emptyStateCardIllustrationContainer}
+                        headerContentStyles={styles.agentsRulesEmptyStateIllustration}
+                        title={translate('workspace.rules.agentRulesEmptyState.title')}
+                        subtitle={translate('workspace.rules.agentRulesEmptyState.subtitle')}
+                        subtitleStyles={[styles.textLabel, styles.textSupporting]}
+                        minModalHeight={0}
+                        cardContentStyles={styles.ph0}
+                        containerStyles={[styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)]}
+                        buttons={[
+                            {
+                                buttonText: translate('workspace.rules.agentRulesEmptyState.cta'),
+                                buttonAction: handleAddAgentRule,
+                                buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+                                icon: icons.Plus,
+                                isDisabled: !canWriteRules,
+                            },
+                        ]}
+                    />
+                </View>
             </ScrollView>
         );
     }
@@ -91,6 +96,7 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
             contentContainerStyle={[styles.flexGrow1, styles.w100]}
             addBottomSafeAreaPadding
         >
+            {headerComponent}
             <View style={[styles.w100, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                 <Section
                     isCentralPane

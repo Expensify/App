@@ -46,8 +46,9 @@ const billingGraceEndPeriod: BillingGraceEndPeriod = {
     value: 0,
 };
 
-const GRACE_PERIOD_DATE = new Date().getTime() + 1000 * 3600;
-const GRACE_PERIOD_DATE_OVERDUE = new Date().getTime() - 1000;
+// The grace period NVPs hold unix seconds, matching what the backend writes
+const GRACE_PERIOD_DATE = getUnixTime(new Date()) + 3600;
+const GRACE_PERIOD_DATE_OVERDUE = getUnixTime(new Date()) - 1;
 
 const AMOUNT_OWED = 100;
 const stripeCustomerId = STRIPE_CUSTOMER_ID;
@@ -690,7 +691,7 @@ describe('SubscriptionUtils', () => {
         it('should return undefined by default', () => {
             const stripeCustomerIdForDefault: Partial<OnyxEntry<StripeCustomerID>> = {};
             // @ts-expect-error - This is a test case
-            expect(getSubscriptionStatus(stripeCustomerIdForDefault, false, undefined, undefined, undefined, undefined, 0, undefined)).toBeUndefined();
+            expect(getSubscriptionStatus(stripeCustomerIdForDefault, false, undefined, undefined, undefined, undefined, 0, undefined, undefined)).toBeUndefined();
         });
 
         it('should return POLICY_OWNER_WITH_AMOUNT_OWED status', async () => {
@@ -698,7 +699,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: AMOUNT_OWED,
             });
 
-            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE, undefined)).toEqual({
                 status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED,
                 isError: true,
             });
@@ -709,7 +710,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: AMOUNT_OWED,
             });
 
-            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE_OVERDUE)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE_OVERDUE, undefined)).toEqual({
                 status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
                 isError: true,
             });
@@ -720,7 +721,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
             });
 
-            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, 0, GRACE_PERIOD_DATE_OVERDUE)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, 0, GRACE_PERIOD_DATE_OVERDUE, undefined)).toEqual({
                 status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE,
                 isError: true,
             });
@@ -731,8 +732,29 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
             });
 
-            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, 0, GRACE_PERIOD_DATE)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, 0, GRACE_PERIOD_DATE, undefined)).toEqual({
                 status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
+                isError: true,
+            });
+        });
+
+        it('should return OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE status while still inside the travel grace period', () => {
+            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, 0, undefined, GRACE_PERIOD_DATE)).toEqual({
+                status: PAYMENT_STATUS.OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE,
+                isError: true,
+            });
+        });
+
+        it('should return OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE_LOCKED status once the travel grace period has passed', () => {
+            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, 0, undefined, GRACE_PERIOD_DATE_OVERDUE)).toEqual({
+                status: PAYMENT_STATUS.OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE_LOCKED,
+                isError: true,
+            });
+        });
+
+        it('should rank an overdue travel invoice above the subscription grace period status', () => {
+            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE, GRACE_PERIOD_DATE)).toEqual({
+                status: PAYMENT_STATUS.OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE,
                 isError: true,
             });
         });
@@ -742,7 +764,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 1,
             });
 
-            expect(getSubscriptionStatus(stripeCustomerId, false, 1, undefined, undefined, undefined, 0, undefined)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false, 1, undefined, undefined, undefined, 0, undefined, undefined)).toEqual({
                 status: PAYMENT_STATUS.BILLING_DISPUTE_PENDING,
                 isError: true,
             });
@@ -755,7 +777,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]: STRIPE_CUSTOMER_ID,
             });
 
-            expect(getSubscriptionStatus(stripeCustomerId, false, 0, undefined, undefined, undefined, 0, undefined)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false, 0, undefined, undefined, undefined, 0, undefined, undefined)).toEqual({
                 status: PAYMENT_STATUS.CARD_AUTHENTICATION_REQUIRED,
                 isError: true,
             });
@@ -768,7 +790,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: BILLING_STATUS_INSUFFICIENT_FUNDS,
             });
 
-            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, BILLING_STATUS_INSUFFICIENT_FUNDS, AMOUNT_OWED, undefined)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, BILLING_STATUS_INSUFFICIENT_FUNDS, AMOUNT_OWED, undefined, undefined)).toEqual({
                 status: PAYMENT_STATUS.INSUFFICIENT_FUNDS,
                 isError: true,
             });
@@ -787,7 +809,7 @@ describe('SubscriptionUtils', () => {
             };
 
             // @ts-expect-error - This is a test case
-            expect(getSubscriptionStatus(stripeCustomerIdForCardExpired, false, undefined, undefined, undefined, BILLING_STATUS_EXPIRED_CARD, AMOUNT_OWED, undefined)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerIdForCardExpired, false, undefined, undefined, undefined, BILLING_STATUS_EXPIRED_CARD, AMOUNT_OWED, undefined, undefined)).toEqual({
                 status: PAYMENT_STATUS.CARD_EXPIRED,
                 isError: true,
             });
@@ -807,7 +829,7 @@ describe('SubscriptionUtils', () => {
             };
 
             // @ts-expect-error - This is a test case
-            expect(getSubscriptionStatus(stripeCustomerIdForCardExpireSoon, false, undefined, undefined, FUND_LIST, {}, 0, undefined)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerIdForCardExpireSoon, false, undefined, undefined, FUND_LIST, {}, 0, undefined, undefined)).toEqual({
                 status: PAYMENT_STATUS.CARD_EXPIRE_SOON,
             });
         });
@@ -824,7 +846,7 @@ describe('SubscriptionUtils', () => {
                 currency: 'USD',
             };
             // @ts-expect-error - This is a test case
-            expect(getSubscriptionStatus(stripeCustomerIdForRetryBillingSuccess, true, undefined, undefined, {}, undefined, 0, undefined)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerIdForRetryBillingSuccess, true, undefined, undefined, {}, undefined, 0, undefined, undefined)).toEqual({
                 status: PAYMENT_STATUS.RETRY_BILLING_SUCCESS,
                 isError: false,
             });
@@ -843,7 +865,7 @@ describe('SubscriptionUtils', () => {
                 currency: 'USD',
             };
             // @ts-expect-error - This is a test case
-            expect(getSubscriptionStatus(stripeCustomerIdForRetryBillingError, false, undefined, true, {}, undefined, 0, undefined)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerIdForRetryBillingError, false, undefined, true, {}, undefined, 0, undefined, undefined)).toEqual({
                 status: PAYMENT_STATUS.RETRY_BILLING_ERROR,
                 isError: true,
             });
@@ -888,7 +910,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: AMOUNT_OWED,
             });
 
-            expect(hasSubscriptionRedDotError(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE)).toBeTruthy();
+            expect(hasSubscriptionRedDotError(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE, undefined)).toBeTruthy();
         });
 
         it('should return false when there is no subscription status error', () => {
@@ -898,7 +920,7 @@ describe('SubscriptionUtils', () => {
                 currency: 'USD',
                 status: 'succeeded',
             };
-            expect(hasSubscriptionRedDotError(stripeCustomerIdWithNoError, false, undefined, undefined, undefined, undefined, 0, undefined)).toBeFalsy();
+            expect(hasSubscriptionRedDotError(stripeCustomerIdWithNoError, false, undefined, undefined, undefined, undefined, 0, undefined, undefined)).toBeFalsy();
         });
     });
 
@@ -923,11 +945,11 @@ describe('SubscriptionUtils', () => {
                 currency: 'USD',
             };
             // @ts-expect-error - This is a test case
-            expect(hasSubscriptionGreenDotInfo(stripeCustomerIdForRetryBillingSuccess, true, undefined, undefined, {}, undefined, 0, undefined)).toBeTruthy();
+            expect(hasSubscriptionGreenDotInfo(stripeCustomerIdForRetryBillingSuccess, true, undefined, undefined, {}, undefined, 0, undefined, undefined)).toBeTruthy();
         });
 
         it('should return false when there is no subscription status or isError is true', () => {
-            expect(hasSubscriptionGreenDotInfo(stripeCustomerId, false, undefined, undefined, undefined, undefined, 0, undefined)).toBeFalsy();
+            expect(hasSubscriptionGreenDotInfo(stripeCustomerId, false, undefined, undefined, undefined, undefined, 0, undefined, undefined)).toBeFalsy();
         });
     });
 
@@ -942,7 +964,7 @@ describe('SubscriptionUtils', () => {
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, AMOUNT_OWED);
 
             // Pass ownerBillingGracePeriodEnd as parameter instead of Onyx
-            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE, undefined)).toEqual({
                 status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED,
                 isError: true,
             });
@@ -953,7 +975,7 @@ describe('SubscriptionUtils', () => {
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, AMOUNT_OWED);
 
             // Pass overdue ownerBillingGracePeriodEnd as parameter
-            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE_OVERDUE)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE_OVERDUE, undefined)).toEqual({
                 status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
                 isError: true,
             });
@@ -964,7 +986,7 @@ describe('SubscriptionUtils', () => {
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 0);
 
             // Pass ownerBillingGracePeriodEnd as parameter
-            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, 0, GRACE_PERIOD_DATE)).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, 0, GRACE_PERIOD_DATE, undefined)).toEqual({
                 status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
                 isError: true,
             });
@@ -974,7 +996,7 @@ describe('SubscriptionUtils', () => {
             // No Onyx value set, no parameter passed
             const stripeCustomerIdForDefault: Partial<OnyxEntry<StripeCustomerID>> = {};
             // @ts-expect-error - This is a test case
-            expect(getSubscriptionStatus(stripeCustomerIdForDefault, false, undefined, undefined, undefined, undefined, 0, undefined)).toBeUndefined();
+            expect(getSubscriptionStatus(stripeCustomerIdForDefault, false, undefined, undefined, undefined, undefined, 0, undefined, undefined)).toBeUndefined();
         });
     });
 
@@ -989,7 +1011,7 @@ describe('SubscriptionUtils', () => {
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, AMOUNT_OWED);
 
             // Pass ownerBillingGracePeriodEnd as parameter - should return true (isError)
-            expect(hasSubscriptionRedDotError(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE)).toBe(true);
+            expect(hasSubscriptionRedDotError(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE, undefined)).toBe(true);
         });
 
         it('should return true when overdue grace period is passed as parameter with amount owed', async () => {
@@ -997,7 +1019,7 @@ describe('SubscriptionUtils', () => {
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, AMOUNT_OWED);
 
             // Pass overdue ownerBillingGracePeriodEnd as parameter - should return true (isError)
-            expect(hasSubscriptionRedDotError(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE_OVERDUE)).toBe(true);
+            expect(hasSubscriptionRedDotError(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE_OVERDUE, undefined)).toBe(true);
         });
 
         it('should return true when grace period is passed as parameter without amount owed (under invoicing)', async () => {
@@ -1005,19 +1027,19 @@ describe('SubscriptionUtils', () => {
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 0);
 
             // Pass ownerBillingGracePeriodEnd as parameter - should return true (isError for under invoicing)
-            expect(hasSubscriptionRedDotError(stripeCustomerId, false, undefined, undefined, undefined, undefined, 0, GRACE_PERIOD_DATE)).toBe(true);
+            expect(hasSubscriptionRedDotError(stripeCustomerId, false, undefined, undefined, undefined, undefined, 0, GRACE_PERIOD_DATE, undefined)).toBe(true);
         });
 
         it('should return false when no grace period is passed and none is set in Onyx', () => {
             // No Onyx value set, no parameter passed
             const stripeCustomerIdForDefault: Partial<OnyxEntry<StripeCustomerID>> = {};
             // @ts-expect-error - This is a test case
-            expect(hasSubscriptionRedDotError(stripeCustomerIdForDefault, false, undefined, undefined, undefined, undefined, 0, undefined)).toBe(false);
+            expect(hasSubscriptionRedDotError(stripeCustomerIdForDefault, false, undefined, undefined, undefined, undefined, 0, undefined, undefined)).toBe(false);
         });
 
         it('should return true when billing dispute is pending regardless of grace period', async () => {
             // Billing dispute pending should return error
-            expect(hasSubscriptionRedDotError(stripeCustomerId, false, 1, undefined, undefined, undefined, 0, undefined)).toBe(true);
+            expect(hasSubscriptionRedDotError(stripeCustomerId, false, 1, undefined, undefined, undefined, 0, undefined, undefined)).toBe(true);
         });
     });
 
@@ -1032,14 +1054,14 @@ describe('SubscriptionUtils', () => {
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, AMOUNT_OWED);
 
             // Pass ownerBillingGracePeriodEnd as parameter - should return false (isError=true means not green dot)
-            expect(hasSubscriptionGreenDotInfo(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE)).toBe(false);
+            expect(hasSubscriptionGreenDotInfo(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE, undefined)).toBe(false);
         });
 
         it('should return false when no subscription status is returned', () => {
             // No Onyx value set, no parameter passed - undefined status means not green dot
             const stripeCustomerIdForDefault: Partial<OnyxEntry<StripeCustomerID>> = {};
             // @ts-expect-error - This is a test case
-            expect(hasSubscriptionGreenDotInfo(stripeCustomerIdForDefault, false, undefined, undefined, undefined, undefined, 0, undefined)).toBe(false);
+            expect(hasSubscriptionGreenDotInfo(stripeCustomerIdForDefault, false, undefined, undefined, undefined, undefined, 0, undefined, undefined)).toBe(false);
         });
 
         it('should return true when retry billing is successful (non-error state)', async () => {
@@ -1054,12 +1076,12 @@ describe('SubscriptionUtils', () => {
                 currency: 'USD',
             };
             // @ts-expect-error - This is a test case
-            expect(hasSubscriptionGreenDotInfo(stripeCustomerIdForSuccess, true, undefined, undefined, {}, undefined, 0, undefined)).toBe(true);
+            expect(hasSubscriptionGreenDotInfo(stripeCustomerIdForSuccess, true, undefined, undefined, {}, undefined, 0, undefined, undefined)).toBe(true);
         });
 
         it('should return false when billing dispute is pending (error state)', async () => {
             // Billing dispute pending should return error, not green dot
-            expect(hasSubscriptionGreenDotInfo(stripeCustomerId, false, 1, undefined, undefined, undefined, 0, undefined)).toBe(false);
+            expect(hasSubscriptionGreenDotInfo(stripeCustomerId, false, 1, undefined, undefined, undefined, 0, undefined, undefined)).toBe(false);
         });
     });
 
@@ -1082,6 +1104,11 @@ describe('SubscriptionUtils', () => {
         it('should return false when no grace period is passed and none is set in Onyx', () => {
             // No Onyx value set, no parameter passed
             expect(hasGracePeriodOverdue(undefined)).toBe(false);
+        });
+
+        it('should treat the grace period as unix seconds rather than milliseconds', () => {
+            // Read as milliseconds this lands in 1970 and every future grace period looks overdue
+            expect(hasGracePeriodOverdue(getUnixTime(addDays(new Date(), 30)))).toBe(false);
         });
     });
 
@@ -1287,7 +1314,8 @@ describe('SubscriptionUtils', () => {
         };
 
         const translateImplementation: LocalizedTranslate = (key, ...parameters) => {
-            const remainingDays = parameters.at(0);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const remainingDays = (parameters.at(0) as {count?: number} | undefined)?.count;
             if (key === 'subscription.billingBanner.trialStarted.title' && typeof remainingDays === 'number') {
                 return `trialStarted:${remainingDays}`;
             }
@@ -1332,7 +1360,7 @@ describe('SubscriptionUtils', () => {
             const expectedRemainingDays = calculateRemainingFreeTrialDays(lastDayFreeTrial);
             const result = getFreeTrialText(accountID, translate, ownedPaidPolicies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
 
-            expect(translateMock).toHaveBeenCalledWith('subscription.billingBanner.trialStarted.title', expectedRemainingDays);
+            expect(translateMock).toHaveBeenCalledWith('subscription.billingBanner.trialStarted.title', {count: expectedRemainingDays});
             expect(result).toBe(`trialStarted:${expectedRemainingDays}`);
         });
 

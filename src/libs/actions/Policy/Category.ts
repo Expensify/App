@@ -271,15 +271,27 @@ function isDefaultMccGroupID(groupID: string): groupID is DefaultMccGroupID {
     return Object.hasOwn(CONST.POLICY.DEFAULT_MCC_GROUPS, groupID);
 }
 
+/**
+ * Picks the right translation key for an import result. The four cases (neither, added only, updated
+ * only, both) live here rather than in the translation files so each key carries a single `count` and
+ * can be pluralized per locale -- a translation function receiving two independent counts cannot be.
+ */
 function getImportCategoriesFinalModal({added, updated}: {added: number; updated: number}): ImportFinalModal {
-    return {
-        titleKey: 'spreadsheet.importSuccessfulTitle',
-        promptKey: 'spreadsheet.importCategoriesSuccessfulDescription',
-        promptKeyParams: {
-            added,
-            updated,
-        },
-    };
+    const titleKey = 'spreadsheet.importSuccessfulTitle' as const;
+
+    if (!added && !updated) {
+        return {titleKey, promptKey: 'spreadsheet.importCategoriesNoneAddedOrUpdated'};
+    }
+
+    if (added && updated) {
+        return {titleKey, promptKey: 'spreadsheet.importCategoriesAddedAndUpdated', promptKeyParams: {added, updated}};
+    }
+
+    if (added) {
+        return {titleKey, promptKey: 'spreadsheet.importCategoriesAdded', promptKeyParams: {count: added}};
+    }
+
+    return {titleKey, promptKey: 'spreadsheet.importCategoriesUpdated', promptKeyParams: {count: updated}};
 }
 
 function openPolicyCategoriesPage(policyID: string) {
@@ -1210,7 +1222,8 @@ function setPolicyCategoryGLCode(policyID: string, categoryName: string, glCode:
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CATEGORY_GL_CODE, parameters, onyxData);
 }
 
-function setWorkspaceRequiresCategory(policyData: PolicyData, requiresCategory: boolean) {
+/** Pass shouldRecomputeViolations = false when tag Required changes in the same save: each recompute SETs violations from the pre-save snapshot, so two overwrite each other. */
+function setWorkspaceRequiresCategory(policyData: PolicyData, requiresCategory: boolean, shouldRecomputeViolations = true) {
     const policyID = policyData.policy?.id;
     const policyOptimisticData: Partial<Policy> = {
         requiresCategory,
@@ -1259,7 +1272,9 @@ function setWorkspaceRequiresCategory(policyData: PolicyData, requiresCategory: 
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData);
+    if (shouldRecomputeViolations) {
+        pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData);
+    }
 
     const parameters = {
         policyID,
