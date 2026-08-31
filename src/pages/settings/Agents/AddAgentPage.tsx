@@ -135,16 +135,24 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
             : createAgent(firstName, prompt, ownerAccountID, ownerLogin, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined, policyID);
 
         clearNewAgentTemplate();
-        clearNewAgentAvatarDraft();
+
+        // Not useResponsiveLayout: this page itself lives inside the RHP modal stack, so
+        // shouldUseNarrowLayout/isSmallScreenWidth from that hook would always read as "narrow"
+        // regardless of window size. getIsNarrowLayout() reflects the actual window width.
+        const isNarrowLayout = getIsNarrowLayout();
+        if (!isNarrowLayout) {
+            clearNewAgentAvatarDraft();
+        }
 
         optimisticPersonalDetailPromise.then(() => {
-            // Not useResponsiveLayout: this page itself lives inside the RHP modal stack, so
-            // shouldUseNarrowLayout/isSmallScreenWidth from that hook would always read as "narrow"
-            // regardless of window size. getIsNarrowLayout() reflects the actual window width.
-            if (getIsNarrowLayout()) {
+            if (isNarrowLayout) {
                 // Reveal the DM under the modal before dismissing so we navigate directly to it in one animation,
                 // instead of dismissing to the agents list first and navigating to the DM afterward.
-                Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, ROUTES.SETTINGS_AGENTS));
+                Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, ROUTES.SETTINGS_AGENTS), {
+                    afterTransition: () => {
+                        clearNewAgentAvatarDraft();
+                    },
+                });
                 return;
             }
 

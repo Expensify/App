@@ -179,6 +179,16 @@ const mockRevealRouteBeforeDismissingModal = jest.mocked(Navigation.revealRouteB
 const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 const mockUseOnyx = jest.mocked(useOnyx);
 
+function getRevealAfterTransition(): () => void {
+    const options: unknown = mockRevealRouteBeforeDismissingModal.mock.calls.at(0)?.at(1);
+    if (!options || typeof options !== 'object' || !('afterTransition' in options) || typeof options.afterTransition !== 'function') {
+        throw new Error('Expected reveal afterTransition callback');
+    }
+    return () => {
+        options.afterTransition();
+    };
+}
+
 type AddAgentRouteProp = PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
 
 function makeRoute(params: AddAgentRouteProp['params'] = {}): AddAgentRouteProp {
@@ -314,8 +324,6 @@ describe('AddAgentPage', () => {
 
         const beforeRemoveHandler = captureBeforeRemoveHandler();
         mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
-        // The submit path already cleared the draft once; the close handler must not clear it again.
-        mockClearNewAgentAvatarDraft.mockClear();
         beforeRemoveHandler?.();
 
         expect(mockClearNewAgentAvatarDraft).not.toHaveBeenCalled();
@@ -334,11 +342,17 @@ describe('AddAgentPage', () => {
 
             expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', OWNER_ACCOUNT_ID, OWNER_LOGIN, 'bot-avatar--blue', undefined, undefined, undefined);
             expect(mockClearNewAgentTemplate).toHaveBeenCalledTimes(1);
-            expect(mockClearNewAgentAvatarDraft).toHaveBeenCalledTimes(1);
+            expect(mockClearNewAgentAvatarDraft).not.toHaveBeenCalled();
             expect(mockRevealRouteBeforeDismissingModal).not.toHaveBeenCalled();
             resolveOptimisticPersonalDetail?.();
             await Promise.resolve();
-            expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(OPTIMISTIC_REPORT_ID, undefined, undefined, ROUTES.SETTINGS_AGENTS));
+            expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledWith(
+                ROUTES.REPORT_WITH_ID.getRoute(OPTIMISTIC_REPORT_ID, undefined, undefined, ROUTES.SETTINGS_AGENTS),
+                expect.anything(),
+            );
+            expect(mockClearNewAgentAvatarDraft).not.toHaveBeenCalled();
+            getRevealAfterTransition()();
+            expect(mockClearNewAgentAvatarDraft).toHaveBeenCalledTimes(1);
         });
 
         it('forwards policyID from route params to createAgent', async () => {
@@ -349,7 +363,11 @@ describe('AddAgentPage', () => {
             expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', OWNER_ACCOUNT_ID, OWNER_LOGIN, 'bot-avatar--blue', undefined, undefined, 'POL_42');
             resolveOptimisticPersonalDetail?.();
             await Promise.resolve();
-            expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(OPTIMISTIC_REPORT_ID, undefined, undefined, ROUTES.SETTINGS_AGENTS));
+            expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledWith(
+                ROUTES.REPORT_WITH_ID.getRoute(OPTIMISTIC_REPORT_ID, undefined, undefined, ROUTES.SETTINGS_AGENTS),
+                expect.anything(),
+            );
+            expect(getRevealAfterTransition()).toEqual(expect.any(Function));
         });
 
         it('opens the DM in the RHP on wide layouts instead of the fullscreen report', async () => {
@@ -360,6 +378,7 @@ describe('AddAgentPage', () => {
 
             expect(mockRevealRouteBeforeDismissingModal).not.toHaveBeenCalled();
             expect(mockNavigate).not.toHaveBeenCalled();
+            expect(mockClearNewAgentAvatarDraft).toHaveBeenCalledTimes(1);
             resolveOptimisticPersonalDetail?.();
             await Promise.resolve();
             expect(mockNavigate).toHaveBeenCalledWith(ROUTES.AGENT_REPORT.getRoute(OPTIMISTIC_REPORT_ID), {forceReplace: true});
