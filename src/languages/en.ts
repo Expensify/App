@@ -8319,6 +8319,10 @@ const translations = {
                 confirmErrorCategory: 'Please select a category.',
                 confirmErrorAmount: 'Please enter an amount.',
                 thenFlagForReview: 'Then flag for review when:',
+                thenDoTheFollowing: 'Then do the following:',
+                flagType: 'Flag type',
+                flagTypeWarning: 'Warning',
+                flagTypeWarningDescription: 'Submitter will be warned, but can still submit expense',
             },
             categoryRules: {
                 title: 'Category rules',
@@ -9492,6 +9496,7 @@ const translations = {
             approved: 'Approved',
             firstApprover: 'First approver',
             firstApproved: 'First approved',
+            paidBy: 'Paid by',
             paid: 'Paid',
             exported: 'Exported',
             posted: 'Posted',

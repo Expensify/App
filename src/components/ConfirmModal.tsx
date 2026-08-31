@@ -108,6 +108,12 @@ type ConfirmModalProps = {
     /** Styles for the image */
     imageStyles?: StyleProp<ViewStyle>;
 
+    /** Image width */
+    imageWidth?: number;
+
+    /** Image height */
+    imageHeight?: number;
+
     /** Whether to fit the image to the container */
     shouldFitImageToContainer?: boolean;
 
@@ -169,6 +175,8 @@ function ConfirmModal({
     onConfirm,
     image,
     imageStyles,
+    imageWidth,
+    imageHeight,
     shouldFitImageToContainer = false,
     iconWidth,
     iconHeight,
@@ -247,6 +255,8 @@ function ConfirmModal({
                 shouldReverseStackedButtons={shouldReverseStackedButtons}
                 image={image}
                 imageStyles={imageStyles}
+                imageWidth={imageWidth}
+                imageHeight={imageHeight}
                 shouldFitImageToContainer={shouldFitImageToContainer}
                 isConfirmLoading={isConfirmLoading}
                 isTitleLoading={isTitleLoading}

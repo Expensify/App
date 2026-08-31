@@ -8374,6 +8374,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 confirmErrorCategory: 'Veuillez sélectionner une catégorie.',
                 confirmErrorAmount: 'Veuillez saisir un montant.',
                 thenFlagForReview: 'Puis signaler pour examen lorsque :',
+                thenDoTheFollowing: 'Puis procédez comme suit :',
+                flagType: 'Type de signalement',
+                flagTypeWarning: 'Avertissement',
+                flagTypeWarningDescription: 'Le déclarant sera averti, mais pourra toujours soumettre la dépense',
             },
             agentRulesEmptyState: {
                 title: 'Aucune règle d’agent ajoutée',
@@ -9377,6 +9381,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             approved: 'Approuvé',
             firstApprover: 'Premier approbateur',
             firstApproved: 'Approuvé en premier',
+            paidBy: 'Payé par',
             paid: 'Payé',
             exported: 'Exporté',
             posted: 'Publié',

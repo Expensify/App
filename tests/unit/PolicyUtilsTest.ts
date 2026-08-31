@@ -1085,6 +1085,80 @@ describe('PolicyUtils', () => {
             });
         });
     });
+    describe('getSubmitReportManagerAccountID', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+        it('should return undefined for an advanced policy where the submitter is missing from the employee list, even if the report has a valid managerID', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                approver: 'owner@test.com',
+                owner: 'owner@test.com',
+                // The submitter isn't in the employee list, which is the case for reports migrated from Expensify Classic.
+                employeeList: {},
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                ownerAccountID: employeeAccountID,
+                // The stale Classic-era manager stamped on the migrated report.
+                managerID: categoryApprover1AccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail)).toBeUndefined();
+        });
+        it('should return the known approver accountID when the policy route is reliable', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                approver: 'owner@test.com',
+                owner: 'owner@test.com',
+                employeeList,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                ownerAccountID: employeeAccountID,
+                managerID: categoryApprover1AccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail)).toBe(adminAccountID);
+        });
+        it('should return undefined instead of a generated accountID when the approver is missing from personal details', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                approver: 'owner@test.com',
+                owner: 'owner@test.com',
+                employeeList: {
+                    [employeeEmail]: {
+                        email: employeeEmail,
+                        role: 'user',
+                        submitsTo: 'unknown@test.com',
+                    },
+                    // The approver is still a policy member, so the submit-to route stays put instead of falling back to the default approver.
+                    'unknown@test.com': {
+                        email: 'unknown@test.com',
+                        role: 'user',
+                    },
+                },
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                ownerAccountID: employeeAccountID,
+                managerID: categoryApprover1AccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail)).toBeUndefined();
+        });
+    });
     describe('shouldShowPolicy', () => {
         beforeEach(() => {
             global.fetch = TestHelper.getGlobalFetchMock();

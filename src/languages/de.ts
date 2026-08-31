@@ -8352,6 +8352,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus.',
                 confirmErrorAmount: 'Bitte geben Sie einen Betrag ein.',
                 thenFlagForReview: 'Dann zur Überprüfung kennzeichnen, wenn:',
+                thenDoTheFollowing: 'Führen Sie dann Folgendes aus:',
+                flagType: 'Markierungstyp',
+                flagTypeWarning: 'Warnung',
+                flagTypeWarningDescription: 'Die einreichende Person wird gewarnt, kann die Ausgabe aber trotzdem einreichen',
             },
             agentRulesEmptyState: {
                 title: 'Keine Agentenregeln hinzugefügt',
@@ -9348,6 +9352,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             approved: 'Genehmigt',
             firstApprover: 'Erste:r Genehmiger:in',
             firstApproved: 'Zuerst genehmigt',
+            paidBy: 'Bezahlt von',
             paid: 'Bezahlt',
             exported: 'Exportiert',
             posted: 'Gebucht',

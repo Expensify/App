@@ -100,6 +100,9 @@ const DYNAMIC_ROUTES = {
             SCREENS.SETTINGS.WALLET.ROOT,
             SCREENS.SETTINGS.ADD_BANK_ACCOUNT,
             SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS,
+            SCREENS.WORKSPACE.COMPANY_CARDS,
+            SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED,
+            SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS,
             SCREENS.HOME,
             SCREENS.SEARCH.ROOT,
             SCREENS.REPORT,
@@ -157,10 +160,15 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.SEARCH.ROOT,
         ],
-        // Entry points that already know the user is adding a personal deposit account (e.g. a queued reimbursement) pass true so the
-        // bank account purpose screen isn't shown after validation.
-        getRoute: (shouldSkipPurposeSelection?: boolean) => `add-bank-account/verify-account${shouldSkipPurposeSelection ? '?shouldSkipPurposeSelection=true' : ''}` as const,
-        queryParams: ['shouldSkipPurposeSelection'],
+        // Entry points that already know the user is adding a personal deposit account (e.g. a queued reimbursement).
+        getRoute: (shouldSkipPurposeSelection?: boolean, shouldSetUpUSBankAccount?: boolean) =>
+            getUrlWithParams('add-bank-account/verify-account', {
+                // If true the bank account purpose screen isn't shown after validation
+                shouldSkipPurposeSelection: shouldSkipPurposeSelection ? 'true' : undefined,
+                // If true US bank account setup flow must be started after validation
+                shouldSetUpUSBankAccount: shouldSetUpUSBankAccount ? 'true' : undefined,
+            }),
+        queryParams: ['shouldSkipPurposeSelection', 'shouldSetUpUSBankAccount'],
     },
     BANK_ACCOUNT_VERIFY_ACCOUNT: {
         path: 'verify-bank-account',
@@ -3463,11 +3471,6 @@ const ROUTES = {
     WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION: {
         route: 'workspaces/:policyID/company-cards/:feed/refresh-card-feed-connection',
         getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) => `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/refresh-card-feed-connection` as const,
-    },
-    WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT: {
-        route: `workspaces/:policyID/company-cards/${VERIFY_ACCOUNT}`,
-        getRoute: (policyID: string, feed?: CompanyCardFeedWithDomainID) =>
-            feed ? (`workspaces/${policyID}/company-cards/${VERIFY_ACCOUNT}?feed=${encodeURIComponent(feed)}` as const) : (`workspaces/${policyID}/company-cards/${VERIFY_ACCOUNT}` as const),
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION: {
         route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/card-selection',
