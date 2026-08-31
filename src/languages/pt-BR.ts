@@ -7207,8 +7207,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             defaultVendor: 'Fornecedor padrão',
             defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
                 isSet || !fallbackVendorName
-                    ? `Despesas que não forem correspondidas automaticamente terão este fornecedor como padrão.`
-                    : `Despesas que não forem conciliadas automaticamente serão atribuídas a este fornecedor por padrão. Caso contrário, serão exportadas como ${fallbackVendorName}`,
+                    ? `Despesas que não forem conciliadas automaticamente serão atribuídas a este fornecedor por padrão.`
+                    : `Despesas que não forem conciliadas automaticamente terão este fornecedor como padrão. Caso contrário, serão exportadas como ${fallbackVendorName}`,
             defaultVendorSelectHeader: `Escolha um fornecedor padrão para despesas que não sejam correspondidas automaticamente.`,
             defaultAccount: 'Conta padrão',
             autoSync: 'Sincronização automática',

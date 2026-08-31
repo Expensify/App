@@ -7129,9 +7129,9 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             defaultVendor: 'デフォルトのベンダー',
             defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
                 isSet || !fallbackVendorName
-                    ? `自動照合されない経費は、デフォルトでこのベンダーに割り当てられます。`
-                    : `自動照合されない経費は、デフォルトでこのベンダーに割り当てられます。それ以外は「${fallbackVendorName}」としてエクスポートされます。`,
-            defaultVendorSelectHeader: `自動的に照合されない経費に対して使用する、デフォルトの仕入先を選択します。`,
+                    ? `自動マッチしない経費は、デフォルトでこのベンダーに割り当てられます。`
+                    : `自動マッチしない経費はデフォルトでこのベンダーになります。それ以外は、${fallbackVendorName} としてエクスポートされます`,
+            defaultVendorSelectHeader: `自動的に一致しない経費に使用するデフォルトの取引先を選択します。`,
             defaultAccount: 'デフォルトのアカウント',
             autoSync: '自動同期',
             autoSyncDescription: 'NetSuite と Expensify を毎日自動で同期。確定したレポートをリアルタイムでエクスポート',
