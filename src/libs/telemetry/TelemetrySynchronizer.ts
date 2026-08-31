@@ -42,6 +42,7 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         if (!value?.email) {
+            session = undefined;
             handleAccountChange();
             return;
         }
@@ -57,7 +58,7 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (value) => {
-        if (!value) {
+        if (!value || !session?.email) {
             return;
         }
         policies = value;
@@ -69,7 +70,7 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (value) => {
-        if (!value) {
+        if (!value || !session?.email) {
             return;
         }
         const reportsCount = Object.keys(value).length;
@@ -81,7 +82,7 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
-        if (!value) {
+        if (!value || !session?.email) {
             return;
         }
         const personalDetailsCount = Object.keys(value).length;
@@ -94,6 +95,9 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     callback: (value) => {
+        if (!value && !session?.email) {
+            return;
+        }
         // An account can have zero transactions, which Onyx delivers as undefined. Count it as 0 so the zero cohort stays in the data.
         const transactionsCount = Object.keys(value ?? {}).length;
         sendTransactionsCount(transactionsCount);
