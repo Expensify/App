@@ -167,6 +167,7 @@ import {
     isOneOnOneChat as reportUtilsIsOneOnOneChat,
     isPolicyExpenseChat as reportUtilsIsPolicyExpenseChat,
     isSelfDM as reportUtilsIsSelfDM,
+    isSystemChat as reportUtilsIsSystemChat,
     isTaskReport as reportUtilsIsTaskReport,
     shouldReportBeInOptionList,
     shouldShowMarkAsDone,
@@ -2356,6 +2357,7 @@ function getUserToInviteOption({
         [optimisticAccountID]: {
             accountID: optimisticAccountID,
             login: searchValue,
+            displayName: displayValue,
         },
     };
     const userToInvite = createOption({
@@ -3652,6 +3654,23 @@ function shouldUseBoldText(report: SearchOptionData): boolean {
 }
 
 /**
+ * Whether the LHN option title is rendered as-is instead of the participant display names.
+ */
+function shouldUseFullTitleForOption(option: OptionData): boolean {
+    return (
+        !!option.isChatRoom ||
+        !!option.isPolicyExpenseChat ||
+        !!option.isTaskReport ||
+        !!option.isThread ||
+        !!option.isMoneyRequestReport ||
+        !!option.isInvoiceReport ||
+        !!option.private_isArchived ||
+        reportUtilsIsGroupChat(option) ||
+        reportUtilsIsSystemChat(option)
+    );
+}
+
+/**
  * Process a search string into normalized search terms
  * @param searchString - The raw search string to process
  * @returns Array of normalized search terms
@@ -3705,6 +3724,7 @@ export {
     orderWorkspaceOptions,
     recentReportComparator,
     shouldUseBoldText,
+    shouldUseFullTitleForOption,
     sortAlphabetically,
     personalDetailsComparator,
     processSearchString,
