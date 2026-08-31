@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -15,6 +16,7 @@ import {close} from '@libs/actions/Modal';
 import {getLatestError} from '@libs/ErrorUtils';
 import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 
@@ -34,7 +36,7 @@ import {View} from 'react-native';
 
 import type {PopoverMenuItem} from './PopoverMenu';
 
-import Avatar from './Avatar';
+import UserAvatar from './Avatar/UserAvatar';
 import Button from './ButtonComposed';
 import {ModalActions} from './Modal/Global/ModalContext';
 import PopoverMenu from './PopoverMenu';
@@ -47,6 +49,8 @@ type AccountSwitcherProps = {
     /* Whether the screen is focused. Used to hide the product training tooltip */
     isScreenFocused: boolean;
 };
+
+const filterMenuItem = (item: PopoverMenuItem, searchInput: string) => tokenizedSearch([item], searchInput, (option) => [option.text, option.description ?? '']).length > 0;
 
 function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -80,7 +84,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
 
     const isActingAsDelegate = !!delegate;
     const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
-    const displayName = currentUserPersonalDetails?.displayName ?? '';
+    const displayName = currentUserPersonalDetails.displayName ?? '';
     const doesDisplayNameContainEmojis = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g')).test(displayName);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
@@ -195,9 +199,37 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         };
     };
 
-    const menuItems = (): PopoverMenuItem[] => {
-        const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true});
+    const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true});
+    const delegatorMenuItems: PopoverMenuItem[] = sortAlphabetically(
+        delegators
+            .filter(({email}) => email !== currentUserPersonalDetails.login)
+            .map(({email, role}) => {
+                const errorFields = account?.delegatedAccess?.errorFields ?? {};
+                const error = getLatestError(errorFields?.connect?.[email]);
+                const personalDetails = personalDetailsByLogin[email];
+                return createBaseMenuItem(personalDetails, error, {
+                    badgeText: translate('delegate.role', role),
+                    onSelected: () => {
+                        if (isOffline) {
+                            close(showOfflineModal);
+                            return;
+                        }
+                        if (isTrackingGPS) {
+                            close(() => showGpsInProgressModal(() => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID})));
+                            return;
+                        }
+                        connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
+                    },
+                });
+            }),
+        'text',
+        localeCompare,
+    );
+    const allMenuItems = [currentUserMenuItem, ...delegatorMenuItems];
+    const [searchInput, setSearchInput, filteredMenuItems] = useSearchResults(allMenuItems, filterMenuItem);
+    const shouldShowSearchInput = !isActingAsDelegate && delegatorMenuItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
+    const menuItems = (): PopoverMenuItem[] => {
         if (isActingAsDelegate) {
             // Avoid duplicating the current user in the list when switching accounts
             if (delegate === currentUserPersonalDetails.login) {
@@ -226,37 +258,12 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
             ];
         }
 
-        const delegatorMenuItems: PopoverMenuItem[] = sortAlphabetically(
-            delegators
-                .filter(({email}) => email !== currentUserPersonalDetails.login)
-                .map(({email, role}) => {
-                    const errorFields = account?.delegatedAccess?.errorFields ?? {};
-                    const error = getLatestError(errorFields?.connect?.[email]);
-                    const personalDetails = personalDetailsByLogin[email];
-                    return createBaseMenuItem(personalDetails, error, {
-                        badgeText: translate('delegate.role', role),
-                        onSelected: () => {
-                            if (isOffline) {
-                                close(showOfflineModal);
-                                return;
-                            }
-                            if (isTrackingGPS) {
-                                close(() => showGpsInProgressModal(() => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID})));
-                                return;
-                            }
-                            connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
-                        },
-                    });
-                }),
-            'text',
-            localeCompare,
-        );
-
-        return [currentUserMenuItem, ...delegatorMenuItems];
+        return shouldShowSearchInput ? filteredMenuItems : allMenuItems;
     };
 
     const hideDelegatorMenu = () => {
         setShouldShowDelegatorMenu(false);
+        setSearchInput('');
         clearDelegatorErrors({delegatedAccess: account?.delegatedAccess});
     };
 
@@ -264,11 +271,10 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         <>
             <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flexGrow1, styles.flex1, styles.mnw0]}>
                 <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flex1, styles.flexShrink1, styles.mnw0, styles.justifyContentCenter]}>
-                    <Avatar
-                        type={CONST.ICON_TYPE_AVATAR}
+                    <UserAvatar
                         size={CONST.AVATAR_SIZE.DEFAULT}
-                        avatarID={currentUserPersonalDetails?.accountID}
-                        source={currentUserPersonalDetails?.avatar}
+                        accountID={currentUserPersonalDetails.accountID}
+                        source={currentUserPersonalDetails.avatar}
                         fallbackIcon={currentUserPersonalDetails.fallbackIcon}
                     />
                     <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
@@ -291,7 +297,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                             numberOfLines={1}
                             style={[styles.colorMuted, styles.fontSizeLabel]}
                         >
-                            {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
+                            {Str.removeSMSDomain(currentUserPersonalDetails.login ?? '')}
                         </Text>
                         {!!isDebugModeEnabled && (
                             <Text
@@ -334,10 +340,17 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     }}
                     menuItems={menuItems()}
                     headerText={translate('delegate.switchAccount')}
-                    containerStyles={[{maxHeight: windowHeight / 2}, styles.mw100, shouldUseNarrowLayout ? {} : styles.wFitContent]}
+                    searchInputLabel={shouldShowSearchInput ? translate('workspace.people.findMember') : undefined}
+                    searchInputValue={searchInput}
+                    onSearchInputChange={setSearchInput}
+                    shouldShowSearchEmptyState={shouldShowSearchInput && filteredMenuItems.length === 0 && searchInput.length > 0}
+                    searchInputContainerStyle={styles.mb2}
+                    containerStyles={[{maxHeight: windowHeight / 2}, styles.mw100, shouldUseNarrowLayout ? {} : styles.accountSwitcherPopover]}
                     headerStyles={styles.pt0}
                     innerContainerStyle={styles.pb0}
+                    scrollContainerStyle={shouldShowSearchInput ? styles.pt0 : undefined}
                     shouldUseScrollView
+                    shouldAddScrollViewTopItemSpacing={!shouldShowSearchInput}
                     shouldUpdateFocusedIndex={false}
                     enableEdgeToEdgeBottomSafeAreaPadding
                     shouldShowRadioButton
