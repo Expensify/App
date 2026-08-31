@@ -43,6 +43,7 @@ import type {
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type ChronosTimeTracking from './ChronosTimeTracking';
+import type CloudflareSession from './CloudflareSession';
 import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
 import type CompanyCardsLoadingState from './CompanyCardsLoadingState';
 import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
@@ -54,6 +55,7 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
+import type DatabaseSizeMeasurement from './DatabaseSizeMeasurement';
 import type {
     CardFeedErrorsDerivedValue,
     LoginToAccountIDMapDerivedValue,
@@ -166,6 +168,7 @@ import type Request from './Request';
 import type {AnyRequest} from './Request';
 import type Response from './Response';
 import type ReviewDuplicates from './ReviewDuplicates';
+import type Rule from './Rule';
 import type {SavedCSVColumnLayoutData, SavedCSVColumnLayoutList} from './SavedCSVColumnLayout';
 import type {SaveSearch} from './SaveSearch';
 import type ScheduleCallDraft from './ScheduleCallDraft';
@@ -238,6 +241,7 @@ export type {
     Currency,
     CurrencyList,
     CustomStatusDraft,
+    DatabaseSizeMeasurement,
     UnshareBankAccount,
     DismissedReferralBanners,
     Domain,
@@ -320,6 +324,7 @@ export type {
     RecentlyUsedTags,
     ReimbursementAccount,
     Report,
+    Rule,
     ReportNameValuePairs,
     ReportAction,
     ReportActionReactions,
@@ -439,6 +444,7 @@ export type {
     DomainPendingActions,
     DomainSecurityGroup,
     ChronosTimeTracking,
+    CloudflareSession,
     CodingRuleMatchingTransaction,
     UserSecurityGroupData,
     DeviceBiometrics,
