@@ -1981,6 +1981,7 @@ const CONST = {
         DEFAULT_EXPENSE_REPORT_NAME: 'New Report',
         PERMISSIONS: {
             READ: 'read',
+            COMMENT: 'comment',
             WRITE: 'write',
             SHARE: 'share',
             OWN: 'own',
@@ -5547,6 +5548,7 @@ const CONST = {
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
         REIMBURSABLE: 'reimbursable',
+        ATTENDEES: 'attendees',
         BILLABLE: 'billable',
         REPORT: 'report',
     },
