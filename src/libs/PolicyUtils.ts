@@ -46,8 +46,6 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 
-import type {MemberForList} from './OptionsListUtils';
-
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
@@ -56,9 +54,9 @@ import {getApiRoot} from './ApiUtils';
 import {getCategoryApproverRule, hasAnyCategoryRules} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import {getHRAdvancedModeFinalApprover, isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from './HRUtils';
+import isTeachersUnitePolicyID from './isTeachersUnitePolicyID';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
-import {formatMemberForList} from './OptionsListUtils';
 import {getAccountIDsByLogins, getKnownAccountIDByLogin, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {generateAccountID} from './UserUtils';
@@ -100,6 +98,15 @@ function isPolicyFieldListEmpty(policy: OnyxEntry<Policy>): boolean {
  */
 function isArchivedPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return !!policy?.archivedDate;
+}
+
+/**
+ * Whether the policy is archived or is optimistically pending deletion. Deleting a workspace
+ * archives it on the backend, but the optimistic data only sets pendingAction, so report state
+ * transitions must also treat a pending delete as archived while the request is in flight.
+ */
+function isArchivedOrPendingDeletePolicy(policy: OnyxInputOrEntry<Policy>): boolean {
+    return isArchivedPolicy(policy) || policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 /**
@@ -444,28 +451,6 @@ function getEligibleBankAccountShareRecipientEmails(policies: OnyxCollection<Pol
     return Array.from(recipientEmails);
 }
 
-/** Return members who can receive a shared bank account from the current user. */
-function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): MemberForList[] {
-    return getEligibleBankAccountShareRecipientEmails(policies, currentUserLogin, bankAccountID).flatMap((email) => {
-        const personalDetails = getPersonalDetailByEmail(email);
-        if (!personalDetails) {
-            return [];
-        }
-
-        return [
-            formatMemberForList({
-                text: personalDetails.displayName,
-                alternateText: personalDetails.login,
-                keyForList: personalDetails.login ?? String(personalDetails.accountID),
-                accountID: personalDetails.accountID,
-                login: personalDetails.login,
-                pendingAction: personalDetails.pendingAction,
-                reportID: '',
-            }),
-        ];
-    });
-}
-
 /** Return whether the current user has someone they can share a bank account with. */
 function hasEligibleBankAccountShareRecipient(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): boolean {
     return getEligibleBankAccountShareRecipientEmails(policies, currentUserLogin, bankAccountID).length > 0;
@@ -701,6 +686,19 @@ function getReimburserEmail(policy: OnyxEntry<Policy>): string | undefined {
 
     return policy.reimburser ?? policy.achAccount?.reimburser ?? (isManualReimbursement ? policy.owner : undefined);
 }
+
+/**
+ * Whether the given role is allowed to pay (reimburse) on a workspace.
+ */
+function canRolePay(role: string | undefined): boolean {
+    return !!role && ROLE_PERMISSION_BUNDLES[role]?.[CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS] === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
+}
+
+/**
+ * The roles that are allowed to pay (reimburse) on a workspace, derived from the WORKFLOWS_PAYMENTS permission. The
+ * Authorized Payer (reimburser) must always hold one of these, so any role change for a payer is restricted to this set.
+ */
+const PAYER_ROLES = Object.values(CONST.POLICY.ROLE).filter(canRolePay);
 
 function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean {
     if (!policy) {
@@ -2811,7 +2809,12 @@ function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy
         return CONST.EMPTY_ARRAY;
     }
     return Object.values(policies).filter(
-        (policy): policy is Policy => !!policy && !policy.isJoinRequestPending && (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) && shouldShowPolicy(policy, false, currentUserLogin),
+        (policy): policy is Policy =>
+            !!policy &&
+            !policy.isJoinRequestPending &&
+            (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
+            shouldShowPolicy(policy, false, currentUserLogin) &&
+            !isTeachersUnitePolicyID(policy.id),
     );
 }
 
@@ -3196,12 +3199,15 @@ export {
     arePolicyRulesEnabled,
     isPolicyFeatureEnabled,
     isPolicyFieldListEmpty,
+    isArchivedOrPendingDeletePolicy,
     isArchivedPolicy,
     getUberConnectionErrorDirectlyFromPolicy,
     isPolicyOwner,
     isPolicyMember,
     isPolicyPayer,
     getReimburserEmail,
+    PAYER_ROLES,
+    canRolePay,
     arePaymentsEnabled,
     isSubmitterAndApprover,
     isSubmitAndClose,
@@ -3222,7 +3228,7 @@ export {
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
     canUseProvincialTaxNetSuite,
-    getEligibleBankAccountShareRecipients,
+    getEligibleBankAccountShareRecipientEmails,
     getFilteredReimbursableAccountOptions,
     getNetSuiteReimbursableAccountOptions,
     getFilteredCollectionAccountOptions,
