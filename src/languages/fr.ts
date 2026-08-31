@@ -2306,6 +2306,14 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Noms de segments surlignés',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.clic, navigation, ui.chargement',
             showBranchNameInTitle: 'Afficher le nom de la branche dans le titre du navigateur',
+            qaAuth: 'Authentification QA (Cloudflare)',
+            qaAuthRunProbe: 'Lancer le test',
+            qaAuthSession: 'Session d’authentification QA',
+            qaAuthClearSession: 'Effacer la session',
+            qaAuthStatusSuccess: 'Sonde réussie',
+            qaAuthStatusReauthRequired: 'Session expirée — relancez pour vous connecter',
+            qaAuthStatusSignInFailed: 'La connexion n’a pas abouti — relancez pour réessayer',
+            qaAuthStatusError: 'Sonde échouée',
         },
         security: 'Sécurité',
         signOut: 'Se déconnecter',
@@ -4593,6 +4601,10 @@ ${amount} pour ${merchant} - ${date}`,
                 'Saviez-vous que vous pouvez réserver et gérer vos trajets en train directement dans Expensify ? La prochaine fois, évitez la corvée de créer votre dépense manuellement et réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Saviez-vous que vous pouvez réserver et gérer vos trajets en train directement dans Expensify ? Et que les reçus sont automatiquement téléchargés pour vous ? La prochaine fois, réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            hotelBlockManual:
+                'Saviez-vous que vous pouvez réserver et gérer des voyages de groupe comme celui-ci directement dans Expensify ? Évitez-vous des ennuis la prochaine fois et essayez notre outil <a href="https://help.expensify.com/travel/hubs/event-management/">Événements de voyage</a>.',
+            hotelBlockCard:
+                'Saviez-vous que vous pouvez réserver et gérer des voyages de groupe comme celui-ci directement dans Expensify ? Évitez-vous des ennuis la prochaine fois et essayez notre outil <a href="https://help.expensify.com/travel/hubs/event-management/">Événements de voyage</a>.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Voyage n’est pas activé',
@@ -6073,6 +6085,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     comment: 'Description',
                     category: 'Catégorie',
                     tag: 'Étiquette',
+                    uniqueID: 'ID unique',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Veuillez attribuer une colonne à chacun des attributs : ${missingColumns}.`,
@@ -6561,7 +6574,12 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 defaultHourlyRate: 'Taux horaire par défaut',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Pour désactiver les RH, veuillez d'abord déconnecter ${integration} de cet espace de travail.`},
-            vendors: {title: 'Fournisseurs', subtitle: 'Faites correspondre les dépenses de carte aux fournisseurs importés depuis votre logiciel de comptabilité.'},
+            vendors: {
+                title: 'Fournisseurs',
+                subtitle: 'Faites correspondre les dépenses de carte aux fournisseurs importés depuis votre logiciel de comptabilité.',
+                disabledTitle: 'Pas si vite...',
+                disabledMessage: 'Pour activer ou désactiver cette fonctionnalité, vous devrez modifier vos paramètres d’importation comptable.',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Exemples :',
@@ -8359,6 +8377,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 confirmErrorCategory: 'Veuillez sélectionner une catégorie.',
                 confirmErrorAmount: 'Veuillez saisir un montant.',
                 thenFlagForReview: 'Puis signaler pour examen lorsque :',
+                thenDoTheFollowing: 'Puis procédez comme suit :',
+                flagType: 'Type de signalement',
+                flagTypeWarning: 'Avertissement',
+                flagTypeWarningDescription: 'Le déclarant sera averti, mais pourra toujours soumettre la dépense',
             },
             agentRulesEmptyState: {
                 title: 'Aucune règle d’agent ajoutée',
