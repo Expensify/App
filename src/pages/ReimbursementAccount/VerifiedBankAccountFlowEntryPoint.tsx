@@ -1,7 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import LottieAnimations from '@components/LottieAnimations';
-import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -126,6 +126,7 @@ function VerifiedBankAccountFlowEntryPoint({
     // The "Change bank account" option is only offered when opening a partially setup account from the Workflows > Payments section
     const isComingFromWorkflowsPayments = !!policyID && backTo === ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID);
     const shouldShowChangeBankAccount = shouldShowContinueSetupButton === true && isComingFromWorkflowsPayments;
+    const fullBleedRowsStyle = shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8;
     const handleChangeBankAccount = useChangeBankAccount(policyID, currency, reimbursementAccount?.achData?.bankAccountID);
 
     const removeExistingBankAccountDetails = useCallback(() => {
@@ -289,55 +290,46 @@ function VerifiedBankAccountFlowEntryPoint({
                                 }
                                 errorRowStyles={styles.mt2}
                                 shouldShowErrorMessages
+                                contentContainerStyle={fullBleedRowsStyle}
                                 onClose={reimbursementAccount?.maxAttemptsReached ? undefined : resetReimbursementAccount}
                             >
-                                <MenuItem
+                                <MenuItemNavigation
                                     title={translate('workspace.bankAccount.continueWithSetup')}
                                     icon={expensifyIcons.Connect}
                                     onPress={onContinuePress}
-                                    shouldShowRightIcon
-                                    outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
-                                    disabled={!!pendingAction || (!isEmptyObject(errors) && !reimbursementAccount?.maxAttemptsReached)}
+                                    isDisabled={!!pendingAction || (!isEmptyObject(errors) && !reimbursementAccount?.maxAttemptsReached)}
                                 />
                                 {shouldShowChangeBankAccount && (
-                                    <MenuItem
+                                    <MenuItemNavigation
                                         title={translate('workspace.bankAccount.changeBankAccount')}
                                         icon={expensifyIcons.Bank}
                                         onPress={handleChangeBankAccount}
-                                        shouldShowRightIcon
-                                        outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
-                                        disabled={!!pendingAction || (!isEmptyObject(errors) && !reimbursementAccount?.maxAttemptsReached)}
+                                        isDisabled={!!pendingAction || (!isEmptyObject(errors) && !reimbursementAccount?.maxAttemptsReached)}
                                     />
                                 )}
-                                <MenuItem
+                                <MenuItemNavigation
                                     title={translate('workspace.bankAccount.startOver')}
                                     icon={expensifyIcons.RotateLeft}
                                     onPress={requestResetBankAccount}
-                                    shouldShowRightIcon
-                                    outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
-                                    disabled={!!pendingAction || (!isEmptyObject(errors) && !reimbursementAccount?.maxAttemptsReached)}
+                                    isDisabled={!!pendingAction || (!isEmptyObject(errors) && !reimbursementAccount?.maxAttemptsReached)}
                                 />
                             </OfflineWithFeedback>
                         ) : (
-                            <>
+                            <View style={fullBleedRowsStyle}>
                                 {!isNonUSDWorkspace && !shouldShowContinueSetupButton && (
-                                    <MenuItem
+                                    <MenuItemNavigation
                                         title={translate('bankAccount.connectOnlineWithPlaid')}
                                         icon={expensifyIcons.Bank}
-                                        disabled={!!isPlaidDisabled}
+                                        isDisabled={!!isPlaidDisabled}
                                         onPress={handleConnectPlaid}
-                                        shouldShowRightIcon
-                                        outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                                     />
                                 )}
-                                <MenuItem
+                                <MenuItemNavigation
                                     title={translate('bankAccount.connectManually')}
                                     icon={expensifyIcons.Connect}
                                     onPress={handleConnectManually}
-                                    shouldShowRightIcon
-                                    outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                                 />
-                            </>
+                            </View>
                         )}
                     </View>
                 </Section>
