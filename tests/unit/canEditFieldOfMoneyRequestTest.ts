@@ -26,7 +26,6 @@ const policy: Policy = {
     type: CONST.POLICY.TYPE.TEAM,
     owner: '',
     outputCurrency: '',
-    isPolicyExpenseChatEnabled: false,
 };
 
 describe('canEditFieldOfMoneyRequest', () => {
@@ -679,7 +678,6 @@ describe('canEditFieldOfMoneyRequest', () => {
                 id: PER_DIEM_POLICY_ID,
                 role: CONST.POLICY.ROLE.ADMIN,
                 arePerDiemRatesEnabled: true,
-                isPolicyExpenseChatEnabled: true,
                 customUnits: {
                     [PER_DIEM_CUSTOM_UNIT_ID]: {
                         customUnitID: PER_DIEM_CUSTOM_UNIT_ID,

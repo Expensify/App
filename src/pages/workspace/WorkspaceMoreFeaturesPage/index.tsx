@@ -31,6 +31,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
     arePolicyRulesEnabled,
     canPolicyAccessFeature,
+    getConnectedIntegration,
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     hasAccountingConnections,
@@ -158,9 +159,18 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     // connection, and when the data has already been fetched.
     usePolicyConnectionsPrefetch(policy, true);
 
-    // Beta members see the row on any workspace so they can tell the feature exists. Everyone else
-    // only sees it once a connection actually scopes the vendor field, which post-GA means QBO.
-    const shouldShowVendorsFeature = isVendorMatchingEnabled || hasVendorFeature(policy, isVendorMatchingEnabled);
+    // Visibility is gated on a supported integration (QBO / Xero / Sage Intacct) being connected,
+    // not on the export config actually scoping vendors. That way members on a supported workspace
+    // still see the row so they can discover the feature even when the row is locked OFF (export
+    // config not yet set). NetSuite / QuickBooks Desktop / no connection hide the row.
+    // `hasVendorFeature` stays as the narrower `isActive` predicate (is the export config scoping
+    // vendors right now), so it can't double as the visibility gate.
+    //
+    // Beta gating mirrors `hasVendorFeature`: QBO (R1) is GA, so a connected QBO workspace always
+    // sees the row regardless of the `vendorMatching` beta. Sage Intacct (R2) and Xero (R3) haven't
+    // reached GA, so they only show the row while the beta is enabled.
+    const vendorMatchingConnection = getConnectedIntegration(policy, [CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]);
+    const shouldShowVendorsFeature = vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.QBO || (isVendorMatchingEnabled && !!vendorMatchingConnection);
 
     const warnAccountingManagesOrganizeFeature = async () => {
         if (!hasAccountingConnection || !policyID) {
@@ -176,6 +186,15 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             return;
         }
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+    };
+
+    const warnVendorsManagedByAccounting = async () => {
+        await showConfirmModal({
+            title: translate('workspace.moreFeatures.vendors.disabledTitle'),
+            prompt: translate('workspace.moreFeatures.vendors.disabledMessage'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
     };
 
     const warnDisconnectAccountingFirst = async () => {
@@ -476,7 +495,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 // get the read-only modal via withReadOnlyFallback(). Row-body navigation stays active when the
                                 // feature is available. This will be unlocked in the follow-up PR that wires up the toggle.
                                 disabled
-                                disabledAction={withReadOnlyFallback()}
+                                disabledAction={withReadOnlyFallback(warnVendorsManagedByAccounting)}
                                 onToggle={() => {}}
                                 onPress={() => {
                                     if (!policyID) {
