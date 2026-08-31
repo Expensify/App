@@ -180,13 +180,11 @@ const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDeta
 const mockUseOnyx = jest.mocked(useOnyx);
 
 function getRevealAfterTransition(): () => void {
-    const options: unknown = mockRevealRouteBeforeDismissingModal.mock.calls.at(0)?.at(1);
-    if (!options || typeof options !== 'object' || !('afterTransition' in options) || typeof options.afterTransition !== 'function') {
+    const afterTransition = mockRevealRouteBeforeDismissingModal.mock.calls.at(0)?.[1]?.afterTransition;
+    if (!afterTransition) {
         throw new Error('Expected reveal afterTransition callback');
     }
-    return () => {
-        options.afterTransition();
-    };
+    return afterTransition;
 }
 
 type AddAgentRouteProp = PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
