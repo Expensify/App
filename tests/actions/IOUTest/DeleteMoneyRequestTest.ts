@@ -34,7 +34,7 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import PusherHelper from '../../utils/PusherHelper';
-import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
+import {createGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -111,8 +111,8 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
     });
 
     beforeEach(() => {
-        global.fetch = getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = createGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -254,7 +254,11 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             );
             expect(createIOUAction).toBeTruthy();
             expect(createIOUAction?.reportID).toBe(iouReport?.reportID);
-            thread = (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${createIOUAction?.childReportID}`)) as OptimisticChatReport;
+            const transactionThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${createIOUAction?.childReportID}`);
+            if (!transactionThread) {
+                throw new Error('Expected the transaction thread report to exist');
+            }
+            thread = transactionThread;
 
             // When fetching all transactions from Onyx
             let allTransactions: OnyxCollection<Transaction>;
@@ -700,7 +704,6 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                         name: '',
                         owner: '',
                         outputCurrency: '',
-                        isPolicyExpenseChatEnabled: false,
                     },
                     policyTagList: {},
                     policyCategories: {},
@@ -710,6 +713,8 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     isASAPSubmitBetaEnabled: false,
                     policyRecentlyUsedCurrencies: [],
                     isTrackIntentUser: false,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
             }
             await waitForBatchedUpdates();

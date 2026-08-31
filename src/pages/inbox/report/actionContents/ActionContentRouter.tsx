@@ -10,6 +10,7 @@ import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
 import UnreportedTransactionAction from '@components/ReportActionItem/UnreportedTransactionAction';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,6 +20,7 @@ import {
     getChangedApproverActionMessage,
     getCommuterExclusionMessage,
     getCompanyCardConnectionBrokenMessage,
+    getDelegateSubmitMessage,
     getForwardedReportActionMessage,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
@@ -67,6 +69,8 @@ import ChatTransactionPreview from './ChatTransactionPreview';
 import ConciergeAutoMatchVendorContent from './ConciergeAutoMatchVendorContent';
 import ConfirmWhisperContent from './ConfirmWhisperContent';
 import FraudAlertContent from './FraudAlertContent';
+import HomeAddressRequiredContent from './HomeAddressRequiredContent';
+import IntegrationMessage from './IntegrationMessage';
 import IntegrationSyncFailedMessage from './IntegrationSyncFailedMessage';
 import JoinRequestContent from './JoinRequestContent';
 import MemberChangeContent from './MemberChangeContent';
@@ -160,6 +164,7 @@ function ActionContentRouter({
 }: ActionContentRouterProps): React.JSX.Element | null {
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
+    const {email: currentUserEmail} = useCurrentUserPersonalDetails();
 
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {selector: getStableReportSelector});
     const [policyRole] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`, {selector: policyRoleSelector});
@@ -467,6 +472,9 @@ function ActionContentRouter({
             />
         );
     }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE)) {
+        return <IntegrationMessage action={action} />;
+    }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
         return (
             <ReportActionItemBasicMessage message="">
@@ -506,6 +514,19 @@ function ActionContentRouter({
                 <RenderHTML html={`<comment><muted-text>${getChangedApproverActionMessage(translate, action)}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>
         );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED)) {
+        return <HomeAddressRequiredContent action={action} />;
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT)) {
+        const delegateSubmitMessage = getDelegateSubmitMessage(translate, action, currentUserEmail);
+        if (delegateSubmitMessage) {
+            return (
+                <ReportActionItemBasicMessage>
+                    <RenderHTML html={`<comment><muted-text>${delegateSubmitMessage}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
+        }
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
         return (

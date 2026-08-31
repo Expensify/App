@@ -1,5 +1,5 @@
 import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ScrollView from '@components/ScrollView';
 import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -28,7 +28,7 @@ const BETWEEN_MODIFIER = 'Between';
 type AmountFilterContentProps = {
     baseFilterKey: SearchAmountFilterKeys;
     value: SearchAmountValues;
-    largeButton?: boolean;
+    buttonSize?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, typeof CONST.BUTTON_SIZE.SMALL>;
     autoFocus?: boolean;
     style?: StyleProp<ViewStyle>;
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
@@ -152,7 +152,7 @@ function AmountBetweenInput({ref, baseFilterKey, greaterThanValue, lessThanValue
     );
 }
 
-function AmountFilterContent({baseFilterKey, value, autoFocus, largeButton, style, onChange}: AmountFilterContentProps) {
+function AmountFilterContent({baseFilterKey, value, autoFocus, buttonSize, style, onChange}: AmountFilterContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -246,12 +246,13 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, largeButton, styl
             </ScrollView>
             <Button
                 style={[styles.ph5, styles.pb5]}
-                success
-                large={largeButton}
-                text={translate('common.confirm')}
-                pressOnEnter
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={buttonSize}
                 onPress={updateAmountFilter}
-            />
+            >
+                <Button.KeyboardShortcut />
+                <Button.Text>{translate('common.confirm')}</Button.Text>
+            </Button>
         </View>
     );
 }

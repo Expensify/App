@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import {act, renderHook} from '@testing-library/react-native';
 
+import Log from '@libs/Log';
+
 import useExpenseSubmission from '@pages/iou/request/step/confirmation/useExpenseSubmission';
 
 import CONST from '@src/CONST';
@@ -11,18 +13,26 @@ import Onyx from 'react-native-onyx';
 
 import type * as Split from '../../../src/libs/actions/IOU/Split';
 
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 const mockRequestMoneyAction = jest.fn();
 const mockTrackExpenseAction = jest.fn();
 const mockSubmitPerDiemExpenseAction = jest.fn();
 const mockSubmitPerDiemExpenseForSelfDMAction = jest.fn();
+const mockHasCompletePerDiemCustomUnit = jest.fn();
 type CreateDistanceRequest = typeof Split.createDistanceRequest;
 const mockCreateDistanceRequestAction = jest.fn<ReturnType<CreateDistanceRequest>, Parameters<CreateDistanceRequest>>();
 const mockCleanupAfterExpenseCreate = jest.fn();
 const mockCleanupAndNavigateAfterExpenseCreate = jest.fn();
 const mockResolveChatTargetForSubmitCleanup = jest.fn();
 const mockSendInvoiceAction = jest.fn();
+const mockSplitBillAction = jest.fn();
+const mockSplitBillAndOpenReportAction = jest.fn();
+const mockResolveOptimisticSplitChatReportID = jest.fn();
+const mockDismissModalAndOpenReportInInboxTab = jest.fn();
+const mockReserveDeferredWriteChannel = jest.fn();
+const mockIsSearchTopmostFullScreenRoute = jest.fn();
 
 jest.mock('@userActions/IOU/TrackExpense', () => ({
     requestMoney: (...args: unknown[]) => mockRequestMoneyAction(...args),
@@ -32,18 +42,36 @@ jest.mock('@userActions/IOU/TrackExpense', () => ({
 jest.mock('@userActions/IOU/PerDiem', () => ({
     submitPerDiemExpense: (...args: unknown[]) => mockSubmitPerDiemExpenseAction(...args),
     submitPerDiemExpenseForSelfDM: (...args: unknown[]) => mockSubmitPerDiemExpenseForSelfDMAction(...args),
+    hasCompletePerDiemCustomUnit: (...args: unknown[]) => mockHasCompletePerDiemCustomUnit(...args),
+    getPerDiemExpensePolicyID: jest.fn(),
 }));
 
 jest.mock('@userActions/IOU/Split', () => ({
     createDistanceRequest: (...args: Parameters<CreateDistanceRequest>) => mockCreateDistanceRequestAction(...args),
-    splitBill: jest.fn(),
-    splitBillAndOpenReport: jest.fn(),
+    splitBill: (...args: unknown[]) => mockSplitBillAction(...args),
+    splitBillAndOpenReport: (...args: unknown[]) => mockSplitBillAndOpenReportAction(...args),
+    resolveOptimisticSplitChatReportID: (...args: unknown[]) => mockResolveOptimisticSplitChatReportID(...args),
     startSplitBill: jest.fn(),
 }));
 
 jest.mock('@userActions/IOU/SendInvoice', () => ({
     sendInvoice: (...args: unknown[]) => mockSendInvoiceAction(...args),
     getReceiverType: jest.fn(),
+}));
+
+jest.mock('@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab', () => ({
+    __esModule: true,
+    default: (...args: unknown[]) => mockDismissModalAndOpenReportInInboxTab(...args),
+}));
+
+jest.mock('@libs/deferredLayoutWrite', () => ({
+    ...jest.requireActual('@libs/deferredLayoutWrite'),
+    reserveDeferredWriteChannel: (...args: unknown[]) => mockReserveDeferredWriteChannel(...args),
+}));
+
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => ({
+    __esModule: true,
+    default: (...args: unknown[]) => mockIsSearchTopmostFullScreenRoute(...args),
 }));
 
 jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({
@@ -174,7 +202,7 @@ function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[
         receiptFiles: {},
         report: {reportID: REPORT_ID, type: CONST.REPORT.TYPE.CHAT} as Report,
         reportID: REPORT_ID,
-        policy: {id: 'policy-1'} as Policy,
+        policy: createMock<Policy>({id: 'policy-1'}),
         policyCategories: {} as PolicyCategories,
         isDraftPolicy: false,
         currentUserPersonalDetails: {accountID: CURRENT_USER_ACCOUNT_ID, login: 'me@test.com', email: 'me@test.com'},
@@ -210,6 +238,9 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
         mockRequestMoneyAction.mockReturnValue({iouReport: {reportID: 'iou-1'}});
         mockCreateDistanceRequestAction.mockReturnValue({iouReport: {reportID: 'distance-iou-1'}, chatReportID: 'distance-chat-1', transactionID: 'distance-transaction-1'});
         mockResolveChatTargetForSubmitCleanup.mockReturnValue({report: {reportID: REPORT_ID}, chatReportID: 'fallback-id', optimisticChatReportID: undefined});
+        mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: undefined, chatReportID: REPORT_ID});
+        mockHasCompletePerDiemCustomUnit.mockReturnValue(true);
+        mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
     });
 
     describe('requestMoney path', () => {
@@ -487,6 +518,228 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
 
             expect(mockSubmitPerDiemExpenseForSelfDMAction).toHaveBeenCalledTimes(1);
             expect(mockRequestMoneyAction).not.toHaveBeenCalled();
+        });
+
+        it('removes the draft and dismisses to the self-DM when shouldHandleNavigation=true', async () => {
+            const perDiemTransaction = buildPerDiemTransaction();
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.TRACK,
+                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                        isPerDiemRequest: true,
+                        transaction: perDiemTransaction,
+                        transactions: [perDiemTransaction],
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledWith({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
+            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledTimes(1);
+        });
+
+        it('removes the draft without dismissing when shouldHandleNavigation=false (orchestrator pre-navigated)', async () => {
+            const perDiemTransaction = buildPerDiemTransaction();
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.TRACK,
+                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                        isPerDiemRequest: true,
+                        transaction: perDiemTransaction,
+                        transactions: [perDiemTransaction],
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, false);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledWith({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID]});
+            expect(mockDismissModalAndOpenReportInInboxTab).not.toHaveBeenCalled();
+        });
+
+        it('does not submit, remove the draft, or navigate when the custom unit is incomplete (the action would no-op)', async () => {
+            // The UI gates on the same check the action guards on, so a submit that would bail never runs and the draft survives.
+            mockHasCompletePerDiemCustomUnit.mockReturnValue(false);
+            const logAlertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
+            const perDiemTransaction = buildPerDiemTransaction();
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.TRACK,
+                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                        isPerDiemRequest: true,
+                        transaction: perDiemTransaction,
+                        transactions: [perDiemTransaction],
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockSubmitPerDiemExpenseForSelfDMAction).not.toHaveBeenCalled();
+            expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
+            expect(mockDismissModalAndOpenReportInInboxTab).not.toHaveBeenCalled();
+            expect(logAlertSpy).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('split path', () => {
+        function buildSplitParams(transactionOverrides: Partial<Transaction> = {}) {
+            const splitTransaction = buildTransaction(transactionOverrides);
+            return buildParams({
+                iouType: CONST.IOU.TYPE.SPLIT,
+                transaction: splitTransaction,
+                transactions: [splitTransaction],
+            });
+        }
+
+        it('dismisses to the report the split was posted in when shouldHandleNavigation=true', async () => {
+            const {result} = renderHook(() => useExpenseSubmission(buildSplitParams()));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockSplitBillAction).toHaveBeenCalledTimes(1);
+            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledWith({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
+            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith(REPORT_ID, undefined, false);
+        });
+
+        it('only removes the draft when shouldHandleNavigation=false (orchestrator pre-navigated)', async () => {
+            const {result} = renderHook(() => useExpenseSubmission(buildSplitParams()));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, false);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockSplitBillAction).toHaveBeenCalledTimes(1);
+            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledWith({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID]});
+            expect(mockDismissModalAndOpenReportInInboxTab).not.toHaveBeenCalled();
+        });
+
+        it('threads the pre-generated optimistic chat ID into splitBillAndOpenReport and dismisses to that same report', async () => {
+            // Global create has no existing chat, so the UI mints the ID the action will build the chat under.
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-split-chat', chatReportID: 'optimistic-split-chat'});
+
+            const {result} = renderHook(() => useExpenseSubmission(buildSplitParams({isFromGlobalCreate: true})));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockSplitBillAction).not.toHaveBeenCalled();
+            expect(mockSplitBillAndOpenReportAction).toHaveBeenCalledWith(expect.objectContaining({optimisticSplitChatReportID: 'optimistic-split-chat'}));
+            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith('optimistic-split-chat', undefined, false);
+        });
+
+        it('dismisses to the existing chat when one already resolves, leaving the optimistic ID undefined', async () => {
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: undefined, chatReportID: 'existing-group-chat'});
+
+            const {result} = renderHook(() => useExpenseSubmission(buildSplitParams({isFromGlobalCreate: true})));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockSplitBillAndOpenReportAction).toHaveBeenCalledWith(expect.objectContaining({optimisticSplitChatReportID: undefined}));
+            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith('existing-group-chat', undefined, false);
+        });
+
+        it('reserves the SEARCH channel before splitBill when the split lands back on Search (the action hardcodes shouldDeferForSearch:false)', async () => {
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+
+            const {result} = renderHook(() => useExpenseSubmission(buildSplitParams()));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, false);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockReserveDeferredWriteChannel).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            expect(mockSplitBillAction).toHaveBeenCalledTimes(1);
+        });
+
+        it('reserves the SEARCH channel before splitBillAndOpenReport when the split lands back on Search', async () => {
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+
+            const {result} = renderHook(() => useExpenseSubmission(buildSplitParams({isFromGlobalCreate: true})));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, false);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockReserveDeferredWriteChannel).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            expect(mockSplitBillAndOpenReportAction).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not reserve the SEARCH channel when the split is not landing on Search', async () => {
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+
+            const {result} = renderHook(() => useExpenseSubmission(buildSplitParams()));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, false);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockReserveDeferredWriteChannel).not.toHaveBeenCalled();
+            expect(mockSplitBillAction).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not reserve the SEARCH channel (or run the split) when there is no login to submit with, even on Search', async () => {
+            // The shared reservation runs before the branch's login+transaction check, so it must reuse that guard or it leaks a SEARCH channel no write ever flushes.
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            const splitTransaction = buildTransaction();
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: splitTransaction,
+                        transactions: [splitTransaction],
+                        currentUserPersonalDetails: {accountID: CURRENT_USER_ACCOUNT_ID, login: undefined, email: 'me@test.com'},
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, false);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockReserveDeferredWriteChannel).not.toHaveBeenCalled();
+            expect(mockSplitBillAction).not.toHaveBeenCalled();
         });
     });
 });

@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ScrollView from '@components/ScrollView';
 import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
@@ -34,13 +34,14 @@ function DebugJSON({data}: DebugJSONProps) {
         >
             <Button
                 isDisabled={!isThrottledButtonActive}
-                text={isThrottledButtonActive ? translate('reportActionContextMenu.copyOnyxData') : translate('reportActionContextMenu.copied')}
                 onPress={() => {
                     Clipboard.setString(json);
                     setThrottledButtonInactive();
                 }}
-                icon={icons.Copy}
-            />
+            >
+                <Button.Icon src={icons.Copy} />
+                <Button.Text>{isThrottledButtonActive ? translate('reportActionContextMenu.copyOnyxData') : translate('reportActionContextMenu.copied')}</Button.Text>
+            </Button>
             <View {...SwipeInterceptPanResponder.panHandlers}>
                 <Text style={[styles.textLabel, styles.mb5, styles.border, styles.p2]}>{json}</Text>
             </View>
