@@ -56,6 +56,7 @@ jest.mock('@src/libs/actions/Report', () => {
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
+jest.mock('@libs/API/writeWhenReady');
 jest.mock('@src/libs/SearchQueryUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@src/libs/SearchQueryUtils');
