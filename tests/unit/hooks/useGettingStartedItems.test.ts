@@ -41,6 +41,8 @@ const {startMoneyRequest} = jest.requireMock<{startMoneyRequest: jest.Mock}>('@l
 
 const POLICY_ID = '1';
 
+const CURRENT_USER_ACCOUNT_ID = 5;
+
 // Trial dates relative to today so the 60-day Getting Started window check
 // (isWithinGettingStartedPeriod) doesn't drift out of bounds as wall time
 // passes. The previously-hardcoded values passed at landing time but started
@@ -120,9 +122,19 @@ async function setupSubmitScenario(
         intentSource?: 'introSelected' | 'onboardingPurpose';
     } = {},
 ) {
+    // Submit workspaces use a flat role model: `getRoleForCallerOnNewPolicy` gives even the creator the `editor` role, so a
+    // realistic fixture must be `editor` + owned by the current user. Building it as an admin would hide the fact that
+    // `isPolicyAdmin` can never gate this intent.
     // New workspaces enable Categories by default, so keep the categories step visible unless a test opts out.
-    const policy = buildPolicy({type: CONST.POLICY.TYPE.SUBMIT, areCategoriesEnabled: true, ...overrides.policy});
+    const policy = buildPolicy({
+        type: CONST.POLICY.TYPE.SUBMIT,
+        role: CONST.POLICY.ROLE.EDITOR,
+        ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+        areCategoriesEnabled: true,
+        ...overrides.policy,
+    });
     await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+    await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID});
 
     const intent = overrides.intent ?? CONST.ONBOARDING_CHOICES.EMPLOYER;
     if (overrides.intentSource === 'onboardingPurpose') {
@@ -1930,8 +1942,19 @@ describe('useGettingStartedItems', () => {
                 expect(result.current.items.length).toBeGreaterThan(0);
             });
 
-            it('should be hidden when the user is not a policy admin', async () => {
-                await setupSubmitScenario({policy: {role: CONST.POLICY.ROLE.USER}});
+            // Submit workspaces make every member an editor, including the creator, so the role alone cannot tell the two
+            // apart. Ownership is what separates a self-created workspace from one the user was invited to.
+            it('should be visible for the editor who owns the auto-created Submit workspace', async () => {
+                await setupSubmitScenario({policy: {role: CONST.POLICY.ROLE.EDITOR, ownerAccountID: CURRENT_USER_ACCOUNT_ID}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.shouldShowSection).toBe(true);
+                expect(result.current.items.length).toBeGreaterThan(0);
+            });
+
+            it('should be hidden when the user was invited to someone else’s Submit workspace', async () => {
+                await setupSubmitScenario({policy: {role: CONST.POLICY.ROLE.EDITOR, ownerAccountID: CURRENT_USER_ACCOUNT_ID + 1}});
 
                 const {result} = renderHook(() => useGettingStartedItems());
 

@@ -21,6 +21,7 @@ import {
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
+    isPolicyOwner,
     isWorkspaceProvisionedForTravel,
 } from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
@@ -34,6 +35,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {hasIssuedExpensifyCardSelector} from '@selectors/Card';
+import {accountIDSelector} from '@selectors/Session';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 
 const MIN_MEMBERS_FOR_ACCOUNTANT_INVITED = 2;
@@ -66,6 +68,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const intent = useOnboardingIntent();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [firstPolicyCreatedDate] = useOnyx(ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE);
     const [reportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
@@ -99,7 +102,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     };
 
     // "Submit expenses to my employer" writes EMPLOYER when the user picks it themselves and SUBMIT when they were
-    // invited to someone else's workspace. Invited members aren't admins, so the isPolicyAdmin gate below filters them out.
+    // invited to someone else's workspace. Only the former should see this section, which the ownership gate below enforces.
     const isSubmitIntent = intent === CONST.ONBOARDING_CHOICES.EMPLOYER || intent === CONST.ONBOARDING_CHOICES.SUBMIT;
 
     if (intent !== CONST.ONBOARDING_CHOICES.MANAGE_TEAM && intent !== CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE && intent !== CONST.ONBOARDING_CHOICES.TRACK_PERSONAL && !isSubmitIntent) {
@@ -131,7 +134,10 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         };
     }
 
-    if (!isPolicyAdmin(policy)) {
+    // Submit workspaces use a flat role model — `getRoleForCallerOnNewPolicy` hands even the creator the `editor` role, and
+    // `updateWorkspaceMembersRole` refuses to change it, so `isPolicyAdmin` is never true for them. Gate the Submit intent on
+    // ownership instead: true for the workspace auto-created during onboarding, false for members invited to someone else's.
+    if (isSubmitIntent ? !isPolicyOwner(policy, currentUserAccountID) : !isPolicyAdmin(policy)) {
         return emptyResult;
     }
 
