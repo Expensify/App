@@ -2013,6 +2013,69 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('hasNoticeTypeViolation', () => {
+        const noticeViolations: TransactionViolation[] = [
+            {
+                name: CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+                type: CONST.VIOLATION_TYPES.NOTICE,
+                showInReview: true,
+            },
+        ];
+
+        it('should hide RECEIPT_NOT_SMART_SCANNED from the submitter', () => {
+            const transaction = generateTransaction();
+            const policy: Policy = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                employeeList: {
+                    [CURRENT_USER_EMAIL]: {email: CURRENT_USER_EMAIL, role: CONST.POLICY.ROLE.USER},
+                },
+            };
+
+            expect(TransactionUtils.hasNoticeTypeViolation(transaction, noticeViolations, CURRENT_USER_EMAIL, CURRENT_USER_ID, processingReport, CURRENT_USER_EMAIL, policy, true)).toBe(
+                false,
+            );
+        });
+
+        it('should show RECEIPT_NOT_SMART_SCANNED to a non-submitter policy member on a processing report', () => {
+            const transaction = generateTransaction();
+            const policy: Policy = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                employeeList: {
+                    [CURRENT_USER_EMAIL]: {email: CURRENT_USER_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+                },
+            };
+            const processingReportOwnedByOtherUser = {
+                ...processingReport,
+                ownerAccountID: SECOND_USER_ID,
+            };
+
+            expect(
+                TransactionUtils.hasNoticeTypeViolation(transaction, noticeViolations, CURRENT_USER_EMAIL, CURRENT_USER_ID, processingReportOwnedByOtherUser, OTHER_USER_EMAIL, policy, true),
+            ).toBe(true);
+        });
+
+        it('should still detect notices that remain visible to the submitter', () => {
+            const transaction = generateTransaction();
+            const policy: Policy = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                employeeList: {
+                    [CURRENT_USER_EMAIL]: {email: CURRENT_USER_EMAIL, role: CONST.POLICY.ROLE.USER},
+                },
+            };
+            const visibleNoticeViolations: TransactionViolation[] = [
+                {
+                    name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
+                    type: CONST.VIOLATION_TYPES.NOTICE,
+                    showInReview: true,
+                },
+            ];
+
+            expect(
+                TransactionUtils.hasNoticeTypeViolation(transaction, visibleNoticeViolations, CURRENT_USER_EMAIL, CURRENT_USER_ID, processingReport, CURRENT_USER_EMAIL, policy, true),
+            ).toBe(true);
+        });
+    });
+
     describe('getReportOwnerAsAttendee', () => {
         it('should return undefined when details has no login and display name', () => {
             const result = TransactionUtils.getReportOwnerAsAttendee({accountID: 1});
