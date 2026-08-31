@@ -46,8 +46,6 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 
-import type {MemberForList} from './OptionsListUtils';
-
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
@@ -59,7 +57,6 @@ import {getHRAdvancedModeFinalApprover, isAnyHRConnected, isMergeHRCompleteSetup
 import isTeachersUnitePolicyID from './isTeachersUnitePolicyID';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
-import {formatMemberForList} from './OptionsListUtils';
 import {getAccountIDsByLogins, getKnownAccountIDByLogin, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {generateAccountID} from './UserUtils';
@@ -101,6 +98,15 @@ function isPolicyFieldListEmpty(policy: OnyxEntry<Policy>): boolean {
  */
 function isArchivedPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return !!policy?.archivedDate;
+}
+
+/**
+ * Whether the policy is archived or is optimistically pending deletion. Deleting a workspace
+ * archives it on the backend, but the optimistic data only sets pendingAction, so report state
+ * transitions must also treat a pending delete as archived while the request is in flight.
+ */
+function isArchivedOrPendingDeletePolicy(policy: OnyxInputOrEntry<Policy>): boolean {
+    return isArchivedPolicy(policy) || policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 /**
@@ -443,28 +449,6 @@ function getEligibleBankAccountShareRecipientEmails(policies: OnyxCollection<Pol
     }
 
     return Array.from(recipientEmails);
-}
-
-/** Return members who can receive a shared bank account from the current user. */
-function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): MemberForList[] {
-    return getEligibleBankAccountShareRecipientEmails(policies, currentUserLogin, bankAccountID).flatMap((email) => {
-        const personalDetails = getPersonalDetailByEmail(email);
-        if (!personalDetails) {
-            return [];
-        }
-
-        return [
-            formatMemberForList({
-                text: personalDetails.displayName,
-                alternateText: personalDetails.login,
-                keyForList: personalDetails.login ?? String(personalDetails.accountID),
-                accountID: personalDetails.accountID,
-                login: personalDetails.login,
-                pendingAction: personalDetails.pendingAction,
-                reportID: '',
-            }),
-        ];
-    });
 }
 
 /** Return whether the current user has someone they can share a bank account with. */
@@ -1928,27 +1912,23 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
 }
 
 function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, submitterLogin: string | undefined): number | undefined {
-    const ownerAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const existingManagerID = expenseReport?.managerID;
     const approvalRules = policy?.rules?.approvalRules;
     const ruleApprover = !isSubmitAndClose(policy) && approvalRules?.length ? getFirstRuleApprover(approvalRules, expenseReport, submitterLogin) : '';
-    const submitToAccountID = getSubmitToAccountID(policy, expenseReport, submitterLogin, true);
-    const isValidSubmitToAccountID = isValidAccountRoute(submitToAccountID);
-    const isValidExistingManagerID = isValidAccountRoute(existingManagerID ?? CONST.DEFAULT_NUMBER_ID) && existingManagerID !== ownerAccountID;
     const hasReliablePolicyRoute =
         ([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy)) ||
         !!ruleApprover ||
         !!policy?.employeeList?.[submitterLogin ?? ''];
 
-    if (hasReliablePolicyRoute && isValidSubmitToAccountID) {
-        return submitToAccountID;
+    if (!hasReliablePolicyRoute) {
+        return undefined;
     }
 
-    if (!hasReliablePolicyRoute && isValidExistingManagerID) {
-        return existingManagerID;
+    const submitToAccountID = getKnownAccountIDByLogin(getSubmitToEmail(policy, expenseReport, submitterLogin, true));
+    if (submitToAccountID === undefined || !isValidAccountRoute(submitToAccountID)) {
+        return undefined;
     }
 
-    return isValidSubmitToAccountID ? submitToAccountID : existingManagerID;
+    return submitToAccountID;
 }
 
 /**
@@ -3215,6 +3195,7 @@ export {
     arePolicyRulesEnabled,
     isPolicyFeatureEnabled,
     isPolicyFieldListEmpty,
+    isArchivedOrPendingDeletePolicy,
     isArchivedPolicy,
     getUberConnectionErrorDirectlyFromPolicy,
     isPolicyOwner,
@@ -3243,7 +3224,7 @@ export {
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
     canUseProvincialTaxNetSuite,
-    getEligibleBankAccountShareRecipients,
+    getEligibleBankAccountShareRecipientEmails,
     getFilteredReimbursableAccountOptions,
     getNetSuiteReimbursableAccountOptions,
     getFilteredCollectionAccountOptions,
