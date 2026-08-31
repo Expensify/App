@@ -314,7 +314,7 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
 
     const {workspaces} = useAdvancedSearchFiltersWorkspaces(policies);
 
-    const shouldDisplayTagFilter = policyDerived?.areTagsEnabled ?? false;
+    const shouldDisplayTagFilter = !!policyDerived?.areTagsEnabled;
     // Count business accounts that aren't partially set up, mirroring BankAccountSelector so the row never shows above an empty picker.
     const hasFilterableBankAccount = Object.values(bankAccountList ?? {}).some(isFilterableBankAccount);
     const shouldDisplayBankAccountFilter = shouldDisplayFilter(hasFilterableBankAccount ? 1 : 0, true);
