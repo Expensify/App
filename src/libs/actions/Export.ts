@@ -85,10 +85,12 @@ function clearStaleExportDownloads() {
                 if (!exportDownload) {
                     continue;
                 }
+
                 // Never clear a Concierge hand-off: the worker owns the record and deletes it once delivered.
                 if (exportDownload.shouldSendFromConcierge) {
                     continue;
                 }
+
                 // Keep preparing and ready exports so the manager can re-surface them. Only failed leftovers are cleared here.
                 if (exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING || exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.READY) {
                     continue;

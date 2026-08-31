@@ -144,6 +144,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             },
             true,
         );
+
         // Clear the selection now that the export has started. The app-level ExportDownloadStatusManager shows the modal.
         clearSelectedTransactions(true);
     };

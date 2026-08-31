@@ -31,6 +31,7 @@ function ExportDownloadStatusManager() {
         if (!exportDownload) {
             return false;
         }
+
         // Concierge hand-off is owned by the BE worker: it delivers via the Concierge chat on success and posts
         // a failure notice there too. There is nothing useful to show in a modal, so we never surface these.
         if (exportDownload.shouldSendFromConcierge) {
