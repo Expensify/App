@@ -35,6 +35,9 @@ import useReportScrollManager from './useReportScrollManager';
 import useScrollToEndOnNewMessageReceived from './useScrollToEndOnNewMessageReceived';
 
 type UseReportActionsScrollParams = {
+    /** The Concierge chat report */
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
+
     /** The ID of the report currently being looked at */
     reportID: string;
 
@@ -123,6 +126,7 @@ type UseReportActionsScrollResult = {
 };
 
 function useReportActionsScroll({
+    conciergeChat,
     reportID,
     report,
     transactionThreadReport,
@@ -197,6 +201,7 @@ function useReportActionsScroll({
         });
 
     const {isScrollToBottomEnabled, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom} = useReportActionsNewActionLiveTail({
+        conciergeChat,
         reportID,
         introSelected,
         betas,
@@ -300,7 +305,7 @@ function useReportActionsScroll({
             if (!Navigation.getReportRHPActiveRoute()) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, backTo));
             }
-            openReport({reportID, introSelected, betas, hasReportActions: true, currentUserAccountID});
+            openReport({reportID, introSelected, conciergeChat, betas, hasReportActions: true, currentUserAccountID});
             reportScrollManager.scrollToBottom();
             return;
         }

@@ -119,7 +119,10 @@ async function renderList(initialOffset: number) {
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, AttachmentModalContextProvider]}>
                 <ReactionListContext.Provider value={mockReactionListContextValue}>
                     <ActionListContext.Provider value={actionListContextValue}>
-                        <ReportActionsList reportID={REPORT_ID} />
+                        <ReportActionsList
+                            reportID={REPORT_ID}
+                            conciergeChat={undefined}
+                        />
                     </ActionListContext.Provider>
                 </ReactionListContext.Provider>
             </ComposeProviders>
