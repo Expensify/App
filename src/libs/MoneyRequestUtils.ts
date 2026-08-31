@@ -164,7 +164,6 @@ function isTaxAmountInvalid(currentAmount: string, maxTaxAmount: number, decimal
  * empty merchant is allowed. Unreported expenses, IOU requests, and invoices allow an empty merchant (clearing).
  */
 function isMerchantRequired(report: OnyxEntry<Report>, transaction: OnyxEntry<Transaction>): boolean {
-    // Unreported expenses can always have an empty merchant (allows clearing), even without a parent report.
     if (transaction && isExpenseUnreported(transaction)) {
         return false;
     }
