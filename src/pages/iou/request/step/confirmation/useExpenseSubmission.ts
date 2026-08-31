@@ -1,4 +1,5 @@
 import useActivePolicy from '@hooks/useActivePolicy';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
@@ -28,6 +29,7 @@ import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/clean
 import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
+import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getNewAccountIDsAndLogins} from '@libs/PersonalDetailsUtils';
@@ -60,7 +62,7 @@ import {
 import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
 
 import {isOneToTwoTransactionTransition} from '@userActions/IOU/PendingNewTransactions';
-import {getPerDiemExpensePolicyID, submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
+import {getPerDiemExpensePolicyID, hasCompletePerDiemCustomUnit, submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {createDistanceRequest as createDistanceRequestIOUActions, resolveOptimisticSplitChatReportID, splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
@@ -338,6 +340,13 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const transactionIDs = transactions?.map((tx) => tx.transactionID);
     const [storedTransactions] = useTransactionsByID(transactionIDs);
 
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        policyID: policy?.id,
+        isDistanceRequest,
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+    });
+
     function performPostBatchCleanup({
         participant,
         shouldHandleNavigation,
@@ -614,33 +623,41 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
         onExpenseWriteWillStart?.();
         if (isTrackExpense) {
-            const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
-            submitPerDiemExpenseForSelfDM({
-                dateFnsLocale,
-                getCurrencyDecimals,
-                selfDMReport,
-                policy,
-                transactionParams: {
-                    currency: transaction.currency,
-                    created: transaction.created,
-                    comment: trimmedComment,
-                    category: transaction.category,
-                    tag: transaction.tag,
-                    customUnit: transaction.comment?.customUnit,
-                    billable: transaction.billable,
-                    reimbursable: transaction.reimbursable,
-                    attendees: transaction.comment?.attendees,
-                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-                },
-                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                quickAction,
-                optimisticChatReportID,
-                delegateAccountID,
-                isTrackIntentUser,
-            });
-            if (shouldHandleNavigation) {
-                dismissModalAndOpenReportInInboxTab(optimisticChatReportID, false, false);
+            // Mirror the action's bail: a submit it would no-op must not clean up or dismiss.
+            if (!isEmptyObject(policy) && hasCompletePerDiemCustomUnit(transaction.comment?.customUnit)) {
+                const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
+                submitPerDiemExpenseForSelfDM({
+                    dateFnsLocale,
+                    getCurrencyDecimals,
+                    selfDMReport,
+                    policy,
+                    transactionParams: {
+                        currency: transaction.currency,
+                        created: transaction.created,
+                        comment: trimmedComment,
+                        category: transaction.category,
+                        tag: transaction.tag,
+                        customUnit: transaction.comment?.customUnit,
+                        billable: transaction.billable,
+                        reimbursable: transaction.reimbursable,
+                        attendees: transaction.comment?.attendees,
+                        isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+                    },
+                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                    quickAction,
+                    optimisticChatReportID,
+                    delegateAccountID,
+                    isTrackIntentUser,
+                });
+                if (shouldHandleNavigation) {
+                    cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
+                    dismissModalAndOpenReportInInboxTab(optimisticChatReportID, false, false);
+                } else {
+                    cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID]});
+                }
+            } else {
+                Log.alert('[useExpenseSubmission] Skipped per diem self-DM submit: missing policy or incomplete custom unit');
             }
         } else {
             const isExpenseReport = isMoneyRequestReportReportUtils(report);
@@ -663,6 +680,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     : resolveOptimisticChatReportID(participantAccountIDs, existingChatReport);
             const {optimisticChatReportID, chatReportID} = reportIDs;
             const activeReportID = isExpenseReport ? report?.reportID : chatReportID;
+            const notifyReportID = isExpenseReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReportID;
 
             const perDiemParticipantParams = {
                 payeeEmail: currentUserPersonalDetails.login,
@@ -706,6 +724,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 personalDetails,
                 optimisticChatReportID,
+                notifyReportID,
                 formatPhoneNumber,
                 delegateAccountID,
                 isTrackIntentUser,
@@ -714,6 +733,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             // When backToReport exists we are creating the expense from chat, not the expense report, so no pending transaction registration needed.
             const isOneToTwoTransition = !backToReport && isOneToTwoTransactionTransition(isMoneyRequestReport, reportTransactions);
 
+            if (result) {
+                cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: shouldHandleNavigation});
+            }
             if (result && targetReportID) {
                 navigateAfterExpenseCreate({
                     activeReportID: targetReportID,
@@ -952,6 +974,10 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     }
 
     function createTransaction(locationPermissionGranted = false, shouldHandleNavigation = true) {
+        if (blockDistanceRequestIfNeeded()) {
+            return;
+        }
+
         setIsConfirmed(true);
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
 

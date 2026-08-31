@@ -2,6 +2,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
 import * as IOUUtils from '@libs/IOUUtils';
+import Log from '@libs/Log';
 // eslint-disable-next-line no-restricted-imports -- Namespace import is required to spy on getChatByParticipants without replacing the production module.
 import * as ReportUtils from '@libs/ReportUtils';
 
@@ -22,6 +23,7 @@ const mockRequestMoneyAction = jest.fn();
 const mockTrackExpenseAction = jest.fn();
 const mockSubmitPerDiemExpenseAction = jest.fn();
 const mockSubmitPerDiemExpenseForSelfDMAction = jest.fn();
+const mockHasCompletePerDiemCustomUnit = jest.fn();
 type CreateDistanceRequest = typeof Split.createDistanceRequest;
 const mockCreateDistanceRequestAction = jest.fn<ReturnType<CreateDistanceRequest>, Parameters<CreateDistanceRequest>>();
 const mockCleanupAfterExpenseCreate = jest.fn();
@@ -43,6 +45,7 @@ jest.mock('@userActions/IOU/TrackExpense', () => ({
 jest.mock('@userActions/IOU/PerDiem', () => ({
     submitPerDiemExpense: (...args: unknown[]) => mockSubmitPerDiemExpenseAction(...args),
     submitPerDiemExpenseForSelfDM: (...args: unknown[]) => mockSubmitPerDiemExpenseForSelfDMAction(...args),
+    hasCompletePerDiemCustomUnit: (...args: unknown[]) => mockHasCompletePerDiemCustomUnit(...args),
     getPerDiemExpensePolicyID: jest.fn(),
 }));
 
@@ -239,6 +242,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
         mockCreateDistanceRequestAction.mockReturnValue({iouReport: {reportID: 'distance-iou-1'}, chatReportID: 'distance-chat-1', transactionID: 'distance-transaction-1'});
         mockResolveChatTargetForSubmitCleanup.mockReturnValue({report: {reportID: REPORT_ID}, chatReportID: 'fallback-id', optimisticChatReportID: undefined});
         mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: undefined, chatReportID: REPORT_ID});
+        mockHasCompletePerDiemCustomUnit.mockReturnValue(true);
         mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
     });
 
@@ -581,6 +585,86 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
 
             expect(mockSubmitPerDiemExpenseForSelfDMAction).toHaveBeenCalledTimes(1);
             expect(mockRequestMoneyAction).not.toHaveBeenCalled();
+        });
+
+        it('removes the draft and dismisses to the self-DM when shouldHandleNavigation=true', async () => {
+            const perDiemTransaction = buildPerDiemTransaction();
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.TRACK,
+                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                        isPerDiemRequest: true,
+                        transaction: perDiemTransaction,
+                        transactions: [perDiemTransaction],
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledWith({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
+            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledTimes(1);
+        });
+
+        it('removes the draft without dismissing when shouldHandleNavigation=false (orchestrator pre-navigated)', async () => {
+            const perDiemTransaction = buildPerDiemTransaction();
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.TRACK,
+                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                        isPerDiemRequest: true,
+                        transaction: perDiemTransaction,
+                        transactions: [perDiemTransaction],
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, false);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledWith({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID]});
+            expect(mockDismissModalAndOpenReportInInboxTab).not.toHaveBeenCalled();
+        });
+
+        it('does not submit, remove the draft, or navigate when the custom unit is incomplete (the action would no-op)', async () => {
+            // The UI gates on the same check the action guards on, so a submit that would bail never runs and the draft survives.
+            mockHasCompletePerDiemCustomUnit.mockReturnValue(false);
+            const logAlertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
+            const perDiemTransaction = buildPerDiemTransaction();
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.TRACK,
+                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                        isPerDiemRequest: true,
+                        transaction: perDiemTransaction,
+                        transactions: [perDiemTransaction],
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockSubmitPerDiemExpenseForSelfDMAction).not.toHaveBeenCalled();
+            expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
+            expect(mockDismissModalAndOpenReportInInboxTab).not.toHaveBeenCalled();
+            expect(logAlertSpy).toHaveBeenCalledTimes(1);
         });
     });
 

@@ -11,7 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
@@ -89,7 +89,7 @@ export default function DomainListTable({domains, headerComponent}: DomainListTa
 
     const emptyStateButtons = [
         {
-            success: true,
+            buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
             buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN)),
             buttonText: translate('domain.addDomain.newDomain'),
         },

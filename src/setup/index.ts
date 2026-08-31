@@ -1,4 +1,5 @@
 import cleanupPromotedDraftReports from '@libs/cleanupPromotedDraftReports';
+import {finishCloudflareSignInFromURL} from '@libs/CloudflareAccess/finishSignInFromURL';
 import intlPolyfill from '@libs/IntlPolyfill';
 
 import {setDeviceID} from '@userActions/Device';
@@ -84,6 +85,7 @@ export default function () {
             ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD,
             ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
             ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER,
+            ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP,
         ],
     });
 
@@ -92,6 +94,11 @@ export default function () {
     // Must be imported after Onyx.init() and outside the React lifecycle so that push notification
     // handlers are registered before any push arrives, including Android headless/background wake-ups.
     import('@libs/Notification/PushNotification/subscribeToPushNotifications');
+
+    // The QA auth callback arrives as a full page load, so no component is around to receive it: the code is
+    // picked up and the URL restored here, before React Navigation resolves the initial route. After
+    // Onyx.init() because a completed exchange persists the session. No-op on every other load.
+    finishCloudflareSignInFromURL();
 
     initOnyxDerivedValues();
 

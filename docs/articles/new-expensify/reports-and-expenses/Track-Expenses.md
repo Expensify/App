@@ -78,6 +78,10 @@ When you create a tracked expense, Concierge will show an actionable message wit
    - **Submit it to someone** – Send it for approval or reimbursement.
    - **Nothing for now** – Leave it stored for later.
 
+You can also open the tracked expense and select **More** to submit it:
+   - **Send to someone** – Send the expense to another person to request payment.
+   - **Submit to my employer** – Submit the expense to a workspace for approval and reimbursement. If you do not have a workspace yet, one is created for you automatically.
+
 If you belong to a workspace, you can also click into the expense to:
    - **Categorize** – Assign to a workspace category.
    - **Share with your accountant** – Give access to financial contacts.

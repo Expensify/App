@@ -38,7 +38,7 @@ jest.mock('@src/utils/keyboard', () => ({
 // Stub out the hook's data dependencies so the test can render it in isolation and focus purely on the backTo logic.
 // Every Onyx read is stubbed to undefined here; goToNextStep's backTo path does not depend on Onyx data, but a future
 // dependency added to that path would need a matching stub rather than silently reading undefined.
-jest.mock('@hooks/useCommuterExclusionGuard', () => ({__esModule: true, default: () => () => false}));
+jest.mock('@hooks/useBlockDistanceRequest', () => ({__esModule: true, default: () => () => false}));
 jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: () => ({getCurrencyDecimals: () => 2})}));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({__esModule: true, default: () => ({accountID: 1, email: 'test@example.com', localCurrencyCode: 'USD'})}));
 jest.mock('@hooks/useLocalize', () => ({__esModule: true, default: () => ({translate: (key: string) => key})}));
