@@ -164,9 +164,8 @@ describe('usePermissions', () => {
         expect(result.current.isBetaEnabled(CONST.BETAS.PER_DIEM)).toBe(true);
         expect(result.current.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL)).toBe(false);
 
-        // Then: Non-render callers that don't pass the overrides explicitly pick them up through the module-level fallback
-        expect(Permissions.isBetaEnabled(CONST.BETAS.PER_DIEM, [])).toBe(true);
-        expect(Permissions.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS, [CONST.BETAS.DEFAULT_ROOMS])).toBe(false);
+        expect(Permissions.isBetaEnabled(CONST.BETAS.PER_DIEM, [])).toBe(false);
+        expect(Permissions.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS, [CONST.BETAS.DEFAULT_ROOMS])).toBe(true);
 
         // When: The overrides are cleared
         Onyx.set(ONYXKEYS.BETAS_OVERRIDE, null);

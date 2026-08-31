@@ -1,28 +1,15 @@
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type Beta from '@src/types/onyx/Beta';
 import type BetaConfiguration from '@src/types/onyx/BetaConfiguration';
 import type BetasOverride from '@src/types/onyx/BetasOverride';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import Onyx from 'react-native-onyx';
-
 import getEnvironment from './Environment/getEnvironment';
 
-// Module-level so the non-render callers of isBetaEnabled (actions, utils, guards) respect overrides without subscribing to this key.
-// Components get reactivity through usePermissions, which passes the overrides in.
-let betasOverride: OnyxEntry<BetasOverride>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.BETAS_OVERRIDE,
-    callback: (value) => {
-        betasOverride = value;
-    },
-});
-
-// Overrides must never apply in production, so start from the synchronous config and refine with the resolved
-// environment, which downgrades TestFlight builds to staging.
+// Start from the synchronous config so overrides never apply in production, then refine with the resolved
+// environment, which downgrades TestFlight builds to staging
 let isProductionEnvironment = CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.PRODUCTION;
 getEnvironment().then((environment) => {
     isProductionEnvironment = environment === CONST.ENVIRONMENT.PRODUCTION;
@@ -40,9 +27,9 @@ function canUseLinkPreviews(): boolean {
     return false;
 }
 
-function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?: OnyxEntry<BetaConfiguration>, betasOverrideParam: OnyxEntry<BetasOverride> = betasOverride): boolean {
+function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?: OnyxEntry<BetaConfiguration>, betasOverride?: OnyxEntry<BetasOverride>): boolean {
     if (!isProductionEnvironment) {
-        const override = betasOverrideParam?.[beta];
+        const override = betasOverride?.[beta];
         if (override !== undefined) {
             return override;
         }
