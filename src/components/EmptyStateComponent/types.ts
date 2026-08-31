@@ -1,5 +1,7 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 
+import type {ButtonVariant} from '@styles/utils/types';
+
 import type CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -11,7 +13,7 @@ type HeaderMedia = IconAsset;
 type EmptyStateButton = {
     buttonText?: string;
     buttonAction?: () => void;
-    success?: boolean;
+    buttonVariant?: ButtonVariant;
     icon?: IconAsset;
     isDisabled?: boolean;
     style?: StyleProp<ViewStyle>;
