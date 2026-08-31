@@ -92,6 +92,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
@@ -158,10 +159,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         return [query, substitutions];
     });
 
-    // The actual input text that the user sees
-    const [textInputValue, , setTextInputValue] = useDebouncedState(initialQuery, 500);
-    // The input text that was last used for autocomplete; needed for the SearchAutocompleteList when browsing list via arrow keys
-    const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(initialQuery);
+    const [textInputValue, setTextInputValue] = useState(initialQuery);
+    // Debounced value gates expensive filtering in the autocomplete list
+    const [, debouncedAutocompleteQueryValue, setAutocompleteQueryValue] = useDebouncedState(initialQuery, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
     const [selection, setSelection] = useState({start: initialQuery.length, end: initialQuery.length});
 
     useEffect(() => {
@@ -359,7 +359,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 setAutocompleteSubstitutions(updatedSubstitutionsMap);
             }
         },
-        [autocompleteSubstitutions, setTextInputValue, textInputValue],
+        [autocompleteSubstitutions, setAutocompleteQueryValue, setTextInputValue, textInputValue],
     );
 
     const submitSearch = useCallback(
@@ -384,7 +384,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             setTextInputValue('');
             setAutocompleteQueryValue('');
         },
-        [autocompleteSubstitutions, currentUserAccountID, onRouterClose, setTextInputValue, setShouldResetSearchQuery, isFromSearchPageSearchButton, policies],
+        [autocompleteSubstitutions, currentUserAccountID, onRouterClose, setAutocompleteQueryValue, setTextInputValue, setShouldResetSearchQuery, isFromSearchPageSearchButton, policies],
     );
 
     const onListItemPress = useCallback(
@@ -460,6 +460,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
                             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                             betas,
+                            conciergeChat,
                             shouldDismissModal: false,
                         });
                     }
@@ -479,6 +480,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             guidedSetupAndTourStatus?.isSelfTourViewed,
             guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
             betas,
+            conciergeChat,
             contextualPoliciesMap,
             contextualReportsMap,
             askConcierge,
@@ -511,6 +513,18 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     onSearchQueryChange={onSearchQueryChange}
                     onSubmit={() => {
                         const focusedOption = listRef.current?.getFocusedOption?.();
+                        const isInputAheadOfDebounce = !!textInputValue && textInputValue !== debouncedAutocompleteQueryValue;
+
+                        // During the debounce window, keep keyboard behavior for focused search rows
+                        // (e.g. Ask Concierge / typed query row), but avoid stale non-search row submits.
+                        if (isInputAheadOfDebounce) {
+                            if (focusedOption && isSearchQueryItem(focusedOption)) {
+                                onListItemPress(focusedOption);
+                                return;
+                            }
+                            submitSearch(textInputValue);
+                            return;
+                        }
 
                         if (!focusedOption) {
                             submitSearch(textInputValue);
@@ -531,7 +545,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 />
             </View>
             <DeferredAutocompleteList
-                autocompleteQueryValue={autocompleteQueryValue || textInputValue}
+                autocompleteQueryValue={textInputValue.trim() === '' ? '' : debouncedAutocompleteQueryValue}
+                inputQueryValue={textInputValue}
                 handleSearch={searchForReportsAndUsersInServer}
                 searchQueryItems={searchQueryItems}
                 getAdditionalSections={getAdditionalSections}
