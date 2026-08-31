@@ -1,6 +1,6 @@
 /**
- * Covers the ordering bug ApiUtils' derived staging flag exists to fix: what is known before the environment
- * resolves must not be discarded once it does.
+ * ApiUtils derives the staging flag on demand rather than caching it, so that what is known before the
+ * environment resolves is not discarded once it does.
  *
  * The other ApiUtils suites drain the environment promise before their first assertion, so none of them can
  * exercise this. Here the mocked getEnvironment is deliberately left unsettled until the test resolves it.

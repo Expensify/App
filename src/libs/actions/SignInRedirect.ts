@@ -64,7 +64,6 @@ const KEYS_TO_PRESERVE_ON_SIGN_OUT: OnyxKey[] = [
 ];
 
 function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
-    // The rest are added conditionally below
     const keysToPreserve: OnyxKey[] = [...KEYS_TO_PRESERVE_ON_SIGN_OUT];
 
     // After signing out, set ourselves as offline if we were offline before logging out and we are not forcing it.

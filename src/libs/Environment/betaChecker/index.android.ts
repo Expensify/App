@@ -19,9 +19,8 @@ function isPlayStoreInstall(): boolean | undefined {
 /**
  * Whether this build is a beta (staging) build.
  *
- * How the build reached the device is the only signal that tells staging and production apart, since both ship
- * the same binary. Testers install from GitHub prereleases, so anything the Play Store did not install is a
- * beta. An unknown installer is treated as production, the safer default.
+ * Staging and production ship the same binary, so how the build arrived is the only signal.
+ * Anything the Play Store did not install is a beta.
  */
 function isBetaBuild(): IsBetaBuild {
     return Promise.resolve(isPlayStoreInstall() === false);

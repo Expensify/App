@@ -1,7 +1,7 @@
 /**
  * getEnvironment() is awaited by ApiUtils and NetworkState at startup, so it must always settle. A beta check
- * that rejects — a missing native module, a throwing bridge call — used to leave the promise pending forever,
- * which silently froze everything waiting on the environment.
+ * that rejects — a missing native module, a throwing bridge call — would otherwise leave everything waiting on
+ * the environment frozen, with nothing to show why.
  *
  * Required by path because jest-expo resolves the platform-agnostic specifier to the web implementation.
  */
