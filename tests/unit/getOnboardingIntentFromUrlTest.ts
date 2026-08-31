@@ -1,4 +1,4 @@
-import getOnboardingIntentFromUrl from '@libs/getOnboardingIntentFromUrl';
+import {getOnboardingIntentFromUrl} from '@hooks/useOnboardingDeeplinkIntent';
 
 import CONST from '@src/CONST';
 
