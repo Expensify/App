@@ -320,7 +320,6 @@ describe('WorkflowUtils', () => {
             type: 'team' as const,
             owner: 'owner@example.com',
             outputCurrency: 'USD',
-            isPolicyExpenseChatEnabled: true,
             employeeList: employees,
             approver: defaultApprover,
         });

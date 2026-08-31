@@ -138,7 +138,7 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
                     prompt: translate('workspace.hr.disconnectPrompt', card.displayName),
                     confirmText: translate('workspace.hr.disconnect'),
                     cancelText: translate('common.cancel'),
-                    danger: true,
+                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 }).then((result) => {
                     if (result?.action !== ModalActions.CONFIRM || !policy) {
                         return;

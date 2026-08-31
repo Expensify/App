@@ -14,7 +14,7 @@ import TextLink from '@components/TextLink';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useHRSyncResultsModal from '@hooks/useHRSyncResultsModal';
+import useHRSyncResultsPage from '@hooks/useHRSyncResultsPage';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -278,7 +278,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
 
         showConfirmModal({
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             title: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
             prompt: confirmModalPrompt,
             confirmText: translate('common.remove'),
@@ -456,7 +456,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
     }, [invitedEmailsToAccountIDsDraft, isFocused, accountIDs, prevAccountIDs, invitedEmails, policyID]);
 
-    useHRSyncResultsModal(policyID, connectionSyncProgress, isFocused);
+    useHRSyncResultsPage(connectionSyncProgress, isFocused);
 
     const headerMessage = useMemo(() => {
         if (isOfflineAndNoMemberDataAvailable) {
@@ -608,7 +608,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push(memberOption);
         }
 
-        if (hasAtLeastOneNonAdminRole && !hasAtLeastOnePayer && canAssignElevatedRoles) {
+        // Admin is a valid payer role, so the payer may be promoted to Admin (Admin and Payments Admin are the two roles that can pay).
+        if (hasAtLeastOneNonAdminRole && canAssignElevatedRoles) {
             options.push(adminOption);
         }
 
@@ -630,7 +631,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push(peopleAdminOption);
         }
 
-        if (hasAtLeastOneNonPaymentsAdminRole && isControlPolicy(policy) && !hasAtLeastOnePayer && canAssignElevatedRoles) {
+        // Payments Admin is a valid payer role, so the payer may be changed to Payments Admin (Admin and Payments Admin are the two roles that can pay).
+        if (hasAtLeastOneNonPaymentsAdminRole && isControlPolicy(policy) && canAssignElevatedRoles) {
             options.push(paymentsAdminOption);
         }
 
