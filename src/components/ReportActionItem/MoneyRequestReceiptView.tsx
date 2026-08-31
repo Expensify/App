@@ -26,6 +26,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import usePrevious from '@hooks/usePrevious';
+import useReceiptRetryAvailability from '@hooks/useReceiptRetryAvailability';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -37,6 +38,7 @@ import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isGroupPolicyByType} from '@libs/PolicyUtils';
+import retryReceiptUpload from '@libs/ReceiptUploadRetryHandler';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction, wasActionTakenByCurrentUser} from '@libs/ReportActionsUtils';
 import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
@@ -66,7 +68,7 @@ import variables from '@styles/variables';
 
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {cleanUpMoneyRequest} from '@userActions/IOU/DeleteMoneyRequest';
-import {replaceReceipt} from '@userActions/IOU/Receipt';
+import {clearReceiptUploadError, replaceReceipt} from '@userActions/IOU/Receipt';
 import {addAttachmentWithComment, navigateToConciergeChatAndDeleteReport, setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
 
@@ -74,7 +76,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
+import type {ReceiptError, TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -412,6 +414,24 @@ function MoneyRequestReceiptView({
 
     const {showConfirmModal} = useConfirmModal();
 
+    const retryableReceiptError = Object.values(errors ?? {}).find((error): error is ReceiptError => isReceiptError(error));
+    const canRetryUpload = useReceiptRetryAvailability(retryableReceiptError);
+
+    const retryReceiptUploadAndClearError = () => {
+        if (!retryableReceiptError) {
+            return;
+        }
+
+        retryReceiptUpload(retryableReceiptError, () =>
+            clearReceiptUploadError({
+                transactionID: transaction?.transactionID,
+                reportID: parentReportAction?.reportID ?? report?.reportID,
+                reportActionID: parentReportAction?.reportActionID,
+                reportIDWithCreationError: report?.reportID,
+            }),
+        );
+    };
+
     const transactionAndReportActionErrors = useMemo(
         () => ({
             ...transaction?.errors,
@@ -648,6 +668,7 @@ function MoneyRequestReceiptView({
                         });
                     }}
                     dismissError={dismissReceiptError}
+                    onRetryReceiptUpload={canRetryUpload ? retryReceiptUploadAndClearError : undefined}
                     style={[shouldShowAuditMessage ? styles.mt3 : styles.mv3, !showReceiptErrorWithEmptyState && styles.flex1]}
                     contentContainerStyle={styles.flex1}
                 >

@@ -381,5 +381,33 @@ function checkIfLocalFileIsAccessible(
     return readFileAsync(ReceiptStorage.resolve(receiptPath) ?? receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
-export {checkIfLocalFileIsAccessible, detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt};
+/**
+ * Clears the failed state of a receipt upload without touching the expense itself.
+ *
+ * Deliberately separate from the dismiss path, which deletes the expense. The retry creates its own
+ * report actions, so the errored ones are cleared here rather than being overwritten.
+ */
+function clearReceiptUploadError({
+    transactionID,
+    reportID,
+    reportActionID,
+    reportIDWithCreationError,
+}: {
+    transactionID: string | undefined;
+    reportID: string | undefined;
+    reportActionID: string | undefined;
+    reportIDWithCreationError: string | undefined;
+}) {
+    if (transactionID) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null});
+    }
+    if (reportID && reportActionID) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: {errors: null}});
+    }
+    if (reportIDWithCreationError) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportIDWithCreationError}`, {errorFields: {addWorkspaceRoom: null, createChat: null, createReport: null}});
+    }
+}
+
+export {checkIfLocalFileIsAccessible, clearReceiptUploadError, detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt};
 export type {ReplaceReceiptRetryParams};
