@@ -41,6 +41,7 @@ function ExportDownloadStatusManager() {
         if (!isSurfaceableState) {
             return false;
         }
+
         // Only surface an export this tab owns: one it started itself, or one that already existed when it
         // loaded. An export started in another tab must not pop open here until this tab reloads.
         const exportID = key.replace(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD, '');

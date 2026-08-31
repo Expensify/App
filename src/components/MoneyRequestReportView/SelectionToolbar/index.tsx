@@ -110,6 +110,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
             },
             true,
         );
+
         // Clear the selection now that the export has started; the app-level ExportDownloadStatusManager shows the modal.
         clearSelectedTransactions(true);
     };
