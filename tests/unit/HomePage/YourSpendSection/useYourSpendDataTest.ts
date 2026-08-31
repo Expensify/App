@@ -6,6 +6,13 @@
  *   - query builders are called with the current user's accountID
  *   - awaitingApprovalQuery / repaidLast30DaysQuery are exposed on the return value
  *   - search() is dispatched when focused and online; suppressed when offline
+ *   - isApprovalStale / isPaymentStale: true while a queued or in-flight change would move
+ *     that specific total — state transitions and amount edits read from the action queue
+ *     (plus the report's pendingFields.total for cross-currency edits), classified by the
+ *     report's status and scoped to each query (approval: paid-group reports; payment: any
+ *     owned report). The grey persists after reconnect until the queue flushes.
+ *   - summary rows replay their last settled online result while offline, so a row never
+ *     appears, disappears or changes value offline — it may only grey out
  */
 import {act, renderHook} from '@testing-library/react-native';
 
@@ -13,6 +20,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useNetwork from '@hooks/useNetwork';
 
 import {search} from '@libs/actions/Search';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import {getDisplayableExpensifyCards, getDisplayableThirdPartyCards} from '@libs/CardUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -132,7 +140,6 @@ function makeCorporatePolicy(overrides: Partial<Policy> = {}): Policy {
         role: 'admin',
         owner: 'test@example.com',
         ownerAccountID: ACCOUNT_ID,
-        isPolicyExpenseChatEnabled: true,
         outputCurrency: CONST.CURRENCY.USD,
         approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
         reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
@@ -889,5 +896,360 @@ describe('useYourSpendData — drops the approval cache when no outstanding repo
         rerender(undefined);
 
         expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+    });
+});
+
+// isApprovalStale / isPaymentStale — grey only the total a queued change would move
+
+describe('useYourSpendData — per-row staleness', () => {
+    const UPDATE = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+
+    type QueuedRequest = {command: string; data?: Record<string, unknown>};
+
+    function makeReport(overrides: Partial<Report> = {}): Report {
+        return {
+            reportID: 'r1',
+            policyID: 'policy_1',
+            ownerAccountID: ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            ...overrides,
+        } as Report;
+    }
+
+    function setupReports(reports: Report[]) {
+        onyxData[ONYXKEYS.COLLECTION.REPORT] = Object.fromEntries(reports.map((r) => [`${ONYXKEYS.COLLECTION.REPORT}${r.reportID}`, r]));
+    }
+
+    /** Seeds the offline action queue that classifies state-transition staleness. */
+    function setupQueue(requests: QueuedRequest[]) {
+        onyxData[ONYXKEYS.PERSISTED_REQUESTS] = requests;
+    }
+
+    beforeEach(() => {
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupPolicies([makeCorporatePolicy({id: 'policy_1'})]);
+    });
+
+    it('keeps the grey after reconnect while a relevant change is still queued', () => {
+        // Going back online does not make the totals trustworthy — the queue has to flush
+        // and the snapshots refresh first, so the grey must not clear on reconnect alone.
+        mockedUseNetwork.mockReturnValue(networkState(false));
+        setupReports([makeReport()]);
+        setupQueue([{command: WRITE_COMMANDS.APPROVE_MONEY_REQUEST, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(true);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('keeps the grey while the request is in flight after leaving the queue', () => {
+        mockedUseNetwork.mockReturnValue(networkState(false));
+        setupReports([makeReport()]);
+        onyxData[ONYXKEYS.PERSISTED_ONGOING_REQUESTS] = {command: WRITE_COMMANDS.APPROVE_MONEY_REQUEST, data: {reportID: 'r1'}};
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(true);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('greys neither row when offline but nothing is queued and no amount change is pending', () => {
+        setupReports([makeReport()]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('greys only Awaiting approval for a pending total change on a SUBMITTED report (reject/delete/edit)', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, pendingFields: {total: UPDATE}})]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(true);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('greys only Awaiting approval for a queued SubmitReport', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED})]);
+        setupQueue([{command: WRITE_COMMANDS.SUBMIT_REPORT, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(true);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('greys only Awaiting approval for a queued RetractReport', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.OPEN})]);
+        setupQueue([{command: WRITE_COMMANDS.RETRACT_REPORT, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(true);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('greys only Awaiting approval for a queued ApproveMoneyRequest', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.APPROVED})]);
+        setupQueue([{command: WRITE_COMMANDS.APPROVE_MONEY_REQUEST, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(true);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('greys only Repaid for a queued PayMoneyRequest (reportID carried as iouReportID)', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED})]);
+        setupQueue([{command: WRITE_COMMANDS.PAY_MONEY_REQUEST, data: {iouReportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(true);
+    });
+
+    it('greys only Repaid for a queued MarkReportPaymentReceived', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED})]);
+        setupQueue([{command: WRITE_COMMANDS.MARK_REPORT_PAYMENT_RECEIVED, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(true);
+    });
+
+    it('greys only Repaid for a queued CancelPayment', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED})]);
+        setupQueue([{command: WRITE_COMMANDS.CANCEL_PAYMENT, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(true);
+    });
+
+    it('greys only Awaiting approval for a queued amount edit on a SUBMITTED report', () => {
+        // Same-currency edits recompute the report total client-side without marking
+        // pendingFields.total, so the queued command is the only staleness signal.
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED})]);
+        setupQueue([{command: WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(true);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('does not grey for a queued amount edit on an OPEN draft report', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.OPEN})]);
+        setupQueue([{command: WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('greys only Awaiting approval for a queued RejectMoneyRequest on a SUBMITTED report', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED})]);
+        setupQueue([{command: WRITE_COMMANDS.REJECT_MONEY_REQUEST, data: {reportID: 'r1', transactionID: 't1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(true);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('greys Awaiting approval for a queued DeleteMoneyRequest while a report awaits approval', () => {
+        // DeleteMoneyRequest carries only a transactionID, so it cannot be tied to a report —
+        // grey the approval total conservatively while an awaiting-approval report exists.
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED})]);
+        setupQueue([{command: WRITE_COMMANDS.DELETE_MONEY_REQUEST, data: {transactionID: 't1', reportActionID: 'ra1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(true);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('does not grey for a queued DeleteMoneyRequest when nothing awaits approval', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.OPEN})]);
+        setupQueue([{command: WRITE_COMMANDS.DELETE_MONEY_REQUEST, data: {transactionID: 't1', reportActionID: 'ra1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('greys only Repaid for a queued PayMoneyRequest on an IOU report outside any workspace', () => {
+        // The repaid query has no policy filter, so repayments on plain IOU reports count too.
+        setupReports([makeReport({policyID: undefined, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED})]);
+        setupQueue([{command: WRITE_COMMANDS.PAY_MONEY_REQUEST, data: {iouReportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(true);
+    });
+
+    it('keeps Awaiting approval greyed after paying an already-approved report offline (approve then pay)', () => {
+        // Both actions target the same report; the final status is REIMBURSED but the queued
+        // ApproveMoneyRequest must keep the approval total greyed too — the original bug.
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED})]);
+        setupQueue([
+            {command: WRITE_COMMANDS.APPROVE_MONEY_REQUEST, data: {reportID: 'r1'}},
+            {command: WRITE_COMMANDS.PAY_MONEY_REQUEST, data: {iouReportID: 'r1'}},
+        ]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(true);
+        expect(result.current.isPaymentStale).toBe(true);
+    });
+
+    it('does not grey when only an amount change is pending on an OPEN draft (adding an expense)', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.OPEN, pendingFields: {total: UPDATE}})]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('does not grey when the only pending field is irrelevant to the totals', () => {
+        setupReports([makeReport({pendingFields: {createChat: UPDATE}})]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('ignores queued commands for reports the user does not own', () => {
+        setupReports([makeReport({ownerAccountID: ACCOUNT_ID + 1})]);
+        setupQueue([{command: WRITE_COMMANDS.APPROVE_MONEY_REQUEST, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('ignores queued commands for reports outside the paid group policies', () => {
+        setupReports([makeReport({policyID: 'policy_other'})]);
+        setupQueue([{command: WRITE_COMMANDS.APPROVE_MONEY_REQUEST, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('ignores queued commands unrelated to the Your spend totals', () => {
+        setupReports([makeReport()]);
+        setupQueue([{command: WRITE_COMMANDS.ADD_COMMENT, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+});
+
+// Summary rows are frozen while offline — they may only grey out, never move
+
+describe('useYourSpendData — summary rows are frozen while offline', () => {
+    // A zero-result search comes back with `count` missing (undefined), not 0.
+    const WIPED_SNAPSHOT: SearchResults = (() => {
+        const results = makeSearchResultsWithCount(0);
+        return {...results, search: {...results.search, count: undefined}};
+    })();
+
+    function makeReport(overrides: Partial<Report> = {}): Report {
+        return {
+            reportID: 'r1',
+            policyID: 'policy_1',
+            ownerAccountID: ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            ...overrides,
+        } as Report;
+    }
+
+    function setupReports(reports: Report[]) {
+        onyxData[ONYXKEYS.COLLECTION.REPORT] = Object.fromEntries(reports.map((r) => [`${ONYXKEYS.COLLECTION.REPORT}${r.reportID}`, r]));
+    }
+
+    function makeSnapshotWithTotal(count: number, total: number): SearchResults {
+        const results = makeSearchResultsWithCount(count);
+        return {...results, search: {...results.search, total, currency: CONST.CURRENCY.USD}};
+    }
+
+    beforeEach(() => {
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
+        setupPolicies([makeCorporatePolicy({id: 'policy_1'})]);
+    });
+
+    it('keeps the approval row visible after the last outstanding report is approved offline', () => {
+        setupReports([makeReport()]);
+        setupApprovalSnapshot(makeSnapshotWithTotal(2, 10000));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupReports([makeReport({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED})]);
+        setupApprovalSnapshot(WIPED_SNAPSHOT);
+        rerender(undefined);
+
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+        expect(result.current.approvalTotals.total).toBe(10000);
+    });
+
+    it('does not add the payment row while offline when it was empty online', () => {
+        setupPaymentSnapshot(makeSearchResultsWithCount(0));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.paymentRowState).toBe(YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY);
+
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupPaymentSnapshot(makeSnapshotWithTotal(1, 5000));
+        rerender(undefined);
+
+        expect(result.current.paymentRowState).toBe(YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY);
+    });
+
+    it('keeps the last online total when the snapshot value changes offline', () => {
+        setupApprovalSnapshot(makeSnapshotWithTotal(2, 10000));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalTotals.total).toBe(10000);
+
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupApprovalSnapshot(makeSnapshotWithTotal(3, 77700));
+        rerender(undefined);
+
+        expect(result.current.approvalTotals.total).toBe(10000);
+    });
+
+    it('releases the freeze once back online', () => {
+        setupApprovalSnapshot(makeSnapshotWithTotal(2, 10000));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupApprovalSnapshot(makeSnapshotWithTotal(3, 77700));
+        rerender(undefined);
+        expect(result.current.approvalTotals.total).toBe(10000);
+
+        mockedUseNetwork.mockReturnValue(networkState(false));
+        rerender(undefined);
+        expect(result.current.approvalTotals.total).toBe(77700);
+    });
+
+    it('falls through to the live state when the app starts offline with no prior online result', () => {
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupApprovalSnapshot(undefined);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY);
+    });
+
+    it('does not replay a LOADING state offline, which would leave the row stuck in a skeleton', () => {
+        setupApprovalSnapshot(undefined);
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.LOADING);
+
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupApprovalSnapshot(makeSnapshotWithTotal(2, 10000));
+        rerender(undefined);
+
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+    });
+
+    it('drops the frozen approval row when the query hash changes', () => {
+        const APPROVAL_QUERY_B = `type:expense status:outstanding from:${ACCOUNT_ID} reimbursable:yes policyID:other_policy`;
+
+        setupApprovalSnapshot(makeSnapshotWithTotal(2, 10000));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+
+        // The user's paid-workspace set changes while offline, so the frozen total belongs to a query
+        // that is no longer being rendered.
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        mockedBuildAwaitingApprovalQuery.mockReturnValue(APPROVAL_QUERY_B);
+        rerender(undefined);
+
+        expect(result.current.approvalRowState).not.toBe(YOUR_SPEND_ROW_STATE.READY);
+    });
+
+    it('hides the approval row offline when the workspace no longer has an approval flow', () => {
+        setupApprovalSnapshot(makeSnapshotWithTotal(2, 10000));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        mockedIsPaidGroupPolicy.mockReturnValue(false);
+        rerender(undefined);
+
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.HIDDEN);
     });
 });

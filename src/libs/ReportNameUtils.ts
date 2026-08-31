@@ -49,6 +49,7 @@ import {
     getCompanyCardConnectionBrokenMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
     getCrossBorderReimbursedMessage,
+    getCurrencyConversionFeeMessage,
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getDefaultApproverUpdateMessage,
@@ -144,6 +145,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getMovedActionMessage,
     getMovedTransactionMessage,
+    parseMovedTransactionReportIDs,
     getParentReport,
     getPolicyChangeLogCopyMessage,
     getPolicyChangeMessage,
@@ -271,6 +273,7 @@ function getGroupChatName(
     shouldApplyLimit = false,
     report?: OnyxEntry<Report>,
     pendingDeleteMemberAccountIDs?: string[],
+    personalDetailsData?: Partial<PersonalDetailsList>,
 ): string | undefined {
     // If we have a report always try to get the name from the report.
     if (report?.reportName) {
@@ -296,7 +299,7 @@ function getGroupChatName(
         return participantAccountIDs
             .map(
                 (participantAccountID, index) =>
-                    getDisplayNameForParticipant({accountID: participantAccountID, shouldUseShortForm: isMultipleParticipantReport, formatPhoneNumber, translate}) ||
+                    getDisplayNameForParticipant({accountID: participantAccountID, shouldUseShortForm: isMultipleParticipantReport, personalDetailsData, formatPhoneNumber, translate}) ||
                     formatPhoneNumber(participants?.[index]?.login ?? ''),
             )
             .sort((first, second) => customCollator.compare(first ?? '', second ?? ''))
@@ -305,7 +308,7 @@ function getGroupChatName(
             .slice(0, CONST.REPORT_NAME_LIMIT)
             .concat(shouldAddEllipsis ? '...' : '');
     }
-    return translate('groupChat.defaultReportName', getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), formatPhoneNumber, translate}));
+    return translate('groupChat.defaultReportName', getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), personalDetailsData, formatPhoneNumber, translate}));
 }
 
 /**
@@ -536,8 +539,9 @@ function computeReportNameBasedOnReportAction({
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
         return translate('iou.heldExpense');
     }
-    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
-        return getExportIntegrationLastMessageText(translate, parentReportAction);
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
+        const integrationName = getOriginalMessage(parentReportAction)?.label;
+        return getExportIntegrationLastMessageText(translate, parentReportAction, integrationName);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
         return translate('iou.unheldExpense');
@@ -587,6 +591,15 @@ function computeReportNameBasedOnReportAction({
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
         return translate('workspaceActions.downgradedWorkspace');
     }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_RULE) {
+        return translate('workspaceActions.addedRule');
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_RULE) {
+        return translate('workspaceActions.updatedRule');
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_RULE) {
+        return translate('workspaceActions.removedRule');
+    }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
         return Parser.htmlToText(translate('workspaceActions.forcedCorporateUpgrade'));
     }
@@ -625,11 +638,16 @@ function computeReportNameBasedOnReportAction({
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        return Parser.htmlToText(getUnreportedTransactionMessage(translate, parentReportAction, reportAttributes));
+        const {fromReportID} = parseMovedTransactionReportIDs(parentReportAction);
+        const reportName = fromReportID ? reportAttributes?.[fromReportID]?.reportName : undefined;
+        return Parser.htmlToText(getUnreportedTransactionMessage({translate, fromReportID, derivedReportName: reportName}));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
-        return Parser.htmlToText(getMovedTransactionMessage(translate, parentReportAction, reportAttributes));
+        const {fromReportID, toReportID, displayReportID} = parseMovedTransactionReportIDs(parentReportAction);
+        return Parser.htmlToText(
+            getMovedTransactionMessage({translate, fromReportID, toReportID, derivedReportName: displayReportID ? reportAttributes?.[displayReportID]?.reportName : undefined}),
+        );
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
@@ -906,6 +924,9 @@ function computeReportNameBasedOnReportAction({
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG)) {
         return getRequiresTagMessage(translate, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE)) {
+        return getCurrencyConversionFeeMessage(translate, parentReportAction);
     }
 
     if (isDynamicExternalWorkflowSubmitFailedAction(parentReportAction)) {

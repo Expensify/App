@@ -28,7 +28,6 @@ import type {SplitExpense} from '@src/types/onyx/IOU';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {useCallback} from 'react';
 
 import type {CurrencyListActionsContextType} from './useCurrencyList';
@@ -36,7 +35,6 @@ import type {CurrencyListActionsContextType} from './useCurrencyList';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
-import useEnvironment from './useEnvironment';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -100,7 +98,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -111,7 +109,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const personalPolicy = usePersonalPolicy();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const {isOffline} = useNetwork();
-    const {isProduction} = useEnvironment();
     const {formatPhoneNumber} = useLocalize();
 
     const getSplitExpenseEditTransactionOnDelete = useCallback(
@@ -127,26 +124,15 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             }
 
             const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.comment?.originalTransactionID}`];
-
-            if (isProduction) {
-                if (!shouldRedirectDeleteToSplitExpenseEdit(transaction, originalTransaction, false, isProduction)) {
-                    return undefined;
-                }
-                return transaction;
-            }
-
             const isSelfDMSplit = isSelfDM(report) || (!!selfDMReportID && transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
-            const hasMultipleSplits = getChildTransactions(allTransactions, originalTransaction?.transactionID, isProduction).length > 1;
-            if (
-                !shouldRedirectDeleteToSplitExpenseEdit(transaction, originalTransaction, isSelfDMSplit, isProduction) ||
-                (!hasMultipleSplits && isPerDiemRequestTransactionUtils(originalTransaction))
-            ) {
+            const hasMultipleSplits = getChildTransactions(allTransactions, originalTransaction?.transactionID).length > 1;
+            if (!shouldRedirectDeleteToSplitExpenseEdit(transaction, originalTransaction, isSelfDMSplit) || (!hasMultipleSplits && isPerDiemRequestTransactionUtils(originalTransaction))) {
                 return undefined;
             }
 
             return transaction;
         },
-        [allTransactions, report, selfDMReportID, isProduction],
+        [allTransactions, report, selfDMReportID],
     );
 
     const shouldOpenSplitExpenseEditFlowOnDelete = useCallback(
@@ -205,7 +191,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     getCurrencySymbol,
                     {
                         navigateToEditSplitExpense: true,
-                        isProduction,
                     },
                 );
                 return {
@@ -232,12 +217,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
                     const originalTransactionID = transaction?.comment?.originalTransactionID;
 
-                    const isUnreportedSelfDMSplit = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-                    if (isProduction && isUnreportedSelfDMSplit) {
-                        acc.nonSplitTransactions.push(item);
-                        return acc;
-                    }
-
                     const transactionCurrentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
                     const isMovedExpenseSplitChild =
                         !isExpenseSplit && !!originalTransactionID && isSplitChildTransaction(transaction) && !originalTransaction?.comment?.splits && isIOUReport(transactionCurrentReport);
@@ -259,7 +238,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
             for (const transactionID of Object.keys(splitTransactionsByOriginalTransactionID)) {
                 const splitIDs = new Set((splitTransactionsByOriginalTransactionID[transactionID] ?? []).map((transaction) => transaction.transactionID));
-                const allChildTransactions = getChildTransactions(allTransactions, transactionID, isProduction);
+                const allChildTransactions = getChildTransactions(allTransactions, transactionID);
                 const childTransactions = allChildTransactions.filter((transaction) => !splitIDs.has(transaction?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID)));
 
                 if (childTransactions.length === 0) {
@@ -274,7 +253,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const iouReport = isIOUReport(candidateIOUReport) || isExpenseReport(candidateIOUReport) ? candidateIOUReport : undefined;
                 const splitExpensesTotal = allChildTransactions.reduce((total, childTransaction) => {
                     const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
-                    return total + initSplitExpenseItemData(childTransaction, transactionReport).amount;
+                    return total + initSplitExpenseItemData(childTransaction, transactionReport, {getCurrencyDecimals}).amount;
                 }, 0);
                 const policyRecentlyUsedCategories =
                     allPolicyRecentlyUsedCategories?.[
@@ -298,7 +277,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     // up with an undefined reportID downstream.
                     const resolvedReportID = childTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReportID : childTransaction?.reportID;
                     const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${resolvedReportID}`];
-                    return initSplitExpenseItemData(childTransaction, transactionReport, {reportID: resolvedReportID});
+                    return initSplitExpenseItemData(childTransaction, transactionReport, {reportID: resolvedReportID, getCurrencyDecimals});
                 });
                 const remainingSplitExpensesTotal = remainingSplitExpenses.reduce((total, splitExpense) => total + splitExpense.amount, 0);
                 const updatedRemainingSplitExpenses =
@@ -465,7 +444,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             restrictedActionPolicyID,
             getSplitExpenseEditTransactionOnDelete,
             isOffline,
-            isProduction,
             personalPolicy?.outputCurrency,
             delegateAccountID,
             isTrackIntentUser,

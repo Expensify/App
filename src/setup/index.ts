@@ -1,4 +1,6 @@
+import {finishCloudflareSignInFromURL} from '@libs/CloudflareAccess/finishSignInFromURL';
 import intlPolyfill from '@libs/IntlPolyfill';
+import registerReportActionsPagination from '@libs/registerReportActionsPagination';
 
 import {setDeviceID} from '@userActions/Device';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -77,17 +79,28 @@ export default function () {
             ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA,
             ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
             ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE,
+            ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE,
             ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
             ONYXKEYS.RAM_ONLY_MERGE_HR_LINK_TOKEN,
             ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD,
             ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
             ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER,
+            ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP,
         ],
     });
+
+    // Register the commands after Onyx is initialized so every JS runtime can process paginated
+    // responses. Initial snapshots remain asynchronous and gate only pagination, not app startup.
+    registerReportActionsPagination();
 
     // Must be imported after Onyx.init() and outside the React lifecycle so that push notification
     // handlers are registered before any push arrives, including Android headless/background wake-ups.
     import('@libs/Notification/PushNotification/subscribeToPushNotifications');
+
+    // The QA auth callback arrives as a full page load, so no component is around to receive it: the code is
+    // picked up and the URL restored here, before React Navigation resolves the initial route. After
+    // Onyx.init() because a completed exchange persists the session. No-op on every other load.
+    finishCloudflareSignInFromURL();
 
     initOnyxDerivedValues();
 

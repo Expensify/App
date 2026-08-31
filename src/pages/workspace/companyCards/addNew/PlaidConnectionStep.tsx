@@ -15,6 +15,7 @@ import {splitCardFeedWithDomainID} from '@libs/CardUtils';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
+import getPlaidInstitutionID from '@libs/PlaidUtils';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -26,11 +27,7 @@ import {importPlaidAccounts, openPlaidCompanyCardLogin} from '@userActions/Plaid
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
-import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-
-import type {LinkSuccessMetadata} from 'react-native-plaid-link-sdk';
-import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link/src/types';
 
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
@@ -53,8 +50,7 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
     const plaidErrors = plaidData?.errors;
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
     const previousNetworkState = useRef<boolean | undefined>(undefined);
-    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-    const plaidDataErrorMessage = !isEmptyObject(plaidErrors) ? (Object.values(plaidErrors).at(0) as string) : '';
+    const plaidDataErrorMessage = !isEmptyObject(plaidErrors) ? (Object.values(plaidErrors).at(0) ?? '') : '';
     const {isOffline} = useNetwork();
     const domain = getDomainNameForPolicy(policyID);
 
@@ -134,10 +130,9 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
                         // on success we need to move to bank connection screen with token, bank name = plaid
                         Log.info('[PlaidLink] Success!');
 
-                        const plaidConnectedFeed = ((metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id ??
-                            (metadata?.institution as LinkSuccessMetadata['institution'])?.id) as CardFeedWithNumber;
-                        const plaidConnectedFeedName =
-                            (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.name ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.name;
+                        const institution = metadata.institution;
+                        const plaidConnectedFeed = getPlaidInstitutionID(institution);
+                        const plaidConnectedFeedName = institution?.name;
 
                         if (feed) {
                             if (plaidConnectedFeed && addNewCard?.data?.selectedCountry && plaidConnectedFeedName) {
@@ -150,7 +145,7 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
                                     plaidConnectedFeedName,
                                     addNewCard.data.selectedCountry,
                                     getDomainNameForPolicy(policyID),
-                                    JSON.stringify(metadata?.accounts),
+                                    JSON.stringify(metadata.accounts),
                                     '',
                                     splitCardFeedWithDomainID(feed)?.domainID,
                                 );
@@ -160,7 +155,7 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
                                     plaidAccessToken: publicToken,
                                     institutionId: plaidConnectedFeed,
                                     plaidConnectedFeedName,
-                                    plaidAccounts: metadata?.accounts,
+                                    plaidAccounts: metadata.accounts,
                                 },
                                 currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION,
                             });
@@ -173,7 +168,7 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
                                 publicToken,
                                 plaidConnectedFeed,
                                 plaidConnectedFeedName,
-                                plaidAccounts: metadata?.accounts,
+                                plaidAccounts: metadata.accounts,
                             },
                         });
                     }}

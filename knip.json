@@ -16,7 +16,8 @@
                 "metro.config.js",
                 "eslint.changed.config.mjs",
                 "react-native.config.js",
-                "rock.config.mjs"
+                "rock.config.mjs",
+                "src/components/HeaderWithBackButtonComposed/index.tsx"
             ],
             "project": [
                 "src/**/*.{js,jsx,ts,tsx}",
@@ -79,7 +80,6 @@
         "eslint-config-prettier",
         "eslint-plugin-storybook",
         "@dword-design/eslint-plugin-import-alias",
-        "@vercel/ncc",
         "bun",
         "shellcheck",
         "patch-package",
