@@ -167,7 +167,7 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
 
         if (!isSupportedGlobalReimbursement) {
             showConfirmModal({
-                danger: true,
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 title: translate('workspace.bankAccount.workspaceCurrency'),
                 prompt: translate('workspace.bankAccount.updateCurrencyPrompt'),
                 confirmText: translate('workspace.bankAccount.updateToUSD'),
@@ -227,7 +227,7 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
             onSelected: () => {
                 closeModal(() => {
                     showConfirmModal({
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                         title: translate('walletPage.deleteAccount'),
                         prompt: translate('walletPage.deleteConfirmation'),
                         confirmText: translate('common.delete'),

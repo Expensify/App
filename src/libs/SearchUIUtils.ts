@@ -58,6 +58,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 
 import type {ThemeColors} from '@styles/theme/types';
+import type {ButtonVariant} from '@styles/utils/types';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -597,7 +598,7 @@ type SearchTypeMenuItem = {
         buttons?: Array<{
             buttonText: TranslationPaths;
             buttonAction: () => void;
-            success?: boolean;
+            buttonVariant?: ButtonVariant;
             icon?: IconAsset;
             isDisabled?: boolean;
         }>;
@@ -4899,7 +4900,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
                         buttons: hasEligibleGroupPolicies
                             ? [
                                   {
-                                      success: true,
+                                      buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                       buttonText: 'report.newReport.createExpense',
                                       buttonAction: () => {
                                           interceptAnonymousUser(() => {

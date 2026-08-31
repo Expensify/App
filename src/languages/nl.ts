@@ -4565,6 +4565,10 @@ ${amount} voor ${merchant} - ${date}`,
                 'Wist je dat je treinreizen direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Wist je dat je treinreizen rechtstreeks in Expensify kunt boeken en beheren? En dat bonnen automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            hotelBlockManual:
+                'Wist je dat je groepsreizen zoals deze direct in Expensify kunt boeken en beheren? Bespaar jezelf de moeite de volgende keer en probeer onze tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reisevenementen</a> eens uit.',
+            hotelBlockCard:
+                'Wist je dat je groepsreizen zoals deze direct in Expensify kunt boeken en beheren? Bespaar jezelf de moeite de volgende keer en probeer onze tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reisevenementen</a> eens uit.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Reizen is niet ingeschakeld',
@@ -6026,6 +6030,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     comment: 'Omschrijving',
                     category: 'Categorie',
                     tag: 'Label',
+                    uniqueID: 'Unieke ID',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Wijs een kolom toe aan elk van de attributen: ${missingColumns}.`,
@@ -6503,7 +6508,12 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 defaultHourlyRate: 'Standaard uurtarief',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Om HR uit te schakelen, koppel eerst ${integration} los van deze workspace.`},
-            vendors: {title: 'Leveranciers', subtitle: 'Koppel kaartuitgaven aan leveranciers die zijn geïmporteerd uit je boekhoudsoftware.'},
+            vendors: {
+                title: 'Leveranciers',
+                subtitle: 'Koppel kaartuitgaven aan leveranciers die zijn geïmporteerd uit je boekhoudsoftware.',
+                disabledTitle: 'Niet zo snel...',
+                disabledMessage: 'Om deze functie in of uit te schakelen, moet je je boekhoudimportinstellingen wijzigen.',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',

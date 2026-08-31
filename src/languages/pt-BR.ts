@@ -4559,6 +4559,10 @@ ${amount} para ${merchant} - ${date}`,
                 'Você sabia que pode reservar e gerenciar viagens de trem direto no Expensify? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pela <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Você sabia que dá para reservar e gerenciar viagens de trem direto no Expensify? E que os recibos são enviados automaticamente para você? Da próxima vez, é só reservar pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            hotelBlockManual:
+                'Você sabia que pode reservar e gerenciar viagens em grupo como esta direto no Expensify? Poupe-se do transtorno da próxima vez e experimente nossa ferramenta de <a href="https://help.expensify.com/travel/hubs/event-management/">Eventos de Viagem</a>.',
+            hotelBlockCard:
+                'Você sabia que pode reservar e gerenciar viagens em grupo como esta direto no Expensify? Poupe-se do transtorno da próxima vez e experimente nossa ferramenta de <a href="https://help.expensify.com/travel/hubs/event-management/">Eventos de Viagem</a>.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Viagem não está ativada',
@@ -6029,6 +6033,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     comment: 'Descrição',
                     category: 'Categoria',
                     tag: 'Etiqueta',
+                    uniqueID: 'ID exclusivo',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Atribua uma coluna a cada um dos atributos: ${missingColumns}.`,
@@ -6507,7 +6512,12 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 defaultHourlyRate: 'Taxa horária padrão',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Para desativar RH, desconecte primeiro a integração ${integration} deste workspace.`},
-            vendors: {title: 'Fornecedores', subtitle: 'Combine as despesas do cartão com fornecedores importados do seu software de contabilidade.'},
+            vendors: {
+                title: 'Fornecedores',
+                subtitle: 'Combine as despesas do cartão com fornecedores importados do seu software de contabilidade.',
+                disabledTitle: 'Calma lá...',
+                disabledMessage: 'Para ativar ou desativar este recurso, você precisará alterar suas configurações de importação contábil.',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Exemplos:',

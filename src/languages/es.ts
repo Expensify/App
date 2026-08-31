@@ -4503,6 +4503,10 @@ ${amount} para ${merchant} - ${date}`,
                 '¿Sabías que puedes reservar y gestionar viajes en tren directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 '¿Sabías que puedes reservar y gestionar viajes en tren directamente en Expensify? ¿Y que además sube los recibos automáticamente por ti? La próxima vez, simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            hotelBlockManual:
+                '¿Sabías que puedes reservar y gestionar viajes en grupo como este directamente en Expensify? Evita complicaciones la próxima vez y prueba nuestra herramienta de <a href="https://help.expensify.com/travel/hubs/event-management/">Eventos de viaje</a>.',
+            hotelBlockCard:
+                '¿Sabías que puedes reservar y gestionar viajes en grupo como este directamente en Expensify? Evita complicaciones la próxima vez y prueba nuestra herramienta de <a href="https://help.expensify.com/travel/hubs/event-management/">Eventos de viaje</a>.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Los viajes no están habilitados',
@@ -5945,6 +5949,7 @@ ${amount} para ${merchant} - ${date}`,
                     comment: 'Descripción',
                     category: 'Categoría',
                     tag: 'Etiqueta',
+                    uniqueID: 'ID única',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Por favor, asigna una columna a cada uno de los atributos: ${missingColumns}.`,
@@ -6390,7 +6395,12 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Impuestos',
                 subtitle: 'Documenta y reclama los impuestos aplicables.',
             },
-            vendors: {title: 'Proveedores', subtitle: 'Asocia los gastos de tarjeta con los proveedores importados de tu software de contabilidad.'},
+            vendors: {
+                title: 'Proveedores',
+                subtitle: 'Asocia los gastos de tarjeta con los proveedores importados de tu software de contabilidad.',
+                disabledTitle: 'No tan rápido...',
+                disabledMessage: 'Para activar o desactivar esta función, deberás cambiar la configuración de importación de contabilidad.',
+            },
             reportFields: {
                 title: 'Campos de informes',
                 subtitle: 'Configura campos personalizados para los gastos.',
