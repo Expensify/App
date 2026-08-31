@@ -10029,48 +10029,6 @@ describe('SearchUIUtils', () => {
             expect(response.visibility.topSpenders).toBe(true);
         });
 
-        test('Should collect Top Spenders-eligible policy IDs and scope the suggested search query to them', () => {
-            const eligiblePolicyID = 'GROUP_POLICY_01';
-            const ineligiblePolicyID = 'PERSONAL_POLICY_02';
-
-            const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [`policy_${eligiblePolicyID}`]: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    id: eligiblePolicyID,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    employeeList: {
-                        'employee1@policy.com': {submitsTo: '', forwardsTo: ''},
-                        'employee2@policy.com': {submitsTo: '', forwardsTo: ''},
-                    },
-                },
-                // Personal (non-group) policy is not eligible for Top Spenders and must not be scoped in.
-                [`policy_${ineligiblePolicyID}`]: {
-                    ...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL),
-                    id: ineligiblePolicyID,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    employeeList: {
-                        'employee1@policy.com': {submitsTo: '', forwardsTo: ''},
-                        'employee2@policy.com': {submitsTo: '', forwardsTo: ''},
-                    },
-                },
-            };
-
-            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.visibility.topSpenders).toBe(true);
-            expect(response.topSpendersPolicyIDs).toEqual([eligiblePolicyID]);
-
-            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined, response.topSpendersPolicyIDs);
-            const topSpendersQuery = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS].searchQuery;
-            expect(topSpendersQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${eligiblePolicyID}`);
-            expect(topSpendersQuery).not.toContain(ineligiblePolicyID);
-        });
-
-        test('Should not add a policyID filter to the Top Spenders query when there are no eligible workspaces', () => {
-            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined, []);
-            const topSpendersQuery = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS].searchQuery;
-            expect(topSpendersQuery).not.toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:`);
-        });
-
         test('Should show Spend Over Time for workflow approver (forwardsTo) in paid policy', () => {
             const workflowApproverEmail = 'workflow-approver@policy.com';
             const policyKey = `policy_${policyID}`;
@@ -10296,7 +10254,7 @@ describe('SearchUIUtils', () => {
         const activeExpensifyCardFeedID = 'fund1_Expensify Card';
 
         const getCardAccrualsFeedValues = (activeCardFeedID?: string, defaultFeedID?: string): unknown[] => {
-            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, defaultFeedID, undefined, [], activeCardFeedID);
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, defaultFeedID, undefined, activeCardFeedID);
             const cardAccruals = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD];
             const feedFilter = cardAccruals.searchQueryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED);
             return (feedFilter?.filters ?? []).map((f) => f.value).filter(Boolean);
@@ -10324,8 +10282,8 @@ describe('SearchUIUtils', () => {
             // real call sites differ in the `defaultFeedID` and `shouldShowExpensifyCard` args, so mirror that here to
             // prove Card accruals is driven purely by `activeExpensifyCardFeedID` and doesn't split on those inputs.
             const otherCompanyFeedID = 'fund2_oauth.chase.com';
-            const fromProvider = SearchUIUtils.getSuggestedSearches(adminAccountID, companyFeedID, undefined, [], activeExpensifyCardFeedID);
-            const fromMenu = SearchUIUtils.getSuggestedSearches(adminAccountID, otherCompanyFeedID, true, [], activeExpensifyCardFeedID);
+            const fromProvider = SearchUIUtils.getSuggestedSearches(adminAccountID, companyFeedID, undefined, activeExpensifyCardFeedID);
+            const fromMenu = SearchUIUtils.getSuggestedSearches(adminAccountID, otherCompanyFeedID, true, activeExpensifyCardFeedID);
             expect(fromMenu[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD].similarSearchHash).toBe(fromProvider[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD].similarSearchHash);
         });
     });

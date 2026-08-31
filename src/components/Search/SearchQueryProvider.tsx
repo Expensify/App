@@ -1,22 +1,20 @@
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLoadSearchCategoryData from '@hooks/useLoadSearchCategoryData';
-import useOnyx from '@hooks/useOnyx';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import {getSuggestedSearches, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
+import {getSuggestedSearches} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
 import type {NavigationState} from '@react-navigation/routers';
 
 import {useNavigation} from '@react-navigation/native';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 import type {SearchQueryActionsValue, SearchQueryContextValue} from './types';
 
@@ -48,12 +46,9 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     useLoadSearchCategoryData({shouldLoad: shouldLoadCategoryData});
 
     const {defaultCardFeed, activeExpensifyCardFeedID} = useCardFeedsForDisplay();
-    const {accountID, email} = useCurrentUserPersonalDetails();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {accountID} = useCurrentUserPersonalDetails();
     const defaultCardFeedID = defaultCardFeed?.id;
-    // Only policy IDs are needed so Top Spenders matches the type menu hash; card feeds aren't used for that eligibility.
-    const topSpendersPolicyIDs = useMemo(() => getSuggestedSearchesVisibility(email, {}, policies, undefined).topSpendersPolicyIDs, [email, policies]);
-    const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeedID, undefined, topSpendersPolicyIDs, activeExpensifyCardFeedID);
+    const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeedID, undefined, activeExpensifyCardFeedID);
 
     const currentSearchHash = currentSearchQueryJSON?.hash ?? -1;
     const currentSimilarSearchHash = currentSearchQueryJSON?.similarSearchHash ?? -1;

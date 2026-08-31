@@ -759,7 +759,6 @@ function getSuggestedSearches(
     accountID: number = CONST.DEFAULT_NUMBER_ID,
     defaultFeedID?: string,
     shouldShowExpensifyCard?: boolean,
-    topSpendersPolicyIDs: string[] = [],
     activeExpensifyCardFeedID?: string,
 ): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
     // Card accruals (UNAPPROVED_CARD) defaults to the active workspace's Expensify Card when it has one,
@@ -1010,8 +1009,6 @@ function getSuggestedSearches(
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     groupBy: CONST.SEARCH.GROUP_BY.FROM,
                     dateOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
-                    // Scope Top Spenders to the eligible workspaces so individual-chat/personal expenses don't leak in.
-                    ...(topSpendersPolicyIDs.length > 0 ? {policyID: topSpendersPolicyIDs} : {}),
                     status: [
                         CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
                         CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
@@ -1114,7 +1111,7 @@ function getSuggestedSearchesVisibility(
     defaultExpensifyCard: CardFeedForDisplay | undefined,
     hasReportAwaitingApproval = false,
     isTrackIntentUser = false,
-): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasEligibleGroupPolicies: boolean; shouldShowExpensifyCard: boolean; topSpendersPolicyIDs: string[]} {
+): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasEligibleGroupPolicies: boolean; shouldShowExpensifyCard: boolean} {
     let shouldShowSubmitSuggestion = false;
     let shouldShowPaySuggestion = false;
     let shouldShowApproveSuggestion = hasReportAwaitingApproval;
@@ -1129,15 +1126,14 @@ function getSuggestedSearchesVisibility(
     let shouldShowTopMerchantsSuggestion = false;
     let hasEligibleGroupPolicies = false;
     let shouldShowSpendOverTimeSuggestion = false;
-    const topSpendersPolicyIDs: string[] = [];
 
     const hasCardFeed = Object.values(cardFeedsByPolicy ?? {}).some((feeds) => feeds.length > 0);
     const hasAnyPolicyWithWorkflowsEnabled = Object.values(policies ?? {}).some((policy) => policy?.areWorkflowsEnabled);
     const isTrackIntentWithWorkflowsDisabled = isTrackIntentUser && !hasAnyPolicyWithWorkflowsEnabled;
 
-    for (const policy of Object.values(policies ?? {})) {
+    Object.values(policies ?? {}).some((policy) => {
         if (!policy) {
-            continue;
+            return false;
         }
 
         const isPaidPolicy = isPaidGroupPolicy(policy);
@@ -1185,9 +1181,6 @@ function getSuggestedSearchesVisibility(
         shouldShowExpensifyCardSuggestion ||= isEligibleForExpensifyCardSuggestion;
         shouldShowReimbursementsSuggestion ||= isEligibleForReimbursementsSuggestion;
         shouldShowTopSpendersSuggestion ||= isEligibleForTopSpendersSuggestion;
-        if (policy.id && isEligibleForTopSpendersSuggestion) {
-            topSpendersPolicyIDs.push(policy.id);
-        }
         shouldShowTopCategoriesSuggestion ||= isEligibleForTopCategoriesSuggestion;
         shouldShowTopMerchantsSuggestion ||= isEligibleForTopMerchantsSuggestion;
         hasEligibleGroupPolicies ||=
@@ -1196,7 +1189,24 @@ function getSuggestedSearchesVisibility(
             (policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
             !!policy.role;
         shouldShowSpendOverTimeSuggestion ||= isPolicyEligibleForSpendOverTime(policy, currentUserEmail);
-    }
+
+        // We don't need to check the rest of the policies if we already determined that all suggestions should be displayed
+        return (
+            shouldShowSubmitSuggestion &&
+            shouldShowPaySuggestion &&
+            shouldShowApproveSuggestion &&
+            shouldShowExportSuggestion &&
+            shouldShowStatementsSuggestion &&
+            shouldShowUnapprovedCashSuggestion &&
+            shouldShowUnapprovedCardSuggestion &&
+            shouldShowExpensifyCardSuggestion &&
+            shouldShowReimbursementsSuggestion &&
+            shouldShowTopSpendersSuggestion &&
+            shouldShowTopCategoriesSuggestion &&
+            shouldShowTopMerchantsSuggestion &&
+            hasEligibleGroupPolicies
+        );
+    });
 
     return {
         visibility: {
@@ -1217,7 +1227,6 @@ function getSuggestedSearchesVisibility(
         },
         hasEligibleGroupPolicies,
         shouldShowExpensifyCard: shouldShowExpensifyCardSuggestion,
-        topSpendersPolicyIDs,
     };
 }
 
@@ -4870,9 +4879,8 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         visibility: suggestedSearchesVisibility,
         hasEligibleGroupPolicies,
         shouldShowExpensifyCard,
-        topSpendersPolicyIDs,
     } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard, hasReportAwaitingApproval, isTrackIntentUser);
-    const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard, topSpendersPolicyIDs, activeExpensifyCardFeedID);
+    const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard, activeExpensifyCardFeedID);
     const hasAnyPolicyWithWorkflowsEnabled = Object.values(policies ?? {}).some((policy) => policy?.areWorkflowsEnabled);
     const isTrackIntentWithWorkflowsDisabled = isTrackIntentUser && !hasAnyPolicyWithWorkflowsEnabled;
 
