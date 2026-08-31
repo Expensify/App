@@ -55,6 +55,10 @@ type BookTravelButtonProps = WithSentryLabel & {
 
 const hasPolicyIDInActiveRoute = () => getSearchParamFromPath(Navigation.getActiveRoute(), CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) !== null;
 
+// Avoids a duplicate policyID query param when the active route already has one (e.g. opened from the FAB).
+const getPolicyDynamicSuffix = (dynamicRoute: {path: string; getRoute: (policyID?: string) => string}, policyID?: string) =>
+    hasPolicyIDInActiveRoute() ? dynamicRoute.path : dynamicRoute.getRoute(policyID);
+
 function BookTravelButton({
     text,
     shouldRenderErrorMessageBelowButton = false,
@@ -114,7 +118,7 @@ function BookTravelButton({
     };
 
     const navigateToPublicDomainError = () => {
-        const dynamicSuffix = hasPolicyIDInActiveRoute() ? DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.path : DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(activePolicyID);
+        const dynamicSuffix = getPolicyDynamicSuffix(DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR, activePolicyID);
         Navigation.navigate(createDynamicRoute(dynamicSuffix));
     };
 

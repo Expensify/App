@@ -1,7 +1,25 @@
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt
-@@ -899,9 +899,18 @@ internal constructor(
+@@ -873,8 +873,15 @@ internal constructor(
+     if (isStopped) {
+       return
+     }
+-
++
+-    val viewState = getViewState(reactTag)
++    val viewState = getNullableViewState(reactTag)
++    if (viewState == null) {
++      ReactSoftExceptionLogger.logSoftException(
++          ReactSoftExceptionLogger.Categories.SURFACE_MOUNTING_MANAGER_MISSING_VIEWSTATE,
++          ReactNoCrashSoftException("Unable to find viewState for tag $reactTag for updatePadding"),
++      )
++      return
++    }
+     // Do not layout Root Views
+     if (viewState.isRoot) {
+       return
+@@ -899,9 +906,18 @@ internal constructor(
      if (isStopped) {
        return
      }
@@ -21,3 +39,22 @@ diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/r
      if (viewState.isRoot) {
        return
      }
+@@ -925,8 +941,15 @@ internal constructor(
+     if (isStopped) {
+       return
+     }
+-
++
+-    val viewState = getViewState(reactTag)
+-
++    val viewState = getNullableViewState(reactTag)
++    if (viewState == null) {
++      ReactSoftExceptionLogger.logSoftException(
++          ReactSoftExceptionLogger.Categories.SURFACE_MOUNTING_MANAGER_MISSING_VIEWSTATE,
++          ReactNoCrashSoftException("Unable to find viewState for tag $reactTag for updateState"),
++      )
++      return
++    }
++
+     val prevStateWrapper = viewState.stateWrapper
+     viewState.stateWrapper = stateWrapper

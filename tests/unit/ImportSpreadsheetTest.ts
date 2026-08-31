@@ -1,4 +1,4 @@
-import {setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
+import {applyCompanyCardSavedColumnMappings, setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,6 +23,10 @@ function buildSparseRow(cells: string[], holeIndexes: number[]): string[] {
 
 function isImportedSpreadsheet(value: unknown): value is ImportedSpreadsheet {
     return typeof value === 'object' && !!value && 'data' in value;
+}
+
+function hasColumnMappings(value: unknown): value is {columns: Record<number, string>} {
+    return typeof value === 'object' && !!value && 'columns' in value;
 }
 
 /** Replays the column-major to row-major transpose the company cards import runs when Import is pressed. */
@@ -125,6 +129,58 @@ describe('ImportSpreadsheet', () => {
                 'Invalid data format: file must contain at least 2 rows',
             );
             expect(storedSpreadsheet).toBeUndefined();
+        });
+    });
+
+    describe('applyCompanyCardSavedColumnMappings', () => {
+        let mergedColumns: Record<number, string> | undefined;
+
+        beforeEach(() => {
+            mergedColumns = undefined;
+            jest.spyOn(Onyx, 'merge').mockImplementation((key, value) => {
+                if (key === ONYXKEYS.IMPORTED_SPREADSHEET && hasColumnMappings(value)) {
+                    mergedColumns = value.columns;
+                }
+                return Promise.resolve();
+            });
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        const spreadsheetColumns = [
+            ['Card', '1234'],
+            ['Date', '2024-01-15'],
+            ['Merchant', 'Coffee Shop'],
+            ['Amount', '-5.00'],
+            ['Currency', 'USD'],
+            ['Notes', 'Team offsite'],
+        ];
+        const availableRoles = [
+            CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER,
+            CONST.CSV_IMPORT_COLUMNS.POSTED_DATE,
+            CONST.CSV_IMPORT_COLUMNS.MERCHANT,
+            CONST.CSV_IMPORT_COLUMNS.AMOUNT,
+            CONST.CSV_IMPORT_COLUMNS.CURRENCY,
+            CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID,
+        ];
+
+        it('restores the saved mappings for regular roles', () => {
+            applyCompanyCardSavedColumnMappings(spreadsheetColumns, {cardNumber: '0', postedDate: '1', merchant: '2'}, availableRoles);
+
+            // Asserted as entries because integer-like object keys trip the naming-convention lint rule.
+            expect(Object.entries(mergedColumns ?? {})).toEqual([
+                ['0', CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER],
+                ['1', CONST.CSV_IMPORT_COLUMNS.POSTED_DATE],
+                ['2', CONST.CSV_IMPORT_COLUMNS.MERCHANT],
+            ]);
+        });
+
+        it('never restores a saved externalID mapping, which can point at the synthetic column rather than a real one', () => {
+            applyCompanyCardSavedColumnMappings(spreadsheetColumns, {cardNumber: '0', externalID: '5'}, availableRoles);
+
+            expect(Object.entries(mergedColumns ?? {})).toEqual([['0', CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER]]);
         });
     });
 });
