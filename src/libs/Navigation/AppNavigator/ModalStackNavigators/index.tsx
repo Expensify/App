@@ -928,6 +928,17 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/export/DualEntryExpensifyCardAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_DEFAULT_COMPANY_CARD_VENDOR]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/export/DualEntryDefaultCompanyCardVendorPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_ADVANCED]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntryAdvancedPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_EXPORT_METHOD]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntryExportMethodPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_BILL_PAYMENT_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntryBillPaymentAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntryExpensifyCardSettlementAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_TRAVEL_BILLING_SETTLEMENT_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntryTravelInvoicingSettlementAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntryTravelInvoicingPayableAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationSageIntacctAutoSyncPage').default,
@@ -1247,6 +1258,7 @@ const SearchReportActionsModalStackNavigator = createModalStackNavigator<SearchR
     [SCREENS.SEARCH.EDIT_MULTIPLE_BILLABLE_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultipleBooleanPage').default,
     [SCREENS.SEARCH.EDIT_MULTIPLE_REIMBURSABLE_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultipleBooleanPage').default,
     [SCREENS.SEARCH.EDIT_MULTIPLE_TAX_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultipleTaxPage').default,
+    [SCREENS.SEARCH.EDIT_MULTIPLE_ATTENDEES_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultipleAttendeesPage').default,
 });
 
 const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator({

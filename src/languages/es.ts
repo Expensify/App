@@ -15,6 +15,7 @@ import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocke
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
 import type en from './en';
+import type {PolicyConnectionSyncStage} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
     common: {
@@ -2222,6 +2223,14 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Nombres de spans resaltados',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
             showBranchNameInTitle: 'Mostrar nombre de rama en el título del navegador',
+            qaAuth: 'Autenticación QA (Cloudflare)',
+            qaAuthRunProbe: 'Ejecutar prueba',
+            qaAuthSession: 'Sesión de autenticación QA',
+            qaAuthClearSession: 'Borrar sesión',
+            qaAuthStatusSuccess: 'Prueba realizada con éxito',
+            qaAuthStatusReauthRequired: 'Sesión caducada: ejecútalo de nuevo para iniciar sesión',
+            qaAuthStatusSignInFailed: 'El inicio de sesión no se completó; ejecútalo de nuevo para reintentarlo',
+            qaAuthStatusError: 'La prueba ha fallado',
         },
         security: 'Seguridad',
         restoreStashed: 'Restablecer login guardado',
@@ -2922,7 +2931,6 @@ ${amount} para ${merchant} - ${date}`,
         cardLastFour: 'Tarjeta terminada en',
         addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación.',
         defaultPaymentMethod: 'Predeterminado',
-        bankAccountLastFour: (lastFour) => `Cuenta bancaria • ${lastFour}`,
     },
     agentsPage: {
         title: 'Agentes',
@@ -4497,6 +4505,10 @@ ${amount} para ${merchant} - ${date}`,
                 '¿Sabías que puedes reservar y gestionar viajes en tren directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 '¿Sabías que puedes reservar y gestionar viajes en tren directamente en Expensify? ¿Y que además sube los recibos automáticamente por ti? La próxima vez, simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            hotelBlockManual:
+                '¿Sabías que puedes reservar y gestionar viajes en grupo como este directamente en Expensify? Evita complicaciones la próxima vez y prueba nuestra herramienta de <a href="https://help.expensify.com/travel/hubs/event-management/">Eventos de viaje</a>.',
+            hotelBlockCard:
+                '¿Sabías que puedes reservar y gestionar viajes en grupo como este directamente en Expensify? Evita complicaciones la próxima vez y prueba nuestra herramienta de <a href="https://help.expensify.com/travel/hubs/event-management/">Eventos de viaje</a>.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Los viajes no están habilitados',
@@ -5808,6 +5820,27 @@ ${amount} para ${merchant} - ${date}`,
                 label: 'Cuenta de la Tarjeta Expensify',
                 description: 'Elige dónde exportar las transacciones de la Tarjeta Expensify.',
             },
+            autoSyncDescription: 'Sincroniza DualEntry y Expensify automáticamente cada día. Los informes se sincronizan en tiempo real.',
+            accountingMethods: {
+                label: 'Método de exportación',
+                description: 'Elige cuándo exportar los gastos.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Devengo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Efectivo',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Los gastos por cuenta propia se exportarán cuando estén aprobados de forma definitiva',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando se paguen',
+                },
+            },
+            syncReimbursedReports: 'Sincronizar informes reembolsados',
+            syncReimbursedReportsDescription: 'Cuando un informe se pague mediante ACH, se generará un pago de factura en esta cuenta.',
+            billPaymentAccount: {label: 'Cuenta de pago de facturas', description: 'Elige desde dónde pagar las facturas y crearemos el pago en DualEntry.'},
+            syncExpensifyCardSettlements: 'Sincronizar liquidaciones de la Tarjeta Expensify',
+            settlementAccount: {label: 'Cuenta de liquidación de la Tarjeta Expensify', description: 'Elige tu cuenta de liquidación y crearemos el pago en DualEntry.'},
+            syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes',
+            travelInvoicingSettlementAccount: {label: 'Cuenta de liquidación de facturación de viajes', description: 'Elige tu cuenta de liquidación y crearemos el pago en DualEntry.'},
+            travelInvoicingPayableAccount: {label: 'Cuenta a pagar de facturación de viajes'},
         },
         type: {
             free: 'Gratis',
@@ -5918,6 +5951,7 @@ ${amount} para ${merchant} - ${date}`,
                     comment: 'Descripción',
                     category: 'Categoría',
                     tag: 'Etiqueta',
+                    uniqueID: 'ID única',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Por favor, asigna una columna a cada uno de los atributos: ${missingColumns}.`,
@@ -6855,7 +6889,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 },
             },
             connections: {
-                syncStageName: (stage, integrationName = 'QuickBooks Online') => {
+                syncStageName: (stage: PolicyConnectionSyncStage, integrationName = 'QuickBooks Online') => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -6864,35 +6898,35 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'netSuiteSyncImportEmployees':
                         case 'intacctImportEmployees':
                         case 'quickbooksDesktopImportEmployees':
-                            return 'Importando empleados';
+                            return 'Importación de empleados';
                         case 'quickbooksOnlineImportAccounts':
                         case 'quickbooksDesktopImportAccounts':
                             return 'Importando cuentas';
                         case 'quickbooksOnlineImportClasses':
                         case 'quickbooksDesktopImportClasses':
-                            return 'Importando clases';
+                            return 'Importación de clases';
                         case 'quickbooksOnlineImportLocations':
-                            return 'Importando localidades';
+                            return 'Importando ubicaciones';
                         case 'quickbooksOnlineImportProcessing':
                             return 'Procesando datos importados';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
-                            return 'Sincronizando reportes reembolsados y facturas pagadas';
+                            return 'Sincronizar informes reembolsados y pagos de facturas';
                         case 'quickbooksOnlineSyncTaxCodes':
-                            return 'Importando tipos de impuestos';
+                            return 'Importando códigos de impuestos';
                         case 'quickbooksOnlineCheckConnection':
-                            return `Revisando conexión a ${integrationName}`;
+                            return `Comprobando la conexión de ${integrationName}`;
                         case 'quickbooksOnlineImportMain':
-                            return `Importando datos desde ${integrationName}`;
+                            return `Importando datos de ${integrationName}`;
                         case 'startingImportXero':
-                            return 'Importando datos desde Xero';
+                            return 'Importando datos de Xero';
                         case 'startingImportQBO':
-                            return `Importando datos desde ${integrationName}`;
+                            return `Importando datos de ${integrationName}`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
-                            return 'Importando datos desde QuickBooks Desktop';
+                            return 'Importar datos de QuickBooks Desktop';
                         case 'quickbooksDesktopImportTitle':
-                            return 'Importando título';
+                            return 'Título de importación';
                         case 'quickbooksDesktopImportApproveCertificate':
                             return 'Importando certificado de aprobación';
                         case 'quickbooksDesktopImportDimensions':
@@ -6900,9 +6934,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'quickbooksDesktopImportSavePolicy':
                             return 'Importando política de guardado';
                         case 'quickbooksDesktopWebConnectorReminder':
-                            return 'Aún sincronizando datos con QuickBooks... Por favor, asegúrate de que el Conector Web esté en funcionamiento';
+                            return 'Sincronizando datos con QuickBooks... Asegúrate de que Web Connector esté en ejecución';
                         case 'quickbooksOnlineSyncTitle':
-                            return `Sincronizando datos desde ${integrationName}`;
+                            return `Sincronizando datos de ${integrationName}`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':
@@ -6910,45 +6944,45 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'quickbooksOnlineSyncApplyCategories':
                             return 'Actualizando categorías';
                         case 'quickbooksOnlineSyncApplyCustomers':
-                            return 'Actualizando clientes/proyectos';
+                            return 'Actualizar clientes/proyectos';
                         case 'quickbooksOnlineSyncApplyEmployees':
-                            return 'Actualizando empleados';
+                            return 'Actualizando la lista de personas';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
-                            return 'Actualizando clases';
+                            return 'Actualizando campos del informe';
                         case 'jobDone':
                             return 'Esperando a que se carguen los datos importados';
                         case 'xeroSyncImportChartOfAccounts':
-                            return 'Sincronizando plan de cuentas';
+                            return 'Sincronizando el plan de cuentas';
                         case 'xeroSyncImportCategories':
-                            return 'Sincronizando categorias';
+                            return 'Sincronizando categorías';
                         case 'xeroSyncImportCustomers':
                             return 'Sincronizando clientes';
                         case 'xeroSyncXeroReimbursedReports':
                             return 'Marcar los informes de Expensify como reembolsados';
                         case 'xeroSyncExpensifyReimbursedReports':
-                            return 'Marcar facturas y recibos de Xero como pagados';
+                            return 'Marcar facturas y comprobantes de Xero como pagados';
                         case 'xeroSyncImportTrackingCategories':
                             return 'Sincronizando categorías de seguimiento';
                         case 'xeroSyncImportBankAccounts':
                             return 'Sincronizando cuentas bancarias';
                         case 'xeroSyncImportTaxRates':
-                            return 'Sincronizando las tasas de impuesto';
+                            return 'Sincronizando tasas de impuestos';
                         case 'xeroCheckConnection':
-                            return 'Comprobando la conexión a Xero';
+                            return 'Comprobando la conexión con Xero';
                         case 'xeroSyncTitle':
-                            return 'Sincronizando los datos de Xero';
+                            return 'Sincronizando datos de Xero';
                         case 'netSuiteSyncConnection':
                             return 'Iniciando conexión a NetSuite';
                         case 'netSuiteSyncCustomers':
                             return 'Importando clientes';
                         case 'netSuiteSyncInitData':
-                            return 'Recuperando datos de NetSuite';
+                            return 'Obteniendo datos desde NetSuite';
                         case 'netSuiteSyncImportTaxes':
                             return 'Importando impuestos';
                         case 'netSuiteSyncImportItems':
-                            return 'Importando artículos';
+                            return 'Importando elementos';
                         case 'netSuiteSyncData':
-                            return 'Importando datos a Expensify';
+                            return 'Importar datos en Expensify';
                         case 'netSuiteSyncAccounts':
                             return 'Sincronizando cuentas';
                         case 'netSuiteSyncCurrencies':
@@ -6956,36 +6990,36 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'netSuiteSyncCategories':
                             return 'Sincronizando categorías';
                         case 'netSuiteSyncReportFields':
-                            return 'Importando datos como campos de informe de Expensify';
+                            return 'Importar datos como campos de informe de Expensify';
                         case 'netSuiteSyncTags':
-                            return 'Importando datos como etiquetas de Expensify';
+                            return 'Importar datos como etiquetas de Expensify';
                         case 'netSuiteSyncUpdateConnectionData':
-                            return 'Actualizando información de conexión';
+                            return 'Actualizando información de la conexión';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
-                            return 'Marcando informes de Expensify como reembolsados';
-                        case 'netSuiteSyncImportCustomLists':
-                            return 'Importando listas personalizadas';
-                        case 'netSuiteSyncImportSubsidiaries':
-                            return 'Importando subsidiarias';
-                        case 'netSuiteSyncImportVendors':
-                        case 'quickbooksDesktopImportVendors':
-                            return 'Importando proveedores';
+                            return 'Marcar los informes de Expensify como reembolsados';
                         case 'netSuiteSyncExpensifyReimbursedReports':
-                            return 'Marcando facturas y recibos de NetSuite como pagados';
+                            return 'Marcar facturas y recibos de NetSuite como pagados';
                         case 'netSuiteImportVendorsTitle':
                             return 'Importando proveedores';
                         case 'netSuiteImportCustomListsTitle':
-                            return 'Importando listas personalizadas';
+                            return 'Importar listas personalizadas';
+                        case 'netSuiteSyncImportCustomLists':
+                            return 'Importar listas personalizadas';
+                        case 'netSuiteSyncImportSubsidiaries':
+                            return 'Importando filiales';
+                        case 'netSuiteSyncImportVendors':
+                        case 'quickbooksDesktopImportVendors':
+                            return 'Importando proveedores';
                         case 'intacctCheckConnection':
-                            return 'Comprobando la conexión a Sage Intacct';
+                            return 'Comprobando la conexión con Sage Intacct';
                         case 'intacctImportDimensions':
-                            return 'Importando dimensiones';
+                            return 'Importando dimensiones de Sage Intacct';
                         case 'intacctImportTitle':
-                            return 'Importando datos desde Sage Intacct';
+                            return 'Importar datos de Sage Intacct';
                         case 'financialForceSyncTitle':
                             return 'Sincronizando datos de Certinia';
                         case 'financialForceSyncStep':
-                            return 'Sincronizando la conexión de Certinia';
+                            return 'Sincronizando conexión con Certinia';
                         case 'financialForceSyncCategories':
                             return 'Importando categorías';
                         case 'financialForceSyncTags':
@@ -6997,11 +7031,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'financialForceSyncCompanies':
                             return 'Importando empresas';
                         case 'financialForceSyncUsers':
-                            return 'Importando usuarios';
+                            return 'Importación de usuarios';
                         case 'financialForceSyncDimensions':
                             return 'Importando dimensiones';
                         case 'financialForceMarkAsReimbursed':
-                            return 'Marcando informes como reembolsados';
+                            return 'Marcar informes como reembolsados';
                         case 'rilletSyncTitle':
                             return 'Sincronizando datos de Rillet';
                         case 'rilletSyncConnection':
@@ -7014,8 +7048,14 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                             return 'Iniciando conexión con DualEntry';
                         case 'dualEntrySyncImportData':
                             return 'Cargando datos';
+                        case 'dualEntrySyncPayments':
+                            return 'Sincronizando pagos a proveedores';
+                        case 'dualEntrySyncCardSettlements':
+                            return 'Sincronizando liquidaciones de tarjetas';
+                        case 'dualEntrySyncTravelSettlements':
+                            return 'Sincronizando liquidaciones de viaje';
                         default: {
-                            return `Translation missing for stage: ${stage}`;
+                            return `Falta la traducción para la etapa: ${stage}`;
                         }
                     }
                 },
@@ -7254,6 +7294,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         distanceRates: {
             oopsNotSoFast: 'Ups! No tan rápido...',
             workspaceNeeds: 'Un espacio de trabajo necesita al menos una tasa de distancia activa.',
+            requireMapOrGPSDescription: 'Se deshabilitará la introducción manual y del cuentakilómetros.',
+            requireMapOrGPSLockedByCommuterExclusions:
+                'Excluir desplazamientos necesita datos de ruta, por lo que la distancia del mapa o del GPS siempre es obligatoria mientras esté activado. Para cambiar esta configuración, establece Excluir desplazamientos en «No excluir desplazamientos».',
             commuterExclusions: {
                 title: 'Excluir desplazamientos al trabajo',
                 summaryDisabled: 'Sin exclusión por desplazamiento al trabajo',
@@ -8742,27 +8785,29 @@ ${reportName}`,
                 case 'tags':
                     return `${enabled ? 'habilitado' : 'desactivado'} etiquetas`;
                 case 'workflows':
-                    return `Flujos de trabajo ${enabled ? 'habilitado' : 'desactivado'}`;
+                    return `Flujos de trabajo de ${enabled ? 'habilitado' : 'desactivado'}`;
                 case 'distance rates':
-                    return `${enabled ? 'habilitado' : 'desactivado'} tarifas por distancia`;
+                    return `Tarifas de distancia ${enabled ? 'habilitado' : 'desactivado'}`;
                 case 'accounting':
-                    return `${enabled ? 'habilitado' : 'desactivado'} contabilidad`;
+                    return `contabilidad ${enabled ? 'habilitado' : 'desactivado'}`;
                 case 'Expensify Cards':
                     return `${enabled ? 'habilitado' : 'desactivado'} Tarjetas Expensify`;
                 case 'travel invoicing':
                     return `${enabled ? 'habilitado' : 'desactivado'} Facturación consolidada de viajes`;
                 case 'company cards':
-                    return `${enabled ? 'habilitado' : 'desactivado'} tarjetas de la empresa`;
+                    return `tarjetas de empresa ${enabled ? 'habilitado' : 'desactivado'}`;
                 case 'invoicing':
-                    return `Facturación ${enabled ? 'habilitado' : 'desactivado'}`;
+                    return `${enabled ? 'habilitado' : 'desactivado'} facturación`;
                 case 'per diem':
-                    return `${enabled ? 'habilitado' : 'desactivado'} Per diem`;
+                    return `${enabled ? 'habilitado' : 'desactivado'} per diem`;
                 case 'receipt partners':
                     return `${enabled ? 'habilitado' : 'desactivado'} socios de recibos`;
                 case 'rules':
-                    return `${enabled ? 'habilitado' : 'desactivado'} reglas`;
+                    return `Reglas de ${enabled ? 'habilitado' : 'desactivado'}`;
                 case 'tax tracking':
-                    return `seguimiento de impuestos ${enabled ? 'habilitado' : 'desactivado'}`;
+                    return `Seguimiento de impuestos ${enabled ? 'habilitado' : 'desactivado'}`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'activado' : 'desactivado'} requiere GPS o introducción en el mapa para las tasas de distancia`;
                 default:
                     return `${enabled ? 'habilitado' : 'desactivado'} ${featureName}`;
             }
@@ -10083,7 +10128,7 @@ ${reportName}`,
         error: {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual',
             mapOrGpsDistanceRequired: {
-                title: 'Se requiere distancia por mapa o GPS',
+                title: 'Requerir GPS o introducción en el mapa',
                 description: 'Este espacio de trabajo requiere gastos de distancia basados en mapa o con seguimiento por GPS.',
             },
         },

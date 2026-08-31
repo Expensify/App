@@ -2299,6 +2299,14 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Nomi degli intervalli evidenziati',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigazione, ui.load',
             showBranchNameInTitle: 'Mostra nome del ramo nel titolo del browser',
+            qaAuth: 'Autenticazione QA (Cloudflare)',
+            qaAuthRunProbe: 'Esegui probe',
+            qaAuthSession: 'Sessione di autenticazione QA',
+            qaAuthClearSession: 'Cancella sessione',
+            qaAuthStatusSuccess: 'Probe riuscito',
+            qaAuthStatusReauthRequired: 'Session scaduta: esegui di nuovo per accedere',
+            qaAuthStatusSignInFailed: 'Accesso non completato: esegui di nuovo per riprovare',
+            qaAuthStatusError: 'Sondaggio non riuscito',
         },
         security: 'Sicurezza',
         signOut: 'Esci',
@@ -3009,7 +3017,6 @@ ${amount} per ${merchant} - ${date}`,
         cardLastFour: 'Carta che termina con',
         addFirstPaymentMethod: 'Aggiungi un metodo di pagamento per inviare e ricevere pagamenti direttamente nell’app.',
         defaultPaymentMethod: 'Predefinito',
-        bankAccountLastFour: (lastFour: string) => `Conto bancario • ${lastFour}`,
     },
     agentsPage: {
         title: 'Agenti',
@@ -4562,6 +4569,10 @@ ${amount} per ${merchant} - ${date}`,
                 'Sapevi che puoi prenotare e gestire i viaggi in treno direttamente in Expensify? La prossima volta evita la seccatura di creare la spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Sapevi che puoi prenotare e gestire i viaggi in treno direttamente in Expensify? E che le ricevute vengono caricate automaticamente per te? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            hotelBlockManual:
+                'Sapevi che puoi prenotare e gestire viaggi di gruppo come questo direttamente in Expensify? Evita lo stress la prossima volta e prova il nostro strumento <a href="https://help.expensify.com/travel/hubs/event-management/">Eventi di viaggio</a>.',
+            hotelBlockCard:
+                'Sapevi che puoi prenotare e gestire viaggi di gruppo come questo direttamente in Expensify? Evita lo stress la prossima volta e prova il nostro strumento <a href="https://help.expensify.com/travel/hubs/event-management/">Eventi di viaggio</a>.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Viaggi non abilitato',
@@ -5883,6 +5894,27 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 label: 'Conto Expensify Card',
                 description: 'Scegli dove esportare le transazioni Expensify Card.',
             },
+            autoSyncDescription: 'Sincronizza DualEntry ed Expensify automaticamente, ogni giorno. I report si sincronizzano in tempo reale.',
+            accountingMethods: {
+                label: 'Metodo di esportazione',
+                description: 'Scegli quando esportare le spese.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Competenza',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contanti',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Le spese vive saranno esportate dopo l’approvazione finale',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate al momento del pagamento',
+                },
+            },
+            syncReimbursedReports: 'Sincronizza i report rimborsati',
+            syncReimbursedReportsDescription: 'Quando un report viene pagato tramite ACH, in questo conto verrà generato un pagamento di una fattura.',
+            billPaymentAccount: {label: 'Conto per il pagamento delle fatture', description: 'Scegli da dove pagare le fatture e creeremo il pagamento in DualEntry.'},
+            syncExpensifyCardSettlements: 'Sincronizza le liquidazioni della Carta Expensify',
+            settlementAccount: {label: 'Conto di regolamento Carta Expensify', description: 'Scegli il tuo conto di regolamento e creeremo il pagamento in DualEntry.'},
+            syncTravelInvoicingSettlements: 'Sincronizza le liquidazioni di fatturazione viaggi',
+            travelInvoicingSettlementAccount: {label: 'Conto di regolamento fatturazione viaggi', description: 'Scegli il tuo conto di regolamento e creeremo il pagamento in DualEntry.'},
+            travelInvoicingPayableAccount: {label: 'Conto debiti per fatturazione viaggi'},
         },
         type: {
             free: 'Gratis',
@@ -6009,6 +6041,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     comment: 'Descrizione',
                     category: 'Categoria',
                     tag: 'Tag',
+                    uniqueID: 'ID univoco',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Assegna una colonna a ciascuno degli attributi: ${missingColumns}.`,
@@ -7005,7 +7038,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                 },
             },
             connections: {
-                syncStageName: (stage, integrationName = 'QuickBooks Online') => {
+                syncStageName: (stage: PolicyConnectionSyncStage, integrationName = 'QuickBooks Online') => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -7017,10 +7050,10 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                             return 'Importazione dipendenti';
                         case 'quickbooksOnlineImportAccounts':
                         case 'quickbooksDesktopImportAccounts':
-                            return 'Importazione degli account';
+                            return 'Importazione conti';
                         case 'quickbooksOnlineImportClasses':
                         case 'quickbooksDesktopImportClasses':
-                            return 'Importazione classi';
+                            return 'Importazione di classi';
                         case 'quickbooksOnlineImportLocations':
                             return 'Importazione sedi';
                         case 'quickbooksOnlineImportProcessing':
@@ -7029,36 +7062,36 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                         case 'intacctImportSyncBillPayments':
                             return 'Sincronizzazione dei report rimborsati e dei pagamenti delle fatture';
                         case 'quickbooksOnlineSyncTaxCodes':
-                            return 'Importazione codici IVA';
+                            return 'Importazione dei codici IVA';
                         case 'quickbooksOnlineCheckConnection':
-                            return `Verifica della connessione a ${integrationName}`;
+                            return `Verifica della connessione ${integrationName}`;
                         case 'quickbooksOnlineImportMain':
-                            return `Importazione dei dati di ${integrationName}`;
+                            return `Importazione dei dati ${integrationName}`;
                         case 'startingImportXero':
-                            return 'Importazione dei dati Xero';
+                            return 'Importazione dati Xero';
                         case 'startingImportQBO':
-                            return `Importazione dei dati di ${integrationName}`;
+                            return `Importazione dei dati ${integrationName}`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return 'Importazione dei dati di QuickBooks Desktop';
                         case 'quickbooksDesktopImportTitle':
-                            return 'Importazione del titolo';
+                            return 'Titolo importazione';
                         case 'quickbooksDesktopImportApproveCertificate':
                             return 'Importazione del certificato di approvazione';
                         case 'quickbooksDesktopImportDimensions':
-                            return 'Importazione delle dimensioni';
+                            return 'Importazione dimensioni';
                         case 'quickbooksDesktopImportSavePolicy':
-                            return 'Importazione della politica di salvataggio';
+                            return 'Importazione della regola di risparmio';
                         case 'quickbooksDesktopWebConnectorReminder':
-                            return 'Sincronizzazione dei dati con QuickBooks ancora in corso... Assicurati che Web Connector sia in esecuzione';
+                            return 'Sincronizzazione dei dati con QuickBooks in corso... Assicurati che il Web Connector sia in esecuzione';
                         case 'quickbooksOnlineSyncTitle':
-                            return `Sincronizzazione dei dati ${integrationName}`;
+                            return `Sincronizzazione dei dati di ${integrationName}`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':
-                            return 'Caricamento dati';
+                            return 'Caricamento dei dati';
                         case 'quickbooksOnlineSyncApplyCategories':
-                            return 'Aggiornamento delle categorie';
+                            return 'Aggiornamento categorie';
                         case 'quickbooksOnlineSyncApplyCustomers':
                             return 'Aggiornamento clienti/progetti';
                         case 'quickbooksOnlineSyncApplyEmployees':
@@ -7070,15 +7103,15 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                         case 'xeroSyncImportChartOfAccounts':
                             return 'Sincronizzazione del piano dei conti';
                         case 'xeroSyncImportCategories':
-                            return 'Sincronizzazione delle categorie';
+                            return 'Sincronizzazione categorie';
                         case 'xeroSyncImportCustomers':
                             return 'Sincronizzazione clienti';
                         case 'xeroSyncXeroReimbursedReports':
-                            return 'Contrassegnare i report Expensify come rimborsati';
+                            return 'Impostare i report Expensify come rimborsati';
                         case 'xeroSyncExpensifyReimbursedReports':
-                            return 'Contrassegnare le fatture e le note di addebito Xero come pagate';
+                            return 'Contrassegnare le fatture e le note di credito Xero come pagate';
                         case 'xeroSyncImportTrackingCategories':
-                            return 'Sincronizzazione delle categorie di tracciamento';
+                            return 'Sincronizzazione delle categorie di monitoraggio';
                         case 'xeroSyncImportBankAccounts':
                             return 'Sincronizzazione dei conti bancari';
                         case 'xeroSyncImportTaxRates':
@@ -7096,23 +7129,23 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                         case 'netSuiteSyncImportTaxes':
                             return 'Importazione imposte';
                         case 'netSuiteSyncImportItems':
-                            return 'Importazione elementi';
+                            return 'Importazione articoli';
                         case 'netSuiteSyncData':
-                            return 'Importazione dei dati in Expensify';
+                            return 'Importazione di dati in Expensify';
                         case 'netSuiteSyncAccounts':
-                            return 'Sincronizzazione degli account';
+                            return 'Sincronizzazione account';
                         case 'netSuiteSyncCurrencies':
                             return 'Sincronizzazione valute';
                         case 'netSuiteSyncCategories':
-                            return 'Sincronizzazione delle categorie';
+                            return 'Sincronizzazione categorie';
                         case 'netSuiteSyncReportFields':
                             return 'Importazione dei dati come campi del report Expensify';
                         case 'netSuiteSyncTags':
-                            return 'Importazione dei dati come tag di Expensify';
+                            return 'Importazione dei dati come tag Expensify';
                         case 'netSuiteSyncUpdateConnectionData':
                             return 'Aggiornamento delle informazioni di connessione';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
-                            return 'Contrassegnare i report Expensify come rimborsati';
+                            return 'Impostare i report Expensify come rimborsati';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Contrassegnare le fatture e le note di addebito NetSuite come pagate';
                         case 'netSuiteImportVendorsTitle':
@@ -7122,7 +7155,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                         case 'netSuiteSyncImportCustomLists':
                             return 'Importazione di elenchi personalizzati';
                         case 'netSuiteSyncImportSubsidiaries':
-                            return 'Importazione di controllate';
+                            return 'Importazione filiali';
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
                             return 'Importazione fornitori';
@@ -7131,41 +7164,47 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                         case 'intacctImportDimensions':
                             return 'Importazione delle dimensioni Sage Intacct';
                         case 'intacctImportTitle':
-                            return 'Importazione dei dati Sage Intacct';
+                            return 'Importazione dei dati da Sage Intacct';
                         case 'financialForceSyncTitle':
                             return 'Sincronizzazione dei dati Certinia';
                         case 'financialForceSyncStep':
-                            return 'Sincronizzazione della connessione Certinia';
+                            return 'Sincronizzazione connessione Certinia';
                         case 'financialForceSyncCategories':
-                            return 'Importazione delle categorie';
+                            return 'Importazione categorie';
                         case 'financialForceSyncTags':
-                            return 'Importazione dei tag';
+                            return 'Importazione tag';
                         case 'financialForceSyncVendors':
-                            return 'Importazione dei fornitori';
+                            return 'Importazione fornitori';
                         case 'financialForceSyncContacts':
-                            return 'Importazione dei contatti';
+                            return 'Importazione contatti';
                         case 'financialForceSyncCompanies':
-                            return 'Importazione delle aziende';
+                            return 'Importazione aziende';
                         case 'financialForceSyncUsers':
-                            return 'Importazione degli utenti';
+                            return 'Importazione utenti';
                         case 'financialForceSyncDimensions':
-                            return 'Importazione delle dimensioni';
+                            return 'Importazione dimensioni';
                         case 'financialForceMarkAsReimbursed':
-                            return 'Contrassegno dei report come rimborsati';
+                            return 'Contrassegnare i report come rimborsati';
                         case 'rilletSyncTitle':
-                            return 'Sincronizzazione dei dati Rillet';
+                            return 'Sincronizzazione dati Rillet';
                         case 'rilletSyncConnection':
                             return 'Inizializzazione della connessione a Rillet';
                         case 'rilletSyncImportData':
-                            return 'Caricamento dati';
+                            return 'Caricamento dei dati';
                         case 'dualEntrySyncTitle':
                             return 'Sincronizzazione dei dati DualEntry';
                         case 'dualEntrySyncConnection':
                             return 'Inizializzazione della connessione a DualEntry';
                         case 'dualEntrySyncImportData':
                             return 'Caricamento dei dati';
+                        case 'dualEntrySyncPayments':
+                            return 'Sincronizzazione dei pagamenti ai fornitori';
+                        case 'dualEntrySyncCardSettlements':
+                            return 'Sincronizzazione delle compensazioni della carta';
+                        case 'dualEntrySyncTravelSettlements':
+                            return 'Sincronizzazione dei conguagli di viaggio';
                         default: {
-                            return `Traduzione mancante per lo stato: ${stage}`;
+                            return `Traduzione mancante per la fase: ${stage}`;
                         }
                     }
                 },
@@ -7251,6 +7290,9 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
         distanceRates: {
             oopsNotSoFast: 'Ops! Non così in fretta...',
             workspaceNeeds: 'Uno spazio di lavoro necessita di almeno una tariffa distanza abilitata.',
+            requireMapOrGPSDescription: 'L’inserimento manuale e tramite contachilometri sarà disabilitato.',
+            requireMapOrGPSLockedByCommuterExclusions:
+                'La funzione Escludi spostamenti casa-lavoro richiede i dati del percorso, quindi mentre è attiva è sempre necessaria la distanza dalla mappa o dal GPS. Per modificare questa impostazione, imposta Escludi spostamenti casa-lavoro su "Non escludere spostamenti casa-lavoro".',
             commuterExclusions: {
                 title: 'Escludi spostamenti casa-lavoro',
                 summaryDisabled: 'Nessuna esclusione per il tragitto',
@@ -8641,15 +8683,15 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 case 'tags':
                     return `${enabled ? 'abilitato' : 'disattivato'} tag`;
                 case 'workflows':
-                    return `${enabled ? 'abilitato' : 'disattivato'} flussi di lavoro`;
+                    return `workflow ${enabled ? 'abilitato' : 'disattivato'}`;
                 case 'distance rates':
-                    return `${enabled ? 'abilitato' : 'disattivato'} tariffe chilometriche`;
+                    return `tariffe chilometriche ${enabled ? 'abilitato' : 'disattivato'}`;
                 case 'accounting':
                     return `${enabled ? 'abilitato' : 'disattivato'} contabilità`;
                 case 'Expensify Cards':
                     return `${enabled ? 'abilitato' : 'disattivato'} Carte Expensify`;
                 case 'travel invoicing':
-                    return `${enabled ? 'abilitato' : 'disattivato'} fatturazione di viaggio consolidata`;
+                    return `${enabled ? 'abilitato' : 'disattivato'} fatturazione viaggi consolidata`;
                 case 'company cards':
                     return `${enabled ? 'abilitato' : 'disattivato'} carte aziendali`;
                 case 'invoicing':
@@ -8661,7 +8703,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 case 'rules':
                     return `${enabled ? 'abilitato' : 'disattivato'} regole`;
                 case 'tax tracking':
-                    return `monitoraggio imposte ${enabled ? 'abilitato' : 'disattivato'}`;
+                    return `Monitoraggio tasse ${enabled ? 'abilitato' : 'disattivato'}`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'attivato' : 'disattivato'} richiede il GPS o l’inserimento sulla mappa per le tariffe chilometriche`;
                 default:
                     return `${enabled ? 'abilitato' : 'disattivato'} ${featureName}`;
             }
@@ -9758,7 +9802,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         error: {
             selectSuggestedAddress: 'Seleziona un indirizzo suggerito o usa la posizione attuale',
             mapOrGpsDistanceRequired: {
-                title: 'Distanza da mappa o GPS richiesta',
+                title: 'Richiedi GPS o inserimento su mappa',
                 description: 'Questo spazio di lavoro richiede spese chilometriche basate su mappa o tracciate tramite GPS.',
             },
         },
