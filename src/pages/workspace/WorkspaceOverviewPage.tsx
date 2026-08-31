@@ -317,7 +317,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
         if (isReimburser) {
             showConfirmModal({
-                title: translate('common.leaveWorkspace'),
+                title: policyName ? translate('common.leaveWorkspaceTitle', policyName) : translate('common.leaveWorkspace'),
                 prompt,
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,

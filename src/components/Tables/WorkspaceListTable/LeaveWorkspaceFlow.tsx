@@ -56,7 +56,7 @@ function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
             const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userLogin, policyOwnerDisplayName ?? '', translate);
             if (policy?.achAccount?.reimburser === userLogin) {
                 showConfirmModal({
-                    title: translate('common.leaveWorkspace'),
+                    title: policy?.name ? translate('common.leaveWorkspaceTitle', policy.name) : translate('common.leaveWorkspace'),
                     prompt,
                     confirmText: translate('common.buttonConfirm'),
                     success: true,
