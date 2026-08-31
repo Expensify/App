@@ -167,7 +167,25 @@ describe('getMinimalAction', () => {
         });
     });
 
-    it('preserves the previous workspace split so going back restores coherent parameters', () => {
+    it('preserves an explicit replace action when the workspace changes', () => {
+        const {rootState} = buildWorkspaceStates(POLICY_B);
+        const action = buildWorkspaceAction(POLICY_A);
+        action.type = 'REPLACE';
+
+        expect(getMinimalAction(action, rootState).action).toMatchObject({
+            type: 'REPLACE',
+            target: 'workspace-state',
+            payload: {
+                name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                params: {
+                    screen: SCREENS.WORKSPACE.MORE_FEATURES,
+                    params: {policyID: POLICY_A},
+                },
+            },
+        });
+    });
+
+    it('preserves the previous workspace split so one Back action restores coherent parameters', () => {
         const {rootState, workspaceState} = buildWorkspaceStates(POLICY_B);
         const {action} = getMinimalAction(buildWorkspaceAction(POLICY_A), rootState);
 
