@@ -430,6 +430,19 @@ const CONST = {
         },
     },
 
+    // Report kinds the ReportAvatar dispatcher routes on. Each kind maps to a report-type avatar wrapper.
+    REPORT_AVATAR_KIND: {
+        EXPENSE: 'expense',
+        IOU: 'iou',
+        TASK: 'task',
+        INVOICE: 'invoice',
+        CHAT_THREAD: 'chatThread',
+        GROUP_CHAT: 'groupChat',
+        POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+        ROOM: 'room',
+        DEFAULT: 'default',
+    },
+
     // Used to track the editing state of report action messages in the ReportActionEditMessageContext provider.
     REPORT_ACTION_EDIT_MESSAGE_STATE: {
         OFF: 'off',
