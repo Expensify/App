@@ -32,14 +32,14 @@ function useTimeSensitiveCards() {
     const cardsWithFraud: Card[] = [];
     const virtualCardsNeedingPersonalDetails: Card[] = [];
     const cardsPendingDigitalWalletApproval: Card[] = [];
-    let hasExpensifyCard = false;
+    let hasActiveExpensifyCard = false;
 
     for (const card of Object.values(cards ?? {})) {
         if (!isCard(card) || !isExpensifyCard(card) || !CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state)) {
             continue;
         }
 
-        hasExpensifyCard = true;
+        hasActiveExpensifyCard = true;
 
         if (isCardPendingDigitalWalletApproval(card)) {
             cardsPendingDigitalWalletApproval.push(card);
@@ -90,7 +90,7 @@ function useTimeSensitiveCards() {
         shouldShowReviewCardFraud,
         shouldShowAddVirtualCardPersonalDetails,
         shouldShowConfirmDigitalWalletAddition,
-        hasExpensifyCard,
+        hasActiveExpensifyCard,
         cardsNeedingShippingAddress,
         cardsNeedingActivation,
         cardsWithFraud,

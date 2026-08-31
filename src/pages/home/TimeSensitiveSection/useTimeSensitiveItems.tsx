@@ -61,7 +61,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
         shouldShowReviewCardFraud,
         shouldShowAddVirtualCardPersonalDetails,
         shouldShowConfirmDigitalWalletAddition,
-        hasExpensifyCard,
+        hasActiveExpensifyCard,
         cardsNeedingShippingAddress,
         cardsNeedingActivation,
         cardsWithFraud,
@@ -71,7 +71,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
 
     // Only cardholders can have a pending wallet addition. Refresh on Home focus so new ones still show up.
     useFocusEffect(() => {
-        if (!hasExpensifyCard) {
+        if (!hasActiveExpensifyCard) {
             return;
         }
         getExpensifyCardPendingWalletApproval();

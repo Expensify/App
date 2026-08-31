@@ -2,10 +2,10 @@ import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffl
 import Button from '@components/ButtonComposed';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FixedFooter from '@components/FixedFooter';
-import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LoadingIndicator from '@components/LoadingIndicator';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 
@@ -18,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {approveDigitalWalletCardAddition, clearCardListErrors} from '@libs/actions/Card';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {getWalletProviderNameKey, isCardPendingDigitalWalletApproval} from '@libs/CardUtils';
-import {getLatestErrorMessage, getLatestErrorMessageField} from '@libs/ErrorUtils';
+import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -52,8 +52,7 @@ function AddCardToDigitalWalletPage({
 
     const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
     const card = cardList?.[cardID];
-    const validateError = getLatestErrorMessageField(card);
-    const latestErrorMessage = getLatestErrorMessage(card);
+    const latestError = getLatestErrorMessageField(card);
 
     const [isVerifying, setIsVerifying] = useState(false);
     const [submittedRequest, setSubmittedRequest] = useState<SubmittedWalletRequest>();
@@ -66,25 +65,24 @@ function AddCardToDigitalWalletPage({
     const currentWalletName = translate(`addCardToDigitalWallet.${getWalletProviderNameKey(pendingApproval?.walletProvider)}`);
     const walletName = submittedRequest?.walletName ?? currentWalletName;
 
-    // The backend drops the pending approval after the request is resolved
+    // The backend drops the pending approval after the request is resolved, so a still-pending card means it failed
     const hasPendingApproval = isCardPendingDigitalWalletApproval(card);
-    const submittedAnswer = submittedRequest?.answer;
-    const isResolvingRequest = !!submittedAnswer && !!card?.isLoading;
-    const isRequestResolved = !!submittedAnswer && !hasPendingApproval && !card?.isLoading;
+    const requestStatus = (() => {
+        if (!submittedRequest) {
+            return 'idle';
+        }
+        if (card?.isLoading) {
+            return 'submitting';
+        }
+        return hasPendingApproval ? 'failed' : 'resolved';
+    })();
 
     useEffect(() => {
-        clearCardListErrors(Number(cardID));
-    }, [cardID]);
-
-    const denyRequest = () => {
-        setSubmittedRequest({answer: 'deny', walletName: currentWalletName});
-        approveDigitalWalletCardAddition(Number(cardID), false);
-    };
-
-    const confirmRequest = (validateCode: string) => {
-        setSubmittedRequest({answer: 'approve', walletName: currentWalletName});
-        approveDigitalWalletCardAddition(Number(cardID), true, validateCode);
-    };
+        if (!card?.cardID) {
+            return;
+        }
+        clearCardListErrors(card.cardID);
+    }, [card?.cardID]);
 
     if (!card && isLoadingOnyxValue(cardListMetadata)) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
@@ -94,24 +92,34 @@ function AddCardToDigitalWalletPage({
         return <NotFoundPage />;
     }
 
-    if (isVerifying && !isRequestResolved) {
+    const denyRequest = () => {
+        setSubmittedRequest({answer: 'deny', walletName: currentWalletName});
+        approveDigitalWalletCardAddition(card.cardID, false);
+    };
+
+    const confirmRequest = (validateCode: string) => {
+        setSubmittedRequest({answer: 'approve', walletName: currentWalletName});
+        approveDigitalWalletCardAddition(card.cardID, true, validateCode);
+    };
+
+    if (isVerifying && requestStatus !== 'resolved') {
         return (
             <ValidateCodeActionContent
                 validateCodeActionErrorField="approveDigitalWalletCardAddition"
                 handleSubmitForm={confirmRequest}
-                isLoading={card?.isLoading}
+                isLoading={requestStatus === 'submitting'}
                 title={translate('addCardToDigitalWallet.verifyTitle')}
                 descriptionPrimary={translate('addCardToDigitalWallet.enterSecurityCode', primaryLogin ?? '')}
-                sendValidateCode={() => requestValidateCodeAction({reasonCode: CONST.EXPENSIFY_CARD.APPROVE_DIGITAL_WALLET_VALIDATE_CODE_REASON, reasonCardID: Number(cardID)})}
-                validateError={validateError}
-                clearError={() => clearCardListErrors(Number(cardID))}
+                sendValidateCode={() => requestValidateCodeAction({reasonCode: CONST.EXPENSIFY_CARD.APPROVE_DIGITAL_WALLET_VALIDATE_CODE_REASON, reasonCardID: card.cardID})}
+                validateError={latestError}
+                clearError={() => clearCardListErrors(card.cardID)}
                 onClose={() => setIsVerifying(false)}
             />
         );
     }
 
-    if (isRequestResolved) {
-        const isSuccess = submittedAnswer === 'approve';
+    if (requestStatus === 'resolved') {
+        const isSuccess = submittedRequest?.answer === 'approve';
 
         return (
             <ScreenWrapper
@@ -152,38 +160,39 @@ function AddCardToDigitalWalletPage({
                 illustrationStyle={styles.digitalWalletConfirmIllustration}
                 descriptionStyle={styles.textSupporting}
             />
-            {!!latestErrorMessage && (
-                <FormHelpMessage
-                    style={[styles.ph5, styles.mb3]}
-                    isError
-                    message={latestErrorMessage}
-                />
-            )}
-            <FixedFooter style={[styles.flexRow, styles.gap2]}>
-                {isResolvingRequest ? (
-                    <View style={[styles.w100, styles.justifyContentCenter, styles.componentHeightLarge]}>
-                        <LoadingIndicator iconSize={28} />
-                    </View>
-                ) : (
-                    <>
-                        <ButtonDisabledWhenOffline
-                            variant={CONST.BUTTON_VARIANT.DANGER}
-                            size={CONST.BUTTON_SIZE.LARGE}
-                            style={styles.flex1}
-                            onPress={denyRequest}
-                        >
-                            <Button.Text>{translate('addCardToDigitalWallet.deny')}</Button.Text>
-                        </ButtonDisabledWhenOffline>
-                        <ButtonDisabledWhenOffline
-                            variant={CONST.BUTTON_VARIANT.SUCCESS}
-                            size={CONST.BUTTON_SIZE.LARGE}
-                            style={styles.flex1}
-                            onPress={() => setIsVerifying(true)}
-                        >
-                            <Button.Text>{translate('addCardToDigitalWallet.confirm')}</Button.Text>
-                        </ButtonDisabledWhenOffline>
-                    </>
-                )}
+            {/* The footer is out of the layout flow so showing an error grows it without shrinking the page above and nudging the illustration up */}
+            <FixedFooter shouldStickToBottom>
+                <OfflineWithFeedback
+                    shouldDisplayErrorAbove
+                    errors={latestError}
+                    errorRowStyles={styles.mb3}
+                    onClose={() => clearCardListErrors(card.cardID)}
+                >
+                    {requestStatus === 'submitting' ? (
+                        <View style={[styles.w100, styles.justifyContentCenter, styles.componentHeightLarge]}>
+                            <LoadingIndicator iconSize={28} />
+                        </View>
+                    ) : (
+                        <View style={[styles.flexRow, styles.gap2]}>
+                            <ButtonDisabledWhenOffline
+                                variant={CONST.BUTTON_VARIANT.DANGER}
+                                size={CONST.BUTTON_SIZE.LARGE}
+                                style={styles.flex1}
+                                onPress={denyRequest}
+                            >
+                                <Button.Text>{translate('addCardToDigitalWallet.deny')}</Button.Text>
+                            </ButtonDisabledWhenOffline>
+                            <ButtonDisabledWhenOffline
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                size={CONST.BUTTON_SIZE.LARGE}
+                                style={styles.flex1}
+                                onPress={() => setIsVerifying(true)}
+                            >
+                                <Button.Text>{translate('addCardToDigitalWallet.confirm')}</Button.Text>
+                            </ButtonDisabledWhenOffline>
+                        </View>
+                    )}
+                </OfflineWithFeedback>
             </FixedFooter>
         </ScreenWrapper>
     );

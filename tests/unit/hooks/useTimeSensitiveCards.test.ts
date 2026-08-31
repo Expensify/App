@@ -37,7 +37,7 @@ describe('useTimeSensitiveCards', () => {
         expect(result.current.shouldShowAddShippingAddress).toBe(false);
         expect(result.current.shouldShowActivateCard).toBe(false);
         expect(result.current.shouldShowReviewCardFraud).toBe(false);
-        expect(result.current.hasExpensifyCard).toBe(false);
+        expect(result.current.hasActiveExpensifyCard).toBe(false);
     });
 
     it('should return empty arrays when no cards need action', async () => {
@@ -53,7 +53,7 @@ describe('useTimeSensitiveCards', () => {
         expect(result.current.cardsNeedingActivation).toEqual([]);
         expect(result.current.shouldShowAddShippingAddress).toBe(false);
         expect(result.current.shouldShowActivateCard).toBe(false);
-        expect(result.current.hasExpensifyCard).toBe(true);
+        expect(result.current.hasActiveExpensifyCard).toBe(true);
     });
 
     it('should identify cards needing shipping address and set shouldShowAddShippingAddress to true', async () => {

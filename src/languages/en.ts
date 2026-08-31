@@ -2824,7 +2824,7 @@ const translations = {
         title: ({walletName}: {walletName: string}) => `Add card to ${walletName}`,
         appleWallet: 'Apple Wallet',
         googleWallet: 'Google Wallet',
-        digitalWallet: 'your digital wallet',
+        digitalWallet: 'digital wallet',
         confirmHeading: 'Confirm your request',
         confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
             `Do you want to add your Expensify Card (ending in ${lastFourDigits}) to your ${walletName}?`,
