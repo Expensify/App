@@ -2099,6 +2099,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.FROM:
             case CONST.SEARCH.TABLE_COLUMNS.TO:
             case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER:
+            case CONST.SEARCH.TABLE_COLUMNS.PAID_BY:
             case CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE:
             case CONST.SEARCH.TABLE_COLUMNS.TITLE:
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
