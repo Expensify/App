@@ -147,6 +147,36 @@ describe('useFormErrorManagement', () => {
         expect(result.current.errorMessage).toBeDefined();
     });
 
+    const splitParams: Params = {...baseParams, isNewManualExpenseFlowEnabled: true, isTypeSplit: true, shouldShowReadOnlySplits: false};
+
+    it('suppresses the duplicate footer invalid amount error on an editable split (#96565)', () => {
+        jest.useFakeTimers();
+        try {
+            const {result} = renderHook(() => useFormErrorManagement(splitParams), {wrapper: Wrapper});
+            act(() => result.current.setFormError('common.error.invalidAmount'));
+            act(() => jest.advanceTimersByTime(CONST.TIMING.USE_DEBOUNCED_STATE_DELAY + 1));
+
+            // The debounce has settled, so an undefined message is real suppression rather than lag.
+            expect(result.current.debouncedFormError).toBe('common.error.invalidAmount');
+            expect(result.current.errorMessage).toBeUndefined();
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    it('still shows footer errors that have no inline surface on an editable split', () => {
+        jest.useFakeTimers();
+        try {
+            const {result} = renderHook(() => useFormErrorManagement(splitParams), {wrapper: Wrapper});
+            act(() => result.current.setFormError('iou.error.noParticipantSelected'));
+            act(() => jest.advanceTimersByTime(CONST.TIMING.USE_DEBOUNCED_STATE_DELAY + 1));
+
+            expect(result.current.errorMessage).toBeDefined();
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
     it('errorMessage still shows the invalid amount error for a distance request in the new manual expense flow (no inline surface)', () => {
         const {result} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: true, isDistanceRequest: true}), {wrapper: Wrapper});
         act(() => result.current.setFormError('common.error.invalidAmount'));
