@@ -46,6 +46,22 @@ describe('TranslateTest', () => {
             expect(en.workspace.accounting.disconnectPrompt(connectionName)).toBe('Are you sure you want to disconnect Intuit Enterprise Suite?');
         });
 
+        it('only names a fallback vendor when the integration auto-creates one', () => {
+            // QBO card exports and Intacct credit-card charges auto-create the vendor, and its name follows the card type.
+            expect(en.workspace.accounting.defaultVendorHelperText(false, CONST.NON_REIMBURSABLE_FALLBACK_VENDOR_NAME.CREDIT_CARD)).toBe(
+                "Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as Credit Card Misc.",
+            );
+            expect(en.workspace.accounting.defaultVendorHelperText(false, CONST.NON_REIMBURSABLE_FALLBACK_VENDOR_NAME.DEBIT_CARD)).toBe(
+                "Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as Debit Card Misc.",
+            );
+
+            // Xero posts card expenses as bank transactions and never creates a stand-in vendor, so it passes no name.
+            expect(en.workspace.accounting.defaultVendorHelperText(false)).toBe("Expenses that don't auto-match will default to this vendor.");
+            expect(en.workspace.accounting.defaultVendorHelperText(true, CONST.NON_REIMBURSABLE_FALLBACK_VENDOR_NAME.CREDIT_CARD)).toBe(
+                "Expenses that don't auto-match will default to this vendor.",
+            );
+        });
+
         it('Test when count value passed to function but output is string', () => {
             const expectedValue = 'Count value is 10';
             const count = 10;

@@ -7127,10 +7127,10 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             exportCompanyCard: '法人カード経費のエクスポート形式',
             exportDate: 'エクスポート日',
             defaultVendor: 'デフォルトのベンダー',
-            defaultVendorHelperText: (isSet: boolean) =>
-                isSet
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName
                     ? `自動照合されない経費は、デフォルトでこのベンダーに割り当てられます。`
-                    : `自動照合されない経費は、デフォルトでこのベンダーに割り当てられます。それ以外は「Credit Card Misc」としてエクスポートされます。`,
+                    : `自動照合されない経費は、デフォルトでこのベンダーに割り当てられます。それ以外は「${fallbackVendorName}」としてエクスポートされます。`,
             defaultVendorSelectHeader: `自動的に照合されない経費に対して使用する、デフォルトの仕入先を選択します。`,
             defaultAccount: 'デフォルトのアカウント',
             autoSync: '自動同期',

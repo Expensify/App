@@ -7356,10 +7356,13 @@ const translations = {
             exportCompanyCard: 'Export company card expenses as',
             exportDate: 'Export date',
             defaultVendor: 'Default vendor',
-            defaultVendorHelperText: (isSet: boolean) =>
-                isSet
+            // fallbackVendorName is the vendor the integration auto-creates when nothing matches. Only integrations
+            // that actually create one pass it — the rest get the first sentence alone, because telling a Xero admin
+            // their expenses will export as "Credit Card Misc." describes a fallback Xero doesn't have.
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName
                     ? `Expenses that don't auto-match will default to this vendor.`
-                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as Credit Card Misc.`,
+                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as ${fallbackVendorName}`,
             defaultVendorSelectHeader: `Choose a default vendor for expenses that don't match automatically.`,
             defaultAccount: 'Default account',
             autoSync: 'Auto-sync',

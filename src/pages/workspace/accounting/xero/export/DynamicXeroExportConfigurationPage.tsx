@@ -35,7 +35,7 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
 
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
 
-    // Gate the Xero default-supplier row on Xero specifically being configured, not on the global
+    // Gate the Xero Default vendor row on Xero specifically being configured, not on the global
     // hasVendorFeature predicate. hasVendorFeature OR's all integrations, so on a dual-connected
     // workspace where QBO/Intacct is the active vendor-matching source it would still expose the
     // row even when Xero is mid tenant-switch (config.isConfigured=false) and data.contacts is
@@ -118,6 +118,9 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
                       description: translate('workspace.accounting.defaultVendor'),
                       onPress: () => (!policyID ? undefined : Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_NON_REIMBURSABLE_DEFAULT_CONTACT_SELECT.path))),
                       title: defaultVendorName,
+                      // No fallback vendor name: Xero posts company card expenses as bank transactions and never
+                      // auto-creates a stand-in vendor, so clearing the default just turns the fallback off. Passing
+                      // one here would tell the admin their expenses export as "Credit Card Misc.", which is QBO-only.
                       helperText: translate('workspace.accounting.defaultVendorHelperText', !!defaultVendorName),
                       subscribedSettings: [CONST.XERO_CONFIG.DEFAULT_VENDOR],
                   },

@@ -6951,7 +6951,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             exportCompanyCard: '导出公司卡费用为',
             exportDate: '导出日期',
             defaultVendor: '默认供应商',
-            defaultVendorHelperText: (isSet: boolean) => (isSet ? `未自动匹配的报销将默认归属到此供应商。` : `未自动匹配的报销将默认为此供应商，否则将以“信用卡杂项”导出。`),
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName ? `未自动匹配的报销将默认归属到此供应商。` : `未自动匹配的报销将默认为此供应商，否则将以“${fallbackVendorName}”导出。`,
             defaultVendorSelectHeader: `为未能自动匹配的报销选择一个默认的供应商。`,
             defaultAccount: '默认账户',
             autoSync: '自动同步',

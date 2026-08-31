@@ -35,6 +35,11 @@ function DynamicQuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConn
     const isVendorFeatureAvailable =
         qboNonReimbursableDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD ||
         qboNonReimbursableDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD;
+    // The auto-created fallback vendor is named after the card type, so the debit-card path must not advertise the credit-card one.
+    const fallbackVendorName =
+        qboNonReimbursableDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD
+            ? CONST.NON_REIMBURSABLE_FALLBACK_VENDOR_NAME.DEBIT_CARD
+            : CONST.NON_REIMBURSABLE_FALLBACK_VENDOR_NAME.CREDIT_CARD;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.path);
     let nonReimbursableExportDescription;
     if (qboNonReimbursableDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD) {
@@ -100,8 +105,8 @@ function DynamicQuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConn
                     <MenuItemWithTopDescription
                         title={nonReimbursableCreditCardDefaultVendorObject?.name}
                         description={translate('workspace.accounting.defaultVendor')}
-                        // Only the card/debit-card path falls back to "Credit Card Misc" when nothing auto-matches, so the two-state helper copy is scoped to this branch and deliberately not rendered on the Vendor Bill row below.
-                        helperText={translate('workspace.accounting.defaultVendorHelperText', !!nonReimbursableCreditCardDefaultVendorObject)}
+                        // Only the card/debit-card path auto-creates a fallback vendor when nothing auto-matches, so the two-state helper copy is scoped to this branch and deliberately not rendered on the Vendor Bill row below.
+                        helperText={translate('workspace.accounting.defaultVendorHelperText', !!nonReimbursableCreditCardDefaultVendorObject, fallbackVendorName)}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR_SELECT.getRoute(policyID))}
                         brickRoadIndicator={
                             areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR], qboConfig?.errorFields)
