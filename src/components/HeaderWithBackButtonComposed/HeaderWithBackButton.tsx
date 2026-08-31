@@ -17,6 +17,8 @@ import type {SvgProps} from 'react-native-svg';
 
 import {Keyboard, View} from 'react-native';
 
+import HeaderActions from './layout/HeaderActions';
+import HeaderRight from './layout/HeaderRight';
 import HeaderBackButton from './primitives/HeaderBackButton';
 import HeaderCloseButton from './primitives/HeaderCloseButton';
 import HeaderDownloadButton from './primitives/HeaderDownloadButton';
@@ -25,8 +27,6 @@ import HeaderIconButton from './primitives/HeaderIconButton';
 import HeaderThreeDotsMenu, {DEFAULT_ANCHOR_ALIGNMENT} from './primitives/HeaderThreeDotsMenu';
 import HeaderTitle from './primitives/HeaderTitle';
 import useHeaderStyles from './styles/useHeaderStyles';
-import HeaderActions from './zones/HeaderActions';
-import HeaderRight from './zones/HeaderRight';
 
 type HeaderProps = Omit<
     HeaderWithBackButtonProps,
