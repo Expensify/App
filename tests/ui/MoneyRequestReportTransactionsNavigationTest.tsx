@@ -8,13 +8,25 @@ import Navigation from '@navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
+import type {ReportActions as OnyxReportActions, Transaction} from '@src/types/onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+jest.mock('@react-navigation/native', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- jest.requireActual() returns the real module for partial mocking
+    const actualNavigation = jest.requireActual('@react-navigation/native');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- returning the real module plus one overridden hook is the standard Jest partial-mock pattern
+    return {
+        ...actualNavigation,
+        useIsFocused: () => true,
+    };
+});
 
 jest.mock('@components/WideRHPContextProvider', () => ({
     useWideRHPActions: () => ({markReportRHPWidth: jest.fn(), unmarkReportRHPWidth: jest.fn()}),
@@ -32,6 +44,17 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 const IOU_REPORT_ID = 'iou1';
 const FIRST_TRANSACTION_ID = 't1';
 const SECOND_TRANSACTION_ID = 't2';
+
+function buildIOUActions(): OnyxReportActions {
+    const action = {
+        ...createRandomReportAction(2),
+        reportActionID: 'action2',
+        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+        childReportID: 'thread2',
+        originalMessage: {IOUTransactionID: SECOND_TRANSACTION_ID, IOUReportID: IOU_REPORT_ID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: 'USD'},
+    };
+    return {action2: action};
+}
 
 function buildTransaction(transactionID: string, index: number): Transaction {
     return {...createRandomTransaction(index), transactionID, reportID: IOU_REPORT_ID};
@@ -73,5 +96,53 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             expect(createThreadSpy).not.toHaveBeenCalled();
         });
         expect(setParamsSpy).not.toHaveBeenCalled();
+    });
+
+    it('fetches the sibling parent report instead of dropping the press, then replays it when the action lands', async () => {
+        const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+        const setParamsSpy = jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
+
+        render(<MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />);
+        await waitForBatchedUpdates();
+
+        const buttons = screen.getAllByLabelText(CONST.ROLE.BUTTON);
+        const nextButton = buttons.at(1);
+        if (!nextButton) {
+            throw new Error('next arrow did not render');
+        }
+        fireEvent.press(nextButton);
+
+        // The press is staged rather than dropped: the sibling's parent report is fetched.
+        await waitFor(() => {
+            expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: IOU_REPORT_ID}));
+        });
+        expect(setParamsSpy).not.toHaveBeenCalled();
+    });
+
+    it('abandons a staged press when the user has navigated elsewhere', async () => {
+        jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+        const createThreadSpy = jest.spyOn(ReportActions, 'createTransactionThreadReport');
+        const setParamsSpy = jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
+        const getActiveRouteSpy = jest.spyOn(Navigation, 'getActiveRoute');
+        getActiveRouteSpy.mockReturnValue(ROUTES.REPORT_WITH_ID.getRoute('origin'));
+
+        render(<MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />);
+        await waitForBatchedUpdates();
+
+        const buttons = screen.getAllByLabelText(CONST.ROLE.BUTTON);
+        const nextButton = buttons.at(1);
+        if (!nextButton) {
+            throw new Error('next arrow did not render');
+        }
+        fireEvent.press(nextButton);
+        await waitForBatchedUpdates();
+
+        // The user moved on before the fetch settled, so the staged press must not navigate.
+        getActiveRouteSpy.mockReturnValue(ROUTES.REPORT_WITH_ID.getRoute('elsewhere'));
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`, buildIOUActions());
+        await waitForBatchedUpdates();
+
+        expect(setParamsSpy).not.toHaveBeenCalled();
+        expect(createThreadSpy).not.toHaveBeenCalled();
     });
 });

@@ -3,9 +3,10 @@ import PrevNextButtons from '@components/PrevNextButtons';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
-import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
+import {createTransactionThreadReport, openReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -22,8 +23,8 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {findFocusedRoute} from '@react-navigation/native';
-import React, {startTransition, useCallback, useEffect, useMemo} from 'react';
+import {findFocusedRoute, useIsFocused} from '@react-navigation/native';
+import React, {startTransition, useCallback, useEffect, useMemo, useRef} from 'react';
 
 type MoneyRequestReportRHPNavigationButtonsProps = {
     currentTransactionID: string;
@@ -41,6 +42,11 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
 
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {markReportRHPWidth} = useWideRHPActions();
+    const {isOffline} = useNetwork();
+    const isFocused = useIsFocused();
+
+    // The sibling an arrow press is waiting on, with the route it was made from so a stale replay can be dropped.
+    const pendingSiblingRef = useRef<{transactionID: string; originRoute: string} | null>(null);
 
     const {prevTransactionID, nextTransactionID} = useMemo(() => {
         if (!transactionIDsList || transactionIDsList.length < 2) {
@@ -123,9 +129,15 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         };
     }, []);
 
-    if (transactionIDsList.length < 2) {
-        return;
-    }
+    // Holds the press rather than dropping it: fetching the sibling's parent report brings in the IOU action the
+    // thread hangs off, and the effect below replays the press once it lands.
+    const stageSiblingPress = (transactionID: string | undefined, parentReportID: string | undefined) => {
+        if (!transactionID || !parentReportID || isOffline) {
+            return;
+        }
+        pendingSiblingRef.current = {transactionID, originRoute: Navigation.getActiveRoute()};
+        openReport({reportID: parentReportID, introSelected, conciergeChat, betas, currentUserAccountID, hasReportActions: true});
+    };
 
     const onNext = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
         e?.preventDefault();
@@ -168,6 +180,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
 
         // A thread created before the parent action loads would have no parent.
         if (!nextParentReportAction) {
+            stageSiblingPress(nextTransactionID, nextTransaction?.reportID);
             return;
         }
 
@@ -244,6 +257,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
 
         // A thread created before the parent action loads would have no parent.
         if (!prevParentReportAction) {
+            stageSiblingPress(prevTransactionID, prevTransaction?.reportID);
             return;
         }
 
@@ -281,6 +295,32 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             requestAnimationFrame(() => startTransition(() => Navigation.setParams(navigationParams)));
         });
     };
+
+    // Replays a staged press once its parent action arrives, but only if the user is still where they pressed —
+    // this screen stays mounted under a pushed RHP, and resuming from there would yank them out with a stale backTo.
+    useEffect(() => {
+        const pending = pendingSiblingRef.current;
+        if (!pending) {
+            return;
+        }
+        if (!isFocused || Navigation.getActiveRoute() !== pending.originRoute) {
+            pendingSiblingRef.current = null;
+            return;
+        }
+        if (pending.transactionID === nextTransactionID && nextParentReportAction) {
+            pendingSiblingRef.current = null;
+            onNext(undefined);
+            return;
+        }
+        if (pending.transactionID === prevTransactionID && prevParentReportAction) {
+            pendingSiblingRef.current = null;
+            onPrevious(undefined);
+        }
+    });
+
+    if (transactionIDsList.length < 2) {
+        return;
+    }
 
     return (
         <PrevNextButtons
