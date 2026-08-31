@@ -372,6 +372,8 @@ function MoneyRequestConfirmationList({
         shouldShowReadOnlySplits,
         isNewManualExpenseFlowEnabled,
         isDistanceRequest,
+        isReadOnly,
+        shouldShowDate: shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest),
     });
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;

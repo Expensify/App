@@ -2,7 +2,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
-import {areRequiredFieldsEmpty, getTag, hasMissingSmartscanFields, isMerchantMissing} from '@libs/TransactionUtils';
+import {areRequiredFieldsEmpty, getTag, hasMissingSmartscanFields, isCreatedMissing, isMerchantMissing} from '@libs/TransactionUtils';
 import {isInvalidMerchantValue, isUntypedPlaceholderMerchant, isValidInputLength} from '@libs/ValidationUtils';
 import {getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
 
@@ -77,6 +77,12 @@ type UseFormErrorManagementParams = {
 
     /** Whether the transaction is a distance request (its amount is read-only, so amount errors are not shown inline) */
     isDistanceRequest: boolean;
+
+    /** Whether the date field is rendered (a hidden date can't be missing, so it never keeps the required error alive) */
+    shouldShowDate: boolean;
+
+    /** Whether the confirmation is read-only (a read-only date is populated server-side, so it can't be missing) */
+    isReadOnly: boolean;
 };
 
 type UseFormErrorManagementResult = {
@@ -143,6 +149,8 @@ function useFormErrorManagement({
     shouldShowReadOnlySplits,
     isNewManualExpenseFlowEnabled,
     isDistanceRequest,
+    shouldShowDate,
+    isReadOnly,
 }: UseFormErrorManagementParams): UseFormErrorManagementResult {
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
@@ -208,6 +216,15 @@ function useFormErrorManagement({
         }
         setFormError('');
     }, [isMerchantFieldValid, setFormError]);
+
+    const isAmountRequiredMissing = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && !transaction?.isAmountSet;
+    const isDateRequiredMissing = shouldShowDate && !isReadOnly && isCreatedMissing(transaction);
+    useEffect(() => {
+        if (!isNewManualExpenseFlowEnabled || formErrorRef.current !== 'common.error.fieldRequired' || isAmountRequiredMissing || isDateRequiredMissing) {
+            return;
+        }
+        setFormError('');
+    }, [isNewManualExpenseFlowEnabled, isAmountRequiredMissing, isDateRequiredMissing, setFormError]);
 
     useEffect(() => {
         const currentFormError = formErrorRef.current;

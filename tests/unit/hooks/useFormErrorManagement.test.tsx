@@ -47,6 +47,8 @@ const baseParams: Params = {
     shouldShowReadOnlySplits: false,
     isNewManualExpenseFlowEnabled: false,
     isDistanceRequest: false,
+    shouldShowDate: false,
+    isReadOnly: false,
 };
 
 // A manual draft the user never typed a merchant into: `initMoneyRequest` seeds it with the "Expense" placeholder.
@@ -200,6 +202,37 @@ describe('useFormErrorManagement', () => {
 
         // Then switching the recipient to a user drops the merchant requirement and clears the error
         rerender({isPolicyExpenseChat: false});
+        expect(result.current.formError).toBe('');
+    });
+
+    it('keeps the shared required error until both the amount and the date are filled (#96568)', () => {
+        const manualParams = ({isAmountSet, created}: {isAmountSet: boolean; created: string}): Params => ({
+            ...baseParams,
+            isNewManualExpenseFlowEnabled: true,
+            shouldShowDate: true,
+            transaction: createMock<OnyxTypes.Transaction>({
+                transactionID: 'txn1',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                isAmountSet,
+                created,
+                comment: {},
+            }),
+        });
+
+        // Given a manual expense confirmed with both the amount and the date empty
+        const {result, rerender} = renderHook((props: Params) => useFormErrorManagement(props), {
+            wrapper: Wrapper,
+            initialProps: manualParams({isAmountSet: false, created: ''}),
+        });
+        act(() => result.current.setFormError('common.error.fieldRequired'));
+        expect(result.current.formError).toBe('common.error.fieldRequired');
+
+        // When only the amount is filled, the shared error must survive so the date keeps showing it inline
+        rerender(manualParams({isAmountSet: true, created: ''}));
+        expect(result.current.formError).toBe('common.error.fieldRequired');
+
+        // Then filling the date too clears it, so confirmation is no longer blocked
+        rerender(manualParams({isAmountSet: true, created: '2026-07-29'}));
         expect(result.current.formError).toBe('');
     });
 });
