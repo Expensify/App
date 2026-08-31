@@ -8,7 +8,7 @@ import {useEffect, useEffectEvent, useLayoutEffect, useRef, useState} from 'reac
 
 import useNumericSelection from './useNumericSelection';
 
-type UseNumberEditControllerParams = {
+type UseNumericEditingControllerParams = {
     value?: string;
 
     onInputChange?: (value: string) => void;
@@ -23,9 +23,9 @@ type UseNumberEditControllerParams = {
 };
 
 /** Runs on mount and whenever `decimals` changes, sanitizing values that exceed the new precision. */
-function useDecimalsChangeEffect(decimals: number, onDecimalsChange: (decimals: number) => void) {
+function useDecimalsChangeEffect(decimals: number, sanitizeForDecimals: (decimals: number) => void) {
     const previousDecimals = useRef<number | undefined>(undefined);
-    const handleDecimalsChange = useEffectEvent(onDecimalsChange);
+    const sanitizeForDecimalsEvent = useEffectEvent(sanitizeForDecimals);
 
     useEffect(() => {
         if (previousDecimals.current === decimals) {
@@ -33,12 +33,12 @@ function useDecimalsChangeEffect(decimals: number, onDecimalsChange: (decimals: 
         }
 
         previousDecimals.current = decimals;
-        handleDecimalsChange(decimals);
+        sanitizeForDecimalsEvent(decimals);
     }, [decimals]);
 }
 
 /** Owns numeric value, formatting, validation, and commits while delegating caret state to `useNumericSelection`. */
-function useNumericEditingController({value: externalValueProp, onInputChange, allowNegative = false, decimals = 0, maxLength}: UseNumberEditControllerParams) {
+function useNumericEditingController({value: externalValueProp, onInputChange, allowNegative = false, decimals = 0, maxLength}: UseNumericEditingControllerParams) {
     const {fromLocaleDigit, toLocaleDigit} = useLocalize();
 
     const externalValue = externalValueProp ?? '';
