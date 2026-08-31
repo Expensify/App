@@ -5,7 +5,8 @@ import type {Transaction, TransactionViolation, TransactionViolations} from '@sr
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {useMemo} from 'react';
-// eslint-disable-next-line no-restricted-imports -- Need original useOnyx to read the full live collections and bypass the partial Search snapshot.
+// Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
+// eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 
 import useOnyx from './useOnyx';
