@@ -116,6 +116,12 @@ For the Basic Export template, the file downloads directly to your device. For a
 
 When you download multiple reports as PDFs, a message tells you how many of the selected reports were exported. If any reports could not be generated, open your Concierge chat in the **Inbox** to see which reports failed.
 
+## What happens if I refresh the page while my download is preparing?
+
+Your download keeps preparing, and the status window comes back on its own. Expensify tracks each download that is still preparing or ready to save, so when you refresh the page or close and reopen Expensify, the status window reappears with the current status. Select **Download file** once it shows **Your file is ready!**.
+
+This applies to downloads you start from the **Reports** page and from a report's **More** menu. It does not apply when you select **Send me the file when it's ready** — Concierge sends that file to you in a chat message instead, so no status window reappears.
+
 ## Why don't I see Download receipts on a report?
 
 **Download receipts** only appears when at least one expense has a receipt attached. In a single report's **More** menu, it appears when that report has an expense with a receipt. When you select multiple reports and open **Selected**, it appears only if at least one selected report has an expense with a receipt. If none of the expenses have receipts, the option is hidden.
