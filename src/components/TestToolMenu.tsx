@@ -23,6 +23,7 @@ import {Platform} from 'react-native';
 
 import BiometricsTestToolRow from './BiometricsTestToolRow';
 import Button from './ButtonComposed';
+import QAAuthTestToolRows from './QAAuthTestToolRows';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
 import TestCrash from './TestCrash';
@@ -156,6 +157,9 @@ function TestToolMenu() {
                     />
                 </TestToolRow>
             )}
+
+            {/* QA server auth flow. Web only, and only when it is configured. */}
+            <QAAuthTestToolRows />
 
             {/* When toggled the app will be forced offline. */}
             <TestToolRow

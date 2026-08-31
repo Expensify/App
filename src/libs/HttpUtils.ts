@@ -62,8 +62,11 @@ const addSkewList = new Set<string>([WRITE_COMMANDS.OPEN_REPORT, SIDE_EFFECT_REQ
 /**
  * Per-command server response messages we recognize as the PHP-wrapped "AlreadyCreated" error.
  * Add new variants here as we discover them for other non-idempotent commands.
+ *
+ * DUPLICATE_RECORD is also listed here because the API layer can re-wrap Auth's 400 as a 666. Without it,
+ * that form matches neither guard and a record that already exists on the server gets rolled back.
  */
-const ALREADY_CREATED_MESSAGES = new Set<string>([CONST.ERROR_TITLE.ALREADY_CREATED_TRANSACTION, CONST.ERROR_TITLE.ALREADY_PAID]);
+const ALREADY_CREATED_MESSAGES = new Set<string>([CONST.ERROR_TITLE.ALREADY_CREATED_TRANSACTION, CONST.ERROR_TITLE.ALREADY_PAID, CONST.ERROR_TITLE.DUPLICATE_RECORD]);
 
 /**
  * Regex to get API command from the command

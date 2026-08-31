@@ -163,6 +163,9 @@ type TransactionEditPermissionsParams = {
 
     parentReport: OnyxEntry<Report>;
 
+    /** Actions of the parent (money request) report, used by canEditMoneyRequest to check whether the report was forwarded since the last submit */
+    parentReportActions: OnyxEntry<ReportActions>;
+
     policy?: OnyxEntry<Policy>;
 
     transactionThreadReport?: OnyxEntry<Report>;
@@ -278,6 +281,8 @@ function getIouParamsForTransaction({
     if (!resolvedTransactionThreadReport && resolvedParentReportAction && transaction) {
         resolvedTransactionThreadReport = createTransactionThreadReport({
             introSelected,
+            // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
+            conciergeChat: undefined,
             currentUserLogin: currentUserEmail,
             currentUserAccountID,
             betas: allBetas,
@@ -426,6 +431,7 @@ function getTransactionEditPermissions({
     transaction,
     parentReportAction,
     parentReport,
+    parentReportActions,
     policy,
     transactionThreadReport,
     policyCategories,
@@ -459,7 +465,8 @@ function getTransactionEditPermissions({
     // Matches MoneyRequestView's canEdit.
     // For unreported expenses, parentReportAction may not be loaded; they are
     // always editable by the owner.
-    const canEdit = isUnreported || (isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived, parentReport, policy));
+    const canEdit =
+        isUnreported || (isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived, parentReport, policy, parentReportActions));
     if (!canEdit) {
         return NO_EDIT;
     }
