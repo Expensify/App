@@ -95,10 +95,6 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const effectiveParentReport = isUnreported ? selfDMReport : parentReport;
     const effectiveParentReportID = effectiveParentReport?.reportID;
 
-    // The snapshot-aware effectiveParentReport above drives permissions, policy, chatReportID, and isTrackExpense.
-    // For the action params we additionally recover the parent report from live Onyx (single-key reads only), restoring
-    // the pre-refactor `allReports` fallbacks: the live report for reported expenses, and the real (non-optimistic) self
-    // DM for unreported expenses when it is missing from the Search snapshot.
     const [liveParentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [liveSelfDMReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(selfDMReportID)}`);
@@ -133,9 +129,6 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     });
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
-    // Use original Onyx here because the useOnyx wrapper can read the partial Search snapshot, where an existing
-    // transaction thread report may be missing. Reading live Onyx lets the action reuse an existing child thread instead
-    // of creating a duplicate one (this restores the pre-refactor `allReports` fallback that recovered the live report).
     const [liveTransactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
