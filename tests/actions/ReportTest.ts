@@ -13,12 +13,15 @@ import {CONCIERGE_RESPONSE_DELAY_MS, resolveSuggestedFollowup} from '@libs/actio
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, isActionOfType, isDeletedAction} from '@libs/ReportActionsUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {appendParam} from '@libs/Url';
 
 import {toggleEmojiReaction} from '@userActions/EmojiReactions';
 
@@ -37,6 +40,7 @@ import type * as SearchQueryUtilsType from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Attendee} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
@@ -63,6 +67,11 @@ import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 jest.mock('@libs/NextStepUtils', () => ({
     buildOptimisticNextStep: jest.fn(),
 }));
+
+// Only the layout-specific tests below override this, so it keeps the real implementation as its default and every
+// other test in this file keeps behaving exactly as it did before.
+jest.mock('@libs/getIsNarrowLayout', () => jest.fn(jest.requireActual<{default: () => boolean}>('@libs/getIsNarrowLayout').default));
+const mockGetIsNarrowLayout = jest.mocked(getIsNarrowLayout);
 
 const MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID = '1234';
 
@@ -5721,6 +5730,52 @@ describe('actions/Report', () => {
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
         });
 
+        it('should open a money-request child report in the expense report wide RHP scrolled to the latest message', async () => {
+            const PARENT_REPORT = createRandomReport(1, undefined);
+            const EXISTING_CHILD_REPORT: OnyxTypes.Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE};
+            const PARENT_REPORT_ACTION: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(REPORT_ACTION_ID),
+                reportActionID: '1',
+                actorAccountID: TEST_USER_ACCOUNT_ID,
+            };
+
+            mockGetIsNarrowLayout.mockReturnValueOnce(false);
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
+            await waitForBatchedUpdates();
+
+            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                appendParam(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: EXISTING_CHILD_REPORT.reportID}), REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST, 'true'),
+            );
+        });
+
+        it('should open a money-request child report in the full report view on narrow layouts, still scrolled to the latest message', async () => {
+            const PARENT_REPORT = createRandomReport(1, undefined);
+            const EXISTING_CHILD_REPORT: OnyxTypes.Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE};
+            const PARENT_REPORT_ACTION: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(REPORT_ACTION_ID),
+                reportActionID: '1',
+                actorAccountID: TEST_USER_ACCOUNT_ID,
+            };
+
+            mockGetIsNarrowLayout.mockReturnValueOnce(true);
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
+            await waitForBatchedUpdates();
+
+            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                appendParam(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID), REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST, 'true'),
+            );
+        });
+
         it('should work with undefined child report ID (new thread scenario)', async () => {
             const PARENT_REPORT = createRandomReport(1, undefined);
             const PARENT_REPORT_ACTION: OnyxTypes.ReportAction = {
@@ -9785,6 +9840,33 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('buildOptimisticModifiedExpenseReportAction attendees', () => {
+        const TRANSACTION_ID = '888';
+        const ownerAttendee: Attendee = {email: 'owner@example.com', displayName: 'Owner', avatarUrl: ''};
+        const otherAttendee: Attendee = {email: 'other@example.com', displayName: 'Other', avatarUrl: ''};
+
+        const getAttendeesOriginalMessage = (oldTransaction: OnyxTypes.Transaction, newAttendees: Attendee[]) => {
+            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, oldTransaction, {attendees: newAttendees}, false, undefined, undefined);
+            return getOriginalMessage(result as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>);
+        };
+
+        it('treats oldAttendees as empty (set message) on the first edit, when attendees have never been modified', () => {
+            // Only the auto-added default attendee is present (comment.attendees), with no modifiedAttendees history.
+            const oldTransaction = createMock<OnyxTypes.Transaction>({transactionID: TRANSACTION_ID, comment: {attendees: [ownerAttendee]}});
+            const originalMessage = getAttendeesOriginalMessage(oldTransaction, [otherAttendee]);
+            expect(originalMessage?.oldAttendees).toEqual([]);
+            expect(originalMessage?.newAttendees).toEqual([otherAttendee]);
+        });
+
+        it('keeps oldAttendees (changed message) on subsequent edits, even when the previous value is just the owner', () => {
+            // After previous edits, modifiedAttendees holds the last value - here it happens to be only the owner.
+            const oldTransaction = createMock<OnyxTypes.Transaction>({transactionID: TRANSACTION_ID, modifiedAttendees: [ownerAttendee], comment: {attendees: [ownerAttendee]}});
+            const originalMessage = getAttendeesOriginalMessage(oldTransaction, [ownerAttendee, otherAttendee]);
+            expect(originalMessage?.oldAttendees).toEqual([ownerAttendee]);
+            expect(originalMessage?.newAttendees).toEqual([ownerAttendee, otherAttendee]);
+        });
+    });
+
     describe('buildOptimisticModifiedExpenseReportAction distance currency', () => {
         it('keeps the expense currency when a route switch leaves modifiedCurrency unset', () => {
             const oldTransaction = createMock<OnyxTypes.Transaction>({
@@ -10050,6 +10132,7 @@ describe('actions/Report', () => {
                 selfDMReportActions: undefined,
                 delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -10127,6 +10210,7 @@ describe('actions/Report', () => {
                 selfDMReportActions: undefined,
                 delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -10194,6 +10278,7 @@ describe('actions/Report', () => {
                 selfDMReportActions: undefined,
                 delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
