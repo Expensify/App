@@ -167,11 +167,6 @@ function isMerchantRequired(report: OnyxEntry<Report>, transaction: OnyxEntry<Tr
     if (transaction && isExpenseUnreported(transaction)) {
         return false;
     }
-    // A reported (or missing) transaction with no parent report defaults to required — we can't prove clearing is
-    // allowed, so err on the side of requiring a merchant.
-    if (!report) {
-        return true;
-    }
     return isExpenseReport(report) || isPolicyExpenseChat(report) || isExpenseRequest(report) || !!transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
 }
 
@@ -184,7 +179,6 @@ function isMerchantRequired(report: OnyxEntry<Report>, transaction: OnyxEntry<Tr
  * @returns Whether the merchant value is valid
  */
 function isValidMerchant(merchant: string | undefined, transaction?: OnyxEntry<Transaction>, report?: OnyxEntry<Report>): boolean {
-    // Reuse the same validation rules as the normal merchant edit step (DynamicIOURequestStepMerchant)
     return !getMerchantError(merchant, isMerchantRequired(report, transaction));
 }
 
