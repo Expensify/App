@@ -616,7 +616,7 @@ const ONYXKEYS = {
     IS_DEBUG_MODE_ENABLED: 'isDebugModeEnabled',
 
     /** Local overrides for beta feature flags, set from the Test Tool Menu on dev/staging. Takes precedence over the server-provided betas */
-    BETAS_OVERRIDE: 'betasOverride',
+    BETA_OVERRIDES: 'betaOverrides',
 
     /** Indicates whether the git branch name should be shown in the browser tab title */
     SHOULD_SHOW_BRANCH_NAME_IN_TITLE: 'shouldShowBranchNameInTitle',
@@ -1734,7 +1734,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHOULD_MASK_ONYX_STATE]: boolean;
     [ONYXKEYS.SHOULD_USE_STAGING_SERVER]: boolean;
     [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: boolean;
-    [ONYXKEYS.BETAS_OVERRIDE]: OnyxTypes.BetasOverride;
+    [ONYXKEYS.BETA_OVERRIDES]: OnyxTypes.BetaOverrides;
     [ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE]: boolean;
     [ONYXKEYS.IS_SENTRY_DEBUG_ENABLED]: boolean;
     [ONYXKEYS.IS_SENTRY_SEND_ENABLED]: boolean;

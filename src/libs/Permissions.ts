@@ -2,7 +2,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
 import type BetaConfiguration from '@src/types/onyx/BetaConfiguration';
-import type BetasOverride from '@src/types/onyx/BetasOverride';
+import type BetaOverrides from '@src/types/onyx/BetaOverrides';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -27,9 +27,9 @@ function canUseLinkPreviews(): boolean {
     return false;
 }
 
-function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?: OnyxEntry<BetaConfiguration>, betasOverride?: OnyxEntry<BetasOverride>): boolean {
+function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?: OnyxEntry<BetaConfiguration>, betaOverrides?: OnyxEntry<BetaOverrides>): boolean {
     if (!isProductionEnvironment) {
-        const override = betasOverride?.[beta];
+        const override = betaOverrides?.[beta];
         if (override !== undefined) {
             return override;
         }

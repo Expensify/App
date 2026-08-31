@@ -26,7 +26,7 @@ function BetaOverridesPage() {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const [betasOverride] = useOnyx(ONYXKEYS.BETAS_OVERRIDE);
+    const [betaOverrides] = useOnyx(ONYXKEYS.BETA_OVERRIDES);
     const sortedBetas = [...betasList].sort(localeCompare);
 
     return (
@@ -44,7 +44,7 @@ function BetaOverridesPage() {
                     >
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.flexGrow1, styles.flexShrink1]}>
                             <Text>{beta}</Text>
-                            {betasOverride?.[beta] !== undefined && (
+                            {betaOverrides?.[beta] !== undefined && (
                                 <Badge
                                     text={translate('initialSettingsPage.troubleshoot.overridden')}
                                     isCondensed

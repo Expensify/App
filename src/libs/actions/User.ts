@@ -1393,11 +1393,11 @@ function setShouldShowBranchNameInTitle(value: boolean) {
 }
 
 function setBetaOverride(beta: Beta, value: boolean) {
-    Onyx.merge(ONYXKEYS.BETAS_OVERRIDE, {[beta]: value});
+    Onyx.merge(ONYXKEYS.BETA_OVERRIDES, {[beta]: value});
 }
 
 function clearBetaOverrides() {
-    Onyx.set(ONYXKEYS.BETAS_OVERRIDE, null);
+    Onyx.set(ONYXKEYS.BETA_OVERRIDES, null);
 }
 
 function lockAccount(currentUserAccountID: number, accountID: number | undefined, domainAccountID: number | undefined, domainName: string | undefined) {

@@ -34,7 +34,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
-    BetasOverride,
+    BetaOverrides,
     IntroSelected,
     PersonalDetailsList,
     Policy,
@@ -131,11 +131,11 @@ Onyx.connectWithoutView({
 });
 
 // No render path in this file, so the overrides can't come from useOnyx
-let betasOverride: BetasOverride | undefined;
+let betaOverrides: BetaOverrides | undefined;
 Onyx.connectWithoutView({
-    key: ONYXKEYS.BETAS_OVERRIDE,
+    key: ONYXKEYS.BETA_OVERRIDES,
     callback: (value) => {
-        betasOverride = value ?? undefined;
+        betaOverrides = value ?? undefined;
     },
 });
 
@@ -301,7 +301,7 @@ function getIouParamsForTransaction({
         policyCategories,
         currentUserAccountIDParam: currentUserAccountID,
         currentUserEmailParam: currentUserEmail,
-        isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas, undefined, betasOverride),
+        isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas, undefined, betaOverrides),
         delegateAccountID,
         isTrackIntentUser,
         getCurrencyDecimals,

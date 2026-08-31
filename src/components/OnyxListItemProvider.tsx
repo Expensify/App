@@ -15,7 +15,7 @@ const [PersonalDetailsProvider, , usePersonalDetails] = createOnyxContext(ONYXKE
 const [BlockedFromConciergeProvider, , useBlockedFromConcierge] = createOnyxContext(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
 const [BetasProvider, BetasContext] = createOnyxContext(ONYXKEYS.BETAS);
 const [BetaConfigurationProvider, BetaConfigurationContext] = createOnyxContext(ONYXKEYS.BETA_CONFIGURATION);
-const [BetasOverrideProvider, BetasOverrideContext] = createOnyxContext(ONYXKEYS.BETAS_OVERRIDE);
+const [BetaOverridesProvider, BetaOverridesContext] = createOnyxContext(ONYXKEYS.BETA_OVERRIDES);
 const [SessionProvider, , useSession] = createOnyxContext(ONYXKEYS.SESSION);
 const [PolicyCategoriesProvider, , usePolicyCategories] = createOnyxContext(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
 const [PolicyTagsProvider, , usePolicyTags] = createOnyxContext(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -37,7 +37,7 @@ function OnyxListItemProvider(props: OnyxListItemProviderProps) {
                 BlockedFromConciergeProvider,
                 BetasProvider,
                 BetaConfigurationProvider,
-                BetasOverrideProvider,
+                BetaOverridesProvider,
                 SessionProvider,
                 PolicyCategoriesProvider,
                 PolicyTagsProvider,
@@ -59,7 +59,7 @@ export {
     usePersonalDetails,
     BetasContext,
     BetaConfigurationContext,
-    BetasOverrideContext,
+    BetaOverridesContext,
     useBlockedFromConcierge,
     useSession,
     usePolicyCategories,

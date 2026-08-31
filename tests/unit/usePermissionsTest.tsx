@@ -156,7 +156,7 @@ describe('usePermissions', () => {
         expect(result.current.isBetaEnabled(CONST.BETAS.PER_DIEM)).toBe(false);
 
         // When: Overrides force-disable the enabled beta and force-enable the disabled one
-        Onyx.set(ONYXKEYS.BETAS_OVERRIDE, {[CONST.BETAS.DEFAULT_ROOMS]: false, [CONST.BETAS.PER_DIEM]: true});
+        Onyx.set(ONYXKEYS.BETA_OVERRIDES, {[CONST.BETAS.DEFAULT_ROOMS]: false, [CONST.BETAS.PER_DIEM]: true});
         await waitForBatchedUpdatesWithAct();
 
         // Then: The overrides win over the server state, and untouched betas keep their server state
@@ -168,7 +168,7 @@ describe('usePermissions', () => {
         expect(Permissions.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS, [CONST.BETAS.DEFAULT_ROOMS])).toBe(true);
 
         // When: The overrides are cleared
-        Onyx.set(ONYXKEYS.BETAS_OVERRIDE, null);
+        Onyx.set(ONYXKEYS.BETA_OVERRIDES, null);
         await waitForBatchedUpdatesWithAct();
 
         // Then: Everything falls back to the server state
@@ -187,7 +187,7 @@ describe('usePermissions', () => {
         expect(result.current.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS)).toBe(true);
 
         // When: A single beta is overridden off
-        Onyx.set(ONYXKEYS.BETAS_OVERRIDE, {[CONST.BETAS.DEFAULT_ROOMS]: false});
+        Onyx.set(ONYXKEYS.BETA_OVERRIDES, {[CONST.BETAS.DEFAULT_ROOMS]: false});
         await waitForBatchedUpdatesWithAct();
 
         // Then: That beta is disabled while the others granted by 'all' stay enabled

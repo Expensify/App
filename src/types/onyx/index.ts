@@ -18,7 +18,7 @@ import type BankAccount from './BankAccount';
 import type BankAccountShareDetails from './BankAccountShareDetails';
 import type Beta from './Beta';
 import type BetaConfiguration from './BetaConfiguration';
-import type BetasOverride from './BetasOverride';
+import type BetaOverrides from './BetaOverrides';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BillingReceiptDetails from './BillingReceiptDetails';
 import type BillingStatus from './BillingStatus';
@@ -226,7 +226,7 @@ export type {
     Beta,
     AddNewPersonalCard,
     BetaConfiguration,
-    BetasOverride,
+    BetaOverrides,
     BlockedFromConcierge,
     Card,
     CardList,

@@ -89,7 +89,7 @@ describe('BetaOverridesPage', () => {
     });
 
     it('marks only the betas that have an override stored', async () => {
-        await Onyx.set(ONYXKEYS.BETAS_OVERRIDE, {[CONST.BETAS.DEFAULT_ROOMS]: false});
+        await Onyx.set(ONYXKEYS.BETA_OVERRIDES, {[CONST.BETAS.DEFAULT_ROOMS]: false});
         renderBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();
 
@@ -97,7 +97,7 @@ describe('BetaOverridesPage', () => {
     });
 
     it('clears every override when reset is pressed', async () => {
-        await Onyx.set(ONYXKEYS.BETAS_OVERRIDE, {[CONST.BETAS.DEFAULT_ROOMS]: true});
+        await Onyx.set(ONYXKEYS.BETA_OVERRIDES, {[CONST.BETAS.DEFAULT_ROOMS]: true});
         renderBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();
 
