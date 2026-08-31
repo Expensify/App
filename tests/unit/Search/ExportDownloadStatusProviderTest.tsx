@@ -1,11 +1,11 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import {ExportDownloadStatusProvider, useExportDownloadStatus} from '@components/MoneyReportHeaderActions/ExportDownloadStatusProvider';
+import Text from '@components/Text';
 
 import useExportDownloadStatusModal from '@hooks/useExportDownloadStatusModal';
 
 import React from 'react';
-import {Text} from 'react-native';
 
 const mockExportDownloadStatusModal = jest.fn(({exportID}: {exportID: string}) => <Text testID="export-status-modal">{exportID}</Text>);
 jest.mock('@components/ExportDownloadStatusModal', () => ({
