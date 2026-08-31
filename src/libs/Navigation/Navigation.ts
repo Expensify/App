@@ -71,6 +71,29 @@ type FocusedScreen = {
     params?: Record<string, unknown>;
 };
 
+type NestedActionTarget = {
+    screen: string;
+    params: unknown;
+    path?: string;
+};
+
+function getNestedActionTarget(payload: unknown): NestedActionTarget | undefined {
+    if (!isRecord(payload)) {
+        return;
+    }
+
+    const nestedParams = payload.params;
+    if (!isRecord(nestedParams) || typeof nestedParams.screen !== 'string') {
+        return;
+    }
+
+    return {
+        screen: nestedParams.screen,
+        params: nestedParams.params,
+        path: typeof nestedParams.path === 'string' ? nestedParams.path : undefined,
+    };
+}
+
 // Modality is module-load (must catch the first interaction); focus-return runs under NavigationRoot (needs navigationRef + a teardown point).
 setupHadTabNavigation();
 
@@ -531,8 +554,8 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
 
     if (isScopedSplitPush) {
         const matchingSplitState = targetState.routes.at(indexOfBackToRoute)?.state;
-        const nestedTarget = isRecord(minimalActionPayload) && isRecord(minimalActionPayload.params) ? minimalActionPayload.params : undefined;
-        if (!matchingSplitState?.key || typeof nestedTarget?.screen !== 'string') {
+        const nestedTarget = getNestedActionTarget(minimalActionPayload);
+        if (!matchingSplitState?.key || !nestedTarget) {
             Log.hmmm('[Navigation] Unable to go up. Scoped split target is missing nested state.');
             return false;
         }
