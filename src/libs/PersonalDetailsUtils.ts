@@ -10,6 +10,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {SetNonNullable} from 'type-fest';
 
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -187,6 +188,44 @@ function getPersonalDetailsByIDs(accountIDs: number[] | undefined, personalDetai
         result.push(detail);
     }
     return result;
+}
+
+/** Single-account lookup without the allocations required by the plural helper. */
+function getPersonalDetailForAccountID(accountID: number, personalDetails: OnyxInputOrEntry<PersonalDetailsList>): PersonalDetails | undefined {
+    const cleanAccountID = Number(accountID);
+    if (!personalDetails || !cleanAccountID) {
+        return undefined;
+    }
+
+    const personalDetail: PersonalDetails = personalDetails[accountID] ?? ({} as PersonalDetails);
+
+    if (cleanAccountID === CONST.ACCOUNT_ID.CONCIERGE) {
+        personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
+    }
+
+    personalDetail.accountID = cleanAccountID;
+    return personalDetail;
+}
+
+/**
+ * Returns the personal details for an array of accountIDs
+ * @returns keys of the object are emails, values are PersonalDetails objects.
+ */
+function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, personalDetails: OnyxInputOrEntry<PersonalDetailsList>): SetNonNullable<PersonalDetailsList> {
+    const personalDetailsForAccountIDs: SetNonNullable<PersonalDetailsList> = {};
+    if (!personalDetails) {
+        return personalDetailsForAccountIDs;
+    }
+    if (accountIDs) {
+        for (const accountID of accountIDs) {
+            const personalDetail = getPersonalDetailForAccountID(accountID, personalDetails);
+            if (!personalDetail) {
+                continue;
+            }
+            personalDetailsForAccountIDs[personalDetail.accountID] = personalDetail;
+        }
+    }
+    return personalDetailsForAccountIDs;
 }
 
 function getPersonalDetailsListByIDs(accountIDs: Array<number | undefined> | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
@@ -578,8 +617,10 @@ function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<Priva
 
 export {
     getDisplayNameOrDefault,
+    getPersonalDetailForAccountID,
     getPersonalDetailsByID,
     getPersonalDetailsByIDs,
+    getPersonalDetailsForAccountIDs,
     getParticipantsPersonalDetails,
     getPersonalDetailsListByIDs,
     getDisplayNameOrYou,

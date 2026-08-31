@@ -8,6 +8,7 @@ import TextInput from '@components/TextInput';
 import useAncestors from '@hooks/useAncestors';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -38,6 +39,7 @@ function DynamicNewTaskDetailsPage() {
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.parentReportID}`);
     const ancestors = useAncestors(parentReport);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const [taskCreatorAndAssigneeDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: personalDetailsListSelector([currentUserPersonalDetails.accountID, task?.assigneeAccountID]),
     });
@@ -89,6 +91,7 @@ function DynamicNewTaskDetailsPage() {
                 currentUserEmail: currentUserPersonalDetails.email ?? '',
                 currentUserDisplayName: currentUserPersonalDetails.displayName,
                 currentUserAvatar: currentUserPersonalDetails.avatar,
+                delegateAccountID,
                 assigneeAccountID: task.assigneeAccountID,
                 assigneeChatReport: task.assigneeChatReport,
                 policyID: CONST.POLICY.OWNER_EMAIL_FAKE,

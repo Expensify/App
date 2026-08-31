@@ -16,6 +16,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 
+import type {ValueOf} from 'type-fest';
+
 import Onyx from 'react-native-onyx';
 
 import {actionR14932, originalMessageR14932} from '../../__mocks__/reportData/actions';
@@ -401,6 +403,40 @@ describe('getSecondaryAction', () => {
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
+    });
+
+    it('excludes SUBMIT option on a policy pending deletion', async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
+        });
+        const policy = createMock<Policy>({
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {
+                enabled: true,
+            },
+            type: CONST.POLICY.TYPE.CORPORATE,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
 
     it('includes SUBMIT option when every transaction is on hold', async () => {
@@ -1837,6 +1873,122 @@ describe('getSecondaryAction', () => {
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+    });
+
+    // Each workflow action requires a different eligible report state, so every case carries its own report and
+    // policy data. Each case first asserts the action is available without archivedDate and then asserts the action
+    // is not available with archivedDate.
+    it.each<{action: ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>; reportData: Partial<Report>; policyData: Partial<Policy>; hasDuplicateViolation?: boolean}>([
+        {
+            action: CONST.REPORT.SECONDARY_ACTIONS.SUBMIT,
+            reportData: {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, total: 10},
+            policyData: {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT, harvesting: {enabled: true}, type: CONST.POLICY.TYPE.CORPORATE},
+        },
+        {
+            action: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
+            reportData: {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, managerID: EMPLOYEE_ACCOUNT_ID},
+            policyData: {approver: EMPLOYEE_EMAIL},
+
+            // Approve action is present in secondary actions only when the report has a duplicate violation.
+            hasDuplicateViolation: true,
+        },
+        {
+            action: CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE,
+            reportData: {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED, managerID: EMPLOYEE_ACCOUNT_ID},
+            policyData: {approver: EMPLOYEE_EMAIL},
+        },
+        {
+            action: CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT,
+            reportData: {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, managerID: EMPLOYEE_ACCOUNT_ID},
+            policyData: {role: CONST.POLICY.ROLE.ADMIN, type: CONST.POLICY.TYPE.TEAM, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL},
+        },
+        {
+            action: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
+            reportData: {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
+            policyData: {},
+        },
+        {
+            action: CONST.REPORT.SECONDARY_ACTIONS.REOPEN,
+            reportData: {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED},
+            policyData: {role: CONST.POLICY.ROLE.ADMIN},
+        },
+    ])('excludes $action option on an archived policy', async ({action, reportData, policyData, hasDuplicateViolation}) => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            ...reportData,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+        const transaction = createMock<Transaction>({transactionID: TRANSACTION_ID});
+        if (hasDuplicateViolation) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+        }
+        const violation = createMock<TransactionViolation>({name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
+
+        const baseArgs = {
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: hasDuplicateViolation ? [transaction] : [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: hasDuplicateViolation ? {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]} : {},
+            bankAccountList: {},
+        };
+
+        const resultWithoutArchive = getSecondaryReportActions({...baseArgs, policy: createMock<Policy>(policyData)});
+        expect(resultWithoutArchive.includes(action)).toBe(true);
+
+        const resultWithArchive = getSecondaryReportActions({...baseArgs, policy: createMock<Policy>({...policyData, archivedDate: '2026-08-01 00:00:00'})});
+        expect(resultWithArchive.includes(action)).toBe(false);
+    });
+
+    it.each<{action: ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>; reportData: Partial<Report>; policyData: Partial<Policy>}>([
+        {
+            action: CONST.REPORT.SECONDARY_ACTIONS.SUBMIT,
+            reportData: {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, total: 10},
+            policyData: {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT, harvesting: {enabled: true}, type: CONST.POLICY.TYPE.CORPORATE},
+        },
+        {
+            action: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
+            reportData: {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
+            policyData: {},
+        },
+        {
+            action: CONST.REPORT.SECONDARY_ACTIONS.REOPEN,
+            reportData: {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED},
+            policyData: {role: CONST.POLICY.ROLE.ADMIN},
+        },
+    ])('includes $action option when the report is archived but the policy is not', async ({action, reportData, policyData}) => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            ...reportData,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy: createMock<Policy>(policyData),
+            moveExpenseReportNameValuePairs: {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID}`]: {private_isArchived: new Date().toString()},
+            },
+            isChatReportArchived: true,
+        });
+        expect(result.includes(action)).toBe(true);
     });
 
     it('includes CANCEL_PAYMENT option for report before nacha cutoff', async () => {
@@ -4551,7 +4703,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(false);
     });
 
-    it('includes the SPLIT option if the current user belongs to the workspace', async () => {
+    it('includes the SPLIT option for a group policy', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
             policyID: POLICY_ID,
@@ -4573,7 +4725,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         const policy = createMock<Policy>({
             id: POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
+            isPolicyExpenseChatEnabled: false,
             employeeList: {
                 [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
                 [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
@@ -4706,7 +4858,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
 
-    it('does not include the SPLIT option if the policy is not expense chat enabled', async () => {
+    it('does not include the SPLIT option for a personal policy', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
             policyID: POLICY_ID,
@@ -4727,14 +4879,15 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         const policy = createMock<Policy>({
             id: POLICY_ID,
-            type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: false,
+            type: CONST.POLICY.TYPE.PERSONAL,
+            isPolicyExpenseChatEnabled: true,
             employeeList: {
                 [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
                 [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
             },
             role: CONST.POLICY.ROLE.ADMIN,
         });
+        jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isGroupPolicy).mockReturnValueOnce(false);
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);

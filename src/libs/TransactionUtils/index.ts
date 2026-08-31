@@ -8,6 +8,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {convertAttendeesToArray, normalizeAttendees} from '@libs/AttendeeUtils';
+import {isTravelCardTransaction} from '@libs/CardUtils';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import type {MachineDateFormat} from '@libs/DateUtils';
@@ -303,6 +304,29 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
         case CONST.SEARCH.TRANSACTION_TYPE.TIME:
             return 'iou.time';
     }
+}
+
+/**
+ * Returns the corresponding translation key for card type
+ */
+function getDetailedExpenseTypeTranslationKey(transaction: OnyxEntry<Transaction>, card?: Card): TranslationPaths {
+    if (isPending(transaction)) {
+        return 'iou.pending';
+    }
+    if (isTravelCardTransaction(transaction?.feedCountry, card)) {
+        return 'cardTransactions.travelCard';
+    }
+    const transactionType = getTransactionType(transaction, card);
+    if (transactionType !== CONST.SEARCH.TRANSACTION_TYPE.CARD) {
+        return getExpenseTypeTranslationKey(transactionType);
+    }
+    if (isExpensifyCardTransaction(transaction)) {
+        return 'cardTransactions.expensifyCard';
+    }
+    if (isManagedCardTransaction(transaction)) {
+        return 'cardTransactions.companyCard';
+    }
+    return 'cardTransactions.personalCard';
 }
 
 function getReceiptTypeTranslationKey(receiptType: ValueOf<typeof CONST.SEARCH.RECEIPT_TYPE>): TranslationPaths {
@@ -3233,6 +3257,15 @@ function isTransactionPendingDelete(transaction: OnyxEntry<Transaction>): boolea
 }
 
 /**
+ * Whether a transaction should light the SmartScan-fields RBR red-dot.
+ * A transaction queued for deletion still lives in Onyx until the server confirms removal, so it must
+ * not keep lighting the RBR while it waits.
+ */
+function hasMissingSmartscanFieldsForRBR(transaction: OnyxEntry<Transaction>, report: OnyxEntry<Report>): boolean {
+    return !isTransactionPendingDelete(transaction) && hasMissingSmartscanFields(transaction, report);
+}
+
+/**
  * Retrieves all "child" transactions associated with a given original transaction.
  */
 function getChildTransactions(transactions: OnyxCollection<Transaction>, originalTransactionID: string | undefined) {
@@ -3619,6 +3652,7 @@ export {
     isCreatedMissing,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
+    hasMissingSmartscanFieldsForRBR,
     hasPendingRTERViolation,
     getBrokenConnectionViolation,
     hasAnyPendingRTERViolation,
@@ -3704,6 +3738,7 @@ export {
     getConvertedAmount,
     isTimeRequest,
     getExpenseTypeTranslationKey,
+    getDetailedExpenseTypeTranslationKey,
     getReceiptTypeTranslationKey,
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
