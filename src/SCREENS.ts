@@ -898,6 +898,7 @@ const SCREENS = {
         UPGRADE: 'Workspace_Upgrade',
         DYNAMIC_WORKSPACE_DOWNGRADE: 'Dynamic_Workspace_Downgrade',
         DYNAMIC_PAY_AND_DOWNGRADE: 'Dynamic_Workspace_Pay_And_Downgrade',
+        MCP: 'Workspace_MCP',
         RECEIPT_PARTNERS: 'Workspace_Receipt_Partners',
         DYNAMIC_RECEIPT_PARTNERS_INVITE: 'Dynamic_Workspace_Receipt_Partners_Invite',
         DYNAMIC_RECEIPT_PARTNERS_INVITE_EDIT: 'Dynamic_Workspace_Receipt_Partners_Invite_Edit',

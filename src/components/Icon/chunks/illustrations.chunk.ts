@@ -106,6 +106,7 @@ import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 // Simple Illustrations - Original core ones
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
+import AiAutomation from '@assets/images/simple-illustrations/simple-illustration__ai-automation.svg';
 import AiBot from '@assets/images/simple-illustrations/simple-illustration__ai-bot.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
 import Members from '@assets/images/simple-illustrations/simple-illustration__approval-members.svg';
@@ -336,6 +337,7 @@ const Illustrations = {
 
     // Simple Illustrations
     Accounting,
+    AiAutomation,
     AiBot,
     Building,
     BuildingCross,
