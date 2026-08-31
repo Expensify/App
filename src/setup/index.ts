@@ -1,3 +1,4 @@
+import '@libs/Middleware/register';
 import {finishCloudflareSignInFromURL} from '@libs/CloudflareAccess/finishSignInFromURL';
 import intlPolyfill from '@libs/IntlPolyfill';
 import registerReportActionsPagination from '@libs/registerReportActionsPagination';

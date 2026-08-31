@@ -1,3 +1,4 @@
+import '@libs/Middleware/register';
 import {act, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
