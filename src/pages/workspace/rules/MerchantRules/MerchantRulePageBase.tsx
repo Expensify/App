@@ -446,12 +446,12 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
             if (!hasCategoryCondition || !categoryTaxID) {
                 return;
             }
-            // Drop the old category first, or both would keep a default tax rate.
-            if (editCategoryTaxRuleFor && !categoriesToMatch.includes(editCategoryTaxRuleFor)) {
-                deletePolicyCategoryTax(policy, editCategoryTaxRuleFor);
-            }
+            // Moving to another category drops the old rule first, or both would keep a default tax rate. The rules it
+            // leaves behind are handed to the save, so the save doesn't re-add the rule the delete just removed.
+            const isMovingCategory = !!editCategoryTaxRuleFor && !categoriesToMatch.includes(editCategoryTaxRuleFor);
+            const remainingExpenseRules = isMovingCategory && editCategoryTaxRuleFor ? deletePolicyCategoryTax(policy, editCategoryTaxRuleFor) : undefined;
             // The command is per-category, so a bulk selection saves one rule for each category picked.
-            setPolicyCategoryTaxes(policy, categoriesToMatch, categoryTaxID);
+            setPolicyCategoryTaxes(policy, categoriesToMatch, categoryTaxID, remainingExpenseRules);
             if (isEditingCategoryTaxRule) {
                 Navigation.goBack();
             } else {

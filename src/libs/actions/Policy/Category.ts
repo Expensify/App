@@ -1885,13 +1885,15 @@ function withCategoryTaxRates(expenseRules: ExpenseRule[], taxRatesByCategory: M
  * No `successData`, like `setPolicyCategoryApprover`: it would carry a whole-array snapshot, and `API.write` persists
  * those, so queued offline writes would replay stale arrays over each other. The server response is authoritative.
  */
-function setPolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[], taxID: string) {
+function setPolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[], taxID: string, baseExpenseRules?: ExpenseRule[]) {
     if (!policy?.id || categoryNames.length === 0 || !taxID) {
         Log.warn('Invalid params for setPolicyCategoryTaxes');
         return;
     }
     const policyID = policy.id;
-    const expenseRules = policy.rules?.expenseRules ?? [];
+    // `baseExpenseRules` lets a caller chain this after a delete. Reading the policy again would use the pre-delete
+    // array and re-add the rule that was just removed, leaving both categories with a row until the server replies.
+    const expenseRules = baseExpenseRules ?? policy.rules?.expenseRules ?? [];
     const requested = new Map(categoryNames.map((categoryName) => [categoryName, taxID]));
 
     // Every write shares this array. They are all enqueued at once, so the optimistic state has to be the same
@@ -1937,18 +1939,18 @@ function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, t
  * default rate is what clears an override, since `getCategoryDefaultTaxRate` falls back to that same rate when no rule
  * exists. The rules are dropped optimistically so the rows go straight away.
  */
-function deletePolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[]) {
+function deletePolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[]): ExpenseRule[] | undefined {
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     if (!policy?.id || !defaultExternalID || categoryNames.length === 0) {
         Log.warn('Invalid params for deletePolicyCategoryTaxes');
-        return;
+        return undefined;
     }
     const policyID = policy.id;
     const expenseRules = policy.rules?.expenseRules ?? [];
     const targets = categoryNames.filter((categoryName) => expenseRules.some((rule) => matchesCategoryTaxRule(rule, categoryName)));
 
     if (targets.length === 0) {
-        return;
+        return undefined;
     }
 
     // Shared like the save path: the writes are enqueued together, so each needs the same end state.
@@ -1979,11 +1981,13 @@ function deletePolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: str
 
         API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, {policyID, categoryName, taxID: defaultExternalID}, onyxData);
     }
+
+    return optimisticExpenseRules;
 }
 
-/** Removes a single category's default tax rate. */
-function deletePolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string) {
-    deletePolicyCategoryTaxes(policy, [categoryName]);
+/** Removes a single category's default tax rate, returning the rules left behind so a caller can chain a write. */
+function deletePolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string): ExpenseRule[] | undefined {
+    return deletePolicyCategoryTaxes(policy, [categoryName]);
 }
 
 function setPolicyCategoryAttendeesRequired(policyID: string, categoryName: string, areAttendeesRequired: boolean, policyCategories: PolicyCategories = {}) {

@@ -39,7 +39,7 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
     const policy = usePolicy(policyID);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const illustrations = useMemoizedLazyIllustrations(['ReportReceipt', 'FolderOpen']);
+    const illustrations = useMemoizedLazyIllustrations(['FoodTruck', 'FolderOpen']);
 
     // A category rule only sets a default tax rate, so with taxes off there is nothing it could configure.
     const areTaxesEnabled = !!policy?.tax?.trackingEnabled;
@@ -54,7 +54,7 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
     const options = [
         {
             key: 'merchant',
-            icon: illustrations.ReportReceipt,
+            icon: illustrations.FoodTruck,
             title: translate('workspace.rules.expenseDefaultType.merchant'),
             description: translate('workspace.rules.expenseDefaultType.merchantDescription'),
             onPress: () => openEditorScopedTo('merchant'),

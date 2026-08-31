@@ -65,7 +65,9 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
     } = usePolicyCategoryPickerCategories({
         policyID,
         // Keep current selections so they stay removable; don't offer a category that already has a tax default.
-        isEligible: (category) => selectedCategories.includes(category.name) || !categoryHasTaxRule(policy?.rules?.expenseRules, category.name),
+        // The rule being edited stays listed even once the selection moves off it, since its own category still has a
+        // tax rule and would otherwise drop out of the list with no way to switch back.
+        isEligible: (category) => selectedCategories.includes(category.name) || category.name === editingCategoryName || !categoryHasTaxRule(policy?.rules?.expenseRules, category.name),
     });
 
     const categoryItems: CategoryListItem[] = categories.map((category) => ({
