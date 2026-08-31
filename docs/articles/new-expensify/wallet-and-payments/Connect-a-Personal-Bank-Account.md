@@ -1,7 +1,7 @@
 ---
 title: Connect a Personal Bank Account
 description: Learn how to connect your personal bank account to receive reimbursements in Expensify, including support for both US and international accounts.
-keywords: [New Expensify, bank account, personal bank account, reimbursements, wallet, US bank account, global reimbursements, manual bank connection, add bank account for reimbursement, reimbursement account setup, wallet, deposit account, direct deposit, update bank account, review badge, missing info, validate your account, magic code, log into your bank, connect manually]
+keywords: [New Expensify, bank account, personal bank account, reimbursements, wallet, US bank account, global reimbursements, manual bank connection, add bank account for reimbursement, reimbursement account setup, wallet, deposit account, direct deposit, update bank account, review badge, missing info, validate your account, security code, log into your bank, connect manually]
 internalScope: Audience is members receiving reimbursements. Covers connecting and updating personal bank accounts, does not cover business bank accounts or workspace-level payment settings.
 ---
 
@@ -22,7 +22,7 @@ To connect a U.S. bank account:
 
 1. Go to **Account > Wallet > Bank accounts**.
 2. Click **Add bank account**.
-3. If your account is not validated yet, a **Validate your account** screen appears. Enter the magic code sent to your email address to continue.
+3. If your account is not validated yet, a **Validate your account** screen appears. Enter the security code sent to your email address to continue.
 4. On the **Where's your bank account located?** screen, select **United States**, then click **Next**.
 5. Choose one of the following:
    - **Log into your bank**:
@@ -66,9 +66,9 @@ Once updated, the **Review** badge will be removed from the bank account.
 
 Yes. You can add multiple accounts, but only one can be selected as the default for reimbursements.
 
-## Why am I asked for a magic code when I add a bank account?
+## Why am I asked for a security code when I add a bank account?
 
-Your Expensify account must be validated before you can add a bank account. When it isn't, a **Validate your account** screen appears and Expensify emails you a magic code. Enter the code to continue. After you enter it, you go on to the **Log into your bank** or **Connect manually** choice — you are not dropped into your bank's login.
+Your Expensify account must be validated before you can add a bank account. When it isn't, a **Validate your account** screen appears and Expensify emails you a security code. Enter the code to continue. After you enter it, you go on to the **Log into your bank** or **Connect manually** choice — you are not dropped into your bank's login.
 
 ## Why does my bank account show a "Review" badge?
 
