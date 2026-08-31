@@ -200,7 +200,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                         prompt: translate('workspace.rules.bulkActions.deleteMultipleConfirmation', {count: selectedRuleKeys.length}),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
 
                     if (action !== ModalActions.CONFIRM) {
