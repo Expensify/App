@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
@@ -156,12 +156,11 @@ function HeaderWithBackButton({
                     />
                 )}
                 {!!policyAvatar && (
-                    <Avatar
+                    <WorkspaceAvatar
                         containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(policyAvatarSize)), styles.mr3]}
                         source={policyAvatar.source}
-                        name={policyAvatar.name}
-                        avatarID={policyAvatar.id}
-                        type={policyAvatar.type}
+                        name={policyAvatar.name ?? ''}
+                        avatarID={policyAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
                         size={policyAvatarSize}
                     />
                 )}
