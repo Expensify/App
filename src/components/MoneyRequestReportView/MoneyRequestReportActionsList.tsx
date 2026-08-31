@@ -166,8 +166,10 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const linkedReportActionID = route?.params?.reportActionID;
 
     // Opened from the "X Replies" link: land on the latest message instead of the default top of the report.
+    // The ref holds the report we already scrolled for, not a plain boolean, because this screen instance is reused
+    // when the route switches to another report and the next report must be able to scroll as well.
     const shouldScrollToLatestOnOpen = route?.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST] === 'true';
-    const hasScrolledToLatestOnOpenRef = useRef(false);
+    const scrolledToLatestOnOpenForReportIDRef = useRef<string | undefined>(undefined);
 
     const parentReportAction = useParentReportAction(report);
 
@@ -711,13 +713,13 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     // deferred content settles, mirroring the floating "new messages" button. We clear the route param afterwards
     // so a later re-render or remount doesn't yank the user back down.
     useEffect(() => {
-        if (!shouldScrollToLatestOnOpen || hasScrolledToLatestOnOpenRef.current || visibleReportActions.length === 0) {
+        if (!shouldScrollToLatestOnOpen || scrolledToLatestOnOpenForReportIDRef.current === reportIDFromRoute || visibleReportActions.length === 0) {
             return;
         }
-        hasScrolledToLatestOnOpenRef.current = true;
+        scrolledToLatestOnOpenForReportIDRef.current = reportIDFromRoute;
         scrollToLatestMessages();
         Navigation.setParams({[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST]: undefined});
-    }, [shouldScrollToLatestOnOpen, visibleReportActions.length, scrollToLatestMessages]);
+    }, [shouldScrollToLatestOnOpen, visibleReportActions.length, scrollToLatestMessages, reportIDFromRoute]);
 
     const onListContentSizeChange = () => {
         if (!stickToBottomRef.current) {
