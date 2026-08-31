@@ -792,7 +792,7 @@ function BasePopoverMenu({
                                     onChangeText={onSearchInputChange}
                                     shouldShowEmptyState={shouldShowSearchEmptyState}
                                     shouldShowIcon={false}
-                                    style={searchInputContainerStyle}
+                                    style={[styles.mw100, searchInputContainerStyle]}
                                 />
                             </View>
                         )}
