@@ -486,14 +486,16 @@ const config = defineConfig([
         },
     },
 
-    // Enforces every Onyx type and its properties to have a comment explaining its purpose.
+    // Enforces every Onyx type to have a comment explaining its purpose. Per-property
+    // documentation is enforced by the AI reviewer (CONSISTENCY-13/CONSISTENCY-10) instead,
+    // since a property with nothing non-obvious to say needs no comment.
     {
         files: ['src/types/onyx/**/*.ts'],
         rules: {
             'jsdoc/require-jsdoc': [
                 'error',
                 {
-                    contexts: ['TSInterfaceDeclaration', 'TSTypeAliasDeclaration', 'TSPropertySignature'],
+                    contexts: ['TSInterfaceDeclaration', 'TSTypeAliasDeclaration'],
                 },
             ],
         },

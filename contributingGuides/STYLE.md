@@ -1030,37 +1030,35 @@ For additional React best practices and patterns that are automatically enforced
 
 ### Code Documentation
 
-- Add descriptions to all component props using a block comment above the definition. No need to document the types, but add some context for each property so that other developers understand the intended use.
+- Add a `/** ... */` block comment above a component prop or an `src/types/onyx/**` property only when there is a non-obvious fact to add: a unit, a default, a boundary condition, null/undefined semantics, ownership, an invariant, or how it differs from a sibling. A comment that only restates the name or type adds nothing; delete it instead of padding it. A prop or property with nothing non-obvious to say is already documented by its name.
 
 ```tsx
-// Bad
-type ComponentProps = {
-  currency: string;
-  amount: number;
-  isIgnored: boolean;
-};
-
-// Bad
-type ComponentProps = {
-  // The currency that the reward is in
-  currency: string;
-
-  // The amount of reward
-  amount: number;
-
-  // If the reward has been ignored or not
-  isIgnored: boolean;
-};
-
-// Good
+// Bad: comments just restate the name
 type ComponentProps = {
   /** The currency that the reward is in */
-  currency: string;
+  currency?: string;
 
-  /** The amount of the reward */
+  /** The amount of reward */
   amount: number;
 
-  /** If the reward has not been ignored yet */
+  /** Whether the reward has been ignored */
+  isIgnored: boolean;
+};
+
+// Bad: same issue with // comments
+type ComponentProps = {
+  // The currency that the reward is in
+  currency?: string;
+};
+
+// Good: comments add facts the name and type can't - isIgnored is obvious so it has no comment
+type ComponentProps = {
+  /** ISO 4217 currency code, defaults to the workspace currency */
+  currency?: string;
+
+  /** In cents */
+  amount: number;
+
   isIgnored: boolean;
 };
 ```
