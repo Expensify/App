@@ -22,7 +22,7 @@ import type {LayoutChangeEvent} from 'react-native';
 import React, {useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState} from 'react';
 
 import type {TableListMetadata} from './buildTableListData';
-import type {TableContextValue} from './TableContext';
+import type {TableContextValue, TableSearchInputUpdate} from './TableContext';
 import type {TableHeaderProps} from './TableHeader';
 import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
 
@@ -291,6 +291,22 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const filteredData = filterMiddleware(data);
 
     const {middleware: searchMiddleware, activeSearchString, methods: searchMethods, hasActiveSearchString} = useSearching<DataType>({isItemInSearch});
+    const searchInputSequenceRef = useRef(0);
+    const latestSearchEffectiveQueryRef = useRef(activeSearchString.trim());
+    const [searchInputUpdate, setSearchInputUpdate] = useState<TableSearchInputUpdate>({revision: 0, sequence: 0, source: 'input'});
+    const getNextSearchInputSequence = () => {
+        searchInputSequenceRef.current += 1;
+        return searchInputSequenceRef.current;
+    };
+    const commitSearchString = (value: string, source: TableSearchInputUpdate['source'], sequence = getNextSearchInputSequence()) => {
+        latestSearchEffectiveQueryRef.current = value.trim();
+        searchMethods.updateSearchString(value);
+        setSearchInputUpdate((currentUpdate) => ({revision: currentUpdate.revision + 1, sequence, source}));
+    };
+    const updateSearchString: typeof searchMethods.updateSearchString = (value) => commitSearchString(value, 'imperative');
+    const updateSearchStringFromInput = (value: string, sequence: number) => commitSearchString(value, 'input', sequence);
+    const getLatestSearchEffectiveQuery = () => latestSearchEffectiveQueryRef.current;
+    const searchInputActions = {updateSearchStringFromInput, getNextSearchInputSequence, getLatestSearchEffectiveQuery};
     const searchedData = searchMiddleware(filteredData);
 
     const {
@@ -359,6 +375,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         ...filterMethods,
         ...sortMethods,
         ...searchMethods,
+        updateSearchString,
         ...selectionMethods,
         ...highlightingMethods,
     };
@@ -467,6 +484,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         initialSortColumn,
         narrowLayoutSortColumn,
         activeSearchString,
+        searchInputUpdate,
+        searchInputActions,
         tableMethods,
         hasActiveFilters,
         hasSearchString: hasActiveSearchString,
