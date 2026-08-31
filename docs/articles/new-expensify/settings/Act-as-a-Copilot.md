@@ -1,8 +1,8 @@
 ---
 title: Act as a Copilot
 description: Learn how to switch into another member's account as a Copilot, act on their behalf, and remove your access when it's no longer needed.
-keywords: [act as a copilot, copilot access, switch to a copilot account, switch accounts, delegated access, delegated account access, copilot account, access another account, account switching, proxy access, manage someone else's account, executive assistant, accountant, bookkeeper, shared account access, remove copilot access, remove my copilot access, forward receipts, submit expenses on behalf of someone, act on behalf of another user, copilot permissions]
-internalScope: Audience is members who have been granted Copilot access. Covers accessing another account, forwarding receipts, and removing your own access. Does not cover granting or managing Copilot access for others.
+keywords: [act as a copilot, copilot access, switch to a copilot account, switch accounts, delegated access, delegated account access, copilot account, access another account, account switching, proxy access, manage someone else's account, executive assistant, accountant, bookkeeper, shared account access, remove copilot access, remove my copilot access, forward receipts, submit expenses on behalf of someone, act on behalf of another user, copilot permissions, search accounts, find member, filter account switcher]
+internalScope: Audience is members who have been granted Copilot access. Covers accessing another account, searching a long list of accounts, forwarding receipts, and removing your own access. Does not cover granting or managing Copilot access for others.
 ---
 
 # Act as a Copilot
@@ -34,13 +34,38 @@ Some actions may be restricted if you've been granted Limited Access.
 ## How to switch to a Copilot account
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
-2. In the **Copilot: Delegated Access** section, choose the account you want to access.
+2. In the **Copilot: Delegated access** section, choose the account you want to access.
 3. Select **Switch**.
+
+You can also select **Switch** next to your name at the top of **Account** to open the **Switch accounts:** list and choose an account there.
+
+## How to search a long list of Copilot accounts
+
+When 12 or more members have granted you Copilot access, a **Find member** search field appears so you don't have to scroll the full list.
+
+In the **Switch accounts:** list:
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+2. Select **Switch** next to your name.
+3. In the **Find member** field, enter part of a member's name or email address.
+4. Select the account you want to access.
+
+The field is cleared each time you close and reopen the list. If nothing matches what you typed, Expensify displays a no results message.
+
+On the **Copilot** page, the **Find member** field appears above **You can access these accounts:** once the **Copilot: Delegated access** section contains 12 or more entries in total, counting both the accounts you can access and any Copilots you've added to your own account.
+
+The **Find member** field is not shown in the **Switch accounts:** list while you're already acting as a Copilot. Return to your own account first.
+
+<!-- SCREENSHOT:
+Suggestion: The open Switch accounts: list with the Find member field above the account rows and a partial name typed in.
+Location: After the steps in "How to search a long list of Copilot accounts"
+Purpose: Shows that the search field belongs to the account switcher popover rather than the Copilot page, which members confuse when they can't find it in settings.
+-->
 
 ## How to remove yourself as a Copilot
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
-2. In the **Copilot: Delegated Access** section, choose the account you want to remove yourself from. 
+2. In the **Copilot: Delegated access** section, choose the account you want to remove yourself from. 
 3. Select **Remove my copilot access**.
 4. Select **Remove access**.
 
