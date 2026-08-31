@@ -6,11 +6,9 @@ import type {AnyRequest} from '@src/types/onyx/Request';
 
 import type {OnyxKey} from 'react-native-onyx';
 
+import {clear, getAll, push, replaceAll} from './MainQueueStore';
 import {isAuthenticating} from './NetworkStore';
 import {isRunning as sequentialQueueIsRunning} from './SequentialQueue';
-
-// Queue for network requests so we don't lose actions done by the user while offline
-let networkRequestQueue: AnyRequest[] = [];
 
 /**
  * Checks to see if a request can be made.
@@ -19,10 +17,6 @@ function canMakeRequest<TKey extends OnyxKey>(request: OnyxRequest<TKey>): boole
     // Some requests are always made even when we are in the process of authenticating (typically because they require no authToken e.g. Log, BeginSignIn)
     // However, if we are in the process of authenticating we always want to queue requests until we are no longer authenticating.
     return request.data?.forceNetworkRequest === true || (!isAuthenticating() && !sequentialQueueIsRunning());
-}
-
-function push<TKey extends OnyxKey>(request: OnyxRequest<TKey>) {
-    networkRequestQueue.push(request as AnyRequest);
 }
 
 function replay<TKey extends OnyxKey>(request: OnyxRequest<TKey>) {
@@ -38,6 +32,8 @@ function process() {
     if (getIsOffline()) {
         return;
     }
+
+    const networkRequestQueue = getAll();
 
     // When the queue length is empty an early return is performed since nothing needs to be processed
     if (networkRequestQueue.length === 0) {
@@ -67,19 +63,7 @@ function process() {
 
     // We clear the request queue at the end by setting the queue to requestsToProcessOnNextRun which will either have some
     // requests we want to retry or an empty array
-    networkRequestQueue = requestsToProcessOnNextRun;
-}
-
-/**
- * Clear the queue and cancels all pending requests
- * Non-cancellable requests like Log would not be cleared
- */
-function clear() {
-    networkRequestQueue = networkRequestQueue.filter((request) => !request.data?.canCancel);
-}
-
-function getAll(): AnyRequest[] {
-    return networkRequestQueue;
+    replaceAll(requestsToProcessOnNextRun);
 }
 
 export {clear, replay, push, process, getAll};
