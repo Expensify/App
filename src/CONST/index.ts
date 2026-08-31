@@ -8318,6 +8318,7 @@ const CONST = {
         HAS_LOGIN_LIST_ERROR: 'hasLoginListError',
         HAS_WALLET_TERMS_ERRORS: 'hasWalletTermsErrors',
         HAS_LOGIN_LIST_INFO: 'hasLoginListInfo',
+        HAS_HOME_ADDRESS_INFO: 'hasHomeAddressInfo',
         HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
         HAS_PHONE_NUMBER_ERROR: 'hasPhoneNumberError',
         HAS_PENDING_CARD_INFO: 'hasPendingCardInfo',
