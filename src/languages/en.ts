@@ -7357,7 +7357,7 @@ const translations = {
             exportDate: 'Export date',
             defaultVendor: 'Default vendor',
             // fallbackVendorName is the vendor the integration auto-creates when nothing matches. Only integrations
-            // that actually create one pass it — the rest get the first sentence alone, because telling a Xero admin
+            // that actually create one pass it. The rest get the first sentence alone, because telling a Xero admin
             // their expenses will export as "Credit Card Misc." describes a fallback Xero doesn't have.
             defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
                 isSet || !fallbackVendorName
