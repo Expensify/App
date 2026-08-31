@@ -2,6 +2,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import {useExportDownloadStatus} from '@components/MoneyReportHeaderActions/ExportDownloadStatusProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
@@ -124,7 +125,6 @@ import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDelegateAccountID from './useDelegateAccountID';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
-import useExportDownloadStatusModal from './useExportDownloadStatusModal';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -431,7 +431,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
-    const {clearSelectedTransactions, selectAllMatchingItems} = useSearchSelectionActions();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID, email, login: currentUserLogin, localCurrencyCode} = currentUserPersonalDetails;
     const delegateAccountID = useDelegateAccountID();
@@ -496,10 +496,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     > | null>(null);
 
     const [emptyReportsCount, setEmptyReportsCount] = useState<number>(0);
-    const {trackExport, exportDownloadStatusModal} = useExportDownloadStatusModal(() => {
-        selectAllMatchingItems(false);
-        clearSelectedTransactions(undefined, true);
-    });
+    // Owned by SearchPage (above the narrow/wide layout ternary) so an in-flight export isn't dropped when this
+    // subtree remounts on a layout change.
+    const {trackExport} = useExportDownloadStatus();
 
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
@@ -2874,7 +2873,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         handleExpensifyCardStatementPDFModalHide,
         isExpensifyCardStatementMultiFeedAlertVisible,
         handleExpensifyCardStatementMultiFeedAlertClose,
-        exportDownloadStatusModal,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,

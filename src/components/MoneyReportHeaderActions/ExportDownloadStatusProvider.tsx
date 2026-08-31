@@ -16,16 +16,19 @@ const ExportDownloadStatusContext = createContext<ExportDownloadStatusContextVal
 type ExportDownloadStatusProviderProps = {
     /** The children to render inside the provider */
     children: React.ReactNode;
+
+    /** Extra cleanup to run once the status modal is dismissed. Defaults to clearing the current selection. */
+    onCleanup?: () => void;
 };
 
 /**
- * Owns the queued export status modal for the money report header. The state lives here, above the
- * two mutually-exclusive layout branches in MoneyReportHeader, so the modal survives orientation /
- * layout changes that remount the header actions subtree.
+ * Owns the queued export status modal for a surface that triggers tracked exports (the money report header,
+ * the Search page). The state lives here, above the two mutually-exclusive layout branches those surfaces
+ * render, so the modal survives orientation / layout changes that remount the branch it was triggered from.
  */
-function ExportDownloadStatusProvider({children}: ExportDownloadStatusProviderProps) {
+function ExportDownloadStatusProvider({children, onCleanup}: ExportDownloadStatusProviderProps) {
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const {trackExport, exportDownloadStatusModal} = useExportDownloadStatusModal(() => clearSelectedTransactions(true));
+    const {trackExport, exportDownloadStatusModal} = useExportDownloadStatusModal(() => (onCleanup ? onCleanup() : clearSelectedTransactions(true)));
 
     return (
         <ExportDownloadStatusContext.Provider value={{trackExport}}>

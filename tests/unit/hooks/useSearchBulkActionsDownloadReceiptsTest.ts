@@ -25,6 +25,11 @@ jest.mock('@libs/actions/Report', () => ({
     exportReportToPDF: jest.fn(),
 }));
 
+const mockTrackExport = jest.fn();
+jest.mock('@components/MoneyReportHeaderActions/ExportDownloadStatusProvider', () => ({
+    useExportDownloadStatus: () => ({trackExport: mockTrackExport}),
+}));
+
 let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => ({
     __esModule: true,
@@ -316,7 +321,7 @@ describe('useSearchBulkActions - Download receipts', () => {
 
             expect(exportReceiptsToZip).toHaveBeenCalledTimes(1);
             expect(exportReceiptsToZip).toHaveBeenCalledWith({reportIDs: expect.arrayContaining(['1', '2'])});
-            expect(result.current.exportDownloadStatusModal).not.toBeNull();
+            expect(mockTrackExport).toHaveBeenCalledWith('mock-receipts-export-id');
         });
 
         it('shows the offline modal and does not export when offline', async () => {

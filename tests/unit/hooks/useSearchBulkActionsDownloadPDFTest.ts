@@ -34,6 +34,11 @@ jest.mock('@libs/actions/CompanyCards', () => ({
     getExpensifyCardStatementPDF: jest.fn(() => Promise.resolve({statementKey: 'statement-key'})),
 }));
 
+const mockTrackExport = jest.fn();
+jest.mock('@components/MoneyReportHeaderActions/ExportDownloadStatusProvider', () => ({
+    useExportDownloadStatus: () => ({trackExport: mockTrackExport}),
+}));
+
 let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => ({
     __esModule: true,
@@ -464,7 +469,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
         expect(exportReportsToPDF).toHaveBeenCalledTimes(1);
         expect(exportReportsToPDF).toHaveBeenCalledWith(expect.arrayContaining(['1', '2']));
         expect(exportReportToPDF).not.toHaveBeenCalled();
-        expect(result.current.exportDownloadStatusModal).not.toBeNull();
+        expect(mockTrackExport).toHaveBeenCalledWith('mock-export-id');
     });
 
     it('should show Export as PDF for selected Expensify Card settlement groups', async () => {

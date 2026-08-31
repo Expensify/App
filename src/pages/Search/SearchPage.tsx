@@ -1,3 +1,4 @@
+import {ExportDownloadStatusProvider} from '@components/MoneyReportHeaderActions/ExportDownloadStatusProvider';
 import {ReportSubmitToPopoverHost, SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchParams} from '@components/Search/types';
@@ -42,7 +43,7 @@ function SearchPage({route}: SearchPageProps) {
     const styles = useThemeStyles();
     const {lastSearchType, currentSearchResults, shouldUseLiveData} = useSearchResultsContext();
     const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
-    const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {clearSelectedTransactions, selectAllMatchingItems} = useSearchSelectionActions();
     const {setLastSearchType} = useSearchResultsActions();
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
@@ -123,6 +124,12 @@ function SearchPage({route}: SearchPageProps) {
         setIsSorting(true);
     }, []);
 
+    // Runs once the queued-export status modal is dismissed, mirroring what the bulk action bar used to do itself.
+    const clearSelectionAfterExport = useCallback(() => {
+        selectAllMatchingItems(false);
+        clearSelectedTransactions(undefined, true);
+    }, [clearSelectedTransactions, selectAllMatchingItems]);
+
     const overlayContentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined;
     const overlayEndSubmitSpans = useEndSubmitNavigationSpans();
     const {searchOverlayContent, onSearchContentReady, isOverlayActive} = useSearchOverlay({
@@ -138,31 +145,35 @@ function SearchPage({route}: SearchPageProps) {
     return (
         <ReportSubmitToPopoverHost anchorAlignment={SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}>
             <PaymentContextProvider>
-                <Animated.View style={[styles.flex1]}>
-                    {shouldUseNarrowLayout ? (
-                        <SearchPageNarrow
-                            queryJSON={currentSearchQueryJSON}
-                            searchResults={searchResults}
-                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            onSortPressedCallback={onSortPressedCallback}
-                            searchOverlayContent={searchOverlayContent}
-                            onSearchContentReady={onSearchContentReady}
-                            hasFilterBars={hasFilterBars}
-                            isOverlayActive={isOverlayActive}
-                        />
-                    ) : (
-                        <SearchPageWide
-                            queryJSON={currentSearchQueryJSON}
-                            searchResults={searchResults}
-                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            handleSearchAction={handleSearchAction}
-                            onSortPressedCallback={onSortPressedCallback}
-                            route={route}
-                            searchOverlayContent={searchOverlayContent}
-                            onSearchContentReady={onSearchContentReady}
-                        />
-                    )}
-                </Animated.View>
+                {/* The export tracking state lives above the narrow/wide ternary below so crossing the layout
+                    breakpoint mid-export doesn't unmount it and drop the in-flight download. */}
+                <ExportDownloadStatusProvider onCleanup={clearSelectionAfterExport}>
+                    <Animated.View style={[styles.flex1]}>
+                        {shouldUseNarrowLayout ? (
+                            <SearchPageNarrow
+                                queryJSON={currentSearchQueryJSON}
+                                searchResults={searchResults}
+                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                onSortPressedCallback={onSortPressedCallback}
+                                searchOverlayContent={searchOverlayContent}
+                                onSearchContentReady={onSearchContentReady}
+                                hasFilterBars={hasFilterBars}
+                                isOverlayActive={isOverlayActive}
+                            />
+                        ) : (
+                            <SearchPageWide
+                                queryJSON={currentSearchQueryJSON}
+                                searchResults={searchResults}
+                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                handleSearchAction={handleSearchAction}
+                                onSortPressedCallback={onSortPressedCallback}
+                                route={route}
+                                searchOverlayContent={searchOverlayContent}
+                                onSearchContentReady={onSearchContentReady}
+                            />
+                        )}
+                    </Animated.View>
+                </ExportDownloadStatusProvider>
             </PaymentContextProvider>
         </ReportSubmitToPopoverHost>
     );
