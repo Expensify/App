@@ -19,6 +19,10 @@ const COPYABLE_TEXT_DATA_SET = {[CONST.COPYABLE_TEXT_ELEMENT]: true} as const;
 const COPYABLE_ROW_SELECTOR = `[data-${CONST.COPYABLE_ROW_ELEMENT}=true]`;
 const COPYABLE_ROW_DATA_SET = {[CONST.COPYABLE_ROW_ELEMENT]: true} as const;
 
+type SuppressCopyableTextRowPressOptions = {
+    shouldSuppressOnMouseDown?: boolean;
+};
+
 function getCopyableTextElement(target: EventTarget | Node | null | undefined): HTMLElement | null {
     if (typeof HTMLElement === 'undefined') {
         return null;
@@ -41,6 +45,63 @@ function getCopyableTextElement(target: EventTarget | Node | null | undefined): 
 
 function isCopyableTextTarget(target: EventTarget | null | undefined): boolean {
     return !!getCopyableTextElement(target);
+}
+
+function getMouseEventPosition(event: unknown): {clientX: number; clientY: number} | null {
+    if (typeof event !== 'object' || event === null) {
+        return null;
+    }
+
+    if ('clientX' in event && 'clientY' in event && typeof event.clientX === 'number' && typeof event.clientY === 'number') {
+        return {clientX: event.clientX, clientY: event.clientY};
+    }
+
+    if (!('nativeEvent' in event) || typeof event.nativeEvent !== 'object' || event.nativeEvent === null) {
+        return null;
+    }
+
+    const {nativeEvent} = event;
+    if ('clientX' in nativeEvent && 'clientY' in nativeEvent && typeof nativeEvent.clientX === 'number' && typeof nativeEvent.clientY === 'number') {
+        return {clientX: nativeEvent.clientX, clientY: nativeEvent.clientY};
+    }
+
+    return null;
+}
+
+function getMouseEventTarget(event: unknown): EventTarget | null {
+    if (typeof EventTarget === 'undefined' || typeof event !== 'object' || event === null || !('target' in event) || !(event.target instanceof EventTarget)) {
+        return null;
+    }
+
+    return event.target;
+}
+
+function isMouseDownOnCopyableText(event: unknown): boolean {
+    const position = getMouseEventPosition(event);
+    const copyableElement = getCopyableTextElement(getMouseEventTarget(event));
+    if (!position || !copyableElement || typeof document === 'undefined' || typeof NodeFilter === 'undefined') {
+        return false;
+    }
+
+    const walker = document.createTreeWalker(copyableElement, NodeFilter.SHOW_TEXT);
+    let textNode = walker.nextNode();
+
+    while (textNode) {
+        if (textNode.textContent?.trim()) {
+            const range = document.createRange();
+            range.selectNodeContents(textNode);
+
+            const isInsideText = Array.from(range.getClientRects()).some(
+                (rect) => position.clientX >= rect.left && position.clientX <= rect.right && position.clientY >= rect.top && position.clientY <= rect.bottom,
+            );
+            if (isInsideText) {
+                return true;
+            }
+        }
+        textNode = walker.nextNode();
+    }
+
+    return false;
 }
 
 // Row press handlers use this after mouseup/click to suppress navigation only for the drag-select gesture that started on copyable text.
@@ -72,8 +133,9 @@ function useCopyableTextRowPress() {
         return isCopyableTarget;
     };
 
-    const shouldSuppressCopyableTextRowPress = (shouldCheck = true): boolean => {
-        const shouldSuppressPress = shouldCheck && shouldSuppressCopyableTextPress(wasMouseDownOnCopyableTextRef.current);
+    const shouldSuppressCopyableTextRowPress = (shouldCheck = true, {shouldSuppressOnMouseDown = false}: SuppressCopyableTextRowPressOptions = {}): boolean => {
+        const shouldSuppressPress =
+            shouldCheck && wasMouseDownOnCopyableTextRef.current && (shouldSuppressOnMouseDown || shouldSuppressCopyableTextPress(wasMouseDownOnCopyableTextRef.current));
         wasMouseDownOnCopyableTextRef.current = false;
         return shouldSuppressPress;
     };
@@ -372,7 +434,7 @@ const getCurrentSelection: GetCurrentSelection = () => {
     return newHtml || '';
 };
 
-export {COPYABLE_ROW_DATA_SET, COPYABLE_TEXT_DATA_SET, useCopyableTextRowPress};
+export {COPYABLE_ROW_DATA_SET, COPYABLE_TEXT_DATA_SET, isMouseDownOnCopyableText, useCopyableTextRowPress};
 
 export default {
     getCurrentSelection,

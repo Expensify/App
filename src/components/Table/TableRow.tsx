@@ -11,7 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {useCopyableTextRowPress} from '@libs/SelectionScraper';
+import {isMouseDownOnCopyableText, useCopyableTextRowPress} from '@libs/SelectionScraper';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 
 import variables from '@styles/variables';
@@ -212,7 +212,7 @@ export default function TableRow({
     };
 
     const handleRowPress = (event?: GestureResponderEvent | KeyboardEvent | undefined) => {
-        if (shouldSuppressCopyableTextRowPress(shouldAllowTextSelection)) {
+        if (shouldSuppressCopyableTextRowPress(shouldAllowTextSelection, {shouldSuppressOnMouseDown: true})) {
             return;
         }
 
@@ -263,7 +263,9 @@ export default function TableRow({
                 {...getRowAccessibilityProps(isTableSemanticsEnabled, rowIndex, false, semanticTableHasHeader)}
                 onMouseDown={(e) => {
                     const target = e?.target;
-                    const isCopyableTarget = markMouseDownOnCopyableText(target, shouldAllowTextSelection);
+                    // Reserve direct copyable-text interactions for native selection while preserving normal presses outside the text.
+                    const isCopyableTextMouseDown = shouldAllowTextSelection && isMouseDownOnCopyableText(e);
+                    const isCopyableTarget = markMouseDownOnCopyableText(target, isCopyableTextMouseDown);
 
                     if (isCopyableTarget) {
                         return;
