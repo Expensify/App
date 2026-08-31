@@ -166,6 +166,7 @@ describe('exportSearchItemsToCSV', () => {
             },
             jest.fn(),
             translateForTest,
+            undefined,
         );
 
         expect(appendSpy).toHaveBeenCalledWith('excludedTransactionIDList', 'tx2');

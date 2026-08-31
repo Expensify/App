@@ -55,7 +55,6 @@ import {
     getApprovalChain,
     getParsedComment,
     getReportOrDraftReport,
-    getReportTransactions,
     hasHeldExpenses,
     hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
@@ -91,6 +90,7 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
+import type {ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
@@ -1694,18 +1694,31 @@ type TransactionReportInfo = {
     reportID?: string;
 };
 
-function rejectMoneyRequestsOnSearch(
-    hash: number,
-    selectedTransactions: Record<string, TransactionReportInfo>,
-    comment: string,
-    allPolicies: OnyxCollection<Policy>,
-    allReports: OnyxCollection<Report>,
-    currentUserAccountIDParam: number,
-    currentUserLogin: string,
-    betas: OnyxEntry<Beta[]>,
-    delegateAccountID: number | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-) {
+function rejectMoneyRequestsOnSearch({
+    hash,
+    selectedTransactions,
+    comment,
+    allPolicies,
+    allReports,
+    currentUserAccountIDParam,
+    currentUserLogin,
+    betas,
+    delegateAccountID,
+    getCurrencyDecimals,
+    allReportsTransactionsAndViolations,
+}: {
+    hash: number;
+    selectedTransactions: Record<string, TransactionReportInfo>;
+    comment: string;
+    allPolicies: OnyxCollection<Policy>;
+    allReports: OnyxCollection<Report>;
+    currentUserAccountIDParam: number;
+    currentUserLogin: string;
+    betas: OnyxEntry<Beta[]>;
+    delegateAccountID: number | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue | undefined;
+}) {
     const transactionIDs = Object.keys(selectedTransactions);
 
     const transactionsByReport = transactionIDs.reduce<Record<string, string[]>>((acc, transactionID) => {
@@ -1731,7 +1744,9 @@ function rejectMoneyRequestsOnSearch(
         const totalReportTransactions = report?.transactionCount ?? 0;
 
         // Subtract pending deletes to get accurate count when transactions are deleted offline
-        const pendingDeleteCount = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+        const pendingDeleteCount = Object.values(allReportsTransactionsAndViolations?.[reportID]?.transactions ?? {}).filter(
+            (transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        ).length;
         const effectiveTransactionCount = totalReportTransactions - pendingDeleteCount;
         const areAllExpensesSelected = selectedTransactionIDs.length === effectiveTransactionCount;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -1786,11 +1801,12 @@ function exportSearchItemsToCSV(
     {jsonQuery, reportIDList, transactionIDList, excludedTransactionIDList, isBasicExport, exportColumnLabels, exportName, isGroupExport}: ExportSearchItemsToCSVParams,
     onDownloadFailed: () => void,
     translate: LocalizedTranslate,
+    allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue | undefined,
 ) {
     const reportIDSet = new Set<string>();
     const transactionIDSet = new Set(transactionIDList);
     for (const reportID of reportIDList) {
-        const allReportTransactions = getReportTransactions(reportID);
+        const allReportTransactions = Object.values(allReportsTransactionsAndViolations?.[reportID]?.transactions ?? {});
 
         // We'll include the report if all of its transactions are included in the transactionIDList
         let areAllTransactionsIncludedInList = true;
