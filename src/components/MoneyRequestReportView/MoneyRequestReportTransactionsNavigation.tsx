@@ -171,7 +171,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             return;
         }
 
-        const nextThreadReportID = nextParentReportAction?.childReportID;
+        const nextThreadReportID = nextParentReportAction.childReportID;
         const navigationParams = {
             reportID: nextThreadReportID,
             reportActionID: undefined,
@@ -247,7 +247,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             return;
         }
 
-        const prevThreadReportID = prevParentReportAction?.childReportID;
+        const prevThreadReportID = prevParentReportAction.childReportID;
         const navigationParams = {
             reportID: prevThreadReportID,
             reportActionID: undefined,
