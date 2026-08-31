@@ -71,6 +71,7 @@ describe('useBlurOnKeyboardHide', () => {
         ['does not blur on the re-sync hide emitted after returning to the foreground', [{appState: 'background'}, {appState: 'active'}, {hide: 0}], 0],
         ['blurs again once the keyboard reopens after a background trip', [{appState: 'background'}, {appState: 'active'}, {show: true}, {hide: 0}], 1],
         ['skips only one hide per background trip', [{appState: 'background'}, {appState: 'active'}, {hide: 0}, {show: true}, {hide: 0}], 1],
+        ['does not consume the skip flag on a partial-height hide after a background trip', [{appState: 'background'}, {appState: 'active'}, {hide: 100}, {hide: 0}], 0],
         ['clears a stale skip flag on keyboard show even without a foreground hide', [{appState: 'background'}, {appState: 'active'}, {show: true}, {hide: 100}, {hide: 0}], 1],
     ])('%s', (_name, steps, expectedBlurCalls) => {
         const blur = jest.fn();

@@ -24,13 +24,16 @@ const useBlurOnKeyboardHide: UseBlurOnKeyboardHide = (ref) => {
         });
 
         const hideSubscription = KeyboardEvents.addListener('keyboardDidHide', (event) => {
+            // keyboardDidHide can fire mid-gesture with the keyboard still partly on screen. Only the zero-height
+            // event means it is actually gone, so blurring on the earlier ones would break a cancelled swipe.
+            if (event.height !== 0) {
+                return;
+            }
+
             // Skipping blur if event was emitted because app was backgrounded.
             const shouldSkip = shouldSkipNextHide || AppState.currentState !== 'active';
             shouldSkipNextHide = false;
-
-            // keyboardDidHide can fire mid-gesture with the keyboard still partly on screen. Only the zero-height
-            // event means it is actually gone, so blurring on the earlier ones would break a cancelled swipe.
-            if (event.height !== 0 || shouldSkip) {
+            if (shouldSkip) {
                 return;
             }
             ref.current?.blur();
