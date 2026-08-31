@@ -132,12 +132,18 @@ get_abs_path() {
 # what "changed" means.
 # Usage: get_merge_base_with_main
 get_merge_base_with_main() {
-  git fetch origin main --no-tags >&2
+  if ! git fetch origin main --no-tags >&2; then
+    error "git fetch origin main failed"
+    return 1
+  fi
 
   local merge_base_sha_hash
-  merge_base_sha_hash="$(git merge-base origin/main HEAD)"
+  merge_base_sha_hash="$(git merge-base origin/main HEAD)" || {
+    error "git merge-base failed"
+    return 1
+  }
 
-  if [[ -z "$merge_base_sha_hash" ]] || ! [[ "$merge_base_sha_hash" =~ ^[a-fA-F0-9]{40}$ ]]; then
+  if ! [[ "$merge_base_sha_hash" =~ ^[a-fA-F0-9]{40}$ ]]; then
     error "git merge-base returned unexpected output: $merge_base_sha_hash"
     return 1
   fi
@@ -152,23 +158,9 @@ get_merge_base_with_main() {
 get_changed_files() {
   local base_sha="$1"
   shift
-  local path_specs=("$@")
 
-  local diff_output
-  if [[ ${#path_specs[@]} -gt 0 ]]; then
-    diff_output="$(git diff --diff-filter=AMR --name-only "$base_sha" -- "${path_specs[@]}")"
-  else
-    diff_output="$(git diff --diff-filter=AMR --name-only "$base_sha")"
-  fi
-
-  local untracked_output
-  if [[ ${#path_specs[@]} -gt 0 ]]; then
-    untracked_output="$(git ls-files --others --exclude-standard -- "${path_specs[@]}")"
-  else
-    untracked_output="$(git ls-files --others --exclude-standard)"
-  fi
-
-  printf '%s\n%s' "$diff_output" "$untracked_output" | grep -v '^$' || true
+  git -c core.quotepath=false diff --diff-filter=AMR --name-only "$base_sha" -- "$@" || return 1
+  git -c core.quotepath=false ls-files --others --exclude-standard -- "$@"
 }
 
 # Function to read lines from standard input into an array using a temporary file.

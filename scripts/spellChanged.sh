@@ -18,13 +18,20 @@ info "Fetching origin/main"
 MERGE_BASE_SHA_HASH="$(get_merge_base_with_main)"
 readonly MERGE_BASE_SHA_HASH
 
-# Excludes dotfiles and files under dot-directories (e.g. .github/) to match this script's prior behavior
-ALL_CHANGED_FILES="$(get_changed_files "$MERGE_BASE_SHA_HASH" | grep -v '^\.' || true)"
-readonly ALL_CHANGED_FILES
+CHANGED_FILES_OUTPUT="$(get_changed_files "$MERGE_BASE_SHA_HASH")"
+declare -a ALL_CHANGED_FILES=()
+if [[ -n "$CHANGED_FILES_OUTPUT" ]]; then
+    # Excludes dotfiles and files under dot-directories (e.g. .github/) since those aren't meant to be spell-checked
+    while IFS= read -r file; do
+        if [[ "$file" != .* ]]; then
+            ALL_CHANGED_FILES+=("$file")
+        fi
+    done <<< "$CHANGED_FILES_OUTPUT"
+fi
+readonly -a ALL_CHANGED_FILES
 
-if [[ -n "$ALL_CHANGED_FILES" ]]; then
-    # shellcheck disable=SC2086 # For multiple files in variable
-    exec "${TOP}/node_modules/.bin/cspell" --color --no-must-find-files $ALL_CHANGED_FILES
+if [[ "${#ALL_CHANGED_FILES[@]}" -gt 0 ]]; then
+    exec "${TOP}/node_modules/.bin/cspell" --color --no-must-find-files "${ALL_CHANGED_FILES[@]}"
 else
     info "No changed files to spell check"
 fi
