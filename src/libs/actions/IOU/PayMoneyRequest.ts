@@ -10,7 +10,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
-import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getAllReportActions, getElsewherePaymentReportActionMessage, getReportActionHtml, getReportActionText, isCreatedAction} from '@libs/ReportActionsUtils';
 import {
@@ -126,6 +126,7 @@ type PayMoneyRequestFunctionParams = {
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    isFallbackChatReport?: boolean;
 };
 
 function mergeAdditionalPayOnyxData<
@@ -172,6 +173,7 @@ function getPayMoneyRequestParams({
     chatReportActions,
     isTrackIntentUser,
     getCurrencyDecimals,
+    isFallbackChatReport,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -197,6 +199,7 @@ function getPayMoneyRequestParams({
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    isFallbackChatReport?: boolean;
 }): PayMoneyRequestData {
     // TODO: https://github.com/Expensify/App/issues/66512
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -318,12 +321,20 @@ function getPayMoneyRequestParams({
         };
     }
 
-    onyxData.optimisticData?.push(
-        {
+    if (!isFallbackChatReport) {
+        onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: optimisticChatReport,
-        },
+        });
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: chatReport,
+        });
+    }
+
+    onyxData.optimisticData?.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
@@ -418,11 +429,6 @@ function getPayMoneyRequestParams({
             value: {
                 ...iouReport,
             },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: chatReport,
         },
     );
 
@@ -881,6 +887,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         chatReportActions,
         isTrackIntentUser,
         getCurrencyDecimals,
+        isFallbackChatReport,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
     if (
@@ -917,6 +924,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         chatReportActions,
         isTrackIntentUser,
         getCurrencyDecimals,
+        isFallbackChatReport,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with

@@ -112,13 +112,9 @@ type PusherSubscription = Promise<void> & {
 
 type PusherModule = {
     init: (args: Args) => Promise<void>;
-    subscribe: <EventName extends PusherEventName>(
-        channelName: string,
-        eventName?: EventName,
-        eventCallback?: (data: EventData<EventName>) => void,
-        onResubscribe?: () => void,
-    ) => PusherSubscription;
+    subscribe: <EventName extends PusherEventName>(channelName: string, eventName?: EventName, eventCallback?: (data: EventData<EventName>) => void) => PusherSubscription;
     unsubscribe: (channelName: string, eventName?: PusherEventName) => void;
+    onChannelResubscribe: (channelName: string, callback: () => void) => () => void;
     getChannel: (channelName: string) => Channel | PusherChannel | undefined;
     isSubscribed: (channelName: string) => boolean;
     isAlreadySubscribing: (channelName: string) => boolean;
@@ -126,6 +122,7 @@ type PusherModule = {
     disconnect: () => void;
     reconnect: () => void;
     registerSocketEventCallback: (cb: SocketEventCallback) => void;
+    claimOutageSync: () => boolean;
     registerCustomAuthorizer?: (authorizer: ChannelAuthorizerGenerator) => void;
     getPusherSocketID: () => string | undefined;
     TYPE: typeof TYPE;
