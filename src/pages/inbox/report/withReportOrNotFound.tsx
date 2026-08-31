@@ -31,6 +31,7 @@ import type {ComponentType} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useEffect} from 'react';
 
 type WithReportOrNotFoundOnyxProps = {
@@ -85,6 +86,9 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             // with a `reportID` inherited from the surrounding report chain in the URL.
             const reportID = 'notificationReportID' in params ? params.notificationReportID : params.reportID;
             const [betas] = useOnyx(ONYXKEYS.BETAS);
+            const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+            const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+            const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
             const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
             const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
             const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
@@ -110,7 +114,16 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                     return;
                 }
 
-                openReport({reportID, introSelected, betas, hasReportActions, currentUserAccountID});
+                openReport({
+                    reportID,
+                    introSelected,
+                    conciergeChat,
+                    betas,
+                    hasReportActions,
+                    currentUserAccountID,
+                    isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                });
                 // eslint-disable-next-line react-hooks/exhaustive-deps
             }, [shouldFetchReport, isReportLoaded, reportID, currentUserAccountID]);
 

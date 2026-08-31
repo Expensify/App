@@ -72,6 +72,8 @@ jest.mock('@components/Table', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     MockTable.Header = () => <View testID="WorkspaceCompanyCardsTableHeader" />;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    MockTable.ListHeader = ({children}: {children?: React.ReactNode}) => children ?? null;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     MockTable.Body = () => <View testID="WorkspaceCompanyCardsTableBody" />;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     MockTable.EmptyState = () => <View testID="WorkspaceCompanyCardsTableEmptyState" />;
@@ -83,6 +85,9 @@ jest.mock('@components/Table', () => {
         __esModule: true,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         default: MockTable,
+        // The wrapper composes its scrolling header with this helper, so the real implementation is kept.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        composeTableListHeader: jest.requireActual('@components/Table/composeTableListHeader').default,
     };
 });
 
@@ -134,13 +139,24 @@ function buildCompanyCards({
     };
 }
 
-function renderTable(companyCards: UseCompanyCardsResult, isSelectionModeEnabled = false) {
+type RenderTableOverrides = {
+    isPolicyLoaded?: boolean;
+    isPageFetchPending?: boolean;
+    domainOrWorkspaceAccountID?: number;
+};
+
+function renderTable(
+    companyCards: UseCompanyCardsResult,
+    isSelectionModeEnabled = false,
+    {isPolicyLoaded = true, isPageFetchPending = false, domainOrWorkspaceAccountID = DOMAIN_OR_WORKSPACE_ACCOUNT_ID}: RenderTableOverrides = {},
+) {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <WorkspaceCompanyCardsTable
                 policyID={POLICY_ID}
-                isPolicyLoaded
-                domainOrWorkspaceAccountID={DOMAIN_OR_WORKSPACE_ACCOUNT_ID}
+                isPolicyLoaded={isPolicyLoaded}
+                isPageFetchPending={isPageFetchPending}
+                domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
                 companyCards={companyCards}
                 onAssignCard={jest.fn()}
                 isAssigningCardDisabled={false}
@@ -212,6 +228,83 @@ describe('WorkspaceCompanyCardsTable loading suppression', () => {
 
         expect(screen.queryByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeNull();
         expect(screen.getByTestId('WorkspaceCompanyCardsTable')).toBeTruthy();
+    });
+});
+
+describe('WorkspaceCompanyCardsTable pending page fetch', () => {
+    beforeEach(async () => {
+        await Onyx.clear();
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {});
+        await waitForBatchedUpdates();
+    });
+
+    it('shows the loading indicator while the page fetch is still awaited, so the empty feed state cannot flash', async () => {
+        renderTable(buildCompanyCards({workspaceCardFeedsStatus: {}}), false, {isPageFetchPending: true});
+
+        await waitForBatchedUpdates();
+
+        expect(screen.getByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeTruthy();
+        expect(screen.queryByTestId('WorkspaceCompanyCardPageEmptyState')).toBeNull();
+    });
+
+    it('shows the empty feed state once the page fetch has succeeded', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${DOMAIN_OR_WORKSPACE_ACCOUNT_ID}`, {
+            hasOnceLoadedPage: true,
+        });
+
+        renderTable(buildCompanyCards({workspaceCardFeedsStatus: {}}), false, {isPageFetchPending: true});
+
+        await waitForBatchedUpdates();
+
+        expect(screen.queryByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeNull();
+        expect(screen.getByTestId('WorkspaceCompanyCardPageEmptyState')).toBeTruthy();
+    });
+
+    it('shows the feeds load error instead of the loading indicator when the page fetch failed', async () => {
+        renderTable(
+            buildCompanyCards({
+                workspaceCardFeedsStatus: {
+                    [DOMAIN_OR_WORKSPACE_ACCOUNT_ID]: {
+                        errors: {
+                            [CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR]: TestHelper.translateLocal('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedMessage'),
+                        },
+                    },
+                },
+            }),
+            false,
+            {isPageFetchPending: true},
+        );
+
+        await waitForBatchedUpdates();
+
+        expect(screen.queryByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeNull();
+        expect(screen.getByText(TestHelper.translateLocal('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedTitle'))).toBeTruthy();
+    });
+});
+
+describe('WorkspaceCompanyCardsTable unresolved workspace account ID', () => {
+    beforeEach(async () => {
+        await Onyx.clear();
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {});
+        await waitForBatchedUpdates();
+    });
+
+    it('keeps the loading indicator up instead of flashing the feeds load error while the policy account ID is unresolved', async () => {
+        renderTable(buildCompanyCards({workspaceCardFeedsStatus: {}}), false, {isPolicyLoaded: false, domainOrWorkspaceAccountID: CONST.DEFAULT_NUMBER_ID});
+
+        await waitForBatchedUpdates();
+
+        expect(screen.getByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeTruthy();
+        expect(screen.queryByText(TestHelper.translateLocal('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedTitle'))).toBeNull();
+    });
+
+    it('still shows the feeds load error once the policy is loaded and the account ID is genuinely 0', async () => {
+        renderTable(buildCompanyCards({workspaceCardFeedsStatus: {}}), false, {domainOrWorkspaceAccountID: CONST.DEFAULT_NUMBER_ID});
+
+        await waitForBatchedUpdates();
+
+        expect(screen.queryByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeNull();
+        expect(screen.getByText(TestHelper.translateLocal('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedTitle'))).toBeTruthy();
     });
 });
 
