@@ -94,7 +94,8 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialURL, isAccountLoading]);
 
-    return <FullScreenLoadingIndicator />;
+    // No "Go Back" button: going back would pop /transition into the outgoing user's session mid sign-out.
+    return <FullScreenLoadingIndicator shouldUseGoBackButton={false} />;
 }
 
 export default LogOutPreviousUserPage;

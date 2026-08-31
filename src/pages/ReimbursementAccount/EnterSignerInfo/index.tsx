@@ -111,7 +111,7 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
     }, [isEditing, moveTo, pageIndex, prevPage]);
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

@@ -140,7 +140,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                 }
 
                 if (shouldShowFullScreenLoadingIndicator) {
-                    return <FullscreenLoadingIndicator shouldUseGoBackButton />;
+                    return <FullscreenLoadingIndicator />;
                 }
 
                 if (shouldShowNotFoundPage) {
