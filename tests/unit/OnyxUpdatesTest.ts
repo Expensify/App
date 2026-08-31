@@ -25,6 +25,9 @@ describe('OnyxUpdatesTest', () => {
 
     beforeEach(() => Onyx.clear().then(waitForBatchedUpdates));
 
+    let releaseHeldApply: (() => void) | undefined;
+    afterEach(() => releaseHeldApply?.());
+
     it('applies Airship Onyx updates correctly', () => {
         const reportID = NumberUtils.rand64();
         const reportActionID = NumberUtils.rand64();
@@ -321,6 +324,7 @@ describe('OnyxUpdatesTest', () => {
         const handlerSpy = jest.spyOn(PusherUtils, 'triggerMultiEventHandler').mockReturnValueOnce(
             new Promise<void>((resolve) => {
                 releaseApply = resolve;
+                releaseHeldApply = resolve;
             }),
         );
         const applyPromise = OnyxUpdates.apply({
