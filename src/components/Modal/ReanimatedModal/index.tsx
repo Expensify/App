@@ -13,7 +13,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {NativeEventSubscription, ViewStyle} from 'react-native';
+import type {NativeEventSubscription} from 'react-native';
 
 import noop from 'lodash/noop';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -24,6 +24,7 @@ import type ReanimatedModalProps from './types';
 
 import Backdrop from './Backdrop';
 import Container from './Container';
+import getBackdropStyle from './getBackdropStyle';
 
 function ReanimatedModal({
     testID,
@@ -147,9 +148,7 @@ function ReanimatedModal({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible, isContainerOpen, isTransitioning]);
 
-    const backdropStyle: ViewStyle = useMemo(() => {
-        return {width: windowWidth, height: windowHeight, backgroundColor: backdropColor};
-    }, [windowWidth, windowHeight, backdropColor]);
+    const backdropStyle = useMemo(() => getBackdropStyle(backdropColor, windowWidth, windowHeight), [windowWidth, windowHeight, backdropColor]);
 
     const onOpenCallBack = useCallback(() => {
         setIsTransitioning(false);
