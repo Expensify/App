@@ -43,6 +43,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {isCommuterExclusionEnabled} from '@libs/PolicyDistanceRatesUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil, isSelfDM} from '@libs/ReportUtils';
 import {getDistanceInMeters, getRateID, getRequestType, getSelectedRouteKey, hasManualDistanceOverride, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
 
@@ -175,7 +176,7 @@ function DynamicIOURequestStepDistance({
     const isCreatingNewRequest = !backTo && !isEditing;
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const iouRequestType = getRequestType(currentTransaction);
-    const shouldShowMapManualTabs = isEditing || iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
+    const shouldShowMapManualTabs = isEditing || (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP && !isCommuterExclusionEnabled(policy));
     const customUnitRateID = getRateID(currentTransaction);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 

@@ -540,6 +540,45 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             );
         });
 
+        it('sends the manual distance when the map route has not been fetched yet', async () => {
+            const mapDistance = buildTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    customUnit: {quantity: 1, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    waypoints: {
+                        waypoint0: {address: 'Aspen', lat: 39.1911, lng: -106.8175},
+                        waypoint1: {address: 'Breckenridge', lat: 39.4817, lng: -106.0384},
+                    },
+                },
+            });
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transaction: mapDistance,
+                        transactions: [mapDistance],
+                        isDistanceRequest: true,
+                        isPolicyExpenseChat: true,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockCreateDistanceRequestAction).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        distance: 1,
+                        distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                    }),
+                }),
+            );
+        });
+
         // Regression test for #94282: an expense whose sole recipient is the current user must be a self-DM track
         // expense, even when the route iouType hasn't been converted to TRACK yet (new manual flow). Otherwise it
         // falls through to requestMoney and the backend rejects it ("you cannot request money from yourself").

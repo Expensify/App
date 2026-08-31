@@ -116,9 +116,14 @@ function hasManualMapDistanceOverride(transaction: OnyxEntry<Transaction>): bool
 
     const quantity = transaction?.comment?.customUnit?.quantity;
     const unit = transaction?.comment?.customUnit?.distanceUnit;
-    const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters ?? transaction?.routes?.route0?.distance;
-    if (typeof quantity !== 'number' || !unit || typeof routeDistanceMeters !== 'number' || routeDistanceMeters <= 0) {
+    if (typeof quantity !== 'number' || !unit) {
         return false;
+    }
+
+    // Offline the route is still pending, so a quantity can only have come from the Manual tab.
+    const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters ?? transaction?.routes?.route0?.distance;
+    if (typeof routeDistanceMeters !== 'number' || routeDistanceMeters <= 0) {
+        return true;
     }
 
     const routeQuantity = DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, unit);
