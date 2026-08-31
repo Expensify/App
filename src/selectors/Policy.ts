@@ -1,6 +1,7 @@
 import {hasSynchronizationErrorMessage, isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
 import {getConnectedHRProvider} from '@libs/HRUtils';
+import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {
     canSendInvoice,
     getActiveAdminWorkspaces,
@@ -277,7 +278,7 @@ const policyTimeTrackingSelector = (policy: OnyxEntry<Policy>) =>
         units: policy.units,
     };
 
-type PolicySelector = Pick<Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
+type PolicySelector = Pick<Policy, 'type' | 'role' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
 const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector | undefined => {
     if (!policy) {
@@ -287,7 +288,6 @@ const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector | undefined => 
         type: policy.type,
         role: policy.role,
         id: policy.id,
-        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         pendingAction: policy.pendingAction,
         avatarURL: policy.avatarURL,
         name: policy.name,
@@ -356,7 +356,7 @@ const createFilteredPoliciesInfoSelector =
         let filteredPoliciesCount = 0;
         let firstPolicyID: string | undefined;
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy || !shouldShowPolicy(policy, false, email)) {
+            if (!policy || !shouldShowPolicy(policy, false, email) || isTeachersUnitePolicyID(policy.id)) {
                 continue;
             }
             if (filteredPoliciesCount === 0) {
@@ -373,6 +373,15 @@ const createFilteredPoliciesInfoSelector =
 const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): boolean => {
     return !Object.values(policies ?? {}).some((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 };
+
+/**
+ * Returns the name of a workspace the member belongs to that calculates commuter exclusions from the member's
+ * home address, so the private home address row can name the workspace relying on it.
+ */
+const homeAndOfficeCommuterExclusionPolicyNameSelector = (policies: OnyxCollection<Policy>): string | undefined =>
+    Object.values(policies ?? {}).find(
+        (policy) => policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    )?.name;
 
 function isAdminPolicyConnectedTo(policy: OnyxEntry<Policy>, connectionName: ReusablePolicyConnectionName): policy is Policy {
     return !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy.connections?.[connectionName];
@@ -514,6 +523,7 @@ export {
     hasReusablePoliciesConnectedToSelector,
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,
+    homeAndOfficeCommuterExclusionPolicyNameSelector,
     policyNameSelector,
     policyRoleSelector,
     policyTypeSelector,
