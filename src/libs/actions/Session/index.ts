@@ -806,10 +806,14 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
             ];
 
             for (const [key, value] of Object.entries(newDotOnyxValues)) {
+                if (value === undefined) {
+                    continue;
+                }
+
                 onyxUpdates.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key,
-                    value: value ?? {},
+                    value,
                 } as OnyxUpdate<keyof typeof newDotOnyxValues>);
             }
 

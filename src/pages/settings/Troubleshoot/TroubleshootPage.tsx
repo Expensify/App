@@ -63,7 +63,7 @@ function TroubleshootPage() {
     const troubleshootIllustration = useTroubleshootSectionIllustration();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isProduction, isDevelopment} = useEnvironment();
+    const {isDevelopment} = useEnvironment();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     useDocumentTitle(translate('initialSettingsPage.aboutPage.troubleshoot'));
     const [isLoading, setIsLoading] = useState(false);
@@ -233,11 +233,9 @@ function TroubleshootPage() {
                                     menuItems={menuItems}
                                     shouldUseSingleExecution
                                 />
-                                {!isProduction && (
-                                    <View style={[styles.mt6]}>
-                                        <TestToolMenu />
-                                    </View>
-                                )}
+                                <View style={[styles.mt6]}>
+                                    <TestToolMenu />
+                                </View>
                                 {isDevelopment && (
                                     <View style={[styles.mt6]}>
                                         <SentryDebugToolMenu />
