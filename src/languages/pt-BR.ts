@@ -7822,6 +7822,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 confirmErrorCategoryTax: 'Selecione uma alíquota de imposto',
                 confirmErrorCondition: 'Selecione um comerciante ou categoria',
                 confirmErrorConditionAndDefault: 'Selecione um comerciante ou categoria e aplique pelo menos um padrão',
+                turnOnTaxesFirstTitle: 'Ative os impostos primeiro',
+                turnOnTaxesFirstPrompt: 'As regras de categoria definem uma taxa de imposto padrão. Ative os impostos nas configurações do seu espaço de trabalho para usá-las.',
                 categoryRulesApplyGoingForwardTitle: 'Regras de categoria se aplicam daqui em diante',
                 categoryRulesApplyGoingForwardPrompt: 'Uma alíquota de imposto padrão se aplica a novas despesas nesta categoria. Despesas que já existem não serão alteradas.',
             },

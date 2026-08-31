@@ -7841,6 +7841,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 confirmErrorCategoryTax: "Seleziona un'aliquota fiscale",
                 confirmErrorCondition: 'Seleziona un esercente o una categoria',
                 confirmErrorConditionAndDefault: 'Seleziona un esercente o una categoria e applica almeno un valore predefinito',
+                turnOnTaxesFirstTitle: 'Attiva prima le tasse',
+                turnOnTaxesFirstPrompt: 'Le regole di categoria impostano un’aliquota fiscale predefinita. Attiva le imposte nelle impostazioni del tuo spazio di lavoro per usarle.',
                 categoryRulesApplyGoingForwardTitle: 'Le regole di categoria si applicano da ora in avanti',
                 categoryRulesApplyGoingForwardPrompt: 'Un’aliquota fiscale predefinita verrà applicata alle nuove spese in questa categoria. Le spese già esistenti non cambieranno.',
             },

@@ -7820,6 +7820,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 confirmErrorCategoryTax: 'Selecteer een belastingtarief',
                 confirmErrorCondition: 'Selecteer een handelaar of categorie',
                 confirmErrorConditionAndDefault: 'Selecteer een handelaar of categorie en stel minstens één standaard in',
+                turnOnTaxesFirstTitle: 'Schakel eerst belastingen in',
+                turnOnTaxesFirstPrompt: 'Categorie­regels stellen een standaardbelastingtarief in. Schakel belastingen in bij je werkruimte-instellingen om ze te gebruiken.',
                 categoryRulesApplyGoingForwardTitle: 'Categoriregels zijn vanaf nu van toepassing',
                 categoryRulesApplyGoingForwardPrompt: 'Er wordt een standaardbelastingtarief toegepast op nieuwe uitgaven in deze categorie. Bestaande uitgaven veranderen niet.',
             },

@@ -7898,6 +7898,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 confirmErrorCategoryTax: 'Veuillez sélectionner un taux de taxe',
                 confirmErrorCondition: 'Veuillez sélectionner un commerçant ou une catégorie',
                 confirmErrorConditionAndDefault: 'Sélectionnez un commerçant ou une catégorie, et appliquez au moins un paramètre par défaut',
+                turnOnTaxesFirstTitle: 'Activez d’abord les taxes',
+                turnOnTaxesFirstPrompt: 'Les règles de catégorie définissent un taux de taxe par défaut. Activez les taxes dans les paramètres de votre espace de travail pour les utiliser.',
                 categoryRulesApplyGoingForwardTitle: 'Les règles de catégorie s’appliquent à partir de maintenant',
                 categoryRulesApplyGoingForwardPrompt:
                     'Un taux de taxe par défaut s’applique aux nouvelles dépenses de cette catégorie. Les dépenses déjà existantes ne seront pas modifiées.',

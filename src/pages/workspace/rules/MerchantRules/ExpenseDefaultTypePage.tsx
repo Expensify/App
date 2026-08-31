@@ -4,7 +4,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -40,15 +41,28 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const illustrations = useMemoizedLazyIllustrations(['FoodTruck', 'FolderOpen']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
 
-    // A category rule only sets a default tax rate, so with taxes off there is nothing it could configure.
-    const areTaxesEnabled = !!policy?.tax?.trackingEnabled;
+    const {showConfirmModal} = useConfirmModal();
+
+    // A category rule only sets a default tax rate, so it needs both tax tracking and a rate to choose from. The card
+    // stays listed either way: hiding it would drop the admin on a one-option page with no hint of what is missing.
+    const areTaxesEnabled = !!policy?.tax?.trackingEnabled && Object.keys(policy?.taxRates?.taxes ?? {}).length > 0;
 
     // Scoping rides in the draft rather than the URL, so the editor keeps it when a picker routes back to the plain
     // create URL. Setting it here also starts the rule from a clean draft.
     const openEditorScopedTo = (ruleType: 'merchant' | 'category') => {
         setDraftMerchantRule({ruleType});
         Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
+    };
+
+    const showTurnOnTaxesFirstExplainer = () => {
+        showConfirmModal({
+            title: translate('workspace.rules.merchantRules.turnOnTaxesFirstTitle'),
+            prompt: translate('workspace.rules.merchantRules.turnOnTaxesFirstPrompt'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
     };
 
     const options = [
@@ -58,18 +72,16 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
             title: translate('workspace.rules.expenseDefaultType.merchant'),
             description: translate('workspace.rules.expenseDefaultType.merchantDescription'),
             onPress: () => openEditorScopedTo('merchant'),
+            isLocked: false,
         },
-        ...(areTaxesEnabled
-            ? [
-                  {
-                      key: 'category',
-                      icon: illustrations.FolderOpen,
-                      title: translate('workspace.rules.expenseDefaultType.category'),
-                      description: translate('workspace.rules.expenseDefaultType.categoryDescription'),
-                      onPress: () => openEditorScopedTo('category'),
-                  },
-              ]
-            : []),
+        {
+            key: 'category',
+            icon: illustrations.FolderOpen,
+            title: translate('workspace.rules.expenseDefaultType.category'),
+            description: translate('workspace.rules.expenseDefaultType.categoryDescription'),
+            onPress: areTaxesEnabled ? () => openEditorScopedTo('category') : showTurnOnTaxesFirstExplainer,
+            isLocked: !areTaxesEnabled,
+        },
     ];
 
     return (
@@ -99,6 +111,7 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
                                 title={option.title}
                                 description={option.description}
                                 shouldShowRightIcon
+                                iconRight={option.isLocked ? expensifyIcons.Lock : undefined}
                                 onPress={option.onPress}
                                 displayInDefaultIconColor
                                 iconWidth={variables.iconSizeExtraLarge}

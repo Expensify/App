@@ -7875,6 +7875,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 confirmErrorCategoryTax: 'Bitte wählen Sie einen Steuersatz aus',
                 confirmErrorCondition: 'Bitte wählen Sie einen Händler oder eine Kategorie aus',
                 confirmErrorConditionAndDefault: 'Wählen Sie einen Händler oder eine Kategorie aus und wenden Sie mindestens eine Standardeinstellung an',
+                turnOnTaxesFirstTitle: 'Aktivieren Sie zuerst Steuern',
+                turnOnTaxesFirstPrompt: 'Kategorienregeln legen einen standardmäßigen Steuersatz fest. Aktivieren Sie Steuern in Ihren Arbeitsbereichseinstellungen, um sie zu verwenden.',
                 categoryRulesApplyGoingForwardTitle: 'Kategorie-Regeln gelten ab jetzt',
                 categoryRulesApplyGoingForwardPrompt: 'Ein Standardsteuersatz gilt für neue Ausgaben in dieser Kategorie. Bereits vorhandene Ausgaben werden nicht geändert.',
             },

@@ -8103,6 +8103,8 @@ const translations = {
                 confirmErrorCategoryTax: 'Please select a tax rate',
                 confirmErrorCondition: 'Please select a merchant or category',
                 confirmErrorConditionAndDefault: 'Select a merchant or category, and apply at least one default',
+                turnOnTaxesFirstTitle: 'Turn on taxes first',
+                turnOnTaxesFirstPrompt: 'Category rules set a default tax rate. Turn on taxes in your workspace settings to use them.',
                 categoryRulesApplyGoingForwardTitle: 'Category rules apply going forward',
                 categoryRulesApplyGoingForwardPrompt: "A default tax rate applies to new expenses in this category. Expenses that already exist won't change.",
             },

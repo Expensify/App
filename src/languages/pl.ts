@@ -7843,6 +7843,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 confirmErrorCategoryTax: 'Wybierz stawkę podatku',
                 confirmErrorCondition: 'Wybierz sprzedawcę lub kategorię',
                 confirmErrorConditionAndDefault: 'Wybierz sprzedawcę lub kategorię i zastosuj co najmniej jedną domyślną opcję',
+                turnOnTaxesFirstTitle: 'Najpierw włącz podatki',
+                turnOnTaxesFirstPrompt: 'Reguły kategorii ustawiają domyślną stawkę podatku. Włącz podatki w ustawieniach swojego workspace’u, żeby z nich korzystać.',
                 categoryRulesApplyGoingForwardTitle: 'Reguły kategorii obowiązują od teraz',
                 categoryRulesApplyGoingForwardPrompt: 'Domyślna stawka podatku będzie stosowana do nowych wydatków w tej kategorii. Istniejące już wydatki nie zostaną zmienione.',
             },
