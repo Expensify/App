@@ -29,7 +29,6 @@ jest.mock('@components/MenuItemWithTopDescription', () => {
 
 jest.mock('@components/RenderHTML', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/DotIndicatorMessage', () => ({__esModule: true, default: () => null}));
-jest.mock('@components/Button', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/Text', () => {
     const reactNative = jest.requireActual<ReactNative>('react-native');
     return {__esModule: true, default: reactNative.Text};

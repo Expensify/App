@@ -6,7 +6,7 @@
  *
  * @example
  * ```tsx
- * import Button from '@components/Button';
+ * import Button from '@components/ButtonComposed';
  * import * as icons from '@expensify/react-native-expensify-icons';
  *
  * <Button onPress={handlePress} success>
@@ -15,8 +15,6 @@
  *   <Button.Icon src={icons.ArrowRight} />
  * </Button>
  * ```
- *
- * The old `Button` component is not affected – migration can be gradual.
  */
 import React from 'react';
 
