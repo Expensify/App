@@ -1,8 +1,8 @@
 ---
 title: Manage Vendor Matching for Sage Intacct
 description: Learn how Sage Intacct vendor matching assigns vendors to non-reimbursable company card expenses before they export, including automatic matching, manual selection, and default vendor behavior.
-keywords: [Sage Intacct, vendor matching, vendor, company card expenses, default vendor, Credit Card Charges, credit card export]
-internalScope: Audience is Workspace Admins using the Sage Intacct connection with Credit Card Charges company card exports. Covers imported vendors, automatic and manual vendor assignment, default vendor behavior, and vendor export order. Does not cover Sage Intacct connection setup or other export types.
+keywords: [Sage Intacct, vendor matching, vendor, company card expenses, default vendor, Credit Card Charges, credit card export, Vendors, More features]
+internalScope: Audience is Workspace Admins using the Sage Intacct connection with Credit Card Charges company card exports. Covers where the Vendors row appears under More features, why its switch is read-only, imported vendors, automatic and manual vendor assignment, default vendor behavior, and vendor export order. Does not cover Sage Intacct connection setup or other export types.
 noindex: true
 sitemap: false
 ---
@@ -19,6 +19,25 @@ This feature is available to Workspace Admins whose Workspace:
  - Has **Credit Card Charges** selected under **Export company card expenses as** in the Sage Intacct configuration.
 
 If your Workspace isn't connected to Sage Intacct yet, learn how to [connect to Sage Intacct](/articles/new-expensify/connections/sage-intacct/Connect-to-Sage-Intacct).
+
+## Where to find Vendors in More features
+
+Once your Workspace is connected to Sage Intacct, a **Vendors** row appears on the **More features** page.
+
+1. Click the navigation tabs (on the left on web, on the bottom on mobile), then go to **Workspaces > [workspace name] > More features**.
+2. Scroll to the **Organize** section.
+3. Click **Vendors** to open the vendor list imported from Sage Intacct.
+
+The **Vendors** row is only shown on Workspaces connected to Sage Intacct, QuickBooks Online, or Xero. Workspaces connected to NetSuite or QuickBooks Desktop, and Workspaces with no accounting connection, don't see the row at all.
+
+## Why the Vendors switch can't be turned on or off
+
+The **Vendors** switch is read-only. It reports your Sage Intacct export settings instead of acting as an independent setting:
+
+ - The switch is on when **Export company card expenses as** is set to **Credit Card Charges**.
+ - The switch is off for every other **Export company card expenses as** selection.
+
+Clicking the switch opens a **Not so fast...** message telling you to change your accounting import settings. To change whether vendor matching applies, update **Export company card expenses as** in your Sage Intacct configuration. Clicking the rest of the **Vendors** row still opens your imported vendor list.
 
 ## How vendors are matched to company card expenses
 
@@ -67,3 +86,11 @@ Yes. Once a Workspace Admin manually assigns a vendor to an expense, Expensify p
 ## How do I know why Expensify assigned a vendor automatically?
 
 When Expensify automatically assigns a vendor, Concierge posts a system message on the expense indicating whether the vendor was assigned by a merchant rule or by vendor matching.
+
+## Why don't I see the Vendors row under More features?
+
+The **Vendors** row only appears on Workspaces connected to Sage Intacct, QuickBooks Online, or Xero. If your Workspace has no accounting connection, or is connected to NetSuite or QuickBooks Desktop, the row is hidden.
+
+## Why is the Vendors switch off even though I'm connected to Sage Intacct?
+
+Your **Export company card expenses as** setting isn't set to **Credit Card Charges**. The row stays visible so you can see the feature exists, but the switch stays off until you select that export option.
