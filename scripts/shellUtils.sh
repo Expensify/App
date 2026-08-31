@@ -160,7 +160,7 @@ get_changed_files() {
   shift
 
   git -c core.quotepath=false diff --diff-filter=AMR --name-only "$base_sha" -- "$@" || return 1
-  git -c core.quotepath=false ls-files --others --exclude-standard -- "$@"
+  git -c core.quotepath=false ls-files --full-name --others --exclude-standard -- "$@"
 }
 
 # Function to read lines from standard input into an array using a temporary file.

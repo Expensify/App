@@ -26490,13 +26490,13 @@ var Git = class _Git {
    */
   static getUntrackedFiles(filePaths) {
     try {
-      const untrackedOutput = execSync("git ls-files --others --exclude-standard", {
+      const untrackedOutput = execSync("git ls-files -z --others --exclude-standard", {
         stdio: "pipe"
       });
-      if (!untrackedOutput.trim()) {
+      if (!untrackedOutput) {
         return [];
       }
-      let untrackedFiles = untrackedOutput.trim().split("\n").filter((file) => file.length > 0);
+      let untrackedFiles = untrackedOutput.split("\0").filter((file) => file.length > 0);
       if (filePaths) {
         const pathsArray = Array.isArray(filePaths) ? filePaths : [filePaths];
         const normalizedPaths = pathsArray.map((p) => path.normalize(p));

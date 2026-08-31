@@ -545,19 +545,16 @@ class Git {
      */
     static getUntrackedFiles(filePaths?: string | string[]): string[] {
         try {
-            // Get all untracked files
-            const untrackedOutput = execSync('git ls-files --others --exclude-standard', {
+            // -z avoids git C-quoting non-ASCII/special-character paths, so the raw path is preserved for later filtering
+            const untrackedOutput = execSync('git ls-files -z --others --exclude-standard', {
                 stdio: 'pipe',
             });
 
-            if (!untrackedOutput.trim()) {
+            if (!untrackedOutput) {
                 return [];
             }
 
-            let untrackedFiles = untrackedOutput
-                .trim()
-                .split('\n')
-                .filter((file) => file.length > 0);
+            let untrackedFiles = untrackedOutput.split('\0').filter((file) => file.length > 0);
 
             // Filter by filePaths if provided
             if (filePaths) {

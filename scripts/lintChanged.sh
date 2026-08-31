@@ -17,7 +17,9 @@ readonly MERGE_BASE_SHA_HASH
 CHANGED_FILES_OUTPUT="$(get_changed_files "$MERGE_BASE_SHA_HASH" '*.js' '*.jsx' '*.ts' '*.tsx' '*.mjs' '*.cjs')"
 declare -a ALL_CHANGED_FILES=()
 if [[ -n "$CHANGED_FILES_OUTPUT" ]]; then
-    mapfile -t ALL_CHANGED_FILES <<< "$CHANGED_FILES_OUTPUT"
+    while IFS= read -r file; do
+        ALL_CHANGED_FILES+=("$file")
+    done <<< "$CHANGED_FILES_OUTPUT"
 fi
 
 # Run eslint on the changed files, forwarding any user-provided flags
