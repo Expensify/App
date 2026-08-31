@@ -17,7 +17,8 @@
                 "eslint.changed.config.mjs",
                 "oxlint-migration/rule-tester/buildTree.mjs",
                 "react-native.config.js",
-                "rock.config.mjs"
+                "rock.config.mjs",
+                "src/components/HeaderWithBackButtonComposed/index.tsx"
             ],
             "project": [
                 "src/**/*.{js,jsx,ts,tsx}",

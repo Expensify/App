@@ -23,8 +23,7 @@ type MockConfirmModalProps = {
     cancelText?: string;
     shouldShowCancelButton?: boolean;
     shouldHandleNavigationBack?: boolean;
-    success?: boolean;
-    danger?: boolean;
+    buttonVariant?: string;
 };
 
 let lastModalProps: MockConfirmModalProps | undefined;
@@ -352,7 +351,7 @@ describe('CopyPolicySettingsProgressModal', () => {
         it('should show danger styling', async () => {
             await renderModal();
 
-            expect(lastModalProps?.danger).toBe(true);
+            expect(lastModalProps?.buttonVariant).toBe(CONST.BUTTON_VARIANT.DANGER);
         });
 
         it('should clear state and navigate to copy settings flow on confirm (try again)', async () => {
