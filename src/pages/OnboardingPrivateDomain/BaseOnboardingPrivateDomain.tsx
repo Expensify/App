@@ -11,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
+import {dismissOnboardingModalBeforeExit} from '@libs/Navigation/helpers/OnboardingNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
@@ -59,6 +60,16 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const onboardingIntent = useOnboardingIntent();
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
 
+    // Opened from a Concierge task on top of whichever report the user was reading, so return there when done rather
+    // than to a fixed destination. goBack() is unreliable from a task link and falls through to Home.
+    const [originReportID] = useState(() => Navigation.getTopmostReportId());
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const returnToOriginReport = useCallback(() => {
+        dismissOnboardingModalBeforeExit();
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(originReportID ?? conciergeReportID));
+    }, [originReportID, conciergeReportID]);
+
     const sendValidateCode = useCallback(() => {
         if (!email) {
             return;
@@ -94,7 +105,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         (backTo: string | undefined, options?: {forceReplace?: boolean}) => {
             if (isJoiningCompanyWorkspace) {
                 if (hasCompletedGuidedSetupFlow) {
-                    Navigation.goBack();
+                    returnToOriginReport();
                     return;
                 }
                 Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), options);
@@ -102,7 +113,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             }
             navigateToNextOnboardingStep(backTo, options);
         },
-        [isJoiningCompanyWorkspace, hasCompletedGuidedSetupFlow, navigateToNextOnboardingStep],
+        [isJoiningCompanyWorkspace, hasCompletedGuidedSetupFlow, navigateToNextOnboardingStep, returnToOriginReport],
     );
 
     // Only validated public-domain users are blocked from this screen — for them the "people on YOUR domain" copy would reference gmail.com.
@@ -172,7 +183,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                     <ValidateCodeForm
                         validateCodeActionErrorField="getAccessiblePolicies"
                         handleSubmitForm={(code) => {
-                            getAccessiblePolicies(code);
+                            getAccessiblePolicies(code, introSelected?.validateEmail);
                             setHasValidateCodeBeenSent(false);
                         }}
                         sendValidateCode={() => {

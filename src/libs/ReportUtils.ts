@@ -12540,8 +12540,9 @@ function prepareOnboardingOnyxData({
         corporateCardLink: `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(onboardingPolicyID)}`,
         companyDomain: companyDomain ?? '',
         workEmail: workEmail ?? '',
-        // Routes back into the join-workspace list after validation, per Garrett's spec: validating from this task should chain into picking a workspace.
-        verifyAccountLink: `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path, ROUTES.ONBOARDING_WORKSPACES.getRoute())}`,
+        // The onboarding private-domain screen, not the settings verify-account page: it is the step the user skipped,
+        // and validating there already chains into the joinable workspace list, which is what this task asks for.
+        validateEmailLink: `${environmentURL}/${ROUTES.ONBOARDING_PRIVATE_DOMAIN.route}`,
         workEmailLink: `${environmentURL}/${ROUTES.ONBOARDING_WORK_EMAIL.getRoute()}`,
         joinWorkspaceLink: `${environmentURL}/${ROUTES.ONBOARDING_WORKSPACES.getRoute()}`,
     };

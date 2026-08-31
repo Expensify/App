@@ -53,7 +53,7 @@ type OnboardingTaskLinks = Partial<{
     corporateCardLink: string;
     companyDomain: string;
     workEmail: string;
-    verifyAccountLink: string;
+    validateEmailLink: string;
     workEmailLink: string;
     joinWorkspaceLink: string;
 }>;
@@ -277,8 +277,8 @@ const getOnboardingMessages = (locale?: Locale) => {
     const validateEmailTask: OnboardingTask = {
         type: CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL,
         autoCompleted: false,
-        title: translate(resolvedLocale, 'onboarding.tasks.validateEmailTask.title'),
-        description: ({verifyAccountLink, workEmail}) => translate(resolvedLocale, 'onboarding.tasks.validateEmailTask.description', {verifyAccountLink, workEmail}),
+        title: ({validateEmailLink}) => translate(resolvedLocale, 'onboarding.tasks.validateEmailTask.title', {validateEmailLink}),
+        description: ({validateEmailLink, workEmail}) => translate(resolvedLocale, 'onboarding.tasks.validateEmailTask.description', {validateEmailLink, workEmail}),
     };
     const joinWorkspaceTask: OnboardingTask = {
         type: CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE,

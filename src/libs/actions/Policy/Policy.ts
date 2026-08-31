@@ -7732,8 +7732,13 @@ function updateInvoiceCompanyWebsite(policyID: string, companyWebsite: string, c
 /**
  * Validates user account and returns a list of accessible policies.
  */
-function getAccessiblePolicies(validateCode?: string) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES>> = [
+/**
+ * @param onboardingTaskReportID Task report for the join-workspace intent's "validate your email" Concierge task, when
+ * one exists. Auth auto-completes it as part of this command, but forwards a separate CompleteTask whose Onyx updates
+ * only arrive over Pusher, so the checkbox would otherwise stay unticked until a reload.
+ */
+function getAccessiblePolicies(validateCode?: string, onboardingTaskReportID?: string) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES | `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
@@ -7743,6 +7748,17 @@ function getAccessiblePolicies(validateCode?: string) {
             },
         },
     ];
+
+    if (onboardingTaskReportID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${onboardingTaskReportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            },
+        });
+    }
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES>> = [
         {
@@ -7755,7 +7771,7 @@ function getAccessiblePolicies(validateCode?: string) {
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES | `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
@@ -7764,6 +7780,17 @@ function getAccessiblePolicies(validateCode?: string) {
             },
         },
     ];
+
+    if (onboardingTaskReportID) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${onboardingTaskReportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            },
+        });
+    }
 
     const command = validateCode ? WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES : WRITE_COMMANDS.GET_ACCESSIBLE_POLICIES;
 

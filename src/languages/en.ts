@@ -3679,10 +3679,10 @@ const translations = {
                     `),
             },
             validateEmailTask: {
-                title: 'Validate your email',
-                description: ({verifyAccountLink = '', workEmail = ''}) =>
+                title: ({validateEmailLink = ''}) => `Validate [your email](${validateEmailLink})`,
+                description: ({validateEmailLink = '', workEmail = ''}) =>
                     Str.dedent(`
-                        1. Open [Validate your account](${verifyAccountLink}).
+                        1. Open [Validate your account](${validateEmailLink}).
                         2. Enter the code we sent to ${workEmail}.
                         3. Pick a workspace to join, or click *Ask to join* to send a request to the workspace owner.
                     `),
