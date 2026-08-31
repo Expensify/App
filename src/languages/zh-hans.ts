@@ -8686,6 +8686,35 @@ ${reportName}`,
             return `将“${categoryName}”类别的出席者更改为 ${newValue ? '必填' : '非必填'}（之前为 ${newValue ? '非必填' : '必填'}）`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? '已启用' : '已禁用'} 次提交`,
+        changedOverLimitForwardsTo: ({
+            member,
+            approver,
+            limit,
+            previousApprover,
+            previousLimit,
+        }: {
+            member: string;
+            approver: string;
+            limit: string;
+            previousApprover?: string;
+            previousLimit?: string;
+        }) => {
+            let text = previousApprover
+                ? `已将 ${member} 的审批流程更改为：把超过 ${limit} 的报销单转交给 ${approver}`
+                : `将 ${member} 的审批流程设置为：将超过 ${limit} 的报表转交给 ${approver}`;
+            if (previousApprover && previousLimit) {
+                text += `（之前已将报销单超过 ${previousLimit} 的部分转交给 ${previousApprover}）`;
+            } else if (previousApprover) {
+                text += `（之前已转发给 ${previousApprover}）`;
+            }
+            return text;
+        },
+        removedOverLimitForwardsTo: ({member, previousApprover, previousLimit}: {member: string; previousApprover?: string; previousLimit: string}) =>
+            previousApprover
+                ? `将 ${member} 的审批流程更改为在超过 ${previousLimit} 时停止转交报销单（之前会转交给 ${previousApprover}）`
+                : `已更改 ${member} 的审批流程，停止转发超过 ${previousLimit} 的报销报告`,
+        changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
+            `已将 ${member} 的审批流程更改为：转交超过 ${limit} 的报销单（之前为 ${previousLimit}）`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
