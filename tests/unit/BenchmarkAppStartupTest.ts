@@ -102,6 +102,7 @@ describe('benchmarkAppStartup', () => {
                 {event: 'span_end', span: 'ManualAppStartupNetworkRequest', durationMs: 123, timestamp: 900},
             ]);
         const consoleTable = jest.spyOn(console, 'table').mockImplementation(() => undefined);
+        const consoleWarn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
 
         try {
             const result = await benchmarkStartups(
@@ -126,6 +127,7 @@ describe('benchmarkAppStartup', () => {
             expect(launchAndCollect).toHaveBeenNthCalledWith(2, collectionOptions);
             expect(result.metrics.ManualAppStartup?.samples).toEqual([456]);
             expect(result.metrics.ManualAppStartupNetworkRequest?.samples).toEqual([123]);
+            expect(consoleWarn).not.toHaveBeenCalledWith(expect.stringContaining('samples collected'));
             expect(result.resultsOutputPath).toBe(resultsOutputPath);
             expect(readFileSync(outputPath, 'utf8')).toBe('run,span,duration_ms\n1,ManualAppStartup,456\n1,ManualAppStartupNetworkRequest,123\n');
             expect(readFileSync(resultsOutputPath, 'utf8')).toBe(
@@ -175,6 +177,57 @@ describe('benchmarkAppStartup', () => {
             ]);
         } finally {
             consoleTable.mockRestore();
+            consoleWarn.mockRestore();
+            rmSync(temporaryDirectory, {recursive: true, force: true});
+        }
+    });
+
+    it.each([undefined, 'ManualAppStartup'])('warns about partial and missing samples with wait-until span %s', async (waitUntilSpan) => {
+        const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-benchmark-incomplete-test-'));
+        const outputPath = join(temporaryDirectory, 'samples.csv');
+        const prepareStartup = jest.fn(async () => undefined);
+        const launchAndCollect = jest
+            .fn()
+            .mockResolvedValueOnce([
+                {event: 'span_end', span: 'ManualAppStartup', durationMs: 999, timestamp: 1},
+                {event: 'span_end', span: 'ManualAppStartupNetworkRequest', durationMs: 999, timestamp: 1},
+                {event: 'span_end', span: 'NeverObserved', durationMs: 999, timestamp: 1},
+            ])
+            .mockResolvedValueOnce([
+                {event: 'span_end', span: 'ManualAppStartup', durationMs: 100, timestamp: 2},
+                {event: 'span_end', span: 'ManualAppStartupNetworkRequest', durationMs: 150, timestamp: 3},
+            ])
+            .mockResolvedValueOnce([{event: 'span_end', span: 'ManualAppStartup', durationMs: 200, timestamp: 4}]);
+        const consoleTable = jest.spyOn(console, 'table').mockImplementation(() => undefined);
+        const consoleWarn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+        try {
+            const result = await benchmarkStartups(
+                {name: 'android', appID: 'com.example.app', deviceIdentifier: 'emulator-5554', prepareStartup, launchAndCollect},
+                {
+                    mode: 'process',
+                    spanNames: ['ManualAppStartup', 'ManualAppStartupNetworkRequest', 'NeverObserved'],
+                    runs: 2,
+                    waitTimeSeconds: 30,
+                    waitUntilSpan,
+                    outputPath,
+                },
+            );
+
+            expect(consoleWarn).toHaveBeenCalledTimes(2);
+            expect(consoleWarn).toHaveBeenNthCalledWith(
+                1,
+                'WARNING: ManualAppStartupNetworkRequest: 1/2 samples collected; 1 missing. Statistics exclude missing samples and may be biased. Use a longer --wait-time without --wait-until-span to collect later spans.',
+            );
+            expect(consoleWarn).toHaveBeenNthCalledWith(2, expect.stringContaining('WARNING: NeverObserved: 0/2 samples collected; 2 missing.'));
+            expect(result.metrics.ManualAppStartup?.samples).toEqual([100, 200]);
+            expect(result.metrics.ManualAppStartupNetworkRequest?.samples).toEqual([150]);
+            expect(result.metrics.NeverObserved?.stats).toBeUndefined();
+            expect(readFileSync(outputPath, 'utf8')).toBe('run,span,duration_ms\n1,ManualAppStartup,100\n1,ManualAppStartupNetworkRequest,150\n2,ManualAppStartup,200\n');
+            expect(readFileSync(result.resultsOutputPath, 'utf8')).toContain('NeverObserved,0,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A');
+        } finally {
+            consoleTable.mockRestore();
+            consoleWarn.mockRestore();
             rmSync(temporaryDirectory, {recursive: true, force: true});
         }
     });
@@ -258,11 +311,49 @@ describe('benchmarkAppStartup', () => {
         }
     });
 
+    it('labels incomplete sample warnings separately for each comparison binary', async () => {
+        const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-benchmark-incomplete-comparison-test-'));
+        const prepareStartup = jest.fn(async () => undefined);
+        const launchAndCollectA = jest
+            .fn()
+            .mockResolvedValueOnce([])
+            .mockResolvedValueOnce([{event: 'span_end', span: 'ManualAppStartup', durationMs: 100, timestamp: 1}])
+            .mockResolvedValueOnce([]);
+        const launchAndCollectB = jest.fn(async () => []);
+        const consoleTable = jest.spyOn(console, 'table').mockImplementation(() => undefined);
+        const consoleWarn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+        try {
+            await benchmarkAlternatingStartups(
+                {
+                    binaryA: {name: 'android', appID: 'com.example.app.a', deviceIdentifier: 'emulator-5554', prepareStartup, launchAndCollect: launchAndCollectA},
+                    binaryB: {name: 'android', appID: 'com.example.app.b', deviceIdentifier: 'emulator-5554', prepareStartup, launchAndCollect: launchAndCollectB},
+                },
+                {
+                    mode: 'process',
+                    spanNames: ['ManualAppStartup'],
+                    runs: 2,
+                    waitTimeSeconds: 30,
+                    outputPathA: join(temporaryDirectory, 'binary-a.csv'),
+                    outputPathB: join(temporaryDirectory, 'binary-b.csv'),
+                },
+            );
+
+            expect(consoleWarn).toHaveBeenCalledTimes(2);
+            expect(consoleWarn).toHaveBeenNthCalledWith(1, expect.stringContaining('WARNING: Binary A metrics: ManualAppStartup: 1/2 samples collected; 1 missing.'));
+            expect(consoleWarn).toHaveBeenNthCalledWith(2, expect.stringContaining('WARNING: Binary B metrics: ManualAppStartup: 0/2 samples collected; 2 missing.'));
+        } finally {
+            consoleTable.mockRestore();
+            consoleWarn.mockRestore();
+            rmSync(temporaryDirectory, {recursive: true, force: true});
+        }
+    });
+
     it('passes comparison artifacts to both apps only for cold starts', async () => {
         const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-benchmark-cold-comparison-test-'));
         const prepareStartupA = jest.fn(async () => undefined);
         const prepareStartupB = jest.fn(async () => undefined);
-        const launchAndCollect = jest.fn(async () => []);
+        const launchAndCollect = jest.fn().mockResolvedValue([{event: 'span_end', span: 'ManualAppStartup', durationMs: 100, timestamp: 1}]);
         const consoleTable = jest.spyOn(console, 'table').mockImplementation(() => undefined);
 
         try {

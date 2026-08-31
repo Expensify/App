@@ -60,6 +60,7 @@ type BenchmarkAlternatingResult = {
 };
 type BenchmarkRecorderOptions = {
     spanNames: string[];
+    runs: number;
     outputPath: string;
     resultsOutputPath?: string;
 };
@@ -171,6 +172,14 @@ function createBenchmarkRecorder(options: BenchmarkRecorderOptions): BenchmarkRe
                 console.log(label);
             }
             console.table(table);
+            for (const {span, runs} of table) {
+                if (runs >= options.runs) {
+                    continue;
+                }
+                console.warn(
+                    `WARNING: ${label ? `${label}: ` : ''}${span}: ${runs}/${options.runs} samples collected; ${options.runs - runs} missing. Statistics exclude missing samples and may be biased. Use a longer --wait-time without --wait-until-span to collect later spans.`,
+                );
+            }
             console.log(`Recorded benchmark samples in ${options.outputPath}`);
             console.log(`Recorded benchmark results in ${resultsOutputPath}`);
             return {metrics, outputPath: options.outputPath, resultsOutputPath};
@@ -254,8 +263,8 @@ async function benchmarkAlternatingStartups(
     console.log(`Running one unmeasured warm-up startup for binary B (${options.appPathB ?? 'installed app'}).`);
     await measureStartup(adapterB, {...measurementOptions, appPath: options.appPathB});
 
-    const recorderA = createBenchmarkRecorder({spanNames: options.spanNames, outputPath: options.outputPathA, resultsOutputPath: resultsOutputPathA});
-    const recorderB = createBenchmarkRecorder({spanNames: options.spanNames, outputPath: options.outputPathB, resultsOutputPath: resultsOutputPathB});
+    const recorderA = createBenchmarkRecorder({spanNames: options.spanNames, runs: options.runs, outputPath: options.outputPathA, resultsOutputPath: resultsOutputPathA});
+    const recorderB = createBenchmarkRecorder({spanNames: options.spanNames, runs: options.runs, outputPath: options.outputPathB, resultsOutputPath: resultsOutputPathB});
     for (let runNumber = 1; runNumber <= options.runs; runNumber += 1) {
         const eventsA = await measureStartup(adapterA, {...measurementOptions, appPath: options.appPathA});
         const runMetricsA = recorderA.record(eventsA, runNumber);

@@ -58,25 +58,29 @@ iOS physical device:
 nr benchmark-app-startup ios 20 --device "Developer's iPhone"
 ```
 
-The positional arguments are the platform and measured run count. By default, each launch collects metrics for 30 seconds. Use `--wait-time` to change that collection window:
+The positional arguments are the platform and measured run count. By default, each launch collects metrics for 30 seconds. Use a fixed collection window without `--wait-until-span` when measuring multiple spans, since they can finish at different times. Use `--wait-time` to change that window:
 
 ```shell
 nr benchmark-app-startup ios 20 --wait-time 10
 ```
 
-Use `--wait-until-span` to finish a run early when a particular configured span ends. The wait time remains the maximum time allowed for that span to end:
+Use `--wait-until-span` to finish a run early when a particular configured span ends. Spans that finish after that cutoff are not collected. The wait time remains the maximum time allowed for the stop span to end. For example, measure only startup and stop when it ends:
 
 ```shell
-nr benchmark-app-startup ios 20 --wait-time 30 --wait-until-span ManualAppStartup
+nr benchmark-app-startup ios 20 --span ManualAppStartup --wait-time 30 --wait-until-span ManualAppStartup
 ```
 
-Pass `--span` to restrict the statistics and CSV output to one span. The wait-until span can be different from the measured span as long as both are included in `EXPO_PUBLIC_BENCHMARK_SENTRY_SPANS`:
+Pass `--span` to restrict the statistics and CSV output to one span. To measure the startup network request within a fixed collection window:
 
 ```shell
-nr benchmark-app-startup ios 20 --span ManualAppStartupNetworkRequest --wait-until-span ManualAppStartup
+nr benchmark-app-startup ios 20 --span ManualAppStartupNetworkRequest --wait-time 30
 ```
 
-Use `--app-id` for a nonstandard Android application ID or iOS bundle identifier. `--output` selects the raw sample CSV path, and `--results-output` selects the statistics table CSV path. Without `--results-output`, the script adds `-results.csv` to the raw sample filename. For example, `.benchmarks/ios-all-spans-process.csv` produces `.benchmarks/ios-all-spans-process-results.csv`. Runs where a configured metric does not end within the collection window are reported as `not observed` and are omitted from that metric's percentile calculations.
+The wait-until span can differ from the measured span as long as both are included in `EXPO_PUBLIC_BENCHMARK_SENTRY_SPANS`. Choose it only when later spans may be omitted intentionally. `ManualAppStartupNetworkRequest` can finish after `ManualAppStartup`, so stopping at startup does not guarantee a network-request sample.
+
+Use `--app-id` for a nonstandard Android application ID or iOS bundle identifier. `--output` selects the raw sample CSV path, and `--results-output` selects the statistics table CSV path. Without `--results-output`, the script adds `-results.csv` to the raw sample filename. For example, `.benchmarks/ios-all-spans-process.csv` produces `.benchmarks/ios-all-spans-process-results.csv`.
+
+Runs where a configured metric does not end within the collection window are reported as `not observed` and are omitted from that metric's percentile calculations. The final console and CSV tables show the actual sample count in `runs`. The console also warns for each incomplete metric, for example `12/20 samples collected; 8 missing`, and identifies the binary in comparison mode. Statistics exclude missing samples and may be biased toward faster completions. Use a longer fixed collection window when samples are missing; increasing `--wait-time` while retaining `--wait-until-span` does not delay its early cutoff.
 
 ```shell
 nr benchmark-app-startup ios 20 \
@@ -148,7 +152,6 @@ await benchmarkAppStartups({
     spanNames: ['ManualAppStartup', 'ManualAppStartupNetworkRequest'],
     runs,
     waitTimeSeconds: 30,
-    waitUntilSpan: 'ManualAppStartup',
     outputPath,
 });
 ```
