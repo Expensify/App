@@ -1,3 +1,4 @@
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -47,6 +48,8 @@ function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, 
     const StyleUtils = useStyleUtils();
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
     const illustrations = useMemoizedLazyIllustrations(['Safe']);
+
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: isSmallScreenWidth, addOfflineIndicatorBottomSafeAreaPadding: false});
     return (
         <Modal
             onClose={onCancel}
@@ -55,8 +58,9 @@ function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, 
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={{...styles.pb5, ...styles.pt0, ...styles.boxShadowNone}}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View>
+            <View style={bottomSafeAreaPaddingStyle}>
                 <View style={[styles.cardSectionIllustration, styles.alignItemsCenter, StyleUtils.getBackgroundColorStyle(LottieAnimations.Safe.backgroundColor)]}>
                     {isReduceMotionEnabled ? (
                         <ImageSVG
