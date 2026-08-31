@@ -147,11 +147,9 @@ function useDuplicateTransactionsAndViolations(transactionIDs: string[]): Duplic
 }
 
 /**
- * Live variant of {@link useDuplicateTransactionsAndViolations} that reads the full transaction and violation collections
- * from live Onyx (via the original useOnyx) instead of the Search-snapshot-aware wrapper. This restores the pre-refactor
- * behavior where inline edits from Search operate on the complete duplicate set, so reciprocal duplicate-transaction
- * violations of counterparts that are loaded locally but excluded from the current search are still cleaned up. It must be
- * a separate hook rather than a runtime `shouldUseLiveData` flag because React Compiler forbids selecting a hook dynamically.
+ * Same as {@link useDuplicateTransactionsAndViolations}, but reads the transaction and violation collections from live
+ * Onyx rather than the Search snapshot.
+ * More info: https://github.com/Expensify/App/pull/99279#discussion_r3892786625
  * @param transactionIDs - Array of transaction IDs to check for duplicates.
  * @returns - An object containing duplicate transactions and their violations.
  */
