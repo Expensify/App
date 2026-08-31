@@ -62,6 +62,7 @@ const SCREENS = {
         EDIT_MULTIPLE_TAG_RHP: 'Search_Edit_Multiple_Tag_RHP',
         EDIT_MULTIPLE_BILLABLE_RHP: 'Search_Edit_Multiple_Billable_RHP',
         EDIT_MULTIPLE_REIMBURSABLE_RHP: 'Search_Edit_Multiple_Reimbursable_RHP',
+        EDIT_MULTIPLE_ATTENDEES_RHP: 'Search_Edit_Multiple_Attendees_RHP',
         EDIT_MULTIPLE_TAX_RHP: 'Search_Edit_Multiple_Tax_RHP',
         TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_Search',
         CHANGE_APPROVER: {
@@ -82,7 +83,6 @@ const SCREENS = {
         ADD_US_BANK_ACCOUNT: 'Settings_Add_US_Bank_Account',
         ADD_US_BANK_ACCOUNT_ENTRY_POINT: 'Settings_Add_US_Bank_Account_Entry_Point',
         UPDATE_PERSONAL_BANK_ACCOUNT: 'Settings_Update_Personal_Bank_Account',
-        ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT: 'Settings_Add_Bank_Account_Select_Country_Verify_Account',
         BANK_ACCOUNT_PURPOSE: 'Settings_Bank_Account_Purpose',
         DEVICE_MANAGEMENT: 'Settings_Device_Management',
         CLOSE: 'Settings_Close',
@@ -714,6 +714,7 @@ const SCREENS = {
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Overview',
         HR: 'Workspace_HR',
+        DYNAMIC_HR_SYNC_RESULTS: 'Dynamic_HR_Sync_Results',
         HR_GUSTO_APPROVAL_MODE: 'Workspace_HR_Gusto_Approval_Mode',
         HR_GUSTO_FINAL_APPROVER: 'Workspace_HR_Gusto_Final_Approver',
         HR_ZENEFITS_APPROVAL_MODE: 'Workspace_HR_Zenefits_Approval_Mode',

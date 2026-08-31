@@ -6395,7 +6395,12 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Impuestos',
                 subtitle: 'Documenta y reclama los impuestos aplicables.',
             },
-            vendors: {title: 'Proveedores', subtitle: 'Asocia los gastos de tarjeta con los proveedores importados de tu software de contabilidad.'},
+            vendors: {
+                title: 'Proveedores',
+                subtitle: 'Asocia los gastos de tarjeta con los proveedores importados de tu software de contabilidad.',
+                disabledTitle: 'No tan rápido...',
+                disabledMessage: 'Para activar o desactivar esta función, deberás cambiar la configuración de importación de contabilidad.',
+            },
             reportFields: {
                 title: 'Campos de informes',
                 subtitle: 'Configura campos personalizados para los gastos.',

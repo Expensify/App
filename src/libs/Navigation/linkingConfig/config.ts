@@ -338,10 +338,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.UPDATE_PERSONAL_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.route,
                         },
-                        [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: {
-                            path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: {
                             path: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE,
                             exact: true,
@@ -1253,6 +1249,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_REIMBURSABLE_DEFAULT]: {
                             path: ROUTES.RULES_REIMBURSABLE_DEFAULT.route,
                         },
+                        [SCREENS.WORKSPACE.DYNAMIC_HR_SYNC_RESULTS]: DYNAMIC_ROUTES.WORKSPACE_HR_SYNC_RESULTS.path,
                         [SCREENS.WORKSPACE.HR_GUSTO_APPROVAL_MODE]: {
                             path: ROUTES.WORKSPACE_HR_GUSTO_APPROVAL_MODE.route,
                         },
@@ -1972,6 +1969,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.EDIT_MULTIPLE_TAG_RHP]: ROUTES.SEARCH_EDIT_MULTIPLE_TAG_RHP.route,
                         [SCREENS.SEARCH.EDIT_MULTIPLE_BILLABLE_RHP]: ROUTES.SEARCH_EDIT_MULTIPLE_BILLABLE_RHP,
                         [SCREENS.SEARCH.EDIT_MULTIPLE_REIMBURSABLE_RHP]: ROUTES.SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP,
+                        [SCREENS.SEARCH.EDIT_MULTIPLE_ATTENDEES_RHP]: ROUTES.SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP,
                         [SCREENS.SEARCH.EDIT_MULTIPLE_TAX_RHP]: ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP,
                         [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: {
                             path: ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP.route,

@@ -247,7 +247,6 @@ type SettingsNavigatorParamList = {
         subPage?: string;
     };
     [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: undefined;
-    [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.AGENTS.NEW]: {
         policyID?: string;
     };
@@ -1619,6 +1618,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES_REIMBURSABLE_DEFAULT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_HR_SYNC_RESULTS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.HR_GUSTO_APPROVAL_MODE]: {
