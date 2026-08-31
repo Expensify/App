@@ -72,6 +72,8 @@ describe('no-unsafe-onyx-read', () => {
             `${ONYX_IMPORT} function Row() { useEffect(() => { use(Onyx.get(key)); }, []); return <View />; }`,
             `${ONYX_IMPORT} function Row() { useLayoutEffect(() => { use(Onyx.get(key)); }, []); return <View />; }`,
             `${ONYX_UTILS_IMPORT} function useThing() { return () => OnyxUtils.get(key); }`,
+            `${ONYX_IMPORT} function Row() { const onPress = () => Onyx.get(key).then(setValue); return <View onPress={onPress} />; }`,
+            `${ONYX_IMPORT} class Row extends React.Component { componentDidMount() { Onyx.get(key).then(this.setValue); } }`,
 
             `${ONYX_IMPORT} setTimeout(() => Onyx.get(key), 0);`,
             `${ONYX_IMPORT} ready.then(() => Onyx.get(key));`,
@@ -126,6 +128,12 @@ describe('no-unsafe-onyx-read', () => {
             {code: `${ONYX_IMPORT} function Row() { const value = use(Onyx.get(key)); return <View value={value} />; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} function Row() { Onyx.get(key).then(setValue); return <View />; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} function useReportName() { return use(Onyx.get(key)); }`, errors: RENDER_ERRORS},
+            {code: `${ONYX_IMPORT} function Row() { const value = React.use(Onyx.get(key)); return <View value={value} />; }`, errors: RENDER_ERRORS},
+            {code: `${ONYX_IMPORT} function Row() { const promise = Onyx.get(key); return <View value={use(promise)} />; }`, errors: RENDER_ERRORS},
+            {code: `${ONYX_IMPORT} async function Row() { const value = await Onyx.get(key); return <View value={value} />; }`, errors: RENDER_ERRORS},
+            {code: `${ONYX_IMPORT} const Row = forwardRef((props, ref) => { Onyx.get(key).then(setValue); return <View ref={ref} />; });`, errors: RENDER_ERRORS},
+            {code: `${ONYX_IMPORT} class Row extends React.Component { render() { Onyx.get(key).then(this.setValue); return <View />; } }`, errors: RENDER_ERRORS},
+            {code: `${ONYX_IMPORT} function useReportName() { Onyx.get(key).then(setState); }`, errors: RENDER_ERRORS},
 
             {code: `${ONYX_IMPORT} function Row() { const value = Onyx.get(key); return <View value={value} />; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} const Row = () => { const value = Onyx.get(key); return <View value={value} />; };`, errors: RENDER_ERRORS},
