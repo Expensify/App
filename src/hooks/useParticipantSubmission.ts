@@ -286,6 +286,28 @@ function useParticipantSubmission({
                 // and no transaction is passed here, so the currency is never read.
                 setCustomUnitRateID(initialTransactionID, rateID, undefined, policy, false, undefined);
             }
+        } else if (drafts.length > 0) {
+            // Moving a track expense to a workspace: the tracked draft carries the source workspace's rate ID, which the
+            // destination workspace may not own. Keep genuine p2p/unset rates (so the user can still pick one) and rates
+            // the destination already owns, but re-select the destination's rate otherwise so it resolves — mirroring the
+            // check in IOURequestStepConfirmation. Left unresolved, confirmation shows "Rate not valid" and
+            // useDistanceRequestState divides the amount by a zero quantity, persisting an Infinity (serialized as null) amount.
+            for (const transaction of drafts) {
+                const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
+                const isCurrentRateFromWorkspace = !!currentRateID && !!DistanceRequestUtils.getMileageRates(policy)[currentRateID];
+                const shouldKeepCurrentRate = DistanceRequestUtils.isUnsetDistanceCustomUnitRateID(currentRateID) || isCurrentRateFromWorkspace;
+                if (shouldKeepCurrentRate) {
+                    continue;
+                }
+                const rateID = DistanceRequestUtils.getCustomUnitRateID({
+                    reportID: firstParticipantReportID,
+                    isPolicyExpenseChat,
+                    policy,
+                    lastSelectedDistanceRates: distanceRates,
+                    expenseDate: transaction.created,
+                });
+                setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy, false, personalPolicy?.outputCurrency);
+            }
         }
 
         // When multiple valid participants are selected, the reportID is generated at the end of the confirmation step.

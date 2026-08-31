@@ -87,7 +87,17 @@ function useDistanceRequestState({
     const calculateFromTransactionData = isMovingTransactionFromTrackExpense && !distanceRate;
     const customUnit = transaction?.comment?.customUnit;
     const unit = calculateFromTransactionData ? customUnit?.distanceUnit : distanceUnit;
-    const rate = calculateFromTransactionData ? Math.abs(iouAmount) / (customUnit?.quantity ?? 1) : distanceRate;
+    // When moving a track expense to a workspace whose rate hasn't resolved yet, we back-calculate the rate from the
+    // known amount and distance. The divisor must be a positive distance in the SELECTED unit: `customUnit.quantity`
+    // is already in that unit, while the route distance is in meters and has to be converted first. Dividing by a
+    // still-pending `quantity` of 0 previously yielded `Infinity` (the ♾️ amount); converting raw meters without unit
+    // conversion would instead under-report the amount by the meters→unit factor (~1609x for miles). When neither a
+    // quantity nor a route distance is available, leave the rate unresolved so the amount stays pending.
+    const routeDistanceInUnit = calculateFromTransactionData && !customUnit?.quantity && unit ? DistanceRequestUtils.convertDistanceUnit(getDistanceInMeters(transaction, unit), unit) : 0;
+    // `||` (not `??`) is intentional: a pending `quantity` of 0 must fall through to the converted route distance.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const backCalculationDivisor = customUnit?.quantity || routeDistanceInUnit;
+    const rate = calculateFromTransactionData && backCalculationDivisor ? Math.abs(iouAmount) / backCalculationDivisor : distanceRate;
     const currency = calculateFromTransactionData ? iouCurrencyCode : (mileageRate.currency ?? CONST.CURRENCY.USD);
     const prevRate = usePrevious(rate);
     const prevUnit = usePrevious(unit);
