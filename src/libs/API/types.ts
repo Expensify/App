@@ -289,6 +289,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_PROHIBITED_EXPENSES: 'SetPolicyProhibitedExpenses',
     SET_POLICY_COMMUTER_EXCLUSIONS: 'SetPolicyCommuterExclusions',
     DISABLE_POLICY_COMMUTER_EXCLUSIONS: 'DisablePolicyCommuterExclusions',
+    SET_POLICY_REQUIRE_MAP_OR_GPS: 'SetPolicyRequireMapOrGPS',
     SET_POLICY_EXPENSE_MAX_AGE: 'SetPolicyExpenseMaxAge',
     ADD_POLICY_AGENT_RULE: 'AddPolicyAgentRule',
     UPDATE_POLICY_AGENT_RULE: 'UpdatePolicyAgentRule',
@@ -543,6 +544,15 @@ const WRITE_COMMANDS = {
     UPDATE_DUALENTRY_DEFAULT_VENDOR: 'UpdateDualEntryDefaultVendor',
     UPDATE_DUALENTRY_CREDIT_CARD_ACCOUNT: 'UpdateDualEntryCreditCardAccount',
     UPDATE_DUALENTRY_EXPENSIFY_CARD_ACCOUNT: 'UpdateDualEntryExpensifyCardAccount',
+    UPDATE_DUALENTRY_AUTO_SYNC: 'UpdateDualEntryAutoSync',
+    UPDATE_DUALENTRY_ACCOUNTING_METHOD: 'UpdateDualEntryAccountingMethod',
+    UPDATE_DUALENTRY_SYNC_REIMBURSED_REPORTS: 'UpdateDualEntrySyncReimbursedReports',
+    UPDATE_DUALENTRY_BILL_PAYMENT_ACCOUNT: 'UpdateDualEntryBillPaymentAccount',
+    UPDATE_DUALENTRY_SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'UpdateDualEntrySyncExpensifyCardSettlements',
+    UPDATE_DUALENTRY_SETTLEMENTS_ACCOUNT: 'UpdateDualEntrySettlementsAccount',
+    UPDATE_DUALENTRY_SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'UpdateDualEntrySyncTravelInvoicingSettlements',
+    UPDATE_DUALENTRY_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT: 'UpdateDualEntryTravelInvoicingSettlementsAccount',
+    UPDATE_DUALENTRY_TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'UpdateDualEntryTravelInvoicingPayableAccount',
 
     SET_PROMO_CODE: 'User_SetPromoCode',
     REQUEST_TAX_EXEMPTION: 'RequestTaxExemption',
@@ -1110,6 +1120,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_POLICY_PROHIBITED_EXPENSES]: Parameters.SetPolicyProhibitedExpensesParams;
     [WRITE_COMMANDS.SET_POLICY_COMMUTER_EXCLUSIONS]: Parameters.SetPolicyCommuterExclusionsParams;
     [WRITE_COMMANDS.DISABLE_POLICY_COMMUTER_EXCLUSIONS]: Parameters.DisablePolicyCommuterExclusionsParams;
+    [WRITE_COMMANDS.SET_POLICY_REQUIRE_MAP_OR_GPS]: Parameters.SetPolicyRequireMapOrGPSParams;
     [WRITE_COMMANDS.RETRACT_REPORT]: Parameters.RetractReportParams;
     [WRITE_COMMANDS.FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING]: Parameters.FinishCorpayBankAccountOnboardingParams;
     [WRITE_COMMANDS.DELETE_VACATION_DELEGATE]: Parameters.DeleteVacationDelegateParams | null;
@@ -1191,6 +1202,15 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_DUALENTRY_DEFAULT_VENDOR]: Parameters.UpdateDualEntryDefaultVendorParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_CREDIT_CARD_ACCOUNT]: Parameters.UpdateDualEntryCreditCardAccountParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_EXPENSIFY_CARD_ACCOUNT]: Parameters.UpdateDualEntryExpensifyCardAccountParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_AUTO_SYNC]: Parameters.UpdateDualEntryAutoSyncParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_ACCOUNTING_METHOD]: Parameters.UpdateDualEntryAccountingMethodParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateDualEntrySyncReimbursedReportsParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_BILL_PAYMENT_ACCOUNT]: Parameters.UpdateDualEntryBillPaymentAccountParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_EXPENSIFY_CARD_SETTLEMENTS]: Parameters.UpdateDualEntrySyncExpensifyCardSettlementsParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_SETTLEMENTS_ACCOUNT]: Parameters.UpdateDualEntrySettlementsAccountParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_TRAVEL_INVOICING_SETTLEMENTS]: Parameters.UpdateDualEntrySyncTravelInvoicingSettlementsParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT]: Parameters.UpdateDualEntryTravelInvoicingSettlementsAccountParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_INVOICING_PAYABLE_ACCOUNT]: Parameters.UpdateDualEntryTravelInvoicingPayableAccountParams;
 
     [WRITE_COMMANDS.UPGRADE_TO_CORPORATE]: Parameters.UpgradeToCorporateParams;
     [WRITE_COMMANDS.DOWNGRADE_TO_TEAM]: Parameters.DowngradeToTeamParams;

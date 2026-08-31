@@ -67,6 +67,15 @@ export type {default as UpdateDualEntryExportDateParams} from './UpdateDualEntry
 export type {default as UpdateDualEntryDefaultVendorParams} from './UpdateDualEntryDefaultVendorParams';
 export type {default as UpdateDualEntryCreditCardAccountParams} from './UpdateDualEntryCreditCardAccountParams';
 export type {default as UpdateDualEntryExpensifyCardAccountParams} from './UpdateDualEntryExpensifyCardAccountParams';
+export type {default as UpdateDualEntryAutoSyncParams} from './UpdateDualEntryAutoSyncParams';
+export type {default as UpdateDualEntryAccountingMethodParams} from './UpdateDualEntryAccountingMethodParams';
+export type {default as UpdateDualEntrySyncReimbursedReportsParams} from './UpdateDualEntrySyncReimbursedReportsParams';
+export type {default as UpdateDualEntryBillPaymentAccountParams} from './UpdateDualEntryBillPaymentAccountParams';
+export type {default as UpdateDualEntrySyncExpensifyCardSettlementsParams} from './UpdateDualEntrySyncExpensifyCardSettlementsParams';
+export type {default as UpdateDualEntrySettlementsAccountParams} from './UpdateDualEntrySettlementsAccountParams';
+export type {default as UpdateDualEntrySyncTravelInvoicingSettlementsParams} from './UpdateDualEntrySyncTravelInvoicingSettlementsParams';
+export type {default as UpdateDualEntryTravelInvoicingSettlementsAccountParams} from './UpdateDualEntryTravelInvoicingSettlementsAccountParams';
+export type {default as UpdateDualEntryTravelInvoicingPayableAccountParams} from './UpdateDualEntryTravelInvoicingPayableAccountParams';
 export type {default as UpdateNetSuiteAccountingMethodParams} from './UpdateNetSuiteAccountingMethodParams';
 export type {default as UpdateQuickbooksOnlineAccountingMethodParams} from './UpdateQuickbooksOnlineAccountingMethodParams';
 export type {default as UpdateXeroAccountingMethodParams} from './UpdateXeroAccountingMethodParams';
@@ -533,6 +542,7 @@ export type {ChangeTransactionsReportParams, TransactionThreadInfo} from './Chan
 export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProhibitedExpensesParams';
 export type {default as SetPolicyCommuterExclusionsParams} from './SetPolicyCommuterExclusionsParams';
 export type {default as DisablePolicyCommuterExclusionsParams} from './DisablePolicyCommuterExclusionsParams';
+export type {default as SetPolicyRequireMapOrGPSParams} from './SetPolicyRequireMapOrGPSParams';
 export type {default as CreateDigitalWalletParams} from './CreateDigitalWalletParams';
 export type {default as GetGuideCallAvailabilityScheduleParams} from './GetGuideCallAvailabilitySchedule';
 export type {default as RetractReportParams} from './RetractReportParams';
