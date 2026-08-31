@@ -1,7 +1,7 @@
 ---
 title: Expense and Report Actions
 description: Learn what actions (Submit, Approve, Pay, Export, Hold) are available on reports based on role and report status.
-keywords: [New Expensify, report actions Expensify, who can approve report, when can I pay report, report status actions, approver permissions]
+keywords: [New Expensify, report actions Expensify, who can approve report, when can I pay report, report status actions, approver permissions, invite member to report, comment on a report]
 internalScope: Audience is all members. High level overview of what report actions are available based on role and report status. Does not cover step-by-step instructions for performing each action.
 ---
 
@@ -76,6 +76,10 @@ Use this guide to understand:
 - Hold expenses
 - Invite members to their report
 
+**Invited member**
+- View the report
+- Comment on the report and on individual expenses
+
 **Approver**
 - Approve reports
 - Reject reports
@@ -92,6 +96,24 @@ Use this guide to understand:
 - Change approver
 - Bypass approvers
 - Change workspace (before export)
+
+---
+
+## What a member you invite to a report can do
+
+When you invite someone to an expense report, they get access to that single report only. They are not added to your workspace.
+
+An invited member can:
+- Open the report and see its expenses
+- Add comments to the report and to individual expenses
+- Be mentioned in comments and reply to them
+
+An invited member cannot:
+- Submit, approve, pay, or export the report
+- Add, edit, or delete expenses on the report
+- See other reports in the workspace
+
+Because invited members can comment, the message field appears at the bottom of the report for them instead of a **This conversation is read-only.** banner.
 
 ---
 
@@ -129,7 +151,7 @@ Use this guide to understand:
 | **Download** | Any report | All roles | Downloads a PDF copy |
 | **Print** | Any report except Draft | All roles | Opens print view |
 | **Reject** | Submitted reports | Approver | Sends report back for changes |
-| **Invite member** | Draft and Outstanding reports | All roles | Adds a member to the report |
+| **Invite member** | Draft and Outstanding reports | All roles | Adds a member to the report so they can view and comment on it |
 | **View details** | Any report | All roles | Opens report details |
 | **Cancel payment** | Before payment processing | Payer | Cancels a pending payment |
 | **Hold** | On draft or submitted reports | Submitter, Approver, Admin | Marks individual expenses that aren’t yet ready for approval or payment |
@@ -194,4 +216,17 @@ Only workspace admins can bypass approvers. Some settings may prevent self-appro
 
 ## How do I invite a member to an expense report?
 
-Open the report, select the header, then select **Members** and choose **Invite**.
+1. Open the report and select the report header.
+2. Select **Members**.
+3. Click **Invite member**.
+4. Select the people you want to add, then click **Invite**.
+
+## Can a member I invite to a report comment on it?
+
+Yes. Anyone you invite to an expense report can add comments to the report and to individual expenses. They cannot submit, approve, pay, or edit the report.
+
+## Does inviting someone to a report add them to my workspace?
+
+No. An invite gives that person access to the single report you invited them to. To give someone access to a workspace, add them as a workspace member instead.
+
+[Learn more about managing workspace members](articles/new-expensify/workspaces/Managing-Workspace-Members).
