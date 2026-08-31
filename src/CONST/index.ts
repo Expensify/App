@@ -430,6 +430,19 @@ const CONST = {
         },
     },
 
+    // Report kinds the ReportAvatar dispatcher routes on. Each kind maps to a report-type avatar wrapper.
+    REPORT_AVATAR_KIND: {
+        EXPENSE: 'expense',
+        IOU: 'iou',
+        TASK: 'task',
+        INVOICE: 'invoice',
+        CHAT_THREAD: 'chatThread',
+        GROUP_CHAT: 'groupChat',
+        POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+        ROOM: 'room',
+        DEFAULT: 'default',
+    },
+
     // Used to track the editing state of report action messages in the ReportActionEditMessageContext provider.
     REPORT_ACTION_EDIT_MESSAGE_STATE: {
         OFF: 'off',
@@ -4743,6 +4756,13 @@ const CONST = {
         XXXX_LARGE: 'xxxx-large',
     },
 
+    AVATAR_SHAPE: {
+        // Fully round, used for user avatars
+        CIRCLE: 'circle',
+        // Corner radius scaled to the avatar size, used for workspace avatars
+        ROUNDED_SQUARE: 'rounded-square',
+    },
+
     COMPANY_CARD: {
         // Mostly used for feed details
         FEED_BANK_NAME: {
@@ -7230,6 +7250,7 @@ const CONST = {
                     APPROVED: this.TABLE_COLUMNS.APPROVED,
                     FIRST_APPROVER: this.TABLE_COLUMNS.FIRST_APPROVER,
                     FIRST_APPROVED: this.TABLE_COLUMNS.FIRST_APPROVED,
+                    PAID_BY: this.TABLE_COLUMNS.PAID_BY,
                     EXPORTED: this.TABLE_COLUMNS.EXPORTED,
                     STATUS: this.TABLE_COLUMNS.STATUS,
                     PAID_STATUS: this.TABLE_COLUMNS.PAID_STATUS,
@@ -7426,6 +7447,7 @@ const CONST = {
             APPROVED: 'approved',
             FIRST_APPROVER: 'firstapprover',
             FIRST_APPROVED: 'firstapproved',
+            PAID_BY: 'paidBy',
             POSTED: 'posted',
             EXPORTED: 'exported',
             MERCHANT: 'merchant',
@@ -7534,6 +7556,7 @@ const CONST = {
             FROM: 'from',
             TO: 'to',
             PAYER: 'payer',
+            PAID_BY: 'paidBy',
             EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
@@ -7619,6 +7642,7 @@ const CONST = {
             FROM: 'from',
             TO: 'to',
             PAYER: 'payer',
+            PAID_BY: 'paid-by',
             EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
@@ -9621,6 +9645,7 @@ const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
 ] as SearchFilterKey[];

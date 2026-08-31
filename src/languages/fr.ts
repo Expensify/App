@@ -9384,6 +9384,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             approved: 'Approuvé',
             firstApprover: 'Premier approbateur',
             firstApproved: 'Approuvé en premier',
+            paidBy: 'Payé par',
             paid: 'Payé',
             exported: 'Exporté',
             posted: 'Publié',

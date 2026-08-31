@@ -199,12 +199,15 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
             </View>
             <View style={styles.pRelative}>
                 <View
+                    testID="ConciergePromptBox"
                     style={[
                         isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
                         styles.flexRow,
                         styles.chatItemComposeBox,
                         isExceedingMaxLength && styles.borderColorDanger,
                     ]}
+                    // Claim taps here so that the ScrollView does not and we don't lose focus on disabled Send button tap
+                    onStartShouldSetResponder={() => true}
                 >
                     <View style={styles.composerButtonColumn}>
                         <View style={styles.composerButtonStack}>
@@ -337,6 +340,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                             icon={icons.Send}
                             label={translate('common.send')}
                             onPress={submit}
+                            onMouseDown={(e) => e.preventDefault()}
                         />
                     </View>
                 </View>
