@@ -1694,6 +1694,17 @@ type IssueNewCardOriginalMessage = OriginalMessage<
 >;
 
 /**
+ * Model of a HOME_ADDRESS_REQUIRED Concierge report action.
+ */
+type OriginalMessageHomeAddressRequired = {
+    /** ID of the policy whose commuter-exclusion change triggered the prompt */
+    policyID: string;
+
+    /** Set once the member saves a home address, marking the prompt as satisfied */
+    resolution?: string | null;
+};
+
+/**
  * Model of reimbursement director information report action
  */
 type OriginalMessageReimbursementDirectorInformationRequired = {
@@ -1718,7 +1729,7 @@ type OriginalMessageReimbursementDirectorInformationRequired = {
  */
 type OriginalMessageTravelNudge = {
     /** The kind of bookable travel the expense was classified as */
-    travelType: ValueOf<typeof CONST.RESERVATION_TYPE>;
+    travelType: ValueOf<typeof CONST.TRAVEL_NUDGE.TRAVEL_TYPE>;
 
     /** Whether the expense was created from a card import or manually */
     origination: ValueOf<typeof CONST.TRAVEL_NUDGE.ORIGINATION>;
@@ -1833,6 +1844,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.REROUTE]: OriginalMessageTakeControl;
     [CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT]: OriginalMessageDelegateSubmit;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
+    [CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED]: OriginalMessageHomeAddressRequired;
     [CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED]: OriginalMessageSettlementAccountLocked;
 } & Omit<OldDotOriginalMessageMap, typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> &
     Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>, OriginalMessagePolicyChangeLog> &
@@ -1851,6 +1863,7 @@ export default OriginalMessage;
 export type {
     DecisionName,
     OriginalMessageIOU,
+    OriginalMessageReportPreview,
     ChronosOOOEvent,
     PaymentMethodType,
     OriginalMessageSource,

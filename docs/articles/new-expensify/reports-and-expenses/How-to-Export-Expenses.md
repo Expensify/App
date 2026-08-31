@@ -1,8 +1,8 @@
 ---
 title: How to Export Expenses
-description: Learn how to export expenses from the Expenses page to CSV using default or custom export templates in New Expensify.
-keywords: [New Expensify, export expenses, CSV export, download expenses, expense export template, bulk export expenses, expense data]
-internalScope: Audience is all members. Covers exporting expenses from the Expenses page to CSV using export templates, both individually and in bulk. Does not cover exporting reports to CSV or PDF (see Export-Reports.md), exporting to an accounting integration, or company card reconciliation.
+description: Learn how to export expenses from the Expenses page to CSV using default or custom export templates, and how to download their receipts, in New Expensify.
+keywords: [New Expensify, export expenses, CSV export, download expenses, download receipts, expense receipts, receipt zip, expense export template, bulk export expenses, expense data]
+internalScope: Audience is all members. Covers exporting expenses from the Expenses page to CSV using export templates (both individually and in bulk) and downloading the receipts on selected expenses. Does not cover exporting reports to CSV or PDF (see Export-Reports.md), exporting to an accounting integration, or company card reconciliation.
 ---
 
 # How to export expenses
@@ -34,6 +34,18 @@ You'll receive the exported CSV file in a message from Concierge.
 
 You'll receive the exported CSV file in a message from Concierge.
 
+## How to download the receipts on selected expenses
+
+You can download the receipts attached to your selected expenses in a single ZIP file.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend** > **Expenses**.
+2. Select the checkbox next to each expense whose receipt you want to download, or use the top checkbox to select all.
+3. Select **Selected** at the top.
+4. Select **Download receipts**.
+5. Wait for the files to finish preparing. The zip file downloads automatically when it's ready. If it doesn't, select **Download file** to save it to your device.
+
+**Note:** **Download receipts** only appears when at least one selected expense has a receipt. Deleted expenses are not included in the download.
+
 ## How to export the columns currently displayed using Export current view
 
 Use **Export current view** to download a CSV that matches the columns currently shown on the **Expenses** page, instead of a fixed export template.
@@ -45,9 +57,11 @@ Use **Export current view** to download a CSV that matches the columns currently
 5. Select **Export**.
 6. Select **Export current view**.
 
-The CSV includes one row per expense using the same columns displayed on the page. **Export current view** is not available when a **Group by** filter is applied.
+The CSV includes one row per expense using the same columns displayed on the page. When a **Group by** filter is applied, the CSV keeps each group as its own section and uses the columns currently shown on the page.
 
 ---
+
+# FAQ
 
 ## What export templates can I choose from? 
 
@@ -68,6 +82,14 @@ Yes. Select **Export current view** to download a CSV that matches the columns c
 ## Why don't I see certain export templates?
 
 If all selected expenses are deleted, only the **Basic export** template is available. Other export templates require a report, and deleted expenses are not associated with any report.
+
+## Why don't I see Download receipts for my selected expenses?
+
+**Download receipts** only appears when at least one selected expense has a receipt attached. If none of the selected expenses have receipts, the option is hidden.
+
+## Are deleted expenses included when I download receipts?
+
+No. Deleted expenses are excluded from the download, even if they had a receipt. Only the receipts on your live selected expenses are included in the zip file.
 
 ## The data looks wrong in Excel. How can I fix it?
 
