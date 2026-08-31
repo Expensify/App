@@ -17,6 +17,19 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import React, {useState} from 'react';
 
+const CATEGORY_TRANSLATION_KEYS: ReadonlyMap<string, TranslationPaths> = new Map<string, TranslationPaths>([
+    ['frequentlyUsed', 'emojiPicker.headers.frequentlyUsed'],
+    ['smileysAndEmotion', 'emojiPicker.headers.smileysAndEmotion'],
+    ['animalsAndNature', 'emojiPicker.headers.animalsAndNature'],
+    ['foodAndDrink', 'emojiPicker.headers.foodAndDrink'],
+    ['travelAndPlaces', 'emojiPicker.headers.travelAndPlaces'],
+    ['activities', 'emojiPicker.headers.activities'],
+    ['objects', 'emojiPicker.headers.objects'],
+    ['symbols', 'emojiPicker.headers.symbols'],
+    ['flags', 'emojiPicker.headers.flags'],
+]);
+const FALLBACK_CATEGORY_TRANSLATION_KEY: TranslationPaths = 'emojiPicker.headers.frequentlyUsed';
+
 type CategoryShortcutButtonProps = {
     /** The emoji code of the category header */
     code: string;
@@ -37,10 +50,12 @@ function CategoryShortcutButton({code, icon, onPress, isSelected = false}: Categ
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [isHighlighted, setIsHighlighted] = useState(false);
+    const translationKey = CATEGORY_TRANSLATION_KEYS.get(code) ?? FALLBACK_CATEGORY_TRANSLATION_KEY;
+    const label = translate(translationKey);
 
     return (
         <Tooltip
-            text={translate(`emojiPicker.headers.${code}` as TranslationPaths)}
+            text={label}
             shiftVertical={-4}
         >
             <PressableWithoutFeedback
@@ -49,7 +64,7 @@ function CategoryShortcutButton({code, icon, onPress, isSelected = false}: Categ
                 onHoverIn={() => setIsHighlighted(true)}
                 onHoverOut={() => setIsHighlighted(false)}
                 style={({pressed}) => [StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)), styles.categoryShortcutButton, isHighlighted && styles.emojiItemHighlighted]}
-                accessibilityLabel={translate(`emojiPicker.headers.${code}` as TranslationPaths)}
+                accessibilityLabel={label}
                 accessibilityState={isSelected ? {selected: true} : undefined}
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.CATEGORY_SHORTCUT}

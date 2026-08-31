@@ -1,8 +1,11 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
+import ConfirmationPage from '@components/ConfirmationPage';
+import type {ConfirmationPageProps} from '@components/ConfirmationPage';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import Lottie from '@components/Lottie';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {startSplitBill} from '@libs/actions/IOU/Split';
@@ -19,6 +22,9 @@ import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
+// Use React Native Animated to exercise the native Animated.Value dimension accepted by ViewStyle.
+// eslint-disable-next-line no-restricted-imports
+import {Animated} from 'react-native';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
@@ -28,6 +34,11 @@ import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import createRandomPolicy from '../../utils/collections/policies';
 import {signInWithTestUser, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
+
+jest.mock('@components/Lottie', () => ({
+    __esModule: true,
+    default: jest.fn(() => null),
+}));
 
 jest.mock('@rnmapbox/maps', () => {
     return {
@@ -275,6 +286,21 @@ function createWaypoints(startAddress: string, endAddress: string): WaypointColl
     };
 }
 
+function renderConfirmationAndGetWebStyle(illustrationStyle?: ConfirmationPageProps['illustrationStyle']) {
+    render(
+        <ConfirmationPage
+            heading="Done"
+            illustrationStyle={illustrationStyle}
+        />,
+    );
+    const lottieProps = jest.mocked(Lottie).mock.calls.at(-1)?.at(0);
+    expect(lottieProps).toBeDefined();
+    if (!lottieProps) {
+        throw new Error('ConfirmationPage did not render Lottie');
+    }
+    return lottieProps.webStyle;
+}
+
 const DEFAULT_SPLIT_TRANSACTION: Transaction = {
     amount: 0,
     isAmountSet: true,
@@ -298,6 +324,43 @@ const DEFAULT_SPLIT_TRANSACTION: Transaction = {
     reportID: REPORT_ID,
     transactionID: TRANSACTION_ID,
 };
+
+describe('ConfirmationPage Lottie web dimensions', () => {
+    afterEach(() => {
+        jest.mocked(Lottie).mockClear();
+    });
+
+    it('preserves compatible dimensions and independently defaults absent dimensions', () => {
+        const defaults = renderConfirmationAndGetWebStyle();
+        expect(defaults).toBeDefined();
+        expect(defaults?.width).toBeDefined();
+        expect(defaults?.height).toBeDefined();
+
+        expect(renderConfirmationAndGetWebStyle({width: 0, height: 96})).toMatchObject({width: 0, height: 96});
+        expect(renderConfirmationAndGetWebStyle({width: 48, height: '75%'})).toMatchObject({width: 48, height: '75%'});
+        expect(renderConfirmationAndGetWebStyle({width: '50%'})).toMatchObject({width: '50%', height: defaults?.height});
+        expect(renderConfirmationAndGetWebStyle({height: 64})).toMatchObject({width: defaults?.width, height: 64});
+    });
+
+    it('defaults an animated width only at the web boundary and preserves the native style', () => {
+        const defaultWebStyle = renderConfirmationAndGetWebStyle();
+        expect(defaultWebStyle).toBeDefined();
+        if (!defaultWebStyle) {
+            throw new Error('ConfirmationPage did not provide default Lottie web dimensions');
+        }
+        const animatedWidth = new Animated.Value(40);
+        render(
+            <ConfirmationPage
+                heading="Done"
+                illustrationStyle={{width: animatedWidth, height: '75%'}}
+            />,
+        );
+        const lottieProps = jest.mocked(Lottie).mock.calls.at(-1)?.at(0);
+        expect(lottieProps).toBeDefined();
+        expect(lottieProps?.webStyle).toEqual({width: defaultWebStyle.width, height: '75%'});
+        expect(lottieProps?.style).toEqual(expect.arrayContaining([expect.objectContaining({width: animatedWidth, height: '75%'})]));
+    });
+});
 
 describe('IOURequestStepConfirmationPageTest', () => {
     beforeEach(() => {
