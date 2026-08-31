@@ -63,6 +63,14 @@ const RESTRICTED_KEY_PATHS = resolveRestrictedKeyPaths();
 
 const READ_METHOD = 'get';
 
+/**
+ * The TypeScript-only nodes a key expression arrives wrapped in, all of which carry the real expression on
+ * `.expression`. They have to be unwrapped before the key is read, because `` `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const ``
+ * is how this codebase writes a collection member key, and a rule that stopped at the wrapper would call
+ * every one of them unresolvable.
+ */
+const TYPE_ONLY_EXPRESSIONS = new Set(['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression', 'TSInstantiationExpression', 'TSTypeAssertion']);
+
 const SYNCHRONOUS_CALLBACK_METHODS = new Set(['map', 'filter', 'reduce', 'reduceRight', 'forEach', 'find', 'findIndex', 'findLast', 'findLastIndex', 'flatMap', 'some', 'every', 'sort']);
 
 const RENDER_TIME_HOOK_ARGUMENTS = new Map([
@@ -173,10 +181,14 @@ function getStaticPropertyName(memberExpression) {
 
 /**
  * Unwraps the shapes a collection member key is written in, so `` `${ONYXKEYS.COLLECTION.REPORT}${reportID}` ``
- * is read as the prefix it starts with. Only a leading interpolation counts: anything before it makes the
- * key something other than that prefix.
+ * is read as the prefix it starts with, through any type-only wrapper the key carries. Only a leading
+ * interpolation counts: anything before it makes the key something other than that prefix.
  */
 function unwrapKeyExpression(node) {
+    if (node && TYPE_ONLY_EXPRESSIONS.has(node.type)) {
+        return unwrapKeyExpression(node.expression);
+    }
+
     if (node?.type !== 'TemplateLiteral') {
         return node;
     }
@@ -305,7 +317,76 @@ function isOnyxModuleSource(sourceValue) {
     return sourceValue === ONYX_MODULE;
 }
 
-function classifyFunctionBoundary(functionNode, parent) {
+/**
+ * Whether an identifier sits where React runs it as part of rendering: a hook's `selector` option, a
+ * render-time hook argument such as `useMemo`'s factory, or a component wrapper such as `memo`. This is the
+ * same set of positions `classifyFunctionBoundary` treats as render, checked against a name rather than
+ * against a function written in place.
+ */
+function isRenderTimeUsage(identifier) {
+    const parent = identifier.parent;
+
+    if (parent?.type === 'Property' && parent.value === identifier && RENDER_TIME_OPTION_NAMES.has(getStaticName(parent.key, parent.computed)) && isHookOption(parent)) {
+        return true;
+    }
+
+    if (parent?.type !== 'CallExpression' || !parent.arguments.includes(identifier)) {
+        return false;
+    }
+
+    return matchesCalleeName(parent.callee, COMPONENT_WRAPPER_NAMES) || !!getRenderTimeArgumentIndices(parent.callee)?.has(parent.arguments.indexOf(identifier));
+}
+
+/**
+ * The declaration that binds a function to a name, so a callback written apart from the call that runs it
+ * can be traced to its use sites. Covers both forms a named callback is written in: a function declaration,
+ * and a function assigned to a variable.
+ */
+function getFunctionBinding(functionNode, parent) {
+    if (functionNode.type === 'FunctionDeclaration' && functionNode.id?.type === 'Identifier') {
+        return {declaration: functionNode, name: functionNode.id.name};
+    }
+
+    if (parent?.type === 'VariableDeclarator' && parent.init === functionNode && parent.id.type === 'Identifier') {
+        return {declaration: parent, name: parent.id.name};
+    }
+
+    return null;
+}
+
+/**
+ * Whether any reference to the bound name reaches a render-time position, following renaming assignments so
+ * `const selector = pickAccount` is read as a use of `pickAccount`. Without this, a selector declared next to
+ * the hook rather than inside its options object reads as an ordinary function and its Onyx read goes
+ * unreported, even though the hook calls it on every render.
+ */
+function isReferencedAtRenderTime(declaration, boundName, sourceCode, seen = new Set()) {
+    const variable = sourceCode.getDeclaredVariables(declaration).find((declaredVariable) => declaredVariable.name === boundName);
+
+    if (!variable || seen.has(variable)) {
+        return false;
+    }
+
+    seen.add(variable);
+
+    return variable.references.some((reference) => {
+        const identifier = reference.identifier;
+
+        if (isRenderTimeUsage(identifier)) {
+            return true;
+        }
+
+        const parent = identifier.parent;
+
+        if (parent?.type !== 'VariableDeclarator' || parent.init !== identifier || parent.id.type !== 'Identifier') {
+            return false;
+        }
+
+        return isReferencedAtRenderTime(parent, parent.id.name, sourceCode, seen);
+    });
+}
+
+function classifyFunctionBoundary(functionNode, parent, sourceCode) {
     if (parent?.type === 'Property' && parent.value === functionNode && RENDER_TIME_OPTION_NAMES.has(getStaticName(parent.key, parent.computed)) && isHookOption(parent)) {
         return RENDER;
     }
@@ -336,6 +417,12 @@ function classifyFunctionBoundary(functionNode, parent) {
         }
     }
 
+    const binding = getFunctionBinding(functionNode, parent);
+
+    if (binding && isReferencedAtRenderTime(binding.declaration, binding.name, sourceCode)) {
+        return RENDER;
+    }
+
     const functionName = getFunctionName(functionNode, parent);
 
     if (functionName && (isHookName(functionName) || isComponentName(functionName))) {
@@ -345,7 +432,7 @@ function classifyFunctionBoundary(functionNode, parent) {
     return returnsJSX(functionNode) ? RENDER : DEFERRED;
 }
 
-function classifyPosition(ancestors) {
+function classifyPosition(ancestors, sourceCode) {
     let sawJSXExpression = false;
 
     for (let index = ancestors.length - 1; index >= 0; index--) {
@@ -364,7 +451,7 @@ function classifyPosition(ancestors) {
             return RENDER;
         }
 
-        const disposition = classifyFunctionBoundary(ancestor, ancestors[index - 1] ?? null);
+        const disposition = classifyFunctionBoundary(ancestor, ancestors[index - 1] ?? null, sourceCode);
 
         if (disposition === DEFERRED) {
             return EVENT;
@@ -480,7 +567,7 @@ function create(context) {
                 return;
             }
 
-            const position = classifyPosition(sourceCode.getAncestors(node));
+            const position = classifyPosition(sourceCode.getAncestors(node), sourceCode);
 
             if (position === MODULE_SCOPE) {
                 context.report({node, messageId: 'noOnyxReadAtModuleScope'});

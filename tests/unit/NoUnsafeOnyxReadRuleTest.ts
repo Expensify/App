@@ -4,6 +4,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Rule} from 'eslint';
 
 import {Linter, RuleTester} from 'eslint';
+import {parser as tsParser} from 'typescript-eslint';
 
 type LocalRuleModule = Rule.RuleModule & {
     name: string;
@@ -39,6 +40,17 @@ const ruleTester = new RuleTester({
     },
 });
 
+const tsRuleTester = new RuleTester({
+    languageOptions: {
+        ecmaVersion: 2022,
+        sourceType: 'module',
+        parser: tsParser,
+        parserOptions: {
+            ecmaFeatures: {jsx: true},
+        },
+    },
+});
+
 const ONYX_IMPORT = "import Onyx from 'react-native-onyx';";
 const ONYX_UTILS_IMPORT = "import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';";
 
@@ -65,6 +77,8 @@ describe('no-unsafe-onyx-read', () => {
             `${ONYX_IMPORT} function Row() { useOnyx(key, {onLoaded: () => Onyx.get(ONYXKEYS.ACCOUNT)}); return <View />; }`,
             `${ONYX_IMPORT} client.configure({selector: () => Onyx.get(ONYXKEYS.SESSION)});`,
             `${ONYX_IMPORT} function setup() { client.configure({selector: () => Onyx.get(ONYXKEYS.SESSION)}); }`,
+            `${ONYX_IMPORT} const selector = (data) => Onyx.get(ONYXKEYS.SESSION); client.configure({selector});`,
+            `${ONYX_IMPORT} function Row() { const onPress = () => Onyx.get(ONYXKEYS.SESSION); useEffect(onPress, []); return <View onPress={onPress} />; }`,
             `${ONYX_IMPORT} function Row() { const [v] = useReducer((state, action) => Onyx.get(ONYXKEYS.SESSION), 0); return <View v={v} />; }`,
             `${ONYX_IMPORT} function Row() { const v = useSyncExternalStore((notify) => { Onyx.get(ONYXKEYS.SESSION); return noop; }, snapshot); return <View v={v} />; }`,
             `${ONYX_IMPORT} function Row() { useEffect(() => { use(Onyx.get(ONYXKEYS.SESSION)); }, []); return <View />; }`,
@@ -161,6 +175,26 @@ describe('no-unsafe-onyx-read', () => {
             },
             {
                 code: `${ONYX_IMPORT} function Row() { const p = usePolicy(id, {selector: (data) => Onyx.get(ONYXKEYS.ACCOUNT)}); return <View p={p} />; }`,
+                errors: RENDER_ERRORS,
+            },
+            {
+                code: `${ONYX_IMPORT} function Row() { const selector = (data) => Onyx.get(ONYXKEYS.ACCOUNT); const [value] = useOnyx(key, {selector}); return <View value={value} />; }`,
+                errors: RENDER_ERRORS,
+            },
+            {
+                code: `${ONYX_IMPORT} function Row() { const pickAccount = (data) => Onyx.get(ONYXKEYS.ACCOUNT); const [value] = useOnyx(key, {selector: pickAccount}); return <View value={value} />; }`,
+                errors: RENDER_ERRORS,
+            },
+            {
+                code: `${ONYX_IMPORT} function pickAccount(data) { return Onyx.get(ONYXKEYS.ACCOUNT); } function Row() { const [value] = useOnyx(key, {selector: pickAccount}); return <View value={value} />; }`,
+                errors: RENDER_ERRORS,
+            },
+            {
+                code: `${ONYX_IMPORT} const pickAccount = (data) => Onyx.get(ONYXKEYS.ACCOUNT); const selector = pickAccount; function Row() { const [value] = useOnyx(key, {selector}); return <View value={value} />; }`,
+                errors: RENDER_ERRORS,
+            },
+            {
+                code: `${ONYX_IMPORT} function Row() { const compute = () => Onyx.get(ONYXKEYS.SESSION); const value = useMemo(compute, []); return <View value={value} />; }`,
                 errors: RENDER_ERRORS,
             },
 
@@ -263,6 +297,39 @@ describe('no-unsafe-onyx-read restricted keys', () => {
                 code: `${ONYX_IMPORT} export function submit(formID) { return Onyx.get(\`\${formID}Draft\`); }`,
                 errors: UNRESOLVABLE_ERRORS,
             },
+        ],
+    });
+});
+
+describe('no-unsafe-onyx-read under the TypeScript parser', () => {
+    tsRuleTester.run(ruleModule.name, ruleModule, {
+        valid: [
+            // `as const` on a collection member key is how this codebase writes one, so the wrapper must not
+            // make the key unresolvable
+            {code: `${ONYX_IMPORT} export function submit(id: string) { return Onyx.get(\`\${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}\${id}\` as const); }`},
+            {code: `${ONYX_IMPORT} export function submit(id: string) { const key = \`\${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}\${id}\` as const; return Onyx.get(key); }`},
+            {
+                code: `${ONYX_IMPORT} export function submit(id: string) { const key = \`\${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}\${id}\` as typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES; return Onyx.get(key); }`,
+            },
+            {code: `${ONYX_IMPORT} export function submit(id: string) { return Onyx.get(\`\${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}\${id}\` satisfies string); }`},
+            {code: `${ONYX_IMPORT} export function submit() { return Onyx.get(ONYXKEYS.SESSION as OnyxKey); }`},
+            {code: `${ONYX_IMPORT} export function submit() { return Onyx.get(ONYXKEYS.SESSION!); }`},
+            {code: `${ONYX_IMPORT} export function submit(): Promise<unknown> { return Onyx.get(ONYXKEYS.SESSION); }`},
+        ],
+        invalid: [
+            {code: `${ONYX_IMPORT} export function submit(reportID: string) { return Onyx.get(\`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\` as const); }`, errors: RESTRICTED_ERRORS},
+            {
+                code: `${ONYX_IMPORT} export function submit(reportID: string) { const key = \`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\` as typeof ONYXKEYS.COLLECTION.REPORT; return Onyx.get(key); }`,
+                errors: RESTRICTED_ERRORS,
+            },
+            {code: `${ONYX_IMPORT} export function submit() { return Onyx.get(ONYXKEYS.PERSONAL_DETAILS_LIST as OnyxKey); }`, errors: RESTRICTED_ERRORS},
+            {code: `${ONYX_IMPORT} export function submit(key: OnyxKey) { return Onyx.get(key as OnyxKey); }`, errors: UNRESOLVABLE_ERRORS},
+
+            {
+                code: `${ONYX_IMPORT} function Row({id}: {id: string}) { const value = Onyx.get(ONYXKEYS.SESSION as OnyxKey); return <View value={value} id={id} />; }`,
+                errors: RENDER_ERRORS,
+            },
+            {code: `${ONYX_IMPORT} const initialValue = Onyx.get(ONYXKEYS.SESSION as OnyxKey);`, errors: MODULE_SCOPE_ERRORS},
         ],
     });
 });

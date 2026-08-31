@@ -68,14 +68,14 @@ It also resolves only after `Onyx.init` has hydrated the cache, so it cannot be 
 
 ```typescript
 // GOOD ✅
-function submitExpense(transactionID: string) {
-  const transaction = Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+async function submitExpense(transactionID: string) {
+  const transaction = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
   // ...act on it here, at event time
 }
 
-// BAD ❌
+// BAD ❌ a component cannot await, so reaching the read from render means use() or .then()
 function ReportName({reportID}: Props) {
-  const report = Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`); // never updates again
+  const report = use(Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)); // never updates again
   return <Text>{report?.reportName}</Text>;
 }
 ```
@@ -87,7 +87,7 @@ The ban on reaching rendered output covers the indirect route as well. Putting t
 // BAD ❌ the title freezes at the moment of the tap
 function ReportTitle({reportID}: Props) {
   const [title, setTitle] = useState<string>();
-  const onPress = () => setTitle(Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)?.reportName);
+  const onPress = async () => setTitle((await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.reportName);
   return <Text onPress={onPress}>{title}</Text>;
 }
 ```
@@ -97,11 +97,11 @@ Passing the function as a prop moves the decision into the receiving component: 
 
 ```typescript
 // BAD ❌ src/pages/ReportScreen.tsx passes a reader down
-<ReportRow getTotal={() => Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)?.total} />
+<ReportRow getTotal={async () => (await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.total} />
 
 // src/components/ReportRow.tsx calls it during render
 function ReportRow({getTotal}: Props) {
-  return <Text>{getTotal()}</Text>; // never updates again
+  return <Text>{use(getTotal())}</Text>; // never updates again
 }
 ```
 
@@ -112,8 +112,8 @@ A widely called function usually cannot host the read at all. One render call si
 
 ```typescript
 // src/libs/ReportUtils.ts, correct in isolation
-function getOwnerAccountID(reportID: string) {
-  return Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)?.ownerAccountID;
+async function getOwnerAccountID(reportID: string) {
+  return (await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.ownerAccountID;
 }
 
 // BAD ❌ src/hooks/useOwnerName.ts, the entire diff: that read now runs during render
@@ -130,7 +130,7 @@ Awaiting the read is not the fix. `Onyx.get()` samples the cache when it is call
 ```typescript
 // BAD ❌
 Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: true});
-const account = Onyx.get(ONYXKEYS.ACCOUNT); // isLoading is still the old value
+const account = await Onyx.get(ONYXKEYS.ACCOUNT); // isLoading is still the old value
 ```
 
 ### - A key and a value derived from it MUST NOT be read in a tick that wrote either
@@ -139,8 +139,8 @@ A `set` lands at once but the derivation's own write does not, so the source and
 ```typescript
 // BAD ❌
 Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`, transaction);
-const t = Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`);  // new revision
-const derived = Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);   // still the old one
+const t = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`);  // new revision
+const derived = await Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);   // still the old one
 ```
 
 ### - `Onyx.get()` MUST NOT run at module scope
