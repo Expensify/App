@@ -6,13 +6,13 @@ import type BetaOverrides from '@src/types/onyx/BetaOverrides';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import getEnvironment from './Environment/getEnvironment';
+import {isProduction} from './Environment/Environment';
 
 // Start from the synchronous config so overrides never apply in production, then refine with the resolved
 // environment, which downgrades TestFlight builds to staging
 let isProductionEnvironment = CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.PRODUCTION;
-getEnvironment().then((environment) => {
-    isProductionEnvironment = environment === CONST.ENVIRONMENT.PRODUCTION;
+isProduction().then((value) => {
+    isProductionEnvironment = value;
 });
 
 // eslint-disable-next-line rulesdir/no-beta-handler
