@@ -258,7 +258,7 @@ describe('actions/PolicyMember', () => {
                 owner: 'owner@gmail.com',
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
                 reimburser: 'owner@gmail.com',
-                achAccount: {bankAccountID: 1234, reimburser: 'owner@gmail.com'},
+                achAccount: createMock<PolicyType['achAccount']>({bankAccountID: 1234, reimburser: 'owner@gmail.com'}),
             };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
