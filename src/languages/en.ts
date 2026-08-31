@@ -10355,7 +10355,7 @@ const translations = {
             increasedDistance: 'Distance exceeds route',
             invoiceMarkup: 'Invoice marked up',
             itemizedReceiptRequired: 'Itemized receipt required',
-            maxAge: 'Expense too old',
+            maxAge: 'Date older than max expense age',
             missingAttendees: 'Attendees required',
             missingCategory: 'Missing category',
             missingComment: 'Description required',

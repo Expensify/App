@@ -5278,6 +5278,9 @@ function getSubmittedViolationDisplayName(violationName: string, translate: Loca
  * A report can be submitted more than once, so this aggregates across every submit action,
  * dedupes by violation name, and returns a comma-separated display string.
  * When `translate` is provided, violation identifiers are converted to localized short labels.
+ *
+ * Itemized receipt required supersedes receipt required (same rule as `filterReceiptViolations`),
+ * so both are never shown together for a single expense.
  */
 function getSubmittedViolationsForTransaction(reportActions: OnyxTypes.ReportAction[] | undefined, transactionID: string | undefined, translate?: LocalizedTranslate): string | undefined {
     if (!reportActions?.length || !transactionID) {
@@ -5305,6 +5308,11 @@ function getSubmittedViolationsForTransaction(reportActions: OnyxTypes.ReportAct
 
     if (violationNames.size === 0) {
         return undefined;
+    }
+
+    // Match ViolationMessages / submitter surfaces: only one of these receipt rules can apply.
+    if (violationNames.has(CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED)) {
+        violationNames.delete(CONST.VIOLATIONS.RECEIPT_REQUIRED);
     }
 
     const names = Array.from(violationNames);

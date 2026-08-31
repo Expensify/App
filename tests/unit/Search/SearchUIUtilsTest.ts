@@ -12846,6 +12846,41 @@ describe('SearchUIUtils', () => {
             );
         });
 
+        test('omits receiptRequired when itemizedReceiptRequired is also present', () => {
+            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}, {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED}],
+                },
+            });
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(
+                translateLocal('violations.shortName.itemizedReceiptRequired'),
+            );
+        });
+
+        test('keeps receiptRequired when itemizedReceiptRequired is not present', () => {
+            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}, {name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+                },
+            });
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(
+                `${translateLocal('violations.shortName.receiptRequired')}, ${translateLocal('violations.shortName.missingCategory')}`,
+            );
+        });
+
+        test('translates maxAge via violations.shortName', () => {
+            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MAX_AGE}],
+                },
+            });
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(translateLocal('violations.shortName.maxAge'));
+            expect(translateLocal('violations.shortName.maxAge')).toBe('Date older than max expense age');
+        });
+
         test('translates fieldRequired via violations.shortName', () => {
             const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
                 transactions: {
