@@ -159,9 +159,9 @@ function isTaxAmountInvalid(currentAmount: string, maxTaxAmount: number, decimal
 }
 
 /**
- * Determines whether a merchant value is required for a given report/transaction. Shared by the normal merchant
- * edit step (DynamicIOURequestStepMerchant) and inline table editing (isValidMerchant) so both agree on when an
- * empty merchant is allowed. Unreported expenses, IOU requests, and invoices allow an empty merchant (clearing).
+ * Determines whether a merchant value is required for the given report/transaction — i.e. whether leaving the
+ * merchant empty is disallowed. Workspace expenses require a merchant; unreported expenses, IOU requests,
+ * and invoices allow an empty merchant.
  */
 function isMerchantRequired(report: OnyxEntry<Report>, transaction: OnyxEntry<Transaction>): boolean {
     if (transaction && isExpenseUnreported(transaction)) {
