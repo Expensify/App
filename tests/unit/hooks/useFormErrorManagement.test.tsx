@@ -49,6 +49,20 @@ const baseParams: Params = {
     isDistanceRequest: false,
 };
 
+// A manual draft the user never typed a merchant into: `initMoneyRequest` seeds it with the "Expense" placeholder.
+const placeholderMerchantTransaction = createMock<OnyxTypes.Transaction>({
+    transactionID: 'txn1',
+    amount: 100,
+    merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
+    isMerchantSet: false,
+    comment: {},
+});
+
+const placeholderMerchantParams: Partial<Params> = {
+    transaction: placeholderMerchantTransaction,
+    iouMerchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
+};
+
 function Wrapper({children}: {children: React.ReactNode}) {
     return <LocaleContextProvider>{children}</LocaleContextProvider>;
 }
@@ -147,5 +161,45 @@ describe('useFormErrorManagement', () => {
         const {result} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: false}), {wrapper: Wrapper});
         act(() => result.current.setFormError('iou.error.invalidMerchant'));
         expect(result.current.errorMessage).toBeDefined();
+    });
+
+    it('treats the placeholder merchant of an untouched draft as empty, so it is only invalid while a merchant is required', () => {
+        const {result: required} = renderHook(() => useFormErrorManagement({...baseParams, ...placeholderMerchantParams, isPolicyExpenseChat: true}), {wrapper: Wrapper});
+        const {result: notRequired} = renderHook(() => useFormErrorManagement({...baseParams, ...placeholderMerchantParams, isPolicyExpenseChat: false}), {wrapper: Wrapper});
+
+        expect(required.current.isMerchantFieldValid).toBe(false);
+        expect(notRequired.current.isMerchantFieldValid).toBe(true);
+    });
+
+    it('keeps a placeholder merchant the user typed themselves invalid', () => {
+        const {result} = renderHook(
+            () =>
+                useFormErrorManagement({
+                    ...baseParams,
+                    ...placeholderMerchantParams,
+                    transaction: {...placeholderMerchantTransaction, isMerchantSet: true},
+                    isPolicyExpenseChat: false,
+                }),
+            {wrapper: Wrapper},
+        );
+
+        expect(result.current.isMerchantFieldValid).toBe(false);
+    });
+
+    it('clears the invalid merchant error once the recipient changes from a workspace chat to a user (#96593)', () => {
+        // Given an untouched manual draft (still carrying the placeholder merchant) headed for a workspace chat
+        const {result, rerender} = renderHook(
+            ({isPolicyExpenseChat}: {isPolicyExpenseChat: boolean}) =>
+                useFormErrorManagement({...baseParams, ...placeholderMerchantParams, isNewManualExpenseFlowEnabled: true, isPolicyExpenseChat}),
+            {wrapper: Wrapper, initialProps: {isPolicyExpenseChat: true}},
+        );
+
+        // When confirming surfaces the "please enter a valid merchant" error
+        act(() => result.current.setFormError('iou.error.invalidMerchant'));
+        expect(result.current.formError).toBe('iou.error.invalidMerchant');
+
+        // Then switching the recipient to a user drops the merchant requirement and clears the error
+        rerender({isPolicyExpenseChat: false});
+        expect(result.current.formError).toBe('');
     });
 });

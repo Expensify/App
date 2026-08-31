@@ -2,6 +2,8 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {ButtonVariant} from '@styles/utils/types';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -40,11 +42,11 @@ type ConfirmModalProps = {
     /** Modal content text/element */
     prompt?: string | ReactNode;
 
-    /** Whether we should use the success button color */
-    success?: boolean;
+    /** Subtitle shown between the title and the prompt. Stays fixed above the prompt when the prompt is scrollable. */
+    subtitle?: string | ReactNode;
 
-    /** Is the action destructive */
-    danger?: boolean;
+    /** Button variant */
+    buttonVariant?: ButtonVariant;
 
     /** Whether we should disable the confirm button when offline */
     shouldDisableConfirmButtonWhenOffline?: boolean;
@@ -84,6 +86,9 @@ type ConfirmModalProps = {
 
     /** Styles for prompt */
     promptStyles?: StyleProp<TextStyle>;
+
+    /** Styles for subtitle */
+    subtitleStyles?: StyleProp<TextStyle>;
 
     /** Styles for icon */
     iconAdditionalStyles?: StyleProp<ViewStyle>;
@@ -144,8 +149,9 @@ function ConfirmModal({
     confirmText = '',
     cancelText = '',
     prompt = '',
-    success = true,
-    danger = false,
+    subtitle,
+    subtitleStyles,
+    buttonVariant = CONST.BUTTON_VARIANT.SUCCESS,
     onCancel = () => {},
     onBackdropPress,
     shouldDisableConfirmButtonWhenOffline = false,
@@ -219,8 +225,9 @@ function ConfirmModal({
                 confirmText={confirmText}
                 cancelText={cancelText}
                 prompt={prompt}
-                success={success}
-                danger={danger}
+                subtitle={subtitle}
+                subtitleStyles={subtitleStyles}
+                buttonVariant={buttonVariant}
                 isVisible={isVisible}
                 shouldDisableConfirmButtonWhenOffline={shouldDisableConfirmButtonWhenOffline}
                 shouldShowCancelButton={shouldShowCancelButton}

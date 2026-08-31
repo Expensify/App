@@ -43,7 +43,7 @@ function PerDiemSection({policy, shouldDisplayFieldError, formError}: PerDiemSec
 }
 
 function PerDiemSectionContent({policy, shouldDisplayFieldError, formError}: PerDiemSectionProps) {
-    const {action, iouType, transactionID, reportID, isReadOnly, didConfirm} = useConfirmationFields();
+    const {transactionID, isReadOnly, didConfirm} = useConfirmationFields();
     const transaction = useTransactionSelector(transactionID, perDiemSliceSelector);
 
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
@@ -55,9 +55,6 @@ function PerDiemSectionContent({policy, shouldDisplayFieldError, formError}: Per
             isReadOnly={isReadOnly}
             didConfirm={didConfirm}
             transactionID={transactionID}
-            action={action}
-            iouType={iouType}
-            reportID={reportID}
             shouldDisplayFieldError={shouldDisplayFieldError}
             formError={formError}
         />

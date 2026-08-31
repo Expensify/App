@@ -1,12 +1,16 @@
 import AmountFilterContent from '@components/Search/FilterComponents/AdvancedFilters/AmountFilterContent';
 import type {AmountFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 
-function AmountFilterContentPageWrapper({baseFilterKey, value, buttonText, onChange}: AmountFilterContentWrapperProps) {
+import CONST from '@src/CONST';
+
+import React from 'react';
+
+function AmountFilterContentPageWrapper({baseFilterKey, buttonText, value, onChange}: AmountFilterContentWrapperProps) {
     return (
         <AmountFilterContent
             baseFilterKey={baseFilterKey}
             value={value}
-            largeButton
+            buttonSize={CONST.BUTTON_SIZE.LARGE}
             autoFocus
             buttonText={buttonText}
             onChange={onChange}

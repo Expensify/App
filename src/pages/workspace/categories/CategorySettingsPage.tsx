@@ -20,6 +20,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -39,7 +40,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {arePolicyRulesEnabled, getWorkflowApprovalsUnavailable, hasTags, isAttendeeTrackingEnabled, isControlPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -147,11 +147,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
         )}`;
     }, [convertToDisplayString, policyCategory?.maxExpenseAmount, policyCategoryExpenseLimitType, policyCurrency, translate]);
 
-    const approverText = useMemo(() => {
-        const categoryApprover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], categoryName)?.approver ?? '';
-        const approver = getPersonalDetailByEmail(categoryApprover);
-        return formatPhoneNumber(approver?.displayName ?? categoryApprover);
-    }, [categoryName, policy?.rules?.approvalRules, formatPhoneNumber]);
+    const categoryApprover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], categoryName)?.approver ?? '';
+    const approverText = usePersonalDetailByLogin(categoryApprover, (personalDetails) => formatPhoneNumber(personalDetails?.displayName ?? categoryApprover));
 
     const defaultTaxRateText = useMemo(() => {
         const taxID = getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], categoryName, policy?.taxRates?.defaultExternalID);
@@ -451,7 +448,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     prompt: translate('workspace.categories.deleteCategoryPrompt'),
                                     confirmText: translate('common.delete'),
                                     cancelText: translate('common.cancel'),
-                                    danger: true,
+                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                                 });
                                 if (action === ModalActions.CONFIRM) {
                                     deleteCategory();

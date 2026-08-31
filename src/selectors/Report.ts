@@ -171,7 +171,27 @@ type StableReport = Omit<Report, TupleToUnion<ExcludedFields>>;
  *
  * When adding a new `Report` field: include it in the return object below; only add to
  * `ExcludedFields` if it updates on every message/read and the subtree does not read it.
+ *
+ * Onyx merge replaces arrays wholesale even when their content is identical (arrays are
+ * non-mergeable leaf values compared by reference), so `report.permissions` can arrive with a new
+ * reference on every report push. Intern the array by content so the projection keeps a stable
+ * reference and downstream shallow-equality (snapshot cache, memoized subtrees) holds.
+ * The cache is bounded: values are combinations of the few CONST.REPORT.PERMISSIONS members.
  */
+const stablePermissionsByContent = new Map<string, Report['permissions']>();
+function getStablePermissions(permissions: Report['permissions']): Report['permissions'] {
+    if (!permissions) {
+        return permissions;
+    }
+    const contentKey = permissions.join(',');
+    const cached = stablePermissionsByContent.get(contentKey);
+    if (cached) {
+        return cached;
+    }
+    stablePermissionsByContent.set(contentKey, permissions);
+    return permissions;
+}
+
 function getStableReportSelector(report: OnyxEntry<Report>) {
     if (!report?.reportID) {
         return undefined;
@@ -238,7 +258,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         nonReimbursableTotal: report.nonReimbursableTotal,
         privateNotes: report.privateNotes,
         fieldList: report.fieldList,
-        permissions: report.permissions,
+        permissions: getStablePermissions(report.permissions),
         tripData: report.tripData,
         welcomeMessage: report.welcomeMessage,
         nextStep: report.nextStep,
