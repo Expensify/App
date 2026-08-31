@@ -19,6 +19,11 @@ jest.mock('@libs/actions/Export', () => ({
     clearExportDownload: jest.fn(),
 }));
 
+const mockTrackExport = jest.fn();
+jest.mock('@components/MoneyReportHeaderActions/ExportDownloadStatusProvider', () => ({
+    useExportDownloadStatus: () => ({trackExport: mockTrackExport}),
+}));
+
 jest.mock('@libs/actions/Search', () => ({
     getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     exportSearchItemsToCSV: jest.fn(),
@@ -286,7 +291,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
 
         expect(mockQueueExportSearchItemsToCSV).toHaveBeenCalled();
         expect(mockQueueExportSearchItemsToCSV).toHaveBeenCalledWith(expect.objectContaining({excludedTransactionIDList: ['tx2']}));
-        expect(result.current.exportDownloadStatusModal).not.toBeNull();
+        expect(mockTrackExport).toHaveBeenCalledWith('mock-export-id');
     });
 
     it('exports an excluded unloaded group as a query filter instead of a transaction ID', async () => {
@@ -466,7 +471,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         });
 
         expect(mockQueueExportSearchItemsToCSV).not.toHaveBeenCalled();
-        expect(result.current.exportDownloadStatusModal).toBeNull();
+        expect(mockTrackExport).not.toHaveBeenCalled();
     });
 
     it('beginExportWithTemplate tracks the export', async () => {
@@ -492,7 +497,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         });
 
         expect(mockQueueExportSearchWithTemplate).toHaveBeenCalled();
-        expect(result.current.exportDownloadStatusModal).not.toBeNull();
+        expect(mockTrackExport).toHaveBeenCalledWith('mock-template-export-id');
     });
 
     it('hides template exports when an all-matching expense selection has exclusions', async () => {
