@@ -2199,6 +2199,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 178,
         },
 
+        domainAlreadyExistsIllustrationStyle: {
+            width: 180,
+            height: 164,
+        },
+
         appContent: {
             backgroundColor: theme.appBG,
             overflow: 'hidden',

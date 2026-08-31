@@ -28,7 +28,7 @@ type DomainAlreadyExistsPageProps = PlatformStackScreenProps<WorkspacesDomainMod
 
 function DomainAlreadyExistsPage({route}: DomainAlreadyExistsPageProps) {
     const {domainAccountID} = route.params;
-    const {asset: EarthWithControls} = useMemoizedLazyAsset(() => loadIllustration('EarthWithControls'));
+    const {asset: EmptyStateDomainExists} = useMemoizedLazyAsset(() => loadIllustration('EmptyStateDomainExists'));
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -73,8 +73,8 @@ function DomainAlreadyExistsPage({route}: DomainAlreadyExistsPageProps) {
                 onBackButtonPress={goToDomainsList}
             />
             <ConfirmationPage
-                illustration={EarthWithControls}
-                illustrationStyle={styles.emptyDomainListStaticIllustrationStyle}
+                illustration={EmptyStateDomainExists}
+                illustrationStyle={styles.domainAlreadyExistsIllustrationStyle}
                 heading={translate('domain.domainAlreadyExists.title')}
                 innerContainerStyle={styles.p10}
                 description={translate('domain.domainAlreadyExists.description')}
