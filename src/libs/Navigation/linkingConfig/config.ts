@@ -1993,6 +1993,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_SAVE]: ROUTES.SEARCH_SAVE,
+                [SCREENS.RIGHT_MODAL.BETA_OVERRIDES]: ROUTES.BETA_OVERRIDES,
                 [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: {
                     screens: {
                         [SCREENS.SEARCH.SAVED_SEARCH_RENAME_RHP]: ROUTES.SEARCH_SAVED_SEARCH_RENAME.route,

@@ -7,6 +7,7 @@ import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isUsingStagingApi} from '@libs/ApiUtils';
+import Navigation from '@libs/Navigation/Navigation';
 
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
@@ -15,11 +16,11 @@ import {setIsDebugModeEnabled, setShouldShowBranchNameInTitle, setShouldUseStagi
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
-import React, {useState} from 'react';
+import React from 'react';
 import {Platform} from 'react-native';
 
-import BetaOverridesModal from './BetaOverridesModal';
 import BiometricsTestToolRow from './BiometricsTestToolRow';
 import Button from './ButtonComposed';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
@@ -38,7 +39,6 @@ function TestToolMenu() {
     const {translate} = useLocalize();
     const {clearLHNCache} = useSidebarOrderedReportsActions();
     const {isProduction} = useEnvironment();
-    const [isBetaOverridesModalVisible, setIsBetaOverridesModalVisible] = useState(false);
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
@@ -121,20 +121,19 @@ function TestToolMenu() {
 
                     {/* Allows locally overriding beta feature flags for testing. Not rendered in production because betas are meant to be controlled by the backend there. */}
                     {!isProduction && (
-                        <>
-                            <TestToolRow title={translate('initialSettingsPage.troubleshoot.betaOverrides')}>
-                                <Button
-                                    size={CONST.BUTTON_SIZE.SMALL}
-                                    onPress={() => setIsBetaOverridesModalVisible(true)}
-                                >
-                                    <Button.Text>{translate('common.view')}</Button.Text>
-                                </Button>
-                            </TestToolRow>
-                            <BetaOverridesModal
-                                isVisible={isBetaOverridesModalVisible}
-                                onClose={() => setIsBetaOverridesModalVisible(false)}
-                            />
-                        </>
+                        <TestToolRow title={translate('initialSettingsPage.troubleshoot.betaOverrides')}>
+                            <Button
+                                size={CONST.BUTTON_SIZE.SMALL}
+                                onPress={() => {
+                                    if (Navigation.getActiveRoute().includes(ROUTES.TEST_TOOLS_MODAL.route)) {
+                                        Navigation.dismissModal();
+                                    }
+                                    Navigation.navigate(ROUTES.BETA_OVERRIDES);
+                                }}
+                            >
+                                <Button.Text>{translate('common.view')}</Button.Text>
+                            </Button>
+                        </TestToolRow>
                     )}
 
                     {/* Allows testing and revoking biometric multifactor authentication */}
