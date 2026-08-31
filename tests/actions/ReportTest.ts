@@ -3829,7 +3829,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
-                reportTransactions: [],
+                reportTransactions: [transaction],
             });
             await waitForBatchedUpdates();
 
@@ -3927,7 +3927,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
-                reportTransactions: [],
+                reportTransactions: [expenseTransaction, refundTransaction],
             });
             await waitForBatchedUpdates();
 
@@ -4013,7 +4013,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
-                reportTransactions: [],
+                reportTransactions: [audTransaction, usdTransaction],
             });
             await waitForBatchedUpdates();
 
@@ -4833,6 +4833,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             expect(buildOptimisticNextStep).toHaveBeenCalledWith({
                 report,
@@ -4888,6 +4889,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [transaction],
             });
 
             // Find the transaction optimistic data
@@ -4953,6 +4955,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [transaction],
             });
 
             // Should NOT find transaction optimistic data when currencies are the same
@@ -5002,6 +5005,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [transaction],
             });
 
             // Should NOT find transaction optimistic data when transaction matches destination currency
@@ -5064,6 +5068,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [matchingTransaction, nonMatchingTransaction],
             });
 
             // Should NOT find optimistic data for the matching transaction (USD matches USD destination)
@@ -5129,6 +5134,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportPreviewAction,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
 
             const parentReportActionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`;
