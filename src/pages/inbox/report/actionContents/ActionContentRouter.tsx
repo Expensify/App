@@ -212,7 +212,8 @@ function ActionContentRouter({
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
         return (
             <MoneyRequestReportPreview
-                // Keyed so a recycled instance cannot carry another report's diff baseline in useNewTransactions.
+                // FlashList recycles cells, so this instance can be handed another report's props. Key forces a remount,
+                // or `useNewTransactions` would consider the new report's transactions as newly added on top of the old report's.
                 key={action.reportActionID}
                 iouReportID={getIOUReportIDFromReportActionPreview(action)}
                 iouReport={iouReport}
