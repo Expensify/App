@@ -821,10 +821,7 @@ function isInvalidMerchantValue(merchant?: string): boolean {
 type MerchantValidationError = {type: 'required'} | {type: 'invalidValue'} | {type: 'tooLong'; byteLength: number};
 
 /**
- * Shared merchant validation rules, so the normal merchant edit step (IOURequestStepMerchant) and inline
- * table editing (via MoneyRequestUtils.isValidMerchant) validate against a single source of truth instead of
- * re-implementing the checks. Returns the first validation error, or undefined when the merchant is valid.
- * Callers decide how to surface it (a translated form error vs. silently blocking the inline save).
+ * Returns the first merchant validation error (required, invalid value, or too long), or `undefined` if the merchant is valid.
  */
 function getMerchantError(merchant: string | undefined, isMerchantRequired: boolean): MerchantValidationError | undefined {
     const trimmedMerchant = merchant?.trim() ?? '';
