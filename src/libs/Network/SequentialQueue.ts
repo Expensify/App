@@ -365,17 +365,6 @@ function process(): Promise<void> {
                     errorName: error.name,
                     errorMessage: error.message,
                 });
-                const discardedReceiptData = (requestToProcess.data ?? {}) as {transactionID?: string; receipt?: {receiptTraceId?: string}};
-                const isCoveredElsewhere = error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD;
-                if (!isCoveredElsewhere && RECEIPT_BEARING_COMMANDS.has(requestToProcess.command) && discardedReceiptData.receipt) {
-                    logReceiptGaveUp({
-                        receiptTraceId: discardedReceiptData.receipt.receiptTraceId,
-                        transactionID: discardedReceiptData.transactionID,
-                        command: requestToProcess.command,
-                        errorMessage: error.message,
-                        errorName: error.name,
-                    });
-                }
                 endPersistedRequestAndRemoveFromQueue(requestToProcess);
                 sequentialQueueRequestThrottle.clear();
                 return process();
@@ -433,6 +422,7 @@ function process(): Promise<void> {
                             transactionID: receiptData.transactionID,
                             command: requestToProcess.command,
                             errorMessage: error.message,
+                            errorName: error.name,
                         });
                     }
                     Onyx.update(requestToProcess.failureData ?? []);

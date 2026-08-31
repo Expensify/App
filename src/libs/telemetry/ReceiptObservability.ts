@@ -15,7 +15,7 @@ import type {ValueOf} from 'type-fest';
 /** Prefix on every receipt log line so we can filter the logs without parsing free text. */
 const RECEIPT_LOG_PREFIX = '[Receipt]';
 
-/** Points in the app lifecycle where we snapshot the receipts that are still pending. */
+/** Points in the app lifecycle where we snapshot the receipts that are still pending.*/
 type ReceiptSnapshotTrigger = 'signOut' | 'background' | 'foreground';
 
 /** Which sign-out path tore down the session, so a forced sign-out does not read as a deliberate one. */
@@ -241,7 +241,7 @@ function logReceiptAdoptFailed({error, captureSource}: {error: unknown; captureS
     });
 }
 
-function isReceiptFileDurable(source: ReceiptSource | undefined): boolean {
+function getIsSourceInDurableFolder(source: ReceiptSource | undefined): boolean {
     if (typeof source !== 'string') {
         return false;
     }
@@ -258,7 +258,7 @@ type PendingReceiptRow = {
     transactionID: string | undefined;
     command: string;
     msSinceEnqueued: number | undefined;
-    hasDurableFile: boolean;
+    isSourceInDurableFolder: boolean;
 };
 
 /**
@@ -313,7 +313,7 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger, reason?: SignO
             transactionID,
             command: request.command,
             msSinceEnqueued: enqueuedAt !== undefined ? now - enqueuedAt : undefined,
-            hasDurableFile: isReceiptFileDurable(data.receipt.source),
+            isSourceInDurableFolder: getIsSourceInDurableFolder(data.receipt.source),
         });
     }
 
@@ -329,7 +329,7 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger, reason?: SignO
             transactionID: row.transactionID,
             command: row.command,
             msSinceEnqueued: row.msSinceEnqueued,
-            hasDurableFile: String(row.hasDurableFile),
+            isSourceInDurableFolder: String(row.isSourceInDurableFolder),
             isOffline: String(isOffline),
             platform: getPlatform(),
         });
