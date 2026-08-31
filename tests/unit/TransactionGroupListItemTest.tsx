@@ -138,7 +138,6 @@ const mockTransaction: TransactionListItemType = {
         owner: 'test@test.com',
         name: 'Policy',
         outputCurrency: 'USD',
-        isPolicyExpenseChatEnabled: true,
     },
     reportAction: {
         reportActionID: '2454187434077044186',

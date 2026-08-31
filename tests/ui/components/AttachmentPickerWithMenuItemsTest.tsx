@@ -143,7 +143,6 @@ describe('AttachmentPickerWithMenuItems - empty report confirmation', () => {
                 name: 'Test Workspace',
                 type: CONST.POLICY.TYPE.TEAM,
                 role: CONST.POLICY.ROLE.ADMIN,
-                isPolicyExpenseChatEnabled: true,
                 pendingAction: null,
                 owner: CURRENT_USER_EMAIL,
                 outputCurrency: CONST.CURRENCY.USD,
