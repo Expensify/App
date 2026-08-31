@@ -2458,7 +2458,7 @@ function hasNoticeTypeViolation(
             violation.type === CONST.VIOLATION_TYPES.NOTICE &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
             !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy) &&
-            shouldShowViolation(iouReport, policy, violation.name, currentUserEmail, true, transaction),
+            shouldShowViolation(iouReport, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction),
     );
 }
 

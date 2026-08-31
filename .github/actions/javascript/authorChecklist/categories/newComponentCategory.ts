@@ -14,6 +14,14 @@ type WebhookPayload = typeof github.context.payload;
 
 type SuperClassType = {superClass: {name?: string; object: {name: string}; property: {name: string}} | null; name: string};
 
+function isBabelTraverse(value: unknown): value is typeof traverse {
+    return typeof value === 'function';
+}
+
+// The bundled action runs in Node, where the CJS package's default export is nested under `.default`, while Bun exposes the function directly.
+const nestedTraverse: unknown = Object.getOwnPropertyDescriptor(traverse, 'default')?.value;
+const babelTraverse = isBabelTraverse(nestedTraverse) ? nestedTraverse : traverse;
+
 type GithubPaylod = WebhookPayload & {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     pull_request?: {
@@ -52,7 +60,7 @@ function detectReactComponent(code: string, filename: string): boolean | undefin
 
     let isReactComponent = false;
 
-    traverse(ast, {
+    babelTraverse(ast, {
         enter(path) {
             if (isReactComponent) {
                 return;

@@ -69602,6 +69602,11 @@ function promiseSome(promises3, callbackFn) {
 // .github/actions/javascript/authorChecklist/categories/newComponentCategory.ts
 var import_parser = __toESM(require_lib2(), 1);
 var import_traverse = __toESM(require_lib9(), 1);
+function isBabelTraverse(value) {
+  return typeof value === "function";
+}
+var nestedTraverse = Object.getOwnPropertyDescriptor(import_traverse.default, "default")?.value;
+var babelTraverse = isBabelTraverse(nestedTraverse) ? nestedTraverse : import_traverse.default;
 var items = [
   "I verified that similar component doesn't exist in the codebase",
   "I verified that all props are defined accurately and each prop has a `/** comment above it */`",
@@ -69628,7 +69633,7 @@ function detectReactComponent(code, filename) {
     // enable jsx plugin
   });
   let isReactComponent = false;
-  (0, import_traverse.default)(ast, {
+  babelTraverse(ast, {
     enter(path) {
       if (isReactComponent) {
         return;

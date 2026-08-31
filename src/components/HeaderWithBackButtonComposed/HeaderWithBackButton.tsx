@@ -1,4 +1,5 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
+import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
@@ -10,6 +11,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
+import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 
@@ -155,16 +157,23 @@ function HeaderWithBackButton({
                         iconFill={iconFill}
                     />
                 )}
-                {!!policyAvatar && (
-                    <Avatar
-                        containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(policyAvatarSize)), styles.mr3]}
-                        source={policyAvatar.source}
-                        name={policyAvatar.name}
-                        avatarID={policyAvatar.id}
-                        type={policyAvatar.type}
-                        size={policyAvatarSize}
-                    />
-                )}
+                {!!policyAvatar &&
+                    (policyAvatar.type === CONST.ICON_TYPE_WORKSPACE ? (
+                        <WorkspaceAvatar
+                            containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(policyAvatarSize)), styles.mr3]}
+                            source={policyAvatar.source}
+                            name={policyAvatar.name ?? ''}
+                            avatarID={policyAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
+                            size={policyAvatarSize}
+                        />
+                    ) : (
+                        <UserAvatar
+                            containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(policyAvatarSize)), styles.mr3]}
+                            source={policyAvatar.source}
+                            accountID={getAccountIDFromAvatarID(policyAvatar.id)}
+                            size={policyAvatarSize}
+                        />
+                    ))}
                 {shouldShowReportAvatarWithDisplay ? (
                     <AvatarWithDisplayName
                         report={report}
