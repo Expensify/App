@@ -80,6 +80,7 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
                             <AccountAvatar
                                 size={avatarSize}
                                 accountID={item.accountID}
+                                accountEmail={item.login}
                                 fallbackDisplayName={item.name ?? item.email}
                             />
                         </View>
