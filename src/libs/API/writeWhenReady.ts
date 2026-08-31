@@ -160,8 +160,7 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
         const abortController = new AbortController();
         let barrierError: unknown;
 
-        // Claimed synchronously, before the barrier is even built, so a READ firing on the next line parks
-        // behind this write exactly as it would had `write()` queued the request right here.
+        // Claimed before the barrier is even built, so a READ on the very next line already parks behind us.
         const settleReadGateClaim = claimReadGate ? claimReadGateForDeferredWrite() : () => {};
 
         const execute = (reason: ReleaseReason) => {
@@ -206,8 +205,8 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
             } catch (error) {
                 reject(error);
             } finally {
-                // `push()` already ran synchronously inside `write()`, so either the queue holds the gate
-                // now or we were offline and nothing was queued. Nothing left for this claim to do.
+                // `push()` ran synchronously inside `write()`: the queue holds the gate now, or we were
+                // offline and nothing was queued.
                 settleReadGateClaim();
             }
         };

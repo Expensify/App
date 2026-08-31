@@ -71,17 +71,14 @@ function setIsReadyPromisePending() {
     isReadyPromisePending = true;
 }
 
-// Deferred writes (API.writeWhenReady) are not on the queue yet, so nothing else can hold the gate for
-// them. waitForIdle() waits on this before it looks at the queue, so a READ can't overtake a write that
-// is still sitting on its barrier.
+// A deferred write (API.writeWhenReady) isn't on the queue yet, so nothing else holds the gate for it.
 let deferredWriteClaims = 0;
 let deferredWritesLanded: Promise<void> = Promise.resolve();
 let resolveDeferredWritesLanded: (() => void) | undefined;
 
 /**
- * The only writer of the claim count, so deferredWritesLanded is pending exactly while claims are
- * outstanding. Resolving it with claims left would spin waitForIdle()'s loop. Floored because
- * resetQueue() can zero the count while a claim is still live.
+ * Sole writer of the count, so deferredWritesLanded is pending exactly while claims are outstanding -
+ * resolving it early would spin waitForIdle(). Floored: resetQueue() can zero the count mid-claim.
  */
 function setDeferredWriteClaims(count: number) {
     if (count > 0 && deferredWriteClaims === 0) {
@@ -817,16 +814,12 @@ function getCurrentRequest(): Promise<void> {
 }
 
 /**
- * Returns a promise that resolves when the sequential queue is done processing all persisted write requests,
- * including any deferred write still waiting on its barrier. isReadyPromise is read after that wait, not
- * before, so the deferred write's push() has already re-closed the gate by the time we park on it.
- *
- * Deferred writes are skipped while offline, where the queue can't run at all - push() and flush() open the
- * gate for the same reason. The race re-checks on every network change, so neither going offline mid-wait
- * nor coming back online mid-barrier leaves the gate in the wrong state.
+ * Resolves when the queue is done processing all persisted write requests, deferred writes included.
+ * Skipped while offline, where the queue can't run and push()/flush() open the gate for the same reason.
  */
 async function waitForIdle(): Promise<unknown> {
     while (deferredWriteClaims > 0 && !isOfflineNetwork()) {
+        // Wake on a network change too, so going offline releases READs and coming back re-parks them.
         let unsubscribeFromNetworkState = () => {};
         const networkStateChanged = new Promise<void>((resolve) => {
             unsubscribeFromNetworkState = subscribeToNetworkState(resolve);
@@ -836,6 +829,7 @@ async function waitForIdle(): Promise<unknown> {
         unsubscribeFromNetworkState();
     }
 
+    // Read after the wait, not before: the deferred write's push() has re-closed the gate by now.
     return isReadyPromise;
 }
 

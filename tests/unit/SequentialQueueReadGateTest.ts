@@ -17,8 +17,7 @@ jest.mock('@libs/ActiveClientManager', () => ({
     init: jest.fn(),
 }));
 
-// The gate is module state shared by every test here, so each one resets it. This lives apart from
-// SequentialQueueTest so no pushed request has moved the gate before a test starts.
+// Kept apart from SequentialQueueTest so no pushed request has moved the shared gate before a test starts.
 
 const request: Request<'userMetadata'> = {
     command: 'ReconnectApp',
