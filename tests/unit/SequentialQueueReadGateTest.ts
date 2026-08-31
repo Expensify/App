@@ -132,6 +132,27 @@ describe('SequentialQueue.claimReadGateForDeferredWrite', () => {
         expect(idle.hasResolved).toBe(true);
     });
 
+    it('survives an unrelated write draining to completion mid-deferral', async () => {
+        // Given a deferred write holding the gate
+        const settleClaim = SequentialQueue.claimReadGateForDeferredWrite();
+
+        // When an ordinary write lands during the deferral and runs to completion, so the queue resolves
+        // its own gate from the drain path rather than from the empty-queue branch above
+        SequentialQueue.push(request);
+        await waitForBatchedUpdates();
+        await waitForBatchedUpdates();
+
+        // Then a READ firing afterwards still parks. The drain says nothing about the deferred write,
+        // which is not on the queue yet - reading it as "all writes are done" is what #99805 was.
+        const idle = trackIdle();
+        await waitForBatchedUpdates();
+        expect(idle.hasResolved).toBe(false);
+
+        settleClaim();
+        await waitForBatchedUpdates();
+        expect(idle.hasResolved).toBe(true);
+    });
+
     it('waits for every outstanding claim, not just the first one to settle', async () => {
         // Given two deferred writes, each holding the gate
         const settleFirst = SequentialQueue.claimReadGateForDeferredWrite();
