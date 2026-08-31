@@ -1,8 +1,9 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import NumericField, {useNumericFieldActions, useNumericFieldState} from '@components/NumericField';
+import type {NumericFieldRef} from '@components/NumericField';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
@@ -26,7 +27,7 @@ type NumericFieldProps = React.ComponentProps<typeof NumericField>;
 
 function ContextReadout() {
     const {value, allowNegative, errorText} = useNumericFieldState();
-    const {setNumber, updateNumber, handleBlur} = useNumericFieldActions();
+    const {setNumber, handleBlur} = useNumericFieldActions();
 
     return (
         <View>
@@ -39,14 +40,6 @@ function ContextReadout() {
                 testID="ctx-setNumber"
                 onPress={() => {
                     setNumber('7');
-                }}
-            />
-            <PressableWithFeedback
-                accessibilityLabel="Update number silently"
-                accessibilityRole="button"
-                testID="ctx-updateNumber"
-                onPress={() => {
-                    updateNumber('99');
                 }}
             />
             <PressableWithFeedback
@@ -179,7 +172,7 @@ describe('NumericField', () => {
                 </ComposeProviders>,
             );
 
-            // Then the editing state keeps the current value; external pushes must use updateNumber
+            // Then the editing state keeps the current value; external pushes must use the imperative ref
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('10');
         });
 
@@ -220,12 +213,15 @@ describe('NumericField', () => {
             expect(onInputChange).toHaveBeenCalledWith('7');
         });
 
-        it('updates context without notifying the parent when updateNumber is called', () => {
-            // Given an uncontrolled NumericField
-            renderNumericField();
+        it('updates the field without notifying the parent when updateNumber is called through the imperative ref', () => {
+            // Given an uncontrolled NumericField with an imperative ref
+            const numericEditingRef = React.createRef<NumericFieldRef>();
+            renderNumericField({numericEditingRef});
 
-            // When updateNumber is called
-            fireEvent.press(screen.getByTestId('ctx-updateNumber'));
+            // When updateNumber is called through the imperative ref
+            act(() => {
+                numericEditingRef.current?.updateNumber('99');
+            });
 
             // Then the context value updates without calling onInputChange
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('99');

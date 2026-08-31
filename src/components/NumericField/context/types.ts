@@ -23,14 +23,6 @@ type NumericFieldActionsContextValue = {
     /** Normalizes, validates, and commits displayed text. */
     setNumber: (text: string) => void;
 
-    /** Replaces the canonical value without validation or notification and moves the caret to the end. */
-    updateNumber: (value: string) => void;
-
-    getNumber: () => string;
-
-    /** Collapses the selection onto its end. */
-    clearSelection: () => void;
-
     /** Applies a native selection change, dropping stale events from manual updates. */
     handleSelectionChange: (selectionStart: number, selectionEnd: number) => void;
 

@@ -59,9 +59,6 @@ function NumericField({value = '', onInputChange, allowNegative = false, decimal
 
     const actionsContextValue: NumericFieldActionsContextValue = {
         setNumber: controller.setNumber,
-        updateNumber: controller.updateNumber,
-        getNumber: controller.getNumber,
-        clearSelection: controller.clearSelection,
         handleSelectionChange: controller.handleSelectionChange,
         handleKeyPress: controller.handleKeyPress,
         handleBlur: onBlur,
