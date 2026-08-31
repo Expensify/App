@@ -32,20 +32,7 @@ type BootsplashGateStatus = {
     lastVisitedPath: string | undefined;
 };
 
-/** How often the monitor samples the bootsplash gate. */
-const BOOTSPLASH_POLL_INTERVAL_MS = 10_000;
-
-/**
- * Stuck-splash reports forwarded to Sentry before the monitor goes quiet. A splash that never hides would
- * otherwise report once per poll for the whole session, and the later reports repeat what the first few
- * already said. Six covers the first minute, which is where a recoverable stall resolves.
- */
-const MAX_STUCK_REPORTS = 6;
-
 function startBootsplashMonitor(gateStatusRef: React.RefObject<BootsplashGateStatus | null>): () => void {
-    const startedAt = Date.now();
-    let stuckReportCount = 0;
-
     const intervalId = setInterval(() => {
         const currentGateStatus = gateStatusRef.current;
         const appState = AppState.currentState;
@@ -56,20 +43,8 @@ function startBootsplashMonitor(gateStatusRef: React.RefObject<BootsplashGateSta
             return;
         }
 
-        if (stuckReportCount >= MAX_STUCK_REPORTS) {
-            return;
-        }
-        stuckReportCount++;
-
-        // A stuck splash is a diagnostic signal, not a crash, so it goes to Sentry logs rather than the error
-        // stream. `stuckForMs` is what the repeated reports are actually for: how long the gate stayed shut.
-        Sentry.logger.warn('[BootSplash] splash screen is still visible', {
-            ...currentGateStatus,
-            appState,
-            stuckForMs: Date.now() - startedAt,
-            reportNumber: stuckReportCount,
-        });
-    }, BOOTSPLASH_POLL_INTERVAL_MS);
+        Sentry.logger.warn('[BootSplash] splash screen is still visible', {...currentGateStatus, appState});
+    }, 10_000);
 
     return () => clearInterval(intervalId);
 }
