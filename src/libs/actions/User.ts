@@ -1012,11 +1012,11 @@ function updateChatPriorityMode(mode: ValueOf<typeof CONST.PRIORITY_MODE>, autom
     }
 }
 
-function setShouldUseStagingServer(shouldUseStagingServer: boolean) {
+function setActiveServer(server: ValueOf<typeof CONST.SERVER>) {
     if (CONFIG.IS_HYBRID_APP) {
-        HybridAppModule.shouldUseStaging(shouldUseStagingServer);
+        HybridAppModule.shouldUseStaging(server === CONST.SERVER.STAGING);
     }
-    Onyx.set(ONYXKEYS.SHOULD_USE_STAGING_SERVER, shouldUseStagingServer);
+    Onyx.set(ONYXKEYS.ACTIVE_SERVER, server);
 }
 
 function togglePlatformMute(platform: Platform, mutedPlatforms: Partial<Record<Platform, true>>) {
@@ -1991,7 +1991,7 @@ export {
     updatePreferredSkinTone,
     setInboxTab,
     updateChatPriorityMode,
-    setShouldUseStagingServer,
+    setActiveServer,
     togglePlatformMute,
     joinScreenShare,
     clearScreenShareRequest,

@@ -357,7 +357,7 @@ const KEYS_TO_PRESERVE_SUPPORTAL = [
     // This allows the report screen to load correctly when the delegate token expires and the delegate is returned to their original account.
     ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
     ONYXKEYS.NETWORK,
-    ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    ONYXKEYS.ACTIVE_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
 
     // Preserve IS_USING_IMPORTED_STATE so that when transitioning to/from supportal,
