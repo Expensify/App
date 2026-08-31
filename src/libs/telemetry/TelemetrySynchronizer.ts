@@ -42,14 +42,13 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         if (!value?.email) {
-            // The session was cleared (sign-out): drop all account-size attributes, so spans of the next account don't inherit them.
-            clearGlobalSpanAttributes();
+            handleAccountChange();
             return;
         }
         const previousEmail = session?.email;
         session = value;
         if (previousEmail && previousEmail !== value.email) {
-            clearGlobalSpanAttributes();
+            handleAccountChange();
         }
         sendPoliciesContext();
     },
@@ -161,6 +160,12 @@ function bucketReportCount(count: number): string {
         return '5001-10000';
     }
     return '10000+';
+}
+
+function handleAccountChange() {
+    clearGlobalSpanAttributes();
+    activePolicyID = undefined;
+    policies = undefined;
 }
 
 function sendPoliciesContext() {
