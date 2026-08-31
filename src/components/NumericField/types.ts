@@ -35,7 +35,6 @@ type NumericTextInputProps = {
     | 'contentWidth'
     | 'disabled'
     | 'disableKeyboard'
-    | 'inputMode'
     | 'keyboardType'
     | 'label'
     | 'onBlur'

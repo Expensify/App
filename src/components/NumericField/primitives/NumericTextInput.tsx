@@ -26,7 +26,6 @@ function NumericTextInput({
     disabled,
     disableKeyboard,
     keyboardType,
-    inputMode,
     label,
     onFocus,
     prefixContainerStyle,
@@ -75,7 +74,7 @@ function NumericTextInput({
             disabled={disabled}
             disableKeyboard={disableKeyboard}
             errorText={errorText}
-            inputMode={inputMode ?? (!keyboardType ? CONST.INPUT_MODE.DECIMAL : undefined)}
+            inputMode={!keyboardType ? CONST.INPUT_MODE.DECIMAL : undefined}
             inputStyle={style}
             keyboardType={keyboardType ?? CONST.KEYBOARD_TYPE.DECIMAL_PAD}
             label={label}
