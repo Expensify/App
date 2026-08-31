@@ -78,6 +78,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import {resetOnboardingStackToRoot} from '@libs/Navigation/helpers/OnboardingNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {getDBTimeWithSkew, getIsOffline as isOfflineNetwork} from '@libs/NetworkState';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -187,7 +188,7 @@ import {
     recalculateUnreportedTransactionDetails,
     shouldClearConvertedAmount,
 } from '@libs/TransactionUtils';
-import {getSearchParamFromPath} from '@libs/Url';
+import {appendParam, getSearchParamFromPath} from '@libs/Url';
 import {buildSecureDownloadURL} from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
 
@@ -2807,12 +2808,36 @@ function navigateToAndOpenChildReport(
     isSelfTourViewed: boolean | undefined,
 ) {
     const report = childReport ?? createChildReport(childReport, parentReportAction, parentReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, participantsPersonalDetails);
+    const backTo = Navigation.getActiveRoute();
+
+    // A money-request/expense child report must open in the wide/super-wide RHP (SEARCH_MONEY_REQUEST_REPORT in the
+    // Search context, EXPENSE_REPORT_RHP in the inbox), mirroring how report links are routed in Link.ts and
+    // ParentNavigationSubtitle. Other child reports keep the standard SEARCH_REPORT / REPORT_WITH_ID navigation.
+    // These reports open scrolled to the top. Opening from the "X Replies" link should instead land on the latest
+    // message, so we append the shouldScrollToLatest flag for the money-request branches.
+    const isMoneyRequest = isMoneyRequestReport(report);
 
     if (isSearchTopmostFullScreenRoute()) {
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID, backTo: Navigation.getActiveRoute()}));
-    } else {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
+        if (isMoneyRequest) {
+            Navigation.navigate(appendParam(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: report.reportID, backTo}), REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST, 'true'));
+        } else {
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID, backTo}));
+        }
+        return;
     }
+
+    if (!isMoneyRequest) {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, backTo));
+        return;
+    }
+
+    // Narrow layouts navigate to the full report view since the super-wide RHP is not available there and would
+    // break the navigation logic. This mirrors the split the expense preview card already makes in
+    // MoneyRequestReportPreview.
+    const moneyRequestRoute = getIsNarrowLayout()
+        ? ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, backTo)
+        : ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: report.reportID, backTo});
+    Navigation.navigate(appendParam(moneyRequestRoute, REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST, 'true'));
 }
 
 /**

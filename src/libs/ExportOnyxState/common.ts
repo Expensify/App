@@ -140,7 +140,7 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         maskList: ['merchant', 'description', 'comment'],
     },
     [ONYXKEYS.COLLECTION.POLICY]: {
-        allowList: ['id', 'type', 'role', 'outputCurrency', 'isPolicyExpenseChatEnabled', 'areCategoriesEnabled', 'areTagsEnabled'],
+        allowList: ['id', 'type', 'role', 'outputCurrency', 'areCategoriesEnabled', 'areTagsEnabled'],
         maskList: ['name', 'avatar'],
     },
     [ONYXKEYS.USER_WALLET]: {
@@ -248,6 +248,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
     ONYXKEYS.LAST_EXPORT_METHOD,
     ONYXKEYS.LAST_FULL_RECONNECT_TIME,
+    ONYXKEYS.LAST_MEASURED_DATABASE_SIZE,
     ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS,
     ONYXKEYS.MAX_CANVAS_AREA,
     ONYXKEYS.MAX_CANVAS_HEIGHT,
