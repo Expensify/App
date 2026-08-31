@@ -2142,8 +2142,7 @@ const CONST = {
 
         /**
          * How long after entering an advanced filter row its content is rendered even if the cursor never came to rest.
-         * Measured from entering the row, so moving on to the next one restarts it and a pass across the list, however
-         * slow, never reaches it - the longest a row was held during a measured pass was 257 ms.
+         * Measured from entering the row, so only moving on to the next one restarts it.
          */
         SEARCH_FILTER_HOVER_INTENT_MAX_DELAY: 400,
 
@@ -6874,9 +6873,6 @@ const CONST = {
         RESULTS_PAGE_SIZE: 50,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
-        /** How many advanced filter contents the filters popover keeps mounted */
-        MAX_MOUNTED_FILTER_CONTENTS: 3,
-
         /** How far the cursor may wander from where it settled over the advanced filter list and still count as resting */
         HOVER_INTENT_REST_RADIUS_PX: 8,
         DATA_TYPES: {

@@ -333,9 +333,8 @@ function BaseSelectionListImpl({
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // A hidden `<Activity>` subtree keeps its state but unmounts its effects, so this runs again when the list is
-    // revealed without it being mounted anew. The list has no layout while it is hidden and its container loses the
-    // scroll position, which leaves the rendered window describing the offset from before - the visible area is blank
-    // until something scrolls the list. Scrolling back to the offset the list still reports puts the two in sync again.
+    // revealed. Its container loses the scroll position while the rendered window still describes the old offset, which
+    // leaves the visible area blank until something scrolls it; scrolling back to the reported offset realigns them.
     const hasMountedRef = useRef(false);
     useEffect(() => {
         if (!hasMountedRef.current) {
@@ -343,11 +342,10 @@ function BaseSelectionListImpl({
             return;
         }
 
-        // The offset is read here rather than in the frame below, because the scroll the container reports on being
-        // revealed reaches the list first and would leave it reporting the top it was reset to.
+        // Read here rather than in the frame below: the scroll reported on being revealed reaches the list first and
+        // would leave it reporting the top it was reset to.
         const listOffset = listRef.current?.getAbsoluteLastScrollOffset();
-        // A list sitting at the top has nothing to restore: its window already describes that offset. Skipping the
-        // scroll keeps revealing such a list - every list nobody scrolled - as cheap as it was before.
+        // A list sitting at the top has nothing to restore, and skipping the scroll keeps revealing one as cheap as before.
         if (!listOffset) {
             return;
         }

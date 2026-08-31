@@ -115,15 +115,12 @@ function memoize<Fn extends IsomorphicFn, MaxArgs extends number = NonPartial<Is
     return memoized;
 }
 
-/**
- * The two-level fallback below reads arguments through `Object.keys`, which only describes plain objects - for other
- * types (Set, Map, Date, class instances) it returns an empty list and any two instances would look identical.
- */
+/** Narrowed to plain objects only: `Object.keys` describes nothing about a Set, Map, Date or class instance. */
 const isPlainObject = (value: unknown): value is Record<string, unknown> => lodashIsPlainObject(value);
 
 /**
- * Two arguments are equivalent when they are shallowly equal, or are plain objects with the same keys whose values are
- * shallowly equal - the second level covers arguments rebuilt from unchanged sources (e.g. a mapped Onyx collection).
+ * Two arguments are equivalent when they are shallowly equal, or are plain objects whose values are shallowly equal -
+ * the second level covers arguments rebuilt from unchanged sources (e.g. a mapped Onyx collection).
  */
 const areArgumentsEquivalent = (previousArgument: unknown, nextArgument: unknown) => {
     if (shallowEqual(previousArgument, nextArgument)) {

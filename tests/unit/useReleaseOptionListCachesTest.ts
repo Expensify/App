@@ -52,8 +52,8 @@ function navigateWithinSearch() {
     mockNavigationListener?.();
 }
 
-function renderReleaseHook(initialTabKey: string | undefined) {
-    return renderHook<void, string | undefined>((tabKey) => useReleaseOptionListCaches(tabKey), {initialProps: initialTabKey});
+function renderReleaseHook() {
+    return renderHook(() => useReleaseOptionListCaches());
 }
 
 beforeEach(() => {
@@ -63,33 +63,8 @@ beforeEach(() => {
 });
 
 describe('useReleaseOptionListCaches', () => {
-    it('keeps the cached lists while the same tab stays selected', () => {
-        const {rerender} = renderReleaseHook('expenses');
-
-        rerender('expenses');
-
-        expect(mockRelease).not.toHaveBeenCalled();
-    });
-
-    it('releases the cached lists when another tab of Search is selected', () => {
-        const {rerender} = renderReleaseHook('expenses');
-
-        rerender('reports');
-
-        expect(mockRelease).toHaveBeenCalled();
-    });
-
-    it('keeps the cached lists when the query shown stops matching a tab', () => {
-        const {rerender} = renderReleaseHook('expenses');
-
-        // A filter was applied, so the query belongs to no tab - the user is still on the one they were on.
-        rerender(undefined);
-
-        expect(mockRelease).not.toHaveBeenCalled();
-    });
-
     it('releases the cached lists when another tab takes over from Search', () => {
-        renderReleaseHook('expenses');
+        renderReleaseHook();
 
         leaveSearch();
 
@@ -97,7 +72,7 @@ describe('useReleaseOptionListCaches', () => {
     });
 
     it('keeps the cached lists while Search is still the tab on top', () => {
-        renderReleaseHook('expenses');
+        renderReleaseHook();
 
         navigateWithinSearch();
 
@@ -105,7 +80,7 @@ describe('useReleaseOptionListCaches', () => {
     });
 
     it('stops listening to navigation once it is no longer used', () => {
-        const {unmount} = renderReleaseHook('expenses');
+        const {unmount} = renderReleaseHook();
 
         unmount();
 

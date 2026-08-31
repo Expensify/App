@@ -153,20 +153,14 @@ const defaultListOptions = {
 };
 
 /**
- * How many option lists the caches below hold. Consumers of this hook mount one selector at a time, except the Search
- * filters popover, which keeps the contents of its people filters alive next to each other - three entries cover the
- * lists it renders side by side. Entries rotate below that number as well, because what a consumer searches for is part
- * of the key, so typing in one selector replaces the entries of the others.
- *
- * Fewer entries cost more than the memory they save: the result of `buildSelectedOptions` is an argument of
- * `getValidOptions` and is compared by identity, so an eviction in the first cache produces a new list and makes the
- * second one miss as well.
+ * How many option lists the caches below hold. Consumers mount one selector at a time, except the Search filters
+ * popover, which keeps its people filters alive next to each other. Fewer entries cost more than the memory they save:
+ * the result of `buildSelectedOptions` is an argument of `getValidOptions` compared by identity, so an eviction in the
+ * first cache makes the second one miss as well.
  */
 const MAX_CACHED_OPTION_LISTS = 3;
 
-/**
- * Filtering the whole option list is a pure derivation of its inputs, so remounting consumers reuse the previous result.
- */
+/** Filtering the whole option list is a pure derivation of its inputs, so remounting consumers reuse the result. */
 const memoizedGetValidOptions = memoize(getValidOptions, {
     maxSize: MAX_CACHED_OPTION_LISTS,
     equality: equivalentArgsComparator,
@@ -192,8 +186,8 @@ function clearPersonalDetailSearchSelectorCaches() {
     memoizedBuildSelectedOptions.cache.clear();
 }
 
-// Both caches hold option lists built for the signed-in account. Search releases them once it is done with them (see
-// `useReleaseOptionListCaches`), and sign-out covers whatever is still held at that point.
+// Both caches hold option lists built for the signed-in account, released when Search is left
+// (`useReleaseOptionListCaches`) and on sign-out.
 registerSessionCleanupCallback(clearPersonalDetailSearchSelectorCaches);
 
 /**
@@ -244,8 +238,8 @@ function usePersonalDetailSearchSelectorBase({
     })();
     const areOptionsInitialized = !isPersonalDetailsOptionsLoading;
 
-    // With nothing selected the options already carry the right state, so the list is passed through without copying,
-    // keeping its reference stable for the memoized filtering below.
+    // With nothing selected the options already carry the right state, so the list is passed through instead of a copy
+    // of every option being built and then held in the cache.
     const transformedOptions: OptionData[] = (() => {
         if (!optionsWithContacts) {
             return [];
@@ -292,19 +286,13 @@ function usePersonalDetailSearchSelectorBase({
     const currentUserSearchTerms = [translate('common.you'), translate('common.me')];
     const filteredCurrentUserOption = (() => {
         const newOption = filterOption(currentOption, debouncedSearchTerm, currentUserSearchTerms);
-        if (!newOption) {
-            return newOption;
+        if (newOption) {
+            return {
+                ...newOption,
+                isSelected: selectedAccountIDs.has(newOption.accountID.toString()),
+            };
         }
-        const isSelected = selectedAccountIDs.has(newOption.accountID.toString());
-        // The original reference is kept when the selection state already matches, so consumers building memoized
-        // lists on top of this option keep hitting their caches across remounts.
-        if ((newOption.isSelected ?? false) === isSelected) {
-            return newOption;
-        }
-        return {
-            ...newOption,
-            isSelected,
-        };
+        return newOption;
     })();
 
     const existingAccountIDs = new Set(optionsWithContacts?.map((option) => option.accountID.toString()));

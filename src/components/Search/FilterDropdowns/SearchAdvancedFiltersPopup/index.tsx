@@ -31,14 +31,14 @@ type SearchAdvancedFiltersPopupProps = {
 
 /** Which filter contents are mounted and what each of them was given, held together so one filter change moves all of it. */
 type MountedFilterState = {
-    /** The filter whose content is shown. Also the most recently used entry of `mountedFilters`. */
+    /** The filter whose content is shown. */
     activeFilter: SearchFilter['key'];
 
-    /** The filters whose contents are mounted, in least-recently-used order. */
+    /** The filters whose contents are mounted, in the order they were first visited. */
     mountedFilters: Array<SearchFilter['key']>;
 
     /** Per mounted content, the filter values it was given when it last became active. */
-    formAtLastRest: Partial<Record<SearchFilter['key'], Partial<SearchAdvancedFiltersForm> | undefined>>;
+    formAtLastVisit: Partial<Record<SearchFilter['key'], Partial<SearchAdvancedFiltersForm> | undefined>>;
 
     /** Per mounted content, how many times it has been remounted. Part of its key, so a bump replaces the instance. */
     contentVersions: Partial<Record<SearchFilter['key'], number>>;
@@ -67,8 +67,8 @@ type MountedFilterContentProps = {
 };
 
 // React Compiler caches the whole `mountedFilters.map()` result in a single slot, so changing the shown filter rebuilds
-// every element of it. Each content sits in its own component, so the rebuilt element lands on this component's cache
-// and one whose props are unchanged returns the element it returned before, which ends the render there.
+// every element of it. Each content sits in its own component, so one whose props are unchanged returns the element it
+// returned before and the render ends there.
 function MountedFilterContent({filterKey, values, onChange}: MountedFilterContentProps) {
     const styles = useThemeStyles();
 
@@ -95,57 +95,41 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
     const [mountedFilterState, setMountedFilterState] = useState<MountedFilterState>(() => ({
         activeFilter: INITIAL_FILTER,
         mountedFilters: [INITIAL_FILTER],
-        formAtLastRest: {[INITIAL_FILTER]: searchAdvancedFiltersForm},
+        formAtLastVisit: {[INITIAL_FILTER]: searchAdvancedFiltersForm},
         contentVersions: {},
     }));
-    const {activeFilter, mountedFilters, formAtLastRest, contentVersions} = mountedFilterState;
+    const {activeFilter, mountedFilters, formAtLastVisit, contentVersions} = mountedFilterState;
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
 
-    // The MAX_MOUNTED_FILTER_CONTENTS most recently active contents stay mounted, so revisiting a filter reveals its
-    // content instead of building it again. Activating a filter promotes it to most recently used and evicts whatever
-    // falls past the cap.
+    // A content stays mounted once visited, so revisiting a filter reveals it instead of building it again. Contents
+    // are built only for the filters actually visited and live only while the popover is open.
     const activateFilter = (filterKey: SearchFilter['key']) => {
         setMountedFilterState((currentState) => {
             if (currentState.activeFilter === filterKey) {
                 return currentState;
             }
 
-            const nextMountedFilters = [...currentState.mountedFilters.filter((mountedFilter) => mountedFilter !== filterKey), filterKey].slice(-CONST.SEARCH.MAX_MOUNTED_FILTER_CONTENTS);
-            const nextFormAtLastRest: MountedFilterState['formAtLastRest'] = {};
-            const nextContentVersions: MountedFilterState['contentVersions'] = {};
-            // Both maps describe the mounted contents only, so a filter evicted from `mountedFilters` is dropped from them too.
-            for (const mountedFilter of nextMountedFilters) {
-                nextFormAtLastRest[mountedFilter] = mountedFilter === filterKey ? searchAdvancedFiltersForm : currentState.formAtLastRest[mountedFilter];
-                const version = currentState.contentVersions[mountedFilter];
-                if (version !== undefined) {
-                    nextContentVersions[mountedFilter] = version;
-                }
-            }
+            const isMounted = currentState.mountedFilters.includes(filterKey);
             // A kept content keeps the values it was last given and decides its selection pinning on mount, so one whose
             // values went stale while it was hidden is remounted instead of revealed. Only the values that content reads
             // count as stale - a change to a filter it doesn't read leaves its own state, like a typed search term, alone.
-            if (currentState.mountedFilters.includes(filterKey) && hasFilterContentValuesChanged(filterKey, currentState.formAtLastRest[filterKey], searchAdvancedFiltersForm)) {
-                nextContentVersions[filterKey] = (currentState.contentVersions[filterKey] ?? 0) + 1;
-            }
+            const isStale = isMounted && hasFilterContentValuesChanged(filterKey, currentState.formAtLastVisit[filterKey], searchAdvancedFiltersForm);
 
             return {
                 activeFilter: filterKey,
-                mountedFilters: nextMountedFilters,
-                formAtLastRest: nextFormAtLastRest,
-                contentVersions: nextContentVersions,
+                mountedFilters: isMounted ? currentState.mountedFilters : [...currentState.mountedFilters, filterKey],
+                formAtLastVisit: {...currentState.formAtLastVisit, [filterKey]: searchAdvancedFiltersForm},
+                contentVersions: isStale ? {...currentState.contentVersions, [filterKey]: (currentState.contentVersions[filterKey] ?? 0) + 1} : currentState.contentVersions,
             };
         });
     };
 
     // Shows the content of whichever row the cursor is on once it comes to rest. Time spent on a row cannot tell a
-    // deliberate hover from a slow pass over it, but coming to rest can: a cursor traveling down the list keeps
-    // restarting the wait however slowly it moves, while one that arrived at its target stops and lets it through.
+    // deliberate hover from a slow pass over it, but coming to rest can.
     const activateRestingFilter = () => {
         activateFilter(hoveredFilter);
     };
     // Held in a ref so a wait started by an earlier render still activates the row the cursor is on now.
-    // `useDebounceNonReactive` cannot express either of the waits below: it always hands lodash a `maxWait` key, and
-    // lodash reads the key rather than its value, so every wait it creates is capped and fires mid-movement.
     const activateRestingFilterRef = useRef(activateRestingFilter);
     useEffect(() => {
         activateRestingFilterRef.current = activateRestingFilter;
@@ -165,11 +149,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
         restTimeoutRef.current = setTimeout(() => activateRestingFilterRef.current(), CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
     };
 
-    /**
-     * What a cursor that never comes to rest is given instead. Movement does not restart it, so wandering around inside
-     * one row still ends in its content being shown, while moving on to the next row does - which is why a pass across
-     * the list never reaches it.
-     */
+    /** What a cursor that never comes to rest is given instead. Only moving on to the next row restarts it. */
     const waitForRowAllowance = () => {
         clearTimeout(rowAllowanceTimeoutRef.current);
         rowAllowanceTimeoutRef.current = setTimeout(() => activateRestingFilterRef.current(), CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_MAX_DELAY);
@@ -182,8 +162,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
     };
 
     // Where the cursor was when it last counted as moving. Distance is measured from there rather than from the previous
-    // event, because a hand that shakes stays within HOVER_INTENT_REST_RADIUS_PX of one point however many events it
-    // emits, while a cursor crossing the list leaves that point behind even when it creeps a pixel at a time.
+    // event, so a shaking hand stays within HOVER_INTENT_REST_RADIUS_PX of one point while a slow crossing does not.
     const restAnchorRef = useRef<{x: number; y: number} | null>(null);
     const trackPointerMovement = (event: {clientX: number; clientY: number}) => {
         const anchor = restAnchorRef.current;
@@ -195,17 +174,15 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
         waitForCursorToRest();
     };
 
-    // The highlight follows the cursor and the content follows where it settles, so a cursor that leaves the list
-    // without settling would leave a row marked whose content is not the one on screen. There is nothing left to wait
-    // for once the cursor is gone, so the row it ended on is shown and the two agree again.
+    // Nothing is left to wait for once the cursor is gone, so the row it ended on is shown and the highlight and the
+    // content agree again.
     const stopTrackingPointer = () => {
         cancelPendingActivation();
         restAnchorRef.current = null;
         activateFilter(hoveredFilter);
     };
 
-    // Moving the focus is deliberate and never passes over rows on the way, so it shows the content right away and
-    // drops whatever the cursor had pending.
+    // Moving the focus is deliberate and never passes over rows on the way, so it shows the content right away.
     const focusFilter = (filterKey: SearchFilter['key']) => {
         cancelPendingActivation();
         setHoveredFilter(filterKey);
@@ -232,16 +209,14 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                     {mountedFilters.map((filterKey) => (
                         // A backgrounded content stays mounted with the filter values frozen at its last visit, so moving
                         // between filters neither re-renders it nor loses its state. `Activity` takes it out of layout and
-                        // unmounts its effects while it is hidden - so it holds no Onyx subscriptions of its own until it is
-                        // shown again - and lets React render it at a lower priority than the visible one when a context
-                        // both of them read changes underneath.
+                        // unmounts its effects while it is hidden, so it holds no Onyx subscriptions until it is shown again.
                         <Activity
                             key={`${filterKey}-${contentVersions[filterKey] ?? 0}`}
                             mode={filterKey === activeFilter ? 'visible' : 'hidden'}
                         >
                             <MountedFilterContent
                                 filterKey={filterKey}
-                                values={filterKey === activeFilter ? searchAdvancedFiltersForm : formAtLastRest[filterKey]}
+                                values={filterKey === activeFilter ? searchAdvancedFiltersForm : formAtLastVisit[filterKey]}
                                 onChange={updateFilterQueryParams}
                             />
                         </Activity>

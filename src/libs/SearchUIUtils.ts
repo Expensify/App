@@ -5907,7 +5907,7 @@ function hasFilterContentValuesChanged(
 
     if (isDateFilterKey(baseFilterKey)) {
         return (
-            previousValues?.feed !== values?.feed ||
+            !previousValues?.feed !== !values?.feed ||
             Object.values(CONST.SEARCH.DATE_MODIFIERS).some((modifier) => previousValues?.[`${baseFilterKey}${modifier}`] !== values?.[`${baseFilterKey}${modifier}`])
         );
     }

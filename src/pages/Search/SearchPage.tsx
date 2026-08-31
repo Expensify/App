@@ -53,7 +53,7 @@ function SearchPage({route}: SearchPageProps) {
 
     useSearchPageSetup(currentSearchQueryJSON);
     useSeedMyExpensesSearch();
-    useReleaseOptionListCaches(currentSearchKey);
+    useReleaseOptionListCaches();
 
     // Adjust state during rendering rather than in a useEffect: the value is consumed in the same
     // render below (`searchResults = lastNonEmptySearchResults` when sorting), so a useEffect would
