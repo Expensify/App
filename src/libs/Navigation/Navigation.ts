@@ -529,10 +529,46 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
         return true;
     }
 
+    if (isScopedSplitPush) {
+        const matchingSplitState = targetState.routes.at(indexOfBackToRoute)?.state;
+        const nestedTarget = (minimalActionPayload as {params?: {screen?: string; params?: unknown; path?: string}}).params;
+        if (!matchingSplitState?.key || typeof nestedTarget?.screen !== 'string') {
+            Log.hmmm('[Navigation] Unable to go up. Scoped split target is missing nested state.');
+            return false;
+        }
+
+        const nestedAction = {
+            type: CONST.NAVIGATION.ACTION_TYPE.NAVIGATE,
+            payload: {
+                name: nestedTarget.screen,
+                params: nestedTarget.params,
+                path: nestedTarget.path,
+            },
+            target: matchingSplitState.key,
+        } as Writable<NavigationAction>;
+        const indexOfNestedBackToRoute = matchingSplitState.routes.findLastIndex((route) => doesRouteMatchToMinimalActionPayload(route, nestedAction, compareParams));
+        const nestedDistanceToPop = matchingSplitState.routes.length - indexOfNestedBackToRoute - 1;
+
+        dispatch({...StackActions.pop(distanceToPop), target: targetState.key});
+
+        if (!compareParams) {
+            dispatch({...nestedAction, type: CONST.NAVIGATION.ACTION_TYPE.POP_TO});
+            return true;
+        }
+        if (indexOfNestedBackToRoute === -1) {
+            dispatch({...nestedAction, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE});
+            return true;
+        }
+        if (nestedDistanceToPop > 0) {
+            dispatch({...StackActions.pop(nestedDistanceToPop), target: matchingSplitState.key});
+        }
+        return true;
+    }
+
     /**
      * If we are not comparing params, we want to use popTo action because it will replace params in the route already existing in the state if necessary.
      */
-    if (!compareParams && !isScopedSplitPush) {
+    if (!compareParams) {
         dispatch({...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.POP_TO});
         return true;
     }

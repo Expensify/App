@@ -29,7 +29,7 @@ function getSplitScopeComparisonValues(currentRoute: NavigationRoute, payload: u
         return;
     }
 
-    if (!isSplitNavigatorName(currentRoute.name) || !currentRoute.state) {
+    if (!isSplitNavigatorName(currentRoute.name) || currentRoute.name !== payload.name || !currentRoute.state) {
         return;
     }
 
@@ -102,7 +102,7 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Min
         const payload = currentAction.payload;
         const isDifferentSplitScope = hasDifferentSplitScope(currentRoute, payload);
         if (!currentRoute.state || isDifferentSplitScope) {
-            if (isDifferentSplitScope) {
+            if (isDifferentSplitScope && currentAction.type !== CONST.NAVIGATION.ACTION_TYPE.REPLACE) {
                 currentAction = {...currentAction, type: CONST.NAVIGATION.ACTION_TYPE.PUSH};
             }
             break;

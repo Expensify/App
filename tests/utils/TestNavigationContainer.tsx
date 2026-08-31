@@ -69,6 +69,10 @@ function TestWorkspaceSplitNavigator() {
                 getComponent={getEmptyComponent}
             />
             <WorkspaceSplit.Screen
+                name={SCREENS.WORKSPACE.MORE_FEATURES}
+                getComponent={getEmptyComponent}
+            />
+            <WorkspaceSplit.Screen
                 name={SCREENS.WORKSPACE.CATEGORIES}
                 getComponent={getEmptyComponent}
             />
@@ -116,6 +120,10 @@ function TestDomainSplitNavigator() {
             />
             <DomainSplit.Screen
                 name={SCREENS.DOMAIN.MEMBERS}
+                getComponent={getEmptyComponent}
+            />
+            <DomainSplit.Screen
+                name={SCREENS.DOMAIN.SAML}
                 getComponent={getEmptyComponent}
             />
         </DomainSplit.Navigator>
