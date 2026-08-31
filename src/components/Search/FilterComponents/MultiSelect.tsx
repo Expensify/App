@@ -24,9 +24,6 @@ import {View} from 'react-native';
 
 import ListFilterView from './ListFilterViewWrapper';
 
-// Stable fallback so the debounced search callback keeps its identity when no search handler is provided
-function noop() {}
-
 type MultiSelectItem<T> = {
     text: string;
     value: T;
@@ -93,7 +90,10 @@ function MultiSelect<T extends string>({
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
     // Server-side search is fired from the text change handler so typing and the API call stay in the same event path
-    const debouncedOnSearchChange = useDebounce<(term: string) => void>(onSearchChange ?? noop, CONST.TIMING.USE_DEBOUNCED_STATE_DELAY);
+    const searchCallback = (term: string) => {
+        onSearchChange?.(term);
+    };
+    const debouncedOnSearchChange = useDebounce<(term: string) => void>(searchCallback, CONST.TIMING.USE_DEBOUNCED_STATE_DELAY);
 
     const updateSearchTerm = (text: string) => {
         setSearchTerm(text);
