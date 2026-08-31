@@ -16968,7 +16968,6 @@ describe('ReportUtils', () => {
                     },
                 },
                 owner: currentUserEmail,
-                isPolicyExpenseChatEnabled: true,
             };
 
             const chatReport: Report = {
