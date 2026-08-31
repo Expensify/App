@@ -1046,6 +1046,14 @@ function openSearchCategoryFiltersPage() {
     read(READ_COMMANDS.OPEN_SEARCH_CATEGORY_FILTERS_PAGE, null, {optimisticData, successData, finallyData});
 }
 
+type OpenSearchTagFiltersPageResponse = {
+    /** Whether more pages of tag filter results are available */
+    hasMore?: boolean;
+
+    /** Pagination cursor to pass for fetching the next page of tag filters */
+    nextCursor?: string;
+};
+
 /**
  * Fetches a page of tag filter search results from the server.
  * Returns pagination metadata (hasMore, nextCursor) for infinite scroll.
@@ -1055,10 +1063,14 @@ function openSearchTagFiltersPage(params: OpenSearchTagFiltersPageParams, should
     if (shouldCancelPendingRequests) {
         HttpUtils.cancelPendingRequests(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE);
     }
-    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE, {...params, canCancel: true}).then((response) => ({
-        hasMore: !!response?.hasMore,
-        nextCursor: response?.nextCursor ?? '',
-    }));
+    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE, {...params, canCancel: true}).then((response) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- OpenSearchTagFiltersPage response fields are command-specific and not declared on the shared Response type
+        const tagFiltersResponse = response as OpenSearchTagFiltersPageResponse | undefined;
+        return {
+            hasMore: !!tagFiltersResponse?.hasMore,
+            nextCursor: tagFiltersResponse?.nextCursor ?? '',
+        };
+    });
 }
 
 /**
