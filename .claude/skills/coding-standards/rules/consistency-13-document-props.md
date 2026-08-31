@@ -14,7 +14,7 @@ ESLint's `jsdoc/require-jsdoc` only requires a comment on the `TSInterfaceDeclar
 ### Incorrect
 
 ```tsx
-type ButtonProps = {
+type TooltipProps = {
     autoDismissDelay?: number;
     onPress: () => void;
 };
@@ -23,7 +23,7 @@ type ButtonProps = {
 ### Correct
 
 ```tsx
-type ButtonProps = {
+type TooltipProps = {
     /** Milliseconds before the tooltip auto-dismisses, defaults to 3000 */
     autoDismissDelay?: number;
 
