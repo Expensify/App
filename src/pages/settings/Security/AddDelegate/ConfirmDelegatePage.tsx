@@ -37,7 +37,9 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
     const personalDetails = usePersonalDetailByLogin(login);
     const avatarIcon = personalDetails?.avatar ?? icons.FallbackAvatar;
     const formattedLogin = formatPhoneNumber(login ?? '');
-    const displayName = personalDetails?.displayName ?? formattedLogin;
+    // An account that never set a name carries its login in `displayName`, which for SMS is the full
+    // `@expensify.sms` string. Format the resolved value so the title matches the description below it.
+    const displayName = formatPhoneNumber(personalDetails?.displayName ?? login ?? '');
 
     const submitButton = (
         <Button

@@ -6434,7 +6434,12 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 defaultHourlyRate: 'デフォルトの時給率',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `HR を無効にするには、まずこのワークスペースから ${integration} を切断してください。`},
-            vendors: {title: 'ベンダー', subtitle: '会計ソフトからインポートした取引先にカード経費を照合します。'},
+            vendors: {
+                title: 'ベンダー',
+                subtitle: '会計ソフトからインポートした取引先にカード経費を照合します。',
+                disabledTitle: 'ちょっと待ってください...',
+                disabledMessage: 'この機能を有効または無効にするには、会計インポート設定を変更する必要があります。',
+            },
         },
         reports: {
             reportsCustomTitleExamples: '例:',
