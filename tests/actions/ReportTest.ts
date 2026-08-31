@@ -37,6 +37,7 @@ import type * as SearchQueryUtilsType from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Attendee} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
@@ -2780,7 +2781,6 @@ describe('actions/Report', () => {
         // Given a policy with harvesting is disabled
         const policy = {
             ...createRandomPolicy(Number(policyID)),
-            isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
             autoReporting: false,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
@@ -2869,7 +2869,6 @@ describe('actions/Report', () => {
         global.fetch = mockFetchData;
         const policy = {
             ...createRandomPolicy(Number(policyID)),
-            isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
             harvesting: {
                 enabled: false,
@@ -2902,7 +2901,6 @@ describe('actions/Report', () => {
         // Given a policy with harvesting is enabled
         const policy = {
             ...createRandomPolicy(Number(policyID)),
-            isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
             harvesting: {
@@ -2939,7 +2937,6 @@ describe('actions/Report', () => {
         // Given a policy with instant submission and approval disabled
         const policy: OnyxTypes.Policy = {
             ...createRandomPolicy(Number(policyID)),
-            isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
@@ -2983,7 +2980,6 @@ describe('actions/Report', () => {
 
         const policy = {
             ...createRandomPolicy(Number(policyID)),
-            isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
             autoReporting: false,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
@@ -4117,7 +4113,6 @@ describe('actions/Report', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 type: CONST.POLICY.TYPE.TEAM,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 employeeList: {
                     [adminEmail]: {
                         role: CONST.POLICY.ROLE.ADMIN,
@@ -4362,7 +4357,6 @@ describe('actions/Report', () => {
                 id: 'targetPolicy',
                 role: CONST.POLICY.ROLE.ADMIN,
                 type: CONST.POLICY.TYPE.TEAM,
-                isPolicyExpenseChatEnabled: true,
                 employeeList: {
                     [existingAdminEmail]: {email: existingAdminEmail, role: CONST.POLICY.ROLE.ADMIN},
                     [existingUserEmail]: {email: existingUserEmail, role: CONST.POLICY.ROLE.USER},
@@ -4654,7 +4648,6 @@ describe('actions/Report', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 type: CONST.POLICY.TYPE.TEAM,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 employeeList: {
                     'admin@test.com': {
                         role: CONST.POLICY.ROLE.ADMIN,
@@ -9790,6 +9783,33 @@ describe('actions/Report', () => {
         it('does not set delegateAccountID when delegateAccountIDParam is undefined', () => {
             const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, undefined, {}, false, undefined, undefined);
             expect(result.delegateAccountID).toBeUndefined();
+        });
+    });
+
+    describe('buildOptimisticModifiedExpenseReportAction attendees', () => {
+        const TRANSACTION_ID = '888';
+        const ownerAttendee: Attendee = {email: 'owner@example.com', displayName: 'Owner', avatarUrl: ''};
+        const otherAttendee: Attendee = {email: 'other@example.com', displayName: 'Other', avatarUrl: ''};
+
+        const getAttendeesOriginalMessage = (oldTransaction: OnyxTypes.Transaction, newAttendees: Attendee[]) => {
+            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, oldTransaction, {attendees: newAttendees}, false, undefined, undefined);
+            return getOriginalMessage(result as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>);
+        };
+
+        it('treats oldAttendees as empty (set message) on the first edit, when attendees have never been modified', () => {
+            // Only the auto-added default attendee is present (comment.attendees), with no modifiedAttendees history.
+            const oldTransaction = createMock<OnyxTypes.Transaction>({transactionID: TRANSACTION_ID, comment: {attendees: [ownerAttendee]}});
+            const originalMessage = getAttendeesOriginalMessage(oldTransaction, [otherAttendee]);
+            expect(originalMessage?.oldAttendees).toEqual([]);
+            expect(originalMessage?.newAttendees).toEqual([otherAttendee]);
+        });
+
+        it('keeps oldAttendees (changed message) on subsequent edits, even when the previous value is just the owner', () => {
+            // After previous edits, modifiedAttendees holds the last value - here it happens to be only the owner.
+            const oldTransaction = createMock<OnyxTypes.Transaction>({transactionID: TRANSACTION_ID, modifiedAttendees: [ownerAttendee], comment: {attendees: [ownerAttendee]}});
+            const originalMessage = getAttendeesOriginalMessage(oldTransaction, [ownerAttendee, otherAttendee]);
+            expect(originalMessage?.oldAttendees).toEqual([ownerAttendee]);
+            expect(originalMessage?.newAttendees).toEqual([ownerAttendee, otherAttendee]);
         });
     });
 

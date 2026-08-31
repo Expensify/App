@@ -59,7 +59,7 @@ function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
                     title: translate('common.leaveWorkspace'),
                     prompt,
                     confirmText: translate('common.buttonConfirm'),
-                    success: true,
+                    buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                     shouldShowCancelButton: false,
                 }).then(() => onDismiss());
                 return;
@@ -70,7 +70,7 @@ function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
                 prompt,
                 confirmText: translate('common.leaveWorkspace'),
                 cancelText: translate('common.cancel'),
-                danger: true,
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             }).then((result) => {
                 if (result.action === ModalActions.CONFIRM && policy) {
                     leaveWorkspace(currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '', policy);
