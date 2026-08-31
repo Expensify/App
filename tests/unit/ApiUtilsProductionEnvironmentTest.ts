@@ -75,13 +75,13 @@ describe('ApiUtils in a production environment', () => {
         expect(ApiUtils.getApiRoot()).toBe(PRODUCTION_API_ROOT);
     });
 
-    it('ignores the toggle even when it is on', async () => {
-        // Production is hard locked to the production API: the toggle is hidden there, and a value left over
-        // from a build that used to resolve as staging must not route a production session to staging.
+    it('honors the toggle when it is on', async () => {
+        // A production build defaults to production, but a deliberate choice still wins: support hands staging
+        // to customers on store builds, and testers on a Play testing track have no other way in.
         await setStagingToggle(true);
 
-        expect(ApiUtils.getApiRoot()).toBe(PRODUCTION_API_ROOT);
-        expect(ApiUtils.isUsingStagingApi()).toBe(false);
+        expect(ApiUtils.getApiRoot()).toBe(STAGING_API_ROOT);
+        expect(ApiUtils.isUsingStagingApi()).toBe(true);
     });
 
     it('ignores the toggle on the internal dev environment', async () => {

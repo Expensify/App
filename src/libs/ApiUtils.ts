@@ -39,8 +39,8 @@ getEnvironment().then((envName) => {
  * applied once it does.
  */
 function shouldUseStagingServer(): boolean {
-    // Toggling between APIs is not allowed on production and internal dev environment
-    if (ENV_NAME === CONST.ENVIRONMENT.PRODUCTION || CONFIG.IS_USING_LOCAL_WEB) {
+    // Toggling between APIs is not allowed on the internal dev environment, which talks to a local web server
+    if (CONFIG.IS_USING_LOCAL_WEB) {
         return false;
     }
 

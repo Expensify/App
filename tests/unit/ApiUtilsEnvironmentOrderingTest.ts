@@ -1,6 +1,6 @@
 /**
- * Covers the ordering bug ApiUtils' derived staging flag exists to fix: a preference stored *before* the
- * environment resolves must still be applied once it does.
+ * Covers the ordering bug ApiUtils' derived staging flag exists to fix: what is known before the environment
+ * resolves must not be discarded once it does.
  *
  * The other ApiUtils suites drain the environment promise before their first assertion, so none of them can
  * exercise this. Here the mocked getEnvironment is deliberately left unsettled until the test resolves it.
@@ -47,13 +47,13 @@ Onyx.init({keys: ONYXKEYS});
 const ApiUtils = require<typeof ApiUtilsModule>('@libs/ApiUtils');
 
 describe('ApiUtils when the stored preference arrives before the environment', () => {
-    it('applies the stored preference once the environment resolves', async () => {
+    it('keeps a preference stored before the environment resolves', async () => {
         // Stored first, while ENV_NAME is still the PRODUCTION default
         await Onyx.set(ONYXKEYS.SHOULD_USE_STAGING_SERVER, true);
         await waitForBatchedUpdates();
 
-        // Requests before the environment is known go to production — nothing else is knowable yet
-        expect(ApiUtils.getApiRoot()).toBe(PRODUCTION_API_ROOT);
+        // A deliberate choice needs no environment to interpret it, so it applies straight away
+        expect(ApiUtils.getApiRoot()).toBe(STAGING_API_ROOT);
 
         // The literal matches CONST.ENVIRONMENT.STAGING; hardcoded so the mock factory stays self-contained
         mockResolveEnvironment('staging');
