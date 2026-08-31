@@ -10,14 +10,13 @@
  * - Improve context annotations in src/languages/en.ts
  */
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
-import StringUtils from '@libs/StringUtils';
+import startsWithVowel from '@libs/StringUtils/startsWithVowel';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
-import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
@@ -903,6 +902,7 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: '仅限管理员',
         },
     },
+    supportalSwitcher: {title: '切换 Supportal 到其他账户', emailLabel: '电子邮箱地址', reasonLabel: '支持登录原因', reasonHint: '未找到此账户的近期工单。', login: '登录'},
     sidebarScreen: {
         buttonFind: '查找内容…',
         buttonMySettings: '我的设置',
@@ -942,6 +942,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
             },
             validateAccount: {title: '验证您的账户', subtitle: '账户', cta: '验证'},
+            addHomeAddress: {title: '添加您的家庭住址以进行距离跟踪', subtitle: '账户', cta: '添加地址'},
             fixFailedBilling: {title: '我们无法向您档案中的银行卡收费', subtitle: '订阅'},
             unlockBankAccount: {
                 workspaceTitle: '您的企业银行账户已被锁定',
@@ -1077,6 +1078,13 @@ const translations: TranslationDeepObject<typeof en> = {
         seeMore: ({count}: {count: number}) => `再查看 ${count} 个`,
         recentlyAddedSection: {title: '最近添加', viewAll: '查看所有报销费用', emptyStateTitle: '最近没有报销记录', emptyStateMessage: '创建一个或将收据拖到这里'},
         insightsSection: {chartUnavailable: '图表不可用', notEnoughData: '我们目前没有足够的数据来填充此图表'},
+        conciergePrompt: {
+            goodMorning: ({name}: {name?: string}) => (name ? `早上好，${name}。` : '早上好。'),
+            goodAfternoon: ({name}: {name?: string}) => (name ? `下午好，${name}。` : '下午好。'),
+            goodEvening: ({name}: {name?: string}) => (name ? `晚上好，${name}。` : '晚上好。'),
+            inputPlaceholder: '向 Concierge 请求分析你的报销或获取支持',
+            inputPlaceholderMobile: '向 Concierge 提问任何问题',
+        },
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -1229,6 +1237,14 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: '创建工时报销',
     },
     iou: {
+        homeAddressRequired: {
+            title: '需要填写家庭地址',
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `在开始记录出行距离之前，您需要在个人资料中添加家庭住址。${workspaceName} 会使用此地址用于通勤抵扣。`
+                    : '在开始记录里程之前，您需要在个人资料中添加您的家庭住址。此工作区会使用该地址计算通勤扣除。',
+            cta: '添加家庭住址',
+        },
         amount: '金额',
         percent: '百分比',
         date: '日期',
@@ -1460,8 +1476,8 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? '卡' : '银行账户';
             return isCurrentUser
-                ? `. 资金正在汇往您的${creditBankAccount ? `末尾为 ${creditBankAccount} 的银行账户` : '账户'}（通过 ${paymentMethod} 支付）。通常需要 4–5 个工作日。`
-                : `。汇款正在转往 ${submitterLogin} 的 ${creditBankAccount ? `末尾为 ${creditBankAccount} 的银行账户` : '账户'}（通过 ${paymentMethod} 支付）。通常需要 4–5 个工作日。`;
+                ? `. 款项正在汇往您的${creditBankAccount ? `尾号为 ${creditBankAccount} 的银行账户` : '账户'}（通过 ${paymentMethod} 支付）。这通常需要 4–5 个工作日。`
+                : `. 资金正在汇往 ${submitterLogin} 的 ${creditBankAccount ? `尾号为 ${creditBankAccount} 的银行账户` : '账户'}（通过 ${paymentMethod} 支付）。这通常需要 4–5 个工作日。`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             `使用直接存款（ACH）${creditBankAccount ? `至尾号为 ${creditBankAccount} 的银行账户。` : '. '}${expectedDate ? `预计将在 ${expectedDate} 前完成报销。` : '这通常需要 4–5 个工作日。'}`,
@@ -1478,7 +1494,7 @@ const translations: TranslationDeepObject<typeof en> = {
         basedOnAI: '基于过去的活动',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `基于<a href="${rulesLink}">工作区规则</a>` : '基于工作区规则'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `用于 ${comment}` : '报销'}`,
-        invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `发票报告 #${linkedReportID}`,
+        invoiceReportName: ({linkedReportID}: OriginalMessageReportPreview) => `发票报表 #${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount: string, comment?: string) => `已发送 ${formattedAmount}${comment ? `用于 ${comment}` : ''}`,
         movedFromPersonalSpace: (reportName?: string, workspaceName?: string) => `已将报销从个人空间移动到 ${workspaceName ?? `与 ${reportName} 聊天`}`,
         movedToPersonalSpace: '已将报销移动到个人空间',
@@ -1540,6 +1556,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: '启用钱包',
         hold: '暂挂',
         sendToSomeone: '发送给某人',
+        submitToEmployer: '提交给我的雇主',
         unhold: '解除保留',
         holdExpense: () => ({
             one: '暂挂报销',
@@ -1780,7 +1797,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pageTitle: '选择要保留的详细信息：',
             noDifferences: '在这些交易之间未发现差异',
             pleaseSelectError: ({field}: {field: string}) => {
-                const article = StringUtils.startsWithVowel(field) ? '一个' : 'a';
+                const article = startsWithVowel(field) ? '一个' : '一个';
                 return `请选择${article}${field}`;
             },
             pleaseSelectAttendees: '请选择参会者',
@@ -2197,6 +2214,14 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: '高亮的跨度名称',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click，navigation，ui.load',
             showBranchNameInTitle: '在浏览器标题中显示分支名称',
+            qaAuth: 'QA 认证（Cloudflare）',
+            qaAuthRunProbe: '运行探针',
+            qaAuthSession: 'QA 身份验证会话',
+            qaAuthClearSession: '清除会话',
+            qaAuthStatusSuccess: '探测成功',
+            qaAuthStatusReauthRequired: '会话已过期 — 请重新运行以登录',
+            qaAuthStatusSignInFailed: '登录未完成 — 请再次运行以重试',
+            qaAuthStatusError: '探测失败',
         },
         security: '安全',
         signOut: '退出登录',
@@ -2882,7 +2907,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         cardLastFour: '卡号末尾为',
         addFirstPaymentMethod: '在应用中添加支付方式以直接发送和接收款项。',
         defaultPaymentMethod: '默认',
-        bankAccountLastFour: (lastFour: string) => `银行账户 • ${lastFour}`,
     },
     agentsPage: {
         title: '代理人',
@@ -3486,7 +3510,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         legalName: '法定姓名',
         legalFirstName: '法定名（名）',
         legalLastName: '法定姓氏',
-        address: '地址',
+        address: '家庭住址',
+        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} 使用此地址进行通勤排除。`,
         error: {
             dateShouldBeBefore: (dateString: string) => `日期应早于 ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `日期应晚于 ${dateString}`,
@@ -3603,6 +3628,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         thisBankAccount: '此银行账户将用于您工作区的业务付款',
         accountNumber: '账号编号',
         routingNumber: '路由号码',
+        internationalBankAccountDetails: '国际银行账户信息',
+        internationalBankAccountDetailsTitle: '您的国际账户信息是什么？',
+        internationalBankAccountDetailsSubtitle: '您的其中一个工作区需要国际账户信息来处理报销',
+        iban: 'IBAN',
+        swiftBicCode: 'SWIFT/BIC 代码',
         chooseAnAccountBelow: '在下方选择一个账户',
         addBankAccount: '添加银行账户',
         chooseAnAccount: '选择一个账户',
@@ -3651,6 +3681,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             restrictedBusiness: '请确认该企业不在受限制业务列表中',
             routingNumber: '请输入有效的路由号码',
             accountNumber: '请输入有效的账户号码',
+            iban: '请输入有效的 IBAN',
+            swiftCode: '请输入有效的 SWIFT/BIC 代码',
             routingAndAccountNumberCannotBeSame: '路由号码和账号不能相同',
             companyType: '请选择一个有效的公司类型',
             tooManyAttempts: '由于登录尝试次数过多，此选项已被禁用 24 小时。请稍后重试，或改为手动输入详细信息。',
@@ -4382,6 +4414,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             carCard: '你知道吗？你可以直接在 Expensify 中预订和管理租车！下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚗',
             railManual: '你知道吗？你可以直接在 Expensify 中预订和管理火车行程！下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
             railCard: '你知道吗？你可以直接在 Expensify 中预订和管理火车行程，而且还会自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
+            hotelBlockManual:
+                '你知道吗？你可以直接在 Expensify 中预订和管理像这样的团队行程。下次就不用再费心了，试试我们的 <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> 工具吧。',
+            hotelBlockCard:
+                '你知道吗？你可以直接在 Expensify 中预订和管理像这样的团队行程。下次就不用再费心了，试试我们的 <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> 工具吧。',
         },
         defaultWorkspaceTravelDisabled: {title: '差旅功能未启用', message: '如需预订，请在您的默认工作区中启用差旅功能，或将默认工作区切换为已启用差旅功能的工作区。'},
     },
@@ -4394,6 +4430,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             workflows: '工作流程',
             workspace: '工作区',
             findWorkspace: '查找工作区',
+            active: '活跃',
+            archived: '已归档',
+            workspaceStatus: '工作区状态',
             findRoom: '查找房间',
             edit: '编辑工作区',
             enabled: '已启用',
@@ -5644,6 +5683,27 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 label: 'Expensify Card 账户',
                 description: '选择 Expensify Card 交易的导出位置。',
             },
+            autoSyncDescription: '每天自动同步 DualEntry 和 Expensify。报告实时同步。',
+            accountingMethods: {
+                label: '导出方式',
+                description: '选择何时导出报销费用。',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '权责发生制',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '现金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自付报销将在最终批准后导出',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自付报销将在支付后导出',
+                },
+            },
+            syncReimbursedReports: '同步已报销报表',
+            syncReimbursedReportsDescription: '当报表通过 ACH 支付时，将在此账户中生成一笔账单付款。',
+            billPaymentAccount: {label: '账单付款账户', description: '选择从哪里支付账单，我们会在 DualEntry 中创建该付款。'},
+            syncExpensifyCardSettlements: '同步 Expensify 卡结算',
+            settlementAccount: {label: 'Expensify 卡结算账户', description: '选择您的结算账户，我们会在 DualEntry 中创建这笔付款。'},
+            syncTravelInvoicingSettlements: '同步旅行开票结算',
+            travelInvoicingSettlementAccount: {label: '差旅开票结算账户', description: '选择您的结算账户，我们会在 DualEntry 中创建这笔付款。'},
+            travelInvoicingPayableAccount: {label: '差旅开票应付账户'},
         },
         type: {
             free: '免费',
@@ -5666,10 +5726,16 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             addNewCard: {
                 other: '其他',
                 fileImport: '从文件导入交易',
-                createFileFeedHelpText: `<muted-text>请按照此<a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">帮助指南</a>操作，将您的公司卡费用导入！</muted-text>`,
+                createFileFeedHelpText: {
+                    instructionStart: '在下一页，您将上传卡交易的 CSV 文件。上传前，请先',
+                    templateLink: '下载我们的模板',
+                    instructionMiddle: '，或查看我们的',
+                    helpGuideLink: '帮助指南',
+                    instructionEnd: '。',
+                },
                 companyCardLayoutName: '公司卡片布局名称',
                 cardLayoutNameRequired: '公司卡片布局名称是必填的',
-                useAdvancedFields: '使用高级字段（不推荐）',
+                downloadTemplate: '下载我们的模板',
                 cardProviders: {
                     gl1025: 'American Express 公司卡',
                     cdf: '万事达商业卡',
@@ -5756,11 +5822,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     currency: '货币',
                     ignore: '忽略',
                     originalTransactionDate: '原始交易日期',
-                    originalAmount: '原始金额',
-                    originalCurrency: '原始货币',
-                    comment: '评论',
+                    originalAmount: '购买金额',
+                    originalCurrency: '购买货币',
+                    comment: '描述',
                     category: '类别',
                     tag: '标签',
+                    uniqueID: '唯一 ID',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `请为以下每个属性分配一列：${missingColumns}`,
@@ -5845,6 +5912,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             currentBalanceDescription: '当前余额是上次结算日期以来已入账的所有 Expensify 卡交易的总和。',
             balanceWillBeSettledOn: (settlementDate: string) => `余额将于 ${settlementDate} 结清`,
             settleBalance: '结清余额',
+            settleBalanceConfirmationTitle: '结清余额？',
+            settleBalanceConfirmationPrompt: '这将在下一个工作日结清您的当前余额。成功后，该金额将重新计入您的剩余额度。',
             cardLimit: '卡片限额',
             remaining: '剩余',
             remainingLimit: '剩余额度',
@@ -6062,6 +6131,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         spend: '支出管控和自定义限额',
                     },
                     ctaTitle: '发新卡',
+                    existingFeedTitle: '管理你的 Expensify 卡',
+                    viewCards: '查看卡片',
                 },
             },
             companyCards: {
@@ -6203,7 +6274,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 defaultHourlyRate: '默认时薪',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `若要禁用人力资源功能，请先将此工作区与 ${integration} 断开连接。`},
-            vendors: {title: '供应商', subtitle: '将卡片报销与从您的会计软件导入的供应商进行匹配。'},
+            vendors: {
+                title: '供应商',
+                subtitle: '将卡片报销与从您的会计软件导入的供应商进行匹配。',
+                disabledTitle: '别急...',
+                disabledMessage: '要启用或禁用此功能，您需要更改会计导入设置。',
+            },
         },
         reports: {
             reportsCustomTitleExamples: '示例：',
@@ -6699,7 +6775,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 },
             },
             connections: {
-                syncStageName: (stage, integrationName = 'QuickBooks Online') => {
+                syncStageName: (stage: PolicyConnectionSyncStage, integrationName = 'QuickBooks Online') => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -6708,7 +6784,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'netSuiteSyncImportEmployees':
                         case 'intacctImportEmployees':
                         case 'quickbooksDesktopImportEmployees':
-                            return '正在导入员工';
+                            return '导入员工';
                         case 'quickbooksOnlineImportAccounts':
                         case 'quickbooksDesktopImportAccounts':
                             return '导入账户';
@@ -6721,15 +6797,15 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             return '正在处理导入的数据';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
-                            return '同步已报销报表和账单付款';
+                            return '正在同步已报销报表和账单付款';
                         case 'quickbooksOnlineSyncTaxCodes':
-                            return '导入税码';
+                            return '正在导入税码';
                         case 'quickbooksOnlineCheckConnection':
                             return `正在检查 ${integrationName} 连接`;
                         case 'quickbooksOnlineImportMain':
                             return `正在导入 ${integrationName} 数据`;
                         case 'startingImportXero':
-                            return '导入 Xero 数据';
+                            return '正在导入 Xero 数据';
                         case 'startingImportQBO':
                             return `正在导入 ${integrationName} 数据`;
                         case 'startingImportQBD':
@@ -6742,7 +6818,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'quickbooksDesktopImportDimensions':
                             return '正在导入维度';
                         case 'quickbooksDesktopImportSavePolicy':
-                            return '正在导入保存策略';
+                            return '正在导入保存的策略';
                         case 'quickbooksDesktopWebConnectorReminder':
                             return '仍在与 QuickBooks 同步数据…请确保 Web Connector 正在运行';
                         case 'quickbooksOnlineSyncTitle':
@@ -6760,7 +6836,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'quickbooksOnlineSyncApplyClassesLocations':
                             return '更新报表字段';
                         case 'jobDone':
-                            return '正在等待导入的数据加载';
+                            return '正在加载导入的数据';
                         case 'xeroSyncImportChartOfAccounts':
                             return '正在同步科目表';
                         case 'xeroSyncImportCategories':
@@ -6772,7 +6848,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'xeroSyncExpensifyReimbursedReports':
                             return '将 Xero 账单和发票标记为已支付';
                         case 'xeroSyncImportTrackingCategories':
-                            return '正在同步追踪类别';
+                            return '正在同步跟踪类别';
                         case 'xeroSyncImportBankAccounts':
                             return '正在同步银行账户';
                         case 'xeroSyncImportTaxRates':
@@ -6786,9 +6862,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'netSuiteSyncCustomers':
                             return '正在导入客户';
                         case 'netSuiteSyncInitData':
-                            return '正在从 NetSuite 获取数据';
+                            return '正在从 NetSuite 检索数据';
                         case 'netSuiteSyncImportTaxes':
-                            return '导入税务';
+                            return '正在导入税费';
                         case 'netSuiteSyncImportItems':
                             return '正在导入项目';
                         case 'netSuiteSyncData':
@@ -6802,13 +6878,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'netSuiteSyncReportFields':
                             return '将数据导入为 Expensify 报告字段';
                         case 'netSuiteSyncTags':
-                            return '以 Expensify 标签导入数据';
+                            return '将数据导入为 Expensify 标签';
                         case 'netSuiteSyncUpdateConnectionData':
                             return '正在更新连接信息';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
                             return '将 Expensify 报告标记为已报销';
                         case 'netSuiteSyncExpensifyReimbursedReports':
-                            return '将 NetSuite 账单和发票标记为已付款';
+                            return '将 NetSuite 账单和发票标记为已支付';
                         case 'netSuiteImportVendorsTitle':
                             return '正在导入供应商';
                         case 'netSuiteImportCustomListsTitle':
@@ -6816,14 +6892,14 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'netSuiteSyncImportCustomLists':
                             return '导入自定义列表';
                         case 'netSuiteSyncImportSubsidiaries':
-                            return '正在导入子公司';
+                            return '导入子公司';
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
                             return '正在导入供应商';
                         case 'intacctCheckConnection':
                             return '正在检查 Sage Intacct 连接';
                         case 'intacctImportDimensions':
-                            return '导入 Sage Intacct 维度';
+                            return '正在导入 Sage Intacct 维度';
                         case 'intacctImportTitle':
                             return '导入 Sage Intacct 数据';
                         case 'financialForceSyncTitle':
@@ -6839,13 +6915,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'financialForceSyncContacts':
                             return '正在导入联系人';
                         case 'financialForceSyncCompanies':
-                            return '正在导入公司';
+                            return '导入公司';
                         case 'financialForceSyncUsers':
                             return '正在导入用户';
                         case 'financialForceSyncDimensions':
                             return '正在导入维度';
                         case 'financialForceMarkAsReimbursed':
-                            return '正在将报告标记为已报销';
+                            return '将报表标记为已报销';
                         case 'rilletSyncTitle':
                             return '正在同步 Rillet 数据';
                         case 'rilletSyncConnection':
@@ -6858,8 +6934,14 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             return '正在初始化与 DualEntry 的连接';
                         case 'dualEntrySyncImportData':
                             return '正在加载数据';
+                        case 'dualEntrySyncPayments':
+                            return '正在同步供应商付款';
+                        case 'dualEntrySyncCardSettlements':
+                            return '正在同步卡片结算';
+                        case 'dualEntrySyncTravelSettlements':
+                            return '正在同步差旅报销';
                         default: {
-                            return `缺少以下阶段的翻译：${stage}`;
+                            return `缺少阶段的翻译：${stage}`;
                         }
                     }
                 },
@@ -6939,16 +7021,28 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         distanceRates: {
             oopsNotSoFast: '哎呀！先别急……',
             workspaceNeeds: '一个工作区至少需要一个已启用的距离费率。',
+            requireMapOrGPSDescription: '将禁用手动输入和里程表输入。',
+            requireMapOrGPSLockedByCommuterExclusions: '排除通勤需要路线数据，因此在其开启时始终需要地图或 GPS 距离。要更改此设置，请将“排除通勤”设为“不要排除通勤”。',
             commuterExclusions: {
                 title: '排除通勤',
                 summaryDisabled: '不排除通勤',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `每次报销排除 ${distance} ${unit}`,
                 optionDisabledTitle: '不要排除通勤',
-                optionDisabledHelp: '未应用通勤排除规则。',
+                optionDisabledHelp: '未从报销中移除任何通勤费用。',
                 optionFixedDistanceTitle: '为每笔报销排除固定距离',
                 optionFixedDistanceHelp: '从每笔报销中扣除相同的通勤距离。最适合每个工作日提交一笔报销的成员使用。',
                 distanceLabel: '距离',
-                errors: {distanceMustBePositive: '距离必须是一个正整数。', distanceTooLarge: '距离过大。'},
+                summaryHomeAndOffice: '使用家庭和办公地点',
+                optionHomeAndOfficeTitle: '按家庭和办公室计算',
+                optionHomeAndOfficeHelp: '使用成员的家庭住址、工作安排和办公室分配来计算通勤免税额。',
+                workspaceAddressRequired: {
+                    title: '别急……',
+                    promptStart: '在您先添加一个办公地点之前，无法启用按家庭和办公室计算的设置，添加位置于',
+                    linkText: '概览',
+                    promptEnd: '中添加办公地点，才能启用“按家庭和办公室计算”设置。',
+                    cta: '知道了',
+                },
+                errors: {distanceMustBePositive: '距离必须是一个正整数。', invalidAddress: '请输入有效地址', distanceTooLarge: '距离过大。'},
             },
             distance: '距离',
             centrallyManage: '集中管理费率，以英里或公里跟踪，并设置默认类别。',
@@ -7041,6 +7135,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             yourWorkspace: `您的工作区当前使用不受支持的货币。请查看<a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">支持的货币列表</a>。`,
             chooseAnExisting: '选择现有银行账户来支付报销，或添加新账户。',
             changeBankAccount: '更改银行账户',
+            updateCurrencyForExpensifyCard: 'Expensify 卡目前仅支持以美元（USD）发行。请将此工作区的货币更新为美元（USD），或使用其他工作区。',
+            updateCurrencyForExpensifyCardTitle: '获取 Expensify 卡',
+            euUkUpdateCurrencyForExpensifyCard: 'Expensify 卡目前可发行的货币包括 USD、GBP 和 EUR。请将此工作区更新为受支持的货币或使用其他工作区。',
         },
         changeOwner: {
             changeOwnerPageTitle: '转移所有者',
@@ -7891,6 +7988,10 @@ ${reportName}`,
                 confirmErrorCategory: '请选择一个类别。',
                 confirmErrorAmount: '请输入金额。',
                 thenFlagForReview: '然后在以下情况下标记为待审核：',
+                thenDoTheFollowing: '然后执行以下操作：',
+                flagType: '标记类型',
+                flagTypeWarning: '警告',
+                flagTypeWarningDescription: '将警告报销提交人，但仍允许其提交报销',
             },
             agentRulesEmptyState: {title: '未添加代理规则', subtitle: '创建规则以自动化您的工作区策略。', cta: '添加 AI 规则'},
             categoriesDisabledEmptyState: {title: '类别未启用', subtitle: '启用类别以更好地控制您的支出。'},
@@ -8249,7 +8350,7 @@ ${reportName}`,
                 case 'tags':
                     return `${enabled ? '已启用' : '已禁用'} 个标签`;
                 case 'workflows':
-                    return `${enabled ? '已启用' : '已禁用'} 个工作流程`;
+                    return `${enabled ? '已启用' : '已禁用'} 个工作流`;
                 case 'distance rates':
                     return `${enabled ? '已启用' : '已禁用'} 距离费率`;
                 case 'accounting':
@@ -8257,19 +8358,21 @@ ${reportName}`,
                 case 'Expensify Cards':
                     return `${enabled ? '已启用' : '已禁用'} Expensify 卡`;
                 case 'travel invoicing':
-                    return `${enabled ? '已启用' : '已禁用'} 合并差旅账单`;
+                    return `${enabled ? '已启用' : '已禁用'} 差旅费用汇总账单`;
                 case 'company cards':
                     return `${enabled ? '已启用' : '已禁用'} 张公司卡`;
                 case 'invoicing':
-                    return `${enabled ? '已启用' : '已禁用'} 开票`;
+                    return `${enabled ? '已启用' : '已禁用'} 开具发票`;
                 case 'per diem':
-                    return `每日津贴 ${enabled ? '已启用' : '已禁用'}`;
+                    return `${enabled ? '已启用' : '已禁用'} 每日津贴`;
                 case 'receipt partners':
                     return `${enabled ? '已启用' : '已禁用'} 个收据合作伙伴`;
                 case 'rules':
                     return `${enabled ? '已启用' : '已禁用'} 条规则`;
                 case 'tax tracking':
                     return `${enabled ? '已启用' : '已禁用'} 税务跟踪`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? '已开启' : '已关闭'} 需要使用 GPS 或地图输入来计算距离费率`;
                 default:
                     return `${enabled ? '已启用' : '已禁用'} ${featureName}`;
             }
@@ -9314,10 +9417,7 @@ ${reportName}`,
         },
         error: {
             selectSuggestedAddress: '请选择一个推荐地址或使用当前位置',
-            mapOrGpsDistanceRequired: {
-                title: '需要提供地图或 GPS 距离',
-                description: '此工作区要求里程报销必须基于地图或通过 GPS 进行轨迹跟踪。',
-            },
+            mapOrGpsDistanceRequired: {title: '需要 GPS 或地图输入', description: '此工作区要求里程报销必须基于地图或通过 GPS 进行轨迹跟踪。'},
         },
         odometer: {
             startReading: '开始阅读',
@@ -9570,6 +9670,17 @@ ${reportName}`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return '由于银行连接中断，无法自动匹配收据。';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
+                if (isPersonalCard) {
+                    if (!connectionLink) {
+                        return '由于您的银行连接需要重新验证，无法自动匹配收据。';
+                    }
+                    return isMarkAsCash
+                        ? `由于您的银行连接需要重新验证，无法自动匹配收据。标记为现金以忽略，或<a href="${connectionLink}">重新连接</a>以匹配收据。`
+                        : `由于您的银行连接需要重新验证，无法自动匹配收据。请<a href="${connectionLink}">重新连接</a>以匹配该收据。`;
+                }
+                return isAdmin ? `银行连接需要重新验证。<a href="${companyCardPageURL}">重新连接以匹配收据</a>` : '银行连接需要重新验证。请让管理员重新连接以匹配收据。';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return '由于银行连接中断，无法自动匹配收据。';
@@ -9590,6 +9701,9 @@ ${reportName}`,
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>由于银行连接中断，收据暂时待处理。请前往<a href="${workspaceCompanyCardRoute}">公司卡</a>中解决。</muted-text-label>`,
         memberBrokenConnectionError: '由于银行连接中断，收据处于待处理状态。请联系工作区管理员解决。',
+        adminReauthConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
+            `<muted-text-label>由于银行连接需要重新验证，收据暂时待处理。请前往<a href="${workspaceCompanyCardRoute}">公司卡</a>中解决。</muted-text-label>`,
+        memberReauthConnectionError: '由于银行连接需要重新验证，收据处于待处理状态。请联系工作区管理员解决。',
         markAsCashToIgnore: '标记为现金以忽略并请求付款。',
         smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
             if (missingFields.length > 0) {
