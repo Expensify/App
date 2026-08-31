@@ -2,6 +2,7 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import useScrollToFocusedInput from '@components/SelectionList/hooks/useScrollToFocusedInput';
 
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -20,6 +21,7 @@ import type {ReactElement} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 
 import React, {useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 import type {TableListMetadata} from './buildTableListData';
 import type {TableContextValue} from './TableContext';
@@ -280,6 +282,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const isMobileSelectionEnabled = useMobileSelectionMode();
     const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
+
     if (!columns || columns.length === 0) {
         throw new Error('Table columns must be provided');
     }
@@ -515,6 +519,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                 restoreFocusType={shouldSkipMobileSelectionFocusRestore ? CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE : undefined}
                 onClose={() => tableMethods.setMobileSelectionModalRowKey(null)}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 onModalHide={() => {
                     if (mobileSelectionModalRowKeyRef.current) {
                         return;
@@ -525,12 +530,14 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                     setShouldSkipMobileSelectionFocusRestore(false);
                 }}
             >
-                <MenuItem
-                    icon={icons.CheckSquare}
-                    title={translate('common.select')}
-                    onPress={handleMobileSelectionPress}
-                    pressableTestID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
-                />
+                <View style={bottomSafeAreaPaddingStyle}>
+                    <MenuItem
+                        icon={icons.CheckSquare}
+                        title={translate('common.select')}
+                        onPress={handleMobileSelectionPress}
+                        pressableTestID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
+                    />
+                </View>
             </Modal>
         </TableContext.Provider>
     );
