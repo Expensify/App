@@ -4604,6 +4604,7 @@ describe('OptionsListUtils', () => {
 
         it('should return the same matches for normalized multi-word queries with extra spaces', () => {
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 translate: translateLocal,
                 dateFnsLocale: undefined,
                 options: OPTIONS,
