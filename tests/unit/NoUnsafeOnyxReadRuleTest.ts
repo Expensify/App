@@ -1,9 +1,9 @@
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import type {Rule} from 'eslint';
 
 import {Linter, RuleTester} from 'eslint';
-
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 type LocalRuleModule = Rule.RuleModule & {
     name: string;
@@ -115,7 +115,6 @@ describe('no-unsafe-onyx-read', () => {
         invalid: [
             {code: `${ONYX_UTILS_IMPORT} function Row() { const value = OnyxUtils.get(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
 
-
             {code: `${ONYX_UTILS_IMPORT} const initialValue = OnyxUtils.get(ONYXKEYS.SESSION);`, errors: MODULE_SCOPE_ERRORS},
             {code: `${ONYX_IMPORT} new Promise((resolve) => { resolve(Onyx.get(ONYXKEYS.SESSION)); });`, errors: MODULE_SCOPE_ERRORS},
 
@@ -173,7 +172,10 @@ describe('no-unsafe-onyx-read', () => {
             {code: `${ONYX_IMPORT} function Row() { new Promise(() => Onyx.get(ONYXKEYS.SESSION)); return <View />; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} function Row() { new Promise((resolve) => { resolve(Onyx.get(ONYXKEYS.SESSION)); }); return <View />; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} function Row() { const values = ids.map((id) => Onyx.get(ONYXKEYS.SESSION)); return <View values={values} />; }`, errors: RENDER_ERRORS},
-            {code: `${ONYX_IMPORT} function Row() { const values = ids.filter((id) => Onyx.get(ONYXKEYS.SESSION)).map((id) => id); return <View values={values} />; }`, errors: RENDER_ERRORS},
+            {
+                code: `${ONYX_IMPORT} function Row() { const values = ids.filter((id) => Onyx.get(ONYXKEYS.SESSION)).map((id) => id); return <View values={values} />; }`,
+                errors: RENDER_ERRORS,
+            },
 
             {code: `${ONYX_IMPORT} function Row() { const value = Onyx['get'](ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} function Row() { const values = Onyx.multiGet([ONYXKEYS.SESSION]); return <View values={values} />; }`, errors: RENDER_ERRORS},
@@ -181,7 +183,10 @@ describe('no-unsafe-onyx-read', () => {
             {code: `${ONYX_IMPORT} function Row() { const allKeys = Onyx.getAllKeys(); return <View allKeys={allKeys} />; }`, errors: RENDER_ERRORS},
 
             {code: `${ONYX_UTILS_IMPORT} const {get} = OnyxUtils; function Row() { const value = get(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
-            {code: `${ONYX_UTILS_IMPORT} const {get: readOnyx} = OnyxUtils; function Row() { const value = readOnyx(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
+            {
+                code: `${ONYX_UTILS_IMPORT} const {get: readOnyx} = OnyxUtils; function Row() { const value = readOnyx(ONYXKEYS.SESSION); return <View value={value} />; }`,
+                errors: RENDER_ERRORS,
+            },
             {code: `${ONYX_UTILS_IMPORT} const readOnyx = OnyxUtils.get; function Row() { const value = readOnyx(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
 
             {

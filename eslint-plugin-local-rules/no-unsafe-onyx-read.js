@@ -538,7 +538,6 @@ function create(context) {
                         if (publicOnyxBindings.has(initVariable)) {
                             trackBinding(node, property.value.name, publicReadAliases);
                         }
-
                     }
                 }
                 return;
@@ -606,9 +605,7 @@ function create(context) {
 
             if (finding) {
                 context.report(
-                    finding.keyPath
-                        ? {node, messageId: 'noRestrictedOnyxKey', data: {keyPath: `${ONYXKEYS_ROOT}.${finding.keyPath}`}}
-                        : {node, messageId: 'noUnresolvableOnyxKey'},
+                    finding.keyPath ? {node, messageId: 'noRestrictedOnyxKey', data: {keyPath: `${ONYXKEYS_ROOT}.${finding.keyPath}`}} : {node, messageId: 'noUnresolvableOnyxKey'},
                 );
             }
         },
