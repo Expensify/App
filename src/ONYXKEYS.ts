@@ -710,6 +710,9 @@ const ONYXKEYS = {
     /** Stores the route to open after changing app permission from settings */
     LAST_ROUTE: 'lastRoute',
 
+    /** Stores the last measured Onyx database size, so the next app start can attach it to telemetry spans right away */
+    LAST_MEASURED_DATABASE_SIZE: 'lastMeasuredDatabaseSize',
+
     /** Stores the information if user loaded the Onyx state through Import feature  */
     IS_USING_IMPORTED_STATE: 'isUsingImportedState',
 
@@ -1801,6 +1804,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA]: OnyxTypes.ImportedSpreadsheetMemberData[];
     [ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE]: ValueOf<typeof CONST.POLICY.ROLE>;
     [ONYXKEYS.LAST_ROUTE]: string;
+    [ONYXKEYS.LAST_MEASURED_DATABASE_SIZE]: OnyxTypes.DatabaseSizeMeasurement;
     [ONYXKEYS.IS_USING_IMPORTED_STATE]: boolean;
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
     [ONYXKEYS.CONCIERGE_THINKING_KICKOFF]: boolean;
