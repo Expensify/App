@@ -327,7 +327,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
 
         showConfirmModal({
-            // The policy name should always be set, but fall back to the generic title rather than rendering "Leave ?" if it somehow isn't.
             title: policyName ? translate('common.leaveWorkspaceTitle', policyName) : translate('common.leaveWorkspace'),
             prompt,
             confirmText: translate('common.leaveWorkspace'),

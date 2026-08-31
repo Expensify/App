@@ -66,7 +66,6 @@ function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
             }
 
             showConfirmModal({
-                // The policy name should always be set, but fall back to the generic title rather than rendering "Leave ?" if it somehow isn't.
                 title: policy?.name ? translate('common.leaveWorkspaceTitle', policy.name) : translate('common.leaveWorkspace'),
                 prompt,
                 confirmText: translate('common.leaveWorkspace'),
