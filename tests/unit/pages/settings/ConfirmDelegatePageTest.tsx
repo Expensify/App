@@ -1,7 +1,5 @@
 import {render} from '@testing-library/react-native';
 
-import description from '@components/FeatureTraining/primitives/Description';
-
 import ConfirmDelegatePage from '@pages/settings/Security/AddDelegate/ConfirmDelegatePage';
 
 import CONST from '@src/CONST';
@@ -148,7 +146,7 @@ describe('ConfirmDelegatePage', () => {
 
         // `formatPhoneNumber` returns a non-phone string untouched apart from swapping its spaces for
         // non-breaking ones, which is what the 41 other call sites wrapping a display name already do.
-        expect(output).toContain('Aa\u00A0Lovelace');
+        expect(output).toContain('Ada\u00A0Lovelace');
         expect(output).toContain(FORMATTED_SMS_LOGIN);
     });
 });
