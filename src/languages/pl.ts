@@ -7226,8 +7226,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             defaultVendor: 'Domyślny dostawca',
             defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
                 isSet || !fallbackVendorName
-                    ? `Wydatki, które nie dopasują się automatycznie, będą domyślnie przypisane do tego dostawcy.`
-                    : `Wydatki, które nie zostaną automatycznie dopasowane, zostaną domyślnie przypisane do tego dostawcy. W przeciwnym razie zostaną wyeksportowane jako ${fallbackVendorName}`,
+                    ? `Wydatki, które nie zostaną automatycznie dopasowane, będą domyślnie przypisywane temu kontrahentowi.`
+                    : `Wydatki, które nie zostaną automatycznie dopasowane, zostaną domyślnie przypisane do tego dostawcy. W przeciwnym razie będą eksportowane jako ${fallbackVendorName}`,
             defaultVendorSelectHeader: `Wybierz domyślnego dostawcę dla wydatków, które nie dopasują się automatycznie.`,
             defaultAccount: 'Domyślne konto',
             autoSync: 'Automatyczna synchronizacja',

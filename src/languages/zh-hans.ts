@@ -6952,8 +6952,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             exportDate: '导出日期',
             defaultVendor: '默认供应商',
             defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
-                isSet || !fallbackVendorName ? `未自动匹配的报销将默认归属为此供应商。` : `未自动匹配的报销将默认为此供应商，否则将导出为 ${fallbackVendorName}`,
-            defaultVendorSelectHeader: `为未自动匹配的报销选择一个默认供应商。`,
+                isSet || !fallbackVendorName ? `无法自动匹配的报销将默认归属为此供应商。` : `未自动匹配的报销将默认归属于此供应商。否则，它们将按 ${fallbackVendorName} 导出`,
+            defaultVendorSelectHeader: `为未能自动匹配的报销选择一个默认供应商。`,
             defaultAccount: '默认账户',
             autoSync: '自动同步',
             autoSyncDescription: '每天自动同步 NetSuite 和 Expensify。实时导出已完成报表',

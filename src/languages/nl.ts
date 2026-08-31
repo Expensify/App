@@ -7203,7 +7203,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             defaultVendor: 'Standaardleverancier',
             defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
                 isSet || !fallbackVendorName
-                    ? `Declaraties die niet automatisch worden gekoppeld, worden standaard aan deze leverancier toegewezen.`
+                    ? `Uitgaven die niet automatisch worden gekoppeld, worden standaard aan deze leverancier toegewezen.`
                     : `Declaraties die niet automatisch worden gekoppeld, worden standaard aan deze leverancier toegewezen. Anders worden ze geëxporteerd als ${fallbackVendorName}`,
             defaultVendorSelectHeader: `Kies een standaardleverancier voor uitgaven die niet automatisch worden gekoppeld.`,
             defaultAccount: 'Standaardrekening',

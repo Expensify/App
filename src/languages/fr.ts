@@ -7276,8 +7276,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
                 isSet || !fallbackVendorName
                     ? `Les dépenses qui ne correspondent pas automatiquement seront par défaut associées à ce fournisseur.`
-                    : `Les dépenses qui ne sont pas rapprochées automatiquement auront ce fournisseur par défaut. Sinon, elles seront exportées sous ${fallbackVendorName}`,
-            defaultVendorSelectHeader: `Choisissez un fournisseur par défaut pour les dépenses qui ne sont pas rapprochées automatiquement.`,
+                    : `Les dépenses qui ne sont pas appariées automatiquement seront associées par défaut à ce fournisseur. Sinon, elles seront exportées comme ${fallbackVendorName}`,
+            defaultVendorSelectHeader: `Choisissez un fournisseur par défaut pour les dépenses qui ne correspondent pas automatiquement.`,
             defaultAccount: 'Compte par défaut',
             autoSync: 'Synchronisation automatique',
             autoSyncDescription: 'Synchronisez automatiquement NetSuite et Expensify, chaque jour. Exportez les notes de frais finalisées en temps réel',

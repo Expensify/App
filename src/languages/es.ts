@@ -7071,8 +7071,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             defaultVendor: 'Proveedor predeterminado',
             defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
                 isSet || !fallbackVendorName
-                    ? `Los gastos que no se emparejen automáticamente se asignarán por defecto a este proveedor.`
-                    : `Los gastos que no se concilien automáticamente se asignarán a este proveedor de forma predeterminada. De lo contrario, se exportarán como ${fallbackVendorName}`,
+                    ? `Los gastos que no se asignen automáticamente se asociarán por defecto a este proveedor.`
+                    : `Los gastos que no se emparejen automáticamente se asociarán a este proveedor de forma predeterminada. De lo contrario, se exportarán como ${fallbackVendorName}`,
             defaultVendorSelectHeader: `Elige un proveedor predeterminado para los gastos que no se asignen automáticamente.`,
             defaultAccount: 'Cuenta predeterminada',
             autoSync: 'Autosincronización',
