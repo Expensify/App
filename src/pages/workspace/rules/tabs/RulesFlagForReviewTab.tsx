@@ -67,7 +67,7 @@ function RulesFlagForReviewTab({policyID, canWriteRules, selectedKeys, onSelecti
         headerContentStyles: styles.sortingMachineRulesEmptyStateIllustration,
         title: translate('workspace.rules.flagForReviewEmptyState.title'),
         subtitle: translate('workspace.rules.flagForReviewEmptyState.subtitle'),
-        subtitleStyles: [styles.textLabel, styles.textSupporting],
+        subtitleStyles: [styles.textSupporting],
         containerStyles: [styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)],
         buttons: [
             {

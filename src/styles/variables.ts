@@ -344,7 +344,7 @@ export default {
     sortingMachineRulesEmptyStateIllustrationHeight: 240,
     agentsRulesEmptyStateIllustrationWidth: 268,
     agentsRulesEmptyStateIllustrationHeight: 194,
-    cardRulesEmptyStateMaxWidth: 496,
+    cardRulesEmptyStateMaxWidth: 580,
     expensifyCardEmptyIllustrationWidth: 280,
     expensifyCardEmptyIllustrationHeight: 172,
     rulesNewMenuItemMinHeight: 84,
