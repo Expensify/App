@@ -38,12 +38,6 @@ type SearchPageWideProps = {
     queryJSON?: SearchQueryJSON;
     searchResults: OnyxEntry<SearchResults>;
 
-    /** The last query whose results resolved. Drives the results area so it holds the current results while a new query loads. */
-    contentQueryJSON?: SearchQueryJSON;
-
-    /** Results for `contentQueryJSON`. */
-    contentSearchResults: OnyxEntry<SearchResults>;
-
     isMobileSelectionModeEnabled: boolean;
     handleSearchAction: (value: SearchParams | string) => void;
     onSortPressedCallback: () => void;
@@ -57,8 +51,6 @@ type SearchPageWideProps = {
 function SearchPageWide({
     queryJSON,
     searchResults,
-    contentQueryJSON,
-    contentSearchResults,
     isMobileSelectionModeEnabled,
     handleSearchAction,
     onSortPressedCallback,
@@ -66,7 +58,7 @@ function SearchPageWide({
     searchOverlayContent,
     onSearchContentReady,
 }: SearchPageWideProps) {
-    const shouldShowLoadingSkeleton = useSearchLoadingState(contentQueryJSON, contentSearchResults);
+    const shouldShowLoadingSkeleton = useSearchLoadingState(queryJSON, searchResults);
     const styles = useThemeStyles();
     const {currentSearchKey} = useSearchQueryContext();
     const {hasSelectedTransactions} = useSearchSelectionContext();
@@ -122,7 +114,7 @@ function SearchPageWide({
                     onBackButtonPress={handleOnBackButtonPress}
                     shouldShowLink={false}
                 >
-                    {!!queryJSON && !!contentQueryJSON && (
+                    {!!queryJSON && (
                         <>
                             <SearchPageHeaderWide queryJSON={queryJSON} />
                             <SearchActionsBarWide
@@ -133,12 +125,17 @@ function SearchPageWide({
                             <View style={styles.flex1}>
                                 {/* skipEntering keeps the delayed fade off the very first mount, so opening Search cold paints immediately. */}
                                 <LayoutAnimationConfig skipEntering>
-                                    {/* A resolved query change remounts this layer: the outgoing one fades out and the incoming one waits
-                                        for it to finish before fading in. Both layers are absolutely filled so the outgoing fade overlays
-                                        the incoming layer instead of sharing the column layout. */}
+                                    {/* A query change remounts this layer: the outgoing one fades out, and the incoming one stays hidden until
+                                        that finishes. When the new results aren't in memory yet it waits a further grace window, so a query
+                                        that resolves quickly fades straight to its results rather than through a skeleton. Both layers are
+                                        absolutely filled so the outgoing fade overlays the incoming one instead of sharing the column layout. */}
                                     <Animated.View
-                                        key={contentQueryJSON.hash}
-                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION).delay(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                        key={queryJSON.hash}
+                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION).delay(
+                                            shouldShowLoadingSkeleton
+                                                ? CONST.SEARCH.ANIMATION.FADE_DURATION + CONST.SEARCH.ANIMATION.SKELETON_GRACE_DURATION
+                                                : CONST.SEARCH.ANIMATION.FADE_DURATION,
+                                        )}
                                         exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                                         style={StyleSheet.absoluteFill}
                                     >
@@ -146,8 +143,8 @@ function SearchPageWide({
                                             <SearchLoadingSkeleton />
                                         ) : (
                                             <SearchWithNavigationDeferredMount
-                                                queryJSON={contentQueryJSON}
-                                                searchResults={contentSearchResults}
+                                                queryJSON={queryJSON}
+                                                searchResults={searchResults}
                                                 handleSearch={handleSearchAction}
                                                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                                 onSearchListScroll={scrollHandler}

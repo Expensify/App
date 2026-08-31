@@ -7759,11 +7759,12 @@ const CONST = {
         SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
         ANIMATION: {
-            FADE_DURATION: 120,
+            FADE_DURATION: 200,
 
-            // How long the results area may keep showing the previous query's results while a new query loads. Past
-            // this, a slow query gives up the stale results and swaps to the skeleton so the wait is visible.
-            MAX_STALE_HOLD_DURATION: 500,
+            // How long the results area stays blank after the outgoing results fade out, waiting for the incoming ones.
+            // A query that resolves inside this window fades straight in; a slower one reveals the skeleton instead.
+            // Skipped when the incoming results are already in memory, so a cached swap has no gap at all.
+            SKELETON_GRACE_DURATION: 200,
         },
         TODO_BADGE_MAX_COUNT: 50,
         TOP_SEARCH_LIMIT: 10,

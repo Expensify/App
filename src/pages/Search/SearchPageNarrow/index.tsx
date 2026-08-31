@@ -56,12 +56,6 @@ type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
     searchResults?: SearchResults;
 
-    /** The last query whose results resolved. Drives the results area so it holds the current results while a new query loads. */
-    contentQueryJSON?: SearchQueryJSON;
-
-    /** Results for `contentQueryJSON`. */
-    contentSearchResults?: SearchResults;
-
     isMobileSelectionModeEnabled: boolean;
     onSortPressedCallback: () => void;
     /** Overlay rendered above Search content during expense-creation flows (SearchStaticList or null). */
@@ -79,8 +73,6 @@ const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.SEARCH} 
 function SearchPageNarrow({
     queryJSON,
     searchResults,
-    contentQueryJSON,
-    contentSearchResults,
     isMobileSelectionModeEnabled,
     onSortPressedCallback,
     searchOverlayContent,
@@ -88,7 +80,7 @@ function SearchPageNarrow({
     hasFilterBars,
     isOverlayActive,
 }: SearchPageNarrowProps) {
-    const shouldShowLoadingSkeleton = useSearchLoadingState(contentQueryJSON, contentSearchResults);
+    const shouldShowLoadingSkeleton = useSearchLoadingState(queryJSON, searchResults);
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
@@ -217,8 +209,7 @@ function SearchPageNarrow({
         }, [isHeaderInteractive, isInteractive, startTransition]),
     );
 
-    // contentQueryJSON falls back to queryJSON upstream, so the two are always absent together.
-    if (!queryJSON || !contentQueryJSON) {
+    if (!queryJSON) {
         return (
             <ScreenWrapper
                 testID="SearchPageNarrow"
@@ -319,9 +310,9 @@ function SearchPageNarrow({
                             <>
                                 {isInteractive && (
                                     <Search
-                                        searchResults={contentSearchResults}
-                                        queryJSON={contentQueryJSON}
-                                        key={contentQueryJSON.hash}
+                                        searchResults={searchResults}
+                                        queryJSON={queryJSON}
+                                        key={queryJSON.hash}
                                         contentContainerStyle={contentContainerStyle}
                                         handleSearch={handleSearchAction}
                                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
@@ -346,12 +337,17 @@ function SearchPageNarrow({
                             <>
                                 {/* skipEntering keeps the delayed fade off the very first mount, so opening Search cold paints immediately. */}
                                 <LayoutAnimationConfig skipEntering>
-                                    {/* A resolved query change remounts this layer: the outgoing one fades out and the incoming one waits
-                                        for it to finish before fading in. Both layers are absolutely filled so the outgoing fade overlays
-                                        the incoming layer instead of sharing the column layout. */}
+                                    {/* A query change remounts this layer: the outgoing one fades out, and the incoming one stays hidden until
+                                        that finishes. When the new results aren't in memory yet it waits a further grace window, so a query
+                                        that resolves quickly fades straight to its results rather than through a skeleton. Both layers are
+                                        absolutely filled so the outgoing fade overlays the incoming one instead of sharing the column layout. */}
                                     <Animated.View
-                                        key={contentQueryJSON.hash}
-                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION).delay(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                        key={queryJSON.hash}
+                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION).delay(
+                                            shouldShowLoadingSkeleton
+                                                ? CONST.SEARCH.ANIMATION.FADE_DURATION + CONST.SEARCH.ANIMATION.SKELETON_GRACE_DURATION
+                                                : CONST.SEARCH.ANIMATION.FADE_DURATION,
+                                        )}
                                         exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                                         style={StyleSheet.absoluteFill}
                                     >
@@ -359,8 +355,8 @@ function SearchPageNarrow({
                                             <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles(hasFilterBars)} />
                                         ) : (
                                             <SearchWithNavigationDeferredMount
-                                                searchResults={contentSearchResults}
-                                                queryJSON={contentQueryJSON}
+                                                searchResults={searchResults}
+                                                queryJSON={queryJSON}
                                                 onSearchListScroll={scrollHandler}
                                                 contentContainerStyle={contentContainerStyle}
                                                 handleSearch={handleSearchAction}
