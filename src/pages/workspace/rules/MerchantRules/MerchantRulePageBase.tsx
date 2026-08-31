@@ -23,7 +23,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {deletePolicyCategoryTax, openPolicyCategoriesPage, setPolicyCategoryTaxes} from '@libs/actions/Policy/Category';
+import {deletePolicyCategoryTax, movePolicyCategoryTax, openPolicyCategoriesPage, setPolicyCategoryTaxes} from '@libs/actions/Policy/Category';
 import {deletePolicyCodingRule, setPolicyCodingRule} from '@libs/actions/Policy/Rules';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import Tab from '@libs/actions/Tab';
@@ -372,12 +372,15 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
             if (!hasCategoryCondition || !categoryTaxID) {
                 return;
             }
-            // Moving to another category drops the old rule first, or both would keep a default tax rate. The rules it
-            // leaves behind are handed to the save, so the save doesn't re-add the rule the delete just removed.
-            const isMovingCategory = !!editCategoryTaxRuleFor && !categoriesToMatch.includes(editCategoryTaxRuleFor);
-            const remainingExpenseRules = isMovingCategory && editCategoryTaxRuleFor ? deletePolicyCategoryTax(policy, editCategoryTaxRuleFor) : undefined;
-            // The command is per-category, so a bulk selection saves one rule for each category picked.
-            setPolicyCategoryTaxes(policy, categoriesToMatch, categoryTaxID, remainingExpenseRules);
+            // Editing is single-select, so a move has exactly one destination. It clears the old category and sets the
+            // new one as a pair, sharing one rollback so a failed move can't drop both rules.
+            const movedToCategory = editCategoryTaxRuleFor && !categoriesToMatch.includes(editCategoryTaxRuleFor) ? categoriesToMatch.at(0) : undefined;
+            if (editCategoryTaxRuleFor && movedToCategory) {
+                movePolicyCategoryTax(policy, editCategoryTaxRuleFor, movedToCategory, categoryTaxID);
+            } else {
+                // The command is per-category, so a bulk selection saves one rule for each category picked.
+                setPolicyCategoryTaxes(policy, categoriesToMatch, categoryTaxID);
+            }
             if (isEditingCategoryTaxRule) {
                 Navigation.goBack();
             } else {
