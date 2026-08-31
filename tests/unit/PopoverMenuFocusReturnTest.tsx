@@ -32,20 +32,27 @@ jest.mock('@components/PopoverWithMeasuredContent', () => ({
  */
 describe('PopoverMenu focus return', () => {
     const anchorRef = createRef<View>();
+    const menuItems = [{text: 'Duplicate workspace', onSelected: jest.fn()}];
+    const onClose = jest.fn();
+    const onItemSelected = jest.fn();
 
-    function renderPopoverMenu(overrides: Partial<React.ComponentProps<typeof PopoverMenu>> = {}) {
-        capturedTrapProps.length = 0;
-        render(
+    function createPopoverMenu(overrides: Partial<React.ComponentProps<typeof PopoverMenu>> = {}) {
+        return (
             <PopoverMenu
                 isVisible
                 anchorRef={anchorRef}
                 anchorPosition={{horizontal: 0, vertical: 0}}
-                menuItems={[{text: 'Duplicate workspace', onSelected: jest.fn()}]}
-                onClose={jest.fn()}
-                onItemSelected={jest.fn()}
+                menuItems={menuItems}
+                onClose={onClose}
+                onItemSelected={onItemSelected}
                 {...overrides}
-            />,
+            />
         );
+    }
+
+    function renderPopoverMenu(overrides: Partial<React.ComponentProps<typeof PopoverMenu>> = {}) {
+        capturedTrapProps.length = 0;
+        render(createPopoverMenu(overrides));
         return capturedTrapProps.at(-1);
     }
 
@@ -60,6 +67,15 @@ describe('PopoverMenu focus return', () => {
 
     it('honors an explicit opt-out', () => {
         expect(renderPopoverMenu({shouldReturnFocus: false})?.shouldReturnFocus).toBe(false);
+    });
+
+    it('updates the focus-return policy when only shouldReturnFocus changes', () => {
+        capturedTrapProps.length = 0;
+        const {rerender} = render(createPopoverMenu({shouldReturnFocus: false}));
+        expect(capturedTrapProps.at(-1)?.shouldReturnFocus).toBe(false);
+
+        rerender(createPopoverMenu({shouldReturnFocus: true}));
+        expect(capturedTrapProps.at(-1)?.shouldReturnFocus).toBe(true);
     });
 
     it('passes the anchor as the launcher, so a trigger that blurs itself is still restorable', () => {

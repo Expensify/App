@@ -5,6 +5,7 @@ import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {ButtonVariant} from '@styles/utils/types';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -17,7 +18,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import ActivityIndicator from './ActivityIndicator';
-import Button from './Button';
+import Button from './ButtonComposed';
 import Header from './Header';
 import Icon from './Icon';
 import ImageSVG from './ImageSVG';
@@ -48,11 +49,8 @@ type ConfirmContentProps = {
     /** Subtitle shown between the title and the prompt. Stays fixed above the prompt when the prompt is scrollable. */
     subtitle?: string | ReactNode;
 
-    /** Whether we should use the success button color */
-    success?: boolean;
-
-    /** Whether we should use the danger button color. Use if the action is destructive */
-    danger?: boolean;
+    /** Button variant */
+    buttonVariant?: ButtonVariant;
 
     /** Whether we should disable the confirm button when offline */
     shouldDisableConfirmButtonWhenOffline?: boolean;
@@ -139,8 +137,7 @@ function ConfirmContent({
     prompt = '',
     subtitle,
     subtitleStyles,
-    success = true,
-    danger = false,
+    buttonVariant = CONST.BUTTON_VARIANT.SUCCESS,
     shouldDisableConfirmButtonWhenOffline = false,
     shouldShowCancelButton = false,
     iconSource,
@@ -174,6 +171,13 @@ function ConfirmContent({
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
 
     const isCentered = shouldCenterContent;
+
+    let confirmButtonVariant: ButtonVariant | undefined;
+    if (buttonVariant === CONST.BUTTON_VARIANT.DANGER) {
+        confirmButtonVariant = CONST.BUTTON_VARIANT.DANGER;
+    } else if ((shouldUseSuccessStyleForConfirm || shouldShowCancelButton) && buttonVariant === CONST.BUTTON_VARIANT.SUCCESS) {
+        confirmButtonVariant = CONST.BUTTON_VARIANT.SUCCESS;
+    }
 
     const promptContent = typeof prompt === 'string' ? <Text style={[promptStyles, isCentered ? styles.textAlignCenter : {}]}>{prompt}</Text> : prompt;
     // Rendered outside the (optionally scrollable) prompt so it stays fixed above the prompt.
@@ -244,30 +248,31 @@ function ConfirmContent({
                             <Button
                                 style={[styles.mt4, styles.noSelect]}
                                 onPress={onCancel}
-                                large
-                                text={cancelText || translate('common.no')}
-                            />
+                                size={CONST.BUTTON_SIZE.LARGE}
+                            >
+                                <Button.Text>{cancelText || translate('common.no')}</Button.Text>
+                            </Button>
                         )}
                         <Button
-                            success={shouldUseSuccessStyleForConfirm || (shouldShowCancelButton && !danger) ? success : false}
-                            danger={danger}
+                            variant={confirmButtonVariant}
                             style={shouldReverseStackedButtons ? styles.mt3 : styles.mt4}
                             onPress={onConfirm}
-                            pressOnEnter
-                            isPressOnEnterActive={isVisible}
-                            large
-                            text={confirmText || translate('common.yes')}
+                            size={CONST.BUTTON_SIZE.LARGE}
                             accessibilityLabel={confirmText || translate('common.yes')}
                             isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
                             isLoading={isConfirmLoading}
-                        />
+                        >
+                            <Button.KeyboardShortcut isPressOnEnterActive={isVisible} />
+                            <Button.Text>{confirmText || translate('common.yes')}</Button.Text>
+                        </Button>
                         {shouldShowCancelButton && !shouldReverseStackedButtons && (
                             <Button
                                 style={[styles.mt3, styles.noSelect]}
                                 onPress={onCancel}
-                                large
-                                text={cancelText || translate('common.no')}
-                            />
+                                size={CONST.BUTTON_SIZE.LARGE}
+                            >
+                                <Button.Text>{cancelText || translate('common.no')}</Button.Text>
+                            </Button>
                         )}
                     </>
                 ) : (
@@ -276,20 +281,20 @@ function ConfirmContent({
                             <Button
                                 style={[styles.noSelect, styles.flex1]}
                                 onPress={onCancel}
-                                text={cancelText || translate('common.no')}
-                            />
+                            >
+                                <Button.Text>{cancelText || translate('common.no')}</Button.Text>
+                            </Button>
                         )}
                         <Button
-                            success={shouldUseSuccessStyleForConfirm || (shouldShowCancelButton && !danger) ? success : false}
-                            danger={danger}
+                            variant={confirmButtonVariant}
                             style={[styles.flex1]}
                             onPress={onConfirm}
-                            pressOnEnter
-                            isPressOnEnterActive={isVisible}
-                            text={confirmText || translate('common.yes')}
                             isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
                             isLoading={isConfirmLoading}
-                        />
+                        >
+                            <Button.KeyboardShortcut isPressOnEnterActive={isVisible} />
+                            <Button.Text>{confirmText || translate('common.yes')}</Button.Text>
+                        </Button>
                     </View>
                 )}
             </View>
