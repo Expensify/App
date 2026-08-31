@@ -19,6 +19,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
         navigate: jest.fn(),
+        runAfterUpcomingTransition: jest.fn(),
     },
 }));
 
@@ -27,6 +28,7 @@ jest.mock('@libs/Navigation/helpers/swapBackgroundTabForRHPTarget');
 describe('openPrivatePersonalDetailsPage', () => {
     beforeEach(() => {
         jest.mocked(Navigation.navigate).mockClear();
+        jest.mocked(Navigation.runAfterUpcomingTransition).mockClear();
         jest.mocked(swapBackgroundTabForRHPTarget).mockClear();
     });
 
@@ -34,12 +36,34 @@ describe('openPrivatePersonalDetailsPage', () => {
         jest.restoreAllMocks();
     });
 
-    it('swaps the background tab before opening private personal details', () => {
+    it('opens private personal details immediately when no background tab swap is needed', () => {
         jest.spyOn(navigationRef, 'getRootState').mockReturnValue(mockRootState);
+        jest.mocked(swapBackgroundTabForRHPTarget).mockReturnValue(false);
 
         openPrivatePersonalDetailsPage(INPUT_IDS.ADDRESS_LINE_1);
 
         expect(swapBackgroundTabForRHPTarget).toHaveBeenCalledWith(mockRootState, ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
+        expect(Navigation.runAfterUpcomingTransition).not.toHaveBeenCalled();
+    });
+
+    it('waits for the background tab swap transition before opening private personal details', () => {
+        jest.spyOn(navigationRef, 'getRootState').mockReturnValue(mockRootState);
+        jest.mocked(swapBackgroundTabForRHPTarget).mockReturnValue(true);
+
+        openPrivatePersonalDetailsPage(INPUT_IDS.ADDRESS_LINE_1);
+
+        expect(swapBackgroundTabForRHPTarget).toHaveBeenCalledWith(mockRootState, ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        expect(Navigation.runAfterUpcomingTransition).toHaveBeenCalledTimes(1);
+
+        const deferredNavigate = jest.mocked(Navigation.runAfterUpcomingTransition).mock.calls.at(0)?.[0];
+        expect(deferredNavigate).toBeDefined();
+        if (!deferredNavigate) {
+            return;
+        }
+        deferredNavigate();
+
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
     });
 });
