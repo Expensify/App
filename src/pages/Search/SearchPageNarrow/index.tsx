@@ -346,15 +346,13 @@ function SearchPageNarrow({
                             <>
                                 {/* skipEntering keeps the delayed fade off the very first mount, so opening Search cold paints immediately. */}
                                 <LayoutAnimationConfig skipEntering>
-                                    {/* A resolved query change remounts this layer. The outgoing one holds, then fades out; the incoming
-                                        one stays hidden until that finishes, which also hides its own mount. Both layers are absolutely
-                                        filled so they stack during the hold instead of sharing the column layout. */}
+                                    {/* A resolved query change remounts this layer: the outgoing one fades out and the incoming one waits
+                                        for it to finish before fading in. Both layers are absolutely filled so the outgoing fade overlays
+                                        the incoming layer instead of sharing the column layout. */}
                                     <Animated.View
                                         key={contentQueryJSON.hash}
-                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION).delay(
-                                            CONST.SEARCH.ANIMATION.SWAP_HOLD_DURATION + CONST.SEARCH.ANIMATION.FADE_DURATION,
-                                        )}
-                                        exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION).delay(CONST.SEARCH.ANIMATION.SWAP_HOLD_DURATION)}
+                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION).delay(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                        exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                                         style={StyleSheet.absoluteFill}
                                     >
                                         {shouldShowLoadingSkeleton ? (
