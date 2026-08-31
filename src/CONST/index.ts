@@ -1329,7 +1329,6 @@ const CONST = {
         US: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-United-States',
     },
     ELECTRONIC_DISCLOSURES_URL: `${USE_EXPENSIFY_URL}/esignagreement`,
-    GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
 
     // Package name of the Google Play Store app. Android reports it as the installer of every app Play installed.
     PLAY_STORE_INSTALLER_PACKAGE_NAME: 'com.android.vending',

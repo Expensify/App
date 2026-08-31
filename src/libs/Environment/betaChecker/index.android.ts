@@ -1,33 +1,12 @@
-import * as AppUpdate from '@libs/actions/AppUpdate';
-
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 import DeviceInfo from 'react-native-device-info';
-import Onyx from 'react-native-onyx';
-import semver from 'semver';
 
 import type {IsBetaBuild} from './types';
 
-import pkg from '../../../../package.json';
-
-type GithubReleaseJSON = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    tag_name: string | semver.SemVer;
-};
-
-let isLastSavedBeta = false;
-// We have opted for `connectWithoutView` here as this is a strictly non-UI data.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.IS_BETA,
-    callback: (value) => {
-        isLastSavedBeta = !!value;
-    },
-});
-
 /**
  * Whether the Play Store put this build on the device. Anything else means a tester installed it from a GitHub
- * release.
+ * release. `undefined` when the native call cannot say.
  */
 function isPlayStoreInstall(): boolean | undefined {
     try {
@@ -40,38 +19,12 @@ function isPlayStoreInstall(): boolean | undefined {
 /**
  * Whether this build is a beta (staging) build.
  *
- * A sideloaded build is answered straight away, both because testers install those from GitHub prereleases and
- * because it keeps them off the rate limited GitHub API. Anything the Play Store installed can still be on a
- * tester track, which only a comparison against the newest production release recognizes.
+ * How the build reached the device is the only signal that tells staging and production apart, since both ship
+ * the same binary. Testers install from GitHub prereleases, so anything the Play Store did not install is a
+ * beta. An unknown installer is treated as production, the safer default.
  */
 function isBetaBuild(): IsBetaBuild {
-    return new Promise((resolve) => {
-        if (isPlayStoreInstall() === false) {
-            AppUpdate.setIsAppInBeta(true);
-            resolve(true);
-            return;
-        }
-
-        // Otherwise compare our version against the latest production release
-        fetch(CONST.GITHUB_RELEASE_URL)
-            .then((res) => res.json())
-            .then((json: GithubReleaseJSON) => {
-                const productionVersion = json.tag_name;
-
-                if (!productionVersion || !semver.valid(productionVersion)) {
-                    resolve(isLastSavedBeta);
-                    return;
-                }
-
-                // If the current version we are running is greater than the production version, we are on a beta version of Android
-                const isBeta = semver.gt(pkg.version, productionVersion);
-                AppUpdate.setIsAppInBeta(isBeta);
-                resolve(isBeta);
-            })
-            .catch(() => {
-                resolve(isLastSavedBeta);
-            });
-    });
+    return Promise.resolve(isPlayStoreInstall() === false);
 }
 
 export default {

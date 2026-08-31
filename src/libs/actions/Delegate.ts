@@ -49,7 +49,6 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     // This allows the report screen to load correctly when the delegate token expires and the delegate is returned to their original account.
     ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
     ONYXKEYS.NETWORK,
-    ONYXKEYS.IS_BETA,
     ONYXKEYS.SHOULD_USE_STAGING_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
     ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS,
