@@ -149,7 +149,7 @@ function SuggestionMention({
                     return;
                 }
 
-                if (prefixType === '#' && foundSuggestionsCount < 5 && isGroupPolicyReport) {
+                if (prefixType === '#' && foundSuggestionsCount < CONST.AUTO_COMPLETE_SUGGESTER.MIN_ROOM_SUGGESTIONS_BEFORE_SERVER_SEARCH && isGroupPolicyReport) {
                     searchInServer(searchPrefix, policyID);
                 }
             },

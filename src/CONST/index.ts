@@ -2969,6 +2969,9 @@ const CONST = {
         HERE_TEXT: '@here',
         SUGGESTION_BOX_MAX_SAFE_DISTANCE: 10,
         BIG_SCREEN_SUGGESTION_WIDTH: 300,
+
+        /** Below this many locally found room suggestions, we also search the server for more rooms */
+        MIN_ROOM_SUGGESTIONS_BEFORE_SERVER_SEARCH: 5,
     },
     COMPOSER_MAX_HEIGHT: 125,
     CHAT_FOOTER_SECONDARY_ROW_HEIGHT: 15,
