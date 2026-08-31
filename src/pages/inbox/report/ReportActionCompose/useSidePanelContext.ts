@@ -35,9 +35,11 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
         }
 
         // Native (no side panel): use the source report captured when Concierge Anywhere was opened via the sidebar
-        // button. Mirrors the {reportID} context the side panel builds on web.
+        // button. Mirrors the {reportID} context the side panel builds on web. The button drops a self-referencing
+        // source report, but it can only do so when CONCIERGE_REPORT_ID is already cached — on the create/open path
+        // it is not, so guard here as well (reportID is the Concierge report by the check above).
         if (!isInSidePanel) {
-            return sourceReportID ? {reportID: sourceReportID} : undefined;
+            return sourceReportID && sourceReportID !== reportID ? {reportID: sourceReportID} : undefined;
         }
 
         const contextReportID = currentRHPReportID ?? currentReportID ?? undefined;

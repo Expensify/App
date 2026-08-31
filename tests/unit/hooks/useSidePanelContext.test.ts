@@ -99,6 +99,14 @@ describe('useSidePanelContext', () => {
         expect(result.current).toEqual({reportID: 'source_report'});
     });
 
+    it('drops a self-referencing source report when not in the side panel', async () => {
+        mockIsInSidePanel = false;
+        mockRouteParams = {sourceReportID: REPORT_ID};
+        const {result} = await renderWithConciergeReport();
+        await waitForBatchedUpdates();
+        expect(result.current).toBeUndefined();
+    });
+
     it('returns undefined when reportID does not match conciergeReportID', async () => {
         mockIsInSidePanel = true;
         const {result} = await renderWithConciergeReport('different_report');

@@ -2510,8 +2510,9 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
  * @param reportID The ID of the report to navigate to
  * @param options.shouldDismissModal Whether to dismiss the modal before navigating (defaults to true)
  * @param options.afterTransition Callback to run after the navigate transition completes
+ * @param options.sourceReportID The report the user was viewing before this navigation, threaded onto the route (see navigateToConciergeChat)
  */
-function navigateToReport(reportID: string | undefined, options?: {shouldDismissModal?: boolean; afterTransition?: () => void}) {
+function navigateToReport(reportID: string | undefined, options?: {shouldDismissModal?: boolean; afterTransition?: () => void; sourceReportID?: string}) {
     const shouldDismissModal = options?.shouldDismissModal ?? true;
 
     if (shouldDismissModal) {
@@ -2528,7 +2529,7 @@ function navigateToReport(reportID: string | undefined, options?: {shouldDismiss
     // In some cases when RHP modal gets hidden and then we navigate to report Composer focus breaks, wrapping navigation in setTimeout fixes this
     setTimeout(() => {
         Navigation.isNavigationReady().then(() => {
-            const route = ROUTES.REPORT_WITH_ID.getRoute(reportID);
+            const route = ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, undefined, undefined, options?.sourceReportID);
             if (options?.afterTransition) {
                 Navigation.navigate(route, {afterTransition: options.afterTransition});
             } else {
@@ -2551,6 +2552,8 @@ type NavigateToAndOpenReportParams = {
     shouldRevalidateExistingChat?: boolean;
     hasReportActions?: boolean;
     linkToOptions?: LinkToOptions;
+    /** The report the user was viewing before this navigation, threaded onto the destination route (see navigateToConciergeChat) */
+    sourceReportID?: string;
 };
 
 /**
@@ -2569,6 +2572,7 @@ function navigateToAndOpenReport({
     shouldRevalidateExistingChat = false,
     hasReportActions,
     linkToOptions,
+    sourceReportID,
 }: NavigateToAndOpenReportParams) {
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
     const chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
@@ -2598,7 +2602,7 @@ function navigateToAndOpenReport({
             conciergeChat,
         });
 
-        navigateToReport(fallbackChat.reportID, {shouldDismissModal, ...linkToOptions});
+        navigateToReport(fallbackChat.reportID, {shouldDismissModal, sourceReportID, ...linkToOptions});
     };
 
     if (isEmptyObject(chat) || isReportNotFound(chat)) {
@@ -2620,7 +2624,7 @@ function navigateToAndOpenReport({
         if (isOnboardingPending) {
             openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions, currentUserAccountID});
         }
-        navigateToReport(chat.reportID, {shouldDismissModal, ...linkToOptions});
+        navigateToReport(chat.reportID, {shouldDismissModal, sourceReportID, ...linkToOptions});
         return;
     }
 
@@ -2647,7 +2651,7 @@ function navigateToAndOpenReport({
     // Re-open existing chats to re-validate server-side access and refresh stale local state. Pass hasCompletedGuidedSetupFlow
     // so a pending onboarding OpenReport is enqueued here too (see the create-path assumption note above).
     openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions, currentUserAccountID, conciergeChat});
-    navigateToReport(chat.reportID, {shouldDismissModal, ...linkToOptions});
+    navigateToReport(chat.reportID, {shouldDismissModal, sourceReportID, ...linkToOptions});
 }
 
 type NavigateToAndCreateGroupChatParams = {
@@ -4305,6 +4309,9 @@ function navigateToConciergeChat(
                 betas,
                 shouldDismissModal,
                 linkToOptions,
+                // Thread the source report here too: on this path the Concierge chat is being found/created, and without it
+                // a first-time user (or any client with no cached CONCIERGE_REPORT_ID) would open Concierge with no context.
+                sourceReportID,
             });
         });
     }
