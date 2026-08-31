@@ -31,7 +31,6 @@ import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePaymentOptions from '@hooks/usePaymentOptions';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
-import useReportCancelReimbursementStatus from '@hooks/useReportCancelReimbursementStatus';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
@@ -160,7 +159,6 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
-    const reimbursementCancellableStatus = useReportCancelReimbursementStatus(moneyRequestReport);
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -389,7 +387,6 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
               policies,
               outstandingReportsByPolicyID,
               isChatReportArchived,
-              reimbursementCancellableStatus,
               isOffline,
           })
         : [];

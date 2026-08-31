@@ -2043,6 +2043,7 @@ describe('getSecondaryAction', () => {
 
     it('includes CANCEL_PAYMENT option for bank payment in BILLING state', async () => {
         const report = createMock<Report>({
+            canCancelReimbursement: true,
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
@@ -2089,7 +2090,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            reimbursementCancellableStatus: {canCancel: true},
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -2292,6 +2292,7 @@ describe('getSecondaryAction', () => {
 
     it('includes CANCEL_PAYMENT option for bank payment the backend reports as cancellable', async () => {
         const report = createMock<Report>({
+            canCancelReimbursement: true,
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
@@ -2337,13 +2338,13 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            reimbursementCancellableStatus: {canCancel: true},
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
 
     it('does not include CANCEL_PAYMENT option for a bank payment after the NACHA cutoff even when the backend reported it as cancellable', async () => {
         const report = createMock<Report>({
+            canCancelReimbursement: true,
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
@@ -2389,13 +2390,13 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            reimbursementCancellableStatus: {canCancel: true},
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
 
     it('does not include CANCEL_PAYMENT option for bank payment the backend reports as not cancellable', async () => {
         const report = createMock<Report>({
+            canCancelReimbursement: false,
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
@@ -2439,13 +2440,13 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            reimbursementCancellableStatus: {canCancel: false},
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
 
     it('does not include CANCEL_PAYMENT option when the cancellable status is stale after a cancellation', async () => {
         const report = createMock<Report>({
+            canCancelReimbursement: true,
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
@@ -2483,13 +2484,13 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            reimbursementCancellableStatus: {canCancel: true},
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
 
     it('does not include CANCEL_PAYMENT option for a bank payment that has not reached the BILLING state', async () => {
         const report = createMock<Report>({
+            canCancelReimbursement: true,
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
@@ -2527,7 +2528,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
-            reimbursementCancellableStatus: {canCancel: true},
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });

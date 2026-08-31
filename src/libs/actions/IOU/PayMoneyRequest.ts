@@ -3,8 +3,8 @@ import type {PaymentMethod} from '@components/KYCWall/types';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import * as API from '@libs/API';
-import type {GetReportCancelReimbursementStatusParams, MarkReportPaymentReceivedParams, PayInvoiceParams, PayMoneyRequestParams} from '@libs/API/parameters';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import type {MarkReportPaymentReceivedParams, PayInvoiceParams, PayMoneyRequestParams} from '@libs/API/parameters';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {translateLocal} from '@libs/Localize';
@@ -810,14 +810,6 @@ function cancelPayment(
     notifyNewAction(expenseReport.reportID, undefined, true);
 }
 
-/** The answer expires as soon as the credit posts, so it is returned to the caller instead of being cached. */
-function getReportCancelReimbursementStatus(reportID: string): Promise<OnyxTypes.ReportCancelReimbursementStatus | undefined> {
-    const params: GetReportCancelReimbursementStatusParams = {reportID};
-
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_REPORT_CANCEL_REIMBURSEMENT_STATUS, params).then((response) => response?.reimbursementCancellableStatus);
-}
-
 /**
  * Completes onboarding for invite link flow based on the selected payment option
  *
@@ -1240,14 +1232,5 @@ function savePreferredPaymentMethod(
     });
 }
 
-export {
-    cancelPayment,
-    completePaymentOnboarding,
-    getReportCancelReimbursementStatus,
-    markReportPaymentReceived,
-    mergeAdditionalPayOnyxData,
-    payInvoice,
-    payMoneyRequest,
-    savePreferredPaymentMethod,
-};
+export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, mergeAdditionalPayOnyxData, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
 export type {AdditionalPayOnyxData};

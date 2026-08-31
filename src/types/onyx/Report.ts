@@ -259,6 +259,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report is waiting on a bank account */
         isWaitingOnBankAccount?: boolean;
 
+        /** Whether Auth still allows the report's bank reimbursement to be cancelled, from OpenReport */
+        canCancelReimbursement?: boolean;
+
         /** Whether the report is cancelled */
         isCancelledIOU?: boolean;
 

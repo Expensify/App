@@ -18,7 +18,6 @@ import useLifecycleActions from '@hooks/useLifecycleActions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useReportCancelReimbursementStatus from '@hooks/useReportCancelReimbursementStatus';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useSelectionModePayment from '@hooks/useSelectionModePayment';
@@ -106,7 +105,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     const {transactionThreadReportID, reportActions} = useTransactionThreadReport(reportID);
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
-    const reimbursementCancellableStatus = useReportCancelReimbursementStatus(moneyRequestReport);
 
     const allTransactionValues = Object.values(reportTransactions);
     const transactions = allTransactionValues;
@@ -169,7 +167,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
               policies: allPolicies,
               outstandingReportsByPolicyID,
               isChatReportArchived,
-              reimbursementCancellableStatus,
               isOffline,
           })
         : [];

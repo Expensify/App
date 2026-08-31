@@ -6,7 +6,6 @@ import type {
     Policy,
     Report,
     ReportAction,
-    ReportCancelReimbursementStatus,
     ReportMetadata,
     ReportNameValuePairs,
     Transaction,
@@ -441,7 +440,6 @@ function isCancelPaymentAction(
     reportTransactions: Transaction[],
     bankAccountList: OnyxEntry<BankAccountList>,
     policy?: Policy,
-    reimbursementCancellableStatus?: ReportCancelReimbursementStatus,
 ): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
@@ -494,7 +492,7 @@ function isCancelPaymentAction(
     // Only Auth knows whether the money has moved (fast ACH posts the credit right away), and it only allows cancelling in BILLING + REIMBURSED.
     const isReimbursementSubmitted = report.stateNum === CONST.REPORT.STATE_NUM.BILLING && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
-    return isPaidViaBankAccount && isReimbursementSubmitted && !hasCutoffPassed && !!reimbursementCancellableStatus?.canCancel;
+    return isPaidViaBankAccount && isReimbursementSubmitted && !hasCutoffPassed && !!report.canCancelReimbursement;
 }
 
 function isReceivedPaymentAction(report: Report, reportTransactions: Transaction[] = [], reportActions: ReportAction[] = [], policy?: Policy): boolean {
@@ -975,7 +973,6 @@ function getSecondaryReportActions({
     outstandingReportsByPolicyID,
     isChatReportArchived = false,
     parentReport,
-    reimbursementCancellableStatus,
     isOffline,
 }: {
     currentUserLogin: string;
@@ -996,7 +993,6 @@ function getSecondaryReportActions({
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
     parentReport?: OnyxEntry<Report>;
-    reimbursementCancellableStatus?: ReportCancelReimbursementStatus;
     /** TODO: Should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
@@ -1076,7 +1072,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE);
     }
 
-    if (isCancelPaymentAction(currentUserAccountID, currentUserLogin, report, reportTransactions, bankAccountList, policy, reimbursementCancellableStatus)) {
+    if (isCancelPaymentAction(currentUserAccountID, currentUserLogin, report, reportTransactions, bankAccountList, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
     }
 

@@ -476,7 +476,6 @@ export type {default as UpdateTravelBillingMonthlyLimitParams} from './UpdateTra
 export type {default as UpdateTravelBillingSettlementFrequencyParams} from './UpdateTravelBillingSettlementFrequencyParams';
 export type {default as RetryTravelCardsProvisioningParams} from './RetryTravelCardsProvisioningParams';
 export type {default as GetExpensifyCardStatementPDFParams} from './GetExpensifyCardStatementPDFParams';
-export type {default as GetReportCancelReimbursementStatusParams} from './GetReportCancelReimbursementStatusParams';
 export type {default as GetTravelBillingStatementPDFParams} from './GetTravelBillingStatementPDFParams';
 export type {default as ExportTravelBillingStatementCSVParams} from './ExportTravelBillingStatementCSVParams';
 export type {default as SetCompanyCardFeedName} from './SetCompanyCardFeedName';
