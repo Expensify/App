@@ -20,14 +20,15 @@ import React from 'react';
 import {View} from 'react-native';
 
 // The 'all' beta is excluded because it is a blanket switch rather than an individual feature, and overriding it would behave unpredictably against the per-feature switches.
-const betasList = Object.values(CONST.BETAS).filter((beta) => beta !== CONST.BETAS.ALL);
+const sortedBetas = Object.values(CONST.BETAS)
+    .filter((beta) => beta !== CONST.BETAS.ALL)
+    .sort();
 
 function BetaOverridesPage() {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const [betaOverrides] = useOnyx(ONYXKEYS.BETA_OVERRIDES);
-    const sortedBetas = [...betasList].sort(localeCompare);
 
     return (
         <ScreenWrapper
