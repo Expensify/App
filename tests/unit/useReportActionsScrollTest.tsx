@@ -75,12 +75,6 @@ jest.mock('@pages/inbox/report/useReportActionsNewActionLiveTail', () => ({
     }),
 }));
 
-// --- useScrollToEndOnNewMessageReceived ---
-jest.mock('@hooks/useScrollToEndOnNewMessageReceived', () => ({
-    __esModule: true,
-    default: jest.fn(),
-}));
-
 // --- TransitionTracker ---
 const mockTransitionCallbacks: Array<() => void> = [];
 jest.mock('@libs/Navigation/TransitionTracker', () => ({
@@ -186,7 +180,6 @@ function buildParams(overrides: Partial<ScrollParams> = {}): ScrollParams {
         unreadMarkerReportActionID: null,
         unreadMarkerReportActionIndex: -1,
         hasNewerActions: false,
-        draftAutoScrollKey: '',
         actionBadgeTargetIndex: -1,
         sortedAllReportActionsForPagination: [],
         treatAsNoPaginationAnchor: false,
@@ -233,6 +226,9 @@ describe('useReportActionsScroll', () => {
         mockIsFloatingMessageCounterVisible = false;
         mockIsActionBadgeAboveViewport = false;
         mockIsScrollToBottomEnabled = false;
+        mockSetIsScrollToBottomEnabled.mockImplementation((enabled: boolean) => {
+            mockIsScrollToBottomEnabled = enabled;
+        });
         mockIsTransactionThread = false;
         mockIsSentMoneyReportAction = false;
         mockIsReportPreviewAction = false;
@@ -285,7 +281,7 @@ describe('useReportActionsScroll', () => {
             const {result} = await renderScroll({sortedVisibleReportActions: [linkedAction], renderedVisibleReportActions: [linkedAction]});
 
             expect(result.current.initialScrollIndex).toBe(0);
-            expect(result.current.initialScrollIndexParams).toEqual({viewPosition: 0, viewOffset: -CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+            expect(result.current.initialScrollIndexParams).toEqual({viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
         });
 
         it('positions an unread marker at chronological index zero', async () => {
@@ -371,57 +367,57 @@ describe('useReportActionsScroll', () => {
                 result.current.scrollToActionBadgeTarget();
             });
 
-            expect(mockScrollToIndex).toHaveBeenCalledWith(5, {viewPosition: 0, viewOffset: -CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+            expect(mockScrollToIndex).toHaveBeenCalledWith(5, {viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
         });
     });
 
-    describe('flushPendingScrollToBottom', () => {
+    describe('pending live-tail requests', () => {
         it('does nothing when scroll-to-bottom is not enabled', async () => {
             mockIsScrollToBottomEnabled = false;
 
-            const {result} = await renderScroll();
-            act(() => {
-                result.current.flushPendingScrollToBottom();
-            });
+            await renderScroll();
 
             expect(mockScrollToBottom).not.toHaveBeenCalled();
             expect(mockSetIsScrollToBottomEnabled).not.toHaveBeenCalled();
             expect(mockCompleteLiveTailPrune).not.toHaveBeenCalled();
         });
 
-        it('scrolls, disables itself and prunes when scroll-to-bottom is enabled', async () => {
+        it('consumes the request after render without waiting for a future viewport layout', async () => {
             mockIsScrollToBottomEnabled = true;
 
-            const {result} = await renderScroll();
-            act(() => {
-                result.current.flushPendingScrollToBottom();
-            });
+            const {rerender} = await renderScroll();
 
             expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
             expect(mockSetIsScrollToBottomEnabled).toHaveBeenCalledWith(false);
             expect(mockCompleteLiveTailPrune).toHaveBeenCalledTimes(1);
+
+            mockScrollOffsetRef.current = 9999;
+            rerender(buildParams());
+            expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
         });
     });
 
     describe('effects', () => {
-        it('auto-scrolls to bottom when a new draft key arrives near the bottom and the newest action is present', async () => {
+        it('leaves incoming-message following to LegendList', async () => {
             mockScrollOffsetRef.current = 0;
 
-            const {rerender} = await renderScroll({draftAutoScrollKey: ''});
+            const {rerender} = await renderScroll();
 
-            rerender(buildParams({draftAutoScrollKey: 'draft-1'}));
+            const actions = [makeAction('2'), makeAction('1')];
+            rerender(buildParams({sortedVisibleReportActions: actions, renderedVisibleReportActions: actions.toReversed()}));
 
-            expect(mockSetIsFloatingMessageCounterVisible).toHaveBeenCalledWith(false);
-            expect(mockScrollToBottom).toHaveBeenCalled();
+            expect(mockScrollToBottom).not.toHaveBeenCalled();
         });
 
-        it('does not auto-scroll on a new draft key when scrolled away from the bottom', async () => {
-            mockScrollOffsetRef.current = 9999;
+        it('does not schedule a competing scroll when a streamed draft grows', async () => {
+            mockScrollOffsetRef.current = 0;
 
-            const {rerender} = await renderScroll({draftAutoScrollKey: ''});
+            const draft = makeAction('2', {message: [{type: 'COMMENT', text: 'Hello', html: '<p>Hello</p>'}]});
+            const {rerender} = await renderScroll({renderedVisibleReportActions: [makeAction('1'), draft]});
             mockScrollToBottom.mockClear();
 
-            rerender(buildParams({draftAutoScrollKey: 'draft-1'}));
+            const updatedDraft: ReportAction = {...draft, message: [{type: 'COMMENT', text: 'Hello, here is the rest of the reply.', html: '<p>Hello, here is the rest of the reply.</p>'}]};
+            rerender(buildParams({renderedVisibleReportActions: [makeAction('1'), updatedDraft]}));
 
             expect(mockScrollToBottom).not.toHaveBeenCalled();
         });

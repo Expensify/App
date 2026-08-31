@@ -60,9 +60,8 @@ type LiveTailJumpStage = 'idle' | 'open_report' | 'await_scroll' | 'await_prune'
 
 /**
  * Owns subscribe-to-new-action scrolling, live-tail jump (openReport → scroll → prune), and the
- * deferred scroll + pagination prune after layout. Uses useEffectEvent for the Pusher subscription handler so it
- * always sees the latest props without mirror refs. The layout-time prune step uses useCallback so callers can invoke
- * it from list `onLayout` outside this hook.
+ * deferred scroll + pagination prune after the data render. Uses useEffectEvent for the Pusher subscription handler so it
+ * always sees the latest props without mirror refs. The prune callback completes the explicit scroll request in the caller.
  */
 function useReportActionsNewActionLiveTail({
     conciergeChat,
@@ -142,10 +141,8 @@ function useReportActionsNewActionLiveTail({
                     }
                 } else {
                     setIsFloatingMessageCounterVisible(false);
-                    reportScrollManager.scrollToBottom();
+                    setIsScrollToBottomEnabled(true);
                 }
-
-                setIsScrollToBottomEnabled(true);
             },
         });
     });

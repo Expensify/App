@@ -88,7 +88,7 @@ type ReportActionsListContentProps = {
 type ReportActionsListProps = ReportActionsListContentProps;
 
 const PAGINATION_THRESHOLD = 0.75;
-const REPORT_ACTIONS_DRAW_DISTANCE = 500;
+const REPORT_ACTIONS_DRAW_DISTANCE = 1500;
 
 const REPORT_ACTION_COMMENT_SIZE = {
     SHORT: 'short',
@@ -336,7 +336,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const draftReportActionID = draftReportAction?.reportActionID;
     const isSyntheticDraftVisible = !!draftReportAction && renderedVisibleReportActions !== sortedVisibleReportActions;
-    const draftAutoScrollKey = isSyntheticDraftVisible ? `${draftReportAction.reportActionID}:${draftMessageHTML ?? ''}` : '';
 
     useEffect(() => {
         if (!draftReportAction || isSyntheticDraftVisible) {
@@ -366,7 +365,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         isActionBadgeAboveViewport,
         scrollToBottomAndMarkReportAsRead,
         scrollToActionBadgeTarget,
-        flushPendingScrollToBottom,
         shouldBeAlignedToTop,
         initialScrollIndex,
         initialScrollIndexParams,
@@ -385,7 +383,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         unreadMarkerReportActionID,
         unreadMarkerReportActionIndex: unreadMarkerListIndex,
         hasNewerActions,
-        draftAutoScrollKey,
         actionBadgeTargetIndex,
         sortedAllReportActionsForPagination: sortedAllReportActions ?? [],
         treatAsNoPaginationAnchor,
@@ -593,10 +590,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     ListFooterComponent={listHeaderComponent}
                     ListFooterComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
                     keyboardShouldPersistTaps="handled"
-                    onLayout={(event) => {
-                        recordTimeToMeasureItemLayout(event);
-                        flushPendingScrollToBottom();
-                    }}
+                    onLayout={recordTimeToMeasureItemLayout}
                     onScroll={trackScrollPositionAndThreshold}
                     onViewableItemsChanged={onViewableItemsChanged}
                     extraData={extraData}
@@ -605,14 +599,14 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     initialScrollAtEnd={initialScrollIndex === undefined}
                     initialScrollIndex={initialScrollIndex === undefined ? undefined : {index: initialScrollIndex, ...initialScrollIndexParams}}
                     alignItemsAtEnd={!shouldBeAlignedToTop}
-                    maintainScrollAtEnd={{animated: false}}
+                    // Only follow the real latest page. Older/linked windows must retain their visible anchor.
+                    maintainScrollAtEnd={!hasNewerActions && {animated: false}}
                     // Keyboard avoidance can shrink the viewport by almost a full screen before LegendList evaluates end proximity.
-                    maintainScrollAtEndThreshold={1}
-                    maintainVisibleContentPosition={{data: true}}
+                    // Leave the end-follow region as soon as the user starts reading older messages.
+                    maintainScrollAtEndThreshold={0.01}
+                    maintainVisibleContentPosition
                     onLoad={onLoad}
-                    onContentSizeChange={() => {
-                        trackVerticalScrolling(undefined);
-                    }}
+                    onContentSizeChange={() => trackVerticalScrolling(undefined)}
                 />
             </ReportActionsListPaddingView>
         </>

@@ -99,7 +99,7 @@ function buildParams(overrides: Partial<HookParams> = {}): HookParams {
         hasNewerActions: true,
         linkedReportActionID: undefined,
         hasNewestReportAction: false,
-        sortedVisibleReportActions: [],
+        renderedVisibleReportActions: [],
         sortedAllReportActionsForPagination: [],
         reportActionPages: undefined,
         setTreatAsNoPaginationAnchor: jest.fn(),
@@ -116,6 +116,29 @@ describe('useReportActionsNewActionLiveTail', () => {
         newActionHandler = undefined;
         mockNavigation = {setParams: mockNavigationSetParams, getState: () => ({key: 'stack-report'})};
         mockIsInSidePanel = false;
+    });
+
+    it('requests one post-render scroll for a sent comment instead of also scrolling immediately', () => {
+        const {result} = renderHook(() => useReportActionsNewActionLiveTail(buildParams({hasNewerActions: false, hasNewestReportAction: true})));
+
+        act(() => {
+            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+        });
+
+        expect(result.current.isScrollToBottomEnabled).toBe(true);
+        expect(reportScrollManager.scrollToBottom).not.toHaveBeenCalled();
+    });
+
+    it('does not queue a bottom scroll that would compete with a report-preview target', () => {
+        const preview = getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW});
+        const {result} = renderHook(() => useReportActionsNewActionLiveTail(buildParams({hasNewerActions: false, hasNewestReportAction: true, renderedVisibleReportActions: [preview]})));
+
+        act(() => {
+            newActionHandler?.(true, preview);
+        });
+
+        expect(reportScrollManager.scrollToBottom).toHaveBeenCalledTimes(1);
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
     });
 
     it('threads the conciergeChat report through to the catch-up openReport call', () => {

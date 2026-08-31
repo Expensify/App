@@ -32,7 +32,6 @@ import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useReportScrollManager from './useReportScrollManager';
-import useScrollToEndOnNewMessageReceived from './useScrollToEndOnNewMessageReceived';
 
 type UseReportActionsScrollParams = {
     /** The Concierge chat report */
@@ -75,9 +74,6 @@ type UseReportActionsScrollParams = {
     /** Whether the report has newer actions to load */
     hasNewerActions: boolean;
 
-    /** Stable key that changes when a streamed concierge draft becomes visible, used to trigger autoscroll */
-    draftAutoScrollKey: string;
-
     /** The index of the action badge target in the rendered actions list (-1 if none) */
     actionBadgeTargetIndex: number;
 
@@ -109,9 +105,6 @@ type UseReportActionsScrollResult = {
     /** Scrolls to the action badge target */
     scrollToActionBadgeTarget: () => void;
 
-    /** Completes a live-tail scroll-to-bottom once the list has laid out; call on every list layout */
-    flushPendingScrollToBottom: () => void;
-
     /** Whether the list should be pinned to the visual top (transaction thread / money request) */
     shouldBeAlignedToTop: boolean;
 
@@ -139,7 +132,6 @@ function useReportActionsScroll({
     unreadMarkerReportActionID,
     unreadMarkerReportActionIndex,
     hasNewerActions,
-    draftAutoScrollKey,
     actionBadgeTargetIndex,
     sortedAllReportActionsForPagination,
     treatAsNoPaginationAnchor,
@@ -222,34 +214,17 @@ function useReportActionsScroll({
         reportLoadingState,
     });
 
-    useScrollToEndOnNewMessageReceived({
-        sizeChangeType: 'changed',
-        scrollOffsetRef,
-        lastActionID: lastAction?.reportActionID,
-        visibleActionsLength: sortedVisibleReportActions.length,
-        hasNewestReportAction,
-        setIsFloatingMessageCounterVisible,
-        scrollToEnd: reportScrollManager.scrollToBottom,
-        // Include reportID so list-length / last-id baselines reset when the same screen instance shows another report.
-        resetKey: `${reportID}:${linkedReportActionID}`,
-    });
-
-    const previousDraftAutoScrollKey = usePrevious(draftAutoScrollKey);
-
+    // Consume an explicit live-tail request after the data render, not on an unrelated future
+    // viewport layout (for example, opening the keyboard after the user has scrolled away).
+    // Incoming messages and streaming draft growth are followed by LegendList itself.
     useEffect(() => {
-        if (!draftAutoScrollKey || previousDraftAutoScrollKey === draftAutoScrollKey) {
+        if (!isScrollToBottomEnabled) {
             return;
         }
-
-        if (scrollOffsetRef.current >= CONST.REPORT.ACTIONS.AUTOSCROLL_TO_TOP_THRESHOLD || !hasNewestReportAction) {
-            return;
-        }
-
-        setIsFloatingMessageCounterVisible(false);
-        requestAnimationFrame(() => {
-            reportScrollManager.scrollToBottom();
-        });
-    }, [draftAutoScrollKey, hasNewestReportAction, previousDraftAutoScrollKey, reportScrollManager, scrollOffsetRef, setIsFloatingMessageCounterVisible]);
+        reportScrollManager.scrollToBottom();
+        setIsScrollToBottomEnabled(false);
+        completeLiveTailPruneAfterScrollToBottom();
+    }, [isScrollToBottomEnabled, reportScrollManager, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom]);
 
     // Fixes Safari-specific issue where the whisper option is not highlighted correctly on hover after adding new transaction.
     // https://github.com/Expensify/App/issues/54520
@@ -317,16 +292,7 @@ function useReportActionsScroll({
         if (actionBadgeTargetIndex < 0) {
             return;
         }
-        reportScrollManager.scrollToIndex(actionBadgeTargetIndex, {viewPosition: 0, viewOffset: -CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
-    };
-
-    const flushPendingScrollToBottom = () => {
-        if (!isScrollToBottomEnabled) {
-            return;
-        }
-        reportScrollManager.scrollToBottom();
-        setIsScrollToBottomEnabled(false);
-        completeLiveTailPruneAfterScrollToBottom();
+        reportScrollManager.scrollToIndex(actionBadgeTargetIndex, {viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
     };
 
     // Data is ready when LegendList finishes its first render.
@@ -362,7 +328,6 @@ function useReportActionsScroll({
         isActionBadgeAboveViewport,
         scrollToBottomAndMarkReportAsRead,
         scrollToActionBadgeTarget,
-        flushPendingScrollToBottom,
         shouldBeAlignedToTop,
         initialScrollIndex,
         initialScrollIndexParams,

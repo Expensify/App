@@ -159,7 +159,6 @@ jest.mock('@hooks/useReportActionsScroll', () =>
         isActionBadgeAboveViewport: false,
         scrollToBottomAndMarkReportAsRead: jest.fn(),
         scrollToActionBadgeTarget: jest.fn(),
-        flushPendingScrollToBottom: jest.fn(),
         shouldBeAlignedToTop: false,
         initialScrollIndex: undefined,
         initialScrollIndexParams: undefined,
@@ -183,6 +182,7 @@ type MockLegendListProps = {
     initialScrollAtEnd?: boolean;
     maintainScrollAtEnd?: {animated: boolean} | false;
     maintainScrollAtEndThreshold?: number;
+    maintainVisibleContentPosition?: boolean;
     recycleItems?: boolean;
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
     onStartReached?: () => void;
@@ -382,12 +382,13 @@ describe('ReportActionsList (body)', () => {
         await Onyx.clear();
     });
 
-    it('keeps the latest messages anchored when the keyboard changes the list layout', () => {
+    it('delegates end following and size corrections to LegendList without a full-viewport threshold', () => {
         mockUseNetwork.mockReturnValue({isOffline: false});
         renderReportActionsList();
 
         expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({animated: false});
-        expect(getCapturedListProps()?.maintainScrollAtEndThreshold).toBe(1);
+        expect(getCapturedListProps()?.maintainScrollAtEndThreshold).toBe(0.01);
+        expect(getCapturedListProps()?.maintainVisibleContentPosition).toBe(true);
     });
 
     it('initially aligns the seed page to the end', () => {
@@ -398,6 +399,19 @@ describe('ReportActionsList (body)', () => {
         expect(getCapturedListProps()?.initialScrollAtEnd).toBe(true);
         expect(getCapturedListProps()?.alignItemsAtEnd).toBe(true);
         expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({animated: false});
+    });
+
+    it('does not follow the end of a page that still has newer actions to load', () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockUsePaginatedReportActions.mockReturnValue({
+            ...defaultPaginatedReportActionsResult,
+            reportActions: mockReportActions,
+            hasNewerActions: true,
+        });
+        renderReportActionsList();
+
+        expect(getCapturedListProps()?.maintainScrollAtEnd).toBe(false);
+        expect(getCapturedListProps()?.maintainVisibleContentPosition).toBe(true);
     });
 
     it('remounts the list when the initial report actions finish hydrating', async () => {
@@ -414,6 +428,7 @@ describe('ReportActionsList (body)', () => {
         view.rerender(
             <ReportActionsList
                 reportID={mockReport.reportID}
+                conciergeChat={undefined}
                 onLayout={jest.fn()}
             />,
         );
@@ -439,6 +454,7 @@ describe('ReportActionsList (body)', () => {
         view.rerender(
             <ReportActionsList
                 reportID={mockReport.reportID}
+                conciergeChat={undefined}
                 onLayout={jest.fn()}
             />,
         );
@@ -451,6 +467,7 @@ describe('ReportActionsList (body)', () => {
         view.rerender(
             <ReportActionsList
                 reportID={mockReport.reportID}
+                conciergeChat={undefined}
                 onLayout={jest.fn()}
             />,
         );
@@ -466,7 +483,7 @@ describe('ReportActionsList (body)', () => {
 
         const listProps = getCapturedListProps();
 
-        expect(listProps?.drawDistance).toBe(500);
+        expect(listProps?.drawDistance).toBe(1500);
         expect(listProps?.recycleItems).toBe(true);
     });
 
@@ -555,6 +572,7 @@ describe('ReportActionsList (body)', () => {
         view.rerender(
             <ReportActionsList
                 reportID={mockReport.reportID}
+                conciergeChat={undefined}
                 onLayout={jest.fn()}
             />,
         );
