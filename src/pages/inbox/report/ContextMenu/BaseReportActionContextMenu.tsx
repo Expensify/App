@@ -26,7 +26,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
-import {moveFullContextMenuFocusWithArrowKey} from '@libs/moveMiniToolbarFocusWithArrowKey';
+import {moveFullContextMenuFocusWithArrowKey} from '@libs/moveContextMenuFocusWithArrowKey';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {
     getLinkedTransactionID,

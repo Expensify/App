@@ -1,5 +1,5 @@
 import getHadTabNavigation, {resetForTests, setupHadTabNavigation} from '@libs/hadTabNavigation';
-import moveMiniToolbarFocusWithArrowKey, {getAdjacentHorizontalIndex, moveFullContextMenuFocusWithArrowKey, TOOLBAR_BUTTON_SELECTOR} from '@libs/moveMiniToolbarFocusWithArrowKey';
+import moveMiniToolbarFocusWithArrowKey, {getAdjacentHorizontalIndex, moveFullContextMenuFocusWithArrowKey, TOOLBAR_BUTTON_SELECTOR} from '@libs/moveContextMenuFocusWithArrowKey';
 
 import CONST from '@src/CONST';
 
@@ -100,14 +100,19 @@ describe('getAdjacentHorizontalIndex', () => {
         expect(getAdjacentHorizontalIndex(ADD_REACTION_INDEX, CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey, LAST_BUTTON_INDEX)).toBe(REPLY_INDEX);
     });
 
-    it('stops at the first and last buttons', () => {
-        expect(getAdjacentHorizontalIndex(0, CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey, LAST_BUTTON_INDEX)).toBe(0);
-        expect(getAdjacentHorizontalIndex(LAST_BUTTON_INDEX, CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey, LAST_BUTTON_INDEX)).toBe(LAST_BUTTON_INDEX);
+    it('wraps from the first button to the last and from the last button to the first', () => {
+        expect(getAdjacentHorizontalIndex(0, CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey, LAST_BUTTON_INDEX)).toBe(LAST_BUTTON_INDEX);
+        expect(getAdjacentHorizontalIndex(LAST_BUTTON_INDEX, CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey, LAST_BUTTON_INDEX)).toBe(0);
     });
 
     it('moves one step toward the adjacent button', () => {
         expect(getAdjacentHorizontalIndex(0, CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey, LAST_BUTTON_INDEX)).toBe(1);
         expect(getAdjacentHorizontalIndex(REPLY_INDEX, CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey, LAST_BUTTON_INDEX)).toBe(ADD_REACTION_INDEX);
+    });
+
+    it('keeps the current index for vertical arrow keys', () => {
+        expect(getAdjacentHorizontalIndex(1, CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey, LAST_BUTTON_INDEX)).toBe(1);
+        expect(getAdjacentHorizontalIndex(1, CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey, LAST_BUTTON_INDEX)).toBe(1);
     });
 });
 
@@ -151,28 +156,28 @@ describe('moveMiniToolbarFocusWithArrowKey', () => {
         expect(document.activeElement).toBe(getToolbarButton(buttons, 0));
     });
 
-    it('stops at the ends instead of wrapping', () => {
+    it('wraps from the first button to the last and from the last button to the first', () => {
         simulateTab();
         const toolbar = createMiniToolbar();
         const buttons = getToolbarButtons(toolbar);
 
         getToolbarButton(buttons, 0).focus();
         pressArrow(toolbar, CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey);
-        expect(document.activeElement).toBe(getToolbarButton(buttons, 0));
+        expect(document.activeElement).toBe(getToolbarButton(buttons, LAST_BUTTON_INDEX));
 
         getToolbarButton(buttons, LAST_BUTTON_INDEX).focus();
         pressArrow(toolbar, CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey);
-        expect(document.activeElement).toBe(getToolbarButton(buttons, LAST_BUTTON_INDEX));
+        expect(document.activeElement).toBe(getToolbarButton(buttons, 0));
     });
 
-    it('treats ArrowDown like ArrowRight and ArrowUp like ArrowLeft', () => {
+    it('does not move focus with ArrowDown or ArrowUp', () => {
         simulateTab();
         const toolbar = createMiniToolbar();
         const buttons = getToolbarButtons(toolbar);
         getToolbarButton(buttons, 1).focus();
 
         pressArrow(toolbar, CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey);
-        expect(document.activeElement).toBe(getToolbarButton(buttons, 2));
+        expect(document.activeElement).toBe(getToolbarButton(buttons, 1));
 
         pressArrow(toolbar, CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey);
         expect(document.activeElement).toBe(getToolbarButton(buttons, 1));
@@ -215,7 +220,7 @@ describe('moveFullContextMenuFocusWithArrowKey', () => {
         expect(document.activeElement).toBe(getToolbarButton(reactionButtons, 1));
     });
 
-    it('keeps ArrowRight on the last reaction instead of moving onto Reply in thread', () => {
+    it('wraps from the last reaction back to the first instead of moving onto Reply in thread', () => {
         simulateTab();
         const {menu, reactionRow} = createFullContextMenu();
         const reactionButtons = getToolbarButtons(reactionRow);
@@ -223,8 +228,8 @@ describe('moveFullContextMenuFocusWithArrowKey', () => {
 
         pressFullMenuArrow(menu, CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey);
 
-        expect(document.activeElement).toBe(getToolbarButton(reactionButtons, LAST_REACTION_INDEX));
-        expect(document.activeElement?.textContent).toBe('Add reaction');
+        expect(document.activeElement).toBe(getToolbarButton(reactionButtons, 0));
+        expect(document.activeElement?.textContent).toBe('thumbs up');
     });
 
     it('does not move focus with ArrowDown so the vertical list manager can handle it', () => {

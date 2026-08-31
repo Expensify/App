@@ -34,28 +34,20 @@ function getPressedKey(event: ToolbarKeyDownEvent): string {
     return '';
 }
 
-function isArrowKey(key: string): boolean {
-    return (
-        key === CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey ||
-        key === CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey ||
-        key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey ||
-        key === CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey
-    );
+function isHorizontalArrowKey(key: string): boolean {
+    return key === CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey || key === CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey;
 }
 
 /**
- * Returns the next index in a horizontal toolbar for an arrow key.
- * Non-arrow keys and moves past either end keep the current index.
+ * Returns the next index in a horizontal toolbar for a left or right arrow key.
+ * Movement wraps from one end to the other. Other keys keep the current index.
  */
 function getAdjacentHorizontalIndex(currentIndex: number, key: string, lastIndex: number): number {
-    const isNext = key === CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey || key === CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey;
-    const isPrevious = key === CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey || key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey;
-
-    if (isNext) {
-        return Math.min(currentIndex + 1, lastIndex);
+    if (key === CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey) {
+        return currentIndex >= lastIndex ? 0 : currentIndex + 1;
     }
-    if (isPrevious) {
-        return Math.max(currentIndex - 1, 0);
+    if (key === CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey) {
+        return currentIndex <= 0 ? lastIndex : currentIndex - 1;
     }
     return currentIndex;
 }
@@ -82,10 +74,6 @@ function isActiveToolbarButton(button: Element, activeElement: Element | null): 
     return button === activeElement || button.contains(activeElement);
 }
 
-function isHorizontalArrowKey(key: string): boolean {
-    return key === CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey || key === CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey;
-}
-
 function getReactionRow(root: EventTarget | null | undefined, activeElement: Element): (Node & ParentNode) | null {
     if (!canQueryToolbarButtons(root) || !root.contains(activeElement)) {
         return null;
@@ -103,14 +91,9 @@ function getReactionRow(root: EventTarget | null | undefined, activeElement: Ele
 }
 
 function moveToolbarFocusWithArrowKey(event: ToolbarKeyDownEvent, toolbar: EventTarget | null | undefined): void {
-    // Mouse clicks clear this flag, so arrows must not steal focus after a pointer reaction.
-    if (!getHadTabNavigation()) {
-        return;
-    }
-
     const key = getPressedKey(event);
     // Arrow shortcuts have empty modifier lists. Alt+Arrow is browser history, so do not steal it.
-    if (!isArrowKey(key) || hasModifierKey(event)) {
+    if (!isHorizontalArrowKey(key) || hasModifierKey(event)) {
         return;
     }
 
@@ -143,10 +126,18 @@ function moveToolbarFocusWithArrowKey(event: ToolbarKeyDownEvent, toolbar: Event
 }
 
 function moveMiniToolbarFocusWithArrowKey(event: ToolbarKeyDownEvent): void {
+    if (!getHadTabNavigation()) {
+        return;
+    }
+
     moveToolbarFocusWithArrowKey(event, event.currentTarget);
 }
 
 function moveFullContextMenuFocusWithArrowKey(event: ToolbarKeyDownEvent): void {
+    if (!getHadTabNavigation()) {
+        return;
+    }
+
     const key = getPressedKey(event);
     if (!isHorizontalArrowKey(key)) {
         return;

@@ -1,6 +1,6 @@
 import useStyleUtils from '@hooks/useStyleUtils';
 
-import moveMiniToolbarFocusWithArrowKey from '@libs/moveMiniToolbarFocusWithArrowKey';
+import moveMiniToolbarFocusWithArrowKey from '@libs/moveContextMenuFocusWithArrowKey';
 
 import BaseReportActionContextMenu from '@pages/inbox/report/ContextMenu/BaseReportActionContextMenu';
 
