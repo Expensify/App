@@ -1,9 +1,7 @@
-import type {TupleToUnion} from 'type-fest';
-
-const SEARCH_SNAPSHOT_ONYX_KEYS = ['report_', 'policy_', 'transactions_', 'transactionViolations_', 'reportActions_', 'personalDetailsList', 'reportNameValuePairs_'] as const;
-
-type SearchSnapshotOnyxKey = TupleToUnion<typeof SEARCH_SNAPSHOT_ONYX_KEYS>;
-
+/**
+ * Values that CONST needs from platform-specific modules, plus Bun-safe fallbacks.
+ * Keep this shape runtime-agnostic so translation tooling can import the full CONST barrel.
+ */
 type ConstRuntime = {
     NEW_EXPENSIFY_URL: string;
     KEY_COMMANDS: {
@@ -45,7 +43,7 @@ type ConstRuntime = {
         SVFG: number;
         QA_GUIDE: number;
     };
-    SEARCH_SNAPSHOT_ONYX_KEYS: readonly SearchSnapshotOnyxKey[];
+    SEARCH_SNAPSHOT_ONYX_KEYS: readonly string[];
     EXCLUDE_FROM_LAST_VISITED_PATH: readonly string[];
 };
 
@@ -90,7 +88,7 @@ const CONST_RUNTIME_DEFAULTS: ConstRuntime = {
         SVFG: 2012843,
         QA_GUIDE: 14365522,
     },
-    SEARCH_SNAPSHOT_ONYX_KEYS,
+    SEARCH_SNAPSHOT_ONYX_KEYS: ['report_', 'policy_', 'transactions_', 'transactionViolations_', 'reportActions_', 'personalDetailsList', 'reportNameValuePairs_'],
     EXCLUDE_FROM_LAST_VISITED_PATH: [
         'not-found',
         'SAMLSignIn',
@@ -110,4 +108,4 @@ const CONST_RUNTIME_DEFAULTS: ConstRuntime = {
 };
 
 export default CONST_RUNTIME_DEFAULTS;
-export type {ConstRuntime, SearchSnapshotOnyxKey};
+export type {ConstRuntime};

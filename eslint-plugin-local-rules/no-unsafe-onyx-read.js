@@ -5,23 +5,21 @@ const name = 'no-unsafe-onyx-read';
 
 const ONYX_MODULE = 'react-native-onyx';
 
-const ONYXKEYS_SOURCE = 'src/ONYXKEYS.ts';
+const SNAPSHOT_KEYS_SOURCE = 'src/CONST/runtimeConfigured.ts';
 
-const SNAPSHOT_PREFIX_SOURCE = 'src/CONST/runtimeDefaults.ts';
-
-const SNAPSHOT_PREFIX_DECLARATION = /const SEARCH_SNAPSHOT_ONYX_KEYS = \[([^\]]*)\]/;
+const SNAPSHOT_KEYS_DECLARATION = /SEARCH_SNAPSHOT_ONYX_KEYS:\s*\[([^\]]*)\]/;
 
 const ONYXKEYS_ROOT = 'ONYXKEYS';
 
 /**
- * Walks up from the working directory until it finds the repo root, so the rule resolves the same
- * files whether ESLint runs it from a workspace subdirectory or Jest requires it from the root.
+ * Walks up from the working directory until it finds the repo root, so the rule resolves the same file
+ * whether ESLint runs it from a workspace subdirectory or Jest requires it from the root.
  */
 function findRepoRoot() {
     let current = path.resolve(process.cwd());
 
     while (true) {
-        if (fs.existsSync(path.join(current, ONYXKEYS_SOURCE))) {
+        if (fs.existsSync(path.join(current, SNAPSHOT_KEYS_SOURCE))) {
             return current;
         }
 
@@ -36,67 +34,29 @@ function findRepoRoot() {
 }
 
 /**
- * Maps every string-valued entry of `ONYXKEYS` to its dotted access path, so `report_` is known to be
- * reachable as `ONYXKEYS.COLLECTION.REPORT`. Reading the declaration rather than restating it keeps the
- * rule from drifting when a key is added, renamed or moved between the top level and `COLLECTION`.
- */
-function readOnyxKeyPaths(repoRoot) {
-    const source = fs.readFileSync(path.join(repoRoot, ONYXKEYS_SOURCE), 'utf8');
-    const paths = new Map();
-    const stack = [];
-
-    for (const line of source.split('\n')) {
-        const opening = /^\s*([A-Z0-9_]+):\s*\{\s*$/.exec(line);
-
-        if (opening) {
-            stack.push(opening[1]);
-            continue;
-        }
-
-        if (/^\s*\},?\s*$/.test(line)) {
-            stack.pop();
-            continue;
-        }
-
-        const entry = /^\s*([A-Z0-9_]+):\s*'([^']*)'/.exec(line);
-
-        if (entry) {
-            paths.set([...stack, entry[1]].join('.'), entry[2]);
-        }
-    }
-
-    return paths;
-}
-
-function readSnapshotPrefixes(repoRoot) {
-    const source = fs.readFileSync(path.join(repoRoot, SNAPSHOT_PREFIX_SOURCE), 'utf8');
-    const declaration = SNAPSHOT_PREFIX_DECLARATION.exec(source);
-
-    return declaration ? [...declaration[1].matchAll(/'([^']*)'/g)].map((match) => match[1]) : [];
-}
-
-/**
  * The `ONYXKEYS` access paths that `src/hooks/useOnyx.ts` redirects to `snapshot_<hash>` inside a
- * `SearchScopeProvider` subtree. A one-shot read of these returns live data where the component would
- * have seen the snapshot, which is the difference the reader cannot observe.
+ * `SearchScopeProvider` subtree. A one-shot read of these returns live data where the component would have
+ * seen the snapshot.
+ *
+ * The list is read out of `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` rather than restated here, so the two cannot
+ * drift. `runtimeConfigured` is the definition that web and native both load, and it already names the keys
+ * as `ONYXKEYS` paths, which is the form a call site writes them in.
  */
 function resolveRestrictedKeyPaths() {
     const repoRoot = findRepoRoot();
 
     if (!repoRoot) {
-        return new Set();
+        throw new Error(`no-unsafe-onyx-read could not locate ${SNAPSHOT_KEYS_SOURCE}. Without it the rule would silently stop refusing Search snapshot keys.`);
     }
 
-    const prefixes = readSnapshotPrefixes(repoRoot);
-    const restricted = new Set();
+    const source = fs.readFileSync(path.join(repoRoot, SNAPSHOT_KEYS_SOURCE), 'utf8');
+    const declaration = SNAPSHOT_KEYS_DECLARATION.exec(source);
 
-    for (const [keyPath, value] of readOnyxKeyPaths(repoRoot)) {
-        if (prefixes.some((prefix) => value.startsWith(prefix))) {
-            restricted.add(keyPath);
-        }
+    if (!declaration) {
+        throw new Error(`no-unsafe-onyx-read could not read SEARCH_SNAPSHOT_ONYX_KEYS from ${SNAPSHOT_KEYS_SOURCE}. Without it the rule would silently stop refusing Search snapshot keys.`);
     }
 
-    return restricted;
+    return new Set([...declaration[1].matchAll(/ONYXKEYS\.([A-Z0-9_.]+)/g)].map((match) => match[1]));
 }
 
 const RESTRICTED_KEY_PATHS = resolveRestrictedKeyPaths();
