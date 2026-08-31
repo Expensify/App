@@ -15,7 +15,7 @@ type TagSelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
 function TagSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TagSelectorProps) {
     const {translate} = useLocalize();
-    const {searchResults, isLoading, hasMore, loadMore, search, isInitialLoading} = useSearchTagFilters();
+    const {searchResults, isLoading, hasMore, loadMore, searchTags, isInitialLoading} = useSearchTagFilters();
 
     const tagItems = [{text: translate('search.noTag'), value: CONST.SEARCH.TAG_EMPTY_VALUE as string}];
     const seenTagNames = new Set<string>();
@@ -49,7 +49,7 @@ function TagSelector({value = [], selectionListTextInputStyle, selectionListStyl
             footer={footer}
             onChange={(tags) => onChange(tags.map((tag) => tag.value))}
             onEndReached={hasMore ? loadMore : undefined}
-            onSearchChange={search}
+            onSearchChange={searchTags}
             loading={isInitialLoading}
             isLoadingMore={isLoading && tagItems.length > 1}
         />

@@ -7,7 +7,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 import useOnyx from './useOnyx';
 
@@ -24,8 +24,8 @@ type UseSearchTagFiltersResult = {
     /** Load the next page of results */
     loadMore: () => void;
 
-    /** Start a new search with the given query */
-    search: (query: string) => void;
+    /** Start a new tag search with the given query */
+    searchTags: (query: string) => void;
 
     /** Whether the first fetch is still in flight with no results to show yet */
     isInitialLoading: boolean;
@@ -70,7 +70,7 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
     // so the search input keeps focus while the user types, even when the latest results are empty.
     const [hasCompletedSearch, setHasCompletedSearch] = useState(hasCachedData);
 
-    const loadMore = useCallback(() => {
+    const loadMore = () => {
         const {hasMore: currentHasMore, nextCursor: currentCursor, searchQuery: currentQuery, isLoading: currentIsLoading} = stateRef.current;
         if (currentIsLoading || !currentHasMore) {
             return;
@@ -88,9 +88,9 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
                 }
                 setIsLoading(false);
             });
-    }, []);
+    };
 
-    const search = useCallback((query: string) => {
+    const searchTags = (query: string) => {
         const {hasCachedData: currentHasCachedData} = stateRef.current;
         const requestSeq = ++requestSeqRef.current;
 
@@ -113,16 +113,16 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
                 setHasCompletedSearch(true);
                 setIsLoading(false);
             });
-    }, []);
+    };
 
     // Fetch the first page on mount; cached results are shown immediately and refreshed in the background
     useEffect(() => {
-        search('');
-    }, [search]);
+        searchTags('');
+    }, [searchTags]);
 
     const isInitialLoading = isLoading && !hasCompletedSearch;
 
-    return {searchResults, isLoading, hasMore, loadMore, search, isInitialLoading};
+    return {searchResults, isLoading, hasMore, loadMore, searchTags, isInitialLoading};
 }
 
 export default useSearchTagFilters;
