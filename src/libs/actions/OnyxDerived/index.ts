@@ -43,7 +43,6 @@ function init() {
         // We cast its type to match the tuple expected by config.compute.
         const dependencyValues = new Array(totalConnections) as Parameters<typeof compute>[0];
 
-        // This is the library's internal OnyxUtils, which reads the raw cache without waiting on afterInit.
         OnyxUtils.get(key).then((storedDerivedValue) => {
             let derivedValue = storedDerivedValue;
             if (derivedValue) {

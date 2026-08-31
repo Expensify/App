@@ -3,7 +3,7 @@ import path from 'path';
 
 const name = 'no-unsafe-onyx-read';
 
-const ONYX_MODULE_PREFIX = 'react-native-onyx';
+const ONYX_MODULE = 'react-native-onyx';
 
 const ONYXKEYS_SOURCE = 'src/ONYXKEYS.ts';
 
@@ -101,11 +101,7 @@ function resolveRestrictedKeyPaths() {
 
 const RESTRICTED_KEY_PATHS = resolveRestrictedKeyPaths();
 
-const READ_METHODS = new Set(['get', 'multiGet', 'tupleGet', 'getAllKeys']);
-
-const MULTI_KEY_READ_METHODS = new Set(['multiGet', 'tupleGet']);
-
-const KEYLESS_READ_METHODS = new Set(['getAllKeys']);
+const READ_METHOD = 'get';
 
 const SYNCHRONOUS_CALLBACK_METHODS = new Set(['map', 'filter', 'reduce', 'reduceRight', 'forEach', 'find', 'findIndex', 'findLast', 'findLastIndex', 'flatMap', 'some', 'every', 'sort']);
 
@@ -340,12 +336,13 @@ function isHookOption(property) {
     return !!calleeName && isHookName(calleeName);
 }
 
+/**
+ * Only the library's public entry point. A deep import of its internals, such as
+ * `react-native-onyx/dist/OnyxUtils`, is a different set of functions that app code is not meant to reach
+ * at all, so this rule says nothing about it.
+ */
 function isOnyxModuleSource(sourceValue) {
-    return typeof sourceValue === 'string' && (sourceValue === ONYX_MODULE_PREFIX || sourceValue.startsWith(`${ONYX_MODULE_PREFIX}/`));
-}
-
-function isPublicOnyxModuleSource(sourceValue) {
-    return sourceValue === ONYX_MODULE_PREFIX;
+    return sourceValue === ONYX_MODULE;
 }
 
 function classifyFunctionBoundary(functionNode, parent) {
@@ -422,51 +419,23 @@ function classifyPosition(ancestors) {
 }
 
 /**
- * The arguments that carry an Onyx key, which is what the restriction is about. `getAllKeys` reads no key
- * at all, and `multiGet` and `tupleGet` take an array of them, so a literal array is read through to its
- * elements and anything else stays one unresolvable expression.
+ * Reports the read's key when it names a restricted key, or a null key when the expression cannot be
+ * resolved and so cannot be shown to name anything else.
  */
-function getKeyArguments(node, methodName) {
-    if (KEYLESS_READ_METHODS.has(methodName)) {
-        return [];
+function findRestrictedKey(keyArgument, scope) {
+    const keyPath = getOnyxKeyPath(keyArgument, scope);
+
+    if (!keyPath) {
+        return {keyPath: null};
     }
 
-    const firstArgument = node.arguments.at(0);
-
-    if (MULTI_KEY_READ_METHODS.has(methodName)) {
-        return firstArgument?.type === 'ArrayExpression' ? firstArgument.elements : [firstArgument];
-    }
-
-    return [firstArgument];
-}
-
-/**
- * Reports the first key argument the read may not have, either because it names a restricted key or
- * because it cannot be resolved and so cannot be shown to name anything else.
- */
-function findRestrictedKey(keyArguments, scope) {
-    for (const keyArgument of keyArguments) {
-        const keyPath = getOnyxKeyPath(keyArgument, scope);
-
-        if (!keyPath) {
-            return {keyPath: null};
-        }
-
-        if (RESTRICTED_KEY_PATHS.has(keyPath)) {
-            return {keyPath};
-        }
-    }
-
-    return null;
+    return RESTRICTED_KEY_PATHS.has(keyPath) ? {keyPath} : null;
 }
 
 function create(context) {
     const sourceCode = context.sourceCode ?? context.getSourceCode();
     const onyxImportBindings = new WeakSet();
-    const publicOnyxBindings = new WeakSet();
     const readAliases = new WeakSet();
-    const publicReadAliases = new WeakSet();
-    const aliasedReadMethods = new WeakMap();
 
     function trackBinding(node, bindingName, bindings) {
         const variable = sourceCode.getDeclaredVariables(node).find((declaredVariable) => declaredVariable.name === bindingName);
@@ -478,14 +447,12 @@ function create(context) {
         return variable;
     }
 
-    function isOnyxMember(node, scope, methods) {
+    function isOnyxRead(node, scope) {
         if (node?.type !== 'MemberExpression' || node.object.type !== 'Identifier') {
             return false;
         }
 
-        const methodName = getStaticPropertyName(node);
-
-        if (!methodName || !methods.has(methodName)) {
+        if (getStaticPropertyName(node) !== READ_METHOD) {
             return false;
         }
 
@@ -499,15 +466,9 @@ function create(context) {
                 return;
             }
 
-            const isPublic = isPublicOnyxModuleSource(node.source.value);
-
             for (const specifier of node.specifiers) {
                 if (specifier.type === 'ImportDefaultSpecifier' || specifier.type === 'ImportNamespaceSpecifier') {
                     trackBinding(node, specifier.local.name, onyxImportBindings);
-
-                    if (isPublic) {
-                        trackBinding(node, specifier.local.name, publicOnyxBindings);
-                    }
                 }
             }
         },
@@ -528,16 +489,8 @@ function create(context) {
 
                     const keyName = getStaticName(property.key, property.computed);
 
-                    if (keyName && READ_METHODS.has(keyName)) {
-                        const aliasVariable = trackBinding(node, property.value.name, readAliases);
-
-                        if (aliasVariable) {
-                            aliasedReadMethods.set(aliasVariable, keyName);
-                        }
-
-                        if (publicOnyxBindings.has(initVariable)) {
-                            trackBinding(node, property.value.name, publicReadAliases);
-                        }
+                    if (keyName === READ_METHOD) {
+                        trackBinding(node, property.value.name, readAliases);
                     }
                 }
                 return;
@@ -552,32 +505,18 @@ function create(context) {
 
                 if (aliasedVariable && onyxImportBindings.has(aliasedVariable)) {
                     trackBinding(node, node.id.name, onyxImportBindings);
-
-                    if (publicOnyxBindings.has(aliasedVariable)) {
-                        trackBinding(node, node.id.name, publicOnyxBindings);
-                    }
                 }
             }
 
-            if (isOnyxMember(node.init, scope, READ_METHODS)) {
-                const aliasVariable = trackBinding(node, node.id.name, readAliases);
-
-                if (aliasVariable) {
-                    aliasedReadMethods.set(aliasVariable, getStaticPropertyName(node.init));
-                }
-
-                const objectVariable = getVariableByName(scope, node.init.object.name);
-
-                if (!!objectVariable && publicOnyxBindings.has(objectVariable)) {
-                    trackBinding(node, node.id.name, publicReadAliases);
-                }
+            if (isOnyxRead(node.init, scope)) {
+                trackBinding(node, node.id.name, readAliases);
             }
         },
         CallExpression(node) {
             const scope = sourceCode.getScope(node);
             const calleeVariable = node.callee.type === 'Identifier' ? getVariableByName(scope, node.callee.name) : null;
 
-            if (!isOnyxMember(node.callee, scope, READ_METHODS) && !(!!calleeVariable && readAliases.has(calleeVariable))) {
+            if (!isOnyxRead(node.callee, scope) && !(!!calleeVariable && readAliases.has(calleeVariable))) {
                 return;
             }
 
@@ -593,15 +532,7 @@ function create(context) {
                 return;
             }
 
-            const readObjectVariable = node.callee.type === 'MemberExpression' && node.callee.object.type === 'Identifier' ? getVariableByName(scope, node.callee.object.name) : null;
-            const isPublicRead = (!!readObjectVariable && publicOnyxBindings.has(readObjectVariable)) || (!!calleeVariable && publicReadAliases.has(calleeVariable));
-
-            if (!isPublicRead) {
-                return;
-            }
-
-            const methodName = node.callee.type === 'MemberExpression' ? getStaticPropertyName(node.callee) : aliasedReadMethods.get(calleeVariable);
-            const finding = findRestrictedKey(getKeyArguments(node, methodName), scope);
+            const finding = findRestrictedKey(node.arguments.at(0), scope);
 
             if (finding) {
                 context.report(

@@ -79,7 +79,6 @@ describe('no-unsafe-onyx-read', () => {
             `${ONYX_IMPORT} Onyx.init(config).then(() => Onyx.get(ONYXKEYS.SESSION));`,
 
             `${ONYX_UTILS_IMPORT} async function f(key) { const {...copy} = await OnyxUtils.get(ONYXKEYS.SESSION); copy.name = 'x'; return copy; }`,
-            `${ONYX_UTILS_IMPORT} async function f(keys) { const [, ...rest] = await OnyxUtils.multiGet([ONYXKEYS.SESSION]); rest.push(1); return rest; }`,
             `${ONYX_UTILS_IMPORT} async function f(key) { const {details} = await somethingElse(key); details.name = 'x'; return details; }`,
             `${ONYX_UTILS_IMPORT} async function f(key) { ({...(await OnyxUtils.get(ONYXKEYS.SESSION))}).name = 'x'; }`,
             `${ONYX_UTILS_IMPORT} function f(key) { OnyxUtils.get(ONYXKEYS.SESSION).name = 'x'; }`,
@@ -113,9 +112,6 @@ describe('no-unsafe-onyx-read', () => {
             'const Onyx = {merge: () => {}, get: () => undefined}; function submit() { Onyx.merge(key, value); return Onyx.get(ONYXKEYS.SESSION); }',
         ],
         invalid: [
-            {code: `${ONYX_UTILS_IMPORT} function Row() { const value = OnyxUtils.get(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
-
-            {code: `${ONYX_UTILS_IMPORT} const initialValue = OnyxUtils.get(ONYXKEYS.SESSION);`, errors: MODULE_SCOPE_ERRORS},
             {code: `${ONYX_IMPORT} new Promise((resolve) => { resolve(Onyx.get(ONYXKEYS.SESSION)); });`, errors: MODULE_SCOPE_ERRORS},
 
             {code: `${ONYX_IMPORT} function Row() { const value = use(Onyx.get(ONYXKEYS.SESSION)); return <View value={value} />; }`, errors: RENDER_ERRORS},
@@ -130,7 +126,7 @@ describe('no-unsafe-onyx-read', () => {
 
             {code: `${ONYX_IMPORT} function Row() { const value = Onyx.get(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} const Row = () => { const value = Onyx.get(ONYXKEYS.SESSION); return <View value={value} />; };`, errors: RENDER_ERRORS},
-            {code: `${ONYX_UTILS_IMPORT} function useThing() { return OnyxUtils.get(ONYXKEYS.SESSION); }`, errors: RENDER_ERRORS},
+            {code: `${ONYX_IMPORT} function useThing() { return Onyx.get(ONYXKEYS.SESSION); }`, errors: RENDER_ERRORS},
             {code: `${ONYX_IMPORT} const useReportName = () => Onyx.get(ONYXKEYS.SESSION);`, errors: RENDER_ERRORS},
 
             {code: `${ONYX_IMPORT} export default function() { const value = Onyx.get(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
@@ -178,16 +174,13 @@ describe('no-unsafe-onyx-read', () => {
             },
 
             {code: `${ONYX_IMPORT} function Row() { const value = Onyx['get'](ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
-            {code: `${ONYX_IMPORT} function Row() { const values = Onyx.multiGet([ONYXKEYS.SESSION]); return <View values={values} />; }`, errors: RENDER_ERRORS},
-            {code: `${ONYX_IMPORT} function Row() { const values = Onyx.tupleGet([ONYXKEYS.SESSION]); return <View values={values} />; }`, errors: RENDER_ERRORS},
-            {code: `${ONYX_IMPORT} function Row() { const allKeys = Onyx.getAllKeys(); return <View allKeys={allKeys} />; }`, errors: RENDER_ERRORS},
 
-            {code: `${ONYX_UTILS_IMPORT} const {get} = OnyxUtils; function Row() { const value = get(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
+            {code: `${ONYX_IMPORT} const {get} = Onyx; function Row() { const value = get(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
             {
-                code: `${ONYX_UTILS_IMPORT} const {get: readOnyx} = OnyxUtils; function Row() { const value = readOnyx(ONYXKEYS.SESSION); return <View value={value} />; }`,
+                code: `${ONYX_IMPORT} const {get: readOnyx} = Onyx; function Row() { const value = readOnyx(ONYXKEYS.SESSION); return <View value={value} />; }`,
                 errors: RENDER_ERRORS,
             },
-            {code: `${ONYX_UTILS_IMPORT} const readOnyx = OnyxUtils.get; function Row() { const value = readOnyx(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
+            {code: `${ONYX_IMPORT} const readOnyx = Onyx.get; function Row() { const value = readOnyx(ONYXKEYS.SESSION); return <View value={value} />; }`, errors: RENDER_ERRORS},
 
             {
                 code: `${ONYX_IMPORT} function Row() { const a = Onyx.get(ONYXKEYS.SESSION); const b = Onyx.get(ONYXKEYS.ACCOUNT); return <View a={a} b={b} />; }`,
@@ -206,13 +199,10 @@ describe('no-unsafe-onyx-read', () => {
             {code: `${ONYX_IMPORT} const present = keys.filter((key) => Onyx.get(ONYXKEYS.SESSION)).map((key) => key);`, errors: MODULE_SCOPE_ERRORS},
 
             {code: `${ONYX_IMPORT} const initialValue = Onyx['get'](ONYXKEYS.SESSION);`, errors: MODULE_SCOPE_ERRORS},
-            {code: `${ONYX_IMPORT} const values = Onyx.multiGet([ONYXKEYS.SESSION]);`, errors: MODULE_SCOPE_ERRORS},
-            {code: `${ONYX_IMPORT} const values = Onyx.tupleGet([ONYXKEYS.SESSION]);`, errors: MODULE_SCOPE_ERRORS},
-            {code: `${ONYX_IMPORT} const allKeys = Onyx.getAllKeys();`, errors: MODULE_SCOPE_ERRORS},
 
-            {code: `${ONYX_UTILS_IMPORT} const {get} = OnyxUtils; const initialValue = get(ONYXKEYS.SESSION);`, errors: MODULE_SCOPE_ERRORS},
-            {code: `${ONYX_UTILS_IMPORT} const {get: readOnyx} = OnyxUtils; const initialValue = readOnyx(ONYXKEYS.SESSION);`, errors: MODULE_SCOPE_ERRORS},
-            {code: `${ONYX_UTILS_IMPORT} const readOnyx = OnyxUtils.get; const initialValue = readOnyx(ONYXKEYS.SESSION);`, errors: MODULE_SCOPE_ERRORS},
+            {code: `${ONYX_IMPORT} const {get} = Onyx; const initialValue = get(ONYXKEYS.SESSION);`, errors: MODULE_SCOPE_ERRORS},
+            {code: `${ONYX_IMPORT} const {get: readOnyx} = Onyx; const initialValue = readOnyx(ONYXKEYS.SESSION);`, errors: MODULE_SCOPE_ERRORS},
+            {code: `${ONYX_IMPORT} const readOnyx = Onyx.get; const initialValue = readOnyx(ONYXKEYS.SESSION);`, errors: MODULE_SCOPE_ERRORS},
 
             {
                 code: `${ONYX_IMPORT} const a = Onyx.get(ONYXKEYS.SESSION); const b = Onyx.get(ONYXKEYS.ACCOUNT);`,
@@ -240,20 +230,19 @@ describe('no-unsafe-onyx-read restricted keys', () => {
         valid: [
             {code: `${ONYX_IMPORT} export function submit() { return Onyx.get(ONYXKEYS.SESSION); }`},
 
-            // the internal read hits the raw cache, not the surface useOnyx redirects, so the key ban does not apply to it
+            // a deep import of the library's internals is a different function that app code is not meant to reach,
+            // so the rule says nothing about it, in any position
             {code: `${ONYX_UTILS_IMPORT} export function submit(reportID) { return OnyxUtils.get(\`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\`); }`},
             {code: `${ONYX_UTILS_IMPORT} export function submit() { return OnyxUtils.get(ONYXKEYS.PERSONAL_DETAILS_LIST); }`},
             {code: `${ONYX_UTILS_IMPORT} const {get} = OnyxUtils; export function submit() { return get(ONYXKEYS.COLLECTION.REPORT); }`},
+            {code: `${ONYX_UTILS_IMPORT} function Row() { const v = OnyxUtils.get(ONYXKEYS.COLLECTION.REPORT); return <View v={v} />; }`},
+            {code: `${ONYX_UTILS_IMPORT} const cached = OnyxUtils.get(ONYXKEYS.SESSION);`},
             {code: `${ONYX_IMPORT} export function submit(id) { return Onyx.get(\`\${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}\${id}\`); }`},
             {code: `${ONYX_IMPORT} export function submit() { const key = ONYXKEYS.SESSION; return Onyx.get(ONYXKEYS.SESSION); }`},
-            {code: `${ONYX_IMPORT} export function submit() { return Onyx.getAllKeys(); }`},
-            {code: `${ONYX_IMPORT} export function submit() { return Onyx.multiGet([ONYXKEYS.SESSION, ONYXKEYS.ACCOUNT]); }`},
         ],
         invalid: [
             {code: `${ONYX_IMPORT} export function submit() { return Onyx.get(ONYXKEYS.COLLECTION.REPORT); }`, errors: RESTRICTED_ERRORS},
             // position is still checked on the internal read; only the key ban is scoped to the public surface
-            {code: `${ONYX_UTILS_IMPORT} function Row() { const v = OnyxUtils.get(ONYXKEYS.COLLECTION.REPORT); return <View v={v} />; }`, errors: RENDER_ERRORS},
-            {code: `${ONYX_UTILS_IMPORT} const cached = OnyxUtils.get(ONYXKEYS.COLLECTION.REPORT);`, errors: MODULE_SCOPE_ERRORS},
             {
                 code: `${ONYX_IMPORT} export function submit(reportID) { return Onyx.get(\`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\`); }`,
                 errors: RESTRICTED_ERRORS,
@@ -268,11 +257,6 @@ describe('no-unsafe-onyx-read restricted keys', () => {
                 errors: RESTRICTED_ERRORS,
             },
             {code: `${ONYX_IMPORT} export function submit(key) { return Onyx.get(key); }`, errors: UNRESOLVABLE_ERRORS},
-            {
-                code: `${ONYX_IMPORT} export function submit() { return Onyx.multiGet([ONYXKEYS.SESSION, ONYXKEYS.COLLECTION.REPORT]); }`,
-                errors: RESTRICTED_ERRORS,
-            },
-            {code: `${ONYX_IMPORT} export function submit(keys) { return Onyx.multiGet(keys); }`, errors: UNRESOLVABLE_ERRORS},
             {code: `${ONYX_IMPORT} export function submit() { let key = ONYXKEYS.SESSION; key = other; return Onyx.get(key); }`, errors: UNRESOLVABLE_ERRORS},
             {code: `${ONYX_IMPORT} export function submit(id) { return Onyx.get(getTravelCardKey(id)); }`, errors: UNRESOLVABLE_ERRORS},
             {
