@@ -140,7 +140,6 @@ function makeCorporatePolicy(overrides: Partial<Policy> = {}): Policy {
         role: 'admin',
         owner: 'test@example.com',
         ownerAccountID: ACCOUNT_ID,
-        isPolicyExpenseChatEnabled: true,
         outputCurrency: CONST.CURRENCY.USD,
         approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
         reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,

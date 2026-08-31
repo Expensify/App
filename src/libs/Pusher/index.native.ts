@@ -474,6 +474,11 @@ function getPusherSocketID(): string | undefined {
     return pusherSocketID;
 }
 
+// The native SDK exposes no `unavailable` state, so it cannot tell a blip from an outage and keeps syncing on every resubscribe.
+function claimOutageSync(): boolean {
+    return true;
+}
+
 if (window) {
     /**
      * Pusher socket for debugging purposes
@@ -493,6 +498,7 @@ const MobilePusher: PusherModule = {
     disconnect,
     reconnect,
     registerSocketEventCallback,
+    claimOutageSync,
     TYPE,
     getPusherSocketID,
 };
