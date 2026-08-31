@@ -468,7 +468,11 @@ function AddressSearch({
                                     setIsFocused(false);
                                     setIsTyping(false);
                                 }
-                                onBlur?.();
+                                // Forward the event so consumers can inspect `relatedTarget`. FormProvider uses it to
+                                // ignore blurs caused by focus moving to the RHP overlay or the header back button,
+                                // which would otherwise mark an auto-focused, still-empty field as touched and show a
+                                // premature "This field is required" error before the user has typed anything.
+                                onBlur?.(event);
                             },
                             autoComplete,
                             autoFocus,

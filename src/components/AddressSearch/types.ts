@@ -41,7 +41,7 @@ type AddressSearchProps = ForwardedFSClassProps & {
     onFocus?: () => void;
 
     /** Callback that is called when the text input is blurred */
-    onBlur?: () => void;
+    onBlur?: (event: BlurEvent) => void;
 
     /** Error text to display */
     errorText?: string;
