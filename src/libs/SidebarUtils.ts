@@ -1451,7 +1451,9 @@ function getOptionData({
 
     const reportName = deprecatedGetReportName(report, reportAttributesDerived);
 
-    if (reportName === CONST.REPORT.DEFAULT_REPORT_NAME && !loggedChatReportIDs.has(report.reportID) && shouldUseFullTitleForOption(result)) {
+    if (reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
+        loggedChatReportIDs.delete(report.reportID);
+    } else if (!loggedChatReportIDs.has(report.reportID) && shouldUseFullTitleForOption(result)) {
         const derivedEntry = reportAttributesDerived?.[report.reportID];
         loggedChatReportIDs.add(report.reportID);
         Log.info('[ChatReportLHN] Default report name is shown in LHN', false, {
