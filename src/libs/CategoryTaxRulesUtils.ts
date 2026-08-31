@@ -7,8 +7,6 @@ import type {ExpenseDefaultTableItem} from '@components/Tables/WorkspaceExpenseD
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {MerchantRuleForm} from '@src/types/form/MerchantRuleForm';
-import INPUT_IDS from '@src/types/form/MerchantRuleForm';
 import type {Policy} from '@src/types/onyx';
 import type {ExpenseRule} from '@src/types/onyx/Policy';
 
@@ -107,36 +105,4 @@ function getCategoryNameFromTaxRuleKey(key: string): string {
     return key.slice(CATEGORY_TAX_RULE_KEY_PREFIX.length);
 }
 
-/** The defaults a category rule can't carry. A category rule only ever sets a tax. */
-const INCOMPATIBLE_CATEGORY_RULE_DEFAULT_KEYS = [
-    INPUT_IDS.MERCHANT,
-    INPUT_IDS.CATEGORY,
-    INPUT_IDS.TAG,
-    INPUT_IDS.DESCRIPTION,
-    INPUT_IDS.VENDOR_ID,
-    INPUT_IDS.REIMBURSABLE,
-    INPUT_IDS.BILLABLE,
-] as const;
-
-/** Whether the draft holds defaults a category rule can't carry. They'd be dropped on save, so the picker warns first. */
-function hasIncompatibleCategoryRuleDefaults(form: MerchantRuleForm | undefined): boolean {
-    if (!form) {
-        return false;
-    }
-
-    return INCOMPATIBLE_CATEGORY_RULE_DEFAULT_KEYS.some((key) => {
-        const value = form[key];
-        return typeof value === 'boolean' || (value !== undefined && value !== '');
-    });
-}
-
-export {
-    categoryHasTaxRule,
-    getCategoryNameFromTaxRuleKey,
-    getCategoryTaxRulesTableData,
-    getCategoryTaxRuleTaxID,
-    getRuleCategoryName,
-    getTaxRateDisplayName,
-    hasIncompatibleCategoryRuleDefaults,
-    isCategoryTaxRuleKey,
-};
+export {categoryHasTaxRule, getCategoryNameFromTaxRuleKey, getCategoryTaxRulesTableData, getCategoryTaxRuleTaxID, getRuleCategoryName, getTaxRateDisplayName, isCategoryTaxRuleKey};

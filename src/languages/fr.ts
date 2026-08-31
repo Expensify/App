@@ -7898,17 +7898,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 confirmErrorCategoryTax: 'Veuillez sélectionner un taux de taxe',
                 confirmErrorCondition: 'Veuillez sélectionner un commerçant ou une catégorie',
                 confirmErrorConditionAndDefault: 'Sélectionnez un commerçant ou une catégorie, et appliquez au moins un paramètre par défaut',
-                oneConditionPerRuleTitle: 'Une seule condition par règle',
-                alreadyMatchesMerchantPrompt: 'Cette règle correspond déjà à un commerçant. Réinitialisez la règle pour qu’elle corresponde à une catégorie à la place.',
-                alreadyMatchesCategoryPrompt: 'Cette règle correspond déjà à une catégorie. Réinitialisez la règle pour qu’elle corresponde plutôt à un commerçant.',
-                turnOnTaxesFirstTitle: 'Activez d’abord les taxes',
-                turnOnTaxesFirstPrompt: 'Les règles de catégorie définissent un taux de taxe par défaut. Activez les taxes dans les paramètres de votre espace de travail pour les utiliser.',
-                onlyTaxForCategoryRulesTitle: 'Seule la taxe est disponible pour les règles de catégorie',
-                onlyTaxForCategoryRulesPrompt:
-                    'Les règles de catégorie peuvent définir un taux de taxe par défaut. Pour définir d’autres valeurs par défaut, faites plutôt correspondre un commerçant.',
-                clearIncompatibleDefaultsTitle: 'Effacer les autres valeurs par défaut ?',
-                clearIncompatibleDefaultsPrompt: 'Ces champs ne sont pas compatibles avec la catégorie. Voulez-vous effacer tous les champs ?',
-                clearFields: 'Effacer les champs',
                 categoryRulesApplyGoingForwardTitle: 'Les règles de catégorie s’appliquent à partir de maintenant',
                 categoryRulesApplyGoingForwardPrompt:
                     'Un taux de taxe par défaut s’applique aux nouvelles dépenses de cette catégorie. Les dépenses déjà existantes ne seront pas modifiées.',
