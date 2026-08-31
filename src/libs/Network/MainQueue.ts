@@ -66,4 +66,4 @@ function process() {
     replaceAll(requestsToProcessOnNextRun);
 }
 
-export {clear, replay, push, process, getAll};
+export {clear, replay, process, getAll};
