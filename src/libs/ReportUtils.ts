@@ -2690,7 +2690,7 @@ function isAuditor(report: OnyxEntry<Report>): boolean {
  */
 function canWriteInReport(report: OnyxEntry<Report>): boolean {
     if (Array.isArray(report?.permissions) && report?.permissions.length > 0 && !report?.permissions?.includes(CONST.REPORT.PERMISSIONS.AUDITOR)) {
-        return report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE);
+        return report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE) || report?.permissions?.includes(CONST.REPORT.PERMISSIONS.COMMENT);
     }
 
     return true;
@@ -5332,6 +5332,7 @@ function canEditMultipleTransactions(
             CONST.EDIT_REQUEST_FIELD.DATE,
             CONST.EDIT_REQUEST_FIELD.BILLABLE,
             CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
+            CONST.EDIT_REQUEST_FIELD.ATTENDEES,
             CONST.EDIT_REQUEST_FIELD.TAX_RATE,
         ];
 
