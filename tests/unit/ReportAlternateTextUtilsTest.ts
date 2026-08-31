@@ -315,7 +315,7 @@ describe('ReportAlternateTextUtils', () => {
 
             function makeCommentAction(actorAccountID: number | undefined, overrides: Partial<ReportAction> = {}): ReportAction {
                 return {
-                    ...createRandomReportAction(actorAccountID ?? 0),
+                    ...createRandomReportAction(actorAccountID ?? CONST.DEFAULT_NUMBER_ID),
                     reportActionID: 'action-1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     actorAccountID,
