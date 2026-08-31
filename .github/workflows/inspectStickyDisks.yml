@@ -1,18 +1,15 @@
 name: Inspect sticky disks
 
 on:
+  pull_request:
+    paths:
+      - .github/workflows/inspectStickyDisks.yml
   workflow_dispatch:
     inputs:
       keys:
         description: 'Sticky disk keys to inspect, one per line (copy full keys from the Blacksmith dashboard)'
-        required: true
+        required: false
         type: string
-        default: |
-          Expensify/App-Linux-X64-node-modules-a02144f7ccc9b1274257116344071e59e5a8594bfa763aafac5f9d5285f5fd76
-          Expensify/App-Linux-X64-node-modules-e37f253be1f406112c7863dfca6a295338fef363670d185d7fd589b5e2cab87e
-          Expensify/App-Linux-X64-node-modules-c8f32670f4567788b58d3e46648b55d72ca06778b08154699117a2a50de430b8
-          Expensify/App-Linux-X64-node-modules-88a135cf25b3d34b38e2fb4eda9373b998f6afa73ce6c419c2b00408daced725
-          Expensify/App-Linux-X64-node-modules-867407e2ea058ac0ce4a4ab12bb85aca89911580f93894021b25c29739a8d53a
       fullListing:
         description: 'Also print the full recursive file listing (can be hundreds of thousands of lines)'
         required: false
@@ -28,16 +25,27 @@ jobs:
       - name: Parse keys input into a JSON matrix
         id: parse
         run: |
-          KEYS_JSON=$(jq -R -s -c 'split("\n") | map(gsub("^\\s+|\\s+$"; "")) | map(select(length > 0))' <<'EOF'
+          KEYS_INPUT=$(cat <<'EOF'
           ${{ inputs.keys }}
           EOF
           )
+          if [[ -z "${KEYS_INPUT// /}" ]]; then
+            KEYS_INPUT=$(cat <<'EOF'
+          Expensify/App-Linux-X64-node-modules-a02144f7ccc9b1274257116344071e59e5a8594bfa763aafac5f9d5285f5fd76
+          Expensify/App-Linux-X64-node-modules-e37f253be1f406112c7863dfca6a295338fef363670d185d7fd589b5e2cab87e
+          Expensify/App-Linux-X64-node-modules-c8f32670f4567788b58d3e46648b55d72ca06778b08154699117a2a50de430b8
+          Expensify/App-Linux-X64-node-modules-88a135cf25b3d34b38e2fb4eda9373b998f6afa73ce6c419c2b00408daced725
+          Expensify/App-Linux-X64-node-modules-867407e2ea058ac0ce4a4ab12bb85aca89911580f93894021b25c29739a8d53a
+          EOF
+          )
+          fi
+          KEYS_JSON=$(jq -R -s -c 'split("\n") | map(gsub("^\\s+|\\s+$"; "")) | map(select(length > 0))' <<< "$KEYS_INPUT")
           echo "Parsed keys: $KEYS_JSON"
           echo "keys=$KEYS_JSON" >> "$GITHUB_OUTPUT"
 
   inspect:
     needs: parseKeys
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     strategy:
       fail-fast: false
       matrix:
