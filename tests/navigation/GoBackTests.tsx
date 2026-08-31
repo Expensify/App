@@ -573,7 +573,7 @@ describe('Go back on the narrow layout', () => {
             expect(activeSplit?.state?.routes.at(0)?.params).toMatchObject({domainAccountID: domainA});
             expect(activeSplit?.state?.routes.at(-1)).toMatchObject({
                 name: SCREENS.DOMAIN.MEMBERS,
-                params: {domainAccountID: domainA},
+                params: {domainAccountID: String(domainA)},
             });
         });
 
