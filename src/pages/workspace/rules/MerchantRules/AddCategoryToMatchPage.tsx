@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useInitialSelection from '@hooks/useInitialSelection';
@@ -157,7 +158,9 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
                 <SelectionList
                     canSelectMultiple={!isEditingCategoryTaxRule}
                     shouldUpdateFocusedIndex
-                    ListItem={MultiSelectListItem}
+                    // One rule holds one category, so editing swaps the selection. Radios say that; checkboxes imply
+                    // several can be ticked.
+                    ListItem={isEditingCategoryTaxRule ? SingleSelectListItem : MultiSelectListItem}
                     data={filteredCategoryItems}
                     selectedItems={selectedCategories}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}

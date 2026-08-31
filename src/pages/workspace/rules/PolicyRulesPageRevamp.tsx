@@ -374,7 +374,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         >
             <WorkspacePageWithSections
                 testID="PolicyRulesPage"
-                shouldUseScrollView={activeTab === RULES_TAB.GENERAL}
                 headerText={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.rules')}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
@@ -388,7 +387,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             >
                 <View style={[styles.flex1, styles.w100, styles.mnh0]}>
                     {separateLineButtons}
-                    {!isTableTab && !isAgentsTab && rulesTabSelector}
                     <View
                         style={[
                             styles.flex1,
@@ -404,6 +402,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                 canWriteRules={canWriteRules}
                                 isAgentsRulesBannerDismissed={isAgentsRulesBannerDismissed}
                                 onOpenAgentsTab={() => handleTabPress(RULES_TAB.AGENTS)}
+                                headerComponent={rulesTabSelector}
                             />
                         )}
                         {isTableTab && (
