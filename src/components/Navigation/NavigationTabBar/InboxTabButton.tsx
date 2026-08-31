@@ -8,6 +8,7 @@ import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import HapticFeedback from '@libs/HapticFeedback';
 import Navigation, {startOpenReportSpan} from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {isDeletedAction} from '@libs/ReportActionsUtils';
@@ -106,6 +107,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
             return;
         }
 
+        HapticFeedback.press();
         startNavigateToInboxTabSpan({isWideLayout: true});
 
         if (doesLastReportExist) {
@@ -225,6 +227,7 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
             return;
         }
 
+        HapticFeedback.press();
         startNavigateToInboxTabSpan({isWideLayout: false});
         Navigation.navigate(ROUTES.INBOX);
     };
