@@ -9540,7 +9540,7 @@ const translations = {
                 title: 'Describe your search',
                 inputLabel: 'Your search',
                 description: 'Use plain English to describe what you\'re looking for, like "meals over $50 last month."',
-                buttonText: 'Create filters',
+                buttonText: 'Apply',
             },
             filterType: {
                 label: 'Filter type',

@@ -73,8 +73,8 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle}
     };
 
     return (
-        <>
-            <View style={[styles.flex1, styles.ph5, styles.pt4, containerStyle]}>
+        <View style={[styles.flex1]}>
+            <View style={[styles.ph5, styles.pt4, containerStyle]}>
                 <Text style={styles.mb5}>{translate('search.filters.describeSearch.description')}</Text>
                 <TextInput
                     label={translate('search.filters.describeSearch.inputLabel')}
@@ -83,23 +83,20 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle}
                     value={nlQuery}
                     onChangeText={setNlQuery}
                     autoFocus
-                    multiline
-                    containerStyles={[styles.flex1]}
-                    touchableInputWrapperStyle={[styles.flex1]}
-                    textInputContainerStyles={[styles.flex1]}
-                    inputStyle={[styles.flex1]}
+                    autoGrowHeight
+                    maxAutoGrowHeight={200}
                 />
             </View>
             <FormAlertWithSubmitButton
                 buttonText={translate('search.filters.describeSearch.buttonText')}
-                containerStyles={buttonContainerStyle ?? [styles.m4, styles.mb5]}
+                containerStyles={buttonContainerStyle ?? [styles.mtAuto, styles.m4, styles.mb5]}
                 isLoading={isLoading}
                 isAlertVisible={!!errorMessage}
                 message={errorMessage}
                 onSubmit={handleSubmit}
                 isDisabled={!nlQuery.trim() || isLoading}
             />
-        </>
+        </View>
     );
 }
 
