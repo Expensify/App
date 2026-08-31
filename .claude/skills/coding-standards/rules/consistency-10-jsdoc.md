@@ -65,4 +65,4 @@ Flag ONLY when ANY of these is true:
 
 **Search Patterns** (hints for reviewers):
 - `@param {` / `@returns {` / `@return ` / `@private` / `@memberof`
-- `//` comments directly above members of a `...Props` type
+- `//` comments directly above members of a `...Props` type, or above properties in `src/types/onyx/**`
