@@ -1,5 +1,4 @@
 import Log from '@libs/Log';
-import OnyxUtils from '@libs/OnyxUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,7 +61,7 @@ function moveAttachmentCache(): Promise<void> {
  * later launches skip it entirely.
  */
 function updateAttachmentRecordPaths(): Promise<void> {
-    return OnyxUtils.get(ONYXKEYS.ATTACHMENT_RECORD_PATHS_MIGRATED).then((hasMigrated) => {
+    return Onyx.get(ONYXKEYS.ATTACHMENT_RECORD_PATHS_MIGRATED).then((hasMigrated) => {
         if (hasMigrated) {
             return;
         }

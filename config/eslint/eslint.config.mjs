@@ -337,7 +337,7 @@ const config = defineConfig([
             'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
             'rulesdir/no-raw-typography': 'error',
             'rulesdir/require-locale-for-localized-date-format': 'error',
-            'rulesdir/no-unsafe-onyx-read': ['error', {readSurface: '@libs/OnyxUtils'}],
+            'rulesdir/no-unsafe-onyx-read': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
                 {
@@ -651,10 +651,6 @@ const config = defineConfig([
 
             // This helps disable the `prefer-alias` rule for tests
             '@dword-design/import-alias/prefer-alias': ['off'],
-
-            // Tests assert on the very keys the wrapper refuses, and no SearchScopeProvider exists to
-            // redirect them. Options are passed explicitly because a bare severity inherits the ones above.
-            'rulesdir/no-unsafe-onyx-read': ['error', {}],
 
             'testing-library/await-async-queries': 'error',
             'testing-library/await-async-utils': 'error',

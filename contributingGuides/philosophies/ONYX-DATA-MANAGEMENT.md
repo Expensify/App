@@ -190,14 +190,17 @@ const named = {...report, reportName: report?.reportName ?? CONST.REPORT.DEFAULT
 ### - The Search snapshot keys MUST stay on `useOnyx`
 `@hooks/useOnyx` is not the library hook. Inside a `SearchScopeProvider` subtree it rewrites the key: for the keys in `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` it subscribes to `snapshot_<hash>` and extracts the requested key out of that blob. `Onyx.get()` always reads the global key, so a conversion on one of them would silently swap snapshot data for live data.
 
-Nothing here is left to judgment. `@libs/OnyxUtils.get` takes a `ReadableOnyxKey`, which is `OnyxKey` with these prefixes excluded, so passing one does not compile. A key that is only a `string` until runtime still reaches the wrapper, which throws in development and reports in production. There is no provider tree to walk: the keys are simply off limits, whichever subtree the read sits in.
+Nothing here is left to judgment. `rulesdir/no-unsafe-onyx-read` fails the build on these keys. A key it cannot resolve statically is an error too, so routing one in through a variable or a helper does not get past it. There is no provider tree to walk: the keys are simply off limits, whichever subtree the read sits in.
 
 ```typescript
-// BAD ❌ does not compile: report_ is not a ReadableOnyxKey
-const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+// BAD ❌ lint error: report_ is redirected to a Search snapshot
+const report = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+
+// BAD ❌ lint error: the key cannot be resolved, so it cannot be cleared
+const report = await Onyx.get(buildReportKey(reportID));
 ```
 
-The list is `report_`, `policy_`, `transactions_`, `transactionViolations_`, `reportActions_`, `personalDetailsList` and `reportNameValuePairs_`. `tests/unit/libs/OnyxUtilsTest.ts` fails if the lint deny-list and `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` drift apart. If the snapshot redesign ever makes these keys pointer-based, the ban can be lifted in one place.
+The rule reads `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` and `src/ONYXKEYS.ts` and derives the banned access paths itself, so the two cannot drift apart. If a key genuinely cannot be written statically, disable the rule on the line and say in the comment why that key can never be a Search snapshot key. If the snapshot redesign ever makes these keys pointer-based, the ban can be lifted in one place.
 
 ### - A subscription that exists to trigger work MUST NOT be replaced with `Onyx.get()`
 Ask what each subscription is for. A **source** supplies a value the code reads. A **trigger** schedules work when the key changes, and the value it carries is incidental. Converting a trigger makes the dependency stable and the effect stops re-running. No position check catches it, because nothing renders the value and nothing reads it during render. What does catch the two plainest shapes is the diff itself: a `useOnyx` deleted while a read of the same key appears inside an effect body, and a `useOnyx` deleted along with the variable's name in a dependency array. Anything longer than one hop stays manual. The chain hides easily: a value feeding a `useCallback` that feeds another `useCallback` that reaches an effect's dependency array is still a trigger, and a wrapper such as `useDebounce(useCallback(fn, deps))` swallows a link.

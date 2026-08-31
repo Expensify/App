@@ -1,10 +1,111 @@
+import fs from 'fs';
+import path from 'path';
+
 const name = 'no-unsafe-onyx-read';
 
 const ONYX_MODULE_PREFIX = 'react-native-onyx';
 
-const ONYX_WRAPPER_MODULE = '@libs/OnyxUtils';
+const ONYXKEYS_SOURCE = 'src/ONYXKEYS.ts';
+
+const SNAPSHOT_PREFIX_SOURCE = 'src/CONST/runtimeDefaults.ts';
+
+const SNAPSHOT_PREFIX_DECLARATION = /const SEARCH_SNAPSHOT_ONYX_KEYS = \[([^\]]*)\]/;
+
+const ONYXKEYS_ROOT = 'ONYXKEYS';
+
+/**
+ * Walks up from the working directory until it finds the repo root, so the rule resolves the same
+ * files whether ESLint runs it from a workspace subdirectory or Jest requires it from the root.
+ */
+function findRepoRoot() {
+    let current = path.resolve(process.cwd());
+
+    while (true) {
+        if (fs.existsSync(path.join(current, ONYXKEYS_SOURCE))) {
+            return current;
+        }
+
+        const parent = path.dirname(current);
+
+        if (parent === current) {
+            return null;
+        }
+
+        current = parent;
+    }
+}
+
+/**
+ * Maps every string-valued entry of `ONYXKEYS` to its dotted access path, so `report_` is known to be
+ * reachable as `ONYXKEYS.COLLECTION.REPORT`. Reading the declaration rather than restating it keeps the
+ * rule from drifting when a key is added, renamed or moved between the top level and `COLLECTION`.
+ */
+function readOnyxKeyPaths(repoRoot) {
+    const source = fs.readFileSync(path.join(repoRoot, ONYXKEYS_SOURCE), 'utf8');
+    const paths = new Map();
+    const stack = [];
+
+    for (const line of source.split('\n')) {
+        const opening = /^\s*([A-Z0-9_]+):\s*\{\s*$/.exec(line);
+
+        if (opening) {
+            stack.push(opening[1]);
+            continue;
+        }
+
+        if (/^\s*\},?\s*$/.test(line)) {
+            stack.pop();
+            continue;
+        }
+
+        const entry = /^\s*([A-Z0-9_]+):\s*'([^']*)'/.exec(line);
+
+        if (entry) {
+            paths.set([...stack, entry[1]].join('.'), entry[2]);
+        }
+    }
+
+    return paths;
+}
+
+function readSnapshotPrefixes(repoRoot) {
+    const source = fs.readFileSync(path.join(repoRoot, SNAPSHOT_PREFIX_SOURCE), 'utf8');
+    const declaration = SNAPSHOT_PREFIX_DECLARATION.exec(source);
+
+    return declaration ? [...declaration[1].matchAll(/'([^']*)'/g)].map((match) => match[1]) : [];
+}
+
+/**
+ * The `ONYXKEYS` access paths that `src/hooks/useOnyx.ts` redirects to `snapshot_<hash>` inside a
+ * `SearchScopeProvider` subtree. A one-shot read of these returns live data where the component would
+ * have seen the snapshot, which is the difference the reader cannot observe.
+ */
+function resolveRestrictedKeyPaths() {
+    const repoRoot = findRepoRoot();
+
+    if (!repoRoot) {
+        return new Set();
+    }
+
+    const prefixes = readSnapshotPrefixes(repoRoot);
+    const restricted = new Set();
+
+    for (const [keyPath, value] of readOnyxKeyPaths(repoRoot)) {
+        if (prefixes.some((prefix) => value.startsWith(prefix))) {
+            restricted.add(keyPath);
+        }
+    }
+
+    return restricted;
+}
+
+const RESTRICTED_KEY_PATHS = resolveRestrictedKeyPaths();
 
 const READ_METHODS = new Set(['get', 'multiGet', 'tupleGet', 'getAllKeys']);
+
+const MULTI_KEY_READ_METHODS = new Set(['multiGet', 'tupleGet']);
+
+const KEYLESS_READ_METHODS = new Set(['getAllKeys']);
 
 const SYNCHRONOUS_CALLBACK_METHODS = new Set(['map', 'filter', 'reduce', 'reduceRight', 'forEach', 'find', 'findIndex', 'findLast', 'findLastIndex', 'flatMap', 'some', 'every', 'sort']);
 
@@ -32,18 +133,10 @@ const meta = {
     type: 'problem',
     docs: {
         description:
-            'Disallow unsafe Onyx reads (Onyx.get and friends): during render, where the read does not subscribe; at module scope, where it can only be parked in a stale module variable; and straight off the library, around the read surface that the Search snapshot keys need.',
+            'Disallow unsafe Onyx reads (Onyx.get and friends): during render, where the read does not subscribe; at module scope, where it can only be parked in a stale module variable; and on the Search snapshot keys, which useOnyx redirects in a way a one-shot read cannot see.',
         recommended: 'error',
     },
-    schema: [
-        {
-            type: 'object',
-            properties: {
-                readSurface: {type: 'string'},
-            },
-            additionalProperties: false,
-        },
-    ],
+    schema: [],
     messages: {
         noOnyxGetInRender:
             'Do not read Onyx during render. Onyx.get() is a one-shot read that never subscribes, so a value obtained while rendering does not re-render the component when that key changes and the UI can show stale data indefinitely. A component cannot await it either, so reaching it from render means use() or .then(), both of which read without subscribing.\n\n' +
@@ -51,9 +144,12 @@ const meta = {
         noOnyxReadAtModuleScope:
             'Do not read Onyx at module scope. A module body runs at import time and cannot await, so the value can only be parked in a module variable through .then(), where it is a one-shot snapshot that never updates when the key changes.\n\n' +
             'Move the read inside the function that needs it, so it runs at event time and reads the current value. If the module genuinely needs to track a key, subscribe with Onyx.connectWithoutView() instead of caching one read.',
-        noDirectOnyxGet:
-            "Do not read Onyx straight from the library. {{readSurface}} is this repo's read surface and refuses the Search snapshot keys, which src/hooks/useOnyx.ts redirects to snapshot_<hash> in a way the library cannot see. Reading around it returns live data where the component would have seen the snapshot.\n\n" +
-            'Import the wrapper from {{readSurface}} and call its get() instead.',
+        noUnresolvableOnyxKey:
+            'Do not read Onyx with a key this rule cannot resolve. The read surface is restricted to keys that are provably not Search snapshot keys, and a key built at runtime cannot be checked, so a caller can route a snapshot key here without anything failing.\n\n' +
+            'Write the key as an ONYXKEYS access, such as ONYXKEYS.SESSION, or as a template literal that starts with an ONYXKEYS collection prefix. If the key genuinely cannot be static, disable this rule on the line and say in the comment why the key can never be a Search snapshot key.',
+        noRestrictedOnyxKey:
+            'Do not read {{keyPath}} with a one-shot Onyx read. src/hooks/useOnyx.ts rewrites this key to snapshot_<hash> inside a SearchScopeProvider subtree, so a component subscribed to it may never have been reading the global key at all. A read here returns live data where the component saw the snapshot, and nothing at the call site can tell the two apart.\n\n' +
+            'Take the value as a parameter from the component, which knows whether it is inside a Search scope, or keep the useOnyx subscription.',
     },
 };
 
@@ -119,6 +215,99 @@ function getStaticPropertyName(memberExpression) {
     return getStaticName(memberExpression.property, memberExpression.computed);
 }
 
+/**
+ * Unwraps the shapes a collection member key is written in, so `` `${ONYXKEYS.COLLECTION.REPORT}${reportID}` ``
+ * is read as the prefix it starts with. Only a leading interpolation counts: anything before it makes the
+ * key something other than that prefix.
+ */
+function unwrapKeyExpression(node) {
+    if (node?.type !== 'TemplateLiteral') {
+        return node;
+    }
+
+    const leadingExpression = node.expressions.at(0);
+
+    // cspell:disable-next-line -- quasis is the ESTree name for the static chunks of a template literal
+    if (!leadingExpression || node.quasis.at(0)?.value.cooked !== '') {
+        return node;
+    }
+
+    return unwrapKeyExpression(leadingExpression);
+}
+
+function getVariableByName(scope, variableName) {
+    let currentScope = scope;
+
+    while (currentScope) {
+        const variable = currentScope.variables.find((scopeVariable) => scopeVariable.name === variableName);
+
+        if (variable) {
+            return variable;
+        }
+
+        currentScope = currentScope.upper;
+    }
+
+    return null;
+}
+
+/**
+ * Resolves an identifier back to the expression it was declared with, but only through a `const` with a
+ * single declaration, where the binding cannot hold anything else by the time the read runs.
+ */
+function getConstInitializer(node, scope) {
+    const variable = getVariableByName(scope, node.name);
+
+    if (variable?.defs.length !== 1) {
+        return null;
+    }
+
+    const definition = variable.defs.at(0);
+
+    if (definition.type !== 'Variable' || definition.parent?.kind !== 'const' || definition.node.id.type !== 'Identifier') {
+        return null;
+    }
+
+    return definition.node.init ?? null;
+}
+
+/**
+ * Turns `ONYXKEYS.COLLECTION.REPORT` into `COLLECTION.REPORT`, and returns null for anything that is not
+ * a static member access rooted at `ONYXKEYS`.
+ */
+function getOnyxKeyPath(node, scope, seen = new Set()) {
+    const segments = [];
+    let current = unwrapKeyExpression(node);
+
+    if (current?.type === 'Identifier' && current.name !== ONYXKEYS_ROOT) {
+        if (seen.has(current)) {
+            return null;
+        }
+
+        seen.add(current);
+        const initializer = getConstInitializer(current, scope);
+
+        return initializer ? getOnyxKeyPath(initializer, scope, seen) : null;
+    }
+
+    while (current?.type === 'MemberExpression') {
+        const propertyName = getStaticPropertyName(current);
+
+        if (!propertyName) {
+            return null;
+        }
+
+        segments.unshift(propertyName);
+        current = current.object;
+    }
+
+    if (current?.type !== 'Identifier' || current.name !== ONYXKEYS_ROOT || segments.length === 0) {
+        return null;
+    }
+
+    return segments.join('.');
+}
+
 function getCalleeName(callee) {
     if (callee.type === 'Identifier') {
         return callee.name;
@@ -155,24 +344,8 @@ function isOnyxModuleSource(sourceValue) {
     return typeof sourceValue === 'string' && (sourceValue === ONYX_MODULE_PREFIX || sourceValue.startsWith(`${ONYX_MODULE_PREFIX}/`));
 }
 
-function isOnyxWrapperSource(sourceValue) {
-    return sourceValue === ONYX_WRAPPER_MODULE;
-}
-
-function getVariableByName(scope, variableName) {
-    let currentScope = scope;
-
-    while (currentScope) {
-        const variable = currentScope.variables.find((scopeVariable) => scopeVariable.name === variableName);
-
-        if (variable) {
-            return variable;
-        }
-
-        currentScope = currentScope.upper;
-    }
-
-    return null;
+function isPublicOnyxModuleSource(sourceValue) {
+    return sourceValue === ONYX_MODULE_PREFIX;
 }
 
 function classifyFunctionBoundary(functionNode, parent) {
@@ -248,13 +421,52 @@ function classifyPosition(ancestors) {
     return MODULE_SCOPE;
 }
 
+/**
+ * The arguments that carry an Onyx key, which is what the restriction is about. `getAllKeys` reads no key
+ * at all, and `multiGet` and `tupleGet` take an array of them, so a literal array is read through to its
+ * elements and anything else stays one unresolvable expression.
+ */
+function getKeyArguments(node, methodName) {
+    if (KEYLESS_READ_METHODS.has(methodName)) {
+        return [];
+    }
+
+    const firstArgument = node.arguments.at(0);
+
+    if (MULTI_KEY_READ_METHODS.has(methodName)) {
+        return firstArgument?.type === 'ArrayExpression' ? firstArgument.elements : [firstArgument];
+    }
+
+    return [firstArgument];
+}
+
+/**
+ * Reports the first key argument the read may not have, either because it names a restricted key or
+ * because it cannot be resolved and so cannot be shown to name anything else.
+ */
+function findRestrictedKey(keyArguments, scope) {
+    for (const keyArgument of keyArguments) {
+        const keyPath = getOnyxKeyPath(keyArgument, scope);
+
+        if (!keyPath) {
+            return {keyPath: null};
+        }
+
+        if (RESTRICTED_KEY_PATHS.has(keyPath)) {
+            return {keyPath};
+        }
+    }
+
+    return null;
+}
+
 function create(context) {
     const sourceCode = context.sourceCode ?? context.getSourceCode();
-    const {readSurface} = context.options.at(0) ?? {};
     const onyxImportBindings = new WeakSet();
-    const libraryImportBindings = new WeakSet();
+    const publicOnyxBindings = new WeakSet();
     const readAliases = new WeakSet();
-    const libraryReadAliases = new WeakSet();
+    const publicReadAliases = new WeakSet();
+    const aliasedReadMethods = new WeakMap();
 
     function trackBinding(node, bindingName, bindings) {
         const variable = sourceCode.getDeclaredVariables(node).find((declaredVariable) => declaredVariable.name === bindingName);
@@ -262,6 +474,8 @@ function create(context) {
         if (variable) {
             bindings.add(variable);
         }
+
+        return variable;
     }
 
     function isOnyxMember(node, scope, methods) {
@@ -281,18 +495,18 @@ function create(context) {
 
     return {
         ImportDeclaration(node) {
-            if (!isOnyxModuleSource(node.source.value) && !isOnyxWrapperSource(node.source.value)) {
+            if (!isOnyxModuleSource(node.source.value)) {
                 return;
             }
 
-            const isLibrary = isOnyxModuleSource(node.source.value);
+            const isPublic = isPublicOnyxModuleSource(node.source.value);
 
             for (const specifier of node.specifiers) {
                 if (specifier.type === 'ImportDefaultSpecifier' || specifier.type === 'ImportNamespaceSpecifier') {
                     trackBinding(node, specifier.local.name, onyxImportBindings);
 
-                    if (isLibrary) {
-                        trackBinding(node, specifier.local.name, libraryImportBindings);
+                    if (isPublic) {
+                        trackBinding(node, specifier.local.name, publicOnyxBindings);
                     }
                 }
             }
@@ -315,11 +529,16 @@ function create(context) {
                     const keyName = getStaticName(property.key, property.computed);
 
                     if (keyName && READ_METHODS.has(keyName)) {
-                        trackBinding(node, property.value.name, readAliases);
+                        const aliasVariable = trackBinding(node, property.value.name, readAliases);
 
-                        if (libraryImportBindings.has(initVariable)) {
-                            trackBinding(node, property.value.name, libraryReadAliases);
+                        if (aliasVariable) {
+                            aliasedReadMethods.set(aliasVariable, keyName);
                         }
+
+                        if (publicOnyxBindings.has(initVariable)) {
+                            trackBinding(node, property.value.name, publicReadAliases);
+                        }
+
                     }
                 }
                 return;
@@ -335,18 +554,23 @@ function create(context) {
                 if (aliasedVariable && onyxImportBindings.has(aliasedVariable)) {
                     trackBinding(node, node.id.name, onyxImportBindings);
 
-                    if (libraryImportBindings.has(aliasedVariable)) {
-                        trackBinding(node, node.id.name, libraryImportBindings);
+                    if (publicOnyxBindings.has(aliasedVariable)) {
+                        trackBinding(node, node.id.name, publicOnyxBindings);
                     }
                 }
             }
 
             if (isOnyxMember(node.init, scope, READ_METHODS)) {
-                trackBinding(node, node.id.name, readAliases);
+                const aliasVariable = trackBinding(node, node.id.name, readAliases);
+
+                if (aliasVariable) {
+                    aliasedReadMethods.set(aliasVariable, getStaticPropertyName(node.init));
+                }
+
                 const objectVariable = getVariableByName(scope, node.init.object.name);
 
-                if (!!objectVariable && libraryImportBindings.has(objectVariable)) {
-                    trackBinding(node, node.id.name, libraryReadAliases);
+                if (!!objectVariable && publicOnyxBindings.has(objectVariable)) {
+                    trackBinding(node, node.id.name, publicReadAliases);
                 }
             }
         },
@@ -370,14 +594,22 @@ function create(context) {
                 return;
             }
 
-            if (!readSurface) {
+            const readObjectVariable = node.callee.type === 'MemberExpression' && node.callee.object.type === 'Identifier' ? getVariableByName(scope, node.callee.object.name) : null;
+            const isPublicRead = (!!readObjectVariable && publicOnyxBindings.has(readObjectVariable)) || (!!calleeVariable && publicReadAliases.has(calleeVariable));
+
+            if (!isPublicRead) {
                 return;
             }
 
-            const objectVariable = node.callee.type === 'MemberExpression' && node.callee.object.type === 'Identifier' ? getVariableByName(scope, node.callee.object.name) : null;
+            const methodName = node.callee.type === 'MemberExpression' ? getStaticPropertyName(node.callee) : aliasedReadMethods.get(calleeVariable);
+            const finding = findRestrictedKey(getKeyArguments(node, methodName), scope);
 
-            if ((!!objectVariable && libraryImportBindings.has(objectVariable)) || (!!calleeVariable && libraryReadAliases.has(calleeVariable))) {
-                context.report({node, messageId: 'noDirectOnyxGet', data: {readSurface}});
+            if (finding) {
+                context.report(
+                    finding.keyPath
+                        ? {node, messageId: 'noRestrictedOnyxKey', data: {keyPath: `${ONYXKEYS_ROOT}.${finding.keyPath}`}}
+                        : {node, messageId: 'noUnresolvableOnyxKey'},
+                );
             }
         },
     };
