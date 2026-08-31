@@ -273,6 +273,7 @@ import UserEye from '@assets/images/user-eye.svg';
 import UserLock from '@assets/images/user-lock.svg';
 import UserMinus from '@assets/images/user-minus.svg';
 import UserPlus from '@assets/images/user-plus.svg';
+import UserSearch from '@assets/images/user-search.svg';
 import UserShield from '@assets/images/user-shield.svg';
 import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
@@ -558,6 +559,7 @@ const Expensicons = {
     CalendarSolid,
     Filter,
     UserEye,
+    UserSearch,
     CaretUpDown,
     UserPlus,
     Feed,

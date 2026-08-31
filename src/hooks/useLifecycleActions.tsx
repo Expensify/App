@@ -417,7 +417,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         prompt: unapproveWarningText,
                         confirmText: translate('iou.unapproveReport'),
                         cancelText: translate('common.cancel'),
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
 
                     if (result.action !== ModalActions.CONFIRM) {
@@ -439,7 +439,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     prompt: translate('iou.cancelPaymentConfirmation'),
                     confirmText: translate('iou.cancelPayment'),
                     cancelText: translate('common.dismiss'),
-                    danger: true,
+                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 });
 
                 if (result.action !== ModalActions.CONFIRM || !chatReport) {
@@ -472,7 +472,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         prompt: reopenExportedReportWarningText,
                         confirmText: translate('iou.reopenReport'),
                         cancelText: translate('common.cancel'),
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
 
                     if (result.action !== ModalActions.CONFIRM) {
@@ -506,7 +506,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         prompt: reopenExportedReportWarningText,
                         confirmText: translate('iou.reopenReport'),
                         cancelText: translate('common.cancel'),
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
 
                     if (result.action !== ModalActions.CONFIRM) {

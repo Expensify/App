@@ -8,11 +8,13 @@ import type BaseModalProps from '@components/Modal/types';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import ScrollView from '@components/ScrollView';
+import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
 
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -136,6 +138,21 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** Optional non-interactive text to display as a header for any create menu */
     headerText?: string;
 
+    /** Label for the optional controlled search input */
+    searchInputLabel?: string;
+
+    /** Value of the optional controlled search input */
+    searchInputValue?: string;
+
+    /** Callback fired when the controlled search input changes */
+    onSearchInputChange?: (value: string) => void;
+
+    /** Whether to display the standard empty state below the search input */
+    shouldShowSearchEmptyState?: boolean;
+
+    /** Styles applied to the optional controlled search input container */
+    searchInputContainerStyle?: StyleProp<ViewStyle>;
+
     /** Whether disable the animations */
     disableAnimation?: boolean;
 
@@ -196,6 +213,9 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** Whether we should wrap the list item in a scroll view */
     shouldUseScrollView?: boolean;
 
+    /** Whether to add spacing to the first item when using a scroll view */
+    shouldAddScrollViewTopItemSpacing?: boolean;
+
     /**
      * Whether we should set a max height to the popover content.
      * Ignored in landscape mode to prevent content from being unreachable.
@@ -239,16 +259,17 @@ type PopoverMenuContentProps = {
 };
 
 function PopoverMenuContent({shouldUseScrollView, contentContainerStyle, children, addBottomSafeAreaPadding}: PopoverMenuContentProps): React.JSX.Element {
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding,
-        style: contentContainerStyle,
-    });
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match Popover's own dock decision (bottom-docked only when isSmallScreenWidth)
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isKeyboardActive} = useKeyboardState();
+    const shouldAddBottomSafeAreaPadding = addBottomSafeAreaPadding && isSmallScreenWidth && !isKeyboardActive;
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: shouldAddBottomSafeAreaPadding, style: contentContainerStyle});
 
     if (shouldUseScrollView) {
         return (
             <ScrollView
                 contentContainerStyle={contentContainerStyle}
-                addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                addBottomSafeAreaPadding={shouldAddBottomSafeAreaPadding}
             >
                 {children}
             </ScrollView>
@@ -338,6 +359,11 @@ function BasePopoverMenu({
     onModalShow,
     onModalHide,
     headerText,
+    searchInputLabel,
+    searchInputValue = '',
+    onSearchInputChange,
+    shouldShowSearchEmptyState,
+    searchInputContainerStyle,
     fromSidebarMediumScreen,
     shouldHandleNavigationBack,
     anchorAlignment = {
@@ -363,6 +389,7 @@ function BasePopoverMenu({
     innerContainerStyle,
     scrollContainerStyle,
     shouldUseScrollView = false,
+    shouldAddScrollViewTopItemSpacing = true,
     shouldEnableMaxHeight = true,
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
@@ -384,10 +411,12 @@ function BasePopoverMenu({
     const currentMenuItemsFocusedIndex = getSelectedItemIndex(currentMenuItems);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+    const isSearchEnabled = !!searchInputLabel;
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: currentMenuItemsFocusedIndex,
         maxIndex: currentMenuItems.length - 1,
         isActive: isVisible,
+        captureOnInputs: !isSearchEnabled,
     });
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
@@ -441,6 +470,9 @@ function BasePopoverMenu({
             return;
         }
         const handleKeyDown = (e: KeyboardEvent) => {
+            if (isSearchEnabled && e.target instanceof HTMLInputElement) {
+                return;
+            }
             const isNavigationKey = [
                 CONST.KEYBOARD_SHORTCUTS.ARROW_UP,
                 CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN,
@@ -455,7 +487,7 @@ function BasePopoverMenu({
         };
         addKeyDownPressListener(handleKeyDown);
         return () => removeKeyDownPressListener(handleKeyDown);
-    }, [isVisible, isRadioButtonMode]);
+    }, [isVisible, isRadioButtonMode, isSearchEnabled]);
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);
@@ -575,7 +607,10 @@ function BasePopoverMenu({
                                 theme.activeComponentBG,
                                 theme.hoverComponentBG,
                             ),
-                            shouldUseScrollView && !shouldUseModalPaddingStyle && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
+                            shouldUseScrollView &&
+                                (shouldAddScrollViewTopItemSpacing || menuIndex !== 0) &&
+                                !shouldUseModalPaddingStyle &&
+                                StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
                         ]}
                         shouldRemoveHoverBackground={item.isSelected}
                         titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
@@ -615,7 +650,7 @@ function BasePopoverMenu({
             selectItem(focusedIndex);
             setFocusedIndex(-1); // Reset the focusedIndex on selecting any menu
         },
-        {isActive: isVisible},
+        {isActive: isVisible, captureOnInputs: !isSearchEnabled},
     );
 
     const keyboardShortcutSpaceCallback = useCallback(
@@ -654,7 +689,7 @@ function BasePopoverMenu({
     // we are not accessing the wrong sub-menu parent or possibly undefined when rendering the back button.
     // We use useLayoutEffect so the reset happens before the repaint
     useLayoutEffect(() => {
-        if (menuItems.length === 0 || deepEqual(menuItems, prevMenuItems)) {
+        if ((!isSearchEnabled && menuItems.length === 0) || deepEqual(menuItems, prevMenuItems)) {
             return;
         }
 
@@ -666,7 +701,7 @@ function BasePopoverMenu({
         if (keyPath.length === 0) {
             setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
             setCurrentMenuItems(menuItems);
-            if (!isVisible) {
+            if (!isVisible || isSearchEnabled) {
                 setFocusedIndex(getSelectedItemIndex(menuItems));
             }
             return;
@@ -690,7 +725,7 @@ function BasePopoverMenu({
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [menuItems, setFocusedIndex]);
+    }, [menuItems, setFocusedIndex, isSearchEnabled]);
 
     const menuContainerStyle = useMemo(() => {
         if (isSmallScreenWidth) {
@@ -743,6 +778,9 @@ function BasePopoverMenu({
         ],
     );
 
+    // The native KeyboardAvoidingView can shrink-wrap a bottom-docked modal, so keep its outer wrapper full-width while search is active.
+    const keyboardAvoidingOuterStyle = isSearchEnabled && isSmallScreenWidth ? styles.w100 : undefined;
+
     return (
         <PopoverWithMeasuredContent
             anchorPosition={anchorPosition}
@@ -757,6 +795,8 @@ function BasePopoverMenu({
             isVisible={isVisible}
             onModalHide={handleModalHide}
             onModalShow={onModalShow}
+            avoidKeyboard={isSearchEnabled}
+            outerStyle={keyboardAvoidingOuterStyle}
             animationIn={animationIn}
             animationOut={animationOut}
             animationInDelay={animationInDelay}
@@ -786,14 +826,27 @@ function BasePopoverMenu({
                         onLayout={onLayout}
                         style={[restMenuContainerStyle, restContainerStyles, isWeb ? styles.flex1 : styles.flexGrow1]}
                     >
+                        {isSearchEnabled && enteredSubMenuIndexes.length === 0 && (
+                            <View style={isSmallScreenWidth ? styles.pt4 : styles.pt2}>
+                                {renderHeaderText()}
+                                <SearchBar
+                                    label={searchInputLabel ?? ''}
+                                    inputValue={searchInputValue}
+                                    onChangeText={onSearchInputChange}
+                                    shouldShowEmptyState={shouldShowSearchEmptyState}
+                                    shouldShowIcon={false}
+                                    style={searchInputContainerStyle}
+                                />
+                            </View>
+                        )}
                         <PopoverMenuContent
                             shouldUseScrollView={shouldUseScrollView}
                             contentContainerStyle={[scrollViewPaddingStyles, restScrollContainerStyle]}
                             addBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
                         >
-                            {!shouldPutHeaderTextAfterBackButton && renderHeaderText()}
+                            {!isSearchEnabled && !shouldPutHeaderTextAfterBackButton && renderHeaderText()}
                             {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                            {shouldPutHeaderTextAfterBackButton && renderHeaderText()}
+                            {!isSearchEnabled && shouldPutHeaderTextAfterBackButton && renderHeaderText()}
                             {renderedMenuItems}
                         </PopoverMenuContent>
                     </View>
@@ -813,6 +866,12 @@ export default React.memo(
         deepEqual(prevProps.anchorPosition, nextProps.anchorPosition) &&
         prevProps.anchorRef === nextProps.anchorRef &&
         prevProps.headerText === nextProps.headerText &&
+        prevProps.searchInputLabel === nextProps.searchInputLabel &&
+        prevProps.searchInputValue === nextProps.searchInputValue &&
+        prevProps.onSearchInputChange === nextProps.onSearchInputChange &&
+        prevProps.shouldShowSearchEmptyState === nextProps.shouldShowSearchEmptyState &&
+        prevProps.searchInputContainerStyle === nextProps.searchInputContainerStyle &&
+        prevProps.shouldAddScrollViewTopItemSpacing === nextProps.shouldAddScrollViewTopItemSpacing &&
         prevProps.fromSidebarMediumScreen === nextProps.fromSidebarMediumScreen &&
         // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- anchorAlignment object is created inline in most usages
         deepEqual(prevProps.anchorAlignment, nextProps.anchorAlignment) &&

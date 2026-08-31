@@ -1,5 +1,4 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import {getApprovalDropdownOptions} from '@components/ExpenseHeaderApprovalButton';
 import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
@@ -10,7 +9,6 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -26,17 +24,10 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {
-    hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
-    hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
-    hasUpdatedTotal,
-    isAllowedToApproveExpenseReport,
-    isInvoiceReport as isInvoiceReportUtil,
-} from '@libs/ReportUtils';
-import {isPending} from '@libs/TransactionUtils';
+import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
 
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
-import {canApproveIOU, canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
+import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,7 +37,6 @@ import type {Transaction} from '@src/types/onyx';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
 
-import useConfirmApproval from './useConfirmApproval';
 import useTransactionThreadData from './useTransactionThreadData';
 
 type PayPrimaryActionProps = {
@@ -55,7 +45,7 @@ type PayPrimaryActionProps = {
 };
 
 function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
-    const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation} = usePaymentAnimationsContext();
+    const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation} = usePaymentAnimationsContext();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {accountID, email, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
@@ -77,7 +67,6 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`);
 
     const activePolicy = usePolicy(activePolicyID);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
@@ -92,7 +81,6 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
 
     const {transactions: reportTransactionsMap} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactions = Object.values(reportTransactionsMap);
-    const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isPending(t));
     const nonPendingDeleteTransactions = transactions.filter((t): t is Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
 
     const canIOUBePaid = canIOUBePaidAction(
@@ -122,8 +110,6 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
             invoiceReceiverPolicy,
         );
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
-    const shouldShowApproveButton = (canApproveIOU(moneyRequestReport, policy, reportMetadata, accountID, transactions) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning;
-    const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(moneyRequestReport);
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
     const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
@@ -134,28 +120,6 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
 
     const {openHoldMenu} = useMoneyReportHeaderModals();
 
-    const {confirmApproval, onApprove: onApproveReport} = useConfirmApproval(reportID, startApprovedAnimation);
-
-    // When the report has held expenses, surface the partial/full approval choice up front as a submenu on the
-    // settlement button's Approve option, matching the primary Approve button behavior.
-    const approveIllustrations = useMemoizedLazyExpensifyIcons(['ThumbsUp', 'DocumentCheck']);
-    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
-    const shouldShowApproveSubMenu = isAnyTransactionOnHold && !isDelegateAccessRestricted;
-    const approveSubMenuItems = shouldShowApproveSubMenu
-        ? getApprovalDropdownOptions({
-              moneyRequestReport,
-              hasOnlyHeldExpenses,
-              onPartialApprove: () => onApproveReport(false),
-              onFullApprove: () => onApproveReport(true),
-              translate,
-              shouldShowPayButton,
-              illustrations: approveIllustrations,
-              transactions,
-              convertToDisplayString,
-          })
-        : undefined;
-    const approveSubMenuHeaderText = hasOnlyHeldExpenses ? translate('iou.confirmApprovalAllHoldAmount') : translate('iou.confirmApprovalWithHeldAmount');
-
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type || !chatReport) {
             return;
@@ -164,6 +128,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
             showDelegateNoAccessModal();
         } else if (isAnyTransactionOnHold) {
             openHoldMenu({
+                requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: type,
                 methodID,
                 onConfirm: () => startAnimation(),
@@ -240,17 +205,12 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
             canIOUBePaid
             onlyShowPayElsewhere={onlyShowPayElsewhere}
             currency={moneyRequestReport?.currency}
-            confirmApproval={confirmApproval}
-            approveSubMenuItems={approveSubMenuItems}
-            approveSubMenuHeaderText={approveSubMenuHeaderText}
             policyID={moneyRequestReport?.policyID}
             chatReportID={chatReport?.reportID}
             iouReport={moneyRequestReport}
             onPress={confirmPayment}
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
             shouldHidePaymentOptions={!shouldShowPayButton}
-            shouldShowApproveButton={shouldShowApproveButton}
-            shouldDisableApproveButton={shouldDisableApproveButton}
             isDisabled={isOffline && !canAllowSettlement}
             isLoading={!isOffline && !canAllowSettlement}
         />

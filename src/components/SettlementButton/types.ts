@@ -1,5 +1,4 @@
 import type {PaymentMethod} from '@components/KYCWall/types';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
 
 import type CONST from '@src/CONST';
 import type ROUTES from '@src/ROUTES';
@@ -51,12 +50,6 @@ type SettlementButtonProps = WithSentryLabel & {
     /** Should we show the payment options? */
     shouldHidePaymentOptions?: boolean;
 
-    /** Should we show the payment options? */
-    shouldShowApproveButton?: boolean;
-
-    /** Should approve button be disabled? */
-    shouldDisableApproveButton?: boolean;
-
     /** The policyID of the report we are paying */
     policyID: string | undefined;
 
@@ -98,15 +91,6 @@ type SettlementButtonProps = WithSentryLabel & {
 
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;
-
-    /** Callback to approve the full report (used for the non-held case and as a fallback) */
-    confirmApproval?: () => void;
-
-    /** Partial/full approval options rendered as a submenu on the Approve button when the report has held expenses */
-    approveSubMenuItems?: PopoverMenuItem[];
-
-    /** Header text shown above the approve submenu */
-    approveSubMenuHeaderText?: string;
 
     /** Whether to use keyboard shortcuts for confirmation or not */
     useKeyboardShortcuts?: boolean;
