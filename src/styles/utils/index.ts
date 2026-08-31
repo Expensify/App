@@ -33,6 +33,7 @@ import type {
     ButtonVariantStyles,
     EReceiptColorName,
     EreceiptColorStyle,
+    GetIconFillColorParams,
     ParsableStyle,
     SVGAvatarColorStyle,
     TextColorStyle,
@@ -1790,13 +1791,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getHeightOfValidateCodeInput: (): ViewStyle => ({height: styles.validateCodeInputContainer.height - styles.textInputContainer.borderWidth * 2}),
 
     /**
-     * Generate fill color of an icon based on its state.
-     *
-     * @param buttonState - One of {'default', 'hovered', 'pressed'}
-     * @param isMenuIcon - whether this icon is apart of a list
-     * @param isPane - whether this icon is in a pane, e.g. Account or Workspace Settings
+     * Generate fill color of an icon based on its state. See `GetIconFillColorParams` for what each option does.
      */
-    getIconFillColor: (buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuIcon = false, isPane = false): string => {
+    getIconFillColor: ({buttonState = CONST.BUTTON_STATES.DEFAULT, isMenuIcon = false, isPane = false}: GetIconFillColorParams = {}): string => {
         switch (buttonState) {
             case CONST.BUTTON_STATES.ACTIVE:
             case CONST.BUTTON_STATES.PRESSED:
