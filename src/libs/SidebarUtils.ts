@@ -36,10 +36,10 @@ import type {OptionData} from './ReportUtils';
 import {isAnonymousUser} from './actions/Session';
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
 import {formatList} from './Localize';
-import {getLastMessageTextForReport, getPersonalDetailsForAccountIDs} from './OptionsListUtils';
+import {getLastMessageTextForReport} from './OptionsListUtils';
 import {getLastActorDisplayName, getLastActorDisplayNameFromLastVisibleActions, shouldShowLastActorDisplayName} from './OptionsListUtils/getChatPreviewParts';
 import Parser from './Parser';
-import {getPersonalDetailsByID} from './PersonalDetailsUtils';
+import {getPersonalDetailsByID, getPersonalDetailsForAccountIDs} from './PersonalDetailsUtils';
 import {getCleanedTagName} from './PolicyUtils';
 import {
     getActionableCard3DSTransactionApprovalMessage,

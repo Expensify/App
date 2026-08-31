@@ -10,6 +10,7 @@ import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -22,6 +23,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchResults from '@hooks/useSearchResults';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -30,6 +32,7 @@ import {getLatestError} from '@libs/ErrorUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import type {AnchorPosition} from '@styles/index';
@@ -55,6 +58,13 @@ const accountDelegationSelector = (accountValue: Account | undefined) => ({
     delegatedAccess: accountValue?.delegatedAccess,
     validated: accountValue?.validated,
 });
+
+type SearchableCopilot = Delegate & {
+    sortKey: string;
+    type: 'delegate' | 'delegator';
+};
+
+const filterCopilot = (copilot: SearchableCopilot, searchInput: string) => tokenizedSearch([copilot], searchInput, (option) => [option.sortKey, option.email]).length > 0;
 
 function CopilotPage() {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'CircleSlash', 'Pencil', 'ThreeDots', 'UserPlus']);
@@ -86,7 +96,7 @@ function CopilotPage() {
             confirmText: translate('delegate.removeCopilot'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
     }, [showConfirmModal, translate]);
 
@@ -100,7 +110,7 @@ function CopilotPage() {
             confirmText: translate('delegate.removeCopilotAccessConfirm'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
     };
 
@@ -117,9 +127,6 @@ function CopilotPage() {
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
-
-    const hasDelegators = delegators.length > 0;
-    const hasDelegates = delegates.length > 0;
 
     const setMenuPosition = useCallback(() => {
         if (!delegateButtonRef.current) {
@@ -200,13 +207,29 @@ function CopilotPage() {
         [styles, translate],
     );
 
+    const sortedDelegates = sortAlphabetically(
+        delegates.filter((d) => !d.optimisticAccountID).map((d) => ({...d, sortKey: personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? formatPhoneNumber(d.email)})),
+        'sortKey',
+        localeCompare,
+    );
+    const sortedDelegators = sortAlphabetically(
+        delegators.map((d) => ({...d, sortKey: personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? formatPhoneNumber(d.email)})),
+        'sortKey',
+        localeCompare,
+    );
+    const searchableCopilots: SearchableCopilot[] = [
+        ...sortedDelegators.map((delegator) => ({...delegator, type: 'delegator' as const})),
+        ...sortedDelegates.map((delegateItem) => ({...delegateItem, type: 'delegate' as const})),
+    ];
+    const [searchInput, setSearchInput, filteredCopilots] = useSearchResults(searchableCopilots, filterCopilot);
+    const filteredDelegators = filteredCopilots.filter((copilot) => copilot.type === 'delegator');
+    const filteredDelegates = filteredCopilots.filter((copilot) => copilot.type === 'delegate');
+    const shouldShowSearchInput = searchableCopilots.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const hasDelegators = filteredDelegators.length > 0;
+    const hasDelegates = filteredDelegates.length > 0;
+
     const delegateMenuItems: MenuItemProps[] = useMemo(() => {
-        const sortedDelegates = sortAlphabetically(
-            delegates.filter((d) => !d.optimisticAccountID).map((d) => ({...d, sortKey: personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? formatPhoneNumber(d.email)})),
-            'sortKey',
-            localeCompare,
-        );
-        return sortedDelegates.map(({email, role, pendingAction, pendingFields}) => {
+        return filteredDelegates.map(({email, role, pendingAction, pendingFields}) => {
             const personalDetail = personalDetailsByLogin[email.toLowerCase()];
             const addDelegateErrors = errorFields?.addDelegate?.[email];
             const error = getLatestError(addDelegateErrors);
@@ -252,7 +275,7 @@ function CopilotPage() {
             };
         });
     }, [
-        delegates,
+        filteredDelegates,
         errorFields,
         account?.delegatedAccess,
         formatPhoneNumber,
@@ -260,19 +283,13 @@ function CopilotPage() {
         styles,
         selectedEmail,
         icons.ThreeDots,
-        localeCompare,
         showPopoverMenu,
         renderTitleWithRole,
         isAgentAccount,
         actingDelegateEmail,
     ]);
 
-    const sortedDelegators = sortAlphabetically(
-        delegators.map((d) => ({...d, sortKey: personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? formatPhoneNumber(d.email)})),
-        'sortKey',
-        localeCompare,
-    );
-    const delegatorMenuItems: MenuItemProps[] = sortedDelegators.map(({email, role, pendingAction}) => {
+    const delegatorMenuItems: MenuItemProps[] = filteredDelegators.map(({email, role, pendingAction}) => {
         const personalDetail = personalDetailsByLogin[email.toLowerCase()];
         const formattedEmail = formatPhoneNumber(email);
         const connectError = getLatestError(errorFields?.connect?.[email]);
@@ -442,6 +459,16 @@ function CopilotPage() {
                                 titleStyles={styles.accountSettingsSectionTitle}
                                 childrenStyles={styles.pt5}
                             >
+                                {shouldShowSearchInput && (
+                                    <SearchBar
+                                        label={translate('workspace.people.findMember')}
+                                        inputValue={searchInput}
+                                        onChangeText={setSearchInput}
+                                        shouldShowEmptyState={filteredCopilots.length === 0 && searchInput.length > 0}
+                                        shouldShowIcon={false}
+                                        style={styles.mh0}
+                                    />
+                                )}
                                 {hasDelegators && (
                                     <>
                                         <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.youCanAccessTheseAccounts')}</Text>
@@ -488,6 +515,7 @@ function CopilotPage() {
                                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                                 }}
                                 menuItems={delegatePopoverMenuItems}
+                                enableEdgeToEdgeBottomSafeAreaPadding
                                 onClose={() => {
                                     setShouldShowDelegatePopoverMenu(false);
                                     setSelectedEmail(undefined);
@@ -502,6 +530,7 @@ function CopilotPage() {
                                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                                 }}
                                 menuItems={delegatorPopoverMenuItems}
+                                enableEdgeToEdgeBottomSafeAreaPadding
                                 onClose={() => {
                                     setShouldShowDelegatorPopoverMenu(false);
                                     setSelectedEmail(undefined);
