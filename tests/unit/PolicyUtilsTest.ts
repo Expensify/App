@@ -62,6 +62,7 @@ import {
     hasVendorFeature,
     isArchivedPolicy,
     isMergeHRCompleteSetupNeededSelector,
+    isPerDiemEligiblePolicy,
     isPerDiemEnabled,
     isPolicyMemberWithoutPendingDelete,
     isSubmitterApproveBlockedOnSubmitWorkspace,
@@ -2917,7 +2918,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     arePerDiemRatesEnabled: true,
                     customUnits: {
                         ABCDEF: perDiemCustomUnit,
@@ -2927,7 +2927,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     arePerDiemRatesEnabled: true,
                     customUnits: {
                         ABCDEF: perDiemCustomUnit,
@@ -2946,7 +2945,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     arePerDiemRatesEnabled: true,
                     customUnits: {
                         ABCDEF: perDiemCustomUnit,
@@ -2956,7 +2954,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     arePerDiemRatesEnabled: true,
                     customUnits: {
                         ABCDEF: {
@@ -2969,7 +2966,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     arePerDiemRatesEnabled: true,
                     customUnits: {
                         ABCDEF: perDiemCustomUnit,
@@ -2987,7 +2983,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     // Migrated member: flag never arrived, but the configured custom unit is present
                     arePerDiemRatesEnabled: undefined,
                     customUnits: {
@@ -3005,7 +3000,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     // Explicit off must be respected, so the lingering custom unit cannot re-enable it
                     arePerDiemRatesEnabled: false,
                     customUnits: {
@@ -3045,6 +3039,37 @@ describe('PolicyUtils', () => {
             it('returns false when the flag is missing and there is no per diem custom unit', () => {
                 const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: undefined, customUnits: {}};
                 expect(isPerDiemEnabled(policy)).toBe(false);
+            });
+        });
+
+        describe('isPerDiemEligiblePolicy', () => {
+            it('returns true for a control policy with arePerDiemRatesEnabled explicitly true', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: true, customUnits: {}};
+                expect(isPerDiemEligiblePolicy(policy)).toBe(true);
+            });
+
+            it('returns true for a control policy whose flag is missing but has an enabled per diem custom unit', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: undefined, customUnits: {ABCDEF: perDiemCustomUnit}};
+                expect(isPerDiemEligiblePolicy(policy)).toBe(true);
+            });
+
+            it('returns false for a collect policy even when per diem is enabled', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), arePerDiemRatesEnabled: true, customUnits: {ABCDEF: perDiemCustomUnit}};
+                expect(isPerDiemEligiblePolicy(policy)).toBe(false);
+            });
+
+            it('returns false for a submit policy even when per diem is enabled', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), arePerDiemRatesEnabled: true, customUnits: {ABCDEF: perDiemCustomUnit}};
+                expect(isPerDiemEligiblePolicy(policy)).toBe(false);
+            });
+
+            it('returns false for a control policy with per diem explicitly disabled', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: false, customUnits: {ABCDEF: perDiemCustomUnit}};
+                expect(isPerDiemEligiblePolicy(policy)).toBe(false);
+            });
+
+            it('returns false for an undefined policy', () => {
+                expect(isPerDiemEligiblePolicy(undefined)).toBe(false);
             });
         });
 
@@ -3105,6 +3130,18 @@ describe('PolicyUtils', () => {
             const result = sortPoliciesByName(policies, localeCompare);
             expect(result).toHaveLength(1);
             expect(result.at(0)?.name).toBe('Only');
+        });
+
+        it('does not sort the input array in place', () => {
+            const policies: Policy[] = [
+                {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Charlie'},
+                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: 'Alpha'},
+            ];
+
+            const result = sortPoliciesByName(policies, localeCompare);
+
+            expect(result).not.toBe(policies);
+            expect(policies.map((policy) => policy.name)).toEqual(['Charlie', 'Alpha']);
         });
     });
 
