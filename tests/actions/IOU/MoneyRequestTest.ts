@@ -1255,11 +1255,6 @@ describe('MoneyRequest', () => {
         it('should navigate to confirmation page for CREATE flow from global menu', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
-            const defaultExpensePolicy = {
-                ...fakePolicy,
-                isPolicyExpenseChatEnabled: true,
-            };
-
             // getPolicyExpenseChat resolves reports via ReportUtils' internal Onyx cache, which isn't populated
             // in this bare unit-test harness, so return the policy expense chat report directly.
             jest.mocked(getPolicyExpenseChat).mockReturnValueOnce(fakeReport);
@@ -1268,7 +1263,7 @@ describe('MoneyRequest', () => {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
                 report: undefined,
-                defaultExpensePolicy,
+                defaultExpensePolicy: fakePolicy,
                 isAutoReporting: true,
                 iouType: CONST.IOU.TYPE.CREATE,
                 draftTransactionIDs: [baseParams.transactionID],
@@ -1306,7 +1301,6 @@ describe('MoneyRequest', () => {
             const defaultExpensePolicy = {
                 ...fakePolicy,
                 autoReporting: false,
-                isPolicyExpenseChatEnabled: true,
             };
 
             handleMoneyRequestStepDistanceNavigation({
@@ -1799,11 +1793,10 @@ describe('MoneyRequest', () => {
     describe('shouldUseDefaultExpensePolicy', () => {
         const fakePolicy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
 
-        it('should return true when iouType is CREATE with a paid group policy that has expense chat enabled and no billing restrictions', () => {
+        it('should return true when iouType is CREATE with a paid group policy and no billing restrictions', () => {
             const policy = {
                 ...fakePolicy,
                 type: CONST.POLICY.TYPE.TEAM,
-                isPolicyExpenseChatEnabled: true,
             };
 
             expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, currentUserAccountID)).toBe(true);
@@ -1813,7 +1806,6 @@ describe('MoneyRequest', () => {
             const policy = {
                 ...fakePolicy,
                 type: CONST.POLICY.TYPE.TEAM,
-                isPolicyExpenseChatEnabled: true,
             };
 
             expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SUBMIT, policy, 0, undefined, undefined, currentUserAccountID)).toBe(false);
@@ -1825,7 +1817,6 @@ describe('MoneyRequest', () => {
             const policy = {
                 ...fakePolicy,
                 type: CONST.POLICY.TYPE.PERSONAL,
-                isPolicyExpenseChatEnabled: true,
             };
 
             expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, currentUserAccountID)).toBe(false);
@@ -1835,7 +1826,6 @@ describe('MoneyRequest', () => {
             const policy = {
                 ...fakePolicy,
                 type: CONST.POLICY.TYPE.PERSONAL,
-                isPolicyExpenseChatEnabled: false,
             };
 
             expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, currentUserAccountID)).toBe(false);
@@ -1853,7 +1843,6 @@ describe('MoneyRequest', () => {
             const policy = {
                 ...fakePolicy,
                 type: CONST.POLICY.TYPE.TEAM,
-                isPolicyExpenseChatEnabled: true,
             };
 
             expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined, undefined, currentUserAccountID)).toBe(true);
@@ -1863,7 +1852,6 @@ describe('MoneyRequest', () => {
             const policy = {
                 ...fakePolicy,
                 type: CONST.POLICY.TYPE.TEAM,
-                isPolicyExpenseChatEnabled: true,
                 ownerAccountID: TEST_USER_ACCOUNT_ID,
             };
             const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
