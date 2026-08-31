@@ -1,7 +1,7 @@
 ---
 title: Use Search Operators to Filter and Analyze
 description: Learn how to use search operators, filters, and grouping to find, organize, and analyze expenses, chats, reports, and tasks in Expensify.
-keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs]
+keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs, paid by filter, paid-by]
 internalScope: Audience is all Expensify members. Covers search operator syntax for filtering, grouping, and chart views. Does not cover saved search management or Search page UI navigation.
 ---
 
@@ -99,6 +99,7 @@ You can use the following operators to filter reports:
 - `withdrawn:` – ACH withdrawal date
 - `withdrawal-type:` – reimbursement, expensify-card, or central-travel-invoicing
 - `paid-status:` – how the report was paid: `markedAsPaid`, `withdrawing`, or `confirmed`. Combine multiple values with commas, e.g. `paid-status:markedAsPaid,confirmed`
+- `paid-by:` – the member who paid the report (email, phone, display name, or `me`). Combine multiple members with commas, e.g. `paid-by:me,alice@acme.com`. Reports that have not been paid never match. This operator also works on expense, invoice, and trip searches
 - `action:` – blocking report action, e.g. `action:approve`
 - `submitter-user-id:` – Custom field 1 value set for the report submitter
 - `submitter-payroll-id:` – Custom field 2 value set for the report submitter

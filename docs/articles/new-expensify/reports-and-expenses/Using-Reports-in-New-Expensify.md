@@ -1,7 +1,7 @@
 ---
 title: Using Spend in New Expensify
 description: Learn how to use Spend in New Expensify to search, filter, customize columns, and save searches for expenses, invoices, trips, and chats.
-keywords: [Spend, New Expensify, report filters, search commands, custom columns, saved searches, share saved search, My expenses saved search, default saved search, group expenses, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns, Tag GL code, Category GL code]
+keywords: [Spend, New Expensify, report filters, search commands, custom columns, saved searches, share saved search, My expenses saved search, default saved search, group expenses, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns, Tag GL code, Category GL code, Paid by column, paid by]
 ---
 
 <div id="new-expensify" markdown="1">
@@ -71,6 +71,7 @@ You can choose from a wide range of columns, including:
 - **Total** – The total amount of the report or expense
 - **Workspace** – The workspace the report belongs to
 - **Paid status** – The payment stage of a paid report: Marked as paid, Withdrawing, or Confirmed
+- **Paid by** – The member who paid the report. This column stays blank until the report is paid, and it is available on the **Reports** view
 - **Action** – Shows available actions like approve or reject
 - **MCC** – The Merchant Category Code from the transaction
 - **Tax code** – The tax code applied to the expense
