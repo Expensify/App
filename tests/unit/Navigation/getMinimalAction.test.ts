@@ -169,8 +169,7 @@ describe('getMinimalAction', () => {
 
     it('preserves an explicit replace action when the workspace changes', () => {
         const {rootState} = buildWorkspaceStates(POLICY_B);
-        const action = buildWorkspaceAction(POLICY_A);
-        action.type = 'REPLACE';
+        const action: NavigationAction = {...buildWorkspaceAction(POLICY_A), type: 'REPLACE'};
 
         expect(getMinimalAction(action, rootState).action).toMatchObject({
             type: 'REPLACE',
