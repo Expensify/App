@@ -1,10 +1,14 @@
 import * as NetworkState from '@libs/NetworkState';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type Request from '@src/types/onyx/Request';
 
 import Onyx from 'react-native-onyx';
 
+import type {MockFetch} from '../utils/TestHelper';
+
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
+import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/ActiveClientManager', () => ({
@@ -13,25 +17,49 @@ jest.mock('@libs/ActiveClientManager', () => ({
     init: jest.fn(),
 }));
 
-// `waitForIdle()` hands back a module-level promise, so every test here shares one gate. Each releases what
-// it claims, and this lives apart from SequentialQueueTest so no pushed request has moved the gate first.
+// The gate is module state shared by every test here, so each one resets it. This lives apart from
+// SequentialQueueTest so no pushed request has moved the gate before a test starts.
 
+const request: Request<'userMetadata'> = {
+    command: 'ReconnectApp',
+    successData: [{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1234}}],
+    failureData: [{key: 'userMetadata', onyxMethod: 'set', value: {}}],
+};
+
+let mockFetch: MockFetch;
 let offlineSpy: jest.SpyInstance<boolean, []>;
+let networkStateListeners: Array<() => void>;
 
 beforeAll(() => {
     Onyx.init({keys: ONYXKEYS});
 });
 
 beforeEach(() => {
+    mockFetch = TestHelper.createGlobalFetchMock();
+    global.fetch = mockFetch;
     offlineSpy = jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(false);
+    networkStateListeners = [];
+    jest.spyOn(NetworkState, 'subscribe').mockImplementation((callback) => {
+        networkStateListeners.push(callback);
+        return () => {
+            networkStateListeners = networkStateListeners.filter((listener) => listener !== callback);
+        };
+    });
+    return Onyx.clear().then(waitForBatchedUpdates);
 });
 
 afterEach(() => {
-    offlineSpy.mockRestore();
-    // The gate is module state, and a handed-off claim is deliberately not releasable, so reset rather
-    // than leaving the next test to start behind a gate this one left pending.
+    jest.restoreAllMocks();
     SequentialQueue.resetQueue();
 });
+
+/** Flips the network and notifies the listeners `waitForIdle()` subscribes to, the way NetworkState would. */
+function setOffline(isOffline: boolean) {
+    offlineSpy.mockReturnValue(isOffline);
+    for (const listener of [...networkStateListeners]) {
+        listener();
+    }
+}
 
 /** Starts a READ-style wait on the gate. `hasResolved` lets a test assert the wait has *not* settled yet. */
 function trackIdle() {
@@ -43,112 +71,151 @@ function trackIdle() {
 }
 
 describe('SequentialQueue.claimReadGateForDeferredWrite', () => {
-    it('parks a READ until the claim is released', async () => {
-        // Given a deferred write that has claimed the gate before reaching the queue
-        const claim = SequentialQueue.claimReadGateForDeferredWrite();
+    it('parks a READ until the deferred write settles its claim', async () => {
+        // Given a deferred write holding the gate before reaching the queue
+        const settleClaim = SequentialQueue.claimReadGateForDeferredWrite();
 
-        // When a READ consults the gate in that same window
+        // When a READ consults the gate in that window
         const idle = trackIdle();
         await waitForBatchedUpdates();
 
         // Then it waits, exactly as it would behind a queued write
         expect(idle.hasResolved).toBe(false);
 
-        // When the write never reaches the queue and the claim is given back
-        claim.release();
+        // When the write never reaches the queue and the claim is settled
+        settleClaim();
         await waitForBatchedUpdates();
 
         // Then the READ proceeds
         expect(idle.hasResolved).toBe(true);
     });
 
-    it('keeps the gate pending after a hand off, leaving it to the queue drain', async () => {
-        // Given a deferred write whose write() call has just pushed onto the queue
-        const claim = SequentialQueue.claimReadGateForDeferredWrite();
+    it('keeps waiting on the queue once the deferred write lands there', async () => {
+        // Given a READ parked behind a deferred write
+        const settleClaim = SequentialQueue.claimReadGateForDeferredWrite();
         const idle = trackIdle();
+        mockFetch.pause();
 
-        // When it hands the gate over
-        claim.handOff();
+        // When the write reaches the queue and the claim settles, as writeWhenReady does on the same tick
+        SequentialQueue.push(request);
+        settleClaim();
         await waitForBatchedUpdates();
 
-        // Then the READ stays parked: handing over means the queue owns the gate now, and only the drain
-        // should free it - releasing here would let READs through while the write is still in flight
+        // Then the READ is still parked. The handover has no gap: waitForIdle() only reads the queue's own
+        // gate after the claim settles, by which point push() has closed it again for the in-flight write.
         expect(idle.hasResolved).toBe(false);
 
-        claim.release();
+        // When the queue drains
+        await mockFetch.resume();
         await waitForBatchedUpdates();
-        expect(idle.hasResolved).toBe(false);
+
+        // Then the READ proceeds
+        expect(idle.hasResolved).toBe(true);
     });
 
-    it('survives a flush() that finds the queue empty while the write is still deferred', async () => {
+    it('survives unrelated queue activity resolving the queue gate mid-deferral', async () => {
         // Given a deferred write holding the gate, with nothing pushed yet
-        const claim = SequentialQueue.claimReadGateForDeferredWrite();
+        const settleClaim = SequentialQueue.claimReadGateForDeferredWrite();
         const idle = trackIdle();
 
-        // When something else flushes in that window and finds no requests, because the deferred write
-        // has not been pushed
+        // When something else flushes in that window and finds no requests, because the deferred write has
+        // not been pushed, so it resolves the queue's own gate
         SequentialQueue.flush();
         await waitForBatchedUpdates();
 
-        // Then the gate survives. Reading an empty queue as "nothing is coming" here would let through
-        // exactly the READs this write is meant to be ordered before, which is the whole point of the claim.
+        // Then the claim is untouched. It is a separate gate precisely so that no queue path can read an
+        // empty queue as "nothing is coming" and let through the READs this write must be ordered before.
         expect(idle.hasResolved).toBe(false);
 
-        claim.release();
+        settleClaim();
         await waitForBatchedUpdates();
         expect(idle.hasResolved).toBe(true);
     });
 
-    it('adopts an existing claim rather than opening a second gate', async () => {
-        // Given a claim already held by a deferred write
-        const first = SequentialQueue.claimReadGateForDeferredWrite();
-
-        // When a second deferred write claims it too
-        const second = SequentialQueue.claimReadGateForDeferredWrite();
+    it('waits for every outstanding claim, not just the first one to settle', async () => {
+        // Given two deferred writes, each holding the gate
+        const settleFirst = SequentialQueue.claimReadGateForDeferredWrite();
+        const settleSecond = SequentialQueue.claimReadGateForDeferredWrite();
         const idle = trackIdle();
         await waitForBatchedUpdates();
         expect(idle.hasResolved).toBe(false);
 
-        // Then both refer to one gate, so releasing it once is enough - the handover leaves no second
-        // gate for a READ to be stranded behind
-        first.release();
+        // When only the first settles
+        settleFirst();
         await waitForBatchedUpdates();
-        expect(idle.hasResolved).toBe(true);
 
-        second.release();
+        // Then the READ stays parked: the second write is still deferred and would be raced otherwise
+        expect(idle.hasResolved).toBe(false);
+
+        // When the second settles too
+        settleSecond();
+        await waitForBatchedUpdates();
+
+        // Then the READ proceeds
+        expect(idle.hasResolved).toBe(true);
     });
 
-    it('is a no-op while offline, matching push() and flush()', async () => {
+    it('does not park READs while offline', async () => {
         // Given the app is offline, where the queue is not running
-        offlineSpy.mockReturnValue(true);
+        setOffline(true);
 
-        // When a deferred write claims the gate
-        const claim = SequentialQueue.claimReadGateForDeferredWrite();
+        // When a deferred write claims the gate and a READ consults it
+        SequentialQueue.claimReadGateForDeferredWrite();
         const idle = trackIdle();
         await waitForBatchedUpdates();
 
-        // Then READs are not parked behind a queue that cannot drain
+        // Then the READ is not parked behind a queue that cannot drain, matching push() and flush()
         expect(idle.hasResolved).toBe(true);
-
-        claim.release();
     });
 
-    it('ignores a release once a later write has opened a new gate', async () => {
-        // Given a claim that has already been released
-        const stale = SequentialQueue.claimReadGateForDeferredWrite();
-        stale.release();
-        await waitForBatchedUpdates();
-
-        // When a later write opens a fresh gate and the stale release fires afterwards
-        const claim = SequentialQueue.claimReadGateForDeferredWrite();
+    it('releases a parked READ when the app goes offline mid-deferral', async () => {
+        // Given a READ parked behind a deferred write while online
+        SequentialQueue.claimReadGateForDeferredWrite();
         const idle = trackIdle();
-        stale.release();
         await waitForBatchedUpdates();
-
-        // Then the stale release cannot let through READs waiting on somebody else's write
         expect(idle.hasResolved).toBe(false);
 
-        claim.release();
+        // When the network drops before the barrier settles
+        setOffline(true);
+        await waitForBatchedUpdates();
+
+        // Then the READ is let through rather than held for the rest of the deferral
+        expect(idle.hasResolved).toBe(true);
+    });
+
+    it('parks READs again when the app comes back online mid-deferral', async () => {
+        // Given a deferred write claimed while offline, which parks nothing
+        setOffline(true);
+        const settleClaim = SequentialQueue.claimReadGateForDeferredWrite();
+
+        // When the network comes back while the barrier is still waiting
+        setOffline(false);
+        const idle = trackIdle();
+        await waitForBatchedUpdates();
+
+        // Then the claim applies again: the queue can run now, so a READ must not overtake the write
+        expect(idle.hasResolved).toBe(false);
+
+        settleClaim();
+        await waitForBatchedUpdates();
+        expect(idle.hasResolved).toBe(true);
+    });
+
+    it('keeps the claim count sane when resetQueue() runs while a claim is live', async () => {
+        // Given a claim that outlives the reset, so its settle has nothing left to decrement
+        const settleStaleClaim = SequentialQueue.claimReadGateForDeferredWrite();
+        SequentialQueue.resetQueue();
+        settleStaleClaim();
+
+        // When a later deferred write claims the gate
+        const settleClaim = SequentialQueue.claimReadGateForDeferredWrite();
+        const idle = trackIdle();
+        await waitForBatchedUpdates();
+
+        // Then it still parks READs. Without the floor the count would sit at -1 and never read as claimed again
+        expect(idle.hasResolved).toBe(false);
+
+        settleClaim();
         await waitForBatchedUpdates();
         expect(idle.hasResolved).toBe(true);
     });

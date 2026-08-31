@@ -4,7 +4,6 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {SAFETY_TIMEOUT_MS} from '@libs/API/writeWhenReady';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {claimReadGateForDeferredWrite, push as pushToSequentialQueue} from '@libs/Network/SequentialQueue';
-import {getIsOffline} from '@libs/NetworkState';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,9 +18,9 @@ jest.mock('@libs/Network/SequentialQueue', () => ({
     waitForIdle: jest.fn(() => Promise.resolve()),
     // Called by the network layer on init; stub so advancing fake timers doesn't hit a missing export.
     flush: jest.fn(),
-    // The claim writeWhenReady settles once its write reaches (or fails to reach) the queue; the real
-    // gate is covered in SequentialQueueReadGateTest.
-    claimReadGateForDeferredWrite: jest.fn(() => ({handOff: jest.fn(), release: jest.fn()})),
+    // Returns the callback writeWhenReady runs once its write has reached the queue, or definitely won't.
+    // The gate itself is covered in SequentialQueueReadGateTest.
+    claimReadGateForDeferredWrite: jest.fn(() => jest.fn()),
 }));
 jest.mock('@libs/Navigation/TransitionTracker');
 jest.mock('@libs/Pusher');
@@ -29,7 +28,6 @@ jest.mock('@libs/NetworkState');
 
 const mockPush = jest.mocked(pushToSequentialQueue);
 const mockClaimReadGate = jest.mocked(claimReadGateForDeferredWrite);
-const mockGetIsOffline = jest.mocked(getIsOffline);
 const mockRunAfterTransitions = jest.mocked(TransitionTracker.runAfterTransitions);
 
 // writeWhenReady's deferral behaviour is command-agnostic; UPDATE_PREFERRED_LOCALE is just an arbitrary write command.
@@ -597,15 +595,14 @@ describe('API.writeWhenReady', () => {
 
     describe('sequential queue read gate', () => {
         afterEach(() => {
-            mockGetIsOffline.mockReturnValue(false);
-            mockClaimReadGate.mockImplementation(() => ({handOff: jest.fn(), release: jest.fn()}));
+            mockClaimReadGate.mockImplementation(() => jest.fn());
         });
 
-        // One claim whose two settle paths a test can assert on directly.
+        // One claim whose settle callback a test can assert on directly.
         function stubReadGateClaim() {
-            const claim = {handOff: jest.fn(), release: jest.fn()};
-            mockClaimReadGate.mockReturnValue(claim);
-            return claim;
+            const settleClaim = jest.fn();
+            mockClaimReadGate.mockReturnValue(settleClaim);
+            return settleClaim;
         }
 
         it('claims the read gate synchronously, before the barrier settles', () => {
@@ -622,40 +619,52 @@ describe('API.writeWhenReady', () => {
             expect(mockPush).not.toHaveBeenCalled();
         });
 
-        it('leaves the gate to the queue once the write executes online', async () => {
+        it('settles the claim once the write reaches the queue', async () => {
             // Given a deferred write holding the gate
-            const claim = stubReadGateClaim();
+            const settleClaim = stubReadGateClaim();
             const {barrier, release} = makeAbortableBarrier();
             deferWrite(barrier);
+            expect(settleClaim).not.toHaveBeenCalled();
 
             // When the barrier releases it onto the queue
             release();
             await flushMicrotasks(pushHappened);
 
-            // Then the gate is handed over rather than given back: push() has adopted it and the drain
-            // resolves it, so READs stay parked for the write's round trip instead of being freed the
-            // moment it is queued
+            // Then the claim settles, handing READs over to the gate push() closed for the queued write
             expect(mockPush).toHaveBeenCalledTimes(1);
-            expect(claim.handOff).toHaveBeenCalledTimes(1);
-            expect(claim.release).not.toHaveBeenCalled();
+            expect(settleClaim).toHaveBeenCalledTimes(1);
         });
 
-        it('hands the gate back when the write executes while offline', async () => {
-            // Given the app went offline while the write was waiting on its barrier
-            const claim = stubReadGateClaim();
-            mockGetIsOffline.mockReturnValue(true);
+        it('settles the claim even when the write throws', async () => {
+            // Given a deferred write whose write() throws before anything is queued
+            const settleClaim = stubReadGateClaim();
+            mockPush.mockImplementationOnce(() => {
+                throw new Error('push failed');
+            });
             const {barrier, release} = makeAbortableBarrier();
-            deferWrite(barrier);
-            expect(claim.release).not.toHaveBeenCalled();
+            const deferred = deferWrite(barrier);
 
-            // When the barrier releases the write
+            // When the barrier releases it
             release();
             await flushMicrotasks(pushHappened);
 
-            // Then the gate is given back, because push() skips claiming it while offline - holding on
-            // would park every READ until an unrelated reconnect drained the queue
-            expect(claim.release).toHaveBeenCalledTimes(1);
-            expect(claim.handOff).not.toHaveBeenCalled();
+            // Then the claim is still settled, rather than parking every READ for good
+            await expect(deferred).rejects.toThrow('push failed');
+            expect(settleClaim).toHaveBeenCalledTimes(1);
+        });
+
+        it('skips the claim when the caller opts out', async () => {
+            // Given a write deferred with the read gate turned off
+            const {barrier, release} = makeAbortableBarrier();
+            deferWriteWithOptions(barrier, {claimReadGate: false});
+
+            // When the barrier releases it onto the queue
+            release();
+            await flushMicrotasks(pushHappened);
+
+            // Then no gate was ever claimed, so READs ran freely for the length of the deferral
+            expect(mockClaimReadGate).not.toHaveBeenCalled();
+            expect(mockPush).toHaveBeenCalledTimes(1);
         });
     });
 
