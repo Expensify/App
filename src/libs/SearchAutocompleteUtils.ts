@@ -1,5 +1,5 @@
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import type {SearchAutocompleteQueryRange, SearchAutocompleteResult, SearchColumnType, SearchFilterKey} from '@components/Search/types';
+import type {SearchAutocompleteQueryRange, SearchAutocompleteResult, SearchColumnType} from '@components/Search/types';
 
 import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
@@ -313,13 +313,13 @@ function getTrimmedUserSearchQueryPreservingComma(textInputValue: string, fieldK
         return getQueryWithoutAutocompletedPart(textInputValue);
     }
 
-    const isNameField = CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.includes(fieldKey as SearchFilterKey);
+    const nameFieldKey = CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.find((key) => key === fieldKey);
 
-    if (isNameField) {
+    if (nameFieldKey) {
         // The typed key can be the syntax form or the user-friendly form (e.g. paidBy vs paid-by). Match whichever appears last.
         let fieldPattern = `${fieldKey}:`;
         let keyIndex = textInputValue.toLowerCase().lastIndexOf(fieldPattern.toLowerCase());
-        const userFriendlyPattern = `${getUserFriendlyKey(fieldKey as SearchFilterKey)}:`;
+        const userFriendlyPattern = `${getUserFriendlyKey(nameFieldKey)}:`;
         const userFriendlyKeyIndex = textInputValue.toLowerCase().lastIndexOf(userFriendlyPattern.toLowerCase());
         if (userFriendlyKeyIndex > keyIndex) {
             keyIndex = userFriendlyKeyIndex;
