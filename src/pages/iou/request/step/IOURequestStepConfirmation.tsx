@@ -100,7 +100,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {startTransition, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -379,6 +379,28 @@ function IOURequestStepConfirmation({
         }
         setDismissedAutoOpenParticipantPickerForTransactionID(activeTransactionID);
     }, [activeTransactionID]);
+
+    const shouldReopenParticipantPickerOnFocusRef = useRef(false);
+
+    const closeParticipantPickerForReferralNavigation = useCallback(() => {
+        shouldReopenParticipantPickerOnFocusRef.current = isParticipantPickerVisible;
+        closeParticipantPicker();
+    }, [closeParticipantPicker, isParticipantPickerVisible]);
+
+    useEffect(
+        () =>
+            navigation.addListener('focus', () => {
+                if (!shouldReopenParticipantPickerOnFocusRef.current) {
+                    return;
+                }
+                shouldReopenParticipantPickerOnFocusRef.current = false;
+                if (!activeTransactionID) {
+                    return;
+                }
+                setManuallyOpenedParticipantPickerForTransactionID(activeTransactionID);
+            }),
+        [navigation, activeTransactionID],
+    );
 
     const handleParticipantsAdded = useCallback(
         (participantsList: Participant[], selectedPolicy?: OnyxEntry<Policy>) => {
@@ -1062,6 +1084,7 @@ function IOURequestStepConfirmation({
                                 onFinish={closeParticipantPicker}
                                 isVisible={isParticipantPickerVisible}
                                 onClose={closeParticipantPicker}
+                                onCloseForReferralNavigation={closeParticipantPickerForReferralNavigation}
                                 // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
                                 // matching standard RHP behavior, not just close the stacked participant picker.
                                 onBackdropPress={() => Navigation.dismissModal()}
