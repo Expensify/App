@@ -147,6 +147,12 @@ const createExpenseOnboardingChoices = {
     SUBMIT: backendOnboardingChoices.SUBMIT,
 } as const;
 
+// Values accepted by the `intent` param on the onboarding deeplink. Deliberately not the internal onboarding choice
+// strings (`newDotEmployer`), so renaming those can't break links already sitting in someone's inbox.
+const onboardingIntents = {
+    SUBMIT: 'submit',
+} as const;
+
 const signupQualifiers = {
     INDIVIDUAL: 'individual',
     VSB: 'vsb',
@@ -6748,6 +6754,7 @@ const CONST = {
     EXPENSIFY_ICON_NAME: 'Expensify',
 
     ONBOARDING_CHOICES: {...onboardingChoices},
+    ONBOARDING_INTENTS: {...onboardingIntents},
     SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
     CREATE_EXPENSE_ONBOARDING_CHOICES: {...createExpenseOnboardingChoices},
     ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
@@ -8311,6 +8318,7 @@ const CONST = {
         HAS_LOGIN_LIST_ERROR: 'hasLoginListError',
         HAS_WALLET_TERMS_ERRORS: 'hasWalletTermsErrors',
         HAS_LOGIN_LIST_INFO: 'hasLoginListInfo',
+        HAS_HOME_ADDRESS_INFO: 'hasHomeAddressInfo',
         HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
         HAS_PHONE_NUMBER_ERROR: 'hasPhoneNumberError',
         HAS_PENDING_CARD_INFO: 'hasPendingCardInfo',
@@ -9688,6 +9696,9 @@ type IOUActionParams = ValueOf<typeof CONST.IOU.ACTION_PARAMS>;
 type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
+/** Valid values for the `intent` param on the onboarding deeplink */
+type OnboardingIntent = ValueOf<typeof CONST.ONBOARDING_INTENTS>;
+
 /** Valid `page` values for the Enable Payments flow */
 type EnablePaymentsPageType = ValueOf<typeof CONST.ENABLE_PAYMENTS.PAGE_NAMES>;
 
@@ -9709,6 +9720,7 @@ export type {
     CancellationType,
     OnboardingInvite,
     OnboardingAccounting,
+    OnboardingIntent,
     IOUActionParams,
     EnablePaymentsPageType,
     EnablePaymentsSubPageType,
