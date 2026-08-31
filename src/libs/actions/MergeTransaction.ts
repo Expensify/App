@@ -18,7 +18,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {isPaidGroupPolicy, isPolicyAdmin, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getReportAction, getTrackExpenseActionableWhisper} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticIOUReportAction,
@@ -287,6 +287,8 @@ function getOnyxTargetTransactionData({
     delegateAccountID,
     reportPolicyTags,
     isTrackIntentUser,
+    getCurrencyDecimals,
+    getCurrencySymbol,
 }: {
     targetTransaction: Transaction;
     targetTransactionViolations: OnyxEntry<TransactionViolations>;
@@ -303,6 +305,8 @@ function getOnyxTargetTransactionData({
     delegateAccountID: number | undefined;
     reportPolicyTags: OnyxEntry<PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 }) {
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
     const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -324,15 +328,16 @@ function getOnyxTargetTransactionData({
     const shouldBuildOptimisticModifiedExpenseReportAction = false;
 
     if (isUnreportedExpense) {
-        data = getUpdateTrackExpenseParams(
-            targetTransaction.transactionID,
-            targetTransactionThreadReport?.reportID,
-            filteredTransactionChanges,
+        data = getUpdateTrackExpenseParams({
+            transactionID: targetTransaction.transactionID,
+            transaction: targetTransaction,
+            transactionThreadReportID: targetTransactionThreadReport?.reportID,
+            transactionChanges: filteredTransactionChanges,
             policy,
             delegateAccountID,
-            undefined,
+            currencyContext: {getCurrencyDecimals, getCurrencySymbol},
             shouldBuildOptimisticModifiedExpenseReportAction,
-        );
+        });
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID: targetTransaction.transactionID,
@@ -351,6 +356,8 @@ function getOnyxTargetTransactionData({
             isASAPSubmitBetaEnabled,
             delegateAccountID,
             isTrackIntentUser,
+            getCurrencyDecimals,
+            getCurrencySymbol,
         });
     }
 
@@ -411,6 +418,7 @@ type MergeTransactionRequestParams = {
     sourceTransactionThreadReportActions: OnyxEntry<ReportActions>;
     sourceIOUAction: OnyxEntry<ReportAction>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
 /**
  * Merges two transactions by updating the target transaction with selected fields and deleting the source transaction.
@@ -444,6 +452,7 @@ function mergeTransactionRequest({
     sourceTransactionThreadReportActions,
     sourceIOUAction,
     getCurrencyDecimals,
+    getCurrencySymbol,
 }: MergeTransactionRequestParams) {
     // For both unreported expenses and expense reports, negate the display amount when storing
     // This preserves the user's chosen sign while following the storage convention
@@ -473,7 +482,7 @@ function mergeTransactionRequest({
         billable: mergeTransaction.billable,
         reimbursable: mergeTransaction.reimbursable,
         tag: mergeTransaction.tag,
-        taxCode: mergeTransaction.taxCode,
+        taxCode: resolveCurrentTaxCode(policy, mergeTransaction.taxCode),
         taxPolicyID: mergeTransaction.taxPolicyID,
         receiptID: mergeTransaction.receipt?.receiptID,
         reportID: mergeTransaction.reportID,
@@ -494,6 +503,8 @@ function mergeTransactionRequest({
         delegateAccountID,
         reportPolicyTags,
         isTrackIntentUser,
+        getCurrencyDecimals,
+        getCurrencySymbol,
     });
 
     // Optimistic delete the source transaction and also delete its report if it was a single expense report

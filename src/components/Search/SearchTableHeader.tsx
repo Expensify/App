@@ -265,6 +265,10 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
         translationKey: 'search.filters.firstApproved',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.PAID_BY,
+        translationKey: 'search.filters.paidBy',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
         translationKey: 'search.filters.exported',
     },
@@ -315,6 +319,14 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
         translationKey: 'common.internationalReimbursementIDs',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED,
+        translationKey: 'common.amountDebited',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED,
+        translationKey: 'common.amountReimbursed',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,

@@ -23,6 +23,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ComponentType} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useEffect} from 'react';
 
 type WithReportAndReportActionOrNotFoundProps = PlatformStackScreenProps<
@@ -53,6 +54,9 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${props.route.params.reportID}`);
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -74,7 +78,16 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
         if (!shouldUseNarrowLayout || (!isEmptyObject(report) && !isEmptyObject(linkedReportAction))) {
             return;
         }
-        openReport({reportID: props.route.params.reportID, introSelected, betas, hasReportActions, currentUserAccountID});
+        openReport({
+            reportID: props.route.params.reportID,
+            introSelected,
+            conciergeChat,
+            betas,
+            hasReportActions,
+            currentUserAccountID,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldUseNarrowLayout, props.route.params.reportID, currentUserAccountID]);
 

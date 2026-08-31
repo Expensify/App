@@ -8,11 +8,13 @@ import type {Report, ReportAction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
+
 jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () => jest.fn());
 
 const chatReport = {reportID: 'chat-1'} as Report;
-const linkedTrackedExpenseReportAction = {childReportID: 'child-1'} as OnyxEntry<ReportAction>;
+const linkedTrackedExpenseReportAction: OnyxEntry<ReportAction> = createMock<ReportAction>({childReportID: 'child-1'});
 
 const params: CleanupAndNavigateAfterExpenseCreateParams = {
     action: CONST.IOU.ACTION.CREATE,

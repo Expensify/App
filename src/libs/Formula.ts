@@ -1,5 +1,7 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import CONST from '@src/CONST';
-import type {CurrencyList, PersonalDetails, Policy, PolicyReportField, Report, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, PolicyReportField, Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -7,7 +9,7 @@ import type {ValueOf} from 'type-fest';
 
 import {endOfDay, endOfMonth, endOfWeek, getDay, lastDayOfMonth, set, startOfMonth, startOfWeek, subDays} from 'date-fns';
 
-import {convertToDisplayString, convertToDisplayStringWithoutCurrency, isValidCurrencyCode} from './CurrencyUtils';
+import {convertToDisplayStringEnLocale, convertToDisplayStringWithoutCurrencyEnLocale, isValidCurrencyCode} from './CurrencyUtils';
 import {getCurrentUserEmail} from './CurrentUserStore';
 import formatDate from './FormulaDatetime';
 import getBase62ReportID from './getBase62ReportID';
@@ -36,7 +38,7 @@ type MinimalTransaction = Pick<Transaction, 'transactionID' | 'reportID' | 'crea
 type FormulaContext = {
     report: Report;
     policy: OnyxEntry<Policy>;
-    currencyList?: CurrencyList;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     transaction?: Transaction;
     submitterPersonalDetails?: PersonalDetails;
     managerPersonalDetails?: PersonalDetails;
@@ -387,12 +389,12 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'enddate':
             return formatDate(getNewestTransactionDate(report.reportID, context) ?? new Date().toISOString(), format);
         case 'total': {
-            const formattedAmount = formatAmount(report.total, report.currency, format, context.currencyList);
+            const formattedAmount = formatAmount(report.total, report.currency, format, context.getCurrencyDecimals);
             // Return empty string when conversion needed (formatAmount returns null for unavailable conversions)
             return formattedAmount ?? '';
         }
         case 'reimbursable': {
-            const formattedAmount = formatAmount(getMoneyRequestSpendBreakdown(report).reimbursableSpend, report.currency, format, context.currencyList);
+            const formattedAmount = formatAmount(getMoneyRequestSpendBreakdown(report).reimbursableSpend, report.currency, format, context.getCurrencyDecimals);
             return formattedAmount ?? '';
         }
         case 'currency':
@@ -580,7 +582,12 @@ function getSubstring(value: string, args: string[]): string {
  * Format an amount value
  * @returns The formatted amount string, or null if currency conversion is needed (unavailable on frontend)
  */
-function formatAmount(amount: number | undefined, currency: string | undefined, displayCurrency?: string, currencyList?: CurrencyList): string | null {
+function formatAmount(
+    amount: number | undefined,
+    currency: string | undefined,
+    displayCurrency: string | undefined,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+): string | null {
     if (amount === undefined) {
         return '';
     }
@@ -592,7 +599,7 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
         const trimmedDisplayCurrency = displayCurrency?.trim().toUpperCase();
         if (trimmedDisplayCurrency) {
             if (trimmedDisplayCurrency === 'NOSYMBOL') {
-                return convertToDisplayStringWithoutCurrency(absoluteAmount, trimmedCurrency, currencyList);
+                return convertToDisplayStringWithoutCurrencyEnLocale(absoluteAmount, trimmedCurrency, getCurrencyDecimals);
             }
 
             // If a currency conversion is needed (displayCurrency differs from the source),
@@ -607,7 +614,7 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
                 return '';
             }
 
-            return convertToDisplayString(absoluteAmount, trimmedDisplayCurrency, false, currencyList);
+            return convertToDisplayStringEnLocale(absoluteAmount, trimmedDisplayCurrency, getCurrencyDecimals);
         }
 
         if (trimmedCurrency) {
@@ -615,10 +622,10 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
             if (!isValidCurrencyCode(trimmedCurrency)) {
                 return '';
             }
-            return convertToDisplayString(absoluteAmount, trimmedCurrency, true, currencyList);
+            return convertToDisplayStringEnLocale(absoluteAmount, trimmedCurrency, getCurrencyDecimals);
         }
 
-        return convertToDisplayStringWithoutCurrency(absoluteAmount, currency, currencyList);
+        return convertToDisplayStringWithoutCurrencyEnLocale(absoluteAmount, currency, getCurrencyDecimals);
     } catch (error) {
         Log.hmmm('[Formula] formatAmount failed', {error, amount, currency, displayCurrency});
         return '';
@@ -1010,6 +1017,7 @@ function resolveReportFieldValue(
     policy: OnyxEntry<Policy>,
     fieldValues: Record<string, string>,
     fieldsByName: Record<string, PolicyReportField>,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
 ): string {
     const fieldValue = field.value ?? field.defaultValue ?? '';
 
@@ -1017,7 +1025,7 @@ function resolveReportFieldValue(
         return fieldValue;
     }
 
-    return compute(field.defaultValue, {report, policy, fieldValues, fieldsByName});
+    return compute(field.defaultValue, {report, policy, fieldValues, fieldsByName, getCurrencyDecimals});
 }
 
 export {FORMULA_PART_TYPES, compute, computeWithMetadata, parse, hasCircularReferences, resolveReportFieldValue};

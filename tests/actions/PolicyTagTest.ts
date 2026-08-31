@@ -18,6 +18,7 @@ import {
     renamePolicyTag,
     renamePolicyTagList,
     setPolicyRequiresTag,
+    setPolicyShowTagGLCodes,
     setPolicyTagApprover,
     setPolicyTagGLCode,
     setPolicyTagsRequired,
@@ -49,8 +50,8 @@ describe('actions/Policy', () => {
 
     let mockFetch: MockFetch;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = TestHelper.getGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -201,6 +202,83 @@ describe('actions/Policy', () => {
             });
 
             expect(updatePolicyTags?.[tagListName]?.required).toBeTruthy();
+        });
+    });
+
+    describe('SetPolicyShowTagGLCodes', () => {
+        it('enable show tag GL codes', () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.showTagGLCodes = false;
+
+            mockFetch?.pause?.();
+
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                .then(() => {
+                    setPolicyShowTagGLCodes(fakePolicy.id, true, false);
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                                callback: (policy) => {
+                                    Onyx.disconnect(connection);
+
+                                    expect(policy?.showTagGLCodes).toBeTruthy();
+                                    expect(policy?.pendingFields?.showTagGLCodes).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(mockFetch?.resume)
+                .then(waitForBatchedUpdates)
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                                callback: (policy) => {
+                                    Onyx.disconnect(connection);
+                                    expect(policy?.pendingFields?.showTagGLCodes).toBeFalsy();
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
+        });
+
+        it('reset show tag GL codes when api returns an error', () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.showTagGLCodes = true;
+
+            mockFetch?.pause?.();
+
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                .then(() => {
+                    mockFetch?.fail?.();
+                    setPolicyShowTagGLCodes(fakePolicy.id, false, true);
+                    return waitForBatchedUpdates();
+                })
+                .then(mockFetch?.resume)
+                .then(waitForBatchedUpdates)
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                                callback: (policy) => {
+                                    Onyx.disconnect(connection);
+                                    expect(policy?.pendingFields?.showTagGLCodes).toBeFalsy();
+                                    expect(policy?.errorFields?.showTagGLCodes).toBeTruthy();
+                                    expect(policy?.showTagGLCodes).toBeTruthy();
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
         });
     });
 

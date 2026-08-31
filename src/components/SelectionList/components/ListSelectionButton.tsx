@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React from 'react';
+import React, {useState} from 'react';
 
 type ListSelectionButtonProps<TItem extends ListItem> = {
     /** The item to render the selection button for */
@@ -29,6 +29,9 @@ type ListSelectionButtonProps<TItem extends ListItem> = {
     /** Whether to stop mouse down event propagation */
     shouldStopMouseDownPropagation?: boolean;
 
+    /** Paint the checkmark on press before the parent's selection update lands. Opt-in for pages that defer that update. */
+    shouldUseOptimisticSelection?: boolean;
+
     /** Test ID */
     testID?: string;
 
@@ -45,18 +48,36 @@ function ListSelectionButton<TItem extends ListItem>({
     style,
     containerStyle,
     shouldStopMouseDownPropagation = true,
+    shouldUseOptimisticSelection = false,
     testID,
     tabIndex,
 }: ListSelectionButtonProps<TItem> & {role: typeof CONST.ROLE.CHECKBOX | typeof CONST.ROLE.RADIO}) {
     const label = accessibilityLabel ?? item.text ?? '';
+
+    const isCheckedProp = item.isSelected ?? false;
+    // Optimistic checkmark, only when opted in. Drop it once item.isSelected catches up, and reset on keyForList change
+    // so a recycled FlashList row doesn't keep the previous row's checkmark. Off by default, so other lists are unchanged.
+    const [prevItem, setPrevItem] = useState({key: item.keyForList, checked: isCheckedProp});
+    const [optimisticChecked, setOptimisticChecked] = useState<boolean | null>(null);
+    if (shouldUseOptimisticSelection && (prevItem.key !== item.keyForList || prevItem.checked !== isCheckedProp)) {
+        setPrevItem({key: item.keyForList, checked: isCheckedProp});
+        setOptimisticChecked(null);
+    }
+    const isChecked = shouldUseOptimisticSelection ? (optimisticChecked ?? isCheckedProp) : isCheckedProp;
 
     return (
         <SelectionButton
             shouldSelectOnPressEnter
             role={role}
             accessibilityLabel={label}
-            isChecked={item.isSelected ?? false}
-            onPress={() => onSelectRow(item)}
+            isChecked={isChecked}
+            onPress={() => {
+                // A radio only ever selects (paint checked, never flip off); a checkbox toggles.
+                if (shouldUseOptimisticSelection) {
+                    setOptimisticChecked(role === CONST.ROLE.RADIO ? true : !isChecked);
+                }
+                onSelectRow(item);
+            }}
             disabled={disabled}
             style={style}
             containerStyle={containerStyle}

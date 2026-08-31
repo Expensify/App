@@ -25,6 +25,7 @@ import {PixelRatio, Dimensions as RNDimensions, StyleSheet} from 'react-native';
 import type {ThemeStyles} from '..';
 import type {
     AllStyles,
+    AvatarShape,
     AvatarSizeName,
     AvatarStyle,
     ButtonSizeValue,
@@ -299,10 +300,17 @@ function getAvatarBorderWidth(size: AvatarSizeName): ViewStyle {
 }
 
 /**
- * Return the border radius for an avatar
+ * Map an icon type to the avatar shape it renders with
  */
-function getAvatarBorderRadius(size: AvatarSizeName, type?: string): ViewStyle {
-    if (type === CONST.ICON_TYPE_WORKSPACE) {
+function getShapeFromIconType(type?: string): AvatarShape {
+    return type === CONST.ICON_TYPE_WORKSPACE ? CONST.AVATAR_SHAPE.ROUNDED_SQUARE : CONST.AVATAR_SHAPE.CIRCLE;
+}
+
+/**
+ * Return the border radius for an avatar of the given shape
+ */
+function getAvatarBorderRadius(size: AvatarSizeName, shape: AvatarShape): ViewStyle {
+    if (shape === CONST.AVATAR_SHAPE.ROUNDED_SQUARE) {
         return {borderRadius: avatarBorderSizes[size]};
     }
 
@@ -311,12 +319,12 @@ function getAvatarBorderRadius(size: AvatarSizeName, type?: string): ViewStyle {
 }
 
 /**
- * Return the border style for an avatar
+ * Return the border style for an avatar of the given shape
  */
-function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
+function getAvatarBorderStyle(size: AvatarSizeName, shape: AvatarShape): ViewStyle {
     return {
         overflow: 'hidden',
-        ...getAvatarBorderRadius(size, type),
+        ...getAvatarBorderRadius(size, shape),
     };
 }
 
@@ -1413,6 +1421,7 @@ const staticStyleUtils = {
     getAvatarSizeWithBorder,
     getAvatarWidthStyle,
     getAvatarSubscriptIconContainerStyle,
+    getShapeFromIconType,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
@@ -2017,6 +2026,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED:
+            case CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED:
+            case CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED:
                 // Fixed width: wide enough for the long headers these columns carry, so no amount-based widening is needed.
                 columnWidth = {...getWidthStyle(variables.w130), ...styles.alignItemsEnd};
                 break;
@@ -2088,6 +2099,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.FROM:
             case CONST.SEARCH.TABLE_COLUMNS.TO:
             case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER:
+            case CONST.SEARCH.TABLE_COLUMNS.PAID_BY:
             case CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE:
             case CONST.SEARCH.TABLE_COLUMNS.TITLE:
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
@@ -2456,4 +2468,4 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
 
 export default createStyleUtils;
-export type {StyleUtilsType, AvatarSizeName};
+export type {StyleUtilsType, AvatarShape, AvatarSizeName};

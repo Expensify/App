@@ -1,6 +1,6 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Badge from '@components/Badge';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import {useSession} from '@components/OnyxListItemProvider';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -114,15 +114,16 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
 
     return (
         <Button
-            small
-            success
-            text={translate('task.action')}
+            size={CONST.BUTTON_SIZE.SMALL}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             style={[styles.w100]}
             isDisabled={!isTaskActionable}
             onPress={callFunctionIfActionIsAllowed(() => {
                 completeTask(taskItem as Report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, taskItem.reportID);
             })}
-        />
+        >
+            <Button.Text>{translate('task.action')}</Button.Text>
+        </Button>
     );
 }
 
@@ -193,13 +194,11 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
 
                     <View style={[styles.gap2, styles.alignItemsEnd]}>
                         {!!item.assignee.accountID && (
-                            <Avatar
-                                imageStyles={[styles.alignSelfCenter]}
+                            <UserAvatar
+                                imageStyles={styles.alignSelfCenter}
                                 size={CONST.AVATAR_SIZE.XXX_SMALL}
                                 source={item.assignee.avatar}
-                                name={item.formattedAssignee}
-                                type={CONST.ICON_TYPE_AVATAR}
-                                avatarID={item.assignee.accountID}
+                                accountID={item.assignee.accountID}
                             />
                         )}
 

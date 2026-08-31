@@ -1,13 +1,7 @@
 import {emailRegex, keysToMask, maskOnyxState, ONYX_KEY_EXPORT_RULES, onyxKeysToMaskFragileData, onyxKeysToRemove, safeOnyxKeys} from '@libs/ExportOnyxState/common';
+import {isRecord} from '@libs/ObjectUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Session} from '@src/types/onyx';
-
-type ExampleOnyxState = {
-    session: Session;
-    preservedUserSession?: Session;
-    [key: string]: unknown;
-};
 
 describe('maskOnyxState', () => {
     const mockSession = {
@@ -23,27 +17,46 @@ describe('maskOnyxState', () => {
         it('should only export whitelisted fields from session', () => {
             // preservedUserSession holds a full Session (tokens included) and must be masked exactly like session
             const input = {session: mockSession, [ONYXKEYS.PRESERVED_USER_SESSION]: mockSession};
-            const result = maskOnyxState(input) as ExampleOnyxState;
+            const result = maskOnyxState(input);
+            const session = result.session;
+            const preservedUserSession = result.preservedUserSession;
 
-            // Whitelisted fields should be preserved
-            expect(result.session.email).toBe('user@example.com');
-            expect(result.session.accountID).toBe(12345);
-            expect(result.session.loading).toBe(false);
-            expect(result.session.creationDate).toBe('2024-01-01');
+            if (!isRecord(session) || !isRecord(preservedUserSession)) {
+                throw new Error('Expected session records in masked Onyx state');
+            }
 
-            // Non-whitelisted fields should be intelligently redacted
-            expect(result.session.authToken).not.toBe('sensitive-auth-token');
-            expect(result.session.authToken).toHaveLength('sensitive-auth-token'.length);
-            expect(result.session.encryptedAuthToken).not.toBe('sensitive-encrypted-token');
-            expect(result.session.encryptedAuthToken).toHaveLength('sensitive-encrypted-token'.length);
-
-            // preservedUserSession must get the same treatment - tokens masked, whitelisted fields kept
-            expect(result.preservedUserSession?.email).toBe('user@example.com');
-            expect(result.preservedUserSession?.accountID).toBe(12345);
-            expect(result.preservedUserSession?.authToken).not.toBe('sensitive-auth-token');
-            expect(result.preservedUserSession?.authToken).toHaveLength('sensitive-auth-token'.length);
-            expect(result.preservedUserSession?.encryptedAuthToken).not.toBe('sensitive-encrypted-token');
-            expect(result.preservedUserSession?.encryptedAuthToken).toHaveLength('sensitive-encrypted-token'.length);
+            expect(result).toMatchObject({
+                session: {
+                    email: 'user@example.com',
+                    accountID: 12345,
+                    loading: false,
+                    creationDate: '2024-01-01',
+                },
+                preservedUserSession: {
+                    email: 'user@example.com',
+                    accountID: 12345,
+                },
+            });
+            expect(typeof session.authToken).toBe('string');
+            expect(typeof session.encryptedAuthToken).toBe('string');
+            expect(typeof preservedUserSession.authToken).toBe('string');
+            expect(typeof preservedUserSession.encryptedAuthToken).toBe('string');
+            if (
+                typeof session.authToken !== 'string' ||
+                typeof session.encryptedAuthToken !== 'string' ||
+                typeof preservedUserSession.authToken !== 'string' ||
+                typeof preservedUserSession.encryptedAuthToken !== 'string'
+            ) {
+                throw new Error('Expected masked session tokens');
+            }
+            expect(session.authToken).toHaveLength('sensitive-auth-token'.length);
+            expect(session.encryptedAuthToken).toHaveLength('sensitive-encrypted-token'.length);
+            expect(preservedUserSession.authToken).toHaveLength('sensitive-auth-token'.length);
+            expect(preservedUserSession.encryptedAuthToken).toHaveLength('sensitive-encrypted-token'.length);
+            expect(session.authToken).not.toBe('sensitive-auth-token');
+            expect(session.encryptedAuthToken).not.toBe('sensitive-encrypted-token');
+            expect(preservedUserSession.authToken).not.toBe('sensitive-auth-token');
+            expect(preservedUserSession.encryptedAuthToken).not.toBe('sensitive-encrypted-token');
         });
 
         it('should mask fields in maskList while preserving structure', () => {
@@ -56,19 +69,27 @@ describe('maskOnyxState', () => {
             };
 
             const input = {[ONYXKEYS.ACCOUNT]: mockAccount};
-            const result = maskOnyxState(input) as {account: Record<string, unknown>};
+            const result = maskOnyxState(input);
+            const account = result.account;
 
-            // Whitelisted fields should be preserved
-            expect(result.account.validated).toBe(true);
-            expect(result.account.isFromPublicDomain).toBe(false);
-            expect(result.account.isUsingExpensifyCard).toBe(true);
+            if (!isRecord(account)) {
+                throw new Error('Expected an account record in masked Onyx state');
+            }
 
-            // Masked fields should be masked but preserved
-            expect(result.account.primaryLogin).not.toBe('user@example.com');
-            expect(result.account.primaryLogin).toHaveLength('user@example.com'.length);
-
-            // Non-whitelisted, non-masked fields should be redacted
-            expect(result.account.requiresTwoFactorAuth).toBe('***');
+            expect(result).toMatchObject({
+                account: {
+                    validated: true,
+                    isFromPublicDomain: false,
+                    isUsingExpensifyCard: true,
+                    requiresTwoFactorAuth: '***',
+                },
+            });
+            expect(typeof account.primaryLogin).toBe('string');
+            if (typeof account.primaryLogin !== 'string') {
+                throw new Error('Expected a masked primary login');
+            }
+            expect(account.primaryLogin).toHaveLength('user@example.com'.length);
+            expect(account.primaryLogin).not.toBe('user@example.com');
         });
 
         it('should redact fields not in allowList or maskList', () => {
@@ -79,17 +100,28 @@ describe('maskOnyxState', () => {
                     anotherField: 'also-redacted',
                 },
             };
-            const result = maskOnyxState(input) as {session: Record<string, unknown>};
+            const result = maskOnyxState(input);
+            const session = result.session;
 
-            // Whitelisted fields should be preserved
-            expect(result.session.email).toBe('user@example.com');
-            expect(result.session.accountID).toBe(12345);
+            if (!isRecord(session)) {
+                throw new Error('Expected a session record in masked Onyx state');
+            }
 
-            // Non-whitelisted fields should be intelligently redacted
-            expect(result.session.customField).not.toBe('should-be-redacted');
-            expect(result.session.customField).toHaveLength('should-be-redacted'.length);
-            expect(result.session.anotherField).not.toBe('also-redacted');
-            expect(result.session.anotherField).toHaveLength('also-redacted'.length);
+            expect(result).toMatchObject({
+                session: {
+                    email: 'user@example.com',
+                    accountID: 12345,
+                },
+            });
+            expect(typeof session.customField).toBe('string');
+            expect(typeof session.anotherField).toBe('string');
+            if (typeof session.customField !== 'string' || typeof session.anotherField !== 'string') {
+                throw new Error('Expected masked custom session fields');
+            }
+            expect(session.customField).toHaveLength('should-be-redacted'.length);
+            expect(session.anotherField).toHaveLength('also-redacted'.length);
+            expect(session.customField).not.toBe('should-be-redacted');
+            expect(session.anotherField).not.toBe('also-redacted');
         });
 
         it('should handle collection keys correctly', () => {
@@ -108,25 +140,35 @@ describe('maskOnyxState', () => {
             const input = {
                 [`${ONYXKEYS.COLLECTION.REPORT}123`]: mockReport,
             };
-            const result = maskOnyxState(input) as Record<string, typeof mockReport>;
+            const result = maskOnyxState(input);
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}123`;
+            const report = result[reportKey];
 
-            const processedReport = result[`${ONYXKEYS.COLLECTION.REPORT}123`];
+            if (!isRecord(report)) {
+                throw new Error('Expected a report record in masked Onyx state');
+            }
 
-            // Whitelisted fields should be preserved
-            expect(processedReport.reportID).toBe('123');
-            expect(processedReport.type).toBe('expense');
-            expect(processedReport.chatType).toBe('policyExpenseChat');
-            expect(processedReport.stateNum).toBe(1);
-            expect(processedReport.statusNum).toBe(0);
-
-            // Masked fields should be masked
-            expect(processedReport.reportName).not.toBe('Test Report');
-            expect(processedReport.reportName).toHaveLength('Test Report'.length);
-            expect(processedReport.description).not.toBe('Test Description');
-
-            // Non-whitelisted, non-masked fields should be intelligently redacted
-            expect(processedReport.customField).not.toBe('should-be-redacted');
-            expect(processedReport.customField).toHaveLength('should-be-redacted'.length);
+            expect(result).toMatchObject({
+                [reportKey]: {
+                    reportID: '123',
+                    type: 'expense',
+                    chatType: 'policyExpenseChat',
+                    stateNum: 1,
+                    statusNum: 0,
+                },
+            });
+            expect(typeof report.reportName).toBe('string');
+            expect(typeof report.description).toBe('string');
+            expect(typeof report.customField).toBe('string');
+            if (typeof report.reportName !== 'string' || typeof report.description !== 'string' || typeof report.customField !== 'string') {
+                throw new Error('Expected masked report fields');
+            }
+            expect(report.reportName).toHaveLength('Test Report'.length);
+            expect(report.description).toHaveLength('Test Description'.length);
+            expect(report.customField).toHaveLength('should-be-redacted'.length);
+            expect(report.reportName).not.toBe('Test Report');
+            expect(report.description).not.toBe('Test Description');
+            expect(report.customField).not.toBe('should-be-redacted');
         });
 
         it('should remove sensitive and transient keys from export', () => {
@@ -216,37 +258,71 @@ describe('maskOnyxState', () => {
 
     it('should mask session details by default', () => {
         const input = {session: mockSession};
-        const result = maskOnyxState(input) as ExampleOnyxState;
+        const result = maskOnyxState(input);
+        const session = result.session;
 
-        expect(result.session.authToken).not.toBe('sensitive-auth-token');
-        expect(result.session.authToken).toHaveLength('sensitive-auth-token'.length);
-        expect(result.session.encryptedAuthToken).not.toBe('sensitive-encrypted-token');
-        expect(result.session.encryptedAuthToken).toHaveLength('sensitive-encrypted-token'.length);
+        if (!isRecord(session)) {
+            throw new Error('Expected a session record in masked Onyx state');
+        }
+
+        expect(typeof session.authToken).toBe('string');
+        expect(typeof session.encryptedAuthToken).toBe('string');
+        if (typeof session.authToken !== 'string' || typeof session.encryptedAuthToken !== 'string') {
+            throw new Error('Expected masked session tokens');
+        }
+        expect(session.authToken).toHaveLength('sensitive-auth-token'.length);
+        expect(session.encryptedAuthToken).toHaveLength('sensitive-encrypted-token'.length);
+        expect(session.authToken).not.toBe('sensitive-auth-token');
+        expect(session.encryptedAuthToken).not.toBe('sensitive-encrypted-token');
     });
 
     it('should not mask fragile data when isMaskingFragileDataEnabled is false', () => {
         const input = {
             session: mockSession,
         };
-        const result = maskOnyxState(input) as ExampleOnyxState;
+        const result = maskOnyxState(input);
+        const session = result.session;
 
-        expect(result.session.authToken).not.toBe('sensitive-auth-token');
-        expect(result.session.authToken).toHaveLength('sensitive-auth-token'.length);
-        expect(result.session.encryptedAuthToken).not.toBe('sensitive-encrypted-token');
-        expect(result.session.encryptedAuthToken).toHaveLength('sensitive-encrypted-token'.length);
-        expect(result.session.email).toBe('user@example.com');
+        if (!isRecord(session)) {
+            throw new Error('Expected a session record in masked Onyx state');
+        }
+
+        expect(result).toMatchObject({
+            session: {
+                email: 'user@example.com',
+            },
+        });
+        expect(typeof session.authToken).toBe('string');
+        expect(typeof session.encryptedAuthToken).toBe('string');
+        if (typeof session.authToken !== 'string' || typeof session.encryptedAuthToken !== 'string') {
+            throw new Error('Expected masked session tokens');
+        }
+        expect(session.authToken).toHaveLength('sensitive-auth-token'.length);
+        expect(session.encryptedAuthToken).toHaveLength('sensitive-encrypted-token'.length);
+        expect(session.authToken).not.toBe('sensitive-auth-token');
+        expect(session.encryptedAuthToken).not.toBe('sensitive-encrypted-token');
     });
 
     it('should mask fragile data when isMaskingFragileDataEnabled is true', () => {
         const input = {
             session: mockSession,
         };
-        const result = maskOnyxState(input, true) as ExampleOnyxState;
+        const result = maskOnyxState(input, true);
+        const session = result.session;
 
-        expect(result.session.authToken).not.toBe('sensitive-auth-token');
-        expect(result.session.authToken).toHaveLength('sensitive-auth-token'.length);
-        expect(result.session.encryptedAuthToken).not.toBe('sensitive-encrypted-token');
-        expect(result.session.encryptedAuthToken).toHaveLength('sensitive-encrypted-token'.length);
+        if (!isRecord(session)) {
+            throw new Error('Expected a session record in masked Onyx state');
+        }
+
+        expect(typeof session.authToken).toBe('string');
+        expect(typeof session.encryptedAuthToken).toBe('string');
+        if (typeof session.authToken !== 'string' || typeof session.encryptedAuthToken !== 'string') {
+            throw new Error('Expected masked session tokens');
+        }
+        expect(session.authToken).toHaveLength('sensitive-auth-token'.length);
+        expect(session.encryptedAuthToken).toHaveLength('sensitive-encrypted-token'.length);
+        expect(session.authToken).not.toBe('sensitive-auth-token');
+        expect(session.encryptedAuthToken).not.toBe('sensitive-encrypted-token');
     });
 
     it('should mask emails as a string value in property with a random email', () => {
@@ -254,8 +330,11 @@ describe('maskOnyxState', () => {
             session: mockSession,
         };
 
-        const result = maskOnyxState(input) as ExampleOnyxState;
+        const result = maskOnyxState(input);
 
+        if (!isRecord(result.session) || typeof result.session.email !== 'string') {
+            throw new Error('Expected a masked session email');
+        }
         expect(result.session.email).toMatch(emailRegex);
     });
 
@@ -265,10 +344,19 @@ describe('maskOnyxState', () => {
             emails: ['user@example.com', 'user2@example.com'],
         };
 
-        const result = maskOnyxState(input, true) as Record<string, string[]>;
+        const result = maskOnyxState(input, true);
 
-        expect(result.emails.at(0)).toMatch(emailRegex);
-        expect(result.emails.at(1)).toMatch(emailRegex);
+        expect(Array.isArray(result.emails)).toBe(true);
+        if (!Array.isArray(result.emails)) {
+            return;
+        }
+        expect(result.emails).toHaveLength(2);
+        for (const email of result.emails) {
+            expect(typeof email).toBe('string');
+            if (typeof email === 'string') {
+                expect(email).toMatch(emailRegex);
+            }
+        }
     });
 
     it('should mask emails in keys of objects', () => {
@@ -278,7 +366,7 @@ describe('maskOnyxState', () => {
             session: mockSession,
         };
 
-        const result = maskOnyxState(input, true) as Record<string, string>;
+        const result = maskOnyxState(input, true);
 
         expect(Object.keys(result).at(0)).toMatch(emailRegex);
     });
@@ -289,8 +377,11 @@ describe('maskOnyxState', () => {
             emailString: 'user@example.com is a test string',
         };
 
-        const result = maskOnyxState(input, true) as Record<string, string>;
-        expect(result.emailString).not.toContain('user@example.com');
+        const result = maskOnyxState(input, true);
+        expect(typeof result.emailString).toBe('string');
+        if (typeof result.emailString === 'string') {
+            expect(result.emailString).not.toContain('user@example.com');
+        }
     });
 
     it('should mask keys that are in the fixed list', () => {
@@ -300,10 +391,43 @@ describe('maskOnyxState', () => {
             lastMessageHtml: 'hey',
         };
 
-        const result = maskOnyxState(input, true) as ExampleOnyxState;
+        const result = maskOnyxState(input, true);
 
-        expect(result.edits).toEqual(['***', '***']);
-        expect(result.lastMessageHtml).not.toEqual(input.lastMessageHtml);
+        expect(result).toMatchObject({edits: ['***', '***']});
+        expect(typeof result.lastMessageHtml).toBe('string');
+        if (typeof result.lastMessageHtml === 'string') {
+            expect(result.lastMessageHtml).not.toBe(input.lastMessageHtml);
+        }
+    });
+
+    it.each([
+        ['masking enabled', true],
+        ['masking disabled', false],
+    ])('should mask delegate credentials held under hybridApp with %s', (_label, isMaskingEnabled) => {
+        // Given a hybridApp key holding live OldDot delegate credentials in delegateAccessData
+        const credentialValues = ['live-olddot-auth-token', 'live-olddot-encrypted-token', 'auto-generated-login', 'auto-generated-password', 'delegate@example.com'];
+        const input = {
+            session: mockSession,
+            [ONYXKEYS.HYBRID_APP]: {
+                isSingleNewDotEntry: true,
+                delegateAccessData: {
+                    isDelegateAccess: true,
+                    oldDotCurrentAuthToken: 'live-olddot-auth-token',
+                    oldDotCurrentEncryptedAuthToken: 'live-olddot-encrypted-token',
+                    oldDotAutoGeneratedLogin: 'auto-generated-login',
+                    oldDotAutoGeneratedPassword: 'auto-generated-password',
+                    oldDotCurrentUserEmail: 'delegate@example.com',
+                },
+            },
+        };
+
+        // When the state is exported (the export rule applies regardless of the masking toggle)
+        const serialized = JSON.stringify(maskOnyxState(input, isMaskingEnabled));
+
+        // Then none of the credential values may appear verbatim anywhere in the export
+        for (const credentialValue of credentialValues) {
+            expect(serialized).not.toContain(credentialValue);
+        }
     });
 });
 
@@ -351,6 +475,20 @@ describe('Onyx key export coverage', () => {
         }
     });
 
+    it('removes the Cloudflare QA session from the export entirely', () => {
+        // The classification lists only prove the key is bucketed. This pins the actual behavior:
+        // both OAuth tokens must vanish from the exported state, not just get masked.
+        const input = {
+            [ONYXKEYS.CLOUDFLARE_SESSION]: {accessToken: 'oauth:access-token', refreshToken: 'oauth:refresh-token', expiresAt: 1753600000000},
+            [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: true,
+        };
+
+        const result = maskOnyxState(input, true);
+
+        expect(result[ONYXKEYS.CLOUDFLARE_SESSION]).toBeUndefined();
+        expect(Object.keys(result)).not.toContain(ONYXKEYS.CLOUDFLARE_SESSION);
+    });
+
     it('known-sensitive keys must never be classified as safe', () => {
         // Anything in safeOnyxKeys is exported with no masking at all. Every key below carries
         // credentials, tokens, banking data or personal details, so none of them may ever end up
@@ -363,6 +501,7 @@ describe('Onyx key export coverage', () => {
             ONYXKEYS.ACCOUNT,
             ONYXKEYS.PRESERVED_USER_SESSION,
             ONYXKEYS.PRESERVED_ACCOUNT,
+            ONYXKEYS.HYBRID_APP,
             ONYXKEYS.PERSONAL_DETAILS_LIST,
             ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
             ONYXKEYS.LOGINS,
@@ -379,6 +518,7 @@ describe('Onyx key export coverage', () => {
             ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
             ONYXKEYS.ONFIDO_TOKEN,
             ONYXKEYS.ONFIDO_APPLICANT_ID,
+            ONYXKEYS.CLOUDFLARE_SESSION,
             ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS,
             ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST,
             ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING,
@@ -391,6 +531,17 @@ describe('Onyx key export coverage', () => {
 
         for (const sensitiveKey of knownSensitiveKeys) {
             expect(safeOnyxKeys.has(sensitiveKey)).toBe(false);
+        }
+    });
+
+    it('session token field names must be in keysToMask so the maskFragileData fallback can never pass them through', () => {
+        // maskFragileData exports any field name it does not recognize verbatim. Keys that reach it and hold a
+        // session-token field rely on keysToMask to catch the secret, so these generic field names must stay
+        // listed as a backstop even though the keys that carry them today have their own export rules.
+        const credentialFieldNames = ['authToken', 'encryptedAuthToken', 'supportAuthToken'];
+
+        for (const fieldName of credentialFieldNames) {
+            expect(keysToMask.has(fieldName)).toBe(true);
         }
     });
 

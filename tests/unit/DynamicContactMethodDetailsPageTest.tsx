@@ -85,8 +85,9 @@ describe('DynamicContactMethodDetailsPage', () => {
         });
     });
     beforeEach(() => {
-        global.fetch = getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        const globalFetchMock = getGlobalFetchMock();
+        global.fetch = globalFetchMock;
+        mockFetch = globalFetchMock;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 

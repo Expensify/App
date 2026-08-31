@@ -282,7 +282,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                 // Return a Promise that resolves with the mocked response
                 return Promise.resolve(mockedResponse);
             });
-            Session.signIn(password, undefined);
+            Session.signIn(password, undefined, undefined, login, undefined);
             return waitForBatchedUpdates();
         })
         .then(() => {
@@ -481,6 +481,14 @@ function getCurrencyDecimalsLocal(currencyCode: string | undefined): number {
 }
 
 /**
+ * A local version of useCurrencyListActions().getCurrencySymbol for tests that call lib
+ * functions directly and need to inject the symbol resolver without the full app context.
+ */
+function getCurrencySymbolLocal(currencyCode: string | undefined): string | undefined {
+    return testCurrencyList?.[currencyCode ?? '']?.symbol;
+}
+
+/**
  * A local version of useCurrencyListActions().convertToDisplayString for tests that call lib
  * functions directly and need to inject the currency formatter without the full app context.
  * Mirrors the implementation in CurrencyListContextProvider, pinned to the `en` locale.
@@ -521,7 +529,7 @@ function localeCompare(a: string, b: string): number {
     return customCollator.compare(a, b);
 }
 
-export type {MockFetch, FormData};
+export type {MockFetch};
 export {
     anyArray,
     anyObject,
@@ -529,6 +537,7 @@ export {
     translateLocal,
     convertToDisplayString,
     getCurrencyDecimalsLocal,
+    getCurrencySymbolLocal,
     assertFormDataMatchesObject,
     buildPersonalDetails,
     buildTestReportComment,
