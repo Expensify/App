@@ -112,4 +112,3 @@ function useComposerSuggestions({composerRef, selection, measureParentContainer,
 }
 
 export default useComposerSuggestions;
-export type {UseComposerSuggestionsParams};

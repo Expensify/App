@@ -22,8 +22,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {ViewProps} from 'react-native';
-
 import React, {useState} from 'react';
 import Onyx from 'react-native-onyx';
 
