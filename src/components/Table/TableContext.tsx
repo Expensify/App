@@ -207,4 +207,4 @@ function useTableRowSemanticID() {
 
 export default TableContext;
 export {TableRowSemanticIDContext, useTableContext, useTableRowSemanticID};
-export type {TableContextValue, TableSearchInputActions, TableSearchInputUpdate};
+export type {TableContextValue, TableSearchInputUpdate};

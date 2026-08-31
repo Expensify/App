@@ -2247,13 +2247,13 @@ describe('Table', () => {
             const searchInput = screen.getByTestId('search-input');
             const searchInputNativeID: unknown = searchInput.props.nativeID;
             fireEvent(searchInput, 'focus');
-            fireEvent.changeText(searchInput, 'fruit');
+            fireEvent.changeText(searchInput, 'fruits');
             mockFlashListProps.at(-1)?.onScroll?.({nativeEvent: {contentOffset: {y: 1200}}});
             mockFlashListScrollToOffset.mockClear();
 
-            fireEvent.changeText(searchInput, 'frui');
-            expect(onSearchStringChange).toHaveBeenLastCalledWith('frui');
-            expect(screen.getByTestId('search-input').props.value).toBe('frui');
+            fireEvent.changeText(searchInput, 'fruit');
+            expect(onSearchStringChange).toHaveBeenLastCalledWith('fruit');
+            expect(screen.getByTestId('search-input').props.value).toBe('fruit');
             expect(screen.getByTestId('row-1')).toBeTruthy();
             expect(screen.getByTestId('row-2')).toBeTruthy();
             expect(screen.getByTestId('row-4')).toBeTruthy();
@@ -2723,6 +2723,9 @@ describe('Table', () => {
                 return nextAnimationFrameID;
             });
             const cancelAnimationFrameSpy = jest.spyOn(global, 'cancelAnimationFrame').mockImplementation((frameID) => {
+                if (frameID === null || frameID === undefined) {
+                    return;
+                }
                 animationFrameCallbacks.delete(frameID);
             });
             const props = createDefaultProps();
