@@ -5,6 +5,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -362,6 +363,11 @@ function DynamicIOURequestStepDistance({
         return stop;
     }, []);
 
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        policyID: policy?.id,
+        isDistanceRequest: true,
+    });
+
     useEffect(() => {
         if (numberOfWaypoints <= numberOfPreviousWaypoints) {
             return;
@@ -525,6 +531,9 @@ function DynamicIOURequestStepDistance({
     );
 
     const submitWaypoints = useCallback(() => {
+        if (blockDistanceRequestIfNeeded()) {
+            return;
+        }
         // If there is any error or loading state, don't let user go to next page.
         if (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || (!isEditing && isLoading)) {
             setShouldShowAtLeastTwoDifferentWaypointsError(true);
@@ -613,6 +622,7 @@ function DynamicIOURequestStepDistance({
         suppressDiscardPrompt();
         navigateToNextStep();
     }, [
+        blockDistanceRequestIfNeeded,
         duplicateWaypointsError,
         atLeastTwoDifferentWaypointsError,
         hasRouteError,
@@ -650,6 +660,9 @@ function DynamicIOURequestStepDistance({
     ]);
 
     const submitManualDistance = useCallback(() => {
+        if (blockDistanceRequestIfNeeded()) {
+            return;
+        }
         isManuallyEditing.current = false;
 
         // For a map-based distance edit, require valid waypoints even when saving from the Manual tab.
@@ -745,6 +758,7 @@ function DynamicIOURequestStepDistance({
         removeBackupTransaction(transaction?.transactionID);
         navigateBackAfterSave();
     }, [
+        blockDistanceRequestIfNeeded,
         transactionBackup,
         getHasSelectedRouteChanged,
         duplicateWaypointsError,

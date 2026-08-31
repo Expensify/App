@@ -443,7 +443,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.ph5, styles.pv3, styles.gap6]}>
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.requireFieldsRule.subtitle')}</Text>
-                        <Text style={[styles.textLabel, styles.textSupporting, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
+                        <Text style={[styles.textLabel, styles.textStrong, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
                     </View>
                     <MenuItemWithTopDescription
                         description={translate('common.category')}
@@ -460,7 +460,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                     />
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
                     <View style={[styles.ph5, styles.pv3]}>
-                        <Text style={[styles.textLabel, styles.textSupporting, styles.lh16]}>{translate('workspace.rules.requireFieldsRule.doTheFollowing')}</Text>
+                        <Text style={[styles.textLabel, styles.textStrong, styles.lh16]}>{translate('workspace.rules.requireFieldsRule.doTheFollowing')}</Text>
                     </View>
                     {fieldSettings
                         .filter((field) => field.isVisible)
