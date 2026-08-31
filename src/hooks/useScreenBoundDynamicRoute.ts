@@ -17,9 +17,18 @@ import {useContext, useState} from 'react';
 function useScreenBoundDynamicRoute(): (dynamicRouteSuffixWithParams: string) => Route {
     const route = useContext(NavigationRouteContext);
     const [focusedBasePath, setFocusedBasePath] = useState<string | undefined>();
-    useFocusEffect(() => setFocusedBasePath(Navigation.getActiveRoute()));
+    useFocusEffect(() => {
+        // On a cold start the focus effect can run before the navigation container is ready, when getActiveRoute
+        // still returns an empty string. Latching it would shadow the route path seed until the next blur and focus.
+        const activeRoute = Navigation.getActiveRoute();
+        if (!activeRoute) {
+            return;
+        }
+        setFocusedBasePath(activeRoute);
+    });
 
-    const basePath = focusedBasePath ?? route?.path;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const basePath = focusedBasePath || route?.path;
 
     return (dynamicRouteSuffixWithParams: string) => createDynamicRoute(dynamicRouteSuffixWithParams, basePath);
 }

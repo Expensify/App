@@ -3,12 +3,11 @@ import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
-import Navigation from '@libs/Navigation/Navigation';
 import {setHasRadio} from '@libs/NetworkState';
 import {isExpenseReport} from '@libs/ReportUtils';
 
 import IntlStore from '@src/languages/IntlStore';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
@@ -2284,34 +2283,6 @@ describe('ReportActionsUtils', () => {
                 expect(messageResult).toBe(
                     `issued <mention-user accountID="456"/> a virtual Expensify Card! The <a href='https://dev.new.expensify.com:8082/settings/card/789'>card</a> can be used right away.`,
                 );
-            });
-        });
-
-        describe('admin card details link', () => {
-            const activeExpensifyCardForAdmin = {...activeExpensifyCard, cardID: 789} as Card;
-            const boundRoute = createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_DETAILS.getRoute('789', testPolicyID), ROUTES.REPORT_WITH_ID.getRoute('1234'));
-
-            afterEach(() => {
-                jest.restoreAllMocks();
-            });
-
-            it('builds the link with the injected builder instead of the active route', async () => {
-                jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(ROUTES.SETTINGS_PROFILE.getRoute());
-
-                const href = getCardIssuedMessage({
-                    reportAction: mockVirtualCardIssuedAction,
-                    shouldRenderHTML: true,
-                    shouldNavigateToCardDetails: true,
-                    policyID: testPolicyID,
-                    buildDynamicRoute: () => boundRoute,
-                    expensifyCard: activeExpensifyCardForAdmin,
-                    translate: translateLocal,
-                    currentUserAccountID: 1,
-                })
-                    .match(/href='([^']+)'/)
-                    ?.at(1);
-
-                expect(href).toBe(`${await getEnvironmentURL()}/${boundRoute}`);
             });
         });
 

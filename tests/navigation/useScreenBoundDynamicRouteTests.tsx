@@ -68,6 +68,27 @@ function ScreenWrapper({children}: {children: ReactNode}) {
     );
 }
 
+// Bound is focused and carries the path it was matched from, like a screen cold-loaded from a deep link.
+function FocusedScreenWithPathWrapper({children}: {children: ReactNode}) {
+    return (
+        <NavigationContainer
+            ref={navigationRef}
+            initialState={{
+                index: 0,
+                routes: [{name: 'Bound', path: REPORT_PATH}],
+            }}
+        >
+            <Stack.Navigator>
+                <Stack.Screen name="Bound">{() => children}</Stack.Screen>
+                <Stack.Screen
+                    name="Stacked"
+                    component={StackedScreen}
+                />
+            </Stack.Navigator>
+        </NavigationContainer>
+    );
+}
+
 const renderOnScreen = () => renderHook(() => useScreenBoundDynamicRoute(), {wrapper: ScreenWrapper});
 
 describe('useScreenBoundDynamicRoute', () => {
@@ -95,7 +116,7 @@ describe('useScreenBoundDynamicRoute', () => {
         expect(boundRoute).toBe(`${REPORT_PATH}/${CARD_DETAILS}`);
         expect(JSON.stringify(getStateFromPath(boundRoute))).not.toContain('not-found');
 
-        // Without the binding the suffix lands on whatever is active, which is what #95364 reported.
+        // Without the binding the suffix lands on whatever screen is active instead.
         expect(JSON.stringify(getStateFromPath(createDynamicRoute(CARD_DETAILS)))).toContain('not-found');
     });
 
@@ -130,6 +151,15 @@ describe('useScreenBoundDynamicRoute', () => {
         act(() => navigationRef.goBack());
 
         expect(result.current(CARD_DETAILS)).toBe(`${refocusedPath}/${CARD_DETAILS}`);
+    });
+
+    it('falls back to the screen route when the active route is empty because navigation is not ready yet', () => {
+        // Navigation.getActiveRoute returns an empty string until the navigation container is ready.
+        jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue('');
+
+        const {result} = renderHook(() => useScreenBoundDynamicRoute(), {wrapper: FocusedScreenWithPathWrapper});
+
+        expect(result.current(CARD_DETAILS)).toBe(`${REPORT_PATH}/${CARD_DETAILS}`);
     });
 
     it('falls back to the screen route when the screen mounts without ever being focused', () => {
