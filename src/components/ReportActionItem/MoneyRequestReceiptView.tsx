@@ -547,13 +547,10 @@ function MoneyRequestReceiptView({
     const showBorderlessLoading = isLoading && fillSpace;
 
     // Map distance receipts show both hover actions just like regular receipts, so we don't exclude isMapDistanceRequest here.
-    // Adding a receipt changes the expense, so it takes the same expense-level permission the rest of the edit flow uses:
-    // whoever may not edit the expense may not attach to it either. The field rules that decide whether a receipt may be
-    // replaced stay out of this, so a scanning or map-distance receipt still offers the button to the people above.
+    // Adding a receipt changes the expense, so it takes the same expense-level permission the rest of the edit flow uses.
     const canShowReceiptActions = hasReceipt && !isLoading && isEditable && canCurrentUserEditExpense(parentReportAction, moneyRequestReport, policy) && !mergeTransactionID;
-    // Expanding only opens the receipt to look at, so it asks for none of the permission above: someone who may not edit
-    // the expense can still zoom in on it. The states that put the report itself out of reach still apply, as does the
-    // readonly prop, which suppresses every affordance in the duplicate and merge review flows.
+
+    // Expanding only opens the receipt to look at, so it asks for none of the permission above
     const canExpandReceipt = hasReceipt && !isLoading && !mergeTransactionID && !readonly && canInteractWithReport;
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
