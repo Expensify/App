@@ -2285,7 +2285,7 @@ const translations: TranslationDeepObject<typeof en> = {
             showBranchNameInTitle: 'Afficher le nom de la branche dans le titre du navigateur',
             betaOverrides: 'Remplacements de bêtas',
             betaOverridesDescription:
-                "Les remplacements ne s'appliquent qu'à cet appareil et n'affectent que les vérifications côté frontend. Activer ou désactiver une bêta la fige sur cette valeur, et elle le reste jusqu'à ce que vous la réinitialisiez. « Réinitialiser tous les remplacements » les efface tous et rétablit pour chaque bêta la valeur associée à votre compte côté backend. Certaines fonctionnalités sont aussi contrôlées par le backend, donc forcer l'activation d'une bêta que votre compte ne possède pas peut échouer au niveau de la requête.",
+                "Les remplacements ne s'appliquent qu'à cet appareil et n'affectent que les vérifications côté frontend. Activer ou désactiver une bêta la fige sur cette valeur jusqu'à ce que vous la réinitialisiez. « Réinitialiser tous les remplacements » rétablit les valeurs de votre compte. Certaines bêtas sont aussi contrôlées par le backend et peuvent donc échouer au niveau de la requête.",
             resetAllOverrides: 'Réinitialiser tous les remplacements',
             overridden: 'Remplacée',
         },

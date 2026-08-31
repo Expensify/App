@@ -2355,7 +2355,7 @@ const translations = {
             showBranchNameInTitle: 'Show branch name in browser title',
             betaOverrides: 'Beta overrides',
             betaOverridesDescription:
-                'Overrides only apply to this device and only affect frontend checks. Toggling a beta pins it to that value, and it stays pinned until you reset it. “Reset all overrides” clears them all and returns every beta to the value your account has on the backend. Some features are also gated by the backend, so force-enabling a beta your account doesn’t have may still fail at the request level.',
+                'Overrides are local to this device and only affect frontend checks. Toggling pins a beta to that value until you reset it. “Reset all overrides” restores the values from your account. Some betas are gated on the backend too, so those can still fail at the request level.',
             resetAllOverrides: 'Reset all overrides',
             overridden: 'Overridden',
             invalidFile: 'Invalid file',

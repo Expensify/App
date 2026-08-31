@@ -2279,7 +2279,7 @@ const translations: TranslationDeepObject<typeof en> = {
             showBranchNameInTitle: 'Branch-Namen im Browser-Titel anzeigen',
             betaOverrides: 'Beta-Überschreibungen',
             betaOverridesDescription:
-                'Überschreibungen gelten nur für dieses Gerät und wirken sich nur auf Frontend-Prüfungen aus. Durch das Umschalten einer Beta wird sie auf diesen Wert festgelegt und bleibt es, bis Sie sie zurücksetzen. „Alle Überschreibungen zurücksetzen“ löscht alle und setzt jede Beta auf den Wert zurück, den Ihr Konto im Backend hat. Einige Funktionen werden zusätzlich vom Backend gesteuert, sodass das erzwungene Aktivieren einer Beta, die Ihr Konto nicht hat, auf Anfrageebene trotzdem fehlschlagen kann.',
+                'Überschreibungen gelten nur für dieses Gerät und wirken sich nur auf Frontend-Prüfungen aus. Durch Umschalten wird eine Beta auf diesen Wert festgelegt, bis Sie sie zurücksetzen. „Alle Überschreibungen zurücksetzen“ stellt die Werte Ihres Kontos wieder her. Einige Betas werden zusätzlich vom Backend gesteuert und können daher weiterhin auf Anfrageebene fehlschlagen.',
             resetAllOverrides: 'Alle Überschreibungen zurücksetzen',
             overridden: 'Überschrieben',
         },

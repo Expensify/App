@@ -2276,7 +2276,7 @@ const translations: TranslationDeepObject<typeof en> = {
             showBranchNameInTitle: 'Mostra nome del ramo nel titolo del browser',
             betaOverrides: 'Sostituzioni delle beta',
             betaOverridesDescription:
-                "Le sostituzioni si applicano solo a questo dispositivo e influiscono solo sui controlli del frontend. Attivando o disattivando una beta la si fissa su quel valore, che resta tale finché non la reimposti. «Reimposta tutte le sostituzioni» le cancella tutte e riporta ogni beta al valore che il tuo account ha nel backend. Alcune funzionalità sono controllate anche dal backend, quindi forzare l'attivazione di una beta che il tuo account non possiede può comunque fallire a livello di richiesta.",
+                'Le sostituzioni si applicano solo a questo dispositivo e influiscono solo sui controlli del frontend. Attivare o disattivare una beta la fissa su quel valore finché non la reimposti. «Reimposta tutte le sostituzioni» ripristina i valori del tuo account. Alcune beta sono controllate anche dal backend, quindi possono comunque fallire a livello di richiesta.',
             resetAllOverrides: 'Reimposta tutte le sostituzioni',
             overridden: 'Sostituita',
         },

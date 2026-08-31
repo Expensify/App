@@ -2271,7 +2271,7 @@ const translations: TranslationDeepObject<typeof en> = {
             showBranchNameInTitle: 'Toon branchnaam in titel van browser',
             betaOverrides: 'Bèta-overrides',
             betaOverridesDescription:
-                "Overrides gelden alleen voor dit apparaat en zijn alleen van invloed op frontendcontroles. Als je een bèta omschakelt, wordt die op die waarde vastgezet en blijft dat totdat je hem reset. 'Alle overrides resetten' wist ze allemaal en zet elke bèta terug op de waarde die je account in de backend heeft. Sommige functies worden ook door de backend bepaald, dus het geforceerd inschakelen van een bèta die je account niet heeft, kan alsnog mislukken op verzoekniveau.",
+                "Overrides gelden alleen voor dit apparaat en zijn alleen van invloed op frontendcontroles. Omschakelen zet een bèta vast op die waarde totdat je hem reset. 'Alle overrides resetten' herstelt de waarden van je account. Sommige bèta's worden ook door de backend bepaald en kunnen dus alsnog mislukken op verzoekniveau.",
             resetAllOverrides: 'Alle overrides resetten',
             overridden: 'Overschreven',
         },

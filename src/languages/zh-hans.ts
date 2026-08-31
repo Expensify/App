@@ -2199,7 +2199,7 @@ const translations: TranslationDeepObject<typeof en> = {
             showBranchNameInTitle: '在浏览器标题中显示分支名称',
             betaOverrides: 'Beta 覆盖',
             betaOverridesDescription:
-                '覆盖仅适用于此设备，且仅影响前端检查。切换某个 Beta 会将其固定为该值，并一直保持到你重置为止。“重置所有覆盖”会清除全部覆盖，并将每个 Beta 恢复为你的账户在后端的值。部分功能同时受后端控制，因此强制启用账户未开通的 Beta 功能时，请求仍可能失败。',
+                '覆盖仅适用于此设备，且仅影响前端检查。切换会将 Beta 固定为该值，直到你重置为止。“重置所有覆盖”会恢复你账户中的值。部分 Beta 同时受后端控制，因此仍可能在请求层面失败。',
             resetAllOverrides: '重置所有覆盖',
             overridden: '已覆盖',
         },
