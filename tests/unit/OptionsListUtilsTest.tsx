@@ -74,6 +74,7 @@ import {
     formatReportLastMessageText,
     getMovedActionMessage,
     getMovedTransactionMessage,
+    parseMovedTransactionReportIDs,
     getReportPreviewReportActionMessage,
     getReportTransactions,
     isCanceledTaskReport,
@@ -91,6 +92,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
+import type Login from '@src/types/onyx/Login';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -149,7 +151,6 @@ describe('OptionsListUtils', () => {
         type: CONST.POLICY.TYPE.TEAM,
         owner: 'reedrichards@expensify.com',
         outputCurrency: '',
-        isPolicyExpenseChatEnabled: false,
         approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
     };
 
@@ -730,7 +731,7 @@ describe('OptionsListUtils', () => {
         },
     ];
 
-    const loginList = {};
+    const loginList: OnyxEntry<Login> = {};
     const CURRENT_USER_ACCOUNT_ID = 2;
     const CURRENT_USER_EMAIL = 'tonystark@expensify.com';
 
@@ -4530,6 +4531,30 @@ describe('OptionsListUtils', () => {
             // Then the self dm should be on top.
             expect(filteredOptions.recentReports.at(0)?.isSelfDM).toBe(true);
         });
+
+        it('should return the same matches for normalized multi-word queries with extra spaces', () => {
+            const {options} = getSearchOptions({
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+                options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
+                draftComments: {},
+                loginList,
+                betas: [CONST.BETAS.ALL],
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
+                personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
+                conciergeReportID: undefined,
+            });
+
+            const multiSpaceQueryResults = filterAndOrderOptions(options, 'Invisible   Woman', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const spaceSeparatedQueryResults = filterAndOrderOptions(options, 'Invisible Woman', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+
+            expect(multiSpaceQueryResults.recentReports.map((option) => option.reportID)).toEqual(spaceSeparatedQueryResults.recentReports.map((option) => option.reportID));
+            expect(multiSpaceQueryResults.personalDetails.map((option) => option.accountID)).toEqual(spaceSeparatedQueryResults.personalDetails.map((option) => option.accountID));
+        });
     });
 
     describe('canCreateOptimisticPersonalDetailOption()', () => {
@@ -6840,7 +6865,8 @@ describe('OptionsListUtils', () => {
 
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
-            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionAction)));
+            const {fromReportID, toReportID} = parseMovedTransactionReportIDs(movedTransactionAction);
+            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage({translate: translateLocal, fromReportID, toReportID})));
         });
         describe('SUBMITTED action', () => {
             it('should return automatic submitted message if submitted via harvesting', async () => {
@@ -8583,7 +8609,6 @@ describe('OptionsListUtils', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 owner: 'owner@test.com',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 areCategoriesEnabled: true,
             };
@@ -8647,7 +8672,6 @@ describe('OptionsListUtils', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 owner: 'owner@test.com',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 areCategoriesEnabled: true,
             };
@@ -8686,7 +8710,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 outputCurrency: 'USD',
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-                isPolicyExpenseChatEnabled: false,
             };
             const report: Report = {
                 reportID,
@@ -8762,7 +8785,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 outputCurrency: 'USD',
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-                isPolicyExpenseChatEnabled: false,
             };
             const report: Report = {
                 reportID,
@@ -9374,7 +9396,6 @@ describe('OptionsListUtils', () => {
                 role: 'user',
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: false,
             };
 
             // PersonalDetails with the approver's information
@@ -9659,7 +9680,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'user',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             const testPersonalDetails = {
@@ -9753,7 +9773,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'admin',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             const testPersonalDetails = {
@@ -9820,7 +9839,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'user',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
@@ -9866,7 +9884,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'user',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
@@ -9912,7 +9929,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'user',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
@@ -10043,7 +10059,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'user',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             const testPersonalDetails = {
@@ -10107,7 +10122,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'user',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
@@ -10141,7 +10155,6 @@ describe('OptionsListUtils', () => {
             owner: 'formatowner@test.com',
             role: 'admin',
             outputCurrency: 'USD',
-            isPolicyExpenseChatEnabled: true,
         };
 
         const formatPersonalDetails = {
@@ -10781,7 +10794,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'admin',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);

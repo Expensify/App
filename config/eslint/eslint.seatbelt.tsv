@@ -342,7 +342,7 @@
 "../../src/components/SelectionList/hooks/useFlattenedSections.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/SelectionList/utils/getListboxRole/index.web.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/SettlementButton/AnimatedSettlementButton.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/SettlementButton/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	11
+"../../src/components/SettlementButton/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../src/components/SettlementButton/index.tsx"	"no-restricted-imports"	1
 "../../src/components/SidePanel/SidePanelOverlay.tsx"	"no-restricted-syntax"	1
 "../../src/components/SidePanel/SidePanelReport/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -633,7 +633,7 @@
 "../../src/libs/OptionsListUtils/index.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	3
 "../../src/libs/OptionsListUtils/index.ts"	"@typescript-eslint/no-deprecated/deprecatedLastReportActions[reportID]"	3
 "../../src/libs/OptionsListUtils/index.ts"	"@typescript-eslint/no-deprecated/translateLocal"	7
-"../../src/libs/OptionsListUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
+"../../src/libs/OptionsListUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/OptionsListUtils/index.ts"	"rulesdir/no-onyx-connect"	3
 "../../src/libs/OptionsListUtils/searchMatchUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	2
 "../../src/libs/PageHTMLCapture/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -641,6 +641,7 @@
 "../../src/libs/ParsingUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/PaymentUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/PersonalDetailsUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	2
+"../../src/libs/PersonalDetailsUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/PersonalDetailsUtils.ts"	"rulesdir/no-onyx-connect"	2
 "../../src/libs/PhoneNumber.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/PolicyUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
@@ -658,10 +659,10 @@
 "../../src/libs/ReportNameUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/ReportPrimaryActionUtils.ts"	"no-restricted-imports"	1
 "../../src/libs/ReportTitleUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	5
+"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	3
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getPolicy"	27
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	8
-"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	34
+"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	33
 "../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	16
 "../../src/libs/SearchAutocompleteUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/SearchQueryUtils.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
@@ -813,7 +814,7 @@
 "../../src/libs/actions/Task.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/libs/actions/Task.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/actions/Task.ts"	"no-restricted-imports"	1
-"../../src/libs/actions/Task.ts"	"no-restricted-syntax"	6
+"../../src/libs/actions/Task.ts"	"no-restricted-syntax"	5
 "../../src/libs/actions/TaxRate.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/TeachersUnite.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Transaction.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -830,7 +831,6 @@
 "../../src/libs/actions/Wallet.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Welcome/OnboardingFlow.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/actions/Welcome/index.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/Workflow.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/__mocks__/App.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/__mocks__/App.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/__mocks__/OnyxUpdates.ts"	"no-restricted-syntax"	1
@@ -1104,9 +1104,7 @@
 "../../src/pages/settings/Wallet/InternationalDepositAccount/utils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Wallet/PaymentMethodList.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../src/pages/settings/Wallet/PersonalCardDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/settings/Wallet/PersonalCards/FixPersonalCardConnectionPage/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Wallet/PersonalCards/FixPersonalCardConnectionPage/useFixPersonalCardConnection.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/settings/Wallet/PersonalCards/steps/PlaidConnectionStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/pages/settings/Wallet/PersonalCards/steps/SelectCountryStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Wallet/PersonalCards/steps/SelectCountryStep.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/settings/Wallet/PersonalCards/upgrade/PersonalCardUpgradePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1235,7 +1233,6 @@
 "../../src/pages/workspace/companyCards/WorkspaceVerifyWorkAccountPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/companyCards/WorkspaceVerifyWorkAccountPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/companyCards/addNew/DynamicAddNewCardPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/pages/workspace/companyCards/addNew/PlaidConnectionStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../src/pages/workspace/companyCards/addNew/SelectCountryStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/set-state-in-effect"	1
