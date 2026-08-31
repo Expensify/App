@@ -101,13 +101,21 @@ jest.mock('@components/MultifactorAuthentication/Context', () => ({
 }));
 
 const mockDismissModal = jest.fn();
+const mockNavigate = jest.fn();
 const mockGetActiveRoute = jest.fn(() => '');
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
         getActiveRoute: () => mockGetActiveRoute(),
         dismissModal: (...args: unknown[]) => mockDismissModal(...args),
+        navigate: (...args: unknown[]) => mockNavigate(...args),
     },
+}));
+
+let mockIsProduction = false;
+jest.mock('@hooks/useEnvironment', () => ({
+    __esModule: true,
+    default: () => ({isProduction: mockIsProduction}),
 }));
 
 jest.mock('@userActions/Network', () => ({
@@ -322,5 +330,52 @@ describe('TestToolMenu biometrics', () => {
 
         expect(screen.queryByText(/troubleshootBiometricsStatus/)).toBeNull();
         expect(screen.queryByText('multifactorAuthentication.biometricsTest.test')).toBeNull();
+    });
+});
+
+describe('TestToolMenu beta overrides', () => {
+    beforeEach(() => {
+        setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+        mockIsProduction = false;
+    });
+
+    it('renders the beta overrides row outside production', () => {
+        render(<TestToolMenu />);
+
+        screen.getByText('initialSettingsPage.troubleshoot.betaOverrides');
+    });
+
+    it('hides the beta overrides row in production', () => {
+        mockIsProduction = true;
+
+        render(<TestToolMenu />);
+
+        expect(screen.queryByText('initialSettingsPage.troubleshoot.betaOverrides')).toBeNull();
+    });
+
+    it('dismisses the Test Tools modal before opening the overrides page', () => {
+        mockGetActiveRoute.mockReturnValue(ROUTES.TEST_TOOLS_MODAL.route);
+
+        render(<TestToolMenu />);
+
+        fireEvent.press(screen.getByText('common.view'));
+
+        expect(mockDismissModal).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.BETA_OVERRIDES);
+    });
+
+    it('does not dismiss any modal when opened inline on the Troubleshoot page', () => {
+        mockGetActiveRoute.mockReturnValue(ROUTES.SETTINGS_TROUBLESHOOT);
+
+        render(<TestToolMenu />);
+
+        fireEvent.press(screen.getByText('common.view'));
+
+        expect(mockDismissModal).not.toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.BETA_OVERRIDES);
     });
 });
