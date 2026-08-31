@@ -67,9 +67,8 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const hasAutoAppliedRef = useRef(false);
     const hasNavigatedToAddApproverRef = useRef(false);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path);
-    const isCurrentUserManager = report.managerID === currentUserDetails.accountID;
     // The approved animation is part of the report header, which isn't mounted in this RHP, so there is nothing to animate here
-    const confirmApproval = useConfirmApproval(report.reportID, () => {});
+    const confirmApproval = useConfirmApproval(report.reportID, () => {}, true);
 
     const goBack = () => {
         Navigation.goBack(backPath);
@@ -102,11 +101,9 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         }
 
         assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber);
-        // Taking control only makes the current user the final approver. When they already are the manager, the report
-        // stays waiting on them, so approve it as well to actually bypass the remaining approvers.
-        if (isCurrentUserManager) {
-            confirmApproval();
-        }
+        // Taking control only makes the current user the final approver, leaving the report waiting on them, so approve
+        // it as well to actually bypass the remaining approvers.
+        confirmApproval();
         Navigation.dismissToPreviousRHP();
     }, [
         selectedApproverType,
@@ -118,7 +115,6 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
         formatPhoneNumber,
-        isCurrentUserManager,
         confirmApproval,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,

@@ -196,12 +196,8 @@ function SearchChangeApproverPage() {
             const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
             assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber);
 
-            // Taking control only makes the current user the final approver. When they already are the manager, the
-            // report stays waiting on them, so approve it as well to actually bypass the remaining approvers.
-            if (report.managerID !== currentUserDetails.accountID) {
-                continue;
-            }
-
+            // Taking control only makes the current user the final approver, leaving the report waiting on them, so
+            // approve it as well to actually bypass the remaining approvers.
             approveMoneyRequest({
                 getCurrencyDecimals,
                 expenseReport: report,
@@ -220,6 +216,7 @@ function SearchChangeApproverPage() {
                 full: true,
                 shouldPlaySuccessSound: false,
                 isTrackIntentUser,
+                isBypassingApprovers: true,
             });
         }
 
