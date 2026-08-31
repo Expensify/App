@@ -10,6 +10,7 @@ import {
     RecordFullReconnectTime,
     SaveResponseInOnyx,
     SupportalPermission,
+    SurfaceCommandError,
 } from '@libs/Middleware';
 import FraudMonitoring from '@libs/Middleware/FraudMonitoring';
 import LoadPostDataForOpenOrReconnect from '@libs/Middleware/LoadPostDataForOpenOrReconnect';
@@ -56,6 +57,10 @@ addMiddleware(handleDeletedAccount);
 
 // Handle supportal permission denial centrally
 addMiddleware(SupportalPermission);
+
+// SurfaceCommandError - Raises a global modal with the backend's rejection message for the commands that opted in.
+// It runs after the middlewares above so the jsonCodes they own (407, 408, 411) never reach it.
+addMiddleware(SurfaceCommandError);
 
 // If an optimistic ID is not used by the server, this will update the remaining serialized requests using that optimistic ID to use the correct ID instead.
 addMiddleware(HandleUnusedOptimisticID);

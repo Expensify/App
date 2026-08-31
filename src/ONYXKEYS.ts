@@ -613,6 +613,9 @@ const ONYXKEYS = {
     /** Indicates a global supportal permission denial that should surface a modal */
     SUPPORTAL_PERMISSION_DENIED: 'supportalPermissionDenied',
 
+    /** Holds the backend rejection of the last opted-in API command so it can surface a modal from anywhere in the app */
+    RAM_ONLY_COMMAND_ERROR: 'commandError',
+
     /** Indicates whether an forced reset is required. Used in emergency situations where we must completely erase the Onyx data in the client because it is in a bad state. This will clear Onyx data without signing the user out. */
     RESET_REQUIRED: 'resetRequired',
 
@@ -1756,6 +1759,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;
     [ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED]: boolean;
     [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: OnyxTypes.SupportalPermissionDenied | null;
+    [ONYXKEYS.RAM_ONLY_COMMAND_ERROR]: OnyxTypes.CommandError | null;
     [ONYXKEYS.RESET_REQUIRED]: boolean;
     [ONYXKEYS.PLAID_CURRENT_EVENT]: string;
     [ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT]: boolean;

@@ -1,3 +1,4 @@
+import CommandErrorModal from '@components/CommandErrorModal';
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import ExportDownloadStatusManager from '@components/ExportDownloadStatusManager';
@@ -168,6 +169,7 @@ function AuthScreens() {
             <ThreeDSAuthHandler />
             <UserStatusHandler />
             <SupportalPermissionDeniedModal />
+            <CommandErrorModal />
             <ExportDownloadStatusManager />
             <DelegatorConnectGuard>
                 <ComposeProviders
