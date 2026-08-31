@@ -145,29 +145,12 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             return;
         }
 
-        if (getAccessiblePoliciesAction?.loading !== false) {
-            return;
+        // When validation succeeded but there are no joinable workspaces and the API call has completed,
+        // navigate to the next onboarding step (same as the skip button behavior).
+        if (getAccessiblePoliciesAction?.loading === false) {
+            continueAfterPrivateDomain(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
         }
-
-        // Reopened from the Concierge task, where validating is the whole point of the visit: show the workspace list
-        // the task promised even when it turns out to be empty, rather than closing with nothing to show for it.
-        if (isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow) {
-            Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
-            return;
-        }
-
-        // Mid-onboarding there is a next step to move on to, so an empty list is skipped rather than shown.
-        continueAfterPrivateDomain(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
-    }, [
-        isValidated,
-        joinablePoliciesLength,
-        getAccessiblePoliciesAction?.loading,
-        shouldBlockPublicDomain,
-        navigateToNextOnboardingStep,
-        continueAfterPrivateDomain,
-        isJoiningCompanyWorkspace,
-        hasCompletedGuidedSetupFlow,
-    ]);
+    }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, shouldBlockPublicDomain, navigateToNextOnboardingStep, continueAfterPrivateDomain]);
 
     if (shouldBlockPublicDomain) {
         return null;

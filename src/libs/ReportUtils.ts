@@ -12540,9 +12540,9 @@ function prepareOnboardingOnyxData({
         corporateCardLink: `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(onboardingPolicyID)}`,
         companyDomain: companyDomain ?? '',
         workEmail: workEmail ?? '',
-        // The onboarding private-domain screen, not the settings verify-account page: it is the step the user skipped,
-        // and validating there already chains into the joinable workspace list, which is what this task asks for.
-        validateEmailLink: `${environmentURL}/${ROUTES.ONBOARDING_PRIVATE_DOMAIN.route}`,
+        // HOME is one of VERIFY_ACCOUNT's registered entryScreens, so this resolves. Basing the suffix on a screen that
+        // is not listed there (for example the onboarding workspace list) produces a route the linker cannot match.
+        validateEmailLink: `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path, ROUTES.HOME)}`,
         workEmailLink: `${environmentURL}/${ROUTES.ONBOARDING_WORK_EMAIL.getRoute()}`,
         joinWorkspaceLink: `${environmentURL}/${ROUTES.ONBOARDING_WORKSPACES.getRoute()}`,
     };
