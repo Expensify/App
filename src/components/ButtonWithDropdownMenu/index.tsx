@@ -8,7 +8,6 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -130,8 +129,6 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     useEffect(() => {
         setSelectedItemIndex(defaultSelectedIndex);
     }, [defaultSelectedIndex]);
-
-    const {paddingBottom} = useSafeAreaPaddings(true);
 
     const {calculatePopoverPosition} = usePopoverPosition();
 
@@ -342,9 +339,10 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     anchorPosition={popoverAnchorPosition}
                     shouldShowRadioButton={shouldShowRadioButton}
                     anchorRef={dropdownAnchor}
-                    scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && {...styles.pt4, paddingBottom}}
+                    scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && styles.pt4}
                     anchorAlignment={anchorAlignment}
                     shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
+                    enableEdgeToEdgeBottomSafeAreaPadding
                     headerText={menuHeaderText}
                     shouldUseScrollView={shouldPopoverUseScrollView}
                     containerStyles={containerStyles}
