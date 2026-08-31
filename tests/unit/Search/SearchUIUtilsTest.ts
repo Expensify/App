@@ -12762,7 +12762,7 @@ describe('SearchUIUtils', () => {
         const otherTransactionID = 'tx-violations-2';
 
         const createSubmittedAction = (
-            actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED | typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+            actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED | typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED | typeof CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED,
             violations?: {transactions: Record<string, Array<{name: string}>>},
             reportActionID = 'submit-action-1',
         ): OnyxTypes.ReportAction =>
@@ -12819,6 +12819,17 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAndCloseAction], transactionIDForViolations, translateLocal)).toBe(
                 translateLocal('violations.shortName.receiptRequired'),
             );
+        });
+
+        test('reads the snapshot recorded when an expense joined an already submitted report', () => {
+            const addExpenseAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.OVER_LIMIT}],
+                },
+            });
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([addExpenseAction], transactionIDForViolations, translateLocal)).toBe(translateLocal('violations.shortName.overLimit'));
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([addExpenseAction], otherTransactionID, translateLocal)).toBeUndefined();
         });
 
         test('aggregates across multiple submit actions and dedupes by name', () => {

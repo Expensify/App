@@ -1627,6 +1627,8 @@ const CONST = {
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
                 POLICY_EXPENSE_CHAT_WELCOME_WHISPER: 'POLICYEXPENSECHATWELCOMEWHISPER',
                 ADD_COMMENT: 'ADDCOMMENT',
+                // Hidden action that only carries the violations snapshot of an expense added to a report that was already awaiting its first approval
+                ADD_EXPENSE_ON_SUBMITTED: 'ADDEXPENSEONSUBMITTED',
                 APPROVED: 'APPROVED',
                 CARD_MISSING_ADDRESS: 'CARDMISSINGADDRESS',
                 CARD_ISSUED: 'CARDISSUED',

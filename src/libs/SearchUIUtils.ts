@@ -146,6 +146,7 @@ import {
     isMoneyRequestAction,
     isReportActionVisible,
     isResolvedActionableWhisper,
+    isAddExpenseOnSubmittedAction,
     isSubmittedAction,
     isSubmittedAndClosedAction,
     isWhisperActionTargetedToOthers,
@@ -5289,7 +5290,9 @@ function getSubmittedViolationsForTransaction(reportActions: OnyxTypes.ReportAct
 
     const violationNames = new Set<string>();
     for (const action of reportActions) {
-        if (!isSubmittedAction(action) && !isSubmittedAndClosedAction(action)) {
+        // An expense added to a report that was already awaiting approval is not in that report's submit snapshot,
+        // so its violations live on their own ADDEXPENSEONSUBMITTED action instead.
+        if (!isSubmittedAction(action) && !isSubmittedAndClosedAction(action) && !isAddExpenseOnSubmittedAction(action)) {
             continue;
         }
 
