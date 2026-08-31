@@ -22,18 +22,20 @@ function Container({
 }: ReanimatedModalProps & ContainerProps) {
     const styles = useThemeStyles();
     const onCloseCallbackRef = useRef(onCloseCallBack);
+    const onOpenCallbackRef = useRef(onOpenCallBack);
     const initProgress = useSharedValue(0);
-    const isInitiated = useSharedValue(false);
 
     useEffect(() => {
         onCloseCallbackRef.current = onCloseCallBack;
     }, [onCloseCallBack]);
 
     useEffect(() => {
-        if (isInitiated.get()) {
-            return;
-        }
-        isInitiated.set(true);
+        onOpenCallbackRef.current = onOpenCallBack;
+    }, [onOpenCallBack]);
+
+    // Reading the callback through a ref keeps these dependencies stable, so the animation starts exactly once per mount.
+    // A shared value guarding the start would outlive a remount that cancelled the animation, leaving the modal at progress 0 forever.
+    useEffect(() => {
         initProgress.set(
             withTiming(
                 1,
@@ -44,10 +46,10 @@ function Container({
                     // we enable the animations to make sure they are called
                     reduceMotion: ReduceMotion.Never,
                 },
-                onOpenCallBack,
+                () => onOpenCallbackRef.current(),
             ),
         );
-    }, [animationInTiming, onOpenCallBack, initProgress, isInitiated]);
+    }, [animationInTiming, initProgress]);
 
     // instead of an entering transition since keyframe animations break keyboard on mWeb Chrome (#62799)
     const animatedStyles = useAnimatedStyle(() => getModalInAnimationStyle(animationIn)(initProgress.get()), [initProgress]);
