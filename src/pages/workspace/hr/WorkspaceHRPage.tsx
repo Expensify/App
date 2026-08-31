@@ -7,12 +7,13 @@ import CompactSearchBar from '@components/SearchBar/CompactSearchBar';
 import Section from '@components/Section';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import useHRSyncResultsModal from '@hooks/useHRSyncResultsModal';
+import useHRSyncResultsPage from '@hooks/useHRSyncResultsPage';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMergeHRInitialSyncingModal from '@hooks/useMergeHRInitialSyncingModal';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -57,6 +58,7 @@ function WorkspaceHRPage({
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const policy = usePolicy(policyID);
+    const policyEmployeePersonalDetails = usePersonalDetailsByLogins([...Object.keys(policy?.employeeList ?? {})]);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'TriNetSquare']);
     const [activeHRFlow, setActiveHRFlow] = useState<{setupLink: string; key: number} | undefined>();
@@ -70,11 +72,12 @@ function WorkspaceHRPage({
         openPolicyHRPage(policyID);
     }, [policyID]);
 
-    useHRSyncResultsModal(policyID, connectionSyncProgress, isFocused);
+    useHRSyncResultsPage(connectionSyncProgress, isFocused);
     useMergeHRInitialSyncingModal(policyID, isFocused);
 
     const cards = getHRCards({
         policy,
+        policyEmployeePersonalDetails,
         connectionSyncProgress,
         getLocalDateFromDatetime,
         translate,
