@@ -1729,7 +1729,7 @@ type OriginalMessageReimbursementDirectorInformationRequired = {
  */
 type OriginalMessageTravelNudge = {
     /** The kind of bookable travel the expense was classified as */
-    travelType: ValueOf<typeof CONST.RESERVATION_TYPE>;
+    travelType: ValueOf<typeof CONST.TRAVEL_NUDGE.TRAVEL_TYPE>;
 
     /** Whether the expense was created from a card import or manually */
     origination: ValueOf<typeof CONST.TRAVEL_NUDGE.ORIGINATION>;

@@ -151,7 +151,6 @@ describe('OptionsListUtils', () => {
         type: CONST.POLICY.TYPE.TEAM,
         owner: 'reedrichards@expensify.com',
         outputCurrency: '',
-        isPolicyExpenseChatEnabled: false,
         approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
     };
 
@@ -8610,7 +8609,6 @@ describe('OptionsListUtils', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 owner: 'owner@test.com',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 areCategoriesEnabled: true,
             };
@@ -8674,7 +8672,6 @@ describe('OptionsListUtils', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 owner: 'owner@test.com',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 areCategoriesEnabled: true,
             };
@@ -8713,7 +8710,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 outputCurrency: 'USD',
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-                isPolicyExpenseChatEnabled: false,
             };
             const report: Report = {
                 reportID,
@@ -8789,7 +8785,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 outputCurrency: 'USD',
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-                isPolicyExpenseChatEnabled: false,
             };
             const report: Report = {
                 reportID,
@@ -9401,7 +9396,6 @@ describe('OptionsListUtils', () => {
                 role: 'user',
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: false,
             };
 
             // PersonalDetails with the approver's information
@@ -9686,7 +9680,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'user',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             const testPersonalDetails = {
@@ -9780,7 +9773,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'admin',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             const testPersonalDetails = {
@@ -9847,7 +9839,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'user',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
@@ -9893,7 +9884,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'user',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
@@ -9939,7 +9929,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'user',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
@@ -10070,7 +10059,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'user',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             const testPersonalDetails = {
@@ -10134,7 +10122,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'user',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
@@ -10168,7 +10155,6 @@ describe('OptionsListUtils', () => {
             owner: 'formatowner@test.com',
             role: 'admin',
             outputCurrency: 'USD',
-            isPolicyExpenseChatEnabled: true,
         };
 
         const formatPersonalDetails = {
@@ -10808,7 +10794,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'admin',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);

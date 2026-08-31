@@ -29,7 +29,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, getAssignee, getShareDestination, setShareDestinationValue} from '@libs/actions/Task';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getDisplayNamesWithTooltips, isAllowedToComment} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';

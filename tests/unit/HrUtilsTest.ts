@@ -59,7 +59,6 @@ function makePolicy(overrides: Partial<Policy> = {}): Policy {
         role: CONST.POLICY.ROLE.ADMIN,
         owner: 'owner@test.com',
         ownerAccountID: 1,
-        isPolicyExpenseChatEnabled: true,
         outputCurrency: 'USD',
         ...overrides,
     };
@@ -139,6 +138,7 @@ function makeGetHRCardsParams(overrides: Partial<GetHRCardsParams> = {}): GetHRC
         policyID: POLICY_ID,
         gustoIcon: STUB_ICON,
         trinetIcon: STUB_ICON,
+        policyEmployeePersonalDetails: {},
         ...overrides,
     };
 }
