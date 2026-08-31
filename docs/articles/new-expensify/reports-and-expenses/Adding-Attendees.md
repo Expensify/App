@@ -29,6 +29,12 @@ The selected attendees are added to the expense.
 
 ---
 
+## How to add attendees to several expenses at once
+
+Select 2 or more expenses, click **Selected**, and choose **Edit multiple** to set the same attendees on all of them in one step. Learn how to [edit multiple expenses at once](/articles/new-expensify/reports-and-expenses/Edit-Expenses).
+
+---
+
 ## What happens after you add attendees to an expense
 
  - The total expense is automatically split evenly across all attendees
