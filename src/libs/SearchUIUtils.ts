@@ -58,6 +58,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 
 import type {ThemeColors} from '@styles/theme/types';
+import type {ButtonVariant} from '@styles/utils/types';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -126,6 +127,7 @@ import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getSubmitToAccountID,
     getTagGLCode,
+    isArchivedOrPendingDeletePolicy,
     isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyAdmin,
@@ -596,7 +598,7 @@ type SearchTypeMenuItem = {
         buttons?: Array<{
             buttonText: TranslationPaths;
             buttonAction: () => void;
-            success?: boolean;
+            buttonVariant?: ButtonVariant;
             icon?: IconAsset;
             isDisabled?: boolean;
         }>;
@@ -2105,7 +2107,7 @@ function hasVisibleViolations(
                 }
             }
 
-            if (!hasUserVisible && shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction)) {
+            if (!hasUserVisible && shouldShowViolation(report, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction)) {
                 hasUserVisible = true;
             }
 
@@ -2540,10 +2542,8 @@ function getActions(
     }
 
     const reportNVP = getReportNameValuePairsFromKey(data, report);
-    const isIOUReportArchived = isArchivedReport(reportNVP);
 
     const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
-    const isChatReportArchived = isArchivedReport(chatReportRNVP);
 
     // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
     // If this condition is not met, return early for performance reasons
@@ -2598,7 +2598,7 @@ function getActions(
     // We check submit eligibility separately from approve: on Submit workspaces the popover picks
     // the manager, so don't block Submit when the default submit-to route is the owner.
     if (
-        canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived, currentUserLogin, currentUserAccountID) &&
+        canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isArchivedOrPendingDeletePolicy(policy), currentUserLogin, currentUserAccountID) &&
         isSubmitActionAllowedForSearch(report, policy, submitToAccountID, currentUserAccountID)
     ) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
@@ -2791,6 +2791,9 @@ type CreateAndOpenSearchTransactionThreadParams = {
     /** Beta features list */
     betas: OnyxEntry<OnyxTypes.Beta[]>;
 
+    /** The Concierge chat report */
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
+
     /** The personal details of the participants */
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
@@ -2828,6 +2831,7 @@ function createAndOpenSearchTransactionThread({
     transactionPreviewData,
     shouldNavigate = true,
     getCurrencyDecimals,
+    conciergeChat,
 }: CreateAndOpenSearchTransactionThreadParams): string | undefined {
     const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
@@ -2857,6 +2861,7 @@ function createAndOpenSearchTransactionThread({
         const reportActionToPass = iouReportAction ?? item.reportAction ?? ({reportActionID} as OnyxTypes.ReportAction);
         transactionThreadReport = createTransactionThreadReport({
             introSelected,
+            conciergeChat,
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
             betas,
@@ -3298,7 +3303,7 @@ function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key:
 function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: SearchFilterKey, filterValue: string | number): SearchQueryJSON | undefined {
     const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== filterKey);
     newFlatFilters.push({key: filterKey, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: filterValue}]});
-    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, flatFilters: newFlatFilters};
     const specificGroupQueryJSON = buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
     if (!specificGroupQueryJSON || filterKey !== CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
         return specificGroupQueryJSON;
@@ -3426,7 +3431,7 @@ function buildDateRangeGroupQuery(queryJSON: SearchQueryJSON, dateRange: {start:
             {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: end},
         ],
     });
-    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, flatFilters: newFlatFilters};
     const transactionsQueryJSON = buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
     return {transactionsQueryJSON, start, end};
 }
@@ -3743,16 +3748,14 @@ function getMonthSections(
                 queryJSON && monthGroup.year && monthGroup.month ? buildDateRangeGroupQuery(queryJSON, DateUtils.getMonthDateRange(monthGroup.year, monthGroup.month)) : undefined;
             const transactionsQueryJSON = dateResult?.transactionsQueryJSON;
 
-            const monthDate = new Date(monthGroup.year, monthGroup.month - 1, 1);
-            const formattedMonth = format(monthDate, 'MMMM yyyy', {locale: dateFnsLocale});
-
             monthSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
                 transactions: [],
                 transactionsQueryJSON,
                 keyForList: key,
                 ...monthGroup,
-                formattedMonth,
+                formattedMonth: DateUtils.getFormattedMonthForSearch(monthGroup.year, monthGroup.month, dateFnsLocale),
+                shortFormattedMonth: DateUtils.getShortFormattedMonthForSearch(monthGroup.year, monthGroup.month, dateFnsLocale),
                 sortKey: monthGroup.year * 100 + monthGroup.month,
             };
         }
@@ -3781,7 +3784,10 @@ function getWeekSections(
             const rawRange = DateUtils.getWeekDateRange(weekGroup.week);
             const dateResult = queryJSON && weekGroup.week ? buildDateRangeGroupQuery(queryJSON, rawRange) : undefined;
             const transactionsQueryJSON = dateResult?.transactionsQueryJSON;
-            const formattedWeek = DateUtils.getFormattedDateRangeForSearch(dateResult?.start ?? rawRange.start, dateResult?.end ?? rawRange.end, dateFnsLocale);
+            const weekStart = dateResult?.start ?? rawRange.start;
+            const weekEnd = dateResult?.end ?? rawRange.end;
+            const formattedWeek = DateUtils.getFormattedDateRangeForSearch(weekStart, weekEnd, dateFnsLocale);
+            const shortFormattedWeek = DateUtils.getShortFormattedDateRangeForSearch(weekStart, weekEnd, dateFnsLocale);
 
             weekSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
@@ -3789,6 +3795,7 @@ function getWeekSections(
                 transactionsQueryJSON,
                 ...weekGroup,
                 formattedWeek,
+                shortFormattedWeek,
                 keyForList: key,
             };
         }
@@ -3847,6 +3854,7 @@ function getQuarterSections(
                     ? buildDateRangeGroupQuery(queryJSON, DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter))?.transactionsQueryJSON
                     : undefined;
             const formattedQuarter = DateUtils.getFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, dateFnsLocale);
+            const shortFormattedQuarter = DateUtils.getShortFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter);
 
             quarterSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
@@ -3854,6 +3862,7 @@ function getQuarterSections(
                 transactionsQueryJSON,
                 ...quarterGroup,
                 formattedQuarter,
+                shortFormattedQuarter,
                 sortKey: quarterGroup.year * 10 + quarterGroup.quarter, // Sort by year*10 + quarter (e.g., 20241, 20242, etc.)
                 keyForList: key,
             };
@@ -4891,7 +4900,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
                         buttons: hasEligibleGroupPolicies
                             ? [
                                   {
-                                      success: true,
+                                      buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                       buttonText: 'report.newReport.createExpense',
                                       buttonAction: () => {
                                           interceptAnonymousUser(() => {
@@ -5039,6 +5048,50 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
     }
 
     return typeMenuSections;
+}
+
+/**
+ * Icons used for each saved-search data type. Each asset already has the bookmark subscript baked in,
+ * so it can be rendered directly with the standard Expensicons component.
+ */
+const SAVED_SEARCH_TYPE_TO_ICON_NAME = {
+    [CONST.SEARCH.DATA_TYPES.EXPENSE]: 'ReceiptBookmark',
+    [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: 'DocumentBookmark',
+    [CONST.SEARCH.DATA_TYPES.CHAT]: 'CommentBubbleBookmark',
+    [CONST.SEARCH.DATA_TYPES.INVOICE]: 'InvoiceBookmark',
+    [CONST.SEARCH.DATA_TYPES.TRIP]: 'LuggageBookmark',
+    [CONST.SEARCH.DATA_TYPES.TASK]: 'TaskBookmark',
+} as const satisfies Record<SearchDataTypes, ExpensifyIconName>;
+
+/** Icon shown for a saved search whose query can't be resolved to a known/supported data type. */
+const SAVED_SEARCH_FALLBACK_ICON_NAME = 'Bookmark' satisfies ExpensifyIconName;
+
+type SavedSearchIconName = (typeof SAVED_SEARCH_TYPE_TO_ICON_NAME)[SearchDataTypes] | typeof SAVED_SEARCH_FALLBACK_ICON_NAME;
+
+/**
+ * Every icon a saved search row can render - one per data type plus the fallback. Derived from the map
+ * (and the fallback) above so callers load exactly the set `getSavedSearchIconName` can return, with no
+ * hand-kept second list to drift out of sync.
+ */
+const SAVED_SEARCH_ICON_NAMES: readonly SavedSearchIconName[] = [...Object.values(SAVED_SEARCH_TYPE_TO_ICON_NAME), SAVED_SEARCH_FALLBACK_ICON_NAME];
+
+/**
+ * Resolves the icon name for a saved search from its query type, falling back to the generic bookmark
+ * icon for queries that can't be parsed into a known data type - including queries whose type is present
+ * but outside the supported set (e.g. a hand-edited `type:test` URL), which have no entry in the map.
+ */
+function getSavedSearchIconName(query: string | undefined): SavedSearchIconName {
+    // This is the single place that decides what a missing/empty query means: it resolves to the generic
+    // fallback for every caller, and avoids passing an empty/undefined query into buildSearchQueryJSON -
+    // which would parse '' as the grammar default (type:expense) or throw on undefined and log a console error.
+    if (!query) {
+        return SAVED_SEARCH_FALLBACK_ICON_NAME;
+    }
+    const type = buildSearchQueryJSON(query)?.type;
+    if (!type) {
+        return SAVED_SEARCH_FALLBACK_ICON_NAME;
+    }
+    return SAVED_SEARCH_TYPE_TO_ICON_NAME[type] ?? SAVED_SEARCH_FALLBACK_ICON_NAME;
 }
 
 function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index: number, title: string, isFocused: boolean): SavedSearchMenuItem {
@@ -5209,11 +5262,16 @@ function getFeedOptions(
     translate: LocalizedTranslate,
     localeCompare: LocaleContextProps['localeCompare'],
     feedKeysWithCards?: FeedKeysWithAssignedCards,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
+    domains?: OnyxCollection<OnyxTypes.Domain>,
+    expensifyCardSettings?: OnyxCollection<OnyxTypes.ExpensifyCardSettings>,
 ) {
-    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards, translate, feedKeysWithCards))
-        .map<SingleSelectItem<string>>((cardFeed) => ({
+    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards, translate, feedKeysWithCards, policies, domains, expensifyCardSettings))
+        .map<MultiSelectItem<string>>((cardFeed) => ({
             text: cardFeed.name,
             value: cardFeed.id,
+            // Domain/workspace shown as a second line so same-type feeds can be told apart.
+            alternateText: cardFeed.subtitle,
         }))
         .sort((a, b) => localeCompare(a.text, b.text));
 }
@@ -6908,6 +6966,7 @@ export {
     getSections,
     getSuggestedSearchesVisibility,
     getSortedSections,
+    getSortedTransactionData,
     getViolationsFromSearchData,
     getTransactionsByReportID,
     isTransactionMatchWithGroupItem,
@@ -6937,6 +6996,9 @@ export {
     getSectionBadgeText,
     getItemBadgeText,
     createBaseSavedSearchMenuItem,
+    getSavedSearchIconName,
+    SAVED_SEARCH_FALLBACK_ICON_NAME,
+    SAVED_SEARCH_ICON_NAMES,
     shouldShowEmptyState,
     compareValues,
     isSearchDataLoaded,

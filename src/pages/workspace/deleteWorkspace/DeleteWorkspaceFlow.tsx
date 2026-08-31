@@ -1,4 +1,3 @@
-import ConfirmModal from '@components/ConfirmModal';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 
@@ -13,6 +12,7 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 
+import {close as closeVisibleModal} from '@libs/actions/Modal';
 import {calculateBillNewDot, deleteWorkspace, dismissWorkspaceError} from '@libs/actions/Policy/Policy';
 import {filterInactiveCards, getCardSettings, isCard} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -23,7 +23,6 @@ import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey, getTravelBillingFeedID} from '@libs/TravelBillingUtils';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {canDowngradeSelector} from '@src/selectors/Account';
@@ -34,7 +33,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type DeleteWorkspaceFlowProps = {
@@ -128,13 +127,6 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
     const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
     const {shouldBlockDeletion, outstandingBalanceModal} = useOutstandingBalanceGuard(ownedPaidPoliciesCounts?.active ?? 0, onDismiss);
 
-    // TODO: temporary fix for https://github.com/Expensify/App/issues/96369 - the error modal is kept as a locally controlled ConfirmModal
-    // instead of the global useConfirmModal one, because closing the loading delete confirmation modal and immediately pushing another
-    // global modal leaves the flow latched on iOS, so a second delete attempt never restarts the flow.
-    // Only the translation key is latched (not the translated copy) so the modal follows the current locale, the raw message is kept
-    // as-is because it comes from the backend and is cleared from Onyx as soon as the error is dismissed.
-    const [deleteWorkspaceError, setDeleteWorkspaceError] = useState<{translationKey?: TranslationPaths; message?: string}>();
-
     const hideDeleteWorkspaceErrorModal = useCallback(() => {
         dismissWorkspaceError(policyID, policy?.pendingAction);
     }, [policyID, policy?.pendingAction]);
@@ -144,45 +136,67 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         onDismiss();
     }, [hideDeleteWorkspaceErrorModal, onDismiss]);
 
-    const closeDeleteWorkspaceErrorModal = useCallback(() => {
-        setDeleteWorkspaceError(undefined);
-        dismissDeleteWorkspaceFlow();
-    }, [dismissDeleteWorkspaceFlow]);
-
     const showDeleteWorkspaceErrorModal = useCallback(() => {
         if (!isFocused) {
             dismissDeleteWorkspaceFlow();
             return;
         }
 
-        // This modal is only shown when one of the two blockers applies, and Expensify Cards take priority when both do.
-        setDeleteWorkspaceError({translationKey: isBlockedByExpensifyCards ? 'workspace.common.deleteOpenExpensifyCardsError' : 'workspace.common.deleteTravelInvoicingError'});
-    }, [dismissDeleteWorkspaceFlow, isBlockedByExpensifyCards, isFocused]);
+        showConfirmModal({
+            title: translate('workspace.common.delete'),
+            prompt: (
+                <View style={[styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML
+                        // This modal is only shown when one of the two blockers applies, and Expensify Cards take priority when both do.
+                        html={translate(isBlockedByExpensifyCards ? 'workspace.common.deleteOpenExpensifyCardsError' : 'workspace.common.deleteTravelInvoicingError')}
+                        onConciergeLinkPress={() => {
+                            closeModal();
+                            dismissDeleteWorkspaceFlow();
+                        }}
+                    />
+                </View>
+            ),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+            shouldHandleNavigationBack: false,
+        }).then(() => {
+            dismissDeleteWorkspaceFlow();
+        });
+    }, [closeModal, dismissDeleteWorkspaceFlow, isBlockedByExpensifyCards, isFocused, showConfirmModal, styles.flexRow, styles.renderHTML, translate]);
 
-    const didCompletePendingDelete = !isOffline && prevIsPendingDelete && !isPendingDelete;
-    const shouldLatchDeleteWorkspaceErrorModal = didCompletePendingDelete && !!policyLatestErrorMessage && isFocused;
+    const showGenericDeleteWorkspaceErrorModal = useCallback(
+        (errorMessage: string) => {
+            if (!isFocused) {
+                dismissDeleteWorkspaceFlow();
+                return;
+            }
 
-    if (shouldLatchDeleteWorkspaceErrorModal && !deleteWorkspaceError) {
-        setDeleteWorkspaceError(
-            isBlockedByExpensifyCards || isBlockedByTravelBilling
-                ? {translationKey: isBlockedByExpensifyCards ? 'workspace.common.deleteOpenExpensifyCardsError' : 'workspace.common.deleteTravelInvoicingError'}
-                : {message: policyLatestErrorMessage},
-        );
-    }
+            const prompt = CONST.HTML_TAG_REGEX.test(errorMessage) ? (
+                <View style={[styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML
+                        html={errorMessage}
+                        onConciergeLinkPress={() => {
+                            closeModal();
+                            dismissDeleteWorkspaceFlow();
+                        }}
+                    />
+                </View>
+            ) : (
+                errorMessage
+            );
 
-    const deleteWorkspaceErrorMessage = deleteWorkspaceError?.translationKey ? translate(deleteWorkspaceError.translationKey) : deleteWorkspaceError?.message;
-
-    const deleteWorkspaceErrorPrompt =
-        !!deleteWorkspaceErrorMessage && CONST.HTML_TAG_REGEX.test(deleteWorkspaceErrorMessage) ? (
-            <View style={[styles.renderHTML, styles.flexRow]}>
-                <RenderHTML
-                    html={deleteWorkspaceErrorMessage}
-                    onConciergeLinkPress={closeDeleteWorkspaceErrorModal}
-                />
-            </View>
-        ) : (
-            deleteWorkspaceErrorMessage
-        );
+            showConfirmModal({
+                title: translate('workspace.common.delete'),
+                prompt,
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                shouldHandleNavigationBack: false,
+            }).then(() => {
+                dismissDeleteWorkspaceFlow();
+            });
+        },
+        [closeModal, dismissDeleteWorkspaceFlow, isFocused, showConfirmModal, styles.flexRow, styles.renderHTML, translate],
+    );
 
     // Always invoked after a re-render (from the start effect below for normal deletes, or from usePayAndDowngrade for billed deletes),
     // so the workspace being deleted and its derived data are read from the latest state.
@@ -194,7 +208,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
             prompt: hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             ...(hasDeleteWorkspaceExpensifyCardsError ? {} : {isConfirmLoading: isPendingDelete}),
         }).then((result) => {
             if (!policyName || result.action !== ModalActions.CONFIRM) {
@@ -271,36 +285,36 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
             return;
         }
 
-        closeModal();
-
-        if (policyLatestErrorMessage) {
-            if (!isFocused) {
-                dismissDeleteWorkspaceFlow();
-            }
+        if (!policyLatestErrorMessage) {
+            closeModal();
+            onDeleteComplete?.();
+            onDismiss();
             return;
         }
 
-        onDeleteComplete?.();
-        onDismiss();
-    }, [isOffline, isPendingDelete, prevIsPendingDelete, policyLatestErrorMessage, isFocused, closeModal, dismissDeleteWorkspaceFlow, onDeleteComplete, onDismiss]);
+        closeVisibleModal(() => {
+            if (isBlockedByExpensifyCards || isBlockedByTravelBilling) {
+                showDeleteWorkspaceErrorModal();
+                return;
+            }
 
-    return (
-        <>
-            {outstandingBalanceModal}
-            {/* eslint-disable-next-line @typescript-eslint/no-deprecated -- Local modal avoids stacking issues with the global delete confirmation modal on mobile. */}
-            <ConfirmModal
-                title={translate('workspace.common.delete')}
-                isVisible={!!deleteWorkspaceErrorMessage && isFocused}
-                onConfirm={closeDeleteWorkspaceErrorModal}
-                onCancel={closeDeleteWorkspaceErrorModal}
-                prompt={deleteWorkspaceErrorPrompt}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-                success={false}
-                shouldHandleNavigationBack={false}
-            />
-        </>
-    );
+            showGenericDeleteWorkspaceErrorModal(policyLatestErrorMessage);
+        }, false);
+    }, [
+        isOffline,
+        isPendingDelete,
+        prevIsPendingDelete,
+        policyLatestErrorMessage,
+        isBlockedByExpensifyCards,
+        isBlockedByTravelBilling,
+        closeModal,
+        onDeleteComplete,
+        onDismiss,
+        showDeleteWorkspaceErrorModal,
+        showGenericDeleteWorkspaceErrorModal,
+    ]);
+
+    return outstandingBalanceModal;
 }
 
 export default DeleteWorkspaceFlow;

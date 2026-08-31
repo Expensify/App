@@ -49,7 +49,6 @@ describe('libs/NextStepUtils', () => {
             role: 'admin',
             type: 'team',
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
         };
         const report = buildOptimisticExpenseReport({
@@ -938,7 +937,6 @@ describe('libs/NextStepUtils', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 owner: currentUserEmail,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 approver: currentUserEmail,
@@ -992,7 +990,6 @@ describe('libs/NextStepUtils', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 owner: currentUserEmail,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 approver: currentUserEmail,
@@ -1211,7 +1208,6 @@ describe('libs/NextStepUtils', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: currentUserEmail,
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
             approver: currentUserEmail,

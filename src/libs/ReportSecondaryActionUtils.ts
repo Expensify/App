@@ -25,6 +25,7 @@ import {
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
+    isArchivedOrPendingDeletePolicy,
     isGroupPolicy,
     isInstantSubmitEnabled,
     isPolicyAdmin,
@@ -118,9 +119,8 @@ function isSplitAction(
     originalTransaction: OnyxEntry<Transaction>,
     currentUserLogin: string,
     currentUserAccountID: number,
-    policy: OnyxEntry<Policy> | undefined,
-    parentReport: OnyxEntry<Report> | undefined,
-    isProduction: boolean,
+    policy?: OnyxEntry<Policy>,
+    parentReport?: OnyxEntry<Report>,
 ): boolean {
     if (Number(reportTransactions?.length) !== 1 || !report) {
         return false;
@@ -150,8 +150,7 @@ function isSplitAction(
     }
 
     if (isSelfDMReportUtils(report) || isSelfDMReportUtils(parentReport)) {
-        // Hide the self-DM split entry-point in production
-        return !isProduction;
+        return true;
     }
 
     if (!isExpenseReportUtils(report)) {
@@ -175,10 +174,9 @@ function isSplitAction(
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = (report.managerID ?? CONST.DEFAULT_NUMBER_ID) === currentUserAccountID;
     const isOpenReport = isOpenReportUtils(report);
-    const isPolicyExpenseChat = !!policy?.isPolicyExpenseChatEnabled;
     const userIsPolicyMember = isPolicyMember(policy, currentUserLogin);
 
-    if (!(userIsPolicyMember && isPolicyExpenseChat)) {
+    if (!(userIsPolicyMember && isGroupPolicy(policy))) {
         return false;
     }
 
@@ -194,10 +192,8 @@ function isSubmitAction({
     report,
     reportTransactions,
     policy,
-    reportNameValuePairs,
     reportActions,
     reportMetadata,
-    isChatReportArchived = false,
     primaryAction,
     violations,
     currentUserLogin,
@@ -207,17 +203,17 @@ function isSubmitAction({
     report: Report;
     reportTransactions: Transaction[];
     policy?: Policy;
-    reportNameValuePairs?: ReportNameValuePairs;
     reportActions?: ReportAction[];
     reportMetadata?: OnyxEntry<ReportMetadata>;
-    isChatReportArchived?: boolean;
     primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
     violations?: OnyxCollection<TransactionViolation[]>;
     currentUserLogin?: string;
     currentUserAccountID: number;
     ownerLogin: string | undefined;
 }): boolean {
-    if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
+    // State transitions are blocked only on archived or pending-delete policies. Reports archived for other reasons
+    // (e.g. the submitter was unshared from the policy) can still move through the workflow.
+    if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 
@@ -308,6 +304,10 @@ function isApproveAction(
     reportMetadata: OnyxEntry<ReportMetadata>,
     policy?: Policy,
 ): boolean {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
+        return false;
+    }
+
     if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report.ownerAccountID, currentUserAccountID)) {
         return false;
     }
@@ -375,6 +375,10 @@ function isApproveAction(
 }
 
 function isUnapproveAction(currentUserLogin: string, currentUserAccountID: number, report: Report, policy?: Policy): boolean {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportApprover = isPolicyApprover(policy, currentUserLogin);
     const isReportApproved = isReportApprovedUtils({report});
@@ -428,6 +432,10 @@ function isCancelPaymentAction(
     const isIOUReport = isIOUReportUtils(report);
 
     if (!isExpenseReport && !isIOUReport) {
+        return false;
+    }
+
+    if (isExpenseReport && isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 
@@ -710,7 +718,6 @@ function shouldShowEditSplitInDeleteAction(
     reportTransactions: Transaction[],
     reportActions: ReportAction[] | undefined,
     originalTransaction: OnyxEntry<Transaction>,
-    isProduction: boolean,
     currentUserAccountID: number,
 ): boolean {
     if (reportTransactions.length !== 1) {
@@ -723,13 +730,14 @@ function shouldShowEditSplitInDeleteAction(
     }
 
     const isSelfDMSplit = isSelfDMReportUtils(report);
-    return (
-        shouldRedirectDeleteToSplitExpenseEdit(reportTransaction, originalTransaction, isSelfDMSplit, isProduction) &&
-        isDeleteAction(report, reportTransactions, currentUserAccountID, reportActions)
-    );
+    return shouldRedirectDeleteToSplitExpenseEdit(reportTransaction, originalTransaction, isSelfDMSplit) && isDeleteAction(report, reportTransactions, currentUserAccountID, reportActions);
 }
 
 function isRetractAction(report: Report, policy?: Policy): boolean {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
 
     // This should be removed after we change how instant submit works
@@ -753,6 +761,10 @@ function isRetractAction(report: Report, policy?: Policy): boolean {
 }
 
 function isReopenAction(report: Report, policy?: Policy): boolean {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
     if (!isExpenseReport) {
         return false;
@@ -956,7 +968,6 @@ function getSecondaryReportActions({
     outstandingReportsByPolicyID,
     isChatReportArchived = false,
     parentReport,
-    isProduction,
     isOffline,
 }: {
     currentUserLogin: string;
@@ -977,7 +988,6 @@ function getSecondaryReportActions({
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
     parentReport?: OnyxEntry<Report>;
-    isProduction: boolean;
     /** TODO: Should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
@@ -1033,10 +1043,8 @@ function getSecondaryReportActions({
             report,
             reportTransactions,
             policy,
-            reportNameValuePairs,
             reportActions,
             reportMetadata,
-            isChatReportArchived,
             primaryAction,
             violations,
             currentUserLogin,
@@ -1079,13 +1087,13 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
-    if (canRejectReportAction(report, currentUserAccountID)) {
+    if (canRejectReportAction(report, currentUserAccountID, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
     }
 
     if (
-        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, policy, parentReport, isProduction) &&
-        !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction, isProduction, currentUserAccountID)
+        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, policy, parentReport) &&
+        !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction, currentUserAccountID)
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
@@ -1188,7 +1196,6 @@ function getSecondaryTransactionThreadActions({
     reportNameValuePairs,
     isChatReportArchived,
     grandParentReport,
-    isProduction,
     hasWorkspaceToSubmitTo = false,
 }: {
     currentUserLogin: string;
@@ -1203,7 +1210,6 @@ function getSecondaryTransactionThreadActions({
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     isChatReportArchived: boolean;
     grandParentReport?: OnyxEntry<Report>;
-    isProduction: boolean;
     /** Whether the user belongs to a workspace they can submit an expense to (self-DM split expenses can only be submitted to a workspace). */
     hasWorkspaceToSubmitTo?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
@@ -1217,13 +1223,13 @@ function getSecondaryTransactionThreadActions({
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
-    if (canRejectReportAction(parentReport, currentUserAccountID)) {
+    if (canRejectReportAction(parentReport, currentUserAccountID, policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 
     if (
-        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, policy, grandParentReport, isProduction) &&
-        !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction, isProduction, currentUserAccountID)
+        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, policy, grandParentReport) &&
+        !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction, currentUserAccountID)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
     }
@@ -1252,17 +1258,23 @@ function getSecondaryTransactionThreadActions({
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
     }
 
-    // Show "Send to someone" only for an unreported self-tracked expense in personal space, reusing the track-expense
-    // whisper's convert-from-track flow (once submitted, parentReport is no longer a self-DM so this hides).
-    // A self-DM split can only go to a workspace, so hide it for a split unless the user has one; also require write
-    // access (like MOVE_EXPENSE) so the row hides on an archived self-DM.
+    // Offer the track-expense convert-from-track flow only for an unreported self-tracked expense in personal space
+    // (once submitted, parentReport is no longer a self-DM so these hide), and only with write access (like
+    // MOVE_EXPENSE) so the rows hide on an archived self-DM. These conditions mirror the Inbox track-expense whisper
+    // in ChatActionableButtons.
     const {isExpenseSplit: isSelfDMExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
-    if (
-        isTrackExpenseReportNew(transactionThreadReport, parentReport, reportAction) &&
-        (!isSelfDMExpenseSplit || hasWorkspaceToSubmitTo) &&
-        canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived)
-    ) {
-        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
+    const canConvertFromTrack = isTrackExpenseReportNew(transactionThreadReport, parentReport, reportAction) && canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived);
+    if (canConvertFromTrack) {
+        // A self-DM split has no personal destination, so it can never go to a friend (matches ChatActionableButtons,
+        // which hides "Submit to a friend" for a split unconditionally).
+        if (!isSelfDMExpenseSplit) {
+            options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
+        }
+        // A split can still go to a workspace, but only one that already exists: the create-a-workspace fallback in
+        // createDraftTransactionAndNavigateToParticipantSelector is not wired for splits.
+        if (!isSelfDMExpenseSplit || hasWorkspaceToSubmitTo) {
+            options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER);
+        }
     }
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
