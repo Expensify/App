@@ -48,7 +48,7 @@ function BetaOverridesPage() {
                                 <Badge
                                     text={translate('initialSettingsPage.troubleshoot.overridden')}
                                     isCondensed
-                                    textStyles={styles.condensedBadgeTextLarge}
+                                    textStyles={styles.condensedBadgeTextDefaultSize}
                                     success
                                 />
                             )}

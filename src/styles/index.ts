@@ -1152,8 +1152,7 @@ const staticStyles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeExtraSmall,
         },
 
-        // Keeps the compact condensed pill, but with the regular badge text size so the label stays readable at a glance.
-        condensedBadgeTextLarge: {
+        condensedBadgeTextDefaultSize: {
             fontSize: variables.fontSizeSmall,
         },
 
