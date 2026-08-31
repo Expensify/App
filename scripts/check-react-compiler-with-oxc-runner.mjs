@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * CLI wrapper for checkReactCompilerWithOxc used by Jest tests (oxc-transform is ESM-only).
+ * CLI wrapper for checkReactCompilerWithOxc used by Jest tests (oxc-transform-react is ESM-only).
  *
  * Usage: node scripts/check-react-compiler-with-oxc-runner.mjs <filename> <sourcePath>
  */

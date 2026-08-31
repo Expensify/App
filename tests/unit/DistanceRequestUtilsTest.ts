@@ -34,7 +34,6 @@ const FAKE_POLICY: Policy = {
     type: 'corporate',
     owner: 'work.sa1206+travel@gmail.com',
     outputCurrency: 'USD',
-    isPolicyExpenseChatEnabled: true,
     customUnits: {
         C9031B6F4725D: {
             ...distanceCustomUnitBase,
@@ -460,7 +459,35 @@ describe('DistanceRequestUtils', () => {
     });
 
     describe('getTransactionCommuterExclusionData', () => {
-        it('builds optimistic commuter fields from route distance in meters', () => {
+        const policyWithCommuterExclusion: Policy = {
+            ...FAKE_POLICY,
+            commuterExclusions: {
+                method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                fixedDistance: 1,
+                fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            },
+        };
+        const policyWithZeroCommuterExclusion: Policy = {
+            ...policyWithCommuterExclusion,
+            commuterExclusions: {
+                method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                fixedDistance: 0,
+                fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            },
+        };
+        const distanceTransaction = {
+            ...createRandomTransaction(1),
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {
+                customUnit: {
+                    customUnitRateID: '222AAF6B93BCB',
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    quantity: 4,
+                },
+            },
+        } as Transaction;
+
+        it('uses the policy commuter exclusion when no stored custom unit exists', () => {
             const getCurrencySymbolMock = (currency: string): string | undefined => (currency === CONST.CURRENCY.USD ? '$' : undefined);
             const toLocaleDigitMock = (digit: string) => digit;
             const transaction = {
@@ -486,6 +513,7 @@ describe('DistanceRequestUtils', () => {
             const result = DistanceRequestUtils.getTransactionCommuterExclusionData({
                 transaction,
                 policy,
+                storedCustomUnit: undefined,
                 translate: translateLocal,
                 toLocaleDigit: toLocaleDigitMock,
                 getCurrencySymbol: getCurrencySymbolMock,
@@ -496,6 +524,40 @@ describe('DistanceRequestUtils', () => {
             expect(result?.customUnit.quantity).toBe(4);
             expect(result?.customUnit.commuterExclusion).toBe(1);
             expect(result?.customUnit.reimbursableDistance).toBe(3);
+        });
+
+        it('uses the transaction route when the custom unit has no distance', () => {
+            const transaction: Transaction = {
+                ...distanceTransaction,
+                comment: {customUnit: {...distanceTransaction.comment?.customUnit, quantity: undefined}},
+                routes: {
+                    route0: {
+                        distance: DistanceRequestUtils.convertToDistanceInMeters(4, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
+                        geometry: {coordinates: [], type: 'LineString'},
+                    },
+                },
+            };
+
+            const result = DistanceRequestUtils.getTransactionCommuterExclusionData({
+                transaction,
+                policy: policyWithCommuterExclusion,
+            });
+
+            expect(result?.modifiedAmount).toBe(201);
+            expect(result?.customUnit.quantity).toBe(4);
+            expect(result?.customUnit.commuterExclusion).toBe(1);
+            expect(result?.customUnit.reimbursableDistance).toBe(3);
+        });
+
+        it.each([
+            ['manual distance requests', {...distanceTransaction, iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL}, policyWithCommuterExclusion],
+            ['odometer distance requests', {...distanceTransaction, iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER}, policyWithCommuterExclusion],
+            ['missing route distance', {...distanceTransaction, comment: {customUnit: {distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}}}, policyWithCommuterExclusion],
+            ['missing commuter exclusion settings', distanceTransaction, FAKE_POLICY],
+            ['zero commuter exclusion distance', distanceTransaction, policyWithZeroCommuterExclusion],
+            ['zero route distance', {...distanceTransaction, comment: {customUnit: {...distanceTransaction.comment?.customUnit, quantity: 0}}}, policyWithCommuterExclusion],
+        ])('returns no commuter data for %s', (_caseName, transaction, policy) => {
+            expect(DistanceRequestUtils.getTransactionCommuterExclusionData({transaction, policy})).toBeUndefined();
         });
     });
 

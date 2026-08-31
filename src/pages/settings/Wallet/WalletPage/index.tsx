@@ -380,7 +380,7 @@ function WalletPage() {
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
 
         if (result.action === ModalActions.CONFIRM) {
@@ -430,7 +430,7 @@ function WalletPage() {
     const shouldShowEnableGlobalReimbursementsButton =
         paymentMethod.selectedPaymentMethod?.additionalData?.currency === CONST.CURRENCY.USD &&
         paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
-        !paymentMethod.selectedPaymentMethod?.additionalData?.corpay?.achAuthorizationForm &&
+        !paymentMethod.selectedPaymentMethod?.additionalData?.verifications?.corpay &&
         paymentMethod.selectedPaymentMethod?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
 
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web screen
@@ -468,7 +468,7 @@ function WalletPage() {
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         resetSelectedPaymentMethodData();
         if (result.action !== ModalActions.CONFIRM) {

@@ -7,7 +7,6 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     arePolicyRulesEnabled,
-    canAccessSubmitWorkspaceFeatures,
     canEditWorkspaceSettings,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
@@ -20,11 +19,13 @@ import {
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
+    getCurrentTaxID,
     getCustomUnitsForDuplication,
     getDefaultChatEnabledPolicy,
+    getDefaultChatEnabledPolicySelection,
     getDefaultTimeTrackingRate,
     getDefaultWorkspacePlanType,
-    getEligibleBankAccountShareRecipients,
+    getEligibleBankAccountShareRecipientEmails,
     getExcludedUsers,
     getExpensifyTeamExclusions,
     getManagerAccountID,
@@ -36,6 +37,7 @@ import {
     getPolicyIDFromDomainName,
     getRateDisplayValue,
     getReimburserEmail,
+    getSubmitReportManagerAccountID,
     getSubmitToAccountID,
     getSubmitToEmail,
     getTagApproverRule,
@@ -59,6 +61,7 @@ import {
     hasVendorFeature,
     isArchivedPolicy,
     isMergeHRCompleteSetupNeededSelector,
+    isPerDiemEligiblePolicy,
     isPerDiemEnabled,
     isPolicyMemberWithoutPendingDelete,
     isSubmitterApproveBlockedOnSubmitWorkspace,
@@ -76,7 +79,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
-import type {Connections, QBONonReimbursableExportAccountType, SageIntacctExportConfig} from '@src/types/onyx/Policy';
+import type {Connections, QBONonReimbursableExportAccountType, SageIntacctExportConfig, TaxRates} from '@src/types/onyx/Policy';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -1186,6 +1189,9 @@ describe('PolicyUtils', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 approvalMode: undefined,
                 employeeList: {
+                    [adminEmail]: {
+                        email: adminEmail,
+                    },
                     [employeeEmail]: {
                         email: employeeEmail,
                         submitsTo: adminEmail,
@@ -1214,6 +1220,76 @@ describe('PolicyUtils', () => {
         });
     });
 
+    describe('getSubmitReportManagerAccountID', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+        it('should return the default approver if the employee submitsTo is no longer a policy member and the policy use the advance workflow', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                approver: 'owner@test.com',
+                owner: 'owner@test.com',
+                employeeList: {
+                    'owner@test.com': {
+                        email: 'owner@test.com',
+                        role: 'admin',
+                        submitsTo: '',
+                    },
+                    [employeeEmail]: {
+                        email: employeeEmail,
+                        role: 'user',
+                        submitsTo: 'removed-approver@test.com',
+                    },
+                },
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                ownerAccountID: employeeAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail)).toBe(ownerAccountID);
+        });
+        it('should keep the submitsTo approver that is not a policy member when the policy uses HR advanced (manager) mode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                approver: 'owner@test.com',
+                owner: 'owner@test.com',
+                employeeList: {
+                    'owner@test.com': {
+                        email: 'owner@test.com',
+                        role: 'admin',
+                        submitsTo: '',
+                    },
+                    [employeeEmail]: {
+                        email: employeeEmail,
+                        role: 'user',
+                        submitsTo: adminEmail,
+                    },
+                },
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {
+                        config: {approvalMode: CONST.GUSTO.APPROVAL_MODE.MANAGER, finalApprover: 'owner@test.com'},
+                    },
+                } as Policy['connections'],
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                ownerAccountID: employeeAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail)).toBe(adminAccountID);
+        });
+    });
+
     describe('isWorkspaceEligibleForReportChange', () => {
         beforeEach(() => {
             wrapOnyxWithWaitForBatchedUpdates(Onyx);
@@ -1224,12 +1300,11 @@ describe('PolicyUtils', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        it('returns false if policy is not paid group policy', async () => {
+        it('returns false if policy is personal', async () => {
             const currentUserLogin = employeeEmail;
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL),
-                isPolicyExpenseChatEnabled: true,
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER},
                 },
@@ -1241,13 +1316,12 @@ describe('PolicyUtils', () => {
             expect(result).toBe(false);
         });
 
-        it('returns true if policy is paid group policy and the manager is the payer', async () => {
+        it('returns true if policy is group and the manager is the payer', async () => {
             const currentUserLogin = employeeEmail;
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
-                isPolicyExpenseChatEnabled: true,
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                 },
@@ -1264,7 +1338,6 @@ describe('PolicyUtils', () => {
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                isPolicyExpenseChatEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
                     [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.USER},
@@ -1277,13 +1350,12 @@ describe('PolicyUtils', () => {
             expect(result).toBe(true);
         });
 
-        it('returns false if policies are not policyExpenseChatEnabled', async () => {
+        it('returns true if policy is submit workspace', async () => {
             const currentUserLogin = employeeEmail;
 
             const newPolicy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT),
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
-                isPolicyExpenseChatEnabled: false,
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                 },
@@ -1292,14 +1364,13 @@ describe('PolicyUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
-            expect(result).toBe(false);
+            expect(result).toBe(true);
         });
 
         it('returns false if policy is pending delete', async () => {
             const currentUserLogin = employeeEmail;
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                isPolicyExpenseChatEnabled: true,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             };
             const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
@@ -1977,7 +2048,7 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('getEligibleBankAccountShareRecipients', () => {
+    describe('getEligibleBankAccountShareRecipientEmails', () => {
         beforeEach(() => {
             wrapOnyxWithWaitForBatchedUpdates(Onyx);
             Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
@@ -2000,7 +2071,7 @@ describe('PolicyUtils', () => {
                 '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
                 '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
             };
-            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, bankAccountID);
+            const result = getEligibleBankAccountShareRecipientEmails(policies, approverEmail, bankAccountID);
             expect(result).toHaveLength(0);
         });
         it('should return array with admins from the bank account workspace', async () => {
@@ -2026,7 +2097,7 @@ describe('PolicyUtils', () => {
                 },
                 '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
             };
-            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, bankAccountID);
+            const result = getEligibleBankAccountShareRecipientEmails(policies, approverEmail, bankAccountID);
             expect(result).toHaveLength(1);
         });
         it('should not return user with already shared bank account', async () => {
@@ -2053,7 +2124,7 @@ describe('PolicyUtils', () => {
                 },
                 '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
             };
-            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, bankAccountID);
+            const result = getEligibleBankAccountShareRecipientEmails(policies, approverEmail, bankAccountID);
             expect(result).toHaveLength(0);
         });
         it('should not return current user for sharing account', async () => {
@@ -2078,7 +2149,7 @@ describe('PolicyUtils', () => {
                     },
                 },
             };
-            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, bankAccountID);
+            const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, bankAccountID);
             expect(result).toHaveLength(1);
         });
         it('should allow Payments Admins to share with and receive from members who can manage payments', () => {
@@ -2094,10 +2165,10 @@ describe('PolicyUtils', () => {
                 },
             };
 
-            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, '1');
+            const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
 
             expect(result).toHaveLength(1);
-            expect(result.at(0)?.login).toBe(approverEmail);
+            expect(result.at(0)).toBe(approverEmail);
         });
         it('should not return members who cannot manage payments', () => {
             const policies = {
@@ -2112,7 +2183,7 @@ describe('PolicyUtils', () => {
                 },
             };
 
-            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, '1');
+            const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
 
             expect(result).toHaveLength(0);
         });
@@ -2129,7 +2200,7 @@ describe('PolicyUtils', () => {
                 },
             };
 
-            const recipients = getEligibleBankAccountShareRecipients(policies, adminEmail, '1');
+            const recipients = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
             const hasEligibleRecipient = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
 
             expect(recipients).toHaveLength(0);
@@ -2147,7 +2218,7 @@ describe('PolicyUtils', () => {
                     },
                 },
             };
-            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, '1');
+            const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
             expect(result).toHaveLength(0);
         });
         it('should return Expensify guide when policy owner is Expensify team', () => {
@@ -2162,7 +2233,7 @@ describe('PolicyUtils', () => {
                     },
                 },
             };
-            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, '1');
+            const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
             expect(result).toHaveLength(1);
         });
         it('should return Expensify guide when current user is Expensify team', () => {
@@ -2177,7 +2248,7 @@ describe('PolicyUtils', () => {
                     },
                 },
             };
-            const result = getEligibleBankAccountShareRecipients(policies, 'someone@expensify.com', '1');
+            const result = getEligibleBankAccountShareRecipientEmails(policies, 'someone@expensify.com', '1');
             expect(result).toHaveLength(1);
         });
     });
@@ -2503,6 +2574,64 @@ describe('PolicyUtils', () => {
         });
     });
 
+    describe('getCurrentTaxID', () => {
+        function buildPolicyWithTaxes(taxes: TaxRates): Policy {
+            return {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                taxRates: {
+                    taxes,
+                    name: '',
+                    defaultExternalID: '',
+                    defaultValue: '',
+                    foreignTaxDefault: '',
+                },
+            };
+        }
+
+        it('returns the tax code itself when a rate still owns it', () => {
+            const policy = buildPolicyWithTaxes({id_A: {name: 'VAT', value: '20%'}});
+
+            expect(getCurrentTaxID(policy, 'id_A')).toBe('id_A');
+        });
+
+        it('prefers the rate that currently owns the code over a rate that was renamed away from it', () => {
+            const policy = buildPolicyWithTaxes({
+                id_B: {name: 'Renamed tax', value: '5%', previousTaxCode: 'id_A', previousTaxCodes: ['id_A']},
+                id_A: {name: 'Reused tax code', value: '10%'},
+            });
+
+            expect(getCurrentTaxID(policy, 'id_A')).toBe('id_A');
+        });
+
+        it('resolves every code in the rename chain to the current key', () => {
+            const policy = buildPolicyWithTaxes({
+                id_D: {name: 'VAT', value: '20%', previousTaxCode: 'id_C', previousTaxCodes: ['id_A', 'id_B', 'id_C']},
+            });
+
+            expect(getCurrentTaxID(policy, 'id_A')).toBe('id_D');
+            expect(getCurrentTaxID(policy, 'id_B')).toBe('id_D');
+            expect(getCurrentTaxID(policy, 'id_C')).toBe('id_D');
+        });
+
+        it('resolves from previousTaxCode for rates renamed before the back-end returned the full chain', () => {
+            const policy = buildPolicyWithTaxes({id_B: {name: 'VAT', value: '20%', previousTaxCode: 'id_A'}});
+
+            expect(getCurrentTaxID(policy, 'id_A')).toBe('id_B');
+        });
+
+        it('resolves from optimisticPreviousTaxCode while a rename is still in flight', () => {
+            const policy = buildPolicyWithTaxes({id_B: {name: 'VAT', value: '20%', optimisticPreviousTaxCode: 'id_A'}});
+
+            expect(getCurrentTaxID(policy, 'id_A')).toBe('id_B');
+        });
+
+        it('returns undefined for a code that was never used by any rate', () => {
+            const policy = buildPolicyWithTaxes({id_A: {name: 'VAT', value: '20%'}});
+
+            expect(getCurrentTaxID(policy, 'id_UNKNOWN')).toBeUndefined();
+        });
+    });
+
     describe('getAllTaxRates (getAllTaxRatesNamesAndKeys)', () => {
         it('returns empty object when there are no policies or no tax rates', () => {
             expect(getAllTaxRates(undefined)).toEqual({});
@@ -2788,7 +2917,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     arePerDiemRatesEnabled: true,
                     customUnits: {
                         ABCDEF: perDiemCustomUnit,
@@ -2798,7 +2926,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     arePerDiemRatesEnabled: true,
                     customUnits: {
                         ABCDEF: perDiemCustomUnit,
@@ -2817,7 +2944,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     arePerDiemRatesEnabled: true,
                     customUnits: {
                         ABCDEF: perDiemCustomUnit,
@@ -2827,7 +2953,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     arePerDiemRatesEnabled: true,
                     customUnits: {
                         ABCDEF: {
@@ -2840,7 +2965,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     arePerDiemRatesEnabled: true,
                     customUnits: {
                         ABCDEF: perDiemCustomUnit,
@@ -2858,7 +2982,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     // Migrated member: flag never arrived, but the configured custom unit is present
                     arePerDiemRatesEnabled: undefined,
                     customUnits: {
@@ -2876,7 +2999,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     // Explicit off must be respected, so the lingering custom unit cannot re-enable it
                     arePerDiemRatesEnabled: false,
                     customUnits: {
@@ -2916,6 +3038,37 @@ describe('PolicyUtils', () => {
             it('returns false when the flag is missing and there is no per diem custom unit', () => {
                 const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: undefined, customUnits: {}};
                 expect(isPerDiemEnabled(policy)).toBe(false);
+            });
+        });
+
+        describe('isPerDiemEligiblePolicy', () => {
+            it('returns true for a control policy with arePerDiemRatesEnabled explicitly true', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: true, customUnits: {}};
+                expect(isPerDiemEligiblePolicy(policy)).toBe(true);
+            });
+
+            it('returns true for a control policy whose flag is missing but has an enabled per diem custom unit', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: undefined, customUnits: {ABCDEF: perDiemCustomUnit}};
+                expect(isPerDiemEligiblePolicy(policy)).toBe(true);
+            });
+
+            it('returns false for a collect policy even when per diem is enabled', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), arePerDiemRatesEnabled: true, customUnits: {ABCDEF: perDiemCustomUnit}};
+                expect(isPerDiemEligiblePolicy(policy)).toBe(false);
+            });
+
+            it('returns false for a submit policy even when per diem is enabled', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), arePerDiemRatesEnabled: true, customUnits: {ABCDEF: perDiemCustomUnit}};
+                expect(isPerDiemEligiblePolicy(policy)).toBe(false);
+            });
+
+            it('returns false for a control policy with per diem explicitly disabled', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: false, customUnits: {ABCDEF: perDiemCustomUnit}};
+                expect(isPerDiemEligiblePolicy(policy)).toBe(false);
+            });
+
+            it('returns false for an undefined policy', () => {
+                expect(isPerDiemEligiblePolicy(undefined)).toBe(false);
             });
         });
 
@@ -2976,6 +3129,18 @@ describe('PolicyUtils', () => {
             const result = sortPoliciesByName(policies, localeCompare);
             expect(result).toHaveLength(1);
             expect(result.at(0)?.name).toBe('Only');
+        });
+
+        it('does not sort the input array in place', () => {
+            const policies: Policy[] = [
+                {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Charlie'},
+                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: 'Alpha'},
+            ];
+
+            const result = sortPoliciesByName(policies, localeCompare);
+
+            expect(result).not.toBe(policies);
+            expect(policies.map((policy) => policy.name)).toEqual(['Charlie', 'Alpha']);
         });
     });
 
@@ -3435,27 +3600,6 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('canAccessSubmitWorkspaceFeatures', () => {
-        const submitPolicyForAccessTest: Policy = {...createRandomPolicy(99001, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-access-test'};
-        const teamPolicyForAccessTest: Policy = {...createRandomPolicy(99002, CONST.POLICY.TYPE.TEAM), id: 'policy-team-access-test'};
-
-        it('returns true when policy is Submit and SUBMIT_2026 beta is enabled', () => {
-            expect(canAccessSubmitWorkspaceFeatures(submitPolicyForAccessTest, true)).toBe(true);
-        });
-
-        it('returns false when policy is Submit and SUBMIT_2026 beta is disabled', () => {
-            expect(canAccessSubmitWorkspaceFeatures(submitPolicyForAccessTest, false)).toBe(false);
-        });
-
-        it('returns false when policy is not Submit even if beta is enabled', () => {
-            expect(canAccessSubmitWorkspaceFeatures(teamPolicyForAccessTest, true)).toBe(false);
-        });
-
-        it('returns false when policy is undefined', () => {
-            expect(canAccessSubmitWorkspaceFeatures(undefined, true)).toBe(false);
-        });
-    });
-
     describe('tryNavigateToSubmitWorkspaceUpgrade', () => {
         const submitPolicyForNavTest: Policy = {...createRandomPolicy(99003, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-nav-test'};
         const teamPolicyForNavTest: Policy = {...createRandomPolicy(99004, CONST.POLICY.TYPE.TEAM), id: 'policy-team-nav-test'};
@@ -3567,15 +3711,23 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeature(buildXeroPolicy(undefined, {isConfigured: false}), true)).toBe(false);
             });
 
-            it('returns false when beta is disabled, even with Credit Card export configured', () => {
-                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), false)).toBe(false);
+            it('returns true when beta is disabled and QBO non-reimbursable export is Credit Card because QBO (R1) is generally available', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), false)).toBe(true);
             });
 
-            it('returns false when beta is disabled, even with Intacct CC Charge export configured', () => {
+            it('returns true when beta is disabled and QBO non-reimbursable export is Debit Card because QBO (R1) is generally available', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD), false)).toBe(true);
+            });
+
+            it('returns false when beta is disabled and QBO non-reimbursable export is Vendor Bill because GA did not widen the export mode gate', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL), false)).toBe(false);
+            });
+
+            it('returns false when beta is disabled and Intacct CC Charge export is configured because Intacct (R2) is still pre-GA', () => {
                 expect(hasVendorFeature(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE), false)).toBe(false);
             });
 
-            it('returns false when beta is disabled, even with Xero connected', () => {
+            it('returns false when beta is disabled and Xero is connected because Xero (R3) is still pre-GA', () => {
                 expect(hasVendorFeature(buildXeroPolicy(), false)).toBe(false);
             });
 
@@ -4243,6 +4395,35 @@ describe('getDefaultChatEnabledPolicy', () => {
 
     it('returns undefined when the active policy is ineligible and there are multiple eligible workspaces', () => {
         expect(getDefaultChatEnabledPolicy([teamPolicy, corporatePolicy], submitPolicy)).toBeUndefined();
+    });
+});
+
+describe('getDefaultChatEnabledPolicySelection', () => {
+    // createRandomPolicy randomizes these, so eligibility comes out flaky
+    const eligibleFields = {role: CONST.POLICY.ROLE.ADMIN, isJoinRequestPending: false, pendingAction: undefined, archivedDate: undefined};
+    const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), ...eligibleFields, id: 'team1'};
+    const corporatePolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), ...eligibleFields, id: 'corporate1'};
+    const collection = {
+        [`${ONYXKEYS.COLLECTION.POLICY}${teamPolicy.id}`]: teamPolicy,
+        [`${ONYXKEYS.COLLECTION.POLICY}${corporatePolicy.id}`]: corporatePolicy,
+    };
+
+    it('resolves the active policy from the collection by ID', () => {
+        expect(getDefaultChatEnabledPolicySelection(collection, undefined, corporatePolicy.id)).toEqual({
+            defaultChatEnabledPolicyID: corporatePolicy.id,
+            hasMultipleChatEnabledPolicies: true,
+        });
+    });
+
+    it('returns no default when the active policy is unknown and multiple workspaces are eligible', () => {
+        expect(getDefaultChatEnabledPolicySelection(collection, undefined, undefined)).toEqual({defaultChatEnabledPolicyID: undefined, hasMultipleChatEnabledPolicies: true});
+    });
+
+    it('returns the only eligible workspace and reports a single workspace', () => {
+        expect(getDefaultChatEnabledPolicySelection({[`${ONYXKEYS.COLLECTION.POLICY}${teamPolicy.id}`]: teamPolicy}, undefined, undefined)).toEqual({
+            defaultChatEnabledPolicyID: teamPolicy.id,
+            hasMultipleChatEnabledPolicies: false,
+        });
     });
 });
 

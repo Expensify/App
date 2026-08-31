@@ -63,7 +63,7 @@ import type {PerDiemExpenseInformation} from './PerDiem';
 import type {CreateDistanceRequestInformation} from './Split';
 import type {CreateTrackExpenseParams} from './TrackExpense';
 
-import {getAllReports, getAllTransactions} from '.';
+import {getAllReports, getAllTransactions, getCurrentUserAccountIDFromSession} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {submitPerDiemExpense} from './PerDiem';
@@ -880,8 +880,9 @@ function duplicateExpenseTransaction({
         getCurrencyDecimals,
     };
 
-    // If no workspace is provided the expense should be unreported
-    if (!targetPolicy) {
+    // A duplicate mirrors the source, so an unreported source stays unreported even when a workspace is available
+    const isSourceUnreported = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    if (!targetPolicy || isSourceUnreported) {
         const trackExpenseParams: CreateTrackExpenseParams = {
             ...params,
             participantParams: {
@@ -1241,12 +1242,14 @@ function bulkDuplicateExpenses({
         isSubmitAndClose(targetPolicy) &&
         (allNonReimbursable || targetPolicy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO);
 
+    // A copy of an unreported expense is tracked, so only an expense that lands on the report can submit it.
+    const lastReportBoundIndex = targetPolicy ? transactionsToDuplicate.findLastIndex((t) => !!t.reportID && t.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) : -1;
+
     for (let i = 0; i < transactionsToDuplicate.length; i++) {
         const item = transactionsToDuplicate.at(i);
         if (!item) {
             continue;
         }
-        const isLastExpense = i === transactionsToDuplicate.length - 1;
         const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
         const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
@@ -1267,12 +1270,12 @@ function bulkDuplicateExpenses({
             }
         }
 
-        // Defer auto-submit only when this isn't the last expense AND the
+        // Defer auto-submit only when a later expense still lands on the report AND the
         // report wasn't just split AND the policy won't force each expense
         // onto its own report.  Once a split happens every subsequent expense
         // will also split (the policy closes reports immediately), so none of
         // them should defer.
-        const shouldDeferAutoSubmit = !isLastExpense && !reportWasSplit && !policyWillSplitReport;
+        const shouldDeferAutoSubmit = i < lastReportBoundIndex && !reportWasSplit && !policyWillSplitReport;
 
         const result = duplicateExpenseTransaction({
             dateFnsLocale,
@@ -1349,7 +1352,7 @@ type BulkDuplicateReportsParams = {
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
-function bulkDuplicateReports({
+async function bulkDuplicateReports({
     dateFnsLocale,
     selectedReports: selectedReportsParam,
     allReports,
@@ -1401,6 +1404,9 @@ function bulkDuplicateReports({
         transactionsByReportID.set(transaction.reportID, list);
     }
 
+    let hasDuplicatedReport = false;
+    const accountIDAtStart = getCurrentUserAccountIDFromSession();
+
     for (const selectedReport of selectedReportsParam) {
         const reportID = selectedReport.reportID;
         if (!reportID) {
@@ -1415,6 +1421,21 @@ function bulkDuplicateReports({
 
         if (!snapshotReport && !onyxReport && reportTransactions.length === 0) {
             continue;
+        }
+
+        if (hasDuplicatedReport) {
+            // Temporary until the backend exposes a single command that duplicates a whole selection. Until then,
+            // let the previous report's optimistic writes apply before blocking the thread again.
+            // eslint-disable-next-line no-await-in-loop
+            await new Promise<void>((resolve) => {
+                setTimeout(resolve, 0);
+            });
+
+            // Signing out clears Onyx, so the reports and policies captured above belong to an account that is no
+            // longer active. Duplicating the rest of them would write the previous account's data under the new one.
+            if (getCurrentUserAccountIDFromSession() !== accountIDAtStart) {
+                return;
+            }
         }
 
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
@@ -1461,6 +1482,8 @@ function bulkDuplicateReports({
             participantsPolicyTags,
             conciergeChat,
         });
+
+        hasDuplicatedReport = true;
     }
 
     playSound(SOUNDS.DONE);

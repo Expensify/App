@@ -2,26 +2,32 @@ import {render} from '@testing-library/react-native';
 
 import ConfirmContent from '@components/ConfirmContent';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 type ButtonProps = {
-    success?: boolean;
-    danger?: boolean;
-    text?: string;
+    variant?: string;
     onPress?: () => void;
+    children?: React.ReactNode;
     [key: string]: unknown;
 };
 
 const mockButtonSpy = jest.fn<void, [ButtonProps]>();
 
-jest.mock('@components/Button', () => {
+jest.mock('@components/ButtonComposed', () => {
     const ReactLib = jest.requireActual<typeof React>('react');
+    const MockButton = (props: ButtonProps) => {
+        mockButtonSpy(props);
+        return ReactLib.createElement('mock-button', props);
+    };
     return {
         __esModule: true,
-        default: (props: ButtonProps) => {
-            mockButtonSpy(props);
-            return ReactLib.createElement('mock-button', props);
-        },
+        default: Object.assign(MockButton, {
+            Text: () => null,
+            Icon: () => null,
+            KeyboardShortcut: () => null,
+        }),
     };
 });
 
@@ -65,69 +71,60 @@ describe('ConfirmContent', () => {
         mockButtonSpy.mockClear();
     });
 
-    function getConfirmButtonProps(shouldStackButtons: boolean): ButtonProps | undefined {
+    function getConfirmButtonProps(onConfirm: () => void): ButtonProps | undefined {
         const calls = mockButtonSpy.mock.calls;
-        if (shouldStackButtons) {
-            return calls.find((call) => call[0].pressOnEnter)?.[0];
-        }
-        return calls.find((call) => call[0].pressOnEnter)?.[0];
+        return calls.find((call) => call[0].onPress === onConfirm)?.[0];
     }
 
     const testCases = [
-        {shouldShowCancelButton: false, danger: false, success: false, expectedSuccess: false},
-        {shouldShowCancelButton: false, danger: false, success: true, expectedSuccess: false},
-        {shouldShowCancelButton: false, danger: true, success: false, expectedSuccess: false},
-        {shouldShowCancelButton: false, danger: true, success: true, expectedSuccess: false},
-        {shouldShowCancelButton: true, danger: false, success: false, expectedSuccess: false},
-        {shouldShowCancelButton: true, danger: false, success: true, expectedSuccess: true},
-        {shouldShowCancelButton: true, danger: true, success: false, expectedSuccess: false},
-        {shouldShowCancelButton: true, danger: true, success: true, expectedSuccess: false},
+        {shouldShowCancelButton: false, buttonVariant: CONST.BUTTON_VARIANT.SUCCESS, expectedVariant: undefined},
+        {shouldShowCancelButton: false, buttonVariant: CONST.BUTTON_VARIANT.DANGER, expectedVariant: CONST.BUTTON_VARIANT.DANGER},
+        {shouldShowCancelButton: true, buttonVariant: CONST.BUTTON_VARIANT.SUCCESS, expectedVariant: CONST.BUTTON_VARIANT.SUCCESS},
+        {shouldShowCancelButton: true, buttonVariant: CONST.BUTTON_VARIANT.DANGER, expectedVariant: CONST.BUTTON_VARIANT.DANGER},
     ];
 
     describe('stacked buttons (shouldStackButtons=true)', () => {
         it.each(testCases)(
-            'confirm button success=$expectedSuccess when shouldShowCancelButton=$shouldShowCancelButton, danger=$danger, success=$success',
-            ({shouldShowCancelButton, danger, success, expectedSuccess}) => {
+            'confirm button variant=$expectedVariant when shouldShowCancelButton=$shouldShowCancelButton, buttonVariant=$buttonVariant',
+            ({shouldShowCancelButton, buttonVariant, expectedVariant}) => {
                 mockButtonSpy.mockClear();
+                const onConfirm = jest.fn();
                 render(
                     <ConfirmContent
                         title="Test"
-                        onConfirm={jest.fn()}
+                        onConfirm={onConfirm}
                         isVisible
                         shouldStackButtons
                         shouldShowCancelButton={shouldShowCancelButton}
-                        danger={danger}
-                        success={success}
+                        buttonVariant={buttonVariant}
                     />,
                 );
 
-                const confirmProps = getConfirmButtonProps(true);
-                expect(confirmProps?.success).toBe(expectedSuccess);
-                expect(confirmProps?.danger).toBe(danger);
+                const confirmProps = getConfirmButtonProps(onConfirm);
+                expect(confirmProps?.variant).toBe(expectedVariant);
             },
         );
     });
 
     describe('side-by-side buttons (shouldStackButtons=false)', () => {
         it.each(testCases)(
-            'confirm button success=$expectedSuccess when shouldShowCancelButton=$shouldShowCancelButton, danger=$danger, success=$success',
-            ({shouldShowCancelButton, danger, success, expectedSuccess}) => {
+            'confirm button variant=$expectedVariant when shouldShowCancelButton=$shouldShowCancelButton, buttonVariant=$buttonVariant',
+            ({shouldShowCancelButton, buttonVariant, expectedVariant}) => {
                 mockButtonSpy.mockClear();
+                const onConfirm = jest.fn();
                 render(
                     <ConfirmContent
                         title="Test"
-                        onConfirm={jest.fn()}
+                        onConfirm={onConfirm}
                         isVisible
                         shouldStackButtons={false}
                         shouldShowCancelButton={shouldShowCancelButton}
-                        danger={danger}
-                        success={success}
+                        buttonVariant={buttonVariant}
                     />,
                 );
 
-                const confirmProps = getConfirmButtonProps(false);
-                expect(confirmProps?.success).toBe(expectedSuccess);
-                expect(confirmProps?.danger).toBe(danger);
+                const confirmProps = getConfirmButtonProps(onConfirm);
+                expect(confirmProps?.variant).toBe(expectedVariant);
             },
         );
     });

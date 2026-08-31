@@ -4,10 +4,12 @@ import {getSearchOnyxUpdate, shouldOptimisticallyUpdateSearch} from '@libs/actio
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import '@libs/actions/IOU/MoneyRequest';
 import type * as PolicyUtils from '@libs/PolicyUtils';
+import type * as SearchQueryUtils from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import {buildCannedSearchQuery} from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 
@@ -546,6 +548,104 @@ describe('actions/IOU', () => {
                 isInvoice: false,
             });
             expect(result).toBeUndefined();
+        });
+
+        it('patches the default Spend > Expenses snapshot even when the page was never visited', async () => {
+            // Compute the real canned Expenses hash from the unmocked helpers.
+            const actualSearchQueryUtils = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
+            const cannedExpensesQuery = actualSearchQueryUtils.buildCannedSearchQuery();
+            const cannedExpensesHash = actualSearchQueryUtils.buildSearchQueryJSON(cannedExpensesQuery)?.hash;
+
+            // Feed the real canned query strings through the mocked builder so getSearchOnyxUpdate can
+            // register the canned hashes (the mock returns undefined by default).
+            jest.mocked(buildCannedSearchQuery).mockImplementation(actualSearchQueryUtils.buildCannedSearchQuery);
+
+            // Simulate a never-visited Spend > Expenses page: SEARCH_QUERY_BY_HASH holds no entry for the
+            // canned hash and the active search (mocked) is a different hash.
+            await Onyx.set(ONYXKEYS.SEARCH_QUERY_BY_HASH, {});
+            await waitForBatchedUpdates();
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const result = getSearchOnyxUpdate({
+                transaction: {...createRandomTransaction(1)},
+                participant: {accountID: 42, login: 'test@test.com'},
+                iouReport,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                isFromOneTransactionReport: false,
+                isInvoice: false,
+            });
+
+            const cannedSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${cannedExpensesHash}`;
+            const cannedUpdate = result?.optimisticData?.find((update) => update.key === cannedSnapshotKey);
+            expect(cannedUpdate).toBeDefined();
+
+            // The snapshot must carry its own `hash` or the never-visited page's `isSearchDataLoaded` gate stays
+            // false and the page renders "Nothing to show" even though the transaction data was merged in.
+            expect(cannedUpdate?.value).toHaveProperty('search.hash', cannedExpensesHash);
+        });
+
+        // Builds the snapshot update for a transaction whose `modifiedMerchant` starts at the given value, and
+        // returns the optimistic snapshot update plus its transaction key so each case only asserts on the outcome.
+        const getSnapshotUpdateForModifiedMerchant = (modifiedMerchant: string | undefined) => {
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const transaction = {
+                ...createRandomTransaction(1),
+                reimbursable: true,
+                merchant: 'Coffee Shop',
+                modifiedMerchant,
+            };
+
+            const result = getSearchOnyxUpdate({
+                transaction,
+                participant: {accountID: 42, login: 'test@test.com'},
+                iouReport,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                isFromOneTransactionReport: false,
+                isInvoice: false,
+            });
+
+            const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`;
+            const update = result?.optimisticData?.find((u) => u.key === snapshotKey);
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
+            return {update, transactionKey};
+        };
+
+        // Repro of #99500: a self-DM split submitted to a workspace inherits a stale `(none)`/`Expense` placeholder
+        // `modifiedMerchant` in its snapshot at split-creation time. Because `isMerchantMissing` reads
+        // `modifiedMerchant` before `merchant`, spreading the fresh transaction via Onyx.merge would keep the stale
+        // placeholder and show a false "Missing Merchant". The snapshot write must clear it with `null` (which
+        // Onyx.merge honors) so `isMerchantMissing` falls through to the merchant the user actually entered.
+        it.each([undefined, '', CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, CONST.TRANSACTION.DEFAULT_MERCHANT])(
+            'clears a non-genuine modifiedMerchant (%s) with null so the stale placeholder cannot survive the Onyx.merge',
+            (modifiedMerchant) => {
+                const {update, transactionKey} = getSnapshotUpdateForModifiedMerchant(modifiedMerchant);
+                expect(update).toBeDefined();
+                expect(update?.value).toHaveProperty(['data', transactionKey, 'merchant'], 'Coffee Shop');
+                expect(update?.value).toHaveProperty(['data', transactionKey, 'modifiedMerchant'], null);
+            },
+        );
+
+        it('preserves a genuinely edited modifiedMerchant in the snapshot', () => {
+            // The clear must only apply to an absent/placeholder modifiedMerchant. A real edited merchant is a
+            // genuine value and must be preserved so the Search view keeps showing it.
+            const {update, transactionKey} = getSnapshotUpdateForModifiedMerchant('Edited Merchant');
+            expect(update).toBeDefined();
+            expect(update?.value).toHaveProperty(['data', transactionKey, 'modifiedMerchant'], 'Edited Merchant');
         });
     });
 });

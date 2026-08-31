@@ -3,11 +3,14 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import * as Browser from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 
 import BaseOnboardingAccounting from '@pages/OnboardingAccounting/BaseOnboardingAccounting';
@@ -22,6 +25,8 @@ import SCREENS from '@src/SCREENS';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports -- React Native primitives are imported directly to inspect their test instances
+import {ScrollView} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import * as TestHelper from '../utils/TestHelper';
@@ -30,6 +35,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 type MockCompleteOnboardingParams = {
     featuresMap: Array<{id: string; enabled: boolean}>;
     userReportedIntegration?: string | null;
+    userReportedIntegrationName?: string;
 };
 
 const mockCompleteOnboardingFlow = jest.fn<void, [MockCompleteOnboardingParams]>();
@@ -44,6 +50,7 @@ TestHelper.setupGlobalFetchMock();
 const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
 const navigate = jest.spyOn(Navigation, 'navigate');
 const goBack = jest.spyOn(Navigation, 'goBack');
+const isMobileSafari = jest.spyOn(Browser, 'isMobileSafari');
 jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(undefined);
 
 function renderInterestedFeaturesPage() {
@@ -92,6 +99,7 @@ describe('Onboarding interested features and accounting pages', () => {
     });
 
     beforeEach(() => {
+        isMobileSafari.mockReturnValue(false);
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
             isSmallScreenWidth: false,
             shouldUseNarrowLayout: false,
@@ -145,19 +153,82 @@ describe('Onboarding interested features and accounting pages', () => {
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
     });
 
-    it('completes direct accounting access with Other and fallback features', async () => {
-        renderAccountingPage();
+    it('keeps Other half-width, auto-focuses its input, and completes with a trimmed integration name', async () => {
+        const scrollToEndSpy = jest.spyOn(ScrollView.prototype, 'scrollToEnd');
+        const renderResult = renderAccountingPage();
 
         await waitForBatchedUpdatesWithAct();
         expect(screen.queryByText(TestHelper.translateLocal('onboarding.accounting.none'))).not.toBeOnTheScreen();
+        expect(screen.getByTestId('onboarding-accounting-wide-layout-spacer')).toHaveStyle({backgroundColor: 'transparent', flexBasis: '35%', flexGrow: 1});
 
         fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.other')));
+        const otherAccountingSoftwareLabel = TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware');
+        const otherAccountingSoftwareInput = screen.getByLabelText(otherAccountingSoftwareLabel);
+        expect(otherAccountingSoftwareInput.props.autoFocus).toBe(true);
+        expect(renderResult.UNSAFE_getByType(TextInput).props.forceActiveLabel).toBeFalsy();
+        const accountingScrollView = renderResult.UNSAFE_getByType(ScrollView);
+        fireEvent(accountingScrollView, 'onContentSizeChange', 0, 0);
+        expect(scrollToEndSpy).toHaveBeenCalledWith({animated: false});
+        fireEvent(accountingScrollView, 'onContentSizeChange', 0, 0);
+        expect(scrollToEndSpy).toHaveBeenCalledTimes(1);
+        fireEvent.changeText(otherAccountingSoftwareInput, '  Acme Books  ');
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.other')));
+        expect(screen.getByLabelText(otherAccountingSoftwareLabel).props.value).toBe('  Acme Books  ');
         fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
 
         await waitFor(() => {
             expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith({
                 featuresMap: expect.arrayContaining([{id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED, enabled: true, enabledByDefault: true}]),
                 userReportedIntegration: 'other',
+                userReportedIntegrationName: 'Acme Books',
+            });
+        });
+    });
+
+    it('disables max-height and virtual-viewport scroll suppression on mobile Safari', async () => {
+        isMobileSafari.mockReturnValue(true);
+        const renderResult = renderAccountingPage();
+
+        await waitForBatchedUpdatesWithAct();
+        const screenWrapper = renderResult.UNSAFE_getByType(ScreenWrapper);
+        expect(screenWrapper.props.shouldEnableMaxHeight).toBe(false);
+        expect(screenWrapper.props.shouldAvoidScrollOnVirtualViewport).toBe(false);
+    });
+
+    it('omits a whitespace-only Other integration name', async () => {
+        renderAccountingPage();
+
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.other')));
+        fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware')), '   ');
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
+
+        await waitFor(() => {
+            expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith({
+                featuresMap: expect.arrayContaining([{id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED, enabled: true, enabledByDefault: true}]),
+                userReportedIntegration: 'other',
+                userReportedIntegrationName: undefined,
+            });
+        });
+    });
+
+    it('clears the Other integration name when a supported integration is selected', async () => {
+        renderAccountingPage();
+
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.other')));
+        fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware')), 'Acme Books');
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.qbo')));
+
+        expect(screen.queryByLabelText(TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware'))).not.toBeOnTheScreen();
+
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
+
+        await waitFor(() => {
+            expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith({
+                featuresMap: expect.arrayContaining([{id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED, enabled: true, enabledByDefault: true}]),
+                userReportedIntegration: 'quickbooksOnline',
+                userReportedIntegrationName: undefined,
             });
         });
     });

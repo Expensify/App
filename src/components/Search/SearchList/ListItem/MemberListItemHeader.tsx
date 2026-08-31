@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Checkbox from '@components/Checkbox';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
@@ -84,11 +84,9 @@ function MemberListItemHeaderImpl({
             >
                 <UserDetailsTooltip accountID={memberItem.accountID}>
                     <View>
-                        <Avatar
+                        <UserAvatar
                             source={memberItem.avatar}
-                            type={CONST.ICON_TYPE_AVATAR}
-                            name={formattedDisplayName}
-                            avatarID={memberItem.accountID}
+                            accountID={memberItem.accountID}
                             size={CONST.AVATAR_SIZE.SMALL}
                         />
                     </View>
@@ -151,11 +149,9 @@ function MemberListItemHeaderImpl({
                         <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
                             <UserDetailsTooltip accountID={memberItem.accountID}>
                                 <View>
-                                    <Avatar
+                                    <UserAvatar
                                         source={memberItem.avatar}
-                                        type={CONST.ICON_TYPE_AVATAR}
-                                        name={formattedDisplayName}
-                                        avatarID={memberItem.accountID}
+                                        accountID={memberItem.accountID}
                                     />
                                 </View>
                             </UserDetailsTooltip>

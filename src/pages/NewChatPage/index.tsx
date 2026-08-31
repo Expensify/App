@@ -80,6 +80,8 @@ function NewChatPage({ref}: NewChatPageProps) {
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
@@ -299,15 +301,16 @@ function NewChatPage({ref}: NewChatPageProps) {
         }
         KeyboardUtils.dismiss().then(() => {
             singleExecution(() =>
-                navigateToAndOpenReport(
-                    [login],
-                    allPersonalDetails,
+                navigateToAndOpenReport({
+                    userLogins: [login],
+                    personalDetails: allPersonalDetails,
                     currentUserAccountID,
                     introSelected,
-                    guidedSetupAndTourStatus?.isSelfTourViewed,
-                    guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                    isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                     betas,
-                ),
+                    conciergeChat,
+                }),
             )();
         });
     };

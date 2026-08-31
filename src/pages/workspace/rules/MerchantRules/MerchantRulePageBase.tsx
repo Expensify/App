@@ -31,7 +31,7 @@ import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getCleanedTagName, getMatchingVendorByID, getTagLists, hasVendorFeature, isMatchingVendorListLoaded, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {getCleanedTagName, getTagLists, getVendorRuleDisplayValue, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
@@ -83,7 +83,7 @@ type SectionType = {
 
 const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTranslate): string => {
     if (value === undefined) {
-        return '';
+        return translate('common.dontChange');
     }
     return translate(value ? 'common.yes' : 'common.no');
 };
@@ -136,10 +136,12 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
 
     // The "Set vendor to" row gate below reads policy.connections (via hasVendorFeature and
     // isMatchingVendorListLoaded), which is empty on a non-active workspace until a page requiring
-    // connections is opened. This editor only fetches categories/tags, so prefetch connections here,
-    // gated on the beta alone (not hasVendorFeature, which itself depends on the connection data — a
-    // chicken-and-egg) so the row appears and resolves the stored vendor once connections hydrate.
-    usePolicyConnectionsPrefetch(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    // connections is opened. This editor only fetches categories and tags, so prefetch connections
+    // here unconditionally so the row appears and resolves the stored vendor once connections
+    // hydrate. It can't be narrowed by hasVendorFeature, because that itself depends on the
+    // connection data being fetched. The hook already skips the fetch when the app is offline, when
+    // the workspace has no accounting connection, and when the data has already been fetched.
+    usePolicyConnectionsPrefetch(policy, true);
 
     // Get the existing rule from the policy (for edit mode)
     const existingRule = ruleID ? policy?.rules?.codingRules?.[ruleID] : undefined;
@@ -226,24 +228,8 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
     const isVendorFeatureEnabled = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
     const isOnXero = isXeroActiveMatchingSource(policy);
     const vendorFieldLabel = translate(isOnXero ? 'common.supplier' : 'common.vendor');
-    // Mirror the rule-summary fallback so an already-stored vendor never renders as unset while the row still saves it:
-    // resolved name when available, the "unavailable" copy once the vendor list has synced without a match, otherwise the raw stored ID.
-    // Scope the lookup to the active vendor-matching integration (not the permissive `findVendorByID`) so a vendorID that only
-    // resolves against a stale/inactive connection surfaces as "unavailable" here, matching how the picker and violation logic treat it.
-    const getVendorDisplayName = () => {
-        if (!form?.vendorID) {
-            return undefined;
-        }
-        const resolvedVendorName = getMatchingVendorByID(policy, form.vendorID)?.name;
-        if (resolvedVendorName) {
-            return resolvedVendorName;
-        }
-        if (isMatchingVendorListLoaded(policy)) {
-            return translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
-        }
-        return form.vendorID;
-    };
-    const vendorDisplayName = getVendorDisplayName();
+    const unavailableLabel = translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
+    const vendorDisplayName = form?.vendorID ? getVendorRuleDisplayValue(policy, form.vendorID, unavailableLabel) : undefined;
 
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
     const taxDisplayName = () => {
@@ -358,7 +344,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
             prompt: translate('workspace.rules.merchantRules.deleteRuleConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
