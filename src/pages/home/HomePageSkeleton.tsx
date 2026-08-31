@@ -42,6 +42,7 @@ const CARD_TITLE_WIDTH = 120;
 const CARD_SUBTITLE_WIDTH = 180;
 const LOWER_BAR_WIDTH = 80;
 
+// The chart this stands in for holds its own loading spinner at exactly this height, so the card keeps its size when the real chart takes over.
 const SPINNER_CARD_HEIGHT = CHART_CONTENT_MIN_HEIGHT;
 const ROWS_PER_LIST_CARD = 3;
 const ROWS_PER_TABLE_CARD = 5;
@@ -248,20 +249,13 @@ function HomePageSkeletonSpinnerCard() {
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    // On wide this is the last card in the left column, so growing fills it to the bottom of the viewport.
-    // On narrow the cards are one flat stack, where growing would push the cards below it down.
-    const fillStyle = shouldUseNarrowLayout ? undefined : styles.flex1;
-
     return (
-        <View
-            testID={CARD_TEST_ID}
-            style={fillStyle}
-        >
+        <View testID={CARD_TEST_ID}>
             <WidgetContainer
                 titleContent={<HomePageSkeletonCardTitle />}
-                containerStyles={[fillStyle, styles.getWidgetContainerBottomPaddingStyle(shouldUseNarrowLayout)]}
+                containerStyles={styles.getWidgetContainerBottomPaddingStyle(shouldUseNarrowLayout)}
             >
-                <View style={[styles.alignItemsCenter, styles.justifyContentCenter, shouldUseNarrowLayout ? StyleUtils.getHeight(SPINNER_CARD_HEIGHT) : styles.flex1]}>
+                <View style={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getHeight(SPINNER_CARD_HEIGHT)]}>
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         testID={SPINNER_TEST_ID}
