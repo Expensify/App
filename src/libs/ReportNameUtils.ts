@@ -273,6 +273,7 @@ function getGroupChatName(
     shouldApplyLimit = false,
     report?: OnyxEntry<Report>,
     pendingDeleteMemberAccountIDs?: string[],
+    personalDetailsData?: Partial<PersonalDetailsList>,
 ): string | undefined {
     // If we have a report always try to get the name from the report.
     if (report?.reportName) {
@@ -298,7 +299,7 @@ function getGroupChatName(
         return participantAccountIDs
             .map(
                 (participantAccountID, index) =>
-                    getDisplayNameForParticipant({accountID: participantAccountID, shouldUseShortForm: isMultipleParticipantReport, formatPhoneNumber, translate}) ||
+                    getDisplayNameForParticipant({accountID: participantAccountID, shouldUseShortForm: isMultipleParticipantReport, personalDetailsData, formatPhoneNumber, translate}) ||
                     formatPhoneNumber(participants?.[index]?.login ?? ''),
             )
             .sort((first, second) => customCollator.compare(first ?? '', second ?? ''))
@@ -307,7 +308,7 @@ function getGroupChatName(
             .slice(0, CONST.REPORT_NAME_LIMIT)
             .concat(shouldAddEllipsis ? '...' : '');
     }
-    return translate('groupChat.defaultReportName', getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), formatPhoneNumber, translate}));
+    return translate('groupChat.defaultReportName', getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), personalDetailsData, formatPhoneNumber, translate}));
 }
 
 /**

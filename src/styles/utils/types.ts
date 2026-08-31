@@ -11,6 +11,7 @@ type ParsableStyle = StyleProp<ViewStyle> | ((state: PressableStateCallbackType)
 
 type ColorValue = ValueOf<typeof colors>;
 type AvatarSizeName = ValueOf<typeof CONST.AVATAR_SIZE>;
+type AvatarShape = ValueOf<typeof CONST.AVATAR_SHAPE>;
 type EReceiptColorName = ValueOf<typeof CONST.ERECEIPT_COLORS>;
 
 type AvatarStyle = Dimensions & {
@@ -38,6 +39,7 @@ export type {
     AllStyles,
     ParsableStyle,
     ColorValue,
+    AvatarShape,
     AvatarSizeName,
     EReceiptColorName,
     AvatarStyle,
