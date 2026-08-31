@@ -1,12 +1,14 @@
 import EmptyStateComponent from '@components/EmptyStateComponent';
 
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {canAddTransaction, isArchivedReport} from '@libs/ReportUtils';
+import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
+import {canAddTransaction, isArchivedReport, isTeachersUniteReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 
@@ -39,42 +41,56 @@ function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report:
     const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'Plus']);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
+    const distanceExpenseType = getDistanceExpenseTypeForPolicy(policy, lastDistanceExpenseType);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const reportId = report.reportID;
     const isReportArchived = isArchivedReport(reportNameValuePairs);
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus']);
     const canAddTransactionToReport = canAddTransaction(report, isReportArchived);
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        policyID: policy?.id,
+        isDistanceRequest: true,
+    });
+    const isReportTeachersUnite = isTeachersUniteReport(report);
     const addExpenseDropdownOptions = [
-        {
-            value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
-            text: translate('iou.createExpense'),
-            icon: expensifyIcons.Plus,
-            onSelected: () => {
-                if (!reportId) {
-                    return;
-                }
-                if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
-                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                    return;
-                }
-                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportId, draftTransactionIDs);
-            },
-        },
-        {
-            value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
-            text: translate('iou.trackDistance'),
-            icon: expensifyIcons.Location,
-            onSelected: () => {
-                if (!reportId) {
-                    return;
-                }
-                if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
-                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                    return;
-                }
-                startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportId, draftTransactionIDs, lastDistanceExpenseType);
-            },
-        },
+        // Teachers Unite doesn't support reimbursement, so "Create expense" and "Track distance" are hidden for those reports.
+        ...(isReportTeachersUnite
+            ? []
+            : [
+                  {
+                      value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
+                      text: translate('iou.createExpense'),
+                      icon: expensifyIcons.Plus,
+                      onSelected: () => {
+                          if (!reportId) {
+                              return;
+                          }
+                          if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
+                              Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                              return;
+                          }
+                          startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportId, draftTransactionIDs);
+                      },
+                  },
+                  {
+                      value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
+                      text: translate('iou.trackDistance'),
+                      icon: expensifyIcons.Location,
+                      onSelected: () => {
+                          if (!reportId) {
+                              return;
+                          }
+                          if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
+                              Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                              return;
+                          }
+                          if (blockDistanceRequestIfNeeded()) {
+                              return;
+                          }
+                          startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportId, draftTransactionIDs, distanceExpenseType);
+                      },
+                  },
+              ]),
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_EXISTING_EXPENSE,
             text: translate('iou.addExistingExpense'),
@@ -108,7 +124,15 @@ function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report:
                 minModalHeight={minModalHeight}
                 buttons={
                     canAddTransactionToReport
-                        ? [{buttonText: translate('iou.addExpense'), buttonAction: () => {}, success: true, isDisabled: false, dropDownOptions: addExpenseDropdownOptions}]
+                        ? [
+                              {
+                                  buttonText: translate('iou.addExpense'),
+                                  buttonAction: () => {},
+                                  buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+                                  isDisabled: false,
+                                  dropDownOptions: addExpenseDropdownOptions,
+                              },
+                          ]
                         : []
                 }
             />

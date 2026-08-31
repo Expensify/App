@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 
+import {shouldShowInternationalDetailOnConfirmation} from '@libs/BankAccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
@@ -91,15 +92,45 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
                   },
               ];
 
+        const internationalBankAccountDetails = [
+            ...(shouldShowInternationalDetailOnConfirmation(bankAccountPersonalDetails?.iban, bankAccountPersonalDetails?.accountNumber)
+                ? [
+                      {
+                          id: 'iban',
+                          description: translate('bankAccount.iban'),
+                          title: bankAccountPersonalDetails?.iban ?? '',
+                          shouldShowRightIcon: true,
+                          onPress: () => {
+                              moveToEditStep(1);
+                          },
+                      },
+                  ]
+                : []),
+            ...(shouldShowInternationalDetailOnConfirmation(bankAccountPersonalDetails?.swiftCode)
+                ? [
+                      {
+                          id: 'swift-code',
+                          description: translate('bankAccount.swiftBicCode'),
+                          title: bankAccountPersonalDetails?.swiftCode ?? '',
+                          shouldShowRightIcon: true,
+                          onPress: () => {
+                              moveToEditStep(1);
+                          },
+                      },
+                  ]
+                : []),
+        ];
+
         return [
             ...bankConnection,
+            ...internationalBankAccountDetails,
             {
                 id: 'legal-name',
                 description: translate('personalInfoStep.legalName'),
                 title: `${personalDetails[PERSONAL_INFO_STEP_KEYS.FIRST_NAME]} ${personalDetails[PERSONAL_INFO_STEP_KEYS.LAST_NAME]}`,
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    moveToEditStep(1);
+                    moveToEditStep(2);
                 },
             },
             {
@@ -108,7 +139,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
                 title: `${personalDetails?.addressStreet}, ${personalDetails?.addressCity}, ${personalDetails?.addressState} ${personalDetails?.addressZip}`,
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    moveToEditStep(2);
+                    moveToEditStep(3);
                 },
             },
             {
@@ -117,7 +148,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
                 title: personalDetails[PERSONAL_INFO_STEP_KEYS.PHONE_NUMBER],
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    moveToEditStep(3);
+                    moveToEditStep(4);
                 },
             },
         ];

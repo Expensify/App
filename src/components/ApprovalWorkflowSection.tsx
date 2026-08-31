@@ -15,7 +15,7 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 import Icon from './Icon';
 import MenuItem from './MenuItem';
 import OfflineWithFeedback from './OfflineWithFeedback';
@@ -202,13 +202,14 @@ function ApprovalWorkflowSection({
             {!isDisabled && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt4, styles.gap2]}>
                     <Button
-                        small
-                        icon={icons.Pencil}
-                        text={translate('workflowsPage.editWorkflowAction')}
+                        size={CONST.BUTTON_SIZE.SMALL}
                         onPress={onPress}
                         accessibilityLabel={translate('workflowsPage.editWorkflowAction')}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.APPROVAL_WORKFLOW_SECTION}
-                    />
+                    >
+                        <Button.Icon src={icons.Pencil} />
+                        <Button.Text>{translate('workflowsPage.editWorkflowAction')}</Button.Text>
+                    </Button>
                 </View>
             )}
         </View>
