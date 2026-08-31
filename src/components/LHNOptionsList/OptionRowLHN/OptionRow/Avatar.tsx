@@ -4,15 +4,18 @@ import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
 import SubscriptAvatar from '@components/Avatar/layouts/SubscriptAvatar';
 import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import type {AvatarIcon} from '@components/Avatar/types';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import withRenderTiming from '@libs/telemetry/renderTimings';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ColorValue} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -35,7 +38,6 @@ type AvatarProps = {
 function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const personalDetails = usePersonalDetails();
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
     const singleAvatarContainerStyle = [styles.actionAvatar, styles.mr3];
@@ -43,14 +45,17 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
 
     const delegateAccountID = getDelegateAccountIDFromReportAction(optionItem?.parentReportAction);
 
+    // The delegate is the only member this row reads, so it subscribes to that one collection member rather
+    // than to the whole map through `usePersonalDetails()`. Rows without a delegate now subscribe to nothing.
+    const [delegateDetails] = useOnyx(`${ONYXKEYS.COLLECTION.PERSONAL_DETAILS_SHADOW}${getNonEmptyStringOnyxID(delegateAccountID ? String(delegateAccountID) : undefined)}`);
+
     // Match the header's delegate avatar logic: when a delegate exists on the
     // parent report action, the header (useReportActionAvatars) shows the
     // delegate's avatar as primary instead of the report owner's.
     const skipDelegate = optionItem?.type === CONST.REPORT.TYPE.INVOICE || (optionItem?.isTaskReport && !optionItem?.chatReportID);
 
     let icons: AvatarIcon[] = optionItem?.icons ?? [];
-    if (!skipDelegate && delegateAccountID && personalDetails && icons.length > 0) {
-        const delegateDetails = personalDetails[delegateAccountID];
+    if (!skipDelegate && delegateAccountID && icons.length > 0) {
         if (delegateDetails) {
             const updatedIcons = [...icons];
             const firstDelegateIcon = updatedIcons.at(0);
@@ -111,6 +116,8 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
 
 AvatarInner.displayName = 'OptionRow.AvatarInner';
 
+const TimedAvatarInner = withRenderTiming('LHN.OptionRow.Avatar', AvatarInner);
+
 function Avatar({optionItem, viewMode, avatarBackgroundColor}: AvatarProps) {
     // Bail out before subscribing to personal details when the row has no avatar to render.
     if (!optionItem.icons?.length || !optionItem.icons.at(0)) {
@@ -118,7 +125,7 @@ function Avatar({optionItem, viewMode, avatarBackgroundColor}: AvatarProps) {
     }
 
     const avatars = (
-        <AvatarInner
+        <TimedAvatarInner
             optionItem={optionItem}
             viewMode={viewMode}
             avatarBackgroundColor={avatarBackgroundColor}

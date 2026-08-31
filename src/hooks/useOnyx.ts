@@ -1,6 +1,8 @@
 import {SearchQueryContext, SearchResultsContext} from '@components/Search/SearchContext';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 
+import OnyxSubscriptionCounter from '@libs/telemetry/onyxSubscriptionCounter';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
@@ -73,6 +75,8 @@ function resolveSnapshotAwareResult<TKey extends OnyxKey, TReturnValue>(
  * Custom hook for accessing and subscribing to Onyx data with search snapshot support
  */
 const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(key: TKey, options?: UseOnyxOptions<TKey, TReturnValue>) => {
+    OnyxSubscriptionCounter.bump(key, 'hookRuns');
+
     const isSnapshotCompatibleKey = !key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) && CONST.SEARCH.SNAPSHOT_ONYX_KEYS.some((snapshotKey) => key.startsWith(snapshotKey));
     const isOnSearch = useIsOnSearch();
 
@@ -94,7 +98,16 @@ const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue
     // Create selector function that handles both regular and snapshot data
     const selector = !selectorProp || !shouldUseSnapshot ? selectorProp : (data: OnyxValue<OnyxKey> | undefined) => selectorProp(getKeyData(data as SearchResults, key));
 
-    const onyxOptions: UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> = {...optionsWithoutSelector, selector};
+    // Wrapped unconditionally so the counter never changes selector identity when a window opens, which would
+    // re-create Onyx's memoized selector and perturb the first sample. React Compiler keeps this as stable as `selector`.
+    const countedSelector = !selector
+        ? selector
+        : (data: OnyxValue<OnyxKey> | undefined) => {
+              OnyxSubscriptionCounter.bump(key, 'selectorRuns');
+              return selector(data);
+          };
+
+    const onyxOptions: UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> = {...optionsWithoutSelector, selector: countedSelector};
     const snapshotKey = shouldUseSnapshot ? (`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}` as OnyxKey) : key;
 
     const originalResult = originalUseOnyx(snapshotKey, onyxOptions);

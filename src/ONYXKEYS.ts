@@ -878,6 +878,11 @@ const ONYXKEYS = {
 
     /** Collection Keys */
     COLLECTION: {
+        /**
+         * Write-only mirror of PERSONAL_DETAILS_LIST used to benchmark what that key would cost as a collection.
+         * Nothing reads it — see instrumentPersonalDetailsMerge.ts. Delete once the measurement is done.
+         */
+        PERSONAL_DETAILS_SHADOW: 'personalDetailsShadow_',
         ATTACHMENT: 'attachment_',
         DOMAIN: 'domain_',
         DOWNLOAD: 'download_',
@@ -1480,6 +1485,7 @@ type OnyxFormDraftValuesMapping = {
 };
 
 type OnyxCollectionValuesMapping = {
+    [ONYXKEYS.COLLECTION.PERSONAL_DETAILS_SHADOW]: OnyxTypes.PersonalDetails;
     [ONYXKEYS.COLLECTION.ATTACHMENT]: OnyxTypes.Attachment;
     [ONYXKEYS.COLLECTION.DOMAIN]: OnyxTypes.Domain;
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;

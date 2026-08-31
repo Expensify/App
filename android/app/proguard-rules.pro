@@ -49,6 +49,9 @@
 -dontwarn org.spongycastle.jce.provider.BouncyCastleProvider
 -dontwarn org.slf4j.impl.StaticLoggerBinder
 
+# group-ib-fp's gibsdk AAR references SafetyNet without depending on play-services-safetynet
+-dontwarn com.google.android.gms.safetynet.**
+
 # https://shopify.github.io/react-native-skia/docs/getting-started/installation/#proguard
 -keep class com.shopify.reactnative.skia.** { *; }
 

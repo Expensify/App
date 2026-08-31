@@ -1,5 +1,6 @@
 import {finishCloudflareSignInFromURL} from '@libs/CloudflareAccess/finishSignInFromURL';
 import intlPolyfill from '@libs/IntlPolyfill';
+import instrumentPersonalDetailsMerge from '@libs/telemetry/instrumentPersonalDetailsMerge';
 
 import {setDeviceID} from '@userActions/Device';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -87,6 +88,8 @@ export default function () {
             ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP,
         ],
     });
+
+    instrumentPersonalDetailsMerge();
 
     // Must be imported after Onyx.init() and outside the React lifecycle so that push notification
     // handlers are registered before any push arrives, including Android headless/background wake-ups.
