@@ -1,4 +1,4 @@
-import {act, render} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import {ExportDownloadStatusProvider, useExportDownloadStatus} from '@components/MoneyReportHeaderActions/ExportDownloadStatusProvider';
 
@@ -22,18 +22,30 @@ jest.mock('@hooks/useOnyx', () => ({
     default: () => [undefined],
 }));
 
-let trackExportFromBranch: ((exportID: string) => void) | undefined;
-
 // Two distinct component types, like SearchPageNarrow / SearchPageWide: swapping between them unmounts one
 // subtree and mounts the other, so any state owned inside a branch is destroyed.
 function WideBranch() {
-    trackExportFromBranch = useExportDownloadStatus().trackExport;
-    return <Text>wide</Text>;
+    const {trackExport} = useExportDownloadStatus();
+    return (
+        <Text
+            testID="track-export"
+            onPress={() => trackExport('export-1')}
+        >
+            wide
+        </Text>
+    );
 }
 
 function NarrowBranch() {
-    trackExportFromBranch = useExportDownloadStatus().trackExport;
-    return <Text>narrow</Text>;
+    const {trackExport} = useExportDownloadStatus();
+    return (
+        <Text
+            testID="track-export"
+            onPress={() => trackExport('export-1')}
+        >
+            narrow
+        </Text>
+    );
 }
 
 function ProviderHarness({shouldUseNarrowLayout}: {shouldUseNarrowLayout: boolean}) {
@@ -43,10 +55,14 @@ function ProviderHarness({shouldUseNarrowLayout}: {shouldUseNarrowLayout: boolea
 // The pre-fix shape: each branch owns the tracking state and renders the modal itself.
 function WideBranchOwningState() {
     const {trackExport, exportDownloadStatusModal} = useExportDownloadStatusModal();
-    trackExportFromBranch = trackExport;
     return (
         <>
-            <Text>wide</Text>
+            <Text
+                testID="track-export"
+                onPress={() => trackExport('export-1')}
+            >
+                wide
+            </Text>
             {exportDownloadStatusModal}
         </>
     );
@@ -54,10 +70,14 @@ function WideBranchOwningState() {
 
 function NarrowBranchOwningState() {
     const {trackExport, exportDownloadStatusModal} = useExportDownloadStatusModal();
-    trackExportFromBranch = trackExport;
     return (
         <>
-            <Text>narrow</Text>
+            <Text
+                testID="track-export"
+                onPress={() => trackExport('export-1')}
+            >
+                narrow
+            </Text>
             {exportDownloadStatusModal}
         </>
     );
@@ -68,34 +88,26 @@ function InBranchHarness({shouldUseNarrowLayout}: {shouldUseNarrowLayout: boolea
 }
 
 describe('ExportDownloadStatusProvider', () => {
-    beforeEach(() => {
-        trackExportFromBranch = undefined;
-    });
-
     it('keeps tracking an in-flight export when the layout branch below it remounts', () => {
-        const {rerender, queryByTestId} = render(<ProviderHarness shouldUseNarrowLayout={false} />);
+        const {rerender} = render(<ProviderHarness shouldUseNarrowLayout={false} />);
 
-        act(() => {
-            trackExportFromBranch?.('export-1');
-        });
-        expect(queryByTestId('export-status-modal')).not.toBeNull();
+        fireEvent.press(screen.getByTestId('track-export'));
+        expect(screen.getByTestId('export-status-modal')).toBeOnTheScreen();
 
         // Cross the narrow/wide breakpoint mid-export, e.g. by resizing the browser.
         rerender(<ProviderHarness shouldUseNarrowLayout />);
 
-        expect(queryByTestId('export-status-modal')).not.toBeNull();
+        expect(screen.getByTestId('export-status-modal')).toBeOnTheScreen();
     });
 
     it('loses the in-flight export when the tracking state lives inside the layout branch', () => {
-        const {rerender, queryByTestId} = render(<InBranchHarness shouldUseNarrowLayout={false} />);
+        const {rerender} = render(<InBranchHarness shouldUseNarrowLayout={false} />);
 
-        act(() => {
-            trackExportFromBranch?.('export-1');
-        });
-        expect(queryByTestId('export-status-modal')).not.toBeNull();
+        fireEvent.press(screen.getByTestId('track-export'));
+        expect(screen.getByTestId('export-status-modal')).toBeOnTheScreen();
 
         rerender(<InBranchHarness shouldUseNarrowLayout />);
 
-        expect(queryByTestId('export-status-modal')).toBeNull();
+        expect(screen.queryByTestId('export-status-modal')).not.toBeOnTheScreen();
     });
 });
