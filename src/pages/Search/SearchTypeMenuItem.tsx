@@ -8,6 +8,7 @@ import TooltipSense from '@components/Tooltip/TooltipSense';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getButtonState from '@libs/getButtonState';
@@ -49,6 +50,7 @@ const COLLAPSED_BADGE_EXIT_DURATION_MS = 90;
 function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: SearchTypeMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isVisuallyCollapsed} = useSearchSidebarCollapse();
     const labelAnimatedStyle = useSearchSidebarCollapseFadeStyle();
@@ -84,8 +86,10 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                 styles.flexRow,
                 styles.sectionMenuItem(shouldUseNarrowLayout),
                 styles.searchTypeMenuItemPadding,
-                StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, false, false, true), true),
-                hovered && !focused && !pressed && styles.hoveredComponentBG,
+                focused ? StyleUtils.getBackgroundColorStyle(theme.activeComponentBG) : undefined,
+                hovered && !focused && !pressed && StyleUtils.getRowHoverBackgroundColorStyle(theme.appBG),
+                // Keep the resting background on press and only dim via opacity, matching the Inbox LHN rows
+                pressed ? {opacity: variables.pressDimValue} : undefined,
             ]}
         >
             {({hovered, pressed}) => (

@@ -4,8 +4,10 @@ import useRemoveNonInteractiveClickHandler from '@components/MenuItem/hooks/useR
 import MenuItemAccessibilityContext, {useMenuItemAccessibility} from '@components/MenuItem/MenuItemAccessibilityContext';
 import {MenuItemConfigContext, MenuItemInteractionContext} from '@components/MenuItem/MenuItemContext';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import {useSurfaceBackgroundColor} from '@components/SurfaceBackgroundColorContext';
 
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getButtonState from '@libs/getButtonState';
@@ -40,6 +42,8 @@ type MenuItemRootProps = PropsWithChildren &
 function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, accessibilityLabel}: MenuItemRootProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const theme = useTheme();
+    const surfaceBackgroundColor = useSurfaceBackgroundColor();
     const pressableRef = useRef<View>(null);
     const isCompactPopover = useIsCompactPopover();
     const isInteractive = !!onPress;
@@ -79,7 +83,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, acces
                                 isCompactPopover && styles.compactPopoverMenuItemBase,
                                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(isHovered, pressed, false, isDisabled, isInteractive), true),
                                 isDisabled && styles.buttonOpacityDisabled,
-                                isHovered && isInteractive && !pressed && styles.hoveredComponentBG,
+                                isHovered && isInteractive && !pressed && StyleUtils.getRowHoverBackgroundColorStyle(surfaceBackgroundColor ?? theme.appBG),
                             ] as StyleProp<ViewStyle>
                         }
                         disabled={isDisabled}
