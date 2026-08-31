@@ -2413,7 +2413,7 @@ describe('handleStateChange integration', () => {
         withFakeTimers(() => {
             handleStateChange(onA);
 
-            // User clicks into a composer and types — pointerdown puts us in mouse modality, so focusin never
+            // User clicks into a composer and types, which puts us in mouse modality, so focusin never
             // records lastInteractiveElement, and Cmd+Shift+K latches no Enter/Space activation.
             const composer = document.createElement('textarea');
             document.body.appendChild(composer);
