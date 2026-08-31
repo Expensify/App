@@ -1,14 +1,28 @@
 import {renderHook} from '@testing-library/react-native';
 
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+
 import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-const mockShowConfirmModal = jest.fn();
+type MockConfirmModalOptions = {
+    imageHeight?: number;
+    imageStyles?: unknown;
+    imageWidth?: number;
+    promptStyles?: unknown;
+    titleContainerStyles?: unknown;
+};
+
+type MockConfirmModalResult = {action: ValueOf<typeof ModalActions>};
+
+const mockShowConfirmModal = jest.fn<Promise<MockConfirmModalResult>, [MockConfirmModalOptions]>();
 
 jest.mock('@hooks/useConfirmModal', () => () => ({
     showConfirmModal: mockShowConfirmModal,
@@ -29,7 +43,7 @@ describe('useBlockDistanceRequest', () => {
 
     beforeEach(async () => {
         mockShowConfirmModal.mockClear();
-        mockShowConfirmModal.mockResolvedValue({action: 'cancel'});
+        mockShowConfirmModal.mockResolvedValue({action: ModalActions.CLOSE});
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -54,6 +68,34 @@ describe('useBlockDistanceRequest', () => {
         );
 
         expect(result.current('policy_forced')).toBe(true);
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                imageHeight: 140,
+                imageStyles: expect.arrayContaining([expect.objectContaining({marginTop: 20}), expect.objectContaining({marginHorizontal: 20})]),
+                imageWidth: 160,
+                promptStyles: expect.arrayContaining([expect.objectContaining({marginBottom: 16})]),
+                titleContainerStyles: expect.objectContaining({marginBottom: 8}),
+            }),
+        );
+    });
+
+    it('blocks selecting a workspace that requires GPS or map entry without commuter exclusions', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy_requires_map_or_gps`, {
+            id: 'policy_requires_map_or_gps',
+            name: 'Map or GPS required workspace',
+            areDistanceRatesEnabled: true,
+            requireMapOrGPS: true,
+        });
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() =>
+            useBlockDistanceRequest({
+                isOdometerDistanceRequest: true,
+            }),
+        );
+
+        expect(result.current('policy_requires_map_or_gps')).toBe(true);
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
     });
 
