@@ -1,54 +1,67 @@
+/**
+ * Shows the outcome of a finished HR provider sync (employees added, removed and skipped).
+ *
+ * The sync payload is read from Onyx (the policy's connection sync progress), so only the workspace's
+ * `policyID` needs to travel through the route.
+ */
+import Button from '@components/ButtonComposed';
+import FixedFooter from '@components/FixedFooter';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
+
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type HrSyncResult from '@libs/API/HrSyncResult';
 import {getConnectedHRProvider} from '@libs/HRUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
+import type {SettingsNavigatorParamList} from '@navigation/types';
+
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-import type {ModalProps} from './Modal/Global/ModalContext';
+type DynamicHRSyncResultsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_HR_SYNC_RESULTS>;
 
-import Button from './ButtonComposed';
-import FixedFooter from './FixedFooter';
-import HeaderWithBackButton from './HeaderWithBackButton';
-import Icon from './Icon';
-import Modal from './Modal';
-import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import ScrollView from './ScrollView';
-import Text from './Text';
-
-type HRSyncResultsModalProps = ModalProps & {
-    /** Sync result returned by the completed HR sync job */
-    result: HrSyncResult;
-
-    /** ID of the policy associated with this sync */
-    policyID: string;
-};
-
-function HRSyncResultsModal({result, policyID, closeModal}: HRSyncResultsModalProps) {
+function DynamicHRSyncResultsPage({route}: DynamicHRSyncResultsPageProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const illustrations = useMemoizedLazyIllustrations(['SyncUsers']);
     const [isSkippedSectionExpanded, setIsSkippedSectionExpanded] = useState(false);
-    const [isVisible, setIsVisible] = useState(true);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_HR_SYNC_RESULTS.path);
 
+    const policyID = route.params.policyID;
     const [providerDisplayName = ''] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         selector: (policy) => getConnectedHRProvider(policy)?.displayName ?? '',
     });
-    const addedCount = result.addedEmployeesCount ?? 0;
-    const removedCount = result.removedEmployeesCount ?? 0;
-    const skippedCount = result.skippedEmployees?.length ?? 0;
+    // The sync payload already lives in Onyx, so this screen only needs the policy ID in its route
+    // params — the result itself never has to travel through navigation state.
+    const [result] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, {
+        selector: (connectionSyncProgress) => connectionSyncProgress?.result,
+    });
 
-    const hideModal = () => setIsVisible(false);
+    const addedCount = result?.addedEmployeesCount ?? 0;
+    const removedCount = result?.removedEmployeesCount ?? 0;
+    const skippedCount = result?.skippedEmployees?.length ?? 0;
+
+    const goBack = () => Navigation.goBack(backPath);
 
     const renderResultSummary = (label: string, count: number) => (
         <View style={[styles.mb6]}>
@@ -58,21 +71,21 @@ function HRSyncResultsModal({result, policyID, closeModal}: HRSyncResultsModalPr
     );
 
     return (
-        <Modal
-            type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-            isVisible={isVisible}
-            onClose={hideModal}
-            onModalHide={closeModal}
-            shouldHandleNavigationBack
-            enableEdgeToEdgeBottomSafeAreaPadding
+        // Deep-linkable, so it must gate on workspace HR access — otherwise a user without it could
+        // open this URL and read the skipped-employee list straight from Onyx.
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
         >
-            <View
-                testID="HRSyncResultsModal"
-                style={[styles.flex1, styles.appBG]}
+            <ScreenWrapper
+                testID="DynamicHRSyncResultsPage"
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
                     title={translate('workspace.hr.syncResults.title', providerDisplayName)}
-                    onBackButtonPress={hideModal}
+                    onBackButtonPress={goBack}
                 />
                 <ScrollView
                     contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb8]}
@@ -90,7 +103,7 @@ function HRSyncResultsModal({result, policyID, closeModal}: HRSyncResultsModalPr
                     {renderResultSummary(translate('workspace.hr.syncResults.removed'), removedCount)}
                     <PressableWithoutFeedback
                         accessibilityLabel={translate('workspace.hr.syncResults.skipped')}
-                        sentryLabel="HRSyncResultsModal-SkippedEmployees"
+                        sentryLabel="DynamicHRSyncResultsPage-SkippedEmployees"
                         role={CONST.ROLE.BUTTON}
                         onPress={() => setIsSkippedSectionExpanded((isExpanded) => !isExpanded)}
                         style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}
@@ -102,11 +115,11 @@ function HRSyncResultsModal({result, policyID, closeModal}: HRSyncResultsModalPr
                         <Icon
                             src={icons.DownArrow}
                             fill={theme.icon}
-                            additionalStyles={isSkippedSectionExpanded ? {transform: [{rotate: '180deg'}]} : undefined}
+                            additionalStyles={isSkippedSectionExpanded ? styles.flipUpsideDown : undefined}
                         />
                     </PressableWithoutFeedback>
                     {isSkippedSectionExpanded &&
-                        result.skippedEmployees?.map((employee) => (
+                        result?.skippedEmployees?.map((employee) => (
                             <View
                                 key={employee.id}
                                 style={[styles.mt4]}
@@ -118,16 +131,16 @@ function HRSyncResultsModal({result, policyID, closeModal}: HRSyncResultsModalPr
                 </ScrollView>
                 <FixedFooter addBottomSafeAreaPadding>
                     <Button
-                        size={CONST.BUTTON_SIZE.LARGE}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        onPress={hideModal}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        onPress={goBack}
                     >
                         <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
                     </Button>
                 </FixedFooter>
-            </View>
-        </Modal>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
-export default HRSyncResultsModal;
+export default DynamicHRSyncResultsPage;

@@ -2880,9 +2880,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The custom units data for this policy */
         customUnits?: Record<string, CustomUnit>;
 
-        /** Whether policy expense chats can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
-        isPolicyExpenseChatEnabled: boolean;
-
         /** Whether the auto reporting is enabled */
         autoReporting?: boolean;
 
@@ -3107,6 +3104,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Expensify Card feature is enabled */
         areExpensifyCardsEnabled?: boolean;
 
+        /** Whether approvals are locked by an Expensify Card with a monthly limit */
+        areApprovalsLockedByExpensifyCard?: boolean;
+
         /** Whether the workflows feature is enabled */
         areWorkflowsEnabled?: boolean;
 
@@ -3214,6 +3214,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether Expensify automatically copies newly published government distance rates onto this policy */
         shouldAutoUpdateGovernmentDistanceRates?: boolean;
+
+        /** Whether distance expenses on this policy must come from a mapped route or a GPS track, which rules out the manual and odometer flows */
+        requireMapOrGPS?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | keyof WorkspaceTravelSettings | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
 >;
@@ -3334,4 +3337,6 @@ export type {
     DualEntryVendor,
     DualEntryAccount,
     DualEntryExport,
+    DualEntryAutoSync,
+    DualEntrySync,
 };

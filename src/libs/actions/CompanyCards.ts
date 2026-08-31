@@ -109,8 +109,14 @@ function buildOptimisticCompanyCardCSVTransactions(
     const normalizedColumnMappings = [...columnMappings];
     const csvDataWithGeneratedIDs = csvData.map((row) => [...row]);
 
-    normalizedColumnMappings.push(CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID);
-    const externalIDColumnIndex = normalizedColumnMappings.length - 1;
+    // The backend dedupes rows by their `externalID`, so a mapped Unique ID column makes re-uploading
+    // the same file idempotent. Without one, every row gets a fresh generated ID and always imports.
+    const mappedExternalIDColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID);
+    const isExternalIDColumnMapped = mappedExternalIDColumnIndex >= 0;
+    if (!isExternalIDColumnMapped) {
+        normalizedColumnMappings.push(CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID);
+    }
+    const externalIDColumnIndex = isExternalIDColumnMapped ? mappedExternalIDColumnIndex : normalizedColumnMappings.length - 1;
 
     const cardNumberColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER);
     const postedDateColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.POSTED_DATE);
@@ -125,7 +131,11 @@ function buildOptimisticCompanyCardCSVTransactions(
     const transactions: OptimisticCompanyCardCSVTransaction[] = [];
     for (const row of csvDataWithGeneratedIDs) {
         const transactionID = rand64();
-        row[externalIDColumnIndex] = transactionID;
+
+        // Fills the synthetic column, and any row whose mapped Unique ID cell is blank.
+        if (!row.at(externalIDColumnIndex)?.trim()) {
+            row[externalIDColumnIndex] = transactionID;
+        }
 
         const cardName = row.at(cardNumberColumnIndex)?.trim();
         const rawPostedDate = row.at(postedDateColumnIndex)?.trim();
