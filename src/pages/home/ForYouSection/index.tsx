@@ -213,10 +213,13 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
         isOnboardingStatusKnown,
     });
 
+    const willOnlyShowConciergePromptBox = timeSensitiveItems.length === 0 && hideForYou;
+
     // The card always renders so the Concierge input stays on the home page. `hideForYou` only gates the "For you"
     // heading and todos or empty-state below it. When hidden with no time-sensitive content, the card is just the box.
     return (
         <WidgetContainer
+            containerStyles={willOnlyShowConciergePromptBox ? [styles.pb3] : undefined}
             titleContent={
                 <ConciergePromptBox
                     isMenuVisible={isConciergeMenuVisible}
