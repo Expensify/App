@@ -41,6 +41,7 @@ jest.mock('@react-navigation/native', () => {
         useRoute: () => ({
             key: 'test-key',
             name: SCREENS_MOCK.REPORT,
+            // Must stay in sync with REPORT_ID above — jest.mock hoisting forbids referencing the constant here.
             params: {reportID: '1'},
         }),
         useIsFocused: () => true,
@@ -178,28 +179,42 @@ test('[MoneyRequestReportActionsList] should render the unified list with 500 re
     await measureRenders(<MoneyRequestReportActionsListWrapper />, {scenario});
 });
 
-test('[MoneyRequestReportActionsList] should not re-render when an unrelated report receives new actions', async () => {
+test('[MoneyRequestReportActionsList] should measure re-renders when an unrelated report receives new actions', async () => {
     const UNRELATED_REPORT_ID = '999';
+    // Reassure calls `scenario` once per run (10 runs + warmup) while Onyx is seeded once per test,
+    // so every run must write actions that don't exist yet — otherwise runs after the first merge
+    // already-present data and measure a no-op instead of the advertised transition.
+    let run = 0;
     const scenario = async () => {
         await screen.findByTestId('money-request-report-actions-list');
         // Each merge recomputes the VISIBLE_REPORT_ACTIONS derived value app-wide; the list under test
         // must not re-render because its own report's slice is unchanged.
         for (let i = 0; i < 5; i++) {
-            const newAction = ReportTestUtils.getFakeReportAction(600 + i, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: `2023-09-14 00:00:0${i}.000`});
+            const newAction = ReportTestUtils.getFakeReportAction(600 + run * 5 + i, {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: `2023-09-14 00:${String(run).padStart(2, '0')}:0${i}.000`,
+            });
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${UNRELATED_REPORT_ID}`, {[newAction.reportActionID]: newAction});
                 await waitForBatchedUpdates();
             });
         }
+        run++;
     };
     await waitForBatchedUpdates();
     await measureRenders(<MoneyRequestReportActionsListWrapper />, {scenario});
 });
 
 test('[MoneyRequestReportActionsList] should re-render the unified list when a new report action arrives', async () => {
+    // Per-run counter: each Reassure run must add a genuinely new action (see the comment in the test above).
+    let run = 0;
     const scenario = async () => {
         await screen.findByTestId('money-request-report-actions-list');
-        const newAction = ReportTestUtils.getFakeReportAction(501, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2023-09-13 00:00:00.000'});
+        const newAction = ReportTestUtils.getFakeReportAction(501 + run, {
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            created: `2023-09-13 00:00:${String(run).padStart(2, '0')}.000`,
+        });
+        run++;
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[newAction.reportActionID]: newAction});
             await waitForBatchedUpdates();
@@ -209,13 +224,16 @@ test('[MoneyRequestReportActionsList] should re-render the unified list when a n
     await measureRenders(<MoneyRequestReportActionsListWrapper />, {scenario});
 });
 
-test('[MoneyRequestReportActionsList] should scope re-renders to the transaction list when a transaction under the report changes', async () => {
+test('[MoneyRequestReportActionsList] should measure re-renders when a transaction under the report changes', async () => {
+    // Per-run counter: each Reassure run must write a value that differs from the stored one (see above).
+    let run = 0;
     const scenario = async () => {
         await screen.findByTestId('money-request-report-actions-list');
         // The core claim of the transaction decomposition: mutating one transaction must not
         // re-render the report actions portion of the unified list.
+        run++;
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactions.at(0)?.transactionID}`, {amount: 20000, merchant: 'Updated Merchant'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactions.at(0)?.transactionID}`, {amount: 20000 + run * 100, merchant: `Updated Merchant ${run}`});
             await waitForBatchedUpdates();
         });
     };
@@ -225,11 +243,18 @@ test('[MoneyRequestReportActionsList] should scope re-renders to the transaction
 
 test('[MoneyRequestReportActionsList] should render the unified list with 500 reportActions and 100 transactions stored', async () => {
     // Decomposition wins scale with transaction count; this shape makes the delta visible in the baseline diff.
+    const LARGE_TRANSACTIONS_COUNT = 100;
     await act(async () => {
-        for (let index = TRANSACTIONS_COUNT; index < 100; index++) {
-            const transaction = buildTransaction(index);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-        }
+        const extraTransactions = Object.fromEntries(
+            Array.from({length: LARGE_TRANSACTIONS_COUNT - TRANSACTIONS_COUNT}, (unused, index) => {
+                const transaction = buildTransaction(TRANSACTIONS_COUNT + index);
+                return [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction];
+            }),
+        );
+        // One multiSet write: 90 sequential sets would each trigger a full REPORT_TRANSACTIONS_AND_VIOLATIONS recompute.
+        await Onyx.multiSet(extraTransactions);
+        // Keep the report total consistent with the enlarged transaction set.
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {total: 10000 * LARGE_TRANSACTIONS_COUNT});
         await waitForBatchedUpdates();
     });
     const scenario = async () => {
