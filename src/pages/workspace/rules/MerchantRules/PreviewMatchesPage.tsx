@@ -85,7 +85,6 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
             showTooltip
             item={{...item, keyForList: item.transactionID, errors: undefined}}
             onSelectRow={() => {}}
-            keyForList={item.transactionID}
         />
     );
 
