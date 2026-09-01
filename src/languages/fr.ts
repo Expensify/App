@@ -10819,6 +10819,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
     domain: {
         notVerified: 'Non vérifié',
         retry: 'Réessayer',
+        requestSent: 'Demande envoyée',
         verifyDomain: {
             title: 'Vérifier le domaine',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -10892,6 +10893,14 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             subtitle: 'Saisissez le nom du domaine privé auquel vous souhaitez accéder (par ex. expensify.com).',
             domainName: 'Nom de domaine',
             newDomain: 'Nouveau domaine',
+            alreadyHaveAccessError: 'Ce domaine existe déjà dans votre compte.',
+        },
+        domainAlreadyExists: {
+            headerTitle: 'Le domaine existe déjà',
+            title: "Domaine déjà configuré. Demander l'accès ?",
+            description: "Quelqu'un a déjà configuré ce domaine dans Expensify. Voulez-vous demander l'accès administrateur ?",
+            requestAccess: "Demander l'accès administrateur",
+            requestAccessError: "Nous n'avons pas pu envoyer votre demande. Veuillez réessayer.",
         },
         domainAdded: {
             title: 'Domaine ajouté',
@@ -10988,6 +10997,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             forceTwoFactorAuthError: 'L’activation forcée de l’authentification à deux facteurs n’a pas pu être modifiée. Veuillez réessayer plus tard.',
             resetTwoFactorAuth: 'Réinitialiser l’authentification à deux facteurs',
             error: 'Impossible d\’enregistrer cette modification. Veuillez réessayer.',
+            neverMind: 'Peu importe',
         },
         groups: {
             title: 'Groupes',
@@ -10996,7 +11006,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             defaultGroupPrompt: (currentName: string, newName: string) =>
                 `Êtes-vous sûr de vouloir faire de ${newName} le groupe par défaut ? Les nouveaux membres seront invités à ce groupe au lieu du groupe par défaut précédent (${currentName}). `,
             makeDefault: 'Définir par défaut',
-            neverMind: 'Peu importe',
             createGroupError: 'Impossible de créer ce groupe. Veuillez réessayer.',
             permissions: 'Autorisations du groupe',
             createNewGroupButton: 'Nouveau groupe',
