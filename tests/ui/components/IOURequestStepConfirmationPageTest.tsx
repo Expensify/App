@@ -78,7 +78,9 @@ jest.mock('@libs/actions/IOU/MoneyRequest', () => {
     };
 });
 jest.mock('@libs/actions/IOU/Split', () => {
+    const actual = jest.requireActual<typeof Split>('@libs/actions/IOU/Split');
     return {
+        ...actual,
         createDistanceRequest: jest.fn(() => ({iouReport: undefined, chatReportID: undefined})),
         startSplitBill: jest.fn(),
     };
