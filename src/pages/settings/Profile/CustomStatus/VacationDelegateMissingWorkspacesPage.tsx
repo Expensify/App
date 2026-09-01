@@ -27,8 +27,11 @@ import ROUTES from '@src/ROUTES';
 import {policyExpenseChatReportsSelector} from '@src/selectors/Report';
 import type {VacationDelegatePolicyDiff} from '@src/types/onyx';
 
+import type {NavigationAction} from '@react-navigation/native';
+
+import {useNavigation, usePreventRemove} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type ScreenInput = {
@@ -39,6 +42,7 @@ type ScreenInput = {
 function VacationDelegateMissingWorkspacesPage() {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const navigation = useNavigation();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUser = {
         accountID: currentUserPersonalDetails.accountID,
@@ -55,11 +59,6 @@ function VacationDelegateMissingWorkspacesPage() {
         selector: (reportActions) => getAllPolicyExpenseChatReportActions(allReports, reportActions),
     });
 
-    const vacationDelegateRef = useRef(vacationDelegate);
-    useEffect(() => {
-        vacationDelegateRef.current = vacationDelegate;
-    }, [vacationDelegate]);
-
     const [submittedInput, setSubmittedInput] = useState<ScreenInput>();
 
     const creator = currentUserPersonalDetails.login ?? '';
@@ -67,26 +66,16 @@ function VacationDelegateMissingWorkspacesPage() {
     const previousDelegate = vacationDelegate?.previousDelegate;
     const policyDiff = submittedInput?.policyDiff ?? vacationDelegate?.policyDiff;
 
-    const hasActiveFlowRef = useRef(false);
-    useEffect(() => {
-        if (!policyDiff) {
-            return;
-        }
-        hasActiveFlowRef.current = true;
-    }, [policyDiff]);
-
-    // Leaving without submitting rolls the delegate back. Doing it here rather than in the back handler keeps every exit
-    // (back button, swipe, dismissing the RHP) on one path, and keeps the flow state intact while this screen is still mounted.
     const isSubmittingRef = useRef(false);
-    useEffect(
-        () => () => {
-            if (isSubmittingRef.current || !hasActiveFlowRef.current) {
-                return;
-            }
-            clearVacationDelegateError(vacationDelegateRef.current?.previousDelegate);
-        },
-        [],
-    );
+
+    usePreventRemove(!!policyDiff, ({data}: {data: {action: NavigationAction}}) => {
+        if (!isSubmittingRef.current && policyDiff) {
+            setSubmittedInput({delegate, policyDiff});
+            clearVacationDelegateError(previousDelegate);
+        }
+
+        navigation.dispatch(data.action);
+    });
     const adminPolicies = policyDiff?.adminPolicies ?? [];
     const nonAdminPolicies = policyDiff?.nonAdminPolicies ?? [];
     const canInvite = adminPolicies.length > 0;

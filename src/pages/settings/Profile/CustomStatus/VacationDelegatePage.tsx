@@ -14,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
 
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useRef} from 'react';
 
 function VacationDelegatePage() {
     const {translate} = useLocalize();
@@ -22,14 +22,10 @@ function VacationDelegatePage() {
     const {showConfirmModal} = useConfirmModal();
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
-    const vacationDelegateRef = useRef(vacationDelegate);
-    useEffect(() => {
-        vacationDelegateRef.current = vacationDelegate;
-    }, [vacationDelegate]);
 
     const isSelectingRef = useRef(false);
 
-    const showErrorModal = async (message?: string) => {
+    const showErrorModal = async (delegateToRestore?: string, message?: string) => {
         await showConfirmModal({
             title: translate('statusPage.addVacationDelegate'),
             prompt: message ?? translate('statusPage.vacationDelegateError'),
@@ -37,46 +33,44 @@ function VacationDelegatePage() {
             shouldShowCancelButton: false,
         });
 
-        clearVacationDelegateError(vacationDelegateRef.current?.previousDelegate);
+        clearVacationDelegateError(delegateToRestore);
     };
 
-    const onSelectRow = useCallback(
-        (option: Participant) => {
-            if (isSelectingRef.current) {
-                return;
-            }
+    const onSelectRow = (option: Participant) => {
+        if (isSelectingRef.current) {
+            return;
+        }
 
-            if (option?.login === vacationDelegate?.delegate) {
-                isSelectingRef.current = true;
-                deleteVacationDelegate(vacationDelegate);
-                Navigation.goBack(ROUTES.SETTINGS_STATUS);
-                isSelectingRef.current = false;
-                return;
-            }
-
+        if (option?.login === vacationDelegate?.delegate) {
             isSelectingRef.current = true;
-            setVacationDelegate({creator: currentUserLogin, delegate: option?.login ?? '', currentDelegate: vacationDelegate?.delegate})
-                .then((response) => {
-                    if (response?.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING) {
-                        Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE_MISSING_WORKSPACES);
-                        return;
-                    }
+            deleteVacationDelegate(vacationDelegate);
+            Navigation.goBack(ROUTES.SETTINGS_STATUS);
+            isSelectingRef.current = false;
+            return;
+        }
 
-                    // The request writes no error of its own, so this modal is the only feedback for a failure. Dismissing it restores the previous delegate.
-                    if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                        showErrorModal(response?.jsonCode === CONST.JSON_CODE.EXP_ERROR ? response.message : undefined);
-                        return;
-                    }
+        isSelectingRef.current = true;
+        const currentDelegate = vacationDelegate?.delegate;
+        setVacationDelegate({creator: currentUserLogin, delegate: option?.login ?? '', currentDelegate})
+            .then((response) => {
+                if (response?.data?.policyDiff) {
+                    Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE_MISSING_WORKSPACES);
+                    return;
+                }
 
-                    Navigation.goBack(ROUTES.SETTINGS_STATUS);
-                })
-                .catch(() => showErrorModal())
-                .finally(() => {
-                    isSelectingRef.current = false;
-                });
-        },
-        [currentUserLogin, vacationDelegate, showErrorModal],
-    );
+                // The request writes no error of its own, so this modal is the only feedback for a failure. Dismissing it restores the previous delegate.
+                if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    showErrorModal(currentDelegate, response?.jsonCode === CONST.JSON_CODE.EXP_ERROR ? response.message : undefined);
+                    return;
+                }
+
+                Navigation.goBack(ROUTES.SETTINGS_STATUS);
+            })
+            .catch(() => showErrorModal(currentDelegate))
+            .finally(() => {
+                isSelectingRef.current = false;
+            });
+    };
 
     return (
         <ScreenWrapper

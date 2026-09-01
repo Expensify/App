@@ -5,6 +5,7 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import Text from '@components/Text';
 
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
@@ -18,15 +19,17 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
 import type {VacationDelegatePolicyDiff} from '@src/types/onyx/VacationDelegate';
 
+import type * as ReactNavigation from '@react-navigation/native';
+
 import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
+import {NavigationContainer, StackActions} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
-import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -39,13 +42,69 @@ const MEMBER_POLICY_ID = 'memberPolicy';
 const ADMIN_POLICY_ID = 'adminPolicy';
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
+let mockPreventRemoveCallback: Parameters<typeof ReactNavigation.usePreventRemove>[1] | undefined;
 
-function renderPage() {
+jest.mock('@react-navigation/native', () => {
+    const actualNavigation = jest.requireActual<typeof ReactNavigation>('@react-navigation/native');
+    return {
+        ...actualNavigation,
+        usePreventRemove: (preventRemove: boolean, callback: Parameters<typeof ReactNavigation.usePreventRemove>[1]) => {
+            if (!preventRemove) {
+                return;
+            }
+            mockPreventRemoveCallback = callback;
+        },
+    };
+});
+
+function getFakePolicy(id: string, name: string): Policy {
+    return {
+        id,
+        name,
+        isFromFullPolicy: false,
+        role: CONST.POLICY.ROLE.ADMIN,
+        type: CONST.POLICY.TYPE.TEAM,
+        owner: CREATOR_EMAIL,
+        outputCurrency: CONST.CURRENCY.USD,
+        avatarURL: '',
+        employeeList: {},
+        isPolicyExpenseChatEnabled: true,
+        lastModified: '1697323926777105',
+        autoReporting: true,
+        autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+        harvesting: {enabled: true},
+        autoReportingOffset: 1,
+        preventSelfApproval: true,
+        defaultBillable: false,
+        disabledFields: {defaultBillable: true, reimbursable: false},
+        approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+    };
+}
+
+function VacationDelegateSelectionPage() {
+    return <Text>Delegate selection</Text>;
+}
+
+function renderPage(shouldIncludeBackRoute = false) {
+    const initialState = shouldIncludeBackRoute
+        ? {
+              index: 1,
+              routes: [{name: SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE}, {name: SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_MISSING_WORKSPACES}],
+          }
+        : undefined;
+
     return render(
         <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, HTMLEngineProvider]}>
             <PortalProvider>
-                <NavigationContainer ref={navigationRef}>
+                <NavigationContainer
+                    ref={navigationRef}
+                    initialState={initialState}
+                >
                     <Stack.Navigator initialRouteName={SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_MISSING_WORKSPACES}>
+                        <Stack.Screen
+                            name={SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE}
+                            component={VacationDelegateSelectionPage}
+                        />
                         <Stack.Screen
                             name={SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_MISSING_WORKSPACES}
                             component={VacationDelegateMissingWorkspacesPage}
@@ -79,6 +138,7 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
     });
 
     beforeEach(async () => {
+        mockPreventRemoveCallback = undefined;
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
         });
@@ -93,11 +153,11 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MEMBER_POLICY_ID}`, {
-                ...LHNTestUtils.getFakePolicy(MEMBER_POLICY_ID, 'Member Workspace'),
+                ...getFakePolicy(MEMBER_POLICY_ID, 'Member Workspace'),
                 employeeList: {[CREATOR_EMAIL]: {email: CREATOR_EMAIL, role: CONST.POLICY.ROLE.USER}},
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${ADMIN_POLICY_ID}`, {
-                ...LHNTestUtils.getFakePolicy(ADMIN_POLICY_ID, 'Admin Workspace'),
+                ...getFakePolicy(ADMIN_POLICY_ID, 'Admin Workspace'),
                 employeeList: {[CREATOR_EMAIL]: {email: CREATOR_EMAIL, role: CONST.POLICY.ROLE.ADMIN}},
             });
         });
@@ -231,17 +291,31 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
         expect(screen.getByRole('button', {name: TestHelper.translateLocal('common.skip')})).toBeOnTheScreen();
     });
 
-    it('clears the policyDiff and restores the previous delegate, on unmount without pressing a button', async () => {
+    it('finishes rolling back an abandoned flow before exposing the delegate selection page', async () => {
         await seedVacationDelegate({adminPolicies: [], nonAdminPolicies: [MEMBER_POLICY_ID]});
-        const {unmount} = renderPage();
+        renderPage(true);
         await waitForBatchedUpdatesWithAct();
 
-        unmount();
-        await waitForBatchedUpdatesWithAct();
+        expect(mockPreventRemoveCallback).toBeDefined();
+        await act(async () => {
+            mockPreventRemoveCallback?.({data: {action: StackActions.pop()}});
+            await waitForBatchedUpdatesWithAct();
+        });
 
+        expect(screen.getByText('Delegate selection')).toBeOnTheScreen();
+        expect(screen.queryByText('Member Workspace')).not.toBeOnTheScreen();
         const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
         expect(vacationDelegate?.delegate).toBe(PREVIOUS_DELEGATE_EMAIL);
         expect(vacationDelegate?.policyDiff).toBeFalsy();
+
+        // Starting a new selection after the picker is visible must not be overwritten by cleanup from the route that just closed.
+        const nextPolicyDiff = {adminPolicies: [ADMIN_POLICY_ID], nonAdminPolicies: []};
+        await seedVacationDelegate(nextPolicyDiff, 'next@example.com');
+        await waitForBatchedUpdatesWithAct();
+
+        const nextVacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+        expect(nextVacationDelegate?.delegate).toBe('next@example.com');
+        expect(nextVacationDelegate?.policyDiff).toEqual(nextPolicyDiff);
     });
 
     it('keeps rendering what was submitted when the flow state is cleared underneath it', async () => {
@@ -266,7 +340,7 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
         expect(screen.queryByText(PREVIOUS_DELEGATE_EMAIL)).not.toBeOnTheScreen();
     });
 
-    it('navigates back to the delegate selection step without touching the flow state before unmounting', async () => {
+    it('keeps rendering the current flow while a back navigation action has not been handled', async () => {
         const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
         await seedVacationDelegate({adminPolicies: [], nonAdminPolicies: [MEMBER_POLICY_ID]});
         renderPage();
@@ -277,7 +351,7 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
 
         expect(goBackSpy).toHaveBeenCalledWith(ROUTES.SETTINGS_VACATION_DELEGATE);
 
-        // The rollback happens on unmount instead, so nothing can flash while Navigation is still waiting on the transition.
+        // The rollback runs from the route-removal handler, not from the back press, so nothing can flash while Navigation is still waiting on the transition.
         const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
         expect(vacationDelegate?.delegate).toBe(DELEGATE_EMAIL);
         expect(vacationDelegate?.policyDiff).not.toBeFalsy();
