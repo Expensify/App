@@ -22,7 +22,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import type {CodingRuleFilter} from '@src/types/onyx/Policy';
@@ -33,12 +33,17 @@ import {FlashList} from '@shopify/flash-list';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
-type PreviewMatchesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_PREVIEW_MATCHES>;
+import useMerchantRuleRoute from './useMerchantRuleRoute';
+
+type PreviewMatchesPageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList,
+    typeof SCREENS.WORKSPACE.RULES_MERCHANT_PREVIEW_MATCHES | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_PREVIEW_MATCHES
+>;
 
 function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     const ruleID = route.params.ruleID;
     const policyID = route.params.policyID;
-    const isEditing = ruleID !== ROUTES.NEW;
+    const {backToRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_PREVIEW_MATCHES_FROM_EXPENSE.path, policyID, ruleID);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -85,12 +90,7 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     );
 
     const goBack = () => {
-        if (isEditing) {
-            Navigation.goBack(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID));
-            return;
-        }
-
-        Navigation.goBack(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
+        Navigation.goBack(backToRoute);
     };
 
     return (

@@ -5,15 +5,16 @@ import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {dismissMerchantRuleSuggestion, retireMerchantRuleSuggestion, setIsCreatingMerchantRule} from '@libs/actions/MerchantRuleSuggestion';
+import {dismissMerchantRuleSuggestion, retireMerchantRuleSuggestion} from '@libs/actions/MerchantRuleSuggestion';
 import {setDraftMerchantRule} from '@libs/actions/User';
 import {getMerchantRuleDraftFromTransaction} from '@libs/MerchantRuleSuggestionUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -85,14 +86,14 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, transactionID,
         if (!draft) {
             return;
         }
-        // Seed the draft the rule editor reads, then open the same flow used from workspace settings
+        // Seed the draft the rule editor reads, then open the same flow used from workspace settings. Opening it as a
+        // suffix on the expense's own path keeps the expense underneath the modal, so the flow returns here rather
+        // than to the workspace Rules page.
         setDraftMerchantRule(draft);
-        // Tells that flow it was entered from an expense, so saving returns here rather than to the Rules page
-        setIsCreatingMerchantRule(true);
         // The offer has been taken, so coming back from the rule flow, saved or abandoned, must not find it still
         // asking. Editing the expense again starts a fresh offer.
         retireMerchantRuleSuggestion();
-        Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.RULES_MERCHANT_NEW_FROM_EXPENSE.getRoute(policyID)));
     };
 
     // The callout appears and disappears in place, so it slides out of the edge it is pinned to rather than popping.

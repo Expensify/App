@@ -1655,6 +1655,55 @@ type SettingsNavigatorParamList = {
         policyID: string;
         categoryName?: string;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW]: {
+        policyID: string;
+        categoryName?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_MERCHANT_TO_MATCH]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_MATCH_TYPE]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_MERCHANT]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_CATEGORY]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_TAG]: {
+        policyID: string;
+        orderWeight: number;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_TAX]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_VENDOR]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_DESCRIPTION]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_REIMBURSABLE]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_BILLABLE]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_PREVIEW_MATCHES]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
     [SCREENS.WORKSPACE.RULES_MERCHANT_IMPORT]: {
         policyID: string;
     };

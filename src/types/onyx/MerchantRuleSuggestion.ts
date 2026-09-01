@@ -32,12 +32,6 @@ type MerchantRuleSuggestion = {
      * returning to the expense shows nothing while editing it again offers afresh.
      */
     isRetired?: boolean;
-
-    /**
-     * Whether the user took the offer. The rule page reads this to return to the expense after saving, rather than
-     * to the workspace Rules page where creating a rule from settings ends.
-     */
-    isCreatingRule?: boolean;
 };
 
 export default MerchantRuleSuggestion;

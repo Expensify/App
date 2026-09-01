@@ -9,16 +9,18 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
-type AddTaxPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_TAX>;
+import useMerchantRuleRoute from './useMerchantRuleRoute';
+
+type AddTaxPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_TAX | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_TAX>;
 
 function AddTaxPage({route}: AddTaxPageProps) {
     const {policyID, ruleID} = route.params;
-    const isEditing = ruleID !== ROUTES.NEW;
+    const {backToRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_TAX_FROM_EXPENSE.path, policyID, ruleID);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -32,8 +34,6 @@ function AddTaxPage({route}: AddTaxPageProps) {
         }));
 
     const selectedTaxItem = form?.tax ? taxItems.find(({value}) => value === form.tax) : undefined;
-
-    const backToRoute = isEditing ? ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
 
     const onSave = (value?: string) => {
         updateDraftMerchantRule({tax: value});

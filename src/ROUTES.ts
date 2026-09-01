@@ -1023,6 +1023,57 @@ const DYNAMIC_ROUTES = {
         path: 'rules/require-fields',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
     },
+    RULES_MERCHANT_NEW_FROM_EXPENSE: {
+        path: 'merchant-rule/new',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        getRoute: (policyID: string) => getUrlWithParams('merchant-rule/new', {policyID}),
+        queryParams: ['policyID'],
+    },
+    RULES_MERCHANT_MERCHANT_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-merchant-to-match',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_MATCH_TYPE_FROM_EXPENSE: {
+        path: 'rule-match-type',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_MERCHANT_TO_MATCH],
+    },
+    RULES_MERCHANT_MERCHANT_FROM_EXPENSE: {
+        path: 'rule-merchant',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_CATEGORY_FROM_EXPENSE: {
+        path: 'rule-category',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_TAG_FROM_EXPENSE: {
+        path: 'rule-tag/:orderWeight',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+        getRoute: (orderWeight: number) => `rule-tag/${orderWeight}` as const,
+    },
+    RULES_MERCHANT_TAX_FROM_EXPENSE: {
+        path: 'rule-tax',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_VENDOR_FROM_EXPENSE: {
+        path: 'rule-vendor',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_DESCRIPTION_FROM_EXPENSE: {
+        path: 'rule-description',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_REIMBURSABLE_FROM_EXPENSE: {
+        path: 'rule-reimbursable',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_BILLABLE_FROM_EXPENSE: {
+        path: 'rule-billable',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_PREVIEW_MATCHES_FROM_EXPENSE: {
+        path: 'rule-matches',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
     NOTIFICATION_PREFERENCES: {
         // `reportID` is intentionally carried as a distinct path param (`notificationReportID`) rather than
         // `reportID`, so it never collides with a `reportID` inherited from the surrounding report chain's

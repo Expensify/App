@@ -22,7 +22,6 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setIsCreatingMerchantRule} from '@libs/actions/MerchantRuleSuggestion';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {deletePolicyCodingRule, setPolicyCodingRule} from '@libs/actions/Policy/Rules';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
@@ -44,20 +43,21 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {MerchantRuleForm} from '@src/types/form';
 import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
-import type {MerchantRuleSuggestion, PolicyTagLists} from '@src/types/onyx';
+import type {PolicyTagLists} from '@src/types/onyx';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+
+import useMerchantRuleRoute from './useMerchantRuleRoute';
 
 type MerchantRulePageBaseProps = {
     policyID: string;
@@ -113,8 +113,6 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
     return translate('workspace.rules.merchantRules.confirmError');
 };
 
-const isCreatingRuleSelector = (suggestion: OnyxEntry<MerchantRuleSuggestion>) => suggestion?.isCreatingRule;
-
 function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, testID}: MerchantRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -123,6 +121,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
     const [isDeleting, setIsDeleting] = useState(false);
     const {isLoading, startWithLoading} = usePressLoading();
     const isEditing = !!ruleID;
+    const {isCreatedFromExpense, backToRoute, getRuleRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_NEW_FROM_EXPENSE.path, policyID, ruleID);
     const isInLandscapeMode = useIsInLandscapeMode();
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
@@ -130,8 +129,6 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
     const getItemIcon = (icon: IconAsset) => (isRulesRevampEnabled ? icon : undefined);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
-    const [isCreatingRuleFromExpense] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {selector: isCreatingRuleSelector});
-    const isCreatedFromExpense = !isEditing && !!isCreatingRuleFromExpense;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyTagsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const policyTags = useMemo(() => getTagLists(policyTagsFromOnyx) ?? getEmptyArray<ValueOf<PolicyTagLists>>(), [policyTagsFromOnyx]);
@@ -298,10 +295,9 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
         }
         setPolicyCodingRule(policyID, form, policy, ruleID, shouldUpdateMatchingTransactions);
         if (isCreatedFromExpense) {
-            // Created from an expense rather than workspace settings, so go back to the expense, not the Rules page.
-            // Clear the marker so a later rule created from settings is unaffected.
-            setIsCreatingMerchantRule(false);
-            Navigation.goBack();
+            // Started from the "Create a rule" callout, so this page is a suffix on the expense's own path. Dropping
+            // that suffix returns to the expense instead of the workspace Rules page.
+            Navigation.goBack(backToRoute);
         } else if (!isEditing && isRulesRevampEnabled) {
             Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.EXPENSE_DEFAULTS);
             Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
@@ -375,7 +371,10 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
                     description: translate('common.merchant'),
                     required: true,
                     title: form?.merchantToMatch,
-                    onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.getRoute(policyID, ruleID)),
+                    onPress: () =>
+                        Navigation.navigate(
+                            getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.getRoute(policyID, ruleID)),
+                        ),
                     icon: getItemIcon(icons.Basket),
                 },
             ],
@@ -387,7 +386,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
                     key: 'merchant',
                     description: translate('common.merchant'),
                     title: form?.merchant,
-                    onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_MERCHANT.getRoute(policyID, ruleID)),
+                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_MERCHANT_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_MERCHANT.getRoute(policyID, ruleID))),
                     icon: getItemIcon(icons.Basket),
                 },
                 hasCategories()
@@ -395,7 +394,8 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
                           key: 'category',
                           description: translate('common.category'),
                           title: categoryDisplayName,
-                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_CATEGORY.getRoute(policyID, ruleID)),
+                          onPress: () =>
+                              Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_CATEGORY_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_CATEGORY.getRoute(policyID, ruleID))),
                           icon: getItemIcon(icons.Folder),
                       }
                     : undefined,
@@ -408,7 +408,13 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
                                   key: `tag-${name}-${orderWeight}`,
                                   description: name,
                                   title: formTag ? getCleanedTagName(formTag) : undefined,
-                                  onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAG.getRoute(policyID, ruleID, orderWeight)),
+                                  onPress: () =>
+                                      Navigation.navigate(
+                                          getRuleRoute(
+                                              DYNAMIC_ROUTES.RULES_MERCHANT_TAG_FROM_EXPENSE.getRoute(orderWeight),
+                                              ROUTES.RULES_MERCHANT_TAG.getRoute(policyID, ruleID, orderWeight),
+                                          ),
+                                      ),
                                   icon: getItemIcon(icons.Tag),
                               };
                           })
@@ -418,7 +424,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
                           key: 'tax',
                           description: translate('common.tax'),
                           title: taxDisplayName(),
-                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAX.getRoute(policyID, ruleID)),
+                          onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_TAX_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_TAX.getRoute(policyID, ruleID))),
                           icon: getItemIcon(icons.InvoiceGeneric),
                       }
                     : undefined,
@@ -427,7 +433,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
                           key: 'vendorID',
                           description: vendorFieldLabel,
                           title: vendorDisplayName,
-                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_VENDOR.getRoute(policyID, ruleID)),
+                          onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_VENDOR_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_VENDOR.getRoute(policyID, ruleID))),
                           icon: getItemIcon(icons.Basket),
                       }
                     : undefined,
@@ -435,7 +441,8 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
                     key: 'description',
                     description: translate('common.description'),
                     title: form?.comment ? Parser.replace(form.comment) : undefined,
-                    onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_DESCRIPTION.getRoute(policyID, ruleID)),
+                    onPress: () =>
+                        Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_DESCRIPTION_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_DESCRIPTION.getRoute(policyID, ruleID))),
                     shouldRenderAsHTML: true,
                     icon: getItemIcon(icons.Pencil),
                 },
@@ -443,7 +450,8 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
                     key: 'reimbursable',
                     description: translate('common.reimbursable'),
                     title: getBooleanTitle(form?.reimbursable, translate),
-                    onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_REIMBURSABLE.getRoute(policyID, ruleID)),
+                    onPress: () =>
+                        Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_REIMBURSABLE_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_REIMBURSABLE.getRoute(policyID, ruleID))),
                     icon: getItemIcon(icons.Paycheck),
                 },
                 isBillableEnabled
@@ -451,7 +459,8 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
                           key: 'billable',
                           description: translate('common.billable'),
                           title: getBooleanTitle(form?.billable, translate),
-                          onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_BILLABLE.getRoute(policyID, ruleID)),
+                          onPress: () =>
+                              Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_BILLABLE_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_BILLABLE.getRoute(policyID, ruleID))),
                           icon: getItemIcon(icons.Paycheck),
                       }
                     : undefined,
@@ -465,7 +474,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
             return;
         }
 
-        Navigation.navigate(ROUTES.RULES_MERCHANT_PREVIEW_MATCHES.getRoute(policyID, ruleID));
+        Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_PREVIEW_MATCHES_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_PREVIEW_MATCHES.getRoute(policyID, ruleID)));
     };
 
     if (ruleID && !existingRule && !isDeleting) {
