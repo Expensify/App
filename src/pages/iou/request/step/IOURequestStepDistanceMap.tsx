@@ -2,6 +2,7 @@ import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceReque
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useFetchRoute from '@hooks/useFetchRoute';
@@ -10,8 +11,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
-import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrevious from '@hooks/usePrevious';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -23,13 +24,14 @@ import {init, stop} from '@libs/actions/MapboxToken';
 import {openDraftDistanceExpense, removeWaypoint, updateWaypoints as updateWaypointsUtil} from '@libs/actions/Transaction';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
 import {doesMoneyRequestDraftHaveUserInput, getRateID, getRequestType} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
@@ -75,7 +77,8 @@ function IOURequestStepDistanceMap({
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const isArchived = useReportIsArchived(report?.reportID);
     const selfDMReport = useSelfDMReport();
-    const policy = usePolicy(report?.policyID);
+    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({policyID: policy?.id, isDistanceRequest: true});
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -193,14 +196,9 @@ function IOURequestStepDistanceMap({
      * Takes the user to the page for editing a specific waypoint
      * @param index of the waypoint to edit
      */
-    const navigateToWaypointEditPage = useCallback(
-        (index: number) => {
-            Navigation.navigate(
-                ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, report?.reportID ?? reportID, index.toString(), Navigation.getActiveRoute()),
-            );
-        },
-        [action, transactionID, report?.reportID, reportID],
-    );
+    const navigateToWaypointEditPage = useCallback((index: number) => {
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(index)));
+    }, []);
 
     const navigateToNextStep = useDistanceNavigation({
         iouType,
@@ -290,6 +288,9 @@ function IOURequestStepDistanceMap({
     );
 
     const submitWaypoints = useCallback(() => {
+        if (blockDistanceRequestIfNeeded()) {
+            return;
+        }
         // If there is any error or loading state, don't let user go to next page.
         if (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading) {
             setShouldShowAtLeastTwoDifferentWaypointsError(true);
@@ -297,7 +298,7 @@ function IOURequestStepDistanceMap({
         }
         suppressDiscardPrompt();
         navigateToNextStep();
-    }, [duplicateWaypointsError, atLeastTwoDifferentWaypointsError, hasRouteError, isLoadingRoute, isLoading, suppressDiscardPrompt, navigateToNextStep]);
+    }, [blockDistanceRequestIfNeeded, duplicateWaypointsError, atLeastTwoDifferentWaypointsError, hasRouteError, isLoadingRoute, isLoading, suppressDiscardPrompt, navigateToNextStep]);
 
     const renderItem = useCallback(
         ({item, drag, isActive, getIndex}: RenderItemParams<string>) => {

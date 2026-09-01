@@ -3,6 +3,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -12,6 +13,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
 import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {
     canAddTransaction,
@@ -67,7 +69,12 @@ function MoneyRequestReportListFooter({report, policy, transactions, hasPendingA
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
+    const distanceExpenseType = getDistanceExpenseTypeForPolicy(policy, lastDistanceExpenseType);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        policyID: policy?.id,
+        isDistanceRequest: true,
+    });
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
@@ -91,8 +98,9 @@ function MoneyRequestReportListFooter({report, policy, transactions, hasPendingA
         draftTransactionIDs,
         amountOwed,
         ownerBillingGracePeriodEnd,
-        lastDistanceExpenseType,
+        lastDistanceExpenseType: distanceExpenseType,
         currentUserAccountID: currentUserDetails?.accountID,
+        blockDistanceRequestIfNeeded,
     });
 
     return (

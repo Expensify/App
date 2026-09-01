@@ -13,7 +13,9 @@ import useUnreadMarker from '@hooks/useUnreadMarker';
 
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getOneTransactionThreadReportID, hasNextActionMadeBySameActor} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, shouldShowMarkAsDone} from '@libs/ReportUtils';
@@ -36,7 +38,7 @@ import type {LayoutChangeEvent} from 'react-native';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import MoneyRequestReportEmptyStateView from './MoneyRequestReportEmptyStateView';
@@ -103,6 +105,11 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const showReportActionsLoadingState = reportLoadingState?.isLoadingInitialReportActions && !reportLoadingState?.hasOnceLoadedReportActions;
     const isInitialReportLoadPending = !isOffline && isReportLoadPending && !reportLoadingState?.hasOnceLoadedReportActions;
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+
+    // Opened from the "X Replies" link: land on the latest message instead of the default top of the report.
+    // The ref holds the report we already scrolled for, so the scroll fires only once per report open.
+    const shouldScrollToLatestOnOpen = route?.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST] === 'true';
+    const scrolledToLatestOnOpenForReportIDRef = useRef<string | undefined>(undefined);
 
     const parentReportAction = useParentReportAction(report);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -179,6 +186,19 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
             markNewestActionAsRead,
             completeSkippedMarkAsRead,
         });
+
+    // When the report is opened from the "X Replies" link, scroll to the latest message once the actions are
+    // available (this list otherwise opens at the top). scrollToLatestMessages pins to the bottom while the
+    // deferred content settles, mirroring the floating "new messages" button. We clear the route param afterwards
+    // so a later re-render or remount doesn't yank the user back down.
+    useEffect(() => {
+        if (!shouldScrollToLatestOnOpen || scrolledToLatestOnOpenForReportIDRef.current === reportIDFromRoute || visibleReportActions.length === 0) {
+            return;
+        }
+        scrolledToLatestOnOpenForReportIDRef.current = reportIDFromRoute;
+        scrollToLatestMessages();
+        Navigation.setParams({[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST]: undefined});
+    }, [shouldScrollToLatestOnOpen, visibleReportActions.length, scrollToLatestMessages, reportIDFromRoute]);
 
     const renderReportAction = (reportAction: OnyxTypes.ReportAction, indexWithinReportActions: number) => {
         const displayAsGroup =
