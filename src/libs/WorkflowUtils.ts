@@ -1068,7 +1068,16 @@ function buildApprovalWorkflowRulesForSave(approvalWorkflow: ApprovalWorkflow, c
     if (!matchesDefaultWorkflow) {
         return buildApprovalWorkflowRules(approvalWorkflow);
     }
-    return hasMarkedDefaultWorkflow(context.existingRules) ? rulesAsDefault : [];
+    if (hasMarkedDefaultWorkflow(context.existingRules)) {
+        return rulesAsDefault;
+    }
+
+    // The default workflow has no rules to fold into, so writing none leaves these members on whatever
+    // `employeeList` says. That is the default chain only for members who already submit to the default
+    // approver; anyone arriving from another workflow still carries that workflow's approver there, because
+    // rules-based saves never touch `employeeList`. Dropping their rules would silently route them to it.
+    const membersAlreadyRoutedToDefault = getWorkflowMemberEmails(approvalWorkflow.members).every((email) => context.employees[email]?.submitsTo === context.defaultApprover);
+    return membersAlreadyRoutedToDefault ? [] : rulesAsDefault;
 }
 
 /**
