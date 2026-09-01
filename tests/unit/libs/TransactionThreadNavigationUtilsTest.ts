@@ -79,12 +79,24 @@ describe('getReportIDToOpenForExpense', () => {
         const expense: TransactionThreadNavigationDescriptor = {
             reportID: 'parentPay',
             transaction: buildTransaction('t1', 'parentPay'),
-            // The pay action's childReportID is the "marked as paid" system message thread; opening the paid
+            // The pay action's childReportID is the "marked as paid" system message thread. Opening the paid
             // expense must land on the report itself, not that thread.
             reportAction: buildSentMoneyAction('a1', 'pay_message_thread'),
         };
 
         expect(getReportIDToOpenForExpense(expense, CONTEXT)).toBe('parentPay');
+        expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
+    });
+
+    it('returns the parent report when only the live action is a sent-money (pay) action', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}parentPayLive`, {a1: buildSentMoneyAction('a1', 'pay_message_thread')});
+        await waitForBatchedUpdates();
+
+        // An optimistic or offline paid expense is absent from the Search snapshot, so it arrives without a
+        // reportAction and the pay action is only reachable through the main reportActions collection.
+        const expense: TransactionThreadNavigationDescriptor = {reportID: 'parentPayLive', transaction: buildTransaction(transactionR14932.transactionID, 'parentPayLive')};
+
+        expect(getReportIDToOpenForExpense(expense, CONTEXT)).toBe('parentPayLive');
         expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
     });
 

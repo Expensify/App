@@ -70,7 +70,9 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
     // Prefer the live action from the main collection (it may carry a newer childReportID), fall back to the
     // snapshot action carried on the descriptor so a snapshot-only expense can still resolve/create its thread.
     const iouAction = getIOUActionForReportID(reportID, transaction.transactionID) ?? expense.reportAction;
-    if (!iouAction) {
+    // The live action can be a sent-money (pay) action too. An optimistic or offline expense is absent from the
+    // snapshot, so expense.reportAction is undefined and the guard above never sees it. Re-apply it here.
+    if (!iouAction || isSentMoneyReportAction(iouAction)) {
         return reportID;
     }
     if (iouAction.childReportID) {
