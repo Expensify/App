@@ -427,6 +427,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseReport: 'Raport wydatków',
         rateOutOfPolicy: 'Stawka poza zasadami',
         leaveWorkspace: 'Opuść przestrzeń roboczą',
+        leaveWorkspaceTitle: (workspaceName: string) => `Opuścić ${workspaceName}?`,
         leaveWorkspaceConfirmation: 'Jeśli opuścisz ten obszar roboczy, nie będziesz mógł przesyłać do niego wydatków.',
         leaveWorkspaceConfirmationAuditor: 'Jeśli opuścisz tę przestrzeń roboczą, nie będziesz mieć dostępu do jej raportów ani ustawień.',
         leaveWorkspaceConfirmationAdmin: 'Jeśli opuścisz tę przestrzeń roboczą, nie będziesz mógł zarządzać jej ustawieniami.',
@@ -4655,6 +4656,7 @@ ${amount} dla ${merchant} - ${date}`,
             settlementFrequency: 'Częstotliwość rozliczeń',
             setAsDefault: 'Ustaw jako domyślne miejsce pracy',
             defaultNote: `Paragony wysłane na ${CONST.EMAIL.RECEIPTS} pojawią się w tym obszarze roboczym.`,
+            deleteWorkspaceTitle: (workspaceName: string) => `Usunąć ${workspaceName}?`,
             deleteConfirmation: 'Czy na pewno chcesz usunąć tę przestrzeń roboczą?',
             deleteWithCardsConfirmation: 'Na pewno chcesz usunąć tę przestrzeń roboczą? Spowoduje to usunięcie wszystkich źródeł kart i przypisanych kart.',
             deleteOpenExpensifyCardsError: 'Twoja firma wciąż ma Karty Expensify. Prosimy, <concierge-link>skontaktuj się z Concierge</concierge-link>, aby je usunąć.',
@@ -6225,6 +6227,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             deleteFailureMessage: 'Wystąpił błąd podczas usuwania kategorii, spróbuj ponownie',
             categoryName: 'Nazwa kategorii',
             requiresCategory: 'Członkowie muszą kategoryzować wszystkie wydatki',
+            autoCategorizeNewExpenses: 'Automatycznie kategoryzuj nowe wydatki',
             showCategoryGLCodes: 'Pokaż kody GL podczas kategoryzowania wydatków',
             needCategoryForExportToIntegration: (connectionName: string) => `Wszystkie wydatki muszą zostać skategoryzowane, aby można je było wyeksportować do ${connectionName}.`,
             subtitle: 'Uzyskaj lepszy wgląd w to, gdzie wydawane są pieniądze. Użyj naszych domyślnych kategorii lub dodaj własne.',
@@ -6531,7 +6534,12 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 defaultHourlyRate: 'Domyślna stawka godzinowa',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Aby wyłączyć HR, najpierw odłącz ${integration} od tego workspace’a.`},
-            vendors: {title: 'Dostawcy', subtitle: 'Dopasuj wydatki z karty do kontrahentów zaimportowanych z twojego oprogramowania księgowego.'},
+            vendors: {
+                title: 'Dostawcy',
+                subtitle: 'Dopasuj wydatki z karty do kontrahentów zaimportowanych z twojego oprogramowania księgowego.',
+                disabledTitle: 'Nie tak szybko...',
+                disabledMessage: 'Aby włączyć lub wyłączyć tę funkcję, musisz zmienić ustawienia importu księgowego.',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Przykłady:',
@@ -8306,6 +8314,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 confirmErrorCategory: 'Wybierz kategorię.',
                 confirmErrorAmount: 'Wpisz kwotę.',
                 thenFlagForReview: 'Następnie oznacz do przejrzenia, gdy:',
+                thenDoTheFollowing: 'Następnie zrób tak:',
+                flagType: 'Typ flagi',
+                flagTypeWarning: 'Ostrzeżenie',
+                flagTypeWarningDescription: 'Zgłaszający zostanie ostrzeżony, ale nadal może przesłać wydatek',
             },
             agentRulesEmptyState: {title: 'Nie dodano reguł agenta', subtitle: 'Utwórz regułę, żeby zautomatyzować zasady swojego workspace’u.', cta: 'Dodaj regułę AI'},
             categoriesDisabledEmptyState: {title: 'Kategorie nie są włączone', subtitle: 'Włącz kategorie, żeby mieć większą kontrolę nad wydatkami.'},
@@ -8413,13 +8425,15 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Połączono. ${setupLink ? `<a href="${setupLink}">Zakończ konfigurację</a>` : 'Zakończ konfigurację'}, aby zaimportować pracowników.</muted-text-label>`,
                 groups: {title: 'Grupy', description: 'Wybierz grupy pracowników, które chcesz zsynchronizować z tą przestrzenią roboczą'},
-                syncLimitReached: {title: 'Spróbuj ponownie jutro', prompt: 'Osiągnąłeś dzienny limit synchronizacji.'},
             },
             notSync: 'Niesynchronizowane',
             authenticationError: (providerName: string) => `Nie można połączyć z ${providerName} z powodu wygasłego połączenia.`,
             reconnect: 'Połącz ponownie',
             reconnectLink: 'Połącz ponownie.',
             findIntegration: 'Znajdź integrację',
+        },
+        merge: {
+            syncLimitReached: {title: 'Spróbuj ponownie jutro', prompt: 'Osiągnąłeś dzienny limit synchronizacji.'},
         },
         emptyDomain: {
             title: 'Zwiększ swoje bezpieczeństwo dzięki domenom',
@@ -8604,10 +8618,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             return `dodano stawkę podatku „${newValue} (${newTaxPercentage})” do stawki za dystans „${customUnitRateName}”`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
-                return `zmienił zwrotną część podatku w stawce za dystans „${customUnitRateName}” na „${newValue}” (wcześniej „${oldValue}”)`;
+            if (oldValue !== undefined) {
+                return `zmienił zwrotną część podatku w stawce za dystans „${customUnitRateName}” na „${newValue}%” (wcześniej „${oldValue}%”)`;
             }
-            return `dodano odzyskiwalną część podatku w wysokości „${newValue}” do stawki za dystans „${customUnitRateName}”`;
+            return `dodano odzyskiwalną część podatku w wysokości „${newValue}%” do stawki za dystans „${customUnitRateName}”`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `zmienił nazwę stawki ${customUnitName} z „${oldValue}” na „${newValue}”`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
@@ -9298,6 +9312,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             approved: 'Zatwierdzono',
             firstApprover: 'Pierwszy zatwierdzający',
             firstApproved: 'Najpierw zatwierdzono',
+            paidBy: 'Zapłacone przez',
             paid: 'Zapłacono',
             exported: 'Wyeksportowano',
             posted: 'Opublikowano',
@@ -10722,6 +10737,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
     domain: {
         notVerified: 'Niezweryfikowane',
         retry: 'Ponów próbę',
+        requestSent: 'Wysłano prośbę',
         verifyDomain: {
             title: 'Zweryfikuj domenę',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -10794,6 +10810,14 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             subtitle: 'Wprowadź nazwę prywatnej domeny, do której chcesz uzyskać dostęp (np. expensify.com).',
             domainName: 'Nazwa domeny',
             newDomain: 'Nowa domena',
+            alreadyHaveAccessError: 'Ta domena już istnieje na Twoim koncie.',
+        },
+        domainAlreadyExists: {
+            headerTitle: 'Domena już istnieje',
+            title: 'Domena jest już skonfigurowana. Poprosić o dostęp?',
+            description: 'Ktoś już skonfigurował tę domenę w Expensify. Chcesz poprosić o dostęp administratora?',
+            requestAccess: 'Poproś o dostęp administratora',
+            requestAccessError: 'Nie udało się wysłać Twojej prośby. Spróbuj ponownie.',
         },
         domainAdded: {
             title: 'Dodano domenę',
@@ -10890,6 +10914,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             forceTwoFactorAuthError: 'Nie udało się zmienić wymuszania uwierzytelniania dwuskładnikowego. Spróbuj ponownie później.',
             resetTwoFactorAuth: 'Zresetuj uwierzytelnianie dwuskładnikowe',
             error: 'Nie udało się zapisać tej zmiany. Spróbuj ponownie.',
+            neverMind: 'Nieważne',
         },
         groups: {
             title: 'Grupy',
@@ -10898,7 +10923,6 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             defaultGroupPrompt: (currentName: string, newName: string) =>
                 `Czy na pewno chcesz ustawić ${newName} jako grupę domyślną? Nowi członkowie będą zapraszani do tej grupy zamiast do poprzedniej grupy domyślnej (${currentName}). `,
             makeDefault: 'Ustaw jako domyślną',
-            neverMind: 'Nieważne',
             createGroupError: 'Nie udało się utworzyć tej grupy. Spróbuj ponownie.',
             permissions: 'Uprawnienia grupy',
             createNewGroupButton: 'Nowa grupa',

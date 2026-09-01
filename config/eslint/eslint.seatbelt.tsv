@@ -664,7 +664,7 @@
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	8
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	33
 "../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	16
-"../../src/libs/SearchAutocompleteUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../src/libs/SearchAutocompleteUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/SearchQueryUtils.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/libs/SearchQueryUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	48
 "../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	2
@@ -685,7 +685,7 @@
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../src/libs/UnreadIndicatorUpdater/index.ts"	"no-restricted-imports"	1
 "../../src/libs/UnreadIndicatorUpdater/index.ts"	"no-restricted-syntax"	1
-"../../src/libs/Url.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/libs/Url.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/UserAvatarUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/ValidationUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/Violations/ViolationsUtils.ts"	"no-restricted-syntax"	1
@@ -829,7 +829,7 @@
 "../../src/libs/actions/VacationDelegate.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/Wallet.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/actions/Wallet.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/Welcome/OnboardingFlow.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/libs/actions/Welcome/OnboardingFlow.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/Welcome/index.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/__mocks__/App.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/__mocks__/App.ts"	"no-restricted-syntax"	2
@@ -850,7 +850,6 @@
 "../../src/libs/canFocusInputOnScreenFocus/index.ts"	"no-restricted-syntax"	1
 "../../src/libs/clearSelectedTextIfComposerBlurred/clearSelectedTextIfComposerBlurred.web.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/compoundParamsKey.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/libs/deepReplaceKeysAndValues.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/libs/fileDownload/DownloadUtils.ts"	"no-restricted-syntax"	2
 "../../src/libs/fileDownload/FileUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/fileDownload/getImageManipulator/index.native.ts"	"@typescript-eslint/no-deprecated/manipulateAsync"	1
@@ -1028,7 +1027,7 @@
 "../../src/pages/inbox/sidebar/SidebarLinksData.tsx"	"react-hooks/refs"	1
 "../../src/pages/iou/DynamicSplitExpensePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/DynamicSplitExpensePage.tsx"	"react-hooks/set-state-in-effect"	3
-"../../src/pages/iou/MoneyRequestAmountForm.tsx"	"react-hooks/set-state-in-effect"	3
+"../../src/pages/iou/MoneyRequestAmountForm.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/iou/SplitList/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/request/ParticipantSearchResults.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/pages/iou/request/step/DistanceManualTabContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
