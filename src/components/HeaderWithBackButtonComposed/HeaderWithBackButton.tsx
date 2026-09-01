@@ -54,7 +54,7 @@ type HeaderProps = Omit<
  * Not the target shape: the next PR migrates callers away from this prop list to composing `<Header>`
  * directly from `Header.Actions`/`Header.Right` and block children.
  */
-function HeaderWithBackButton({
+function Header({
     icon,
     iconFill,
     iconWidth,
@@ -205,4 +205,4 @@ function HeaderWithBackButton({
     );
 }
 
-export default HeaderWithBackButton;
+export default Header;
