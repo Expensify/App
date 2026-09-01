@@ -75,6 +75,7 @@ function ConfirmationUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifie
             showOnfidoLinks
             onfidoLinksTitle={`${translate('beneficialOwnerInfoStep.byAddingThisBankAccount')} `}
             error={error}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }
