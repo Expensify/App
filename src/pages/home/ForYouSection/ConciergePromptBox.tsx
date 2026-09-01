@@ -137,13 +137,6 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
         debouncedSaveDraft(text);
     };
 
-    useEffect(() => {
-        if (isFocused) {
-            return;
-        }
-        hideSuggestionMenu();
-    }, [isFocused, hideSuggestionMenu]);
-
     const clearInput = () => {
         setValue('');
         setSelection({start: 0, end: 0});
@@ -330,7 +323,10 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                             onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
                             shouldCalculateCaretPosition
                             onFocus={() => setIsFocused(true)}
-                            onBlur={() => setIsFocused(false)}
+                            onBlur={() => {
+                                setIsFocused(false);
+                                hideSuggestionMenu();
+                            }}
                             onKeyPress={handleKeyPress}
                             onPasteFile={(files) => {
                                 // Concierge isn't reachable yet, so there is nowhere to send the paste. Mirrors the disabled "+" button.

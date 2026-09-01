@@ -313,14 +313,6 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
         debouncedCommentMaxLengthValidation(draft);
     }, [draft, debouncedCommentMaxLengthValidation]);
 
-    useEffect(() => {
-        if (isFocused) {
-            return;
-        }
-
-        hideSuggestionMenu();
-    }, [isFocused, hideSuggestionMenu]);
-
     return (
         <>
             <View
@@ -378,7 +370,10 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
                                     ReportActionContextMenu.clearActiveReportAction();
                                 }
                             }}
-                            onBlur={() => setIsFocused(false)}
+                            onBlur={() => {
+                                setIsFocused(false);
+                                hideSuggestionMenu();
+                            }}
                             selection={selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                             isGroupPolicyReport={isGroupPolicyReport}
