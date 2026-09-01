@@ -140,13 +140,4 @@ function getCategoryNameFromTaxRuleKey(key: string): string {
     return key.slice(CATEGORY_TAX_RULE_KEY_PREFIX.length);
 }
 
-export {
-    categoryHasTaxRule,
-    getCategoryNameFromTaxRuleKey,
-    getCategoryTaxRulesTableData,
-    getCategoryTaxRuleTaxID,
-    getRuleCategoryName,
-    getRuleDeletionPendingAction,
-    getTaxRateDisplayName,
-    isCategoryTaxRuleKey,
-};
+export {categoryHasTaxRule, getCategoryNameFromTaxRuleKey, getCategoryTaxRulesTableData, getCategoryTaxRuleTaxID, getRuleCategoryName, getTaxRateDisplayName, isCategoryTaxRuleKey};
