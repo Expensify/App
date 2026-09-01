@@ -221,18 +221,19 @@ describe('SequentialQueue.claimReadGateForDeferredWrite', () => {
         expect(idle.hasResolved).toBe(true);
     });
 
-    it('keeps the claim count sane when resetQueue() runs while a claim is live', async () => {
-        // Given a claim that outlives the reset, so its settle has nothing left to decrement
+    it('does not let a claim wiped by resetQueue() settle a later one', async () => {
+        // Given a claim that outlives a reset, and a fresh claim taken after it
         const settleStaleClaim = SequentialQueue.claimReadGateForDeferredWrite();
         SequentialQueue.resetQueue();
-        settleStaleClaim();
-
-        // When a later deferred write claims the gate
         const settleClaim = SequentialQueue.claimReadGateForDeferredWrite();
         const idle = trackIdle();
+
+        // When the wiped claim finally settles
+        settleStaleClaim();
         await waitForBatchedUpdates();
 
-        // Then it still parks READs. Without the floor the count would sit at -1 and never read as claimed again
+        // Then it does not decrement the live claim's count. Sharing one counter across a reset would open
+        // the gate here while the second write is still deferred.
         expect(idle.hasResolved).toBe(false);
 
         settleClaim();

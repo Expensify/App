@@ -75,10 +75,26 @@ function setIsReadyPromisePending() {
 let deferredWriteClaims = 0;
 let deferredWritesLanded: Promise<void> = Promise.resolve();
 let resolveDeferredWritesLanded: (() => void) | undefined;
+// Bumped by resetQueue() so claims it wiped can't decrement a later one's count.
+let deferredWriteGeneration = 0;
+let pendingNetworkStateChange: Promise<void> | undefined;
+
+/** One shared wake-up for every READ parked on the gate, rather than a subscription per caller. */
+function whenNetworkStateChanges(): Promise<void> {
+    pendingNetworkStateChange ??= new Promise<void>((resolve) => {
+        const unsubscribe = subscribeToNetworkState(() => {
+            unsubscribe();
+            pendingNetworkStateChange = undefined;
+            resolve();
+        });
+    });
+
+    return pendingNetworkStateChange;
+}
 
 /**
  * Sole writer of the count, so deferredWritesLanded is pending exactly while claims are outstanding -
- * resolving it early would spin waitForIdle(). Floored: resetQueue() can zero the count mid-claim.
+ * resolving it early would spin waitForIdle().
  */
 function setDeferredWriteClaims(count: number) {
     if (count > 0 && deferredWriteClaims === 0) {
@@ -101,15 +117,18 @@ function setDeferredWriteClaims(count: number) {
  * has reached the queue - or definitely won't - after which the queue's own gate takes over.
  */
 function claimReadGateForDeferredWrite(): () => void {
+    const generation = deferredWriteGeneration;
     setDeferredWriteClaims(deferredWriteClaims + 1);
+    Log.info('[SequentialQueue] Deferred write claimed the read gate', false, {claims: deferredWriteClaims});
 
     let hasSettled = false;
     return () => {
-        if (hasSettled) {
+        if (hasSettled || generation !== deferredWriteGeneration) {
             return;
         }
         hasSettled = true;
         setDeferredWriteClaims(deferredWriteClaims - 1);
+        Log.info('[SequentialQueue] Deferred write released the read gate', false, {claims: deferredWriteClaims});
     };
 }
 
@@ -819,14 +838,10 @@ function getCurrentRequest(): Promise<void> {
  */
 async function waitForIdle(): Promise<unknown> {
     while (deferredWriteClaims > 0 && !isOfflineNetwork()) {
+        Log.info('[SequentialQueue] READ is waiting on a deferred write', false, {claims: deferredWriteClaims});
         // Wake on a network change too, so going offline releases READs and coming back re-parks them.
-        let unsubscribeFromNetworkState = () => {};
-        const networkStateChanged = new Promise<void>((resolve) => {
-            unsubscribeFromNetworkState = subscribeToNetworkState(resolve);
-        });
         // eslint-disable-next-line no-await-in-loop
-        await Promise.race([deferredWritesLanded, networkStateChanged]);
-        unsubscribeFromNetworkState();
+        await Promise.race([deferredWritesLanded, whenNetworkStateChanges()]);
     }
 
     // Read after the wait, not before: the deferred write's push() has re-closed the gate by now.
@@ -846,7 +861,9 @@ function resetQueue(): void {
     isReadyPromise = Promise.resolve();
     isReadyPromisePending = false;
     resolveIsReadyPromise = undefined;
+    deferredWriteGeneration += 1;
     setDeferredWriteClaims(0);
+    pendingNetworkStateChange = undefined;
 }
 
 export {

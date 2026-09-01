@@ -628,9 +628,9 @@ describe('API.writeWhenReady', () => {
 
             // When the barrier releases it onto the queue
             release();
-            await flushMicrotasks(pushHappened);
+            await flushMicrotasks(() => settleClaim.mock.calls.length > 0);
 
-            // Then the claim settles, handing READs over to the gate push() closed for the queued write
+            // Then the claim settles off the write promise, rather than assuming push() ran synchronously
             expect(mockPush).toHaveBeenCalledTimes(1);
             expect(settleClaim).toHaveBeenCalledTimes(1);
         });
@@ -646,7 +646,7 @@ describe('API.writeWhenReady', () => {
 
             // When the barrier releases it
             release();
-            await flushMicrotasks(pushHappened);
+            await flushMicrotasks(() => settleClaim.mock.calls.length > 0);
 
             // Then the claim is still settled, rather than parking every READ for good
             await expect(deferred).rejects.toThrow('push failed');
@@ -656,7 +656,7 @@ describe('API.writeWhenReady', () => {
         it('skips the claim when the caller opts out', async () => {
             // Given a write deferred with the read gate turned off
             const {barrier, release} = makeAbortableBarrier();
-            deferWriteWithOptions(barrier, {claimReadGate: false});
+            deferWriteWithOptions(barrier, {shouldClaimReadGate: false});
 
             // When the barrier releases it onto the queue
             release();
