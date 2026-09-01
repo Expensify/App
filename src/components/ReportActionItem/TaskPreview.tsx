@@ -97,10 +97,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
 
     const isFinishedJoinWorkspaceTask = useIsFinishedJoinWorkspaceTask(taskReportID, isTaskCompletedFromOnyx);
 
-    const taskTitleMarkdown = Parser.htmlToMarkdown(taskTitle);
-    const taskTitleWithoutImage = Parser.replace(isFinishedJoinWorkspaceTask ? taskTitleMarkdown.replace(CONST.REGEX.MARKDOWN_LINK, '$1') : taskTitleMarkdown, {
-        disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES],
-    });
+    const taskTitleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitle), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
 
     const taskTitlePlainText = Parser.htmlToText(taskTitle);
     const {

@@ -3669,7 +3669,7 @@ const translations = {
                 `),
             },
             addWorkEmailTask: {
-                title: ({workEmailLink = ''}) => `Add [work email](${workEmailLink})`,
+                title: 'Add your work email',
                 description: ({workEmailLink = ''}) =>
                     Str.dedent(`
                         1. Open [Add work email](${workEmailLink}).
@@ -3679,7 +3679,7 @@ const translations = {
                     `),
             },
             validateEmailTask: {
-                title: ({validateEmailLink = ''}) => `Validate [your email](${validateEmailLink})`,
+                title: 'Validate your email',
                 description: ({validateEmailLink = '', workEmail = ''}) =>
                     Str.dedent(`
                         1. Open [Validate your account](${validateEmailLink}).
@@ -3688,7 +3688,7 @@ const translations = {
                     `),
             },
             joinWorkspaceTask: {
-                title: ({joinWorkspaceLink = ''}) => `Join [your company's workspace](${joinWorkspaceLink})`,
+                title: "Join your company's workspace",
                 description: ({joinWorkspaceLink = ''}) =>
                     Str.dedent(`
                         1. Open [Join a workspace](${joinWorkspaceLink}).
