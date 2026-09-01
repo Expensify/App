@@ -36,10 +36,11 @@ import type {OptionData} from './ReportUtils';
 import {isAnonymousUser} from './actions/Session';
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
 import {formatList} from './Localize';
-import {getLastMessageTextForReport, getPersonalDetailsForAccountIDs} from './OptionsListUtils';
+import Log from './Log';
+import {getLastMessageTextForReport, shouldUseFullTitleForOption} from './OptionsListUtils';
 import {getLastActorDisplayName, getLastActorDisplayNameFromLastVisibleActions, shouldShowLastActorDisplayName} from './OptionsListUtils/getChatPreviewParts';
 import Parser from './Parser';
-import {getPersonalDetailsByID} from './PersonalDetailsUtils';
+import {getPersonalDetailsByID, getPersonalDetailsForAccountIDs} from './PersonalDetailsUtils';
 import {getCleanedTagName} from './PolicyUtils';
 import {
     getActionableCard3DSTransactionApprovalMessage,
@@ -165,6 +166,7 @@ import {
     getDisplayNamesWithTooltips,
     getIcons,
     getMovedTransactionMessage,
+    parseMovedTransactionReportIDs,
     getParticipantsAccountIDsForDisplay,
     getPendingDeleteMemberAccountIDs,
     getPolicyChangeLogCopyMessage,
@@ -253,6 +255,12 @@ const DIGIT_SEQUENCE = /\d+/g;
  * Persists across renders so sort keys are computed at most once per unique display name.
  */
 const sortKeyCache = new Map<string, string>();
+
+/**
+ * Reports already reported by the `[ChatReportLHN]` diagnostic log, so a stuck row is logged once per session
+ * instead of on every LHN recompute.
+ */
+const loggedChatReportIDs = new Set<string>();
 
 /**
  * Builds a normalized sort key for fast string comparison using plain < / > operators.
@@ -1248,7 +1256,14 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
             result.alternateText = getPolicyChangeLogDeleteMemberMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-            result.alternateText = Parser.htmlToText(getUnreportedTransactionMessage(translate, lastAction, reportAttributesDerived));
+            const {fromReportID} = parseMovedTransactionReportIDs(lastAction);
+            result.alternateText = Parser.htmlToText(
+                getUnreportedTransactionMessage({
+                    translate,
+                    fromReportID,
+                    derivedReportName: fromReportID ? reportAttributesDerived?.[fromReportID]?.reportName : undefined,
+                }),
+            );
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
             result.alternateText = getReportActionMessageText(lastAction) ?? '';
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION) {
@@ -1332,7 +1347,15 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
             result.alternateText = Parser.htmlToText(getUpdatedOwnershipMessage(translate, lastAction, policy));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
-            result.alternateText = Parser.htmlToText(getMovedTransactionMessage(translate, lastAction, reportAttributesDerived));
+            const {fromReportID, toReportID, displayReportID} = parseMovedTransactionReportIDs(lastAction);
+            result.alternateText = Parser.htmlToText(
+                getMovedTransactionMessage({
+                    translate,
+                    fromReportID,
+                    toReportID,
+                    derivedReportName: displayReportID ? reportAttributesDerived?.[displayReportID]?.reportName : undefined,
+                }),
+            );
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
             result.alternateText = Parser.htmlToText(getSettlementAccountLockedMessage(translate, lastAction));
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
@@ -1427,6 +1450,21 @@ function getOptionData({
     }
 
     const reportName = deprecatedGetReportName(report, reportAttributesDerived);
+
+    if (reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
+        loggedChatReportIDs.delete(report.reportID);
+    } else if (!loggedChatReportIDs.has(report.reportID) && shouldUseFullTitleForOption(result)) {
+        const derivedEntry = reportAttributesDerived?.[report.reportID];
+        loggedChatReportIDs.add(report.reportID);
+        Log.info('[ChatReportLHN] Default report name is shown in LHN', false, {
+            reportID: report.reportID,
+            chatType: report.chatType,
+            rawReportName: report.reportName,
+            hasDerivedEntry: !!derivedEntry,
+            derivedReportName: derivedEntry?.reportName,
+            derivedCount: reportAttributesDerived ? Object.keys(reportAttributesDerived).length : 0,
+        });
+    }
 
     result.text = reportName;
     result.subtitle = subtitle;

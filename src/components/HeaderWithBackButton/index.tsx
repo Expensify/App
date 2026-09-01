@@ -288,7 +288,7 @@ function HeaderWithBackButton({
                                     >
                                         <Icon
                                             src={icons.Download}
-                                            fill={iconFill ?? StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
+                                            fill={iconFill ?? StyleUtils.getIconFillColor({buttonState: getButtonState({isComplete: !isDownloadButtonActive})})}
                                         />
                                     </PressableWithoutFeedback>
                                 </Tooltip>
