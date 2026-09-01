@@ -32,6 +32,7 @@ import openBankConnection from './openBankConnection';
 let customWindow: Window | null = null;
 
 type BankConnectionContentProps = {
+    hasImportError: boolean;
     errorMessage?: string;
     isPlaid?: boolean;
     onOpenBankConnectionFlow: () => void;
@@ -39,11 +40,11 @@ type BankConnectionContentProps = {
     plaidConnectedFeedName?: string;
 };
 
-function BankConnectionContent({errorMessage, isPlaid, onOpenBankConnectionFlow, bankName, plaidConnectedFeedName}: BankConnectionContentProps) {
+function BankConnectionContent({hasImportError, errorMessage, isPlaid, onOpenBankConnectionFlow, bankName, plaidConnectedFeedName}: BankConnectionContentProps) {
     const illustrations = useMemoizedLazyIllustrations(['PendingBank']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    if (errorMessage) {
+    if (hasImportError) {
         return <PersonalCardsErrorConfirmation errorMessage={errorMessage} />;
     }
     if (!isPlaid) {
@@ -135,6 +136,7 @@ function BankConnection() {
                 <BankConnectionContent
                     bankName={bankName}
                     errorMessage={errorMessage}
+                    hasImportError={hasImportError}
                     onOpenBankConnectionFlow={onOpenBankConnectionFlow}
                     plaidConnectedFeedName={addNewCard?.data?.plaidConnectedFeedName}
                     isPlaid={isPlaid}
