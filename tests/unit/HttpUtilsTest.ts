@@ -7,12 +7,12 @@ import Onyx from 'react-native-onyx';
 
 import HttpUtils from '../../src/libs/HttpUtils';
 
-function mockFetchResponse(message: string) {
+function mockFetchResponse(message: string, jsonCode: number = CONST.JSON_CODE.EXP_ERROR) {
     global.fetch = jest.fn().mockResolvedValue({
         ok: true,
         status: 200,
         headers: {get: () => null},
-        json: () => Promise.resolve({jsonCode: CONST.JSON_CODE.EXP_ERROR, message}),
+        json: () => Promise.resolve({jsonCode, message}),
     });
 }
 
@@ -33,6 +33,8 @@ describe('HttpUtils', () => {
     it.each([
         ['Transaction already created.', WRITE_COMMANDS.REQUEST_MONEY],
         ['The request has already been paid', WRITE_COMMANDS.PAY_MONEY_REQUEST],
+        // The API layer can re-wrap Auth's 400 as a 666.
+        ['400 Unique Constraints Violation', WRITE_COMMANDS.CREATE_DISTANCE_REQUEST],
     ])('maps the jsonCode-666 rejection "%s" to ALREADY_CREATED', async (message, command) => {
         mockFetchResponse(message);
 
@@ -46,5 +48,14 @@ describe('HttpUtils', () => {
         mockFetchResponse('Some other error');
 
         await expect(HttpUtils.xhr(WRITE_COMMANDS.PAY_MONEY_REQUEST, {})).resolves.toMatchObject({jsonCode: CONST.JSON_CODE.EXP_ERROR, message: 'Some other error'});
+    });
+
+    it('still maps the duplicate-record message to DUPLICATE_RECORD when it arrives as a 400', async () => {
+        mockFetchResponse('400 Unique Constraints Violation', CONST.JSON_CODE.BAD_REQUEST);
+
+        await expect(HttpUtils.xhr(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, {})).rejects.toMatchObject({
+            message: CONST.ERROR.DUPLICATE_RECORD,
+            title: CONST.ERROR_TITLE.DUPLICATE_RECORD,
+        });
     });
 });
