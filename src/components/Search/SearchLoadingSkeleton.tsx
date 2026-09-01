@@ -10,8 +10,7 @@ import CONST from '@src/CONST';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
-import {StyleSheet} from 'react-native';
-import Animated, {FadeOut} from 'react-native-reanimated';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
 type SearchLoadingSkeletonProps = {
     containerStyle?: StyleProp<ViewStyle>;
@@ -21,11 +20,10 @@ function SearchLoadingSkeleton({containerStyle}: SearchLoadingSkeletonProps) {
     const styles = useThemeStyles();
 
     return (
-        // The skeleton is absolutely filled so that its exit fade overlays the incoming results instead of
-        // sharing the parent's column layout with them, which would halve both heights for the fade duration.
         <Animated.View
+            entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
             exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-            style={[styles.flex1, StyleSheet.absoluteFill]}
+            style={[styles.flex1]}
             onLayout={() => {
                 endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: false});
                 endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.COLD);

@@ -13,8 +13,6 @@ import CONST from '@src/CONST';
 import type {ComponentProps} from 'react';
 
 import React from 'react';
-import {StyleSheet} from 'react-native';
-import Animated, {FadeOut} from 'react-native-reanimated';
 
 import Search from './index';
 
@@ -41,18 +39,11 @@ function SearchWithNavigationDeferredMount(props: ComponentProps<typeof Search>)
         <NavigationDeferredMount
             waitForUpcomingTransition={false}
             placeholder={
-                // Absolutely filled so the exit fade overlays the incoming Search content rather than sharing
-                // the parent's column layout with it, which would halve both heights for the fade duration.
-                <Animated.View
-                    exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                    style={[styles.flex1, StyleSheet.absoluteFill]}
-                >
-                    <SearchRowSkeleton
-                        shouldAnimate
-                        onLayout={handleSkeletonLayout}
-                        containerStyle={containerStyle}
-                    />
-                </Animated.View>
+                <SearchRowSkeleton
+                    shouldAnimate
+                    onLayout={handleSkeletonLayout}
+                    containerStyle={containerStyle}
+                />
             }
         >
             <Search {...props} />

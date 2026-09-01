@@ -32,7 +32,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
-import Animated, {FadeIn, FadeOut, LayoutAnimationConfig} from 'react-native-reanimated';
+import Animated, {FadeIn, LayoutAnimationConfig} from 'react-native-reanimated';
 
 type SearchPageWideProps = {
     queryJSON?: SearchQueryJSON;
@@ -130,7 +130,6 @@ function SearchPageWide({
                                     <Animated.View
                                         key={queryJSON.hash}
                                         entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION).delay(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                                        exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                                         style={StyleSheet.absoluteFill}
                                     >
                                         {shouldShowLoadingSkeleton ? (
