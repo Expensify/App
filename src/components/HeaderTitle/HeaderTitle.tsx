@@ -6,7 +6,7 @@ import {View} from 'react-native';
 
 import useHeaderDialogAnnouncement from './useHeaderDialogAnnouncement';
 
-type HeaderProps = {
+type HeaderTitleProps = {
     /** Additional header container styles */
     style?: StyleProp<ViewStyle>;
 
@@ -20,7 +20,7 @@ type HeaderProps = {
     children?: React.ReactNode;
 };
 
-function Header({children, style, dialogLabel = '', shouldSkipFocusAfterTransition = false}: HeaderProps) {
+function HeaderTitle({children, style, dialogLabel = '', shouldSkipFocusAfterTransition = false}: HeaderTitleProps) {
     const styles = useThemeStyles();
 
     useHeaderDialogAnnouncement(dialogLabel, shouldSkipFocusAfterTransition);
@@ -32,6 +32,6 @@ function Header({children, style, dialogLabel = '', shouldSkipFocusAfterTransiti
     );
 }
 
-export default Header;
+export default HeaderTitle;
 
-export type {HeaderProps};
+export type {HeaderTitleProps};

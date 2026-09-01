@@ -1,9 +1,11 @@
+import type {HeaderTitleProps} from './HeaderTitle';
+
 import HeaderTitleComponent from './HeaderTitle';
 import HeaderTitleSubtitle from './HeaderTitleSubtitle';
 import HeaderTitleSubtitleLink from './HeaderTitleSubtitleLink';
 import HeaderTitleText from './HeaderTitleText';
 
-function HeaderTitleBase(props: React.ComponentProps<typeof HeaderTitleComponent>) {
+function HeaderTitleBase(props: HeaderTitleProps) {
     return <HeaderTitleComponent {...props} />;
 }
 
