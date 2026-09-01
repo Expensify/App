@@ -62,10 +62,18 @@ jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof ReportUserActions>('@userActions/Report'),
     createTransactionThreadReport: jest.fn(),
 }));
-jest.mock('@userActions/Search', () => ({
-    ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
-    setOptimisticDataForTransactionThreadPreview: jest.fn(),
-}));
+// `jest.requireActual` below re-enters the SearchUIUtils <-> actions/Search import cycle, which makes
+// Jest evaluate this factory twice. The mock is memoised in a hoisted `var` so both evaluations hand out
+// the same spy; an inline `jest.fn()` gives this file and SearchUIUtils two unrelated mocks.
+// eslint-disable-next-line no-var
+var mockSetOptimisticDataForTransactionThreadPreview: jest.Mock | undefined;
+jest.mock('@userActions/Search', () => {
+    mockSetOptimisticDataForTransactionThreadPreview ??= jest.fn();
+    return {
+        ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
+        setOptimisticDataForTransactionThreadPreview: mockSetOptimisticDataForTransactionThreadPreview,
+    };
+});
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const adminAccountID = 18439984;
