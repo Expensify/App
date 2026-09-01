@@ -9902,8 +9902,7 @@ describe('createDistanceRequest', () => {
         });
         await waitForBatchedUpdates();
 
-        // The flag has to follow the report the transaction lands on. Writing it to the report the caller was looking at
-        // leaves it where no consumer can claim it, which is what keeping the single writer inside the builder prevents.
+        // The flag has to follow the report the transaction lands on. On the report the caller was looking at, no consumer can claim it.
         const callerReportMetadata = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}789`);
         expect(Object.keys(callerReportMetadata?.pendingNewTransactionIDs ?? {})).toEqual([]);
     });

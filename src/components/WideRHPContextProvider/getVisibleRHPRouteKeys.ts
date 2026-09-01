@@ -20,7 +20,7 @@ const emptyRHPKeysState: VisibleRHPKeys = {
  * holds a width. Callers must record `presentRouteKeys` so `seenRouteKeys` can tell those apart.
  */
 function getVisibleRHPKeys(state: NavigationState | undefined, allWideRHPKeys: string[], allSuperWideRHPKeys: string[], seenRouteKeys: ReadonlySet<string>): VisibleRHPKeys {
-    // Nothing registered is the common case, and it needs no traversal of a tree whose keys nothing will be matched against.
+    // Nothing registered is the common case, and there is then no key to match the tree against.
     if (!state || (!allWideRHPKeys.length && !allSuperWideRHPKeys.length)) {
         return emptyRHPKeysState;
     }

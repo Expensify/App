@@ -163,7 +163,6 @@ describe('useAnimatedHighlightStyle', () => {
         setShouldHighlight(true);
         expect(revealPlays()).toBe(1);
         expect(entryPlays()).toBe(0);
-        // The row is visible on a wide pane, so the outstanding pulse plays rather than waiting for a focus that need not come.
         expect(pulsePlays()).toBe(1);
     });
 

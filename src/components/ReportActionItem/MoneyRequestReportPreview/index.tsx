@@ -153,7 +153,7 @@ function MoneyRequestReportPreview({
     }
     const transactionsForDiff = isDeliveryComplete || hasCompletedDelivery ? transactions : undefined;
     // Don't surface the highlight while the preview is covered — it'd animate the one-shot off-screen and be missed.
-    // A modal pane can be covered at any width, so this ignores the wide-RHP adjustment the styles use.
+    // A modal pane can be covered at any width, so this reads the flag unadjusted for wide RHP.
     const isReportVisible = useIsReportVisible(shouldUseNarrowLayoutIgnoringWideRHP);
     const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactionsForDiff, pendingNewTransactionIDs, chatReportID, isReportVisible);
     const newTransactionIDs = new Set(isReportVisible ? newTransactions.map((transaction) => transaction.transactionID) : []);

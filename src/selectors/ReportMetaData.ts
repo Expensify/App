@@ -43,9 +43,8 @@ type PendingNewTransactions = {
 };
 
 /**
- * Keyed on the flag record, so an unrelated metadata write reuses the classification instead of re-running it.
- * Freshness is therefore sampled when the record changes, not on every read. That is the intended bound: the window
- * exists to drop a flag no consumer ever saw, and must not expire one under a consumer that is deferring it.
+ * Reuses the result object when the classification is unchanged, so an unrelated write to this key does not re-render subscribers.
+ * The window is applied only when the selector runs, never on a timer, so a flag can be swept late or expire while a consumer is still deferring it.
  */
 const lastPendingNewTransactions = new WeakMap<Record<string, true | null>, PendingNewTransactions>();
 

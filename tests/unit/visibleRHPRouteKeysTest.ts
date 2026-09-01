@@ -59,7 +59,7 @@ describe('getVisibleRHPKeys', () => {
     });
 
     it('does not hold a registered screen the RHP is simply not displaying', () => {
-        // 'wideKey' is still in the stack under the super-wide screen, so it is on screen or not on its own merits, never held.
+        // 'wideKey' is still in the stack under the super-wide screen, so it is judged on its own and never held.
         const state = buildRootState([reportsSplit, rhpWithChildren(['wideKey', 'superWideKey'])]);
 
         expect(visibleKeys(state, ['wideKey'], ['superWideKey'])).toEqual({visibleWideRHPRouteKeys: [], visibleSuperWideRHPRouteKeys: ['superWideKey']});

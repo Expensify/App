@@ -28,7 +28,7 @@ function useRHPWidth(width: RHPWidth) {
 
     const onClose = useEffectEvent(() => {
         removeRHPRouteKey(route);
-        // Clears a hint no screen consumed, deferred past this commit so a screen replacing this one gets it first.
+        // Clears a hint no screen consumed, deferred so a replacement mounting in this same commit consumes it first.
         if (reportID) {
             Promise.resolve().then(() => unmarkReportRHPWidth(reportID));
         }
@@ -50,7 +50,7 @@ function useRHPWidth(width: RHPWidth) {
                 unmarkReportRHPWidth(reportID, floor);
             }
         } else if (reportID) {
-            // A hint standing for the report this screen already shows describes a navigation that never happened, so it can only mislead a later mount.
+            // A hint standing for the report this screen already shows cannot be consumed by it, so it is cleared rather than left to mislead a later mount.
             const strayHint = getReportRHPWidthHint(reportID);
             if (strayHint) {
                 unmarkReportRHPWidth(reportID, strayHint);

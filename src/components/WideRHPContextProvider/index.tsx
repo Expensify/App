@@ -187,9 +187,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         setVisibleRHPRouteKeysSnapshot(visibleWideRHPRouteKeys, visibleSuperWideRHPRouteKeys);
     }, [visibleWideRHPRouteKeys, visibleSuperWideRHPRouteKeys]);
 
-    /**
-     * Effect that resets the module-level snapshot and width on teardown, since both outlive the provider and would otherwise answer for the next session.
-     */
+    // Both outlive the provider, so without this they would answer for the next session.
     useEffect(
         () => () => {
             setVisibleRHPRouteKeysSnapshot(NO_VISIBLE_RHP_ROUTE_KEYS, NO_VISIBLE_RHP_ROUTE_KEYS);
@@ -221,7 +219,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
      */
     const shouldRenderTertiaryOverlay = useShouldRenderOverlay(isRHPFocused && isWideRHPBelow && isSuperWideRHPBelow, thirdOverlayProgress);
 
-    /** Removes the route's registration. Used on screen unmount. */
     const removeRHPRouteKey = (route: NavigationRoute) => {
         if (!route.key) {
             console.error(`The route passed to removeRHPRouteKey should have the "key" property defined.`);
@@ -231,7 +228,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         setRHPWidthRegistrations((previousRegistrations) => registerRHPRouteWidth(previousRegistrations, routeKey, 'narrow'));
     };
 
-    /** Single entry point for setting a route's RHP width, in one atomic write. */
     const setRHPWidth = (route: NavigationRoute, width: RHPWidth) => {
         if (!route.key) {
             console.error(`The route passed to setRHPWidth should have the "key" property defined.`);

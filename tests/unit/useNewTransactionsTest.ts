@@ -27,7 +27,7 @@ jest.mock('@libs/actions/IOU/PendingNewTransactions', () => ({
     deletePendingNewTransactionIDs: jest.fn(),
 }));
 
-// We need to mock requestAnimationFrame to mimic long Onyx merge overhead, returning a handle so a cancelled frame really is cancelled.
+// Mimics long Onyx merge overhead, returning a handle so a cancelled frame really is cancelled.
 jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback: FrameRequestCallback) =>
     Number(
         setTimeout(() => {
@@ -795,14 +795,12 @@ describe('useNewTransactions with a covered report', () => {
             rerender({transactions: [...transactionsAlreadyInReport, txG, txH]});
             expect(result.current).toEqual([txG, txH]);
 
-            // One of the two is deleted most of the way through the window the pair was given.
             act(() => {
                 jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_DELETION_DELAY - 100);
             });
             rerender({transactions: [...transactionsAlreadyInReport, txH]});
             expect(result.current).toEqual([txH]);
 
-            // The survivor keeps the remainder of that window rather than being handed a fresh one.
             act(() => {
                 jest.advanceTimersByTime(100);
             });
@@ -1199,7 +1197,6 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
         rerender({hasOnceLoadedReportActions: true, reportID: 'report2', transactions: [txA]});
         rerender({hasOnceLoadedReportActions: false, reportID: 'report2', transactions: []});
 
-        // report2 then loads and hydrates in the two merges Onyx usually delivers.
         rerender({hasOnceLoadedReportActions: true, reportID: 'report2', transactions: [txB]});
         rerender({hasOnceLoadedReportActions: true, reportID: 'report2', transactions: [txB, txC]});
         expect(result.current).toEqual([]);

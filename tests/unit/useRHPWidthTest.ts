@@ -56,7 +56,6 @@ describe('useRHPWidth', () => {
         const {setWidth} = renderHarness('wide');
         expect(lastRegisteredWidth()).toBe('super-wide');
 
-        // The hint is gone from the provider now, and the screen's own data still says 'wide'.
         mockGetReportRHPWidthHint.mockReturnValue(undefined);
         setWidth('wide');
 
