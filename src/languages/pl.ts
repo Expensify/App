@@ -1636,6 +1636,35 @@ const translations: TranslationDeepObject<typeof en> = {
             allTransactionsPendingMarkAsDoneDescription: 'Nie możesz oznaczyć tego raportu jako wykonanego, ponieważ wszystkie transakcje są w toku. Zaksięgowanie ich może zająć kilka dni.',
             allExpensesOnHoldDescription: 'Nie możesz przesłać tego raportu, ponieważ wszystkie wydatki są wstrzymane. Usuń wstrzymanie, aby przesłać.',
             allExpensesOnHoldMarkAsDoneDescription: 'Nie możesz oznaczyć tego raportu jako wykonanego, ponieważ wszystkie wydatki są wstrzymane. Usuń wstrzymanie, aby kontynuować.',
+            unableToSubmitSomeReports: 'Nie można przesłać niektórych raportów',
+            unableToMarkSomeReportsAsDone: 'Nie można oznaczyć niektórych raportów jako wykonanych',
+            someReportsOnHoldDescription: () => ({
+                one: 'Nie można przesłać 1 z wybranych raportów, ponieważ wszystkie jego wydatki są wstrzymane. Przesłać pozostałe raporty?',
+                other: (count: number) => `Nie można przesłać ${count} z wybranych raportów, ponieważ wszystkie ich wydatki są wstrzymane. Przesłać pozostałe raporty?`,
+            }),
+            someReportsOnHoldMarkAsDoneDescription: () => ({
+                one: 'Nie można oznaczyć 1 z wybranych raportów jako wykonanego, ponieważ wszystkie jego wydatki są wstrzymane. Oznaczyć pozostałe raporty jako wykonane?',
+                other: (count: number) =>
+                    `Nie można oznaczyć ${count} z wybranych raportów jako wykonanych, ponieważ wszystkie ich wydatki są wstrzymane. Oznaczyć pozostałe raporty jako wykonane?`,
+            }),
+            someReportsPendingDescription: () => ({
+                one: 'Nie można przesłać 1 z wybranych raportów, ponieważ wszystkie jego transakcje są w toku. Przesłać pozostałe raporty?',
+                other: (count: number) => `Nie można przesłać ${count} z wybranych raportów, ponieważ wszystkie ich transakcje są w toku. Przesłać pozostałe raporty?`,
+            }),
+            someReportsPendingMarkAsDoneDescription: () => ({
+                one: 'Nie można oznaczyć 1 z wybranych raportów jako wykonanego, ponieważ wszystkie jego transakcje są w toku. Oznaczyć pozostałe raporty jako wykonane?',
+                other: (count: number) =>
+                    `Nie można oznaczyć ${count} z wybranych raportów jako wykonanych, ponieważ wszystkie ich transakcje są w toku. Oznaczyć pozostałe raporty jako wykonane?`,
+            }),
+            someReportsOnHoldOrPendingDescription: () => ({
+                one: 'Nie można przesłać 1 z wybranych raportów, ponieważ wszystkie jego wydatki są wstrzymane lub w toku. Przesłać pozostałe raporty?',
+                other: (count: number) => `Nie można przesłać ${count} z wybranych raportów, ponieważ wszystkie ich wydatki są wstrzymane lub w toku. Przesłać pozostałe raporty?`,
+            }),
+            someReportsOnHoldOrPendingMarkAsDoneDescription: () => ({
+                one: 'Nie można oznaczyć 1 z wybranych raportów jako wykonanego, ponieważ wszystkie jego wydatki są wstrzymane lub w toku. Oznaczyć pozostałe raporty jako wykonane?',
+                other: (count: number) =>
+                    `Nie można oznaczyć ${count} z wybranych raportów jako wykonanych, ponieważ wszystkie ich wydatki są wstrzymane lub w toku. Oznaczyć pozostałe raporty jako wykonane?`,
+            }),
             stitchOdometerImagesFailed: 'Nie udało się połączyć zdjęć licznika kilometrów. Spróbuj ponownie później.',
             failedToSaveOdometerDraft: 'Nie udało się zapisać Twojego szkicu licznika przebiegu. Spróbuj ponownie.',
         },

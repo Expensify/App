@@ -1613,6 +1613,36 @@ const translations: TranslationDeepObject<typeof en> = {
                 'Sie können diesen Bericht nicht als erledigt markieren, weil alle Transaktionen ausstehen. Es kann einige Tage dauern, bis sie gebucht werden.',
             allExpensesOnHoldDescription: 'Sie können diesen Bericht nicht einreichen, da alle Ausgaben angehalten wurden. Entfernen Sie die Sperre, um ihn einzureichen.',
             allExpensesOnHoldMarkAsDoneDescription: 'Sie können diesen Bericht nicht als erledigt markieren, da alle Ausgaben angehalten wurden. Entfernen Sie die Sperre, um fortzufahren.',
+            unableToSubmitSomeReports: 'Einige Berichte können nicht eingereicht werden',
+            unableToMarkSomeReportsAsDone: 'Einige Berichte können nicht als erledigt markiert werden',
+            someReportsOnHoldDescription: () => ({
+                one: '1 der ausgewählten Berichte kann nicht eingereicht werden, da alle seine Ausgaben angehalten wurden. Die übrigen Berichte einreichen?',
+                other: (count: number) => `${count} der ausgewählten Berichte können nicht eingereicht werden, da alle ihre Ausgaben angehalten wurden. Die übrigen Berichte einreichen?`,
+            }),
+            someReportsOnHoldMarkAsDoneDescription: () => ({
+                one: '1 der ausgewählten Berichte kann nicht als erledigt markiert werden, da alle seine Ausgaben angehalten wurden. Die übrigen Berichte als erledigt markieren?',
+                other: (count: number) =>
+                    `${count} der ausgewählten Berichte können nicht als erledigt markiert werden, da alle ihre Ausgaben angehalten wurden. Die übrigen Berichte als erledigt markieren?`,
+            }),
+            someReportsPendingDescription: () => ({
+                one: '1 der ausgewählten Berichte kann nicht eingereicht werden, da alle seine Transaktionen ausstehen. Die übrigen Berichte einreichen?',
+                other: (count: number) => `${count} der ausgewählten Berichte können nicht eingereicht werden, da alle ihre Transaktionen ausstehen. Die übrigen Berichte einreichen?`,
+            }),
+            someReportsPendingMarkAsDoneDescription: () => ({
+                one: '1 der ausgewählten Berichte kann nicht als erledigt markiert werden, da alle seine Transaktionen ausstehen. Die übrigen Berichte als erledigt markieren?',
+                other: (count: number) =>
+                    `${count} der ausgewählten Berichte können nicht als erledigt markiert werden, da alle ihre Transaktionen ausstehen. Die übrigen Berichte als erledigt markieren?`,
+            }),
+            someReportsOnHoldOrPendingDescription: () => ({
+                one: '1 der ausgewählten Berichte kann nicht eingereicht werden, da alle seine Ausgaben angehalten wurden oder ausstehen. Die übrigen Berichte einreichen?',
+                other: (count: number) =>
+                    `${count} der ausgewählten Berichte können nicht eingereicht werden, da alle ihre Ausgaben angehalten wurden oder ausstehen. Die übrigen Berichte einreichen?`,
+            }),
+            someReportsOnHoldOrPendingMarkAsDoneDescription: () => ({
+                one: '1 der ausgewählten Berichte kann nicht als erledigt markiert werden, da alle seine Ausgaben angehalten wurden oder ausstehen. Die übrigen Berichte als erledigt markieren?',
+                other: (count: number) =>
+                    `${count} der ausgewählten Berichte können nicht als erledigt markiert werden, da alle ihre Ausgaben angehalten wurden oder ausstehen. Die übrigen Berichte als erledigt markieren?`,
+            }),
             stitchOdometerImagesFailed: 'Kilometerzählerbilder konnten nicht zusammengeführt werden. Bitte versuchen Sie es später noch einmal.',
             failedToSaveOdometerDraft: 'Dein Kilometerzähler-Entwurf konnte nicht gespeichert werden. Bitte versuche es erneut.',
         },

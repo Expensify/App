@@ -1619,6 +1619,38 @@ const translations: TranslationDeepObject<typeof en> = {
             allExpensesOnHoldDescription: 'Vous ne pouvez pas soumettre cette note de frais, car toutes les dépenses sont en attente. Supprimez le blocage pour soumettre.',
             allExpensesOnHoldMarkAsDoneDescription:
                 'Vous ne pouvez pas marquer cette note de frais comme terminée, car toutes les dépenses sont en attente. Supprimez le blocage pour continuer.',
+            unableToSubmitSomeReports: 'Impossible de soumettre certaines notes de frais',
+            unableToMarkSomeReportsAsDone: 'Impossible de marquer certaines notes de frais comme terminées',
+            someReportsOnHoldDescription: () => ({
+                one: '1 des notes de frais sélectionnées ne peut pas être soumise, car toutes ses dépenses sont bloquées. Soumettre les notes de frais restantes ?',
+                other: (count: number) =>
+                    `${count} des notes de frais sélectionnées ne peuvent pas être soumises, car toutes leurs dépenses sont bloquées. Soumettre les notes de frais restantes ?`,
+            }),
+            someReportsOnHoldMarkAsDoneDescription: () => ({
+                one: '1 des notes de frais sélectionnées ne peut pas être marquée comme terminée, car toutes ses dépenses sont bloquées. Marquer les notes de frais restantes comme terminées ?',
+                other: (count: number) =>
+                    `${count} des notes de frais sélectionnées ne peuvent pas être marquées comme terminées, car toutes leurs dépenses sont bloquées. Marquer les notes de frais restantes comme terminées ?`,
+            }),
+            someReportsPendingDescription: () => ({
+                one: '1 des notes de frais sélectionnées ne peut pas être soumise, car toutes ses transactions sont en attente. Soumettre les notes de frais restantes ?',
+                other: (count: number) =>
+                    `${count} des notes de frais sélectionnées ne peuvent pas être soumises, car toutes leurs transactions sont en attente. Soumettre les notes de frais restantes ?`,
+            }),
+            someReportsPendingMarkAsDoneDescription: () => ({
+                one: '1 des notes de frais sélectionnées ne peut pas être marquée comme terminée, car toutes ses transactions sont en attente. Marquer les notes de frais restantes comme terminées ?',
+                other: (count: number) =>
+                    `${count} des notes de frais sélectionnées ne peuvent pas être marquées comme terminées, car toutes leurs transactions sont en attente. Marquer les notes de frais restantes comme terminées ?`,
+            }),
+            someReportsOnHoldOrPendingDescription: () => ({
+                one: '1 des notes de frais sélectionnées ne peut pas être soumise, car toutes ses dépenses sont bloquées ou en attente. Soumettre les notes de frais restantes ?',
+                other: (count: number) =>
+                    `${count} des notes de frais sélectionnées ne peuvent pas être soumises, car toutes leurs dépenses sont bloquées ou en attente. Soumettre les notes de frais restantes ?`,
+            }),
+            someReportsOnHoldOrPendingMarkAsDoneDescription: () => ({
+                one: '1 des notes de frais sélectionnées ne peut pas être marquée comme terminée, car toutes ses dépenses sont bloquées ou en attente. Marquer les notes de frais restantes comme terminées ?',
+                other: (count: number) =>
+                    `${count} des notes de frais sélectionnées ne peuvent pas être marquées comme terminées, car toutes leurs dépenses sont bloquées ou en attente. Marquer les notes de frais restantes comme terminées ?`,
+            }),
             stitchOdometerImagesFailed: 'Échec de la combinaison des images de l’odomètre. Veuillez réessayer plus tard.',
             failedToSaveOdometerDraft: 'Impossible d’enregistrer votre brouillon de compteur kilométrique. Veuillez réessayer.',
         },

@@ -1607,6 +1607,36 @@ const translations: TranslationDeepObject<typeof en> = {
                 'Você não pode marcar este relatório como concluído porque todas as transações estão pendentes. Elas podem levar alguns dias para serem lançadas.',
             allExpensesOnHoldDescription: 'Você não pode enviar este relatório porque todas as despesas estão em espera. Remova a espera para enviar.',
             allExpensesOnHoldMarkAsDoneDescription: 'Você não pode marcar este relatório como concluído porque todas as despesas estão em espera. Remova a espera para continuar.',
+            unableToSubmitSomeReports: 'Não foi possível enviar alguns relatórios',
+            unableToMarkSomeReportsAsDone: 'Não foi possível marcar alguns relatórios como concluídos',
+            someReportsOnHoldDescription: () => ({
+                one: '1 dos relatórios selecionados não pode ser enviado porque todas as suas despesas estão em espera. Enviar os relatórios restantes?',
+                other: (count: number) => `${count} dos relatórios selecionados não podem ser enviados porque todas as suas despesas estão em espera. Enviar os relatórios restantes?`,
+            }),
+            someReportsOnHoldMarkAsDoneDescription: () => ({
+                one: '1 dos relatórios selecionados não pode ser marcado como concluído porque todas as suas despesas estão em espera. Marcar os relatórios restantes como concluídos?',
+                other: (count: number) =>
+                    `${count} dos relatórios selecionados não podem ser marcados como concluídos porque todas as suas despesas estão em espera. Marcar os relatórios restantes como concluídos?`,
+            }),
+            someReportsPendingDescription: () => ({
+                one: '1 dos relatórios selecionados não pode ser enviado porque todas as suas transações estão pendentes. Enviar os relatórios restantes?',
+                other: (count: number) => `${count} dos relatórios selecionados não podem ser enviados porque todas as suas transações estão pendentes. Enviar os relatórios restantes?`,
+            }),
+            someReportsPendingMarkAsDoneDescription: () => ({
+                one: '1 dos relatórios selecionados não pode ser marcado como concluído porque todas as suas transações estão pendentes. Marcar os relatórios restantes como concluídos?',
+                other: (count: number) =>
+                    `${count} dos relatórios selecionados não podem ser marcados como concluídos porque todas as suas transações estão pendentes. Marcar os relatórios restantes como concluídos?`,
+            }),
+            someReportsOnHoldOrPendingDescription: () => ({
+                one: '1 dos relatórios selecionados não pode ser enviado porque todas as suas despesas estão em espera ou pendentes. Enviar os relatórios restantes?',
+                other: (count: number) =>
+                    `${count} dos relatórios selecionados não podem ser enviados porque todas as suas despesas estão em espera ou pendentes. Enviar os relatórios restantes?`,
+            }),
+            someReportsOnHoldOrPendingMarkAsDoneDescription: () => ({
+                one: '1 dos relatórios selecionados não pode ser marcado como concluído porque todas as suas despesas estão em espera ou pendentes. Marcar os relatórios restantes como concluídos?',
+                other: (count: number) =>
+                    `${count} dos relatórios selecionados não podem ser marcados como concluídos porque todas as suas despesas estão em espera ou pendentes. Marcar os relatórios restantes como concluídos?`,
+            }),
             stitchOdometerImagesFailed: 'Falha ao combinar imagens do hodômetro. Tente novamente mais tarde.',
             failedToSaveOdometerDraft: 'Não foi possível salvar seu rascunho do hodômetro. Tente novamente.',
         },

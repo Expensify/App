@@ -1591,6 +1591,32 @@ const translations: TranslationDeepObject<typeof en> = {
             allTransactionsPendingMarkAsDoneDescription: 'すべての取引が保留中のため、このレポートを完了にできません。反映されるまでに数日かかる場合があります。',
             allExpensesOnHoldDescription: 'すべての経費が保留中のため、このレポートを送信できません。送信するには、保留を解除してください。',
             allExpensesOnHoldMarkAsDoneDescription: 'すべての経費が保留中のため、このレポートを完了にできません。続行するには、保留を解除してください。',
+            unableToSubmitSomeReports: '一部のレポートを送信できません',
+            unableToMarkSomeReportsAsDone: '一部のレポートを完了にできません',
+            someReportsOnHoldDescription: () => ({
+                one: '選択したレポートのうち1件は、すべての経費が保留中のため送信できません。残りのレポートを送信しますか？',
+                other: (count: number) => `選択したレポートのうち${count}件は、すべての経費が保留中のため送信できません。残りのレポートを送信しますか？`,
+            }),
+            someReportsOnHoldMarkAsDoneDescription: () => ({
+                one: '選択したレポートのうち1件は、すべての経費が保留中のため完了にできません。残りのレポートを完了にしますか？',
+                other: (count: number) => `選択したレポートのうち${count}件は、すべての経費が保留中のため完了にできません。残りのレポートを完了にしますか？`,
+            }),
+            someReportsPendingDescription: () => ({
+                one: '選択したレポートのうち1件は、すべての取引が保留中のため送信できません。残りのレポートを送信しますか？',
+                other: (count: number) => `選択したレポートのうち${count}件は、すべての取引が保留中のため送信できません。残りのレポートを送信しますか？`,
+            }),
+            someReportsPendingMarkAsDoneDescription: () => ({
+                one: '選択したレポートのうち1件は、すべての取引が保留中のため完了にできません。残りのレポートを完了にしますか？',
+                other: (count: number) => `選択したレポートのうち${count}件は、すべての取引が保留中のため完了にできません。残りのレポートを完了にしますか？`,
+            }),
+            someReportsOnHoldOrPendingDescription: () => ({
+                one: '選択したレポートのうち1件は、すべての経費が保留中または処理待ちのため送信できません。残りのレポートを送信しますか？',
+                other: (count: number) => `選択したレポートのうち${count}件は、すべての経費が保留中または処理待ちのため送信できません。残りのレポートを送信しますか？`,
+            }),
+            someReportsOnHoldOrPendingMarkAsDoneDescription: () => ({
+                one: '選択したレポートのうち1件は、すべての経費が保留中または処理待ちのため完了にできません。残りのレポートを完了にしますか？',
+                other: (count: number) => `選択したレポートのうち${count}件は、すべての経費が保留中または処理待ちのため完了にできません。残りのレポートを完了にしますか？`,
+            }),
             stitchOdometerImagesFailed: '走行距離計の画像を結合できませんでした。後でもう一度お試しください。',
             failedToSaveOdometerDraft: 'オドメーターの下書きを保存できませんでした。もう一度お試しください。',
         },

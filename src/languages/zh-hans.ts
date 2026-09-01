@@ -1548,6 +1548,32 @@ const translations: TranslationDeepObject<typeof en> = {
             allTransactionsPendingMarkAsDoneDescription: '您无法将此报表标记为完成，因为所有交易都在待处理。它们可能需要几天时间才会入账。',
             allExpensesOnHoldDescription: '你无法提交此报表，因为所有费用都已被暂挂。请取消暂挂后再提交。',
             allExpensesOnHoldMarkAsDoneDescription: '你无法将此报表标记为完成，因为所有费用都已被暂挂。请取消暂挂后再继续。',
+            unableToSubmitSomeReports: '无法提交部分报表',
+            unableToMarkSomeReportsAsDone: '无法将部分报表标记为完成',
+            someReportsOnHoldDescription: () => ({
+                one: '所选报表中有 1 份无法提交，因为其所有费用都已被暂挂。要提交其余报表吗？',
+                other: (count: number) => `所选报表中有 ${count} 份无法提交，因为其所有费用都已被暂挂。要提交其余报表吗？`,
+            }),
+            someReportsOnHoldMarkAsDoneDescription: () => ({
+                one: '所选报表中有 1 份无法标记为完成，因为其所有费用都已被暂挂。要将其余报表标记为完成吗？',
+                other: (count: number) => `所选报表中有 ${count} 份无法标记为完成，因为其所有费用都已被暂挂。要将其余报表标记为完成吗？`,
+            }),
+            someReportsPendingDescription: () => ({
+                one: '所选报表中有 1 份无法提交，因为其所有交易都在待处理。要提交其余报表吗？',
+                other: (count: number) => `所选报表中有 ${count} 份无法提交，因为其所有交易都在待处理。要提交其余报表吗？`,
+            }),
+            someReportsPendingMarkAsDoneDescription: () => ({
+                one: '所选报表中有 1 份无法标记为完成，因为其所有交易都在待处理。要将其余报表标记为完成吗？',
+                other: (count: number) => `所选报表中有 ${count} 份无法标记为完成，因为其所有交易都在待处理。要将其余报表标记为完成吗？`,
+            }),
+            someReportsOnHoldOrPendingDescription: () => ({
+                one: '所选报表中有 1 份无法提交，因为其所有费用都已被暂挂或在待处理。要提交其余报表吗？',
+                other: (count: number) => `所选报表中有 ${count} 份无法提交，因为其所有费用都已被暂挂或在待处理。要提交其余报表吗？`,
+            }),
+            someReportsOnHoldOrPendingMarkAsDoneDescription: () => ({
+                one: '所选报表中有 1 份无法标记为完成，因为其所有费用都已被暂挂或在待处理。要将其余报表标记为完成吗？',
+                other: (count: number) => `所选报表中有 ${count} 份无法标记为完成，因为其所有费用都已被暂挂或在待处理。要将其余报表标记为完成吗？`,
+            }),
             stitchOdometerImagesFailed: '合并里程表图片失败。请稍后重试。',
             failedToSaveOdometerDraft: '无法保存你的里程表草稿。请重试。',
         },
