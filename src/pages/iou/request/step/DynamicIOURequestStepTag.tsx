@@ -61,6 +61,8 @@ function DynamicIOURequestStepTag({
 }: DynamicIOURequestStepTagProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAG.path);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    // The stored violations seed the optimistic recompute, which writes the whole key back.
+    const [storedTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
@@ -185,6 +187,7 @@ function DynamicIOURequestStepTag({
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
+                violations: storedTransactionViolations,
                 getCurrencyDecimals,
                 getCurrencySymbol,
             });

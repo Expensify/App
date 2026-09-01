@@ -9,7 +9,6 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useReportOwnerAsAttendee from '@hooks/useReportOwnerAsAttendee';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
-import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import {setMoneyRequestAttendees} from '@libs/actions/IOU/MoneyRequest';
 import {updateMoneyRequestAttendees} from '@libs/actions/IOU/UpdateMoneyRequest';
@@ -61,7 +60,9 @@ function DynamicIOURequestStepAttendees({
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const transactionViolations = useTransactionViolations(transactionID);
+    // The optimistic recompute writes the whole violations key back, so it must be seeded with the stored list.
+    // A per-viewer filtered list would delete whatever this viewer cannot see.
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
