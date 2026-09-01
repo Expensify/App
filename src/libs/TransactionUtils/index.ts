@@ -2457,7 +2457,8 @@ function hasNoticeTypeViolation(
         (violation: TransactionViolation) =>
             violation.type === CONST.VIOLATION_TYPES.NOTICE &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy),
+            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy) &&
+            shouldShowViolation(iouReport, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction),
     );
 }
 
@@ -3257,6 +3258,15 @@ function isTransactionPendingDelete(transaction: OnyxEntry<Transaction>): boolea
 }
 
 /**
+ * Whether a transaction should light the SmartScan-fields RBR red-dot.
+ * A transaction queued for deletion still lives in Onyx until the server confirms removal, so it must
+ * not keep lighting the RBR while it waits.
+ */
+function hasMissingSmartscanFieldsForRBR(transaction: OnyxEntry<Transaction>, report: OnyxEntry<Report>): boolean {
+    return !isTransactionPendingDelete(transaction) && hasMissingSmartscanFields(transaction, report);
+}
+
+/**
  * Retrieves all "child" transactions associated with a given original transaction.
  */
 function getChildTransactions(transactions: OnyxCollection<Transaction>, originalTransactionID: string | undefined) {
@@ -3643,6 +3653,7 @@ export {
     isCreatedMissing,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
+    hasMissingSmartscanFieldsForRBR,
     hasPendingRTERViolation,
     getBrokenConnectionViolation,
     hasAnyPendingRTERViolation,

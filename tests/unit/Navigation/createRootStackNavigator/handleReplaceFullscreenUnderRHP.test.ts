@@ -94,13 +94,17 @@ function makeRHPRoute(): TestRoute {
  * Pass `undefined` for workspaceNavNestedRoutes to model a WORKSPACE_NAVIGATOR that was never
  * mounted (no nested state) — e.g. a workspace created from Inbox.
  */
-function makeExistingState(workspaceNavNestedRoutes: PartialState<NavigationState>['routes'] | undefined, workspaceNavIndex = 0): StackNavigationState<ParamListBase> {
+function makeExistingState(
+    workspaceNavNestedRoutes: PartialState<NavigationState>['routes'] | undefined,
+    workspaceNavIndex = 0,
+    tabParams?: Record<string, unknown>,
+): StackNavigationState<ParamListBase> {
     const workspaceNavRoute = {
         key: 'workspace-nav-key',
         name: NAVIGATORS.WORKSPACE_NAVIGATOR,
         ...(workspaceNavNestedRoutes ? {state: {index: workspaceNavIndex, routes: workspaceNavNestedRoutes}} : {}),
     };
-    const tabNavRoute = makeRoute(NAVIGATORS.TAB_NAVIGATOR, undefined, {index: 0, routes: [workspaceNavRoute]}, 'tab-nav-key');
+    const tabNavRoute = makeRoute(NAVIGATORS.TAB_NAVIGATOR, tabParams, {index: 0, routes: [workspaceNavRoute]}, 'tab-nav-key');
     return makeStackState([tabNavRoute, makeRHPRoute()]);
 }
 
@@ -178,8 +182,28 @@ function getWorkspaceNavInnerRoutes(result: StackNavigationState<ParamListBase> 
         listKey: list?.key,
         listParams: list?.params,
         navigatorKey: workspaceNav?.key,
+        splitParams: workspaceNavState?.routes?.find((r) => r.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR)?.params,
+        tabParams: tabRoute?.params,
     };
 }
+
+const staleDistanceRatesDeepLinkParams = {
+    screen: NAVIGATORS.WORKSPACE_NAVIGATOR,
+    params: {
+        screen: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+        params: {
+            screen: SCREENS.WORKSPACE.DISTANCE_RATES,
+            params: {policyID: 'OLD'},
+        },
+    },
+};
+
+const staleLongFormDeepLinkParams = {
+    state: {
+        index: 0,
+        routes: [{name: NAVIGATORS.WORKSPACE_NAVIGATOR}],
+    },
+};
 
 beforeEach(() => {
     clearPreInsertedOriginalTabRoute();
@@ -376,6 +400,50 @@ describe('handleReplaceFullscreenUnderRHP — WORKSPACE_NAVIGATOR seeding', () =
         expect(index).toBe(1);
         // The stale split between the list and the new split is dropped, and the list is reseeded keyless.
         expect(listKey).toBeUndefined();
+    });
+
+    it('removes stale distance-settings deep-link hints when revealing a newly created workspace', () => {
+        mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
+        const existing = makeExistingState([makeRoute(SCREENS.WORKSPACES_LIST), makeRoute(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {policyID: 'OLD'})], 1, staleDistanceRatesDeepLinkParams);
+        const result = handleReplaceFullscreenUnderRHP(existing, makeAction(), CONFIG_OPTIONS, stackRouter);
+
+        const {splitParams, tabParams} = getWorkspaceNavInnerRoutes(result);
+        expect(splitParams).toEqual({policyID: 'NEW'});
+        expect(tabParams).toBeUndefined();
+    });
+
+    it('removes a stale long-form deep-link hint when revealing a newly created workspace', () => {
+        mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
+        const existing = makeExistingState([makeRoute(SCREENS.WORKSPACES_LIST), makeRoute(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {policyID: 'OLD'})], 1, staleLongFormDeepLinkParams);
+        const result = handleReplaceFullscreenUnderRHP(existing, makeAction(), CONFIG_OPTIONS, stackRouter);
+
+        const {splitParams, tabParams} = getWorkspaceNavInnerRoutes(result);
+        expect(splitParams).toEqual({policyID: 'NEW'});
+        expect(tabParams).toBeUndefined();
+    });
+
+    it('does not replay stale distance-settings hints across repeated workspace creation', () => {
+        mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
+        const firstResult = handleReplaceFullscreenUnderRHP(
+            makeExistingState([makeRoute(SCREENS.WORKSPACES_LIST), makeRoute(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {policyID: 'OLD'})], 1, staleDistanceRatesDeepLinkParams),
+            makeAction(),
+            CONFIG_OPTIONS,
+            stackRouter,
+        );
+        expect(getWorkspaceNavInnerRoutes(firstResult).tabParams).toBeUndefined();
+
+        const stateBeforeSecondCreate = makeExistingState(
+            [makeRoute(SCREENS.WORKSPACES_LIST), makeRoute(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {policyID: 'NEW'})],
+            1,
+            staleDistanceRatesDeepLinkParams,
+        );
+        mockStubbedParsedState = makeParsedState([{name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, params: {policyID: 'SECOND'}}]);
+
+        const secondResult = handleReplaceFullscreenUnderRHP(stateBeforeSecondCreate, makeAction(), CONFIG_OPTIONS, stackRouter);
+
+        const {splitParams, tabParams} = getWorkspaceNavInnerRoutes(secondResult);
+        expect(splitParams).toEqual({policyID: 'SECOND'});
+        expect(tabParams).toBeUndefined();
     });
 
     it('preserves the existing WORKSPACES_LIST params (e.g. backTo) on the freshly seeded sidebar', () => {
