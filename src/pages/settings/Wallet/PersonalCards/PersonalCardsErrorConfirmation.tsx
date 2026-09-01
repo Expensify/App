@@ -14,7 +14,12 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-function PersonalCardsErrorConfirmation({errorMessage}: {errorMessage?: string}) {
+type PersonalCardsErrorConfirmationProps = {
+    /** Backend-supplied bank connection error message to display */
+    errorMessage?: string;
+};
+
+function PersonalCardsErrorConfirmation({errorMessage}: PersonalCardsErrorConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['QuestionMark']);
