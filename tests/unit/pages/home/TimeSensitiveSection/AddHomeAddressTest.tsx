@@ -1,9 +1,16 @@
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
+
+import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
+import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import ONYXKEYS from '@src/ONYXKEYS';
+import AddHomeAddress from '@src/pages/home/TimeSensitiveSection/items/AddHomeAddress';
 import TimeSensitiveGroup from '@src/pages/home/TimeSensitiveSection/TimeSensitiveGroup';
 import useTimeSensitiveItems from '@src/pages/home/TimeSensitiveSection/useTimeSensitiveItems';
+import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
@@ -11,7 +18,18 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
+const mockRootState: ReturnType<typeof navigationRef.getRootState> = {
+    key: 'root',
+    index: 0,
+    routeNames: [],
+    routes: [],
+    type: 'stack',
+    stale: false,
+};
+
 jest.mock('@libs/Navigation/Navigation');
+
+jest.mock('@libs/Navigation/helpers/swapBackgroundTabForRHPTarget');
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
@@ -61,6 +79,20 @@ jest.mock('@hooks/useCardFeedErrors', () =>
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({login: 'test@example.com'})));
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLayout: false})));
+
+jest.mock('@hooks/useTheme', () => jest.fn(() => ({white: '#fff'})));
+
+jest.mock('@hooks/useThemeStyles', () =>
+    jest.fn(
+        () =>
+            new Proxy(
+                {},
+                {
+                    get: () => jest.fn(() => ({})),
+                },
+            ),
+    ),
+);
 
 function TimeSensitiveSection() {
     return <TimeSensitiveGroup items={useTimeSensitiveItems()} />;
@@ -112,5 +144,26 @@ describe('TimeSensitiveSection - AddHomeAddress', () => {
         renderTimeSensitiveSection();
 
         expect(screen.queryByText('homePage.timeSensitiveSection.addHomeAddress.title')).toBeNull();
+    });
+});
+
+describe('AddHomeAddress navigation', () => {
+    beforeEach(() => {
+        jest.mocked(Navigation.navigate).mockClear();
+        jest.mocked(swapBackgroundTabForRHPTarget).mockClear();
+        jest.spyOn(navigationRef, 'getRootState').mockReturnValue(mockRootState);
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    it('opens private personal details on top of the profile page', () => {
+        render(<AddHomeAddress />);
+
+        fireEvent.press(screen.getByText('homePage.timeSensitiveSection.addHomeAddress.cta'));
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
+        expect(swapBackgroundTabForRHPTarget).toHaveBeenCalledWith(mockRootState, ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
     });
 });
