@@ -81,9 +81,10 @@ jest.mock('@libs/actions/MultifactorAuthentication', () => ({
         mockRevokeCredentials(...args),
 }));
 
+const mockProductionServer = CONST.SERVER.PRODUCTION;
 jest.mock('@libs/ApiUtils', () => ({
     isQAServerActive: () => false,
-    getActiveServer: () => 'production',
+    getActiveServer: () => mockProductionServer,
     getCommandURL: () => 'https://test-api.expensify.com/api/Ping?',
 }));
 
