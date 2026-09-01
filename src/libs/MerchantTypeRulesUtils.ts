@@ -127,8 +127,12 @@ function getMerchantCodingRulesTableData({
         vendor: translate(isOnXero ? 'common.supplier' : 'common.vendor').toLowerCase(),
     };
 
+    // The whole rule goes when a category it sets is deleted. A deleted tax rate isn't borrowed here: the rule has
+    // other defaults to fall back on, so it isn't known to be removed with the rate.
+    const getPendingAction = (rule: CodingRule) => rule.pendingAction ?? getRuleDeletionPendingAction(policy, policyCategories, rule.category, undefined);
+
     return Object.entries(codingRules)
-        .filter(([, rule]) => !!rule && (isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
+        .filter(([, rule]) => !!rule && (isOffline || getPendingAction(rule) !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
         .map(([ruleID, rule]: [string, CodingRule]) => {
             const merchantName = rule.filters?.right ?? '';
             const hasOnlyMerchantRename =
@@ -177,9 +181,7 @@ function getMerchantCodingRulesTableData({
                 actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleBillable', rule.billable));
             }
             const ruleDescription = actions.map((action, index) => (index === 0 ? action : action.charAt(0).toLowerCase() + action.slice(1))).join(', ');
-            // The whole rule goes when a category it sets is deleted. A deleted tax rate isn't borrowed here: the rule
-            // has other defaults to fall back on, so it isn't known to be removed with the rate.
-            const pendingAction = rule.pendingAction ?? getRuleDeletionPendingAction(policy, policyCategories, rule.category, undefined);
+            const pendingAction = getPendingAction(rule);
 
             return {
                 keyForList: ruleID,
@@ -215,7 +217,7 @@ function getExpenseDefaultsTableData({
     isOffline: boolean;
     onNavigate: (route: Route) => void;
 }): ExpenseDefaultTableItem[] {
-    const categoryTaxRules = getCategoryTaxRulesTableData({policy, policyCategories, translate, onNavigate});
+    const categoryTaxRules = getCategoryTaxRulesTableData({policy, policyCategories, translate, isOffline, onNavigate});
     const merchantRules = getMerchantCodingRulesTableData({policy, policyID, policyCategories, translate, isOffline, onNavigate});
     const merchantTypeRules = getMerchantTypeRulesTableData({policy, translate, onNavigate});
 

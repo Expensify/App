@@ -84,11 +84,13 @@ function getCategoryTaxRulesTableData({
     policy,
     policyCategories,
     translate,
+    isOffline,
     onNavigate,
 }: {
     policy: Policy | undefined;
     policyCategories: PolicyCategories | undefined;
     translate: LocaleContextProps['translate'];
+    isOffline: boolean;
     onNavigate: (route: Route) => void;
 }): ExpenseDefaultTableItem[] {
     if (!policy?.id) {
@@ -98,32 +100,39 @@ function getCategoryTaxRulesTableData({
     const policyID = policy.id;
     const typeLabel = translate('workspace.rules.expenseDefaultsTable.update');
     const fieldLabel = translate('common.tax').toLowerCase();
+    // The rule is both its category and its tax rate, so deleting either one takes it down.
+    const getPendingAction = (rule: ExpenseRule) => getRuleDeletionPendingAction(policy, policyCategories, getRuleCategoryName(rule), rule.tax?.field_id_TAX?.externalID);
 
-    return getCategoryTaxRules(policy.rules?.expenseRules).map((rule) => {
-        // `getCategoryTaxRules` already dropped the rules without a category, so this is always set.
-        const categoryName = getRuleCategoryName(rule) ?? '';
-        const decodedCategoryName = getDecodedCategoryName(categoryName);
-        const taxID = rule.tax?.field_id_TAX?.externalID;
-        const taxDisplayName = getTaxRateDisplayName(policy, taxID);
-        const conditionText = translate('workspace.rules.expenseDefaultsTable.categoryIs', decodedCategoryName);
-        const ruleDescription = translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabel, taxDisplayName);
-        // The rule is both its category and its tax rate, so deleting either one takes it down.
-        const pendingAction = getRuleDeletionPendingAction(policy, policyCategories, categoryName, taxID);
+    return (
+        getCategoryTaxRules(policy.rules?.expenseRules)
+            // Online the delete resolves in a moment, so drop the row rather than flash it greyed. Offline it stays,
+            // styled as deleting, since there is nothing to wait for.
+            .filter((rule) => isOffline || getPendingAction(rule) !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .map((rule) => {
+                // `getCategoryTaxRules` already dropped the rules without a category, so this is always set.
+                const categoryName = getRuleCategoryName(rule) ?? '';
+                const decodedCategoryName = getDecodedCategoryName(categoryName);
+                const taxID = rule.tax?.field_id_TAX?.externalID;
+                const taxDisplayName = getTaxRateDisplayName(policy, taxID);
+                const conditionText = translate('workspace.rules.expenseDefaultsTable.categoryIs', decodedCategoryName);
+                const ruleDescription = translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabel, taxDisplayName);
+                const pendingAction = getPendingAction(rule);
 
-        return {
-            keyForList: getCategoryTaxRuleKey(categoryName),
-            ruleID: getCategoryTaxRuleKey(categoryName),
-            section: CONST.POLICY.EXPENSE_DEFAULTS_SECTION.CATEGORIES,
-            isRename: false,
-            typeLabel,
-            conditionText,
-            ruleDescription,
-            searchTokens: [decodedCategoryName, conditionText, ruleDescription, taxDisplayName],
-            pendingAction,
-            disabled: pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            action: () => onNavigate(ROUTES.RULES_CATEGORY_TAX_EDIT.getRoute(policyID, categoryName)),
-        };
-    });
+                return {
+                    keyForList: getCategoryTaxRuleKey(categoryName),
+                    ruleID: getCategoryTaxRuleKey(categoryName),
+                    section: CONST.POLICY.EXPENSE_DEFAULTS_SECTION.CATEGORIES,
+                    isRename: false,
+                    typeLabel,
+                    conditionText,
+                    ruleDescription,
+                    searchTokens: [decodedCategoryName, conditionText, ruleDescription, taxDisplayName],
+                    pendingAction,
+                    disabled: pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    action: () => onNavigate(ROUTES.RULES_CATEGORY_TAX_EDIT.getRoute(policyID, categoryName)),
+                };
+            })
+    );
 }
 
 /** The category a rule key from the Expense defaults table refers to. */
