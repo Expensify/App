@@ -4,6 +4,7 @@ import {
     FailureTracking,
     FraudMonitoring,
     handleDeletedAccount,
+    HandleUnusedOptimisticAgentAccountID,
     HandleUnusedOptimisticID,
     LoadPostDataForOpenOrReconnect,
     LoadTest,
@@ -46,6 +47,9 @@ addMiddleware(SupportalPermission);
 
 // If an optimistic ID is not used by the server, this will update the remaining serialized requests using that optimistic ID to use the correct ID instead.
 addMiddleware(HandleUnusedOptimisticID);
+
+// If the response remaps an optimistic agent accountID to the server-assigned one, this will update the remaining serialized requests using that optimistic accountID to use the real accountID instead.
+addMiddleware(HandleUnusedOptimisticAgentAccountID);
 
 addMiddleware(Pagination);
 

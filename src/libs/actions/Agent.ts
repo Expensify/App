@@ -108,17 +108,11 @@ function createAgent(
         },
     ];
 
+    // The optimistic personal detail and agent prompt are NOT cleared here on success: the server's response
+    // merges a {optimisticAccountID: realAccountID} entry onto OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, and
+    // replaceOptimisticAgentWithActualAgent clears them only after redirecting any open agent settings screen
+    // to the real accountID. Clearing them in successData would race that redirect and flash a not-found view.
     const successData: AnyOnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {[optimisticAccountID]: null},
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`,
-            value: null,
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
