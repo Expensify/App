@@ -74,8 +74,8 @@ Gusto and TriNet also appear on the **HR** page, but they use a different setup 
 4. In the **Find integration** search field, type the name of your HR provider to narrow down the list.
 5. Next to your provider, click **Connect**.
 6. In the connection window that opens, sign in with your HR system administrator account and authorize Expensify to access your account.
-7. Wait for the initial connection to complete. The provider then displays a green status indicator.
-8. Click the green status indicator, then click **Complete setup**.
+7. Wait for the initial connection to complete. The provider then displays **Connected. Complete setup to import employees.**
+8. Click **Complete setup** in that message, or select the three dots **(⋮)** next to the provider and click **Complete setup**.
 9. Choose which data to sync with this workspace, then click **Save**.
 10. Wait for the initial sync to complete.
 
@@ -106,10 +106,9 @@ Expensify also runs a daily auto-sync to keep employee data up to date:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
 2. Click the name of the workspace connected to your HR system.
-3. In the left menu, click **HR**.
-4. Click the connected provider.
-5. Select the three dots **(⋮)**, then click **Disconnect**.
-6. Confirm by clicking **Disconnect** again.
+3. In the left menu, select **HR**.
+4. Next to the connected provider, select the three dots **(⋮)**, then click **Disconnect**.
+5. Confirm by clicking **Disconnect** again.
 
 Disconnecting an HR integration stops future employee syncs. Existing workspace members remain in the workspace.
 
@@ -119,7 +118,9 @@ Disconnecting an HR integration stops future employee syncs. Existing workspace 
 
 ## How do I find a specific HR provider on the HR page?
 
-Use the **Find integration** search field on the **HR** page to narrow down the list of available providers, then click **Connect** next to your provider. The search field appears when there are many providers to choose from and you haven't connected an HR platform yet.
+Use the **Find integration** search field on the **HR** page to narrow down the list of available providers, then click **Connect** next to your provider. The search field appears whenever there are many providers to choose from.
+
+If you already have an HR platform connected, the search field and the remaining providers are in the **Other** section of the **HR** page. Expand **Other** to search. This section appears once the connected platform's initial sync has finished.
 
 ## Can I connect more than one HR integration to a workspace?
 
@@ -131,4 +132,4 @@ No. Each HR integration syncs all employees to a single Expensify workspace. You
 
 ## Why is my HR integration connected but my employees haven't synced?
 
-Connecting authorizes the integration. To start importing employees, click the green status indicator, select **Complete setup**, choose the data to sync, and click **Save**.
+Connecting authorizes the integration. To start importing employees, click **Complete setup** on the provider (or select the three dots **(⋮)** next to the provider and click **Complete setup**), choose the data to sync, and click **Save**.
