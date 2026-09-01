@@ -28,6 +28,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {Policy, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -265,9 +266,13 @@ function useParticipantSubmission({
         // tracked expense taken when the move started, so on a fast submit it can carry another workspace's rate ID or
         // no rate ID at all, and neither resolves on the destination. This is the check
         // IOURequestStepConfirmation.handleParticipantsAdded already makes when the participant is picked there.
+        // A destination whose rates have not loaded yet is also left alone: getCustomUnitRateID would fall back to the
+        // p2p rate there, which would hide a real workspace rate behind it. Only the default workspace is guaranteed
+        // full customUnits from OpenApp; the rest arrive with the confirmation step.
+        const destinationRates = DistanceRequestUtils.getMileageRates(policy);
         const shouldKeepTrackExpenseRate = (transaction: OnyxEntry<Transaction>) => {
             const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
-            return currentRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID || !!DistanceRequestUtils.getMileageRates(policy)[currentRateID ?? ''];
+            return currentRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID || isEmptyObject(destinationRates) || !!destinationRates[currentRateID ?? ''];
         };
         const isMovingToPolicyExpenseChat = isMovingTransactionFromTrackExpense && isPolicyExpenseChat;
 

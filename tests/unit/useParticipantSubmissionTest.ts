@@ -292,6 +292,20 @@ describe('useParticipantSubmission addParticipant distance rate', () => {
         expect(setCustomUnitRateID).not.toHaveBeenCalled();
     });
 
+    // Only the default workspace is guaranteed full customUnits from OpenApp. Selecting against a workspace whose
+    // rates have not arrived yet would resolve to the p2p sentinel and hide the real rate behind it.
+    it('leaves the rate alone when the destination workspace has no rates loaded yet', () => {
+        mockPolicies = {[`${ONYXKEYS.COLLECTION.POLICY}${DESTINATION_POLICY_ID}`]: {id: DESTINATION_POLICY_ID} as unknown as Policy};
+        mockDraftTransactions = [buildTrackedDistanceDraft(OTHER_WORKSPACE_RATE_ID)];
+        const {result} = renderSubmission();
+
+        act(() => {
+            result.current.addParticipant([DESTINATION_CHAT]);
+        });
+
+        expect(setCustomUnitRateID).not.toHaveBeenCalled();
+    });
+
     it('leaves a rate the destination workspace already owns alone', () => {
         mockDraftTransactions = [buildTrackedDistanceDraft(WORKSPACE_RATE_ID)];
         const {result} = renderSubmission();
