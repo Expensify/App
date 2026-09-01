@@ -637,7 +637,15 @@ describe('SearchAutocompleteList', () => {
             fireEvent.changeText(textInput, 'test');
             await flushAllUpdates();
 
-            // Active search renders a single "Search results" section
+            // Until the server answers, this stays under "Recent chats" (frozen local order) rather than
+            // showing a "Search results" section — see the "chat switcher results" tests below for that case.
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['101', '102', '103']);
+                await Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
+            });
+            await flushAllUpdates();
+
+            // Once the server has answered, the results collapse into a single "Search results" section
             await waitFor(() => {
                 expect(screen.getByText('Search results')).toBeTruthy();
             });
@@ -663,7 +671,13 @@ describe('SearchAutocompleteList', () => {
             fireEvent.changeText(textInput, 'some query');
             await flushAllUpdates();
 
-            // Active search shows the "Search results" section
+            // Simulate the server answering, which collapses the result into a single "Search results" section
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['101', '102', '103']);
+                await Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
+            });
+            await flushAllUpdates();
+
             await waitFor(() => {
                 expect(screen.getByText('Search results')).toBeTruthy();
             });
