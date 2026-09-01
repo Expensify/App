@@ -1,4 +1,5 @@
 import Badge from '@components/Badge';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -6,6 +7,7 @@ import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -27,6 +29,7 @@ const sortedBetas = Object.values(CONST.BETAS)
 function BetaOverridesPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isProduction} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
     const [betaOverrides] = useOnyx(ONYXKEYS.BETA_OVERRIDES);
 
@@ -35,43 +38,45 @@ function BetaOverridesPage() {
             testID={BetaOverridesPage.displayName}
             includeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButton title={translate('initialSettingsPage.troubleshoot.betaOverrides')} />
-            <ScrollView contentContainerStyle={[styles.ph5, styles.pb5]}>
-                <Text style={[styles.textLabelSupporting, styles.mb4]}>{translate('initialSettingsPage.troubleshoot.betaOverridesDescription')}</Text>
-                {sortedBetas.map((beta) => (
-                    <View
-                        key={beta}
-                        style={styles.testRowContainer}
-                    >
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.flexGrow1, styles.flexShrink1]}>
-                            <Text>{beta}</Text>
-                            {betaOverrides?.[beta] !== undefined && (
-                                <Badge
-                                    text={translate('initialSettingsPage.troubleshoot.overridden')}
-                                    isCondensed
-                                    textStyles={styles.condensedBadgeTextDefaultSize}
-                                    success
+            <FullPageNotFoundView shouldShow={isProduction}>
+                <HeaderWithBackButton title={translate('initialSettingsPage.troubleshoot.betaOverrides')} />
+                <ScrollView contentContainerStyle={[styles.ph5, styles.pb5]}>
+                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{translate('initialSettingsPage.troubleshoot.betaOverridesDescription')}</Text>
+                    {sortedBetas.map((beta) => (
+                        <View
+                            key={beta}
+                            style={styles.testRowContainer}
+                        >
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.flexGrow1, styles.flexShrink1]}>
+                                <Text>{beta}</Text>
+                                {betaOverrides?.[beta] !== undefined && (
+                                    <Badge
+                                        text={translate('initialSettingsPage.troubleshoot.overridden')}
+                                        isCondensed
+                                        textStyles={styles.condensedBadgeTextDefaultSize}
+                                        success
+                                    />
+                                )}
+                            </View>
+                            <View style={[styles.flexGrow0, styles.flexShrink0, styles.alignItemsEnd]}>
+                                <Switch
+                                    accessibilityLabel={beta}
+                                    isOn={isBetaEnabled(beta)}
+                                    onToggle={() => setBetaOverride(beta, !isBetaEnabled(beta))}
                                 />
-                            )}
+                            </View>
                         </View>
-                        <View style={[styles.flexGrow0, styles.flexShrink0, styles.alignItemsEnd]}>
-                            <Switch
-                                accessibilityLabel={beta}
-                                isOn={isBetaEnabled(beta)}
-                                onToggle={() => setBetaOverride(beta, !isBetaEnabled(beta))}
-                            />
-                        </View>
+                    ))}
+                    <View style={styles.mt4}>
+                        <Button
+                            size={CONST.BUTTON_SIZE.LARGE}
+                            onPress={clearBetaOverrides}
+                        >
+                            <Button.Text>{translate('initialSettingsPage.troubleshoot.resetAllOverrides')}</Button.Text>
+                        </Button>
                     </View>
-                ))}
-                <View style={styles.mt4}>
-                    <Button
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        onPress={clearBetaOverrides}
-                    >
-                        <Button.Text>{translate('initialSettingsPage.troubleshoot.resetAllOverrides')}</Button.Text>
-                    </Button>
-                </View>
-            </ScrollView>
+                </ScrollView>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
