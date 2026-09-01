@@ -93,9 +93,6 @@ type BasePickerProps<TPickerValue> = {
     /** Whether we should forward the focus/blur calls to the inner picker * */
     shouldFocusPicker?: boolean;
 
-    /** Whether to show the focused border color */
-    shouldShowFocusedState?: boolean;
-
     /** Callback called when click or tap out of BasePicker */
     onBlur?: () => void;
 

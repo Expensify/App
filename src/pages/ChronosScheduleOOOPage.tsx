@@ -4,9 +4,9 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import PercentageForm from '@components/PercentageForm';
-import Picker from '@components/Picker';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import type {ValuePickerItem} from '@components/ValuePicker/types';
@@ -53,6 +53,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [isDurationUnitModalVisible, setIsDurationUnitModalVisible] = useState(false);
     const [selectedDurationUnit, setSelectedDurationUnit] = useState<string>(CONST.CHRONOS.OOO_DURATION_UNITS.DAY);
+    const [isLeaveTypeModalVisible, setIsLeaveTypeModalVisible] = useState(false);
     const [selectedLeaveType, setSelectedLeaveType] = useState<string>(CONST.CHRONOS.OOO_LEAVE_TYPES.NORMAL);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
@@ -75,6 +76,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
             .filter((leaveType) => leaveType !== CONST.CHRONOS.OOO_LEAVE_TYPES.NORMAL)
             .map((leaveType) => ({value: leaveType, label: leaveType})),
     ];
+    const selectedLeaveTypeItem = leaveTypeItems.find((item) => item.value === selectedLeaveType);
     const shouldShowReason = selectedLeaveType === CONST.CHRONOS.OOO_LEAVE_TYPES.NORMAL;
 
     const startDateAsDate = parseDate(startDate);
@@ -98,6 +100,13 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
             }
         }
         setIsDurationUnitModalVisible(false);
+    };
+
+    const applyLeaveType = (item: ValuePickerItem) => {
+        if (item.value) {
+            setSelectedLeaveType(item.value);
+        }
+        setIsLeaveTypeModalVisible(false);
     };
 
     const applyStartDate = (newStartDate: string) => {
@@ -293,16 +302,6 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         shouldEnableKeyboardAvoidingView={false}
                     />
                 </View>
-                <InputWrapper
-                    InputComponent={Picker}
-                    inputID={INPUT_IDS.LEAVE_TYPE}
-                    label={translate('chronos.leaveType')}
-                    value={selectedLeaveType}
-                    items={leaveTypeItems}
-                    containerStyles={styles.mb4}
-                    shouldShowFocusedState={false}
-                    onValueChange={(value) => setSelectedLeaveType(value as string)}
-                />
                 {shouldShowReason && (
                     <View style={styles.mb4}>
                         <InputWrapper
@@ -315,6 +314,24 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         />
                     </View>
                 )}
+                <View style={styles.mb4}>
+                    <MenuItemWithTopDescription
+                        shouldShowRightIcon
+                        title={selectedLeaveTypeItem?.label ?? ''}
+                        description={translate('chronos.leaveType')}
+                        onPress={() => setIsLeaveTypeModalVisible(true)}
+                    />
+                    <ValueSelectorModal
+                        isVisible={isLeaveTypeModalVisible}
+                        label={translate('chronos.leaveType')}
+                        selectedItem={selectedLeaveTypeItem}
+                        items={leaveTypeItems}
+                        onClose={() => setIsLeaveTypeModalVisible(false)}
+                        onItemSelected={applyLeaveType}
+                        onBackdropPress={Navigation.dismissModal}
+                        shouldEnableKeyboardAvoidingView={false}
+                    />
+                </View>
                 <View style={styles.mb4}>
                     <InputWrapper
                         InputComponent={PercentageForm}

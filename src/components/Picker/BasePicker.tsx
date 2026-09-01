@@ -51,7 +51,6 @@ function BasePickerImpl({
     shouldShowOnlyTextWhenDisabled = true,
     onBlur = () => {},
     additionalPickerEvents = () => {},
-    shouldShowFocusedState = true,
     ref,
 }: BasePickerProps<unknown>) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
@@ -207,7 +206,7 @@ function BasePickerImpl({
                     styles.pickerContainer,
                     isDisabled && shouldAllowDisabledStyle && styles.inputDisabled,
                     containerStyles,
-                    isHighlighted && shouldShowFocusedState && styles.borderColorFocus,
+                    isHighlighted && styles.borderColorFocus,
                     hasError && styles.borderColorDanger,
                 ]}
             >
