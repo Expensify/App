@@ -93,9 +93,6 @@ function BookTravelButton({
     // Ref to track if we should auto-resume the booking flow after returning from the missing-personal-details page
     const shouldResumeBookingRef = useRef(false);
 
-    // The continuations (confirm modal + request-access call, or the stepper hand-off) only exist in this component's
-    // scope, so the verify-account page can't forward to them itself — instead we resume them here once the user
-    // validates their account.
     const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((resumeBooking?: () => void) => resumeBooking?.());
 
     const completeTravelAccessRequest = () => {
@@ -211,10 +208,6 @@ function BookTravelButton({
         // Hand off to the enablement stepper, which computes and collects only the steps this workspace still needs.
         cleanupTravelProvisioningSession();
         const enableTravelRoute = ROUTES.TRAVEL_ENABLE.getRoute(activePolicyID ?? String(CONST.DEFAULT_NUMBER_ID));
-        // EnableTravel's own entry-mount effect would catch an unvalidated account and redirect regardless (it
-        // also has to, to protect a direct/deep link straight into the stepper), but verifying before navigating
-        // avoids a visible URL blink: without this, the button would navigate to the stepper's URL first, then
-        // immediately get replaced with the verify URL a render later.
         if (!isUserValidated) {
             verifyAccountAndResume(() => Navigation.navigate(enableTravelRoute));
             return;

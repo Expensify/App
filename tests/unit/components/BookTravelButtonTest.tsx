@@ -99,8 +99,6 @@ const travelEnabledPolicy: Policy = {
     },
 };
 
-// A paid group workspace with no Spotnana company yet (unprovisioned) — with the provisioning beta off this
-// takes the legacy request-access path
 const unprovisionedPolicy: Policy = {
     ...provisionedPolicy,
     travelSettings: undefined,
@@ -179,14 +177,12 @@ describe('BookTravelButton', () => {
             fireEvent.press(screen.getByText('Book a trip'));
             await waitForBatchedUpdatesWithAct();
 
-            // Then it routes to verify-account instead of the stepper directly (this avoids a URL blink from
-            // double-navigating through the stepper, which would otherwise immediately redirect to the travel
-            // verify-account page anyway)
+            // Then it routes to verify-account instead of the stepper directly
             expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining('verify-account'));
             expect(Navigation.navigate).not.toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
             expect(setTravelProvisioningNextStep).not.toHaveBeenCalled();
 
-            // When the account becomes validated (magic code entered on the verify-account screen)
+            // When the account becomes validated
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true});
                 await waitForBatchedUpdatesWithAct();
@@ -237,7 +233,7 @@ describe('BookTravelButton', () => {
             expect(requestTravelAccess).not.toHaveBeenCalled();
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
 
-            // When the account becomes validated (magic code entered on the verify-account screen)
+            // When the account becomes validated
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true});
                 await waitForBatchedUpdatesWithAct();
