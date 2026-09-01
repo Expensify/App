@@ -35,15 +35,17 @@ type TooltipProps = {
 
 ### Review Metadata
 
+A "type" below means any object member group with its own set of properties - a top-level `type`/`interface`, or a nested/anonymous inline object literal type (e.g. `settings: { ... }`) inside one. Each nesting level is judged on its own members; a documented outer property does not shield an undocumented member of its own nested object literal.
+
 Flag ONLY when ALL of these are true:
 
-- The changed code adds or modifies one or more members, or adds, modifies, or removes one or more members' `/** ... */` comments, of a component props type/interface (a `type`/`interface` whose name ends in `Props`) or of a type/interface in `src/types/onyx/**` - whether the type declaration itself is new or pre-existing
+- The changed code adds or modifies one or more members, or adds, modifies, or removes one or more members' `/** ... */` comments, of a component props type/interface (a `type`/`interface` whose name ends in `Props`) or of a type/interface in `src/types/onyx/**`, including a nested/anonymous object literal type inside either - whether the type declaration itself is new or pre-existing
 - **None** of the type's members - old or newly added - has a `/** ... */` block comment above it after the change
 - At least one undocumented member that this PR itself added, modified, or stripped the comment from - not a pre-existing untouched member - has a non-obvious fact to add (a unit, default, boundary condition, null/undefined semantics, ownership, invariant, or distinction from a sibling) - a member whose name and type are already self-explanatory needs no comment and does not trigger this rule
 
 **DO NOT flag if:**
 
-- At least one member in the type is already documented with `/** */` (the mixed/undocumented-sibling and `//`-comment cases belong to CONSISTENCY-10, not here - avoid double-flagging)
+- At least one member at that same nesting level is already documented with `/** */` (the mixed/undocumented-sibling and `//`-comment cases belong to CONSISTENCY-10, not here - avoid double-flagging)
 - The type only re-exports, extends, intersects, or spreads members from a base type documented elsewhere and declares no new members of its own
 - The members are inherited from a shared base type
 - The file is a test or story
