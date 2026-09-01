@@ -6,13 +6,13 @@ import CONST from '@src/CONST';
 
 import type {StyleProp, TextStyle} from 'react-native';
 
-type HeaderTitleSubtitleLinkProps = {
+type HeaderTitleTextProps = {
     children: string;
     numberOfLines?: number;
     style?: StyleProp<TextStyle>;
 };
 
-function HeaderTitleSubtitleLink({children, numberOfLines = 2, style}: HeaderTitleSubtitleLinkProps) {
+function HeaderTitleText({children, numberOfLines = 2, style}: HeaderTitleTextProps) {
     const styles = useThemeStyles();
 
     return (
@@ -27,4 +27,4 @@ function HeaderTitleSubtitleLink({children, numberOfLines = 2, style}: HeaderTit
     );
 }
 
-export default HeaderTitleSubtitleLink;
+export default HeaderTitleText;
