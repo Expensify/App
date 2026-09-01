@@ -22,6 +22,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
+import type {OnyxMultiSetInput} from 'react-native-onyx';
+
 import {NavigationContainer} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
@@ -226,12 +228,11 @@ test('[MoneyRequestReportActionsList] should measure re-renders when a transacti
 test('[MoneyRequestReportActionsList] should render the unified list with 500 reportActions and 100 transactions stored', async () => {
     const LARGE_TRANSACTIONS_COUNT = 100;
     await act(async () => {
-        const extraTransactions = Object.fromEntries(
-            Array.from({length: LARGE_TRANSACTIONS_COUNT - TRANSACTIONS_COUNT}, (unused, index) => {
-                const transaction = buildTransaction(TRANSACTIONS_COUNT + index);
-                return [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction];
-            }),
-        );
+        const extraTransactions: OnyxMultiSetInput = {};
+        for (let index = TRANSACTIONS_COUNT; index < LARGE_TRANSACTIONS_COUNT; index++) {
+            const transaction = buildTransaction(index);
+            extraTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
+        }
         await Onyx.multiSet(extraTransactions);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {total: 10000 * LARGE_TRANSACTIONS_COUNT});
         await waitForBatchedUpdates();
