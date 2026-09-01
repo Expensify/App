@@ -88,5 +88,5 @@ Flag ONLY when ALL of these are true:
 
 **Search Patterns** (hints for reviewers):
 - Added `type ...Props = {` / `interface ...Props {` blocks, or added types/interfaces under `src/types/onyx/**`, whose members have no preceding `/** */`
-- A new member added to an existing `...Props` type or an existing `src/types/onyx/**` type, where that type has no `/** */`-documented member at all (old or new)
-- A removed `/** ... */` block in the diff (a `-` line) above a member of a `...Props` type or an `src/types/onyx/**` property, where that member had a non-obvious fact to say and no other member in the type stays documented
+- A new member added to an existing `...Props` type or an existing `src/types/onyx/**` type, where that type has no `/** */`-documented member at that same nesting level at all (old or new)
+- A removed `/** ... */` block in the diff (a `-` line) above a member of a `...Props` type or an `src/types/onyx/**` property, where that member had a non-obvious fact to say and no other member at that same nesting level stays documented
