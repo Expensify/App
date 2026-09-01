@@ -354,6 +354,17 @@ const CONST = {
             WEEK: 'weeks',
             MONTH: 'months',
         },
+        OOO_LEAVE_TYPES: {
+            NORMAL: 'normalOOO',
+            PARENTAL: 'parental leave',
+            MATERNITY: 'maternity leave',
+            PATERNITY: 'paternity leave',
+            MEDICAL: 'medical leave',
+            CAREGIVER: 'caregiver leave',
+            QUALIFIED: 'qualified leave',
+            BEREAVEMENT: 'bereavement leave',
+            JURY_DUTY: 'jury duty',
+        },
     },
 
     RECEIPT_CAMERA: {
