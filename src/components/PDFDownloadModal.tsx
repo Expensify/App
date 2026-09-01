@@ -12,7 +12,7 @@ import {View} from 'react-native';
 
 import ActivityIndicator from './ActivityIndicator';
 import Button from './ButtonComposed';
-import Header from './Header';
+import HeaderTitle from './HeaderTitle';
 import Icon from './Icon';
 import Modal from './Modal';
 import {PressableWithFeedback} from './Pressable';
@@ -106,7 +106,7 @@ function PDFDownloadModal({
                     <View style={[styles.flexRow, styles.mb4]}>
                         <View style={[styles.flex1]}>
                             <View style={[styles.flexRow]}>
-                                <Header title={translate('reportDetailsPage.generatingPDF')} />
+                                <HeaderTitle title={translate('reportDetailsPage.generatingPDF')} />
                             </View>
                             <Text style={[styles.mt5, styles.textAlignLeft]}>{message}</Text>
                         </View>

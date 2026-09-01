@@ -19,7 +19,7 @@ import {View} from 'react-native';
 
 import ActivityIndicator from './ActivityIndicator';
 import Button from './ButtonComposed';
-import Header from './Header';
+import HeaderTitle from './HeaderTitle';
 import Icon from './Icon';
 import ImageSVG from './ImageSVG';
 import {PressableWithoutFeedback} from './Pressable';
@@ -240,7 +240,7 @@ function ConfirmContent({
                         </View>
                     )}
                     <View style={[styles.flexRow, isTitleLoading ? styles.justifyContentBetween : {}, styles.alignItemsCenter, isCentered ? {} : styles.mb4, titleContainerStyles]}>
-                        <Header
+                        <HeaderTitle
                             title={title}
                             textStyles={titleStyles}
                         />

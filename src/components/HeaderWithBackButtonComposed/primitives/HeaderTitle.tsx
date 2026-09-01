@@ -1,4 +1,4 @@
-import Header from '@components/Header';
+import HeaderTitleComponent from '@components/HeaderTitle';
 
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -6,7 +6,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {StepCounterParams} from '@src/languages/params';
 
-import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 
 type HeaderTitleProps = {
@@ -14,7 +13,7 @@ type HeaderTitleProps = {
     children: string;
 
     /** Subtitle of the header. */
-    subtitle?: ReactNode;
+    subtitle?: string;
 
     /** Title color. */
     titleColor?: string;
@@ -40,16 +39,19 @@ function HeaderTitle({children, subtitle = '', titleColor, titleStyles, stepCoun
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
+    const resolvedSubtitle = stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : subtitle;
+
     return (
-        <Header
+        <HeaderTitleComponent
             title={children}
-            subtitle={stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : subtitle}
+            dialogTitle={''}
             textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2, titleStyles]}
-            subTitleLink={subTitleLink}
             numberOfTitleLines={1}
-            isScreenHeader
             shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
-        />
+        >
+            {!!resolvedSubtitle && <HeaderTitleComponent.Subtitle>{resolvedSubtitle}</HeaderTitleComponent.Subtitle>}
+            {!!subTitleLink && <HeaderTitleComponent.SubtitleLink>{subTitleLink}</HeaderTitleComponent.SubtitleLink>}
+        </HeaderTitleComponent>
     );
 }
 
