@@ -922,6 +922,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addShippingAddress: {title: '我们需要您的收货地址', subtitle: '请提供一个地址以接收您的 Expensify 卡。', cta: '添加地址'},
             addPaymentCard: {title: '添加支付卡以继续使用 Expensify', subtitle: '账户 ＞ 订阅', cta: '添加'},
             addBankAccount: {title: '添加银行账户以接收报销'},
+            addDepositAccount: {title: '添加银行账户以接收付款'},
             activateCard: {title: '激活你的 Expensify 卡', subtitle: '验证您的银行卡并开始消费。', cta: '启用'},
             reviewCardFraud: {
                 title: '审查您 Expensify 卡上的潜在欺诈交易',

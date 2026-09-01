@@ -1005,6 +1005,9 @@ const translations: TranslationDeepObject<typeof en> = {
             addBankAccount: {
                 title: 'Προσθέστε έναν τραπεζικό λογαριασμό για να λάβετε αποζημίωση',
             },
+            addDepositAccount: {
+                title: 'Προσθέστε έναν τραπεζικό λογαριασμό για να λαμβάνετε πληρωμές',
+            },
             activateCard: {
                 title: 'Ενεργοποιήστε την Κάρτα Expensify',
                 subtitle: 'Επικυρώστε την κάρτα σας και ξεκινήστε να ξοδεύετε.',
