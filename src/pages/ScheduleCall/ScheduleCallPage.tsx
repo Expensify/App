@@ -33,7 +33,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import {compareAsc, parse} from 'date-fns';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 
 import AvailableBookingDay from './AvailableBookingDay';
@@ -98,7 +98,7 @@ function ScheduleCallPage() {
         saveBookingDraft({date});
     }, []);
 
-    const timeSlotDateMap: Record<string, TimeSlot[]> = useMemo(() => {
+    const timeSlotDateMap: Record<string, TimeSlot[]> = (() => {
         if (!calendlySchedule?.data) {
             return {};
         }
@@ -135,7 +135,7 @@ function ScheduleCallPage() {
         }
 
         return timeSlotMap;
-    }, [calendlySchedule?.data, userTimezone, dateFnsLocale]);
+    })();
 
     const selectableDates = Object.keys(timeSlotDateMap).sort(compareAsc);
     const firstDate = selectableDates.at(0);
@@ -152,12 +152,8 @@ function ScheduleCallPage() {
     }, [firstDate, calendlySchedule?.isLoading, scheduleCallDraft?.date]);
 
     // When there is only one time slot on the row, it will take full width of the row, use a hidden filler item to keep 2 columns
-    const timeFillerItem = useMemo(() => {
-        if (timeSlotsForSelectedData.length % 2 === 0) {
-            return null;
-        }
-
-        return (
+    const timeFillerItem =
+        timeSlotsForSelectedData.length % 2 === 0 ? null : (
             <View
                 key="time-filler-col"
                 aria-hidden
@@ -165,7 +161,6 @@ function ScheduleCallPage() {
                 style={[styles.twoColumnLayoutCol, styles.visibilityHidden]}
             />
         );
-    }, [styles.twoColumnLayoutCol, styles.visibilityHidden, timeSlotsForSelectedData.length]);
 
     return (
         <ScreenWrapper

@@ -55,7 +55,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type CategorySettingsPageProps =
@@ -86,20 +86,17 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const decodedCategoryName = getDecodedCategoryName(policyCategory?.name ?? '');
     const categoryRulesEnabled = arePolicyRulesEnabled(policy, policyCategories, isRulesRevampEnabled);
 
-    const contextualRules = useMemo(() => {
-        if (!isRulesRevampEnabled || !policyCategory) {
-            return [];
-        }
-
-        return getCategoryContextualRules({
-            policy,
-            category: policyCategory,
-            categoryName: policyCategory.name,
-            translate,
-            convertToDisplayString,
-            isOffline,
-        });
-    }, [convertToDisplayString, isOffline, isRulesRevampEnabled, policy, policyCategory, translate]);
+    const contextualRules =
+        !isRulesRevampEnabled || !policyCategory
+            ? []
+            : getCategoryContextualRules({
+                  policy,
+                  category: policyCategory,
+                  categoryName: policyCategory.name,
+                  translate,
+                  convertToDisplayString,
+                  isOffline,
+              });
 
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyData.categories, [policyCategory]);
     const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS;
@@ -137,107 +134,54 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
         navigation.setParams({categoryName: policyCategory?.name});
     }, [categoryName, navigation, policyCategory?.name, isFocused]);
 
-    const flagAmountsOverText = useMemo(() => {
-        if (policyCategory?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE || !policyCategory?.maxExpenseAmount) {
-            return '';
-        }
-
-        return `${convertToDisplayString(policyCategory?.maxExpenseAmount, policyCurrency)} ${CONST.DOT_SEPARATOR} ${translate(
-            `workspace.rules.categoryRules.expenseLimitTypes.${policyCategoryExpenseLimitType}`,
-        )}`;
-    }, [convertToDisplayString, policyCategory?.maxExpenseAmount, policyCategoryExpenseLimitType, policyCurrency, translate]);
+    const flagAmountsOverText =
+        policyCategory?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE || !policyCategory?.maxExpenseAmount
+            ? ''
+            : `${convertToDisplayString(policyCategory?.maxExpenseAmount, policyCurrency)} ${CONST.DOT_SEPARATOR} ${translate(
+                  `workspace.rules.categoryRules.expenseLimitTypes.${policyCategoryExpenseLimitType}`,
+              )}`;
 
     const categoryApprover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], categoryName)?.approver ?? '';
     const approverText = usePersonalDetailByLogin(categoryApprover, (personalDetails) => formatPhoneNumber(personalDetails?.displayName ?? categoryApprover));
 
-    const defaultTaxRateText = useMemo(() => {
-        const taxID = getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], categoryName, policy?.taxRates?.defaultExternalID);
+    const taxID = getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], categoryName, policy?.taxRates?.defaultExternalID);
+    const taxRate = taxID ? policy?.taxRates?.taxes[taxID] : undefined;
+    const defaultTaxRateText = !taxID || !taxRate ? '' : formatDefaultTaxRateText(translate, taxID, taxRate, policy?.taxRates);
 
-        if (!taxID) {
-            return '';
-        }
+    const requireReceiptsOverText = !policy ? '' : formatRequireReceiptsOverText(translate, policy, policyCategory?.maxAmountNoReceipt, convertToDisplayString);
 
-        const taxRate = policy?.taxRates?.taxes[taxID];
+    const requireItemizedReceiptsOverText = !policy ? '' : formatRequireItemizedReceiptsOverText(translate, policy, policyCategory?.maxAmountNoItemizedReceipt, convertToDisplayString);
 
-        if (!taxRate) {
-            return '';
-        }
+    const requiredFieldsTitle = !policyCategory ? '' : formatRequiredFieldsTitle(translate, policyCategory, isAttendeeTrackingEnabled(policy));
 
-        return formatDefaultTaxRateText(translate, taxID, taxRate, policy?.taxRates);
-    }, [categoryName, policy?.rules?.expenseRules, policy?.taxRates, translate]);
-
-    const requireReceiptsOverText = useMemo(() => {
-        if (!policy) {
-            return '';
-        }
-        return formatRequireReceiptsOverText(translate, policy, policyCategory?.maxAmountNoReceipt, convertToDisplayString);
-    }, [policy, policyCategory?.maxAmountNoReceipt, translate, convertToDisplayString]);
-
-    const requireItemizedReceiptsOverText = useMemo(() => {
-        if (!policy) {
-            return '';
-        }
-        return formatRequireItemizedReceiptsOverText(translate, policy, policyCategory?.maxAmountNoItemizedReceipt, convertToDisplayString);
-    }, [policy, policyCategory?.maxAmountNoItemizedReceipt, translate, convertToDisplayString]);
-
-    const requiredFieldsTitle = useMemo(() => {
-        if (!policyCategory) {
-            return '';
-        }
-        return formatRequiredFieldsTitle(translate, policyCategory, isAttendeeTrackingEnabled(policy));
-    }, [policyCategory, translate, policy]);
-
-    const requireFieldsPendingAction = useMemo(() => {
-        if (isAttendeeTrackingEnabled(policy)) {
-            // Pending fields are objects so we can't use nullish coalescing
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            return policyCategory?.pendingFields?.areAttendeesRequired || policyCategory?.pendingFields?.areCommentsRequired;
-        }
-        return policyCategory?.pendingFields?.areCommentsRequired;
-    }, [policyCategory?.pendingFields, policy]);
+    const requireFieldsPendingAction = isAttendeeTrackingEnabled(policy)
+        ? // Pending fields are objects so we can't use nullish coalescing
+          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+          policyCategory?.pendingFields?.areAttendeesRequired || policyCategory?.pendingFields?.areCommentsRequired
+        : policyCategory?.pendingFields?.areCommentsRequired;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const showCannotDeleteOrDisableLastCategoryModal = useCallback(() => {
+    const showCannotDeleteOrDisableLastCategoryModal = () => {
         showConfirmModal({
             title: translate('workspace.categories.cannotDeleteOrDisableAllCategories.title'),
             prompt: translate('workspace.categories.cannotDeleteOrDisableAllCategories.description'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
-    }, [showConfirmModal, translate]);
+    };
 
-    const updateWorkspaceCategoryEnabled = useCallback(
-        (value: boolean) => {
-            if (shouldPreventDisableOrDelete) {
-                showCannotDeleteOrDisableLastCategoryModal();
-                return;
-            }
-            setWorkspaceCategoryEnabled({
-                policyData,
-                categoriesToUpdate: {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
-                isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
-                setupCategoryTaskReport,
-                setupCategoryTaskParentReport,
-                currentUserAccountID: currentUserPersonalDetails.accountID,
-                hasOutstandingChildTask,
-                parentReportAction,
-                setupCategoriesAndTagsTaskReport,
-                setupCategoriesAndTagsTaskParentReport,
-                isSetupCategoriesAndTagsTaskParentReportArchived,
-                setupCategoriesAndTagsHasOutstandingChildTask,
-                setupCategoriesAndTagsParentReportAction,
-                policyHasTags,
-            });
-        },
-        [
-            showCannotDeleteOrDisableLastCategoryModal,
-            shouldPreventDisableOrDelete,
+    const updateWorkspaceCategoryEnabled = (value: boolean) => {
+        if (shouldPreventDisableOrDelete) {
+            showCannotDeleteOrDisableLastCategoryModal();
+            return;
+        }
+        setWorkspaceCategoryEnabled({
             policyData,
-            policyCategory?.name,
-            isSetupCategoryTaskParentReportArchived,
+            categoriesToUpdate: {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
+            isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
-            currentUserPersonalDetails.accountID,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
             hasOutstandingChildTask,
             parentReportAction,
             setupCategoriesAndTagsTaskReport,
@@ -246,8 +190,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
             setupCategoriesAndTagsHasOutstandingChildTask,
             setupCategoriesAndTagsParentReportAction,
             policyHasTags,
-        ],
-    );
+        });
+    };
 
     const navigateToEditCategory = () => {
         Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path) : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path));

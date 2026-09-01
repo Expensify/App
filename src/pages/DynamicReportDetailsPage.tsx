@@ -241,8 +241,13 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountID = currentUserPersonalDetails?.accountID;
+    const currentUserEmail = currentUserPersonalDetails?.email;
+    const currentUserLogin = currentUserPersonalDetails?.login;
+    const currentUserDisplayName = currentUserPersonalDetails?.displayName;
+    const currentUserLocalCurrencyCode = currentUserPersonalDetails?.localCurrencyCode;
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const filteredPoliciesInfoSelector = useMemo(() => createFilteredPoliciesInfoSelector(currentUserPersonalDetails?.email), [currentUserPersonalDetails?.email]);
+    const filteredPoliciesInfoSelector = useMemo(() => createFilteredPoliciesInfoSelector(currentUserEmail), [currentUserEmail]);
     const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: filteredPoliciesInfoSelector});
     const {showConfirmModal} = useConfirmModal();
     const reportForHeader = useMemo(() => getReportForHeader(report, parentReport), [report, parentReport]);
@@ -250,7 +255,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const derivedParentReportName = getReportNameFromNames(derivedReportNames, report?.parentReportID);
     const derivedHeaderReportName = getReportNameFromNames(derivedReportNames, reportForHeader?.reportID);
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
-    const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);
+    const isPolicyEmployee = isPolicyEmployeeUtil(report?.policyID, policy);
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtil(report), [report]);
     const isChatRoom = useMemo(() => isChatRoomUtil(report), [report]);
     const isUserCreatedPolicyRoom = useMemo(() => isUserCreatedPolicyRoomUtil(report), [report]);
@@ -266,8 +271,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const isTrackExpenseReport = useMemo(() => isTrackExpenseReportUtil(report, parentReport, parentReportAction), [report, parentReport, parentReportAction]);
     const isCanceledTaskReport = isCanceledTaskReportUtil(report, parentReportAction);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
-    const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails?.accountID, isParentReportArchived);
-    const isTaskActionable = canActionTask(report, parentReportAction, currentUserPersonalDetails?.accountID, parentReport, isParentReportArchived);
+    const isTaskModifiable = canModifyTask(report, currentUserAccountID, isParentReportArchived);
+    const isTaskActionable = canActionTask(report, parentReportAction, currentUserAccountID, parentReport, isParentReportArchived);
     const canEditReportDescription = useMemo(() => canEditReportDescriptionUtil(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '') && (isTaskReport ? isTaskModifiable : true);
     const isExpenseReport = isMoneyRequestReport || isInvoiceReport || isMoneyRequest;
@@ -322,24 +327,14 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     });
 
     const isPrivateNotesFetchTriggered = reportLoadingState?.isLoadingPrivateNotes !== undefined;
-    const requestParentReportAction = useMemo(() => {
-        // 2. MoneyReport case
-        if (caseID === CASES.MONEY_REPORT) {
-            if (!reportActions || !transactionThreadReport?.parentReportActionID) {
-                return undefined;
-            }
-            return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
-        }
-        return parentReportAction;
-    }, [caseID, parentReportAction, reportActions, transactionThreadReport?.parentReportActionID]);
+    const transactionThreadParentReportActionID = transactionThreadReport?.parentReportActionID;
+    const requestParentReportAction = caseID === CASES.MONEY_REPORT ? reportActions?.find((action) => action.reportActionID === transactionThreadParentReportActionID) : parentReportAction;
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const [requestParentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
 
     const isActionOwner =
-        typeof requestParentReportAction?.actorAccountID === 'number' &&
-        typeof currentUserPersonalDetails?.accountID === 'number' &&
-        requestParentReportAction.actorAccountID === currentUserPersonalDetails?.accountID;
+        typeof requestParentReportAction?.actorAccountID === 'number' && typeof currentUserAccountID === 'number' && requestParentReportAction.actorAccountID === currentUserAccountID;
     const isDeletedParentAction = isDeletedAction(requestParentReportAction);
 
     const moneyRequestReport: OnyxEntry<OnyxTypes.Report> = useMemo(() => {
@@ -363,7 +358,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [iouOriginalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransaction?.comment?.originalTransactionID)}`);
-    const hasWorkspaceToSubmitToSelector = useMemo(() => createHasWorkspaceToSubmitToSelector(currentUserPersonalDetails.login), [currentUserPersonalDetails.login]);
+    const hasWorkspaceToSubmitToSelector = useMemo(() => createHasWorkspaceToSubmitToSelector(currentUserLogin), [currentUserLogin]);
     const [hasWorkspaceToSubmitTo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasWorkspaceToSubmitToSelector});
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(iouTransactionID ? [iouTransactionID] : []);
     const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({
@@ -393,32 +388,13 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
 
     const leaveChat = useCallback(() => {
         if (isRootGroupChat) {
-            leaveGroupChat(
-                report,
-                quickAction?.chatReportID?.toString() === report.reportID,
-                currentUserPersonalDetails.accountID,
-                conciergeReportID,
-                introSelected,
-                isSelfTourViewed,
-                betas,
-            );
+            leaveGroupChat(report, quickAction?.chatReportID?.toString() === report.reportID, currentUserAccountID, conciergeReportID, introSelected, isSelfTourViewed, betas);
             return;
         }
 
         const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, isSelfTourViewed, betas, isWorkspaceMemberLeavingWorkspaceRoom);
-    }, [
-        isRootGroupChat,
-        isPolicyEmployee,
-        isPolicyAdmin,
-        quickAction?.chatReportID,
-        report,
-        currentUserPersonalDetails.accountID,
-        conciergeReportID,
-        introSelected,
-        isSelfTourViewed,
-        betas,
-    ]);
+        leaveRoom(report, currentUserAccountID, conciergeReportID, introSelected, isSelfTourViewed, betas, isWorkspaceMemberLeavingWorkspaceRoom);
+    }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report, currentUserAccountID, conciergeReportID, introSelected, isSelfTourViewed, betas]);
 
     const showLastMemberLeavingModal = useCallback(async () => {
         const {action} = await showConfirmModal({
@@ -435,7 +411,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         leaveChat();
     }, [showConfirmModal, translate, leaveChat]);
 
-    const shouldShowLeaveButton = canLeaveChat(report, policy, currentUserPersonalDetails?.accountID, !!reportNameValuePairs?.private_isArchived);
+    const shouldShowLeaveButton = canLeaveChat(report, policy, currentUserAccountID, !!reportNameValuePairs?.private_isArchived);
 
     // Snapshot on focus whether the room is the screen behind the Details page, so the row doesn't flip while the page
     // is closing after it's tapped, yet still reflects the correct screen on later visits.
@@ -444,7 +420,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         setIsRoomCurrentlyOpen(isReportTopmostSplitNavigator() && Navigation.getTopmostReportId() === report?.reportID);
     });
     const shouldShowGoToRoom = (isChatRoom || isPolicyExpenseChat) && !isRoomCurrentlyOpen;
-    const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending && !shouldShowGoToRoom;
+    const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserEmail) && !policy?.isJoinRequestPending && !shouldShowGoToRoom;
 
     const shouldParseFullTitle = parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat;
     const rawReportName = getReportName(reportForHeader, derivedHeaderReportName);
@@ -546,7 +522,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         if (isTrackExpenseReport && !isDeletedParentAction) {
             const whisperAction = getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID, moneyRequestReportActions);
             const actionableWhisperReportActionID = whisperAction?.reportActionID;
-            const currentUserLocalCurrency = currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
+            const currentUserLocalCurrency = currentUserLocalCurrencyCode ?? CONST.CURRENCY.USD;
             const {isExpenseSplit: isSelfDMExpenseSplit} = getOriginalTransactionWithSplitInfo(iouTransaction, iouOriginalTransaction);
 
             // Hide the "Submit it to someone" option for self-DM split expenses when the user isn't a member of any workspace.
@@ -564,15 +540,15 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     isRestrictedToPreferredPolicy,
                     preferredPolicyID,
                     transaction: iouTransaction,
-                    currentUserAccountID: currentUserPersonalDetails.accountID,
-                    currentUserEmail: currentUserPersonalDetails.email ?? '',
+                    currentUserAccountID,
+                    currentUserEmail: currentUserEmail ?? '',
                     currentUserLocalCurrency,
                     filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
                     firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
                 };
                 // "Submit to someone" splits into two destinations here too, matching the track-expense whisper:
                 // submit to an individual ("a friend") or a submit-enabled workspace ("my employer").
-                const defaultWorkspaceName = generateDefaultWorkspaceName(currentUserPersonalDetails.email ?? '', lastWorkspaceNumber, translate, currentUserPersonalDetails.displayName);
+                const defaultWorkspaceName = generateDefaultWorkspaceName(currentUserEmail ?? '', lastWorkspaceNumber, translate, currentUserDisplayName);
 
                 // Self-DM split expenses can only be submitted to a workspace, so the "a friend" destination is omitted here
                 // just like it is on the track-expense whisper.
@@ -629,8 +605,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                             amountOwed,
                             ownerBillingGracePeriodEnd,
                             transaction: iouTransaction,
-                            currentUserAccountID: currentUserPersonalDetails.accountID,
-                            currentUserEmail: currentUserPersonalDetails.email ?? '',
+                            currentUserAccountID,
+                            currentUserEmail: currentUserEmail ?? '',
                             currentUserLocalCurrency,
                             filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
                             firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
@@ -656,8 +632,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                             amountOwed,
                             ownerBillingGracePeriodEnd,
                             transaction: iouTransaction,
-                            currentUserAccountID: currentUserPersonalDetails.accountID,
-                            currentUserEmail: currentUserPersonalDetails.email ?? '',
+                            currentUserAccountID,
+                            currentUserEmail: currentUserEmail ?? '',
                             currentUserLocalCurrency,
                             filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
                             firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
@@ -675,7 +651,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 icon: expensifyIcons.Pencil,
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
-                action: () => navigateToPrivateNotes(report, currentUserPersonalDetails.accountID),
+                action: () => navigateToPrivateNotes(report, currentUserAccountID),
                 brickRoadIndicator: hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             });
         }
@@ -690,7 +666,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     isAnonymousAction: false,
                     action: callFunctionIfActionIsAllowed(() => {
                         Navigation.goBack(navigateBackFromReportDetailsPath);
-                        reopenTask(report, parentReport, currentUserPersonalDetails?.accountID, delegateEmail);
+                        reopenTask(report, parentReport, currentUserAccountID, delegateEmail);
                     }),
                 });
             }
@@ -788,9 +764,9 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         iouTransactionID,
         moneyRequestReport?.reportID,
         moneyRequestReportActions,
-        currentUserPersonalDetails.accountID,
-        currentUserPersonalDetails.email,
-        currentUserPersonalDetails.localCurrencyCode,
+        currentUserAccountID,
+        currentUserEmail,
+        currentUserLocalCurrencyCode,
         isTaskActionable,
         isRootGroupChat,
         leaveChat,
@@ -814,7 +790,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         conciergeReportID,
         lastWorkspaceNumber,
         translate,
-        currentUserPersonalDetails.displayName,
+        currentUserDisplayName,
     ]);
 
     const icons = useMemo(
@@ -831,7 +807,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                         report={report}
                         policy={policy}
                         participants={participants}
-                        currentUserAccountID={currentUserPersonalDetails.accountID}
+                        currentUserAccountID={currentUserAccountID}
                     />
                 </View>
             );
@@ -889,7 +865,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         participants,
         moneyRequestReport?.reportID,
         expensifyIcons.Camera,
-        currentUserPersonalDetails?.accountID,
+        currentUserAccountID,
     ]);
 
     const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, !!reportNameValuePairs?.private_isArchived);
@@ -898,7 +874,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         const result: PromotedAction[] = [];
 
         if (canJoin) {
-            result.push(PromotedActions.join(report, currentUserPersonalDetails.accountID));
+            result.push(PromotedActions.join(report, currentUserAccountID));
         }
 
         if (report) {
@@ -908,7 +884,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         result.push(PromotedActions.share());
 
         return result;
-    }, [canJoin, report, currentUserPersonalDetails.accountID]);
+    }, [canJoin, report, currentUserAccountID]);
 
     const shouldDisplayGroupWorkspaceAsPushRow = !isThread && (isGroupChat || isUserCreatedPolicyRoom || isDefaultRoom);
     const nameSectionGroupWorkspace = (
@@ -957,7 +933,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const fieldKey = getReportFieldKey(titleField?.fieldID);
     const isFieldDisabled = isReportFieldDisabled(report, titleField, policy);
 
-    const shouldShowEditableTitleField = caseID !== CASES.MONEY_REQUEST && canEditReportTitle(report, policy, currentUserPersonalDetails?.accountID);
+    const shouldShowEditableTitleField = caseID !== CASES.MONEY_REQUEST && canEditReportTitle(report, policy, currentUserAccountID);
 
     const nameSectionFurtherDetailsContent = (
         <MenuItemWithTopDescription
@@ -1020,7 +996,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 report,
                 parentReport,
                 isReportArchived,
-                currentUserPersonalDetails.accountID,
+                currentUserAccountID,
                 hasOutstandingChildTask,
                 parentReportAction,
                 conciergeReportID,
@@ -1056,8 +1032,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 isChatReportArchived: isMoneyRequestReportArchived,
                 isChatIOUReportArchived,
                 allTransactionViolationsParam: allTransactionViolations,
-                currentUserAccountID: currentUserPersonalDetails.accountID,
-                currentUserEmail: currentUserPersonalDetails.email ?? '',
+                currentUserAccountID,
+                currentUserEmail: currentUserEmail ?? '',
                 policy: iouPolicy,
                 getCurrencyDecimals,
             });
@@ -1078,8 +1054,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         report,
         parentReport,
         isReportArchived,
-        currentUserPersonalDetails.accountID,
-        currentUserPersonalDetails.email,
+        currentUserAccountID,
+        currentUserEmail,
         hasOutstandingChildTask,
         parentReportAction,
         conciergeReportID,

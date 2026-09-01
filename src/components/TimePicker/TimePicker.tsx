@@ -559,63 +559,59 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
      * Update amount with number or Backspace pressed for BigNumberPad.
      * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit to enable Next button
      */
-    const updateAmountNumberPad = useCallback(
-        (key: string) => {
-            const isHourFocused = hourInputRef.current?.isFocused();
-            const isMinuteFocused = minuteInputRef.current?.isFocused();
-            const isSecondFocused = secondInputRef.current?.isFocused();
-            const isMillisecondFocused = millisecondInputRef.current?.isFocused();
-            if (showFullFormat && !isHourFocused && !isMinuteFocused && !isSecondFocused && !isMillisecondFocused) {
-                millisecondInputRef.current?.focus();
-            } else if (!showFullFormat && !isHourFocused && !isMinuteFocused) {
-                minuteInputRef.current?.focus();
-            }
+    const updateAmountNumberPad = (key: string) => {
+        const isHourFocused = hourInputRef.current?.isFocused();
+        const isMinuteFocused = minuteInputRef.current?.isFocused();
+        const isSecondFocused = secondInputRef.current?.isFocused();
+        const isMillisecondFocused = millisecondInputRef.current?.isFocused();
+        if (showFullFormat && !isHourFocused && !isMinuteFocused && !isSecondFocused && !isMillisecondFocused) {
+            millisecondInputRef.current?.focus();
+        } else if (!showFullFormat && !isHourFocused && !isMinuteFocused) {
+            minuteInputRef.current?.focus();
+        }
 
-            if (key === '.') {
-                return;
-            }
-            if (key === '<' || key === 'Backspace') {
-                if (isHourFocused) {
-                    clearSelectedValue(hours, selectionHour, setHours, setSelectionHour);
-                } else if (isMinuteFocused) {
-                    if (selectionMinute.start === 0 && selectionMinute.end === 0) {
-                        focusHourInputOnLastCharacter();
-                        return;
-                    }
-
-                    clearSelectedValue(minutes, selectionMinute, setMinutes, setSelectionMinute);
-                } else if (isSecondFocused) {
-                    if (selectionSecond.start === 0 && selectionSecond.end === 0) {
-                        focusMinuteInputOnLastCharacter();
-                        return;
-                    }
-
-                    clearSelectedValue(seconds, selectionSecond, setSeconds, setSelectionSecond);
-                } else if (isMillisecondFocused) {
-                    if (selectionMillisecond.start === 0 && selectionMillisecond.end === 0) {
-                        focusSecondInputOnLastCharacter();
-                        return;
-                    }
-
-                    clearSelectedValue(milliseconds, selectionMillisecond, setMilliseconds, setSelectionMillisecond, 3);
-                }
-                return;
-            }
-            const trimmedKey = key.replaceAll(/[^0-9]/g, '');
-
+        if (key === '.') {
+            return;
+        }
+        if (key === '<' || key === 'Backspace') {
             if (isHourFocused) {
-                handleHourChange(insertAtPosition(hours, trimmedKey, selectionHour.start, selectionHour.end));
+                clearSelectedValue(hours, selectionHour, setHours, setSelectionHour);
             } else if (isMinuteFocused) {
-                handleMinutesChange(insertAtPosition(minutes, trimmedKey, selectionMinute.start, selectionMinute.end));
+                if (selectionMinute.start === 0 && selectionMinute.end === 0) {
+                    focusHourInputOnLastCharacter();
+                    return;
+                }
+
+                clearSelectedValue(minutes, selectionMinute, setMinutes, setSelectionMinute);
             } else if (isSecondFocused) {
-                handleSecondsChange(insertAtPosition(seconds, trimmedKey, selectionSecond.start, selectionSecond.end));
+                if (selectionSecond.start === 0 && selectionSecond.end === 0) {
+                    focusMinuteInputOnLastCharacter();
+                    return;
+                }
+
+                clearSelectedValue(seconds, selectionSecond, setSeconds, setSelectionSecond);
             } else if (isMillisecondFocused) {
-                handleMillisecondsChange(insertAtPosition(milliseconds, trimmedKey, selectionMillisecond.start, selectionMillisecond.end));
+                if (selectionMillisecond.start === 0 && selectionMillisecond.end === 0) {
+                    focusSecondInputOnLastCharacter();
+                    return;
+                }
+
+                clearSelectedValue(milliseconds, selectionMillisecond, setMilliseconds, setSelectionMillisecond, 3);
             }
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [minutes, hours, seconds, milliseconds, selectionMinute, selectionHour, selectionSecond, selectionMillisecond],
-    );
+            return;
+        }
+        const trimmedKey = key.replaceAll(/[^0-9]/g, '');
+
+        if (isHourFocused) {
+            handleHourChange(insertAtPosition(hours, trimmedKey, selectionHour.start, selectionHour.end));
+        } else if (isMinuteFocused) {
+            handleMinutesChange(insertAtPosition(minutes, trimmedKey, selectionMinute.start, selectionMinute.end));
+        } else if (isSecondFocused) {
+            handleSecondsChange(insertAtPosition(seconds, trimmedKey, selectionSecond.start, selectionSecond.end));
+        } else if (isMillisecondFocused) {
+            handleMillisecondsChange(insertAtPosition(milliseconds, trimmedKey, selectionMillisecond.start, selectionMillisecond.end));
+        }
+    };
 
     useEffect(() => {
         // we implement this to ensure the hour input focuses on the first character upon initial focus
@@ -630,48 +626,40 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
         [],
     );
 
-    const arrowLeftCallback = useCallback(
-        (e?: GestureResponderEvent | KeyboardEvent) => {
-            if (minuteInputRef.current?.isFocused() && selectionMinute.start === 0) {
-                // Check e to be truthy to avoid crashing on Android (e is undefined there)
-                e?.preventDefault();
-                focusHourInputOnLastCharacter();
-            }
-            if (secondInputRef.current?.isFocused() && selectionSecond.start === 0) {
-                // Check e to be truthy to avoid crashing on Android (e is undefined there)
-                e?.preventDefault();
-                focusMinuteInputOnLastCharacter();
-            }
-            if (millisecondInputRef.current?.isFocused() && selectionMillisecond.start === 0) {
-                // Check e to be truthy to avoid crashing on Android (e is undefined there)
-                e?.preventDefault();
-                focusSecondInputOnLastCharacter();
-            }
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [selectionHour, selectionMinute.start],
-    );
-    const arrowRightCallback = useCallback(
-        (e?: GestureResponderEvent | KeyboardEvent) => {
-            if (hourInputRef.current?.isFocused() && selectionHour.start === 2) {
-                // Check e to be truthy to avoid crashing on Android (e is undefined there)
-                e?.preventDefault();
-                focusMinuteInputOnFirstCharacter();
-            }
-            if (minuteInputRef.current?.isFocused() && selectionMinute.start === 2) {
-                // Check e to be truthy to avoid crashing on Android (e is undefined there)
-                e?.preventDefault();
-                focusSecondInputOnFirstCharacter();
-            }
-            if (secondInputRef.current?.isFocused() && selectionSecond.start === 2) {
-                // Check e to be truthy to avoid crashing on Android (e is undefined there)
-                e?.preventDefault();
-                focusMillisecondInputOnFirstCharacter();
-            }
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [selectionHour.start, selectionMinute.start, selectionSecond.start, selectionMillisecond],
-    );
+    const arrowLeftCallback = (e?: GestureResponderEvent | KeyboardEvent) => {
+        if (minuteInputRef.current?.isFocused() && selectionMinute.start === 0) {
+            // Check e to be truthy to avoid crashing on Android (e is undefined there)
+            e?.preventDefault();
+            focusHourInputOnLastCharacter();
+        }
+        if (secondInputRef.current?.isFocused() && selectionSecond.start === 0) {
+            // Check e to be truthy to avoid crashing on Android (e is undefined there)
+            e?.preventDefault();
+            focusMinuteInputOnLastCharacter();
+        }
+        if (millisecondInputRef.current?.isFocused() && selectionMillisecond.start === 0) {
+            // Check e to be truthy to avoid crashing on Android (e is undefined there)
+            e?.preventDefault();
+            focusSecondInputOnLastCharacter();
+        }
+    };
+    const arrowRightCallback = (e?: GestureResponderEvent | KeyboardEvent) => {
+        if (hourInputRef.current?.isFocused() && selectionHour.start === 2) {
+            // Check e to be truthy to avoid crashing on Android (e is undefined there)
+            e?.preventDefault();
+            focusMinuteInputOnFirstCharacter();
+        }
+        if (minuteInputRef.current?.isFocused() && selectionMinute.start === 2) {
+            // Check e to be truthy to avoid crashing on Android (e is undefined there)
+            e?.preventDefault();
+            focusSecondInputOnFirstCharacter();
+        }
+        if (secondInputRef.current?.isFocused() && selectionSecond.start === 2) {
+            // Check e to be truthy to avoid crashing on Android (e is undefined there)
+            e?.preventDefault();
+            focusMillisecondInputOnFirstCharacter();
+        }
+    };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT, arrowLeftCallback, arrowConfig);
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT, arrowRightCallback, arrowConfig);

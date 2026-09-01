@@ -29,7 +29,7 @@ import ROUTES from '@src/ROUTES';
 import type {Rate} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 import {getAllValidConnectedIntegration, getWorkflowRules, getWorkspaceRules} from './utils';
@@ -76,19 +76,16 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const customUnit = getDistanceRateCustomUnit(policy);
     const ratesCount = Object.values(customUnit?.rates ?? {}).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
 
-    const totalTags = useMemo(() => {
-        if (!policyTags) {
-            return 0;
-        }
-        return Object.values(policyTags).reduce(
-            (sum, tagGroup) => sum + Object.values(tagGroup.tags ?? {}).filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length,
-            0,
-        );
-    }, [policyTags]);
+    const totalTags = !policyTags
+        ? 0
+        : Object.values(policyTags).reduce(
+              (sum, tagGroup) => sum + Object.values(tagGroup.tags ?? {}).filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length,
+              0,
+          );
 
     const formattedAddress = !isEmptyObject(policy) && !isEmptyObject(policy.address) ? formatAddressToString(policy.address) : '';
 
-    const items = useMemo(() => {
+    const items = (() => {
         const rules = getWorkspaceRules(policy, translate);
         const workflows = getWorkflowRules(policy, translate);
 
@@ -194,43 +191,26 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         ];
 
         return result.filter((item): item is NonNullable<typeof item> => !!item);
-    }, [
-        policy,
-        translate,
-        formattedAddress,
-        totalMembers,
-        reportFields,
-        connectedIntegration,
-        totalTags,
-        categoriesCount,
-        taxesLength,
-        ratesCount,
-        isCollect,
-        allRates,
-        invoiceConfigurationText,
-        codingRulesCount,
-    ]);
+    })();
 
-    const featuresToCopy: ListItem[] = useMemo(() => {
-        return items.map((option) => {
-            const alternateText = option?.alternateText ? option.alternateText.trim().replaceAll(/,$/g, '') : undefined;
-            return {
-                text: option.translation,
-                keyForList: option.value,
-                isSelected: selectedItems.includes(option.value),
-                alternateText,
-            };
-        });
-    }, [items, selectedItems]);
+    const featuresToCopy: ListItem[] = items.map((option) => {
+        const alternateText = option?.alternateText ? option.alternateText.trim().replaceAll(/,$/g, '') : undefined;
+        return {
+            text: option.translation,
+            keyForList: option.value,
+            isSelected: selectedItems.includes(option.value),
+            alternateText,
+        };
+    });
 
-    const fetchWorkspaceRelatedData = useCallback(() => {
+    const fetchWorkspaceRelatedData = () => {
         if (!policyID) {
             return;
         }
         openDuplicatePolicyPage(policyID);
-    }, [policyID]);
+    };
 
-    const confirmDuplicate = useCallback(() => {
+    const confirmDuplicate = () => {
         if (!policy || !duplicateWorkspace?.name || !duplicateWorkspace?.policyID) {
             return;
         }
@@ -264,22 +244,11 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             localCurrency: currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
         });
         Navigation.closeRHPFlow();
-    }, [
-        duplicateWorkspace?.name,
-        duplicateWorkspace?.policyID,
-        policy,
-        policyCategories,
-        selectedItems,
-        translate,
-        duplicatedWorkspaceAvatar,
-        currentUserPersonalDetails.accountID,
-        currentUserPersonalDetails.email,
-        currentUserPersonalDetails?.localCurrencyCode,
-    ]);
+    };
 
     const duplicateWorkspaceName = duplicateWorkspace?.name;
     const duplicateWorkspacePolicyID = duplicateWorkspace?.policyID;
-    const onConfirmSelectList = useCallback(() => {
+    const onConfirmSelectList = () => {
         if (!totalMembers || totalMembers < 2 || !selectedItems.includes('members')) {
             confirmDuplicate();
             return;
@@ -307,43 +276,28 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             }
             confirmDuplicate();
         });
-    }, [
-        confirmDuplicate,
-        duplicateWorkspaceName,
-        duplicateWorkspacePolicyID,
-        policy,
-        selectedItems,
-        showConfirmModal,
-        styles.mb3,
-        styles.textSupporting,
-        styles.webViewStyles.baseFontStyle,
-        totalMembers,
-        translate,
-    ]);
+    };
 
-    const toggleAllItems = useCallback(() => {
+    const toggleAllItems = () => {
         if (selectedItems.length === items.length) {
             setSelectedItems([]);
         } else {
             setSelectedItems(items.map((i) => i.value));
         }
-    }, [items, selectedItems.length]);
+    };
 
-    const updateSelectedItems = useCallback(
-        (listItem: ListItem) => {
-            if (listItem.isSelected) {
-                setSelectedItems(selectedItems.filter((i) => i !== listItem.keyForList));
-                return;
-            }
+    const updateSelectedItems = (listItem: ListItem) => {
+        if (listItem.isSelected) {
+            setSelectedItems(selectedItems.filter((i) => i !== listItem.keyForList));
+            return;
+        }
 
-            const newItem = items.find((i) => i.value === listItem.keyForList)?.value;
+        const newItem = items.find((i) => i.value === listItem.keyForList)?.value;
 
-            if (newItem) {
-                setSelectedItems([...selectedItems, newItem]);
-            }
-        },
-        [items, selectedItems],
-    );
+        if (newItem) {
+            setSelectedItems([...selectedItems, newItem]);
+        }
+    };
 
     // When the component mounts, if there is a new avatar, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the request is saved, the avatar file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
@@ -379,14 +333,11 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
 
     const isSelectAllChecked = selectedItems.length > 0 && selectedItems.length === items.length;
 
-    const confirmButtonOptions: ConfirmButtonOptions<ListItem> = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.continue'),
-            onConfirm: onConfirmSelectList,
-        }),
-        [translate, onConfirmSelectList],
-    );
+    const confirmButtonOptions: ConfirmButtonOptions<ListItem> = {
+        showButton: true,
+        text: translate('common.continue'),
+        onConfirm: onConfirmSelectList,
+    };
 
     return (
         <>
