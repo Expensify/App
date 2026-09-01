@@ -471,6 +471,7 @@ const translations = {
         // @context Rate as a noun, not a verb
         rateOutOfPolicy: 'Rate out of policy',
         leaveWorkspace: 'Leave workspace',
+        leaveWorkspaceTitle: (workspaceName: string) => `Leave ${workspaceName}?`,
         leaveWorkspaceConfirmation: "If you leave this workspace, you won't be able to submit expenses to it.",
         leaveWorkspaceConfirmationAuditor: "If you leave this workspace, you won't be able to view its reports and settings.",
         leaveWorkspaceConfirmationAdmin: "If you leave this workspace, you won't be able to manage its settings.",
@@ -4772,6 +4773,7 @@ const translations = {
             settlementFrequency: 'Settlement frequency',
             setAsDefault: 'Set as default workspace',
             defaultNote: `Receipts sent to ${CONST.EMAIL.RECEIPTS} will appear in this workspace.`,
+            deleteWorkspaceTitle: (workspaceName: string) => `Delete ${workspaceName}?`,
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
             deleteOpenExpensifyCardsError: 'Your company still has Expensify Cards. Please <concierge-link>reach out to Concierge</concierge-link> to remove them.',
@@ -6610,6 +6612,8 @@ const translations = {
             vendors: {
                 title: 'Vendors',
                 subtitle: 'Match card expenses to vendors imported from your accounting software.',
+                disabledTitle: 'Not so fast...',
+                disabledMessage: "To enable or disable this feature, you'll need to change your accounting import settings.",
             },
             reportFields: {
                 title: 'Report fields',
@@ -8317,6 +8321,10 @@ const translations = {
                 confirmErrorCategory: 'Please select a category.',
                 confirmErrorAmount: 'Please enter an amount.',
                 thenFlagForReview: 'Then flag for review when:',
+                thenDoTheFollowing: 'Then do the following:',
+                flagType: 'Flag type',
+                flagTypeWarning: 'Warning',
+                flagTypeWarningDescription: 'Submitter will be warned, but can still submit expense',
             },
             categoryRules: {
                 title: 'Category rules',
@@ -9490,6 +9498,7 @@ const translations = {
             approved: 'Approved',
             firstApprover: 'First approver',
             firstApproved: 'First approved',
+            paidBy: 'Paid by',
             paid: 'Paid',
             exported: 'Exported',
             posted: 'Posted',

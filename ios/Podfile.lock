@@ -2971,7 +2971,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-skia (2.4.14):
+  - react-native-skia (2.4.18):
     - boost
     - DoubleConversion
     - fast_float
@@ -5071,7 +5071,7 @@ SPEC CHECKSUMS:
   react-native-plaid-link-sdk: 425c0a3a923310fcd8489142209ff1508372a7bf
   react-native-quick-base64: eca82f83cc5fd9e8615d50e789788877ff3f8401
   react-native-safe-area-context: 0a3b034bb63a5b684dd2f5fffd3c90ef6ed41ee8
-  react-native-skia: 51f30133876025c83e933f4f7253479e6de5d937
+  react-native-skia: fc9a3f146755fa51c66ae09a19b86d11f499251f
   react-native-view-shot: 1a01c96f6fb09b99539142749cd93f685af7fe48
   react-native-wallet: 2ea467e76031a61105416df760bfd591b602cd17
   react-native-webview: cdce419e8022d0ef6f07db21890631258e7a9e6e

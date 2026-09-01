@@ -138,6 +138,7 @@ function makeGetHRCardsParams(overrides: Partial<GetHRCardsParams> = {}): GetHRC
         policyID: POLICY_ID,
         gustoIcon: STUB_ICON,
         trinetIcon: STUB_ICON,
+        policyEmployeePersonalDetails: {},
         ...overrides,
     };
 }
