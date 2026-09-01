@@ -82,6 +82,7 @@ import {
     getUpdatedCardFeedStatementPeriodMessage,
     getUpdateRoomDescriptionMessage,
     getWorkspaceCategoryUpdateMessage,
+    getWorkspaceCustomUnitRateUpdatedMessage,
     getWorkspaceFeatureEnabledMessage,
     getWorkspaceTaxUpdateMessage,
     hasPendingDEWApprove,
@@ -923,6 +924,9 @@ function getLastMessageTextForReport({
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY)) {
         lastMessageTextFromReport = getMccGroupCategoryMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE)) {
+        lastMessageTextFromReport = getWorkspaceCustomUnitRateUpdatedMessage(translate, dateFnsLocale, lastReportAction);
     }
     if (lastReportAction?.actionName && isCategoryModificationAction(lastReportAction.actionName)) {
         lastMessageTextFromReport = getWorkspaceCategoryUpdateMessage(translate, lastReportAction, policy);

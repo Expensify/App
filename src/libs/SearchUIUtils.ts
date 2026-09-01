@@ -3015,6 +3015,55 @@ function getFirstApprovedAction(snapshotApprovedAction: OnyxTypes.ReportAction |
 }
 
 /**
+ * Returns the latest payment action between the snapshot-derived one and the given report actions, mirroring the
+ * backend paid-by rules: payment actions at or before the latest reimbursement cancellation don't count, and a
+ * payment action recorded by the report owner that is paired with a MARKED_REDEEMED action is a "received payment"
+ * self-attestation, which doesn't identify a payer.
+ */
+function getLastPaidAction(
+    snapshotPaidAction: OnyxTypes.ReportAction | undefined,
+    actions: OnyxTypes.ReportAction[],
+    ownerAccountID: number | undefined,
+): OnyxTypes.ReportAction | undefined {
+    const latestCancellation = findActionByCreated(
+        actions,
+        [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE],
+        'latest',
+    );
+    const isValidPaymentAction = (action: OnyxTypes.ReportAction | undefined): action is OnyxTypes.ReportAction => {
+        if (!action) {
+            return false;
+        }
+        if (isMoneyRequestAction(action)) {
+            const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action);
+            if (originalMessage?.type !== CONST.IOU.REPORT_ACTION_TYPE.PAY || originalMessage.isSubmitterMarkedPaymentReceived) {
+                return false;
+            }
+        }
+        if (latestCancellation && action.created <= latestCancellation.created) {
+            return false;
+        }
+        if (action.actorAccountID !== ownerAccountID) {
+            return true;
+        }
+        return !actions.some(
+            (redeemedAction) =>
+                redeemedAction.actionName === CONST.REPORT.ACTIONS.TYPE.MARKED_REDEEMED &&
+                redeemedAction.actorAccountID === action.actorAccountID &&
+                redeemedAction.created >= action.created,
+        );
+    };
+    const seed = isValidPaymentAction(snapshotPaidAction) ? snapshotPaidAction : undefined;
+    const candidates = actions.filter(isValidPaymentAction);
+    return findActionByCreated(
+        candidates,
+        [CONST.REPORT.ACTIONS.TYPE.REIMBURSED, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION, CONST.REPORT.ACTIONS.TYPE.IOU],
+        'latest',
+        seed,
+    );
+}
+
+/**
  * Returns the report's approved date or the latest APPROVED action's created time, whichever is newer — an offline
  * re-approve leaves a stale `approved` on the report. A report back to Draft/Outstanding is not approved anymore
  * even when its `approved` date is still set, so those statuses return blank.
@@ -3146,7 +3195,10 @@ function getReportSections({
                 const formattedFirstApprover = firstApproverAccountID ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: firstApproverDetails, translate, formatPhoneNumber}) : '';
 
                 // The paid-by user is the actor on the latest payment action. It stays blank until the report is paid.
-                const lastReimbursedAction = lastReimbursedActionByReportID.get(reportItem.reportID);
+                const lastReimbursedAction =
+                    reportItem.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED
+                        ? getLastPaidAction(lastReimbursedActionByReportID.get(reportItem.reportID), actions, reportItem.ownerAccountID)
+                        : undefined;
                 const paidByAccountID = lastReimbursedAction?.actorAccountID;
                 const paidByDetails = paidByAccountID ? mergedPersonalDetails?.[paidByAccountID] : undefined;
                 const formattedPaidBy = paidByAccountID ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: paidByDetails, translate, formatPhoneNumber}) : '';

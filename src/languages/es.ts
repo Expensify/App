@@ -8514,10 +8514,10 @@ ${reportName}`,
             return `añadió la tasa de impuesto "${newValue} (${newTaxPercentage})" a la tasa de distancia "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName, newValue, oldValue) => {
-            if (oldValue) {
-                return `cambió la parte recuperable de impuestos en la tasa por distancia "${customUnitRateName}" a "${newValue}" (previamente "${oldValue}")`;
+            if (oldValue !== undefined) {
+                return `cambió la parte recuperable de impuestos en la tasa por distancia "${customUnitRateName}" a "${newValue}%" (previamente "${oldValue}%")`;
             }
-            return `añadió una parte recuperable de impuestos de "${newValue}" a la tasa por distancia "${customUnitRateName}`;
+            return `añadió una parte recuperable de impuestos de "${newValue}%" a la tasa por distancia "${customUnitRateName}"`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `cambió el nombre de la tasa de ${customUnitName} de "${oldValue}" a "${newValue}"`,
         updatedCustomUnitRateEnabled: (customUnitName, customUnitRateName, newValue) => {
@@ -10989,6 +10989,7 @@ ${reportName}`,
     domain: {
         notVerified: 'No verificado',
         retry: 'Reintentar',
+        requestSent: 'Solicitud enviada',
         verifyDomain: {
             title: 'Verificar dominio',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -11062,6 +11063,14 @@ ${reportName}`,
             subtitle: 'Introduce el nombre del dominio privado al que deseas acceder (por ejemplo, expensify.com).',
             domainName: 'Nombre de dominio',
             newDomain: 'Nuevo dominio',
+            alreadyHaveAccessError: 'Este dominio ya existe en tu cuenta.',
+        },
+        domainAlreadyExists: {
+            headerTitle: 'El dominio ya existe',
+            title: 'Dominio ya configurado. ¿Solicitar acceso?',
+            description: 'Alguien ya configuró este dominio en Expensify. ¿Quieres solicitar acceso de administrador?',
+            requestAccess: 'Solicitar acceso de administrador',
+            requestAccessError: 'No pudimos enviar tu solicitud. Por favor, inténtalo de nuevo.',
         },
         domainAdded: {
             title: 'Dominio añadido',
@@ -11164,6 +11173,7 @@ ${reportName}`,
             forceTwoFactorAuthError: 'No se pudo cambiar la autenticación de dos factores forzada. Por favor, inténtalo de nuevo más tarde.',
             resetTwoFactorAuth: 'Restablecer la autenticación de dos factores',
             error: 'No se pudo guardar este cambio. Por favor, inténtalo de nuevo.',
+            neverMind: 'No importa',
         },
         groups: {
             title: 'Grupos',
@@ -11177,7 +11187,6 @@ ${reportName}`,
             defaultGroupPrompt: (currentName, newName) =>
                 `¿Estás seguro de que quieres establecer ${newName} como el grupo predeterminado? Los nuevos miembros serán invitados a este grupo en lugar del grupo predeterminado anterior (${currentName}). `,
             makeDefault: 'Establecer como predeterminado',
-            neverMind: 'No importa',
             createGroupError: 'No se pudo crear este grupo. Inténtalo de nuevo.',
             permissions: 'Permisos de grupo',
             createNewGroupButton: 'Nuevo grupo',

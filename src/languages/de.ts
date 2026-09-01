@@ -8666,10 +8666,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             return `die Steuerquote „${newValue} (${newTaxPercentage})“ zum Entfernungssatz „${customUnitRateName}“ hinzugefügt`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
-                return `hat den erstattungsfähigen Steueranteil im Distanzsatz „${customUnitRateName}“ auf „${newValue}“ geändert (zuvor „${oldValue}“)`;
+            if (oldValue !== undefined) {
+                return `hat den erstattungsfähigen Steueranteil im Distanzsatz „${customUnitRateName}“ auf „${newValue}%“ geändert (zuvor „${oldValue}%“)`;
             }
-            return `eine steuerlich rückforderbare Komponente von „${newValue}“ zum Distanzsatz „${customUnitRateName}“ hinzugefügt`;
+            return `eine steuerlich rückforderbare Komponente von „${newValue}%“ zum Distanzsatz „${customUnitRateName}“ hinzugefügt`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `hat den ${customUnitName}-Satz „${oldValue}“ in „${newValue}“ umbenannt`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
@@ -10788,6 +10788,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
     domain: {
         notVerified: 'Nicht verifiziert',
         retry: 'Wiederholen',
+        requestSent: 'Anfrage gesendet',
         verifyDomain: {
             title: 'Domain bestätigen',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -10861,6 +10862,14 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             subtitle: 'Gib den Namen der privaten Domain ein, auf die du zugreifen möchtest (z. B. expensify.com).',
             domainName: 'Domainname',
             newDomain: 'Neue Domain',
+            alreadyHaveAccessError: 'Diese Domain existiert bereits in deinem Konto.',
+        },
+        domainAlreadyExists: {
+            headerTitle: 'Domain existiert',
+            title: 'Domain bereits eingerichtet. Zugriff anfragen?',
+            description: 'Jemand hat diese Domain bereits in Expensify eingerichtet. Möchtest du Administratorzugriff anfragen?',
+            requestAccess: 'Admin-Zugriff anfragen',
+            requestAccessError: 'Wir konnten deine Anfrage nicht senden. Bitte versuche es erneut.',
         },
         domainAdded: {
             title: 'Domain hinzugefügt',
@@ -10955,6 +10964,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             forceTwoFactorAuthError: 'Die Erzwingung der Zwei-Faktor-Authentifizierung konnte nicht geändert werden. Bitte versuche es später erneut.',
             resetTwoFactorAuth: 'Zwei-Faktor-Authentifizierung zurücksetzen',
             error: 'Diese Änderung konnte nicht gespeichert werden. Bitte versuche es erneut.',
+            neverMind: 'Vergiss es',
         },
         groups: {
             title: 'Gruppen',
@@ -10963,7 +10973,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             defaultGroupPrompt: (currentName: string, newName: string) =>
                 `Möchtest du ${newName} wirklich zur Standardgruppe machen? Neue Mitglieder werden zu dieser Gruppe anstelle der bisherigen Standardgruppe (${currentName}) eingeladen. `,
             makeDefault: 'Als Standard festlegen',
-            neverMind: 'Vergiss es',
             createGroupError: 'Diese Gruppe konnte nicht erstellt werden. Bitte versuche es erneut.',
             permissions: 'Gruppenberechtigungen',
             createNewGroupButton: 'Neue Gruppe',
