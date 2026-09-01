@@ -43,10 +43,9 @@ function BaseOpenAppFailureModal({onRefreshAndTryAgainButtonPress}: BaseOpenAppF
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <View style={bottomSafeAreaPaddingStyle}>
-                <HeaderTitle
-                    title={translate('openAppFailureModal.title')}
-                    textStyles={[styles.mb2]}
-                />
+                <HeaderTitle>
+                    <HeaderTitle.Text style={[styles.mb2]}>{translate('openAppFailureModal.title')}</HeaderTitle.Text>
+                </HeaderTitle>
                 <Text style={[styles.mb6]}>
                     {`${translate('openAppFailureModal.subtitle')} `}
                     <TextLink

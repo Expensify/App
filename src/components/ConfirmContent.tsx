@@ -240,10 +240,9 @@ function ConfirmContent({
                         </View>
                     )}
                     <View style={[styles.flexRow, isTitleLoading ? styles.justifyContentBetween : {}, styles.alignItemsCenter, isCentered ? {} : styles.mb4, titleContainerStyles]}>
-                        <HeaderTitle
-                            title={title}
-                            textStyles={titleStyles}
-                        />
+                        <HeaderTitle>
+                            <HeaderTitle.Text style={titleStyles}>{title}</HeaderTitle.Text>
+                        </HeaderTitle>
                         {isTitleLoading && <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL} />}
                     </View>
                     {subtitleContent}

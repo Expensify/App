@@ -18,15 +18,17 @@ const story: Meta<typeof HeaderTitle> = {
 };
 
 function Template(props: HeaderProps) {
-    return <HeaderTitle {...props} />;
+    return (
+        <HeaderTitle {...props}>
+            <HeaderTitle.Text>Chats</HeaderTitle.Text>
+        </HeaderTitle>
+    );
 }
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Default: HeaderTitleStory = Template.bind({});
-Default.args = {
-    title: 'Chats',
-};
+Default.args = {};
 
 export default story;
 export {Default};

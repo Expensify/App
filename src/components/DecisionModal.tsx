@@ -111,10 +111,9 @@ function DecisionModal({
             >
                 <View>
                     <View style={[styles.flexRow, styles.mb5]}>
-                        <HeaderTitle
-                            title={title}
-                            containerStyles={styles.alignItemsCenter}
-                        />
+                        <HeaderTitle style={styles.alignItemsCenter}>
+                            <HeaderTitle.Text>{title}</HeaderTitle.Text>
+                        </HeaderTitle>
                     </View>
                     <RenderHTML html={prompt} />
                 </View>

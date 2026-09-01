@@ -106,7 +106,9 @@ function PDFDownloadModal({
                     <View style={[styles.flexRow, styles.mb4]}>
                         <View style={[styles.flex1]}>
                             <View style={[styles.flexRow]}>
-                                <HeaderTitle title={translate('reportDetailsPage.generatingPDF')} />
+                                <HeaderTitle>
+                                    <HeaderTitle.Text>{translate('reportDetailsPage.generatingPDF')}</HeaderTitle.Text>
+                                </HeaderTitle>
                             </View>
                             <Text style={[styles.mt5, styles.textAlignLeft]}>{message}</Text>
                         </View>

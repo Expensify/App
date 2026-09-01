@@ -1,30 +1,17 @@
-import Text from '@components/Text';
-
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import CONST from '@src/CONST';
-
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import {View} from 'react-native';
 
 import useHeaderDialogAnnouncement from './useHeaderDialogAnnouncement';
 
 type HeaderProps = {
-    /** Title of the Header */
-    title: string;
-
-    /** Additional text styles */
-    textStyles?: StyleProp<TextStyle>;
-
     /** Additional header container styles */
-    containerStyles?: StyleProp<ViewStyle>;
-
-    /** Line number for the title */
-    numberOfTitleLines?: number;
+    style?: StyleProp<ViewStyle>;
 
     /** The title to be used for the dialog (used for screen reader announcements). */
-    dialogTitle?: string;
+    dialogLabel?: string;
 
     /** Whether to skip focus of the first interactive element inside the header after the RHP transition for screen reader announcement.  */
     shouldSkipFocusAfterTransition?: boolean;
@@ -33,24 +20,14 @@ type HeaderProps = {
     children?: React.ReactNode;
 };
 
-function Header({children, title, textStyles, containerStyles, numberOfTitleLines = 2, dialogTitle, shouldSkipFocusAfterTransition = false}: HeaderProps) {
+function Header({children, style, dialogLabel = '', shouldSkipFocusAfterTransition = false}: HeaderProps) {
     const styles = useThemeStyles();
 
-    useHeaderDialogAnnouncement(dialogTitle ?? title, shouldSkipFocusAfterTransition);
+    useHeaderDialogAnnouncement(dialogLabel, shouldSkipFocusAfterTransition);
 
     return (
-        <View style={[styles.flex1, styles.flexRow, containerStyles]}>
-            <View style={[styles.mw100]}>
-                <Text
-                    numberOfLines={numberOfTitleLines}
-                    style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, textStyles]}
-                    accessibilityRole={CONST.ROLE.HEADER}
-                    accessibilityLabel={title}
-                >
-                    {title}
-                </Text>
-                {children}
-            </View>
+        <View style={[styles.flex1, styles.flexRow, style]}>
+            <View style={[styles.mw100]}>{children}</View>
         </View>
     );
 }
