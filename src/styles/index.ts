@@ -4416,20 +4416,20 @@ const staticStyles = (theme: ThemeColors) =>
         // Pins the callout to the top of the scroll area, the way floatingMessageCounterWrapper does, so scrolling the
         // expense detail view does not carry it out of sight.
         merchantRuleCalloutOverlay: {
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
+            ...positioning.pAbsolute,
+            ...positioning.t0,
+            ...positioning.l0,
+            ...positioning.r0,
             zIndex: 100,
         },
 
         // Floats the callout directly above the composer without giving it height there, so the conversation does not
         // jump when it appears.
         merchantRuleCalloutComposerOverlay: {
-            position: 'absolute',
-            bottom: '100%',
-            left: 0,
-            right: 0,
+            ...positioning.pAbsolute,
+            ...positioning.bFull,
+            ...positioning.l0,
+            ...positioning.r0,
             zIndex: 100,
         },
 
