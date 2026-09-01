@@ -7761,9 +7761,10 @@ const CONST = {
         ANIMATION: {
             FADE_DURATION: 200,
 
-            // How long the results area stays blank after the outgoing results fade out, waiting for the incoming ones.
-            // A query that resolves inside this window fades straight in; a slower one reveals the skeleton instead.
-            // Skipped when the incoming results are already in memory, so a cached swap has no gap at all.
+            // Extra time the results area stays blank when the incoming query has no results yet. The skeleton renders
+            // immediately but the area is held at zero opacity, so a query that resolves inside this window reveals its
+            // results and never shows a skeleton; a slower one reveals the skeleton and swaps to results after.
+            // Added only in that case — a swap whose results are already in memory keeps its shorter delay.
             SKELETON_GRACE_DURATION: 200,
         },
         TODO_BADGE_MAX_COUNT: 50,
