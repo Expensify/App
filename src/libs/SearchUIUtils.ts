@@ -5970,6 +5970,16 @@ function isReportFieldKey(key: string): key is ReportFieldKey {
     return key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
 }
 
+/**
+ * Normalizes any report field key (`reportFieldOn-`, `reportFieldNot-`, ...) to the plain `reportField-<name>` form that
+ * search query filters hold. Every prefix ends in a hyphen, and the field name itself may contain hyphens, so only the
+ * first one is treated as the separator.
+ */
+function getReportFieldTextKey(key: ReportFieldKey): ReportFieldTextKey {
+    const reportFieldName = key.slice(key.indexOf('-') + 1);
+    return `${CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${reportFieldName}`;
+}
+
 type SearchFilter = {
     key: keyof typeof FILTER_VIEW_MAP;
     label: string;
@@ -6051,7 +6061,7 @@ function mapFiltersFormToLabelValueList(
             const value = getReportFieldDisplayValue(searchAdvancedFiltersForm, translate, dateFnsLocale);
             if (value) {
                 addedGroups.add(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
-                const isDefault = defaultSearchQueryFilterKeys.has(key);
+                const isDefault = defaultSearchQueryFilterKeys.has(getReportFieldTextKey(key));
                 const extra = mapper?.(CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD, isDefault);
                 (isDefault ? defaultFilters : nonDefaultFilters).push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD, label: translate('workspace.common.reportField'), value, ...extra});
             }
