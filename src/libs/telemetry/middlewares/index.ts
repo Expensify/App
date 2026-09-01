@@ -1,5 +1,6 @@
 import type {EventHint, Log, TransactionEvent} from '@sentry/core';
 
+import attachGlobalSpanAttributes from './attachGlobalSpanAttributes';
 import canceledTabNavigationFilter from './canceledTabNavigationFilter';
 import copyTagsToChildSpans from './copyTagsToChildSpans';
 import emailDomainFilter from './emailDomainFilter';
@@ -10,7 +11,7 @@ import onyxLogFilter from './onyxLogFilter';
 type TelemetryBeforeSend = (event: TransactionEvent, hint: EventHint) => TransactionEvent | null | Promise<TransactionEvent | null>;
 type TelemetryBeforeSendLog = (log: Log) => Log | null;
 
-const middlewares: TelemetryBeforeSend[] = [emailDomainFilter, canceledTabNavigationFilter, maxDurationFilter, httpClientCancelledFilter, copyTagsToChildSpans];
+const middlewares: TelemetryBeforeSend[] = [emailDomainFilter, canceledTabNavigationFilter, maxDurationFilter, httpClientCancelledFilter, copyTagsToChildSpans, attachGlobalSpanAttributes];
 const logMiddlewares: TelemetryBeforeSendLog[] = [onyxLogFilter];
 
 function processBeforeSendTransactions(event: TransactionEvent, hint: EventHint): Promise<TransactionEvent | null> {

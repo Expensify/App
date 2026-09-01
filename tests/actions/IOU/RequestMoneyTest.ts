@@ -1231,7 +1231,6 @@ describe('actions/IOU', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 owner: RORY_EMAIL,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 employeeList: {
                     [CARLOS_EMAIL]: {
                         role: CONST.POLICY.ROLE.ADMIN,
