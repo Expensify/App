@@ -128,7 +128,6 @@ function AmountForm({
             >
                 <NumericField.TextInput
                     symbol={symbol}
-                    position="prefix"
                     hideSymbol={hideCurrencySymbol}
                     accessibilityLabel={label}
                     label={label}

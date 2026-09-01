@@ -13,7 +13,6 @@ import type {BlurEvent, TextInputSelectionChangeEvent} from 'react-native';
 /** Text input primitive connected to a NumericField root. */
 function NumericTextInput({
     symbol = '',
-    position = 'prefix',
     hideSymbol = false,
     ref,
     onKeyPress,
@@ -32,7 +31,6 @@ function NumericTextInput({
     prefixStyle,
     shouldApplyPaddingToContainer,
     shouldUseDefaultLineHeightForPrefix,
-    suffixStyle,
     onSubmitEditing: inputOnSubmitEditing,
     submitBehavior,
     testID,
@@ -42,9 +40,7 @@ function NumericTextInput({
     const {errorText, formattedNumber, selection} = useNumericFieldState();
     const {handleBlur, handleKeyPress, handleSelectionChange, inputRef, onSubmitEditing, setNumber} = useNumericFieldActions();
 
-    const isSuffix = position === 'suffix';
-    const prefixCharacter = !hideSymbol && !isSuffix ? symbol : '';
-    const suffixCharacter = !hideSymbol && isSuffix ? symbol : '';
+    const prefixCharacter = !hideSymbol ? symbol : '';
 
     const handleInputKeyPress = (event: NumericEditingKeyPressEvent) => {
         handleKeyPress(event);
@@ -91,8 +87,6 @@ function NumericTextInput({
             selection={selection}
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
             shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
-            suffixCharacter={suffixCharacter}
-            suffixStyle={suffixStyle}
             submitBehavior={submitBehavior}
             testID={testID}
             touchableInputWrapperStyle={touchableInputWrapperStyle}

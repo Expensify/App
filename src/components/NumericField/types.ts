@@ -6,14 +6,9 @@ import type {StyleProp, TextStyle} from 'react-native';
 
 type NumericFieldRef = NumericEditingRef;
 
-type NumericSymbolPosition = 'prefix' | 'suffix';
-
 type NumericTextInputProps = {
     /** Symbol displayed next to the number. */
     symbol?: string;
-
-    /** Position of the symbol relative to the number. */
-    position?: NumericSymbolPosition;
 
     /** Whether the symbol should be hidden. */
     hideSymbol?: boolean;
@@ -45,7 +40,6 @@ type NumericTextInputProps = {
     | 'shouldApplyPaddingToContainer'
     | 'shouldUseDefaultLineHeightForPrefix'
     | 'submitBehavior'
-    | 'suffixStyle'
     | 'testID'
     | 'touchableInputWrapperStyle'
 >;

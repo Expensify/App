@@ -18,7 +18,6 @@
  * >
  *   <NumericField.TextInput
  *     symbol="$"
- *     position="prefix"
  *     label="Amount"
  *   />
  * </NumericField>
