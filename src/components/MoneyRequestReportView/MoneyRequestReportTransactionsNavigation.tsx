@@ -132,11 +132,13 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     // Holds the press rather than dropping it: fetching the sibling's parent report brings in the IOU action the
     // thread hangs off, and the effect below replays the press once it lands.
     const stageSiblingPress = (transactionID: string | undefined, parentReportID: string | undefined) => {
+        // Offline there is no fetch to wait for, so the caller builds the thread optimistically instead.
         if (!transactionID || !parentReportID || isOffline) {
-            return;
+            return false;
         }
         pendingSiblingRef.current = {transactionID, originRoute: Navigation.getActiveRoute()};
         openReport({reportID: parentReportID, introSelected, conciergeChat, betas, currentUserAccountID, hasReportActions: true});
+        return true;
     };
 
     const onNext = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
@@ -178,13 +180,12 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             return;
         }
 
-        // A thread created before the parent action loads would have no parent.
-        if (!nextParentReportAction) {
-            stageSiblingPress(nextTransactionID, nextTransaction?.reportID);
+        // A thread created before the parent action loads would have no parent, so wait for the fetch.
+        if (!nextParentReportAction && stageSiblingPress(nextTransactionID, nextTransaction?.reportID)) {
             return;
         }
 
-        const nextThreadReportID = nextParentReportAction.childReportID;
+        const nextThreadReportID = nextParentReportAction?.childReportID;
         const navigationParams = {
             reportID: nextThreadReportID,
             reportActionID: undefined,
@@ -255,13 +256,12 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             return;
         }
 
-        // A thread created before the parent action loads would have no parent.
-        if (!prevParentReportAction) {
-            stageSiblingPress(prevTransactionID, prevTransaction?.reportID);
+        // A thread created before the parent action loads would have no parent, so wait for the fetch.
+        if (!prevParentReportAction && stageSiblingPress(prevTransactionID, prevTransaction?.reportID)) {
             return;
         }
 
-        const prevThreadReportID = prevParentReportAction.childReportID;
+        const prevThreadReportID = prevParentReportAction?.childReportID;
         const navigationParams = {
             reportID: prevThreadReportID,
             reportActionID: undefined,

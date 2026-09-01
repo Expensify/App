@@ -36,6 +36,13 @@ jest.mock('@components/OnyxListItemProvider', () => ({
     usePersonalDetails: () => ({}),
 }));
 
+const mockIsOffline = {value: false};
+
+jest.mock('@hooks/useNetwork', () => ({
+    __esModule: true,
+    default: () => ({isOffline: mockIsOffline.value}),
+}));
+
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
     default: () => ({email: 'a@b.com', accountID: 1}),
@@ -67,6 +74,7 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockIsOffline.value = false;
         await Onyx.clear();
         // The report's own actions are deliberately absent: this is the cache-cleared shape, where the
         // seeded sibling IDs are known but the IOU actions that resolve them have not been fetched yet.
@@ -144,5 +152,28 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
 
         expect(setParamsSpy).not.toHaveBeenCalled();
         expect(createThreadSpy).not.toHaveBeenCalled();
+    });
+
+    it('still builds the thread optimistically when offline, rather than leaving the arrow dead', async () => {
+        mockIsOffline.value = true;
+        const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+        const createThreadSpy = jest.spyOn(ReportActions, 'createTransactionThreadReport');
+        jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
+
+        render(<MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />);
+        await waitForBatchedUpdates();
+
+        const buttons = screen.getAllByLabelText(CONST.ROLE.BUTTON);
+        const nextButton = buttons.at(1);
+        if (!nextButton) {
+            throw new Error('next arrow did not render');
+        }
+        fireEvent.press(nextButton);
+
+        // Offline there is nothing to fetch, so the press must fall through instead of being staged.
+        await waitFor(() => {
+            expect(createThreadSpy).toHaveBeenCalled();
+        });
+        expect(openReportSpy).not.toHaveBeenCalled();
     });
 });

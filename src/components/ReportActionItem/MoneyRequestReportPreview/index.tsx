@@ -293,6 +293,8 @@ function MoneyRequestReportPreview({
                 markReportRHPWidth(childReportID, 'wide');
                 const release = () => {
                     unmarkReportRHPWidth(childReportID);
+                    // Only clears if the report still carries our hint, so it can't undo one set by the report itself.
+                    unmarkReportRHPWidth(iouReportID, 'super-wide');
                     seeded.then(() => {
                         if (getActiveTransactionIDs().ids !== openableTransactionIDs) {
                             return;
