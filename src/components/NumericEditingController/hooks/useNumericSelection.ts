@@ -70,6 +70,7 @@ function useNumericSelection({displayText}: UseNumericSelectionParams) {
     const syncAfterEdit = ({previousText, nextText}: NumericSelectionEdit) => {
         prepareSelectionUpdate(nextText);
         const isForwardDelete = forwardDeletePressedRef.current && previousText.length > nextText.length;
+        forwardDeletePressedRef.current = false;
         const previousLength = isForwardDelete ? nextText.length : previousText.length;
         setSelection((currentSelection) => getNewSelection(currentSelection, previousLength, nextText.length));
     };
