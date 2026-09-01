@@ -187,6 +187,11 @@ const DEFAULT_TIME_TRANSACTION: Transaction = {
     iouRequestType: CONST.IOU.REQUEST_TYPE.TIME,
 };
 
+const mockNavigation = {
+    addListener: jest.fn(() => () => {}),
+    setParams: jest.fn(),
+};
+
 function renderConfirmation(action: IOUAction = CONST.IOU.ACTION.CREATE) {
     return render(
         <OnyxListItemProvider>
@@ -205,8 +210,8 @@ function renderConfirmation(action: IOUAction = CONST.IOU.ACTION.CREATE) {
                                         reportID: POLICY_CHAT_REPORT_ID,
                                     },
                                 }}
-                                // @ts-expect-error we don't need navigation param here
-                                navigation={undefined}
+                                // @ts-expect-error the stub only carries the navigation APIs this page actually calls.
+                                navigation={mockNavigation}
                             />
                         </CurrencyListContextProvider>
                     </LocaleContextProvider>
