@@ -25,6 +25,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions, isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
@@ -163,6 +164,12 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
     const linkedReportActionID = route?.params?.reportActionID;
+
+    // Opened from the "X Replies" link: land on the latest message instead of the default top of the report.
+    // The ref holds the report we already scrolled for, not a plain boolean, because this screen instance is reused
+    // when the route switches to another report and the next report must be able to scroll as well.
+    const shouldScrollToLatestOnOpen = route?.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST] === 'true';
+    const scrolledToLatestOnOpenForReportIDRef = useRef<string | undefined>(undefined);
 
     const parentReportAction = useParentReportAction(report);
 
@@ -702,6 +709,19 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             clearTimeout(stickToBottomTimeoutRef.current);
         };
     }, []);
+
+    // When the report is opened from the "X Replies" link, scroll to the latest message once the actions are
+    // available (this list otherwise opens at the top). scrollToLatestMessages pins to the bottom while the
+    // deferred content settles, mirroring the floating "new messages" button. We clear the route param afterwards
+    // so a later re-render or remount doesn't yank the user back down.
+    useEffect(() => {
+        if (!shouldScrollToLatestOnOpen || scrolledToLatestOnOpenForReportIDRef.current === reportIDFromRoute || visibleReportActions.length === 0) {
+            return;
+        }
+        scrolledToLatestOnOpenForReportIDRef.current = reportIDFromRoute;
+        scrollToLatestMessages();
+        Navigation.setParams({[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST]: undefined});
+    }, [shouldScrollToLatestOnOpen, visibleReportActions.length, scrollToLatestMessages, reportIDFromRoute]);
 
     const onListContentSizeChange = () => {
         if (!stickToBottomRef.current) {

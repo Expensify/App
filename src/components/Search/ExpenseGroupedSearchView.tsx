@@ -291,7 +291,6 @@ function ExpenseGroupedSearchView({
                     onFocus={onFocus}
                     newTransactionID={newTransactionID}
                     onUndelete={handleUndelete}
-                    keyForList={item.keyForList}
                     isFirstItem={index === firstVisibleIndex}
                     isLastItem={index === lastVisibleIndex && !ListFooterComponent}
                 />

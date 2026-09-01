@@ -725,7 +725,6 @@ const SCREENS = {
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_BrokenCardFeedConnection',
         COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_RefreshCardFeedConnection',
-        COMPANY_CARDS_VERIFY_ACCOUNT: 'Workspace_CompanyCards_VerifyAccount',
         DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE: 'Dynamic_Workspace_CompanyCards_AssignCard_Assignee',
         COMPANY_CARDS_ASSIGN_CARD_BANK_CONNECTION: 'Workspace_CompanyCards_AssignCard_Bank_Connection',
         COMPANY_CARDS_ASSIGN_CARD_PLAID_CONNECTION: 'Workspace_CompanyCards_AssignCard_Plaid_Connection',
@@ -1099,6 +1098,7 @@ const SCREENS = {
     WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT: 'Workspaces_Add_Domain_VerifyAccount',
     WORKSPACES_DOMAIN_ADDED: 'Workspaces_Domain_Added',
     WORKSPACES_DOMAIN_ACCESS_RESTRICTED: 'Workspaces_Domain_Access_Restricted',
+    WORKSPACES_DOMAIN_ALREADY_EXISTS: 'Workspaces_Domain_Already_Exists',
     DOMAIN: {
         SAML_VERIFY: 'Domain_SAML_Verify',
         SAML_VERIFIED: 'Domain_SAML_Verified',
