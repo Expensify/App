@@ -141,12 +141,14 @@ const processPickedAssetsSequentially = async (assets: Asset[], showGeneralAlert
                     // eslint-disable-next-line no-await-in-loop -- converting one image at a time is the point, see the doc comment above
                     const manipulationResult = await manipulatedImage.saveAsync({format: SaveFormat.JPEG});
                     const uri = manipulationResult.uri;
-                    const convertedAsset: Asset = {
-                        uri,
-                        fileName: uri
+                    const fileName =
+                        uri
                             .substring(uri.lastIndexOf('/') + 1)
                             .split('?')
-                            .at(0),
+                            .at(0) ?? '';
+                    const convertedAsset: Asset = {
+                        uri,
+                        fileName,
                         type: 'image/jpeg',
                         width: manipulationResult.width,
                         height: manipulationResult.height,
