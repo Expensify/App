@@ -2,6 +2,7 @@ import {renderScrollComponent as renderActionSheetAwareScrollView} from '@compon
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
 import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useEnvironment from '@hooks/useEnvironment';
 import useLinkedMessageOfflineLoading from '@hooks/useLinkedMessageOfflineLoading';
@@ -109,6 +110,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isProduction} = useEnvironment();
+    const {wideRHPRouteKeys} = useWideRHPState();
 
     const {
         report,
@@ -132,6 +134,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
     const {isOffline} = useNetwork();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionIDFromRoute = route?.params?.reportActionID;
+    // A wide RHP reports a narrow layout but lays out like a wide screen, so the report footer owns the callout there
+    const isInWideRHP = wideRHPRouteKeys.includes(route.key);
     const {sessionStartTime} = useConciergeSessionState();
 
     const didLayout = useRef(false);
@@ -443,16 +447,18 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
 
     return (
         <>
-            {shouldUseNarrowLayout && (
-                // Pinned over the top of the list rather than laid out inside it, so scrolling the expense detail view
-                // does not carry it out of sight. On wide layouts the report footer renders it above the composer.
-                <MerchantRuleSuggestionBanner
-                    reportID={reportID}
-                    policyID={report?.policyID}
-                    containerStyles={[styles.mh4, styles.mt2]}
-                    shouldOverlayScrollArea
-                />
-            )}
+            {shouldUseNarrowLayout &&
+                !isInWideRHP && (
+                    // Pinned over the top of the list rather than laid out inside it, so scrolling the expense detail view
+                    // does not carry it out of sight. On wide layouts the report footer renders it above the composer
+                    // instead — including in a wide RHP, which reports a narrow layout but lays out like a wide screen.
+                    <MerchantRuleSuggestionBanner
+                        reportID={reportID}
+                        policyID={report?.policyID}
+                        containerStyles={[styles.mh4, styles.mt2]}
+                        shouldOverlayScrollArea
+                    />
+                )}
             <FloatingMessageCounter
                 hasNewMessages={!!unreadMarkerReportActionID}
                 isActive={isFloatingMessageCounterVisible}
