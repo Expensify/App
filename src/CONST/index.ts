@@ -7803,10 +7803,6 @@ const CONST = {
         GROUP_PREFIX: 'group_',
         ANIMATION: {
             FADE_DURATION: 120,
-
-            // Extra time the results area is held at zero opacity when the incoming query has no results yet, so a
-            // query resolving inside it never shows a skeleton. Not added when the results are already in memory.
-            SKELETON_GRACE_DURATION: 200,
         },
         TODO_BADGE_MAX_COUNT: 50,
         TOP_SEARCH_LIMIT: 10,

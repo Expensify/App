@@ -337,15 +337,11 @@ function SearchPageNarrow({
                             <>
                                 {/* skipEntering keeps the delayed fade off the very first mount, so opening Search cold paints immediately. */}
                                 <LayoutAnimationConfig skipEntering>
-                                    {/* A query change remounts this layer, which stays hidden for the delay before fading in — plus a grace
-                                        window when its results aren't in memory, so a quick query never shows a skeleton. */}
+                                    {/* A query change remounts this layer, which stays hidden for the delay before fading in. A query that
+                                        resolves inside that window swaps straight to its results without showing a skeleton. */}
                                     <Animated.View
                                         key={queryJSON.hash}
-                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION).delay(
-                                            shouldShowLoadingSkeleton
-                                                ? CONST.SEARCH.ANIMATION.FADE_DURATION + CONST.SEARCH.ANIMATION.SKELETON_GRACE_DURATION
-                                                : CONST.SEARCH.ANIMATION.FADE_DURATION,
-                                        )}
+                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION).delay(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                                         exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                                         style={StyleSheet.absoluteFill}
                                     >
