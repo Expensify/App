@@ -148,7 +148,6 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
     return (
         <BareUserListItem
             item={item}
-            keyForList={item.keyForList}
             isFocused={isFocused}
             showTooltip={showTooltip}
             isDisabled={isDisabled}

@@ -371,7 +371,7 @@ function GroupHeader({
                 isNested
                 shouldAllowTextSelection
                 hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
-                dataSet={{...COPYABLE_ROW_DATA_SET, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
+                dataSet={{...COPYABLE_ROW_DATA_SET, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                 onMouseDown={(e) => {
                     const isCopyableTarget = markMouseDownOnCopyableText(e?.target);
                     if (isCopyableTarget) {

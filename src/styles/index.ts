@@ -5342,6 +5342,11 @@ const staticStyles = (theme: ThemeColors) =>
             ...spacing.gap3,
         },
 
+        menuItemLeading: {
+            ...flex.justifyContentCenter,
+            ...flex.alignItemsCenter,
+        },
+
         menuItemTrailing: {
             ...flex.flexRow,
             ...flex.alignItemsCenter,

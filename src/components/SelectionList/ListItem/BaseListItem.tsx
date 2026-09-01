@@ -3,6 +3,7 @@ import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import getListItemAccessibilityProps from '@components/SelectionList/utils/getListItemAccessibilityProps';
+import isListItemSelected from '@components/SelectionList/utils/isListItemSelected';
 
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -40,17 +41,13 @@ function BaseListItem<TItem extends ListItem>({
     onSelectRow,
     onDismissError = () => {},
     rightHandSideComponent,
-    keyForList,
-    errors,
     errorRowStyles,
-    pendingAction,
     FooterComponent,
     children,
     isFocused,
     isFocusVisible = isFocused,
     shouldSyncFocus = true,
     shouldDisplayRBR = true,
-    shouldShowBlueBorderOnFocus = false,
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
@@ -118,8 +115,7 @@ function BaseListItem<TItem extends ListItem>({
         return rightHandSideComponent;
     };
 
-    // Selection can be provided explicitly (e.g. rows whose selection isn't stored on the item) and otherwise falls back to the item.
-    const isRowSelected = isSelected ?? item.isSelected;
+    const isRowSelected = isListItemSelected(item, isSelected);
     const shouldShowRBRIndicator = (!isRowSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
 
     const {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel, ariaCurrent} = getListItemAccessibilityProps({
@@ -137,8 +133,8 @@ function BaseListItem<TItem extends ListItem>({
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
-            pendingAction={pendingAction}
-            errors={errors}
+            pendingAction={item.pendingAction}
+            errors={item.errors}
             errorRowStyles={[styles.mh5, errorRowStyles]}
             contentContainerStyle={containerStyle}
         >
@@ -170,7 +166,7 @@ function BaseListItem<TItem extends ListItem>({
                 hoverStyle={!shouldDisableHoverStyle ? [(!item.isDisabled || isRowSelected) && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle] : undefined}
                 dataSet={{
                     ...(shouldAllowTextSelection ? COPYABLE_ROW_DATA_SET : {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}),
-                    [CONST.INNER_BOX_SHADOW_ELEMENT]: shouldShowBlueBorderOnFocus,
+                    [CONST.INNER_BOX_SHADOW_ELEMENT]: true,
                 }}
                 onMouseDown={(e) => {
                     const target = e?.target;
@@ -181,7 +177,7 @@ function BaseListItem<TItem extends ListItem>({
                     }
                     e.preventDefault();
                 }}
-                id={keyForList ?? ''}
+                id={item.keyForList ?? ''}
                 testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
                 style={[
                     pressableStyle,
