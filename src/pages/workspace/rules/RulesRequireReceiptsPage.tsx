@@ -17,6 +17,7 @@ import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/Cur
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {isMaxExpenseAmountSet} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -34,10 +35,6 @@ import {View} from 'react-native';
 
 type RulesRequireReceiptsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_REQUIRE_RECEIPTS>;
 
-function isAmountEnabled(value: number | undefined): boolean {
-    return value !== undefined && value !== CONST.DISABLED_MAX_EXPENSE_VALUE && value !== 0;
-}
-
 function RulesRequireReceiptsPage({
     route: {
         params: {policyID},
@@ -54,8 +51,8 @@ function RulesRequireReceiptsPage({
     const decimals = getCurrencyDecimals(policyCurrency);
     const formRef = useRef<FormRef>(null);
 
-    const initialReceiptEnabled = isAmountEnabled(policy?.maxExpenseAmountNoReceipt);
-    const initialItemizedEnabled = isAmountEnabled(policy?.maxExpenseAmountNoItemizedReceipt);
+    const initialReceiptEnabled = isMaxExpenseAmountSet(policy?.maxExpenseAmountNoReceipt);
+    const initialItemizedEnabled = isMaxExpenseAmountSet(policy?.maxExpenseAmountNoItemizedReceipt);
 
     const initialReceiptAmount = useMemo(
         () => (initialReceiptEnabled ? convertToFrontendAmountAsString(policy?.maxExpenseAmountNoReceipt ?? 0, decimals) : ''),
@@ -80,8 +77,8 @@ function RulesRequireReceiptsPage({
         }
 
         syncedPolicyIDRef.current = policy.id;
-        setReceiptEnabled(isAmountEnabled(policy.maxExpenseAmountNoReceipt));
-        setItemizedEnabled(isAmountEnabled(policy.maxExpenseAmountNoItemizedReceipt));
+        setReceiptEnabled(isMaxExpenseAmountSet(policy.maxExpenseAmountNoReceipt));
+        setItemizedEnabled(isMaxExpenseAmountSet(policy.maxExpenseAmountNoItemizedReceipt));
     }, [policy?.id, policy?.isLoading, policy?.maxExpenseAmountNoReceipt, policy?.maxExpenseAmountNoItemizedReceipt]);
 
     const validate = useCallback(
