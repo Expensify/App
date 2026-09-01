@@ -45,6 +45,7 @@ function WorkspaceTravelBillingFeedSelectorPage({route}: WorkspaceTravelBillingF
     const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [feedWithError, setFeedWithError] = useState<{fundID?: number; error?: Errors} | undefined>(undefined);
+    const [linkingFundID, setLinkingFundID] = useState<number>();
 
     const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_TRAVEL.getRoute(policyID));
 
@@ -54,14 +55,22 @@ function WorkspaceTravelBillingFeedSelectorPage({route}: WorkspaceTravelBillingF
         value: entry.fundID,
         text: getExpensifyCardFeedDescription(entry.settings, policies, domains, entry.fundID, cardList),
         keyForList: entry.fundID.toString(),
-        isDisabled: isOffline,
+        isDisabled: isOffline || linkingFundID !== undefined,
         errors: feedWithError?.fundID === entry.fundID ? feedWithError.error : undefined,
     });
 
     const selectFeed = (feed: TravelBillingFeedListItem) => {
+        // A second tap while the link resolves would fire the command again and navigate back twice.
+        if (linkingFundID !== undefined) {
+            return;
+        }
+        setLinkingFundID(feed.value);
         linkCardFeedToPolicy(feed.value, policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD, CONST.TRAVEL.PROGRAM_TRAVEL_US)
             .then(() => goBack())
-            .catch((error: TranslationPaths) => setFeedWithError({fundID: feed.value, error: getMicroSecondOnyxErrorWithTranslationKey(error)}));
+            .catch((error: TranslationPaths) => {
+                setLinkingFundID(undefined);
+                setFeedWithError({fundID: feed.value, error: getMicroSecondOnyxErrorWithTranslationKey(error)});
+            });
     };
 
     return (
