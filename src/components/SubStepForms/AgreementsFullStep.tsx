@@ -171,8 +171,6 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
         [inputIDs.agreeToTermsAndConditions, inputIDs.authorizedToBindClientToAgreement, inputIDs.consentToPrivacyNotice, inputIDs.provideTruthfulInformation, stepFields, translate],
     );
 
-    console.log('AgreementsFullStep render', {defaultValues, formID, inputIDs, isLoading, stepNames, startStepIndex, bankStatementInputID, bankStatementDefaultValue});
-
     return (
         <InteractiveStepWrapper
             wrapperID="AgreementsFullStep"
