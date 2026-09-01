@@ -152,7 +152,7 @@ function DynamicAddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             <ConfirmModal
                 isVisible={isModalVisible}
                 title={translate('workspace.companyCards.addNewCard.exitModal.title')}
-                success
+                buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
                 confirmText={translate('workspace.companyCards.addNewCard.exitModal.confirmText')}
                 cancelText={translate('workspace.companyCards.addNewCard.exitModal.cancelText')}
                 prompt={translate('workspace.companyCards.addNewCard.exitModal.prompt')}

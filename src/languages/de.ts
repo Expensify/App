@@ -6558,7 +6558,12 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 defaultHourlyRate: 'Standardstundensatz',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Um HR zu deaktivieren, trennen Sie bitte zuerst ${integration} von diesem Workspace.`},
-            vendors: {title: 'Lieferanten', subtitle: 'Ordnen Sie Kartenausgaben den aus Ihrer Buchhaltungssoftware importierten Lieferanten zu.'},
+            vendors: {
+                title: 'Lieferanten',
+                subtitle: 'Ordnen Sie Kartenausgaben den aus Ihrer Buchhaltungssoftware importierten Lieferanten zu.',
+                disabledTitle: 'Nicht so schnell...',
+                disabledMessage: 'Um diese Funktion zu aktivieren oder zu deaktivieren, müssen Sie Ihre Buchhaltungsimporteinstellungen ändern.',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Beispiele:',
@@ -8350,6 +8355,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus.',
                 confirmErrorAmount: 'Bitte geben Sie einen Betrag ein.',
                 thenFlagForReview: 'Dann zur Überprüfung kennzeichnen, wenn:',
+                thenDoTheFollowing: 'Führen Sie dann Folgendes aus:',
+                flagType: 'Markierungstyp',
+                flagTypeWarning: 'Warnung',
+                flagTypeWarningDescription: 'Die einreichende Person wird gewarnt, kann die Ausgabe aber trotzdem einreichen',
             },
             agentRulesEmptyState: {
                 title: 'Keine Agentenregeln hinzugefügt',
