@@ -17,6 +17,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import createRandomPolicy from '../utils/collections/policies';
 import createRandomTransaction from '../utils/collections/transaction';
 
 // The confirmation page reaches the RHP by replacing the recipient picker, so goToNextStep must pass an explicit
@@ -206,6 +207,7 @@ const DESTINATION_CHAT: Participant = {reportID: 'R3', policyID: DESTINATION_POL
 
 function buildDestinationPolicy(): Policy {
     return {
+        ...createRandomPolicy(1),
         id: DESTINATION_POLICY_ID,
         customUnits: {
             distance: {
@@ -223,7 +225,7 @@ function buildDestinationPolicy(): Policy {
                 },
             },
         },
-    } as unknown as Policy;
+    };
 }
 
 function buildTrackedDistanceDraft(customUnitRateID: string | undefined): Transaction {
@@ -235,7 +237,7 @@ function buildTrackedDistanceDraft(customUnitRateID: string | undefined): Transa
         created: '2026-08-14',
         // quantity is 0 while the map route is still being generated.
         comment: {customUnit: {customUnitRateID, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, quantity: 0}},
-    } as unknown as Transaction;
+    };
 }
 
 describe('useParticipantSubmission addParticipant distance rate', () => {
@@ -287,7 +289,7 @@ describe('useParticipantSubmission addParticipant distance rate', () => {
 
     // Only the default workspace is guaranteed full customUnits from OpenApp.
     it('leaves the rate alone when the destination workspace has no rates loaded yet', () => {
-        mockPolicies = {[`${ONYXKEYS.COLLECTION.POLICY}${DESTINATION_POLICY_ID}`]: {id: DESTINATION_POLICY_ID} as unknown as Policy};
+        mockPolicies = {[`${ONYXKEYS.COLLECTION.POLICY}${DESTINATION_POLICY_ID}`]: {...createRandomPolicy(2), id: DESTINATION_POLICY_ID}};
         mockDraftTransactions = [buildTrackedDistanceDraft(OTHER_WORKSPACE_RATE_ID)];
         const {result} = renderSubmission();
 

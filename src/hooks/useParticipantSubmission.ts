@@ -268,7 +268,7 @@ function useParticipantSubmission({
         const destinationRates = isMovingToPolicyExpenseChat ? DistanceRequestUtils.getMileageRates(policy) : undefined;
         const shouldKeepTrackExpenseRate = (transaction: OnyxEntry<Transaction>) => {
             const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
-            return currentRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID || isEmptyObject(destinationRates) || !!destinationRates?.[currentRateID ?? ''];
+            return currentRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID || isEmptyObject(destinationRates) || (!!currentRateID && !!destinationRates?.[currentRateID]);
         };
 
         if (drafts.length > 0) {
