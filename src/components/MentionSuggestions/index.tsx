@@ -3,7 +3,7 @@ import type {MeasureParentContainerAndCursorCallback} from '@components/AutoComp
 
 import React from 'react';
 
-import type {Mention} from './types';
+import type Mention from './types';
 
 import MentionSuggestionItem from './MentionSuggestionItem';
 

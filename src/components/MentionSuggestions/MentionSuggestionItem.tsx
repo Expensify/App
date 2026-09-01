@@ -1,3 +1,4 @@
+import Icon from '@components/Icon';
 import ListItemCompactAvatar from '@components/SelectionList/ListItemComposed/primitives/ListItemCompactAvatar';
 import Text from '@components/Text';
 
@@ -36,13 +37,20 @@ function MentionSuggestionItem({item, prefix}: MentionSuggestionItemProps) {
 
     return (
         <View style={[styles.autoCompleteSuggestionContainer, styles.ph2]}>
-            {!!icon && (
-                <ListItemCompactAvatar
-                    icon={icon}
-                    size={isIcon ? CONST.AVATAR_SIZE.XXX_SMALL : CONST.AVATAR_SIZE.X_SMALL}
-                    fill={isIcon ? theme.success : undefined}
-                />
-            )}
+            {!!icon &&
+                (isIcon ? (
+                    <View style={styles.mentionSuggestionsAvatarContainer}>
+                        <Icon
+                            src={typeof icon.source === 'string' ? undefined : icon.source}
+                            width={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.XXX_SMALL)}
+                            height={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.XXX_SMALL)}
+                            fill={theme.success}
+                            additionalStyles={StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.XXX_SMALL, CONST.AVATAR_SHAPE.CIRCLE)}
+                        />
+                    </View>
+                ) : (
+                    <ListItemCompactAvatar icon={icon} />
+                ))}
             <Text
                 style={[styles.mentionSuggestionsText, styles.flexShrink1]}
                 numberOfLines={1}

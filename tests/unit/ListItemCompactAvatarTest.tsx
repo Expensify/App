@@ -1,29 +1,26 @@
 import {render} from '@testing-library/react-native';
 
-import Avatar from '@components/Avatar';
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
 
 import CONST from '@src/CONST';
-import type {AvatarType, Icon} from '@src/types/onyx/OnyxCommon';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import React from 'react';
 
-jest.mock('@components/Avatar', () => jest.fn(() => null));
+jest.mock('@components/Avatar/AvatarFromIcon', () => jest.fn(() => null));
 
-const mockAvatar = jest.mocked(Avatar);
+const mockAvatarFromIcon = jest.mocked(AvatarFromIcon);
 
 describe('ListItemComposed.CompactAvatar', () => {
     beforeEach(() => {
-        mockAvatar.mockClear();
+        mockAvatarFromIcon.mockClear();
     });
 
-    it.each([
-        ['falls back to the avatar icon type when the icon has none', undefined, CONST.ICON_TYPE_AVATAR],
-        ['passes through the workspace icon type', CONST.ICON_TYPE_WORKSPACE, CONST.ICON_TYPE_WORKSPACE],
-    ])('%s', (_, type, expectedType) => {
+    it('forwards the icon and defaults to the extra-small size', () => {
         const icon: Icon = {
             source: 'avatar.png',
-            type: type as AvatarType,
+            type: CONST.ICON_TYPE_AVATAR,
             name: 'Test User',
             id: 7,
             fallbackIcon: 'fallback.png',
@@ -31,15 +28,11 @@ describe('ListItemComposed.CompactAvatar', () => {
 
         render(<ListItemComposed.CompactAvatar icon={icon} />);
 
-        expect(mockAvatar).toHaveBeenCalledTimes(1);
-        expect(mockAvatar.mock.calls.at(0)?.at(0)).toEqual(
+        expect(mockAvatarFromIcon).toHaveBeenCalledTimes(1);
+        expect(mockAvatarFromIcon.mock.calls.at(0)?.at(0)).toEqual(
             expect.objectContaining({
-                source: 'avatar.png',
+                icon,
                 size: CONST.AVATAR_SIZE.X_SMALL,
-                name: 'Test User',
-                avatarID: 7,
-                type: expectedType,
-                fallbackIcon: 'fallback.png',
             }),
         );
     });
