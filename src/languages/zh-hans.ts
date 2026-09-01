@@ -5996,6 +5996,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             deleteFailureMessage: '删除类别时出错，请重试',
             categoryName: '类别名称',
             requiresCategory: '成员必须为所有报销分类',
+            autoCategorizeNewExpenses: '自动为新报销分类',
             showCategoryGLCodes: '在分类报销时显示总账科目代码',
             needCategoryForExportToIntegration: (connectionName: string) => `要导出到 ${connectionName}，所有报销都必须先进行分类。`,
             subtitle: '更好地了解资金的支出去向。使用我们的默认类别或添加你自己的类别。',
@@ -8286,10 +8287,10 @@ ${reportName}`,
             return `已将税率“${newValue}（${newTaxPercentage}）”添加到距离费率“${customUnitRateName}”`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
-                return `已将距离费率“${customUnitRateName}”的可退税部分更改为“${newValue}”（之前为“${oldValue}”）`;
+            if (oldValue !== undefined) {
+                return `已将距离费率“${customUnitRateName}”的可退税部分更改为“${newValue}%”（之前为“${oldValue}%”）`;
             }
-            return `已将“${newValue}”的可退税部分添加到距离费率“${customUnitRateName}”中`;
+            return `已将“${newValue}%”的可退税部分添加到距离费率“${customUnitRateName}”中`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `已将 ${customUnitName} 费率名称从“${oldValue}”重命名为“${newValue}”`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
@@ -10330,6 +10331,7 @@ ${reportName}`,
     domain: {
         notVerified: '未验证',
         retry: '重试',
+        requestSent: '请求已发送',
         verifyDomain: {
             title: '验证域名',
             beforeProceeding: ({domainName}: {domainName: string}) => `在继续之前，请通过更新其 DNS 设置来验证您拥有 <strong>${domainName}</strong>。`,
@@ -10401,6 +10403,14 @@ ${reportName}`,
             subtitle: '输入你想访问的私有域名（例如 expensify.com）。',
             domainName: '域名',
             newDomain: '新域名',
+            alreadyHaveAccessError: '该域名已存在于您的账户中。',
+        },
+        domainAlreadyExists: {
+            headerTitle: '域名已存在',
+            title: '该域名已被设置。要申请访问权限吗？',
+            description: '有人已经在 Expensify 中设置了此域名。要申请管理员权限吗？',
+            requestAccess: '申请管理员权限',
+            requestAccessError: '我们无法发送你的请求。请重试。',
         },
         domainAdded: {
             title: '已添加域名',
@@ -10492,6 +10502,7 @@ ${reportName}`,
             forceTwoFactorAuthError: '无法更改强制启用双重身份验证设置。请稍后再试。',
             resetTwoFactorAuth: '重置双重身份验证',
             error: '无法保存此更改。请重试。',
+            neverMind: '算了',
         },
         groups: {
             title: '群组',
@@ -10499,7 +10510,6 @@ ${reportName}`,
             defaultGroup: '新成员的默认群组',
             defaultGroupPrompt: (currentName: string, newName: string) => `您确定要将 ${newName} 设为默认群组吗？新成员将被邀请加入此群组，而不是之前的默认群组（${currentName}）。`,
             makeDefault: '设为默认',
-            neverMind: '算了',
             createGroupError: '无法创建此群组。请重试。',
             permissions: '群组权限',
             createNewGroupButton: '新建群组',

@@ -140,10 +140,22 @@ function MoneyRequestReportPreview({
     const [pendingNewTransactionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {
         selector: pendingNewTransactionIDsSelector,
     });
+    // Transactions arrive in batches and `useNewTransactions` would diff each batch as newly added expenses.
+    // Withhold the list until every transaction the report claims has arrived.
+    const expectedTransactionCount = iouReport?.transactionCount ?? 0;
+    const isDeliveryComplete = allReportTransactions.length >= expectedTransactionCount;
+    // Adding an expense raises `transactionCount` the moment it happens, before its transaction reaches Onyx.
+    // That would briefly make the check above false again and discard the list we compare against, so once
+    // every expected transaction has arrived we keep comparing from then on.
+    const [hasCompletedDelivery, setHasCompletedDelivery] = useState(false);
+    if (isDeliveryComplete && !hasCompletedDelivery) {
+        setHasCompletedDelivery(true);
+    }
+    const transactionsForDiff = isDeliveryComplete || hasCompletedDelivery ? transactions : undefined;
     // Don't surface the highlight while the preview is covered — it'd animate the one-shot off-screen and be missed.
     // A modal pane can be covered at any width, so this ignores the wide-RHP adjustment the styles use.
     const isReportVisible = useIsReportVisible(shouldUseNarrowLayoutIgnoringWideRHP);
-    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions, pendingNewTransactionIDs, chatReportID, isReportVisible);
+    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactionsForDiff, pendingNewTransactionIDs, chatReportID, isReportVisible);
     const newTransactionIDs = new Set(isReportVisible ? newTransactions.map((transaction) => transaction.transactionID) : []);
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];

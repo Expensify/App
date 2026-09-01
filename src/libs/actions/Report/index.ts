@@ -2618,7 +2618,7 @@ function navigateToAndOpenReport({
 
     if (!shouldRevalidateExistingChat) {
         if (isOnboardingPending) {
-            openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions, currentUserAccountID});
+            openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions, currentUserAccountID, conciergeChat});
         }
         navigateToReport(chat.reportID, {shouldDismissModal, ...linkToOptions});
         return;
@@ -2807,8 +2807,11 @@ function navigateToAndOpenChildReport(
     // The personal details of the child report participants (the current user and the parent action's actor).
     participantsPersonalDetails: OnyxEntry<PersonalDetailsList>,
     isSelfTourViewed: boolean | undefined,
+    conciergeChat: OnyxEntry<Report>,
 ) {
-    const report = childReport ?? createChildReport(childReport, parentReportAction, parentReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, participantsPersonalDetails);
+    const report =
+        childReport ??
+        createChildReport(childReport, parentReportAction, parentReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, participantsPersonalDetails, conciergeChat);
     const backTo = Navigation.getActiveRoute();
 
     // A money-request/expense child report must open in the wide/super-wide RHP (SEARCH_MONEY_REQUEST_REPORT in the
@@ -2856,6 +2859,7 @@ function createChildReport(
     isSelfTourViewed: boolean | undefined,
     // The personal details of the child report participants (the current user and the parent action's actor).
     participantsPersonalDetails: OnyxEntry<PersonalDetailsList>,
+    conciergeChat: OnyxEntry<Report>,
 ): Report {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
     // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent
@@ -2900,6 +2904,7 @@ function createChildReport(
             isSelfTourViewed,
             hasReportActions: false,
             currentUserAccountID,
+            conciergeChat,
         });
     } else {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
@@ -2912,28 +2917,43 @@ function createChildReport(
  * Creates an explanation thread for a report action with reasoning
  * Adds a "Please explain this to me." comment from the user
  */
-// TODO: update to object structure https://github.com/Expensify/App/issues/73656
-// eslint-disable-next-line @typescript-eslint/max-params
-function explain(
-    childReport: OnyxEntry<Report>,
-    originalReport: OnyxEntry<Report>,
-    reportAction: OnyxEntry<ReportAction>,
-    translate: LocalizedTranslate,
-    currentUserAccountID: number,
-    introSelected: OnyxEntry<IntroSelected>,
-    betas: OnyxEntry<Beta[]>,
-    isSelfTourViewed: boolean | undefined,
-    delegateAccountID: number | undefined,
-    // The personal details of the explanation thread participants (the current user and the report action's actor).
-    participantsPersonalDetails: OnyxEntry<PersonalDetailsList>,
-    timezone: Timezone = CONST.DEFAULT_TIME_ZONE,
-) {
+type ExplainParams = {
+    childReport: OnyxEntry<Report>;
+    originalReport: OnyxEntry<Report>;
+    reportAction: OnyxEntry<ReportAction>;
+    translate: LocalizedTranslate;
+    currentUserAccountID: number;
+    introSelected: OnyxEntry<IntroSelected>;
+    betas: OnyxEntry<Beta[]>;
+    conciergeChat: OnyxEntry<Report>;
+    isSelfTourViewed: boolean | undefined;
+    delegateAccountID: number | undefined;
+    /** The personal details of the explanation thread participants (the current user and the report action's actor). */
+    participantsPersonalDetails: OnyxEntry<PersonalDetailsList>;
+    timezone?: Timezone;
+};
+
+function explain({
+    childReport,
+    originalReport,
+    reportAction,
+    translate,
+    currentUserAccountID,
+    introSelected,
+    betas,
+    conciergeChat,
+    isSelfTourViewed,
+    delegateAccountID,
+    participantsPersonalDetails,
+    timezone = CONST.DEFAULT_TIME_ZONE,
+}: ExplainParams) {
     if (!originalReport?.reportID || !reportAction) {
         return;
     }
 
     // Check if explanation thread report already exists
-    const report = childReport ?? createChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, participantsPersonalDetails);
+    const report =
+        childReport ?? createChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, participantsPersonalDetails, conciergeChat);
 
     if (isSearchTopmostFullScreenRoute()) {
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID, backTo: Navigation.getActiveRoute()}));
@@ -3832,6 +3852,7 @@ type ToggleSubscribeToChildReportParams = {
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
     betas: OnyxEntry<Beta[]>;
+    conciergeChat: OnyxEntry<Report>;
     prevNotificationPreference: NotificationPreference | undefined;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     hasReportActions: boolean;
@@ -3854,12 +3875,13 @@ function toggleSubscribeToChildReport({
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
     betas,
+    conciergeChat,
     prevNotificationPreference,
     personalDetails,
     hasReportActions,
 }: ToggleSubscribeToChildReportParams) {
     if (childReportID) {
-        openReport({reportID: childReportID, introSelected, betas, isSelfTourViewed, hasCompletedGuidedSetupFlow, hasReportActions, currentUserAccountID});
+        openReport({reportID: childReportID, introSelected, betas, isSelfTourViewed, hasCompletedGuidedSetupFlow, hasReportActions, currentUserAccountID, conciergeChat});
         const parentReportActionID = parentReportAction.reportActionID;
         if (!prevNotificationPreference || isHiddenForCurrentUser(prevNotificationPreference)) {
             updateNotificationPreference(
@@ -3906,6 +3928,7 @@ function toggleSubscribeToChildReport({
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
             betas,
+            conciergeChat,
             hasReportActions: false,
             currentUserAccountID,
         });
