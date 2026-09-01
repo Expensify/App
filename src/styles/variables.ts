@@ -342,6 +342,9 @@ export default {
     cardRulesEmptyStateIllustrationHeight: 196,
     sortingMachineRulesEmptyStateIllustrationWidth: 229,
     sortingMachineRulesEmptyStateIllustrationHeight: 240,
+    // Same height as the sorting machine so the tabs line up; width follows the artwork's 129:153 ratio.
+    spyPigeonRulesEmptyStateIllustrationWidth: 202,
+    spyPigeonRulesEmptyStateIllustrationHeight: 240,
     agentsRulesEmptyStateIllustrationWidth: 268,
     agentsRulesEmptyStateIllustrationHeight: 194,
     cardRulesEmptyStateMaxWidth: 580,

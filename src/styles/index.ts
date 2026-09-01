@@ -5843,6 +5843,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.sortingMachineRulesEmptyStateIllustrationHeight,
         },
 
+        spyPigeonRulesEmptyStateIllustration: {
+            width: variables.spyPigeonRulesEmptyStateIllustrationWidth,
+            height: variables.spyPigeonRulesEmptyStateIllustrationHeight,
+        },
+
         agentsRulesEmptyStateIllustration: {
             width: variables.agentsRulesEmptyStateIllustrationWidth,
             height: variables.agentsRulesEmptyStateIllustrationHeight,
