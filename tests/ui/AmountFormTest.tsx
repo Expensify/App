@@ -136,4 +136,14 @@ describe('AmountForm', () => {
             expect(onCurrencyButtonPress).toHaveBeenCalledTimes(1);
         });
     });
+
+    describe('default variant without displayAsTextInput (legacy path)', () => {
+        it('renders the legacy number pad instead of NumericField', async () => {
+            renderForm({value: '10', currency: 'USD'});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByDisplayValue('10')).toBeOnTheScreen();
+            expect(screen.getByTestId('button_1')).toBeOnTheScreen();
+        });
+    });
 });
