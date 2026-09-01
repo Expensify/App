@@ -1,3 +1,5 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import processPickedAssetsSequentially from '@libs/fileDownload/processPickedAssets';
 
 import type {Asset} from 'react-native-image-picker';
@@ -37,7 +39,8 @@ const buildHeicAssets = (count: number): Asset[] =>
     }));
 
 const showGeneralAlert = jest.fn();
-const translate = jest.fn(() => 'conversion failed');
+// Returns the key itself so assertions can tell the different failure messages apart.
+const translate: LocaleContextProps['translate'] = (path, ...parameters): string => (parameters.length > 0 ? `${path}:${parameters.length}` : path);
 
 describe('processPickedAssetsSequentially', () => {
     beforeEach(() => {
@@ -120,5 +123,61 @@ describe('processPickedAssetsSequentially', () => {
 
         expect(mockRenderAsync).not.toHaveBeenCalled();
         expect(result).toHaveLength(1);
+    });
+    it('preserves selection order across mixed HEIC and non-HEIC assets', async () => {
+        mockVerifyFileFormat.mockResolvedValueOnce(true).mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+        mockSaveAsync.mockResolvedValueOnce({uri: 'file:///a-converted.jpg', width: 1, height: 1}).mockResolvedValueOnce({uri: 'file:///c-converted.jpg', width: 1, height: 1});
+
+        const result = await processPickedAssetsSequentially(
+            [
+                {uri: 'file:///a.heic', fileName: 'a.heic', type: 'image/heic'},
+                {uri: 'file:///b.jpg', fileName: 'b.jpg', type: 'image/jpeg'},
+                {uri: 'file:///c.heic', fileName: 'c.heic', type: 'image/heic'},
+            ],
+            showGeneralAlert,
+            translate,
+        );
+
+        expect(result?.map((asset) => asset.fileName)).toEqual(['a-converted.jpg', 'b.jpg', 'c-converted.jpg']);
+    });
+
+    it('skips assets that have no uri', async () => {
+        const result = await processPickedAssetsSequentially([{fileName: 'no-uri.heic', type: 'image/heic'}], showGeneralAlert, translate);
+
+        expect(mockVerifyFileFormat).not.toHaveBeenCalled();
+        expect(result).toBeUndefined();
+    });
+
+    it('passes non-image assets through without checking the file format', async () => {
+        const result = await processPickedAssetsSequentially([{uri: 'file:///doc.pdf', fileName: 'doc.pdf', type: 'application/pdf'}], showGeneralAlert, translate);
+
+        expect(mockVerifyFileFormat).not.toHaveBeenCalled();
+        expect(result?.at(0)?.fileName).toBe('doc.pdf');
+    });
+
+    it('surfaces the underlying message when the format check fails', async () => {
+        mockVerifyFileFormat.mockRejectedValueOnce(new Error('format check failed'));
+
+        await processPickedAssetsSequentially(buildHeicAssets(1), showGeneralAlert, translate);
+
+        expect(showGeneralAlert).toHaveBeenCalledWith('format check failed');
+    });
+
+    it('falls back to localized copy when the failure is not an Error', async () => {
+        mockVerifyFileFormat.mockRejectedValueOnce('not an error object');
+
+        await processPickedAssetsSequentially(buildHeicAssets(1), showGeneralAlert, translate);
+
+        expect(showGeneralAlert).toHaveBeenCalledWith('attachmentPicker.errorWhileSelectingAttachment');
+    });
+
+    it('shows one alert even when the selection fails in different ways', async () => {
+        mockVerifyFileFormat.mockRejectedValueOnce(new Error('format check failed'));
+        mockRenderAsync.mockRejectedValue(new Error('decode failed'));
+
+        await processPickedAssetsSequentially(buildHeicAssets(2), showGeneralAlert, translate);
+
+        expect(showGeneralAlert).toHaveBeenCalledTimes(1);
+        expect(showGeneralAlert).toHaveBeenCalledWith('format check failed\nattachmentPicker.errorWhileConvertingHeic');
     });
 });
