@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCompanyCardConnectionError from '@hooks/useCompanyCardConnectionError';
 import useDuplicateFeedDetection from '@hooks/useDuplicateFeedDetection';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
@@ -20,7 +21,6 @@ import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection'
 
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed, isSelectedFeedExpired} from '@libs/CardUtils';
-import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
@@ -75,8 +75,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.[feed]) : false;
     const headerTitleAddCards = translate('workspace.companyCards.addCards');
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
-    const errorMessage = getLatestErrorMessage({errors: addNewCard?.errors ?? (newFeed ? cardFeeds?.[newFeed]?.errors : undefined)}) || undefined;
-    const isNewFeedHasError = !!errorMessage;
+    const {errorMessage, hasError: isNewFeedHasError} = useCompanyCardConnectionError({policyID, newFeed});
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const {checkForDuplicateFeed} = useDuplicateFeedDetection({policyID, isPlaid});
