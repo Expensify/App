@@ -12,9 +12,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 /**
- * Fallback footer that renders every section for every expense type, exactly as the single footer
- * component did before the split. Each expense type migrates to its own variant one PR at a time;
- * this stays as the dispatcher's fallback until the last one lands, then it is deleted.
+ * Fallback footer for expense types that have not been extracted yet. Deleted once the last one has a variant.
  */
 function DefaultFooter({
     receiptStitchError,
