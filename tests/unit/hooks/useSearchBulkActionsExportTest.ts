@@ -1365,7 +1365,7 @@ describe('useSearchBulkActions - export options', () => {
             });
         });
 
-        it('hides the template when the user is a member of every workspace', async () => {
+        it('hides the template when the user is a member, not admin, of every workspace', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.USER});
 
             mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
