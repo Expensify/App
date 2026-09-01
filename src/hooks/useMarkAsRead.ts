@@ -26,8 +26,10 @@ import useIsReportActionsLoaded from './useIsReportActionsLoaded';
 import useReportIsArchived from './useReportIsArchived';
 
 // useRef gets reset when the reportID changes (the list reuses the same instance per report),
-// so we use a module-level variable to track the previous report across re-instantiations.
-let prevReportID: string | null = null;
+// so we use a module-level map to track the previous report across re-instantiations.
+// Keyed by scope so two lists mounted at the same time (the chat list and the money-request
+// table view) don't clobber each other's tracking.
+const prevReportIDByScope = new Map<string, string | null>();
 
 type UseMarkAsReadParams = {
     reportID: string;
@@ -36,6 +38,9 @@ type UseMarkAsReadParams = {
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
     isScrolledToEnd: boolean;
     hasNewerActions: boolean;
+
+    /** Identifies the list surface consuming the hook; concurrent surfaces must use distinct scopes */
+    scopeKey?: string;
 };
 
 type UseMarkAsReadResult = {
@@ -46,7 +51,15 @@ type UseMarkAsReadResult = {
     completeSkippedMarkAsRead: () => void;
 };
 
-function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisibleReportActions, isScrolledToEnd, hasNewerActions}: UseMarkAsReadParams): UseMarkAsReadResult {
+function useMarkAsRead({
+    reportID,
+    report,
+    transactionThreadReport,
+    sortedVisibleReportActions,
+    isScrolledToEnd,
+    hasNewerActions,
+    scopeKey = 'default',
+}: UseMarkAsReadParams): UseMarkAsReadResult {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -78,8 +91,8 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
     useEffect(() => {
         userActiveSince.current = DateUtils.getDBTime();
         didMarkReportAsReadInitially.current = false;
-        prevReportID = reportID;
-    }, [reportID]);
+        prevReportIDByScope.set(scopeKey, reportID);
+    }, [reportID, scopeKey]);
 
     useEffect(() => {
         if (isAnonymousUser) {
@@ -106,7 +119,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
 
     const handleReportChangeMarkAsRead = useEffectEvent(() => {
         didMarkOnReportChangeRef.current = false;
-        if (reportID !== prevReportID) {
+        if (reportID !== prevReportIDByScope.get(scopeKey)) {
             return;
         }
 
@@ -141,7 +154,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
             didMarkOnReportChangeRef.current = false;
             return;
         }
-        if (reportID !== prevReportID) {
+        if (reportID !== prevReportIDByScope.get(scopeKey)) {
             return;
         }
 
