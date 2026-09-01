@@ -68,7 +68,6 @@ function getFakePolicy(id: string, name: string): Policy {
         outputCurrency: CONST.CURRENCY.USD,
         avatarURL: '',
         employeeList: {},
-        isPolicyExpenseChatEnabled: true,
         lastModified: '1697323926777105',
         autoReporting: true,
         autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,

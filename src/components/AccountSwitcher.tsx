@@ -34,7 +34,7 @@ import {View} from 'react-native';
 
 import type {PopoverMenuItem} from './PopoverMenu';
 
-import Avatar from './Avatar';
+import UserAvatar from './Avatar/UserAvatar';
 import Button from './ButtonComposed';
 import {ModalActions} from './Modal/Global/ModalContext';
 import PopoverMenu from './PopoverMenu';
@@ -80,7 +80,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
 
     const isActingAsDelegate = !!delegate;
     const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
-    const displayName = currentUserPersonalDetails?.displayName ?? '';
+    const displayName = currentUserPersonalDetails.displayName ?? '';
     const doesDisplayNameContainEmojis = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g')).test(displayName);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
@@ -264,11 +264,10 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         <>
             <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flexGrow1, styles.flex1, styles.mnw0]}>
                 <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flex1, styles.flexShrink1, styles.mnw0, styles.justifyContentCenter]}>
-                    <Avatar
-                        type={CONST.ICON_TYPE_AVATAR}
+                    <UserAvatar
                         size={CONST.AVATAR_SIZE.DEFAULT}
-                        avatarID={currentUserPersonalDetails?.accountID}
-                        source={currentUserPersonalDetails?.avatar}
+                        accountID={currentUserPersonalDetails.accountID}
+                        source={currentUserPersonalDetails.avatar}
                         fallbackIcon={currentUserPersonalDetails.fallbackIcon}
                     />
                     <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
@@ -291,7 +290,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                             numberOfLines={1}
                             style={[styles.colorMuted, styles.fontSizeLabel]}
                         >
-                            {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
+                            {Str.removeSMSDomain(currentUserPersonalDetails.login ?? '')}
                         </Text>
                         {!!isDebugModeEnabled && (
                             <Text
