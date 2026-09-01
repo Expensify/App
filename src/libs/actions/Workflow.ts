@@ -503,11 +503,6 @@ function buildReturnToDefaultWorkflowDiff({
         return foldDiff;
     }
 
-    // A fresh ruleID means there are no default rules to fold into. That covers both a default workflow that was
-    // never rule-backed and one whose rules were dropped along with their last submitter, so it says nothing
-    // about whether `employeeList` still describes the default - after a default-approver change it names the
-    // previous approver. Skip the write only for members who already submit to the current default approver;
-    // writing rules for those would split them onto a card of their own.
     if (memberEmails.every((email) => employees[email]?.submitsTo === defaultApprover)) {
         return {};
     }
