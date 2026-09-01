@@ -24,6 +24,13 @@ type SearchColumnSizing = {
 
     /** Width the column is never squeezed below, so its header stays readable however narrow the table gets. */
     minWidth: number;
+
+    /**
+     * Width the column's content actually wants, up to the cap. Once the table scrolls it is sized from these rather
+     * than from the minimums, so a column that has the room stops truncating just because a narrower table would have
+     * had to squeeze it.
+     */
+    contentWidth: number;
 };
 
 /**
@@ -136,6 +143,7 @@ function useSearchColumnWidths({columns, data, isEnabled, measurementContext}: U
             // Squeezed no further than a readable width, its own content if that is narrower, and never below the
             // header, which would leave the column unidentifiable. Once these no longer fit, the table scrolls.
             minWidth: Math.max(Math.min(contentWidth, MIN_FREE_TEXT_COLUMN_WIDTH + getSearchColumnExtraWidth(column)), headerLabelWidth),
+            contentWidth,
         };
     }
 

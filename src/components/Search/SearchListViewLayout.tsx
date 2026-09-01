@@ -122,17 +122,23 @@ function SearchListViewLayout({
         isExportedColumnWide: transactionItems.some((item) => item.shouldShowYearExported),
     };
 
-    for (const column of columns) {
-        const measuredMinWidth = columnWidths[column]?.minWidth;
+    // What each column would rather have than its minimum. Only the dynamic columns differ between the two: everything
+    // else is pinned to one width, so it wants exactly what it is never squeezed below.
+    const columnContentWidths: Partial<Record<SearchColumnType, number>> = {};
 
-        if (measuredMinWidth !== undefined) {
-            columnMinWidths[column] = measuredMinWidth;
+    for (const column of columns) {
+        const sizing = columnWidths[column];
+
+        if (sizing) {
+            columnMinWidths[column] = sizing.minWidth;
+            columnContentWidths[column] = sizing.contentWidth;
         } else if (isSizingColumns) {
             const declaredWidth = StyleUtils.getReportTableColumnStyles(column, columnSizeOptions).width;
 
             // A column styled with flex alone declares no width, so the scroller keeps estimating that one.
             if (typeof declaredWidth === 'number') {
                 columnMinWidths[column] = declaredWidth;
+                columnContentWidths[column] = declaredWidth;
             }
         }
     }
@@ -152,6 +158,7 @@ function SearchListViewLayout({
                     isHeaderVisible={isHeaderVisible}
                     dataKey={dataKey}
                     columnMinWidths={columnMinWidths}
+                    columnContentWidths={columnContentWidths}
                     availableWidth={tableWidth}
                 >
                     <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>{children}</View>

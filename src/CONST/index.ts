@@ -8648,7 +8648,7 @@ const CONST = {
             MIN_FREE_TEXT_COLUMN_WIDTH: 120,
 
             /** How wide a free-text column may be sized for its content, so one unusually long value can't claim the row. */
-            MAX_FREE_TEXT_COLUMN_WIDTH: 220,
+            MAX_FREE_TEXT_COLUMN_WIDTH: 180,
         },
     },
 
