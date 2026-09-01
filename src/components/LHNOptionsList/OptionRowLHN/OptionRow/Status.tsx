@@ -1,4 +1,4 @@
-import Text from '@components/Text';
+import PlainText from '@components/PlainText';
 import Tooltip from '@components/Tooltip';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -44,7 +44,7 @@ function Status({optionItem}: StatusProps) {
             text={statusContent}
             shiftVertical={-4}
         >
-            <Text style={styles.ml1}>{emojiCode}</Text>
+            <PlainText style={styles.ml1}>{emojiCode}</PlainText>
         </Tooltip>
     );
 }

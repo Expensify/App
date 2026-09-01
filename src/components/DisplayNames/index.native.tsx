@@ -1,3 +1,4 @@
+import PlainText from '@components/PlainText';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -21,24 +22,40 @@ function DisplayNames({accessibilityLabel, fullTitle, textStyles = [], numberOfL
         return StringUtils.lineBreaksToSpaces(processedTitle) || translate('common.hidden');
     }, [fullTitle, shouldParseFullTitle, translate]);
 
+    // Mixed emoji + text titles need nested Text runs (a per-fragment font size), so they stay on Text.
+    // Plain string titles render on the native PlainText label; custom-emoji-only titles get the emoji font inside it.
+    if (titleContainsTextAndCustomEmoji || renderAdditionalText) {
+        return (
+            <Text
+                accessibilityLabel={accessibilityLabel}
+                style={textStyles}
+                numberOfLines={numberOfLines}
+                testID={`DisplayNames${testID !== undefined ? `-${testID}` : ''}`}
+                fsClass={forwardedFSClass}
+            >
+                {titleContainsTextAndCustomEmoji ? (
+                    <TextWithEmojiFragment
+                        message={title}
+                        style={textStyles}
+                    />
+                ) : (
+                    title
+                )}
+                {renderAdditionalText?.()}
+            </Text>
+        );
+    }
+
+    // forwardedFSClass is intentionally not forwarded: FullStory only applies fsClass on core RN components, not custom ones.
     return (
-        <Text
+        <PlainText
             accessibilityLabel={accessibilityLabel}
             style={textStyles}
             numberOfLines={numberOfLines}
             testID={`DisplayNames${testID !== undefined ? `-${testID}` : ''}`}
-            fsClass={forwardedFSClass}
         >
-            {titleContainsTextAndCustomEmoji ? (
-                <TextWithEmojiFragment
-                    message={title}
-                    style={textStyles}
-                />
-            ) : (
-                title
-            )}
-            {renderAdditionalText?.()}
-        </Text>
+            {title}
+        </PlainText>
     );
 }
 
