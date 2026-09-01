@@ -31,11 +31,8 @@ type ReportAvatarProps = {
     /** Single avatar container styles */
     singleAvatarContainerStyle?: StyleProp<ViewStyle>;
 
-    /** Style for the second avatar */
-    secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
-
-    /** Border color for the subscript avatar */
-    subscriptAvatarBorderColor?: ColorValue;
+    /** Color of the row surface behind the avatar. Affects secondary avatar so it blends into the row. */
+    backdropColor?: ColorValue;
 
     /** Whether to show the subscript avatar without margin */
     noRightMarginOnSubscriptContainer?: boolean;
@@ -55,7 +52,7 @@ function ReportAvatar({
     reportID,
     size = CONST.AVATAR_SIZE.DEFAULT,
     singleAvatarContainerStyle,
-    subscriptAvatarBorderColor,
+    backdropColor,
     noRightMarginOnSubscriptContainer = false,
     horizontalStacking,
     fallbackDisplayName,
@@ -92,7 +89,7 @@ function ReportAvatar({
                 <ExpenseReportAvatar
                     reportID={reportID}
                     size={size}
-                    subscriptAvatarBorderColor={subscriptAvatarBorderColor}
+                    backdropColor={backdropColor}
                     containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : undefined}
                     fallbackDisplayName={fallbackDisplayName}
                 />
@@ -112,7 +109,7 @@ function ReportAvatar({
                     reportID={reportID}
                     size={size}
                     singleAvatarContainerStyle={singleAvatarContainerStyle}
-                    subscriptAvatarBorderColor={subscriptAvatarBorderColor}
+                    backdropColor={backdropColor}
                     noRightMarginOnSubscriptContainer={noRightMarginOnSubscriptContainer}
                     horizontalStacking={horizontalStacking}
                     fallbackDisplayName={fallbackDisplayName}

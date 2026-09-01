@@ -101,7 +101,7 @@ describe('ExpenseReportAvatar (connected)', () => {
             <ExpenseReportAvatar
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.SMALL}
-                subscriptAvatarBorderColor="#ff0000"
+                backdropColor="#ff0000"
                 fallbackDisplayName={FALLBACK_NAME}
             />,
         );
@@ -114,7 +114,7 @@ describe('ExpenseReportAvatar (connected)', () => {
             expect.objectContaining({id: POLICY_ID, type: CONST.ICON_TYPE_WORKSPACE, source: POLICY_AVATAR_URL, name: POLICY_NAME}),
         );
         expect(mockCapturedSubscriptAvatarProps.size).toBe(CONST.AVATAR_SIZE.SMALL);
-        expect(mockCapturedSubscriptAvatarProps.subscriptAvatarBorderColor).toBe('#ff0000');
+        expect(mockCapturedSubscriptAvatarProps.backdropColor).toBe('#ff0000');
         expect(mockCapturedSubscriptAvatarProps.fallbackDisplayName).toBe(FALLBACK_NAME);
     });
 

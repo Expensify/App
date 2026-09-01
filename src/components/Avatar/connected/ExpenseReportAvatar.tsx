@@ -21,8 +21,8 @@ type ExpenseReportAvatarProps = {
     /** Size of the avatar */
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
 
-    /** Border color for the subscript avatar */
-    subscriptAvatarBorderColor?: ColorValue;
+    /** Color of the row surface behind the avatar. Affects secondary avatar so it blends into the row. */
+    backdropColor?: ColorValue;
 
     /** Container styles for the subscript stack, merged over its size-derived defaults */
     containerStyle?: StyleProp<ViewStyle>;
@@ -32,7 +32,7 @@ type ExpenseReportAvatarProps = {
 };
 
 /** Renders an expense report's avatars: the report owner as the primary avatar with the workspace icon as the subscript. Expense reports never render in any other layout. */
-function ExpenseReportAvatar({reportID, size, subscriptAvatarBorderColor, containerStyle, fallbackDisplayName}: ExpenseReportAvatarProps) {
+function ExpenseReportAvatar({reportID, size, backdropColor, containerStyle, fallbackDisplayName}: ExpenseReportAvatarProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: expenseReportAvatarSelector});
     const [ownerIcon] = useAccountIcons([report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]);
     const workspaceIcon = useReportWorkspaceIcon(report);
@@ -42,7 +42,7 @@ function ExpenseReportAvatar({reportID, size, subscriptAvatarBorderColor, contai
             primaryAvatar={ownerIcon}
             secondaryAvatar={workspaceIcon}
             size={size}
-            subscriptAvatarBorderColor={subscriptAvatarBorderColor}
+            backdropColor={backdropColor}
             containerStyle={containerStyle}
             fallbackDisplayName={fallbackDisplayName}
         />

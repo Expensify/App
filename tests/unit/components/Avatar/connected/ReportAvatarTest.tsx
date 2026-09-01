@@ -103,7 +103,7 @@ describe('ReportAvatar (connected)', () => {
             <ReportAvatar
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.SMALL}
-                subscriptAvatarBorderColor="#ff0000"
+                backdropColor="#ff0000"
                 noRightMarginOnSubscriptContainer
                 fallbackDisplayName={FALLBACK_NAME}
             />,
@@ -113,7 +113,7 @@ describe('ReportAvatar (connected)', () => {
         expect(mockCapturedExpenseReportAvatarProps).toMatchObject({
             reportID: REPORT_ID,
             size: CONST.AVATAR_SIZE.SMALL,
-            subscriptAvatarBorderColor: '#ff0000',
+            backdropColor: '#ff0000',
             // The dispatcher translates `noRightMarginOnSubscriptContainer` into this container style
             containerStyle: {marginRight: 0},
             fallbackDisplayName: FALLBACK_NAME,
@@ -190,7 +190,6 @@ describe('ReportAvatar (connected)', () => {
         await waitForBatchedUpdatesWithAct();
 
         const singleAvatarContainerStyle = [{marginRight: 12}];
-        const secondaryAvatarContainerStyle = [{borderColor: '#00ff00'}];
         const horizontalStacking = {maxRows: 2, maxAvatarsPerRow: 4, overlapDivider: 4};
 
         render(
@@ -198,8 +197,7 @@ describe('ReportAvatar (connected)', () => {
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.SMALL}
                 singleAvatarContainerStyle={singleAvatarContainerStyle}
-                secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
-                subscriptAvatarBorderColor="#ff0000"
+                backdropColor="#ff0000"
                 noRightMarginOnSubscriptContainer
                 horizontalStacking={horizontalStacking}
                 sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE}
@@ -211,8 +209,7 @@ describe('ReportAvatar (connected)', () => {
             reportID: REPORT_ID,
             size: CONST.AVATAR_SIZE.SMALL,
             singleAvatarContainerStyle,
-            secondaryAvatarContainerStyle,
-            subscriptAvatarBorderColor: '#ff0000',
+            backdropColor: '#ff0000',
             noRightMarginOnSubscriptContainer: true,
             horizontalStacking,
             sort: CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE,
