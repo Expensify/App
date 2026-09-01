@@ -19,6 +19,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
+import Animated, {FadeInDown, FadeInUp, FadeOutDown, FadeOutUp} from 'react-native-reanimated';
 
 import Banner from './Banner';
 import Icon from './Icon';
@@ -40,9 +41,12 @@ type MerchantRuleSuggestionBannerProps = {
 
     /** When set, floats the callout in a wrapper carrying these styles instead of laying it out inline */
     overlayStyles?: StyleProp<ViewStyle>;
+
+    /** Whether the callout is pinned to the bottom of its host, which is the edge it slides in from */
+    isAnchoredToBottom?: boolean;
 };
 
-function MerchantRuleSuggestionBannerContent({reportID, policyID, transactionID, containerStyles, overlayStyles}: MerchantRuleSuggestionBannerProps) {
+function MerchantRuleSuggestionBannerContent({reportID, policyID, transactionID, containerStyles, overlayStyles, isAnchoredToBottom}: MerchantRuleSuggestionBannerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -87,40 +91,43 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, transactionID,
         Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
     };
 
-    const banner = (
-        <Banner
-            containerStyles={[styles.merchantRuleCalloutContainer, styles.p4, containerStyles]}
-            shouldShowCloseButton
-            onClose={dismissMerchantRuleSuggestion}
-            content={
-                <>
-                    <View style={styles.mr3}>
-                        <Icon
-                            src={icons.Lightbulb}
-                            fill={theme.tooltipHighlightText}
-                            width={variables.iconSizeNormal}
-                            height={variables.iconSizeNormal}
-                        />
-                    </View>
-                    <Text style={[styles.flex1, styles.merchantRuleCalloutText, styles.mr3]}>
-                        <TextLink
-                            style={styles.merchantRuleCalloutAction}
-                            onPress={createRule}
-                        >
-                            {translate('workspace.rules.merchantRules.createRuleFromExpenseAction')}
-                        </TextLink>
-                        {` ${translate('workspace.rules.merchantRules.createRuleFromExpensePrompt')}`}
-                    </Text>
-                </>
-            }
-        />
+    // The callout appears and disappears in place, so it slides out of the edge it is pinned to rather than popping.
+    // FloatingMessageCounter springs a parked view instead, which this cannot do because it unmounts when there is
+    // nothing to offer.
+    return (
+        <Animated.View
+            style={overlayStyles}
+            entering={isAnchoredToBottom ? FadeInDown : FadeInUp}
+            exiting={isAnchoredToBottom ? FadeOutDown : FadeOutUp}
+        >
+            <Banner
+                containerStyles={[styles.merchantRuleCalloutContainer, styles.p4, containerStyles]}
+                shouldShowCloseButton
+                onClose={dismissMerchantRuleSuggestion}
+                content={
+                    <>
+                        <View style={styles.mr3}>
+                            <Icon
+                                src={icons.Lightbulb}
+                                fill={theme.tooltipHighlightText}
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
+                            />
+                        </View>
+                        <Text style={[styles.flex1, styles.merchantRuleCalloutText, styles.mr3]}>
+                            <TextLink
+                                style={styles.merchantRuleCalloutAction}
+                                onPress={createRule}
+                            >
+                                {translate('workspace.rules.merchantRules.createRuleFromExpenseAction')}
+                            </TextLink>
+                            {` ${translate('workspace.rules.merchantRules.createRuleFromExpensePrompt')}`}
+                        </Text>
+                    </>
+                }
+            />
+        </Animated.View>
     );
-
-    if (!overlayStyles) {
-        return banner;
-    }
-
-    return <View style={overlayStyles}>{banner}</View>;
 }
 
 MerchantRuleSuggestionBannerContent.displayName = 'MerchantRuleSuggestionBannerContent';
@@ -129,7 +136,7 @@ MerchantRuleSuggestionBannerContent.displayName = 'MerchantRuleSuggestionBannerC
  * Offers a workspace admin the chance to turn an expense edit into a merchant rule, right on the expense they just
  * edited. Renders nothing unless there is a qualifying edit to act on.
  */
-function MerchantRuleSuggestionBanner({reportID, policyID, transactionID, containerStyles, overlayStyles}: MerchantRuleSuggestionBannerProps) {
+function MerchantRuleSuggestionBanner({reportID, policyID, transactionID, containerStyles, overlayStyles, isAnchoredToBottom}: MerchantRuleSuggestionBannerProps) {
     const [storedSuggestion] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION);
 
     // Nothing is stored for most of a session, so skip the inner component and its many Onyx subscriptions until
@@ -145,6 +152,7 @@ function MerchantRuleSuggestionBanner({reportID, policyID, transactionID, contai
             transactionID={transactionID}
             containerStyles={containerStyles}
             overlayStyles={overlayStyles}
+            isAnchoredToBottom={isAnchoredToBottom}
         />
     );
 }

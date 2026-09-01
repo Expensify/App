@@ -120,6 +120,7 @@ function ReportFooter() {
                 policyID={report.policyID}
                 containerStyles={[styles.mh4, styles.mb3]}
                 overlayStyles={styles.merchantRuleCalloutComposerOverlay}
+                isAnchoredToBottom
             />
         );
         return (
