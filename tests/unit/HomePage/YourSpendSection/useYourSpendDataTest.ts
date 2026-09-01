@@ -67,16 +67,21 @@ const THIRD_PARTY_QUERY_2 = `type:expense from:${ACCOUNT_ID} cardID:${THIRD_PART
 
 /** The one query the whole card set costs. Its hash keys the single grouped snapshot. */
 function cardGroupQueryFor(cardIDs: number[]): string {
-    return `type:expense groupBy:card from:${ACCOUNT_ID} cardID:${[...cardIDs].sort((a, b) => a - b).join(',')}`;
+    return buildCardGroupQuery(
+        ACCOUNT_ID,
+        [...cardIDs].sort((a, b) => a - b),
+    );
 }
 
 // Module mocks
 
+// `buildCardGroupQuery` is deliberately NOT mocked: the hook test derives the grouped snapshot
+// key from it, so a mocked stand-in could drift from what ships and pass for the wrong reason.
 jest.mock('@pages/home/YourSpendSection/queries', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@pages/home/YourSpendSection/queries'),
     buildAwaitingApprovalQuery: jest.fn(),
     buildRepaidLast30DaysQuery: jest.fn(),
     buildRecentCardTransactionsQuery: jest.fn(),
-    buildCardGroupQuery: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -120,7 +125,6 @@ const mockedIsPaidGroupPolicy = jest.mocked(isPaidGroupPolicy);
 const mockedBuildAwaitingApprovalQuery = jest.mocked(buildAwaitingApprovalQuery);
 const mockedBuildRepaidLast30DaysQuery = jest.mocked(buildRepaidLast30DaysQuery);
 const mockedBuildRecentCardTransactionsQuery = jest.mocked(buildRecentCardTransactionsQuery);
-const mockedBuildCardGroupQuery = jest.mocked(buildCardGroupQuery);
 
 // useOnyx mock
 
@@ -289,8 +293,6 @@ beforeEach(() => {
                 return CARD_QUERY_2;
         }
     });
-
-    mockedBuildCardGroupQuery.mockImplementation((_accountID: number, cardIDs: number[]) => cardGroupQueryFor(cardIDs));
 
     mockedUseNetwork.mockReturnValue(networkState(false));
     mockedUseCurrentUserPersonalDetails.mockReturnValue({accountID: ACCOUNT_ID, login: `${ACCOUNT_ID}@test.com`} as CurrentUserPersonalDetails);
@@ -597,6 +599,35 @@ describe('useYourSpendData — search dispatch', () => {
         ]);
     });
 
+    it('refires the grouped search when the displayable card set changes', () => {
+        // Given Home already fetched totals for a single card
+        mockedIsPaidGroupPolicy.mockReturnValue(false);
+        onyxData[ONYXKEYS.CARD_LIST] = {[CARD_ID_1]: {cardID: CARD_ID_1}};
+        mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1}]));
+        const {rerender} = renderHook(() => useYourSpendData());
+        expect(search).toHaveBeenCalledTimes(1);
+
+        // When a second card becomes displayable
+        act(() => {
+            onyxData[ONYXKEYS.CARD_LIST] = {[CARD_ID_1]: {cardID: CARD_ID_1}, [CARD_ID_2]: {cardID: CARD_ID_2}};
+        });
+        mockedGetDisplayableExpensifyCards.mockReturnValue(
+            makeDisplayableCards([
+                {cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1},
+                {cardID: CARD_ID_2, lastFourPAN: CARD_LAST_FOUR_2},
+            ]),
+        );
+        rerender(undefined);
+
+        // Then the new card set is fetched rather than read off the previous set's snapshot
+        expect(search).toHaveBeenCalledTimes(2);
+        expect(search).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+                queryJSON: expect.objectContaining({hash: buildSearchQueryJSON(cardGroupQueryFor([CARD_ID_1, CARD_ID_2]))?.hash}),
+            }),
+        );
+    });
+
     it('dispatches search() with the approval queryJSON hash', () => {
         mockedIsPaidGroupPolicy.mockReturnValue(true);
         renderHook(() => useYourSpendData());
@@ -692,25 +723,6 @@ describe('useYourSpendData — third-party cardRows', () => {
         // Then the row survives: that write only touches `search`, never the `group_` entries
         expect(result.current.cardRows).toHaveLength(1);
         expect(result.current.cardRows.at(0)).toMatchObject({total: 1234, currency: 'USD'});
-    });
-
-    it('covers the whole third-party card set with one grouped request', () => {
-        // Given two displayable third-party cards
-        mockedGetDisplayableThirdPartyCards.mockReturnValue(
-            makeThirdPartyCards([
-                {cardID: THIRD_PARTY_CARD_ID_1, lastFourPAN: THIRD_PARTY_LAST_FOUR_1},
-                {cardID: THIRD_PARTY_CARD_ID_2, lastFourPAN: THIRD_PARTY_LAST_FOUR_2},
-            ]),
-        );
-
-        // When the hook renders focused and online
-        renderHook(() => useYourSpendData());
-
-        // Then one `group-by:card` query covers both, and neither per-card query is sent
-        const groupedHash = buildSearchQueryJSON(cardGroupQueryFor([THIRD_PARTY_CARD_ID_1, THIRD_PARTY_CARD_ID_2]))?.hash;
-        expect(search).toHaveBeenCalledWith(expect.objectContaining({queryJSON: expect.objectContaining({hash: groupedHash})}));
-        expect(search).not.toHaveBeenCalledWith(expect.objectContaining({queryJSON: expect.objectContaining({hash: buildSearchQueryJSON(THIRD_PARTY_QUERY_1)?.hash})}));
-        expect(search).not.toHaveBeenCalledWith(expect.objectContaining({queryJSON: expect.objectContaining({hash: buildSearchQueryJSON(THIRD_PARTY_QUERY_2)?.hash})}));
     });
 
     it('does not aggregate totals when two third-party rows have different currencies', () => {
@@ -953,9 +965,7 @@ describe('useYourSpendData — per-row staleness', () => {
     it('keeps the grey after reconnect while a relevant change is still queued', () => {
         // Going back online does not make the totals trustworthy — the queue has to flush
         // and the snapshots refresh first, so the grey must not clear on reconnect alone.
-        mockedBuildCardGroupQuery.mockImplementation((_accountID: number, cardIDs: number[]) => cardGroupQueryFor(cardIDs));
-
-    mockedUseNetwork.mockReturnValue(networkState(false));
+        mockedUseNetwork.mockReturnValue(networkState(false));
         setupReports([makeReport()]);
         setupQueue([{command: WRITE_COMMANDS.APPROVE_MONEY_REQUEST, data: {reportID: 'r1'}}]);
         const {result} = renderHook(() => useYourSpendData());
@@ -964,9 +974,7 @@ describe('useYourSpendData — per-row staleness', () => {
     });
 
     it('keeps the grey while the request is in flight after leaving the queue', () => {
-        mockedBuildCardGroupQuery.mockImplementation((_accountID: number, cardIDs: number[]) => cardGroupQueryFor(cardIDs));
-
-    mockedUseNetwork.mockReturnValue(networkState(false));
+        mockedUseNetwork.mockReturnValue(networkState(false));
         setupReports([makeReport()]);
         onyxData[ONYXKEYS.PERSISTED_ONGOING_REQUESTS] = {command: WRITE_COMMANDS.APPROVE_MONEY_REQUEST, data: {reportID: 'r1'}};
         const {result} = renderHook(() => useYourSpendData());
@@ -1223,9 +1231,7 @@ describe('useYourSpendData — summary rows are frozen while offline', () => {
         rerender(undefined);
         expect(result.current.approvalTotals.total).toBe(10000);
 
-        mockedBuildCardGroupQuery.mockImplementation((_accountID: number, cardIDs: number[]) => cardGroupQueryFor(cardIDs));
-
-    mockedUseNetwork.mockReturnValue(networkState(false));
+        mockedUseNetwork.mockReturnValue(networkState(false));
         rerender(undefined);
         expect(result.current.approvalTotals.total).toBe(77700);
     });

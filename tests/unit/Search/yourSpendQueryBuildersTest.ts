@@ -282,7 +282,6 @@ describe('buildCardGroupQuery', () => {
         const singleCardHash = buildSearchQueryJSON(singleCardQuery)?.hash;
 
         // Then they differ, so adding or losing a card refires rather than reading a stale snapshot
-        expect(twoCardHash).toBeDefined();
         expect(singleCardHash).not.toBe(twoCardHash);
     });
 });

@@ -435,10 +435,9 @@ function useYourSpendData(): UseYourSpendDataReturn {
         [expensifyCards, thirdPartyCards],
     );
 
-    // Stable signature for the search-firing effect. Re-fires on card-set changes
-    // but not on unrelated `cardList` mutations.
+    // Sorted so an unrelated `cardList` reordering can't change the query hash, which
+    // also keys the search-firing effect below.
     const displayableCardIDs = displayableCards.map(({card}) => card.cardID).sort((a, b) => a - b);
-    const displayableCardIDsKey = displayableCardIDs.join(',');
 
     const cardGroupQueryJSON = displayableCardIDs.length > 0 ? buildSearchQueryJSON(buildCardGroupQuery(accountID, displayableCardIDs)) : undefined;
     const [cardTotalsByCardID] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${cardGroupQueryJSON?.hash}`, {selector: getCardTotalsByCardID});
@@ -589,7 +588,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
             return;
         }
         fireSearches();
-    }, [isFocused, isOffline, displayableCardIDsKey, applicabilityKey, accountID]);
+    }, [isFocused, isOffline, cardGroupQueryJSON?.hash, applicabilityKey, accountID]);
 
     return {
         approvalRowState,
