@@ -43,6 +43,7 @@ Onyx.connectWithoutView({
 
 let socket: PusherWithAuthParams | null;
 let pusherSocketID: string | undefined;
+let hasUnclaimedOutage = false;
 const socketEventCallbacks: SocketEventCallback[] = [];
 let customAuthorizer: ChannelAuthorizerGenerator;
 
@@ -110,6 +111,7 @@ function init(args: Args): Promise<void> {
         });
 
         socket?.connection.bind('state_change', (states: States) => {
+            hasUnclaimedOutage ||= states.current === 'unavailable';
             callSocketEventCallbacks('state_change', states);
         });
     }).then(resolveInitPromise);
@@ -480,6 +482,7 @@ function disconnect() {
     socket.disconnect();
     socket = null;
     pusherSocketID = '';
+    hasUnclaimedOutage = false;
     eventsBoundToChannels.clear();
     initPromise = new Promise((resolve) => {
         resolveInitPromise = resolve;
@@ -496,12 +499,24 @@ function reconnect() {
     }
 
     Log.info('[Pusher] Reconnecting to Pusher');
+
+    // pusher-js takes a manual disconnect through `disconnected`, never `unavailable`, so record the outage here.
+    hasUnclaimedOutage = true;
     socket.disconnect();
     socket.connect();
 }
 
 function getPusherSocketID(): string | undefined {
     return pusherSocketID;
+}
+
+// pusher-js only enters `unavailable` after unavailableTimeout of failed connects, so a socket that came back without reaching it only blipped.
+function claimOutageSync(): boolean {
+    if (!hasUnclaimedOutage) {
+        return false;
+    }
+    hasUnclaimedOutage = false;
+    return true;
 }
 
 if (window) {
@@ -524,6 +539,7 @@ const WebPusher: PusherModule = {
     reconnect,
     registerSocketEventCallback,
     registerCustomAuthorizer,
+    claimOutageSync,
     TYPE,
     getPusherSocketID,
 };

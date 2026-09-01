@@ -139,7 +139,7 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
                 confirmText={translate('common.disable')}
                 cancelText={translate('common.cancel')}
                 onCancel={() => setIsScimConfirmModalVisible(false)}
-                danger
+                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
                 shouldHandleNavigationBack
             />
         </>

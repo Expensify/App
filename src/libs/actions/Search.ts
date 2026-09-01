@@ -36,7 +36,6 @@ import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
-import {getKnownAccountIDByLogin} from '@libs/PersonalDetailsUtils';
 import {
     getAccountIDForSubmitManagerEmail,
     getSubmitReportManagerAccountID,
@@ -54,7 +53,6 @@ import {
     buildOptimisticIOUReportAction,
     buildOptimisticSubmittedReportAction,
     generateReportID,
-    getApprovalChain,
     getParsedComment,
     getReportOrDraftReport,
     getReportTransactions,
@@ -754,7 +752,6 @@ function getOnyxLoadingData(
     hash: number,
     queryJSON?: Readonly<SearchQueryJSON>,
     offset?: number,
-    isOffline?: boolean,
     isSearchAPI = false,
     shouldCalculateTotals?: boolean,
 ): OnyxData<typeof ONYXKEYS.COLLECTION.SNAPSHOT> {
@@ -763,7 +760,7 @@ function getOnyxLoadingData(
     // `search.state` tracks the lifecycle of a real search request (identified by its queryJSON): it starts as
     // `loading` optimistically and is resolved to `loaded` by finallyData. handlePreventSearchAPI
     // reuses this helper as a UI-only loading toggle with no query, so it must stay out of
-    // the state machine — otherwise it would strand `state: loading` with no terminal write to clear it.
+    // the state machine. Otherwise it would strand `state: loading` with no terminal write to clear it.
     const isSearchRequest = isSearchAPI && !!queryJSON;
     const type = queryJSON?.type;
 
@@ -814,12 +811,13 @@ function getOnyxLoadingData(
         },
     ];
 
+    // Deliberately leaves `data` in place: `errors` already records the failure and the Search view early-returns on it.
+    // Deleting the results too cost every consumer its last known data, and the snapshot is the only copy that survives a reload.
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
-                ...(isOffline ? {} : {data: null}),
                 search: {
                     type,
                     ...(isSearchAPI && {isLoading: false}),
@@ -1085,7 +1083,7 @@ function handlePreventSearchAPI(hash: number | undefined) {
     if (typeof hash === 'undefined') {
         return {};
     }
-    const {optimisticData, finallyData} = getOnyxLoadingData(hash, undefined, undefined, false, true);
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash, undefined, undefined, true);
     return {
         enableSearchAPIPrevention: () => {
             shouldPreventSearchAPI = true;
@@ -1130,7 +1128,6 @@ function search({
     offset,
     shouldCalculateTotals = false,
     prevReportsLength,
-    isOffline = false,
     isLoading,
     shouldUpdateLastSearchParams = false,
     skipWaitForWrites = false,
@@ -1141,7 +1138,6 @@ function search({
     offset?: number;
     shouldCalculateTotals?: boolean;
     prevReportsLength?: number;
-    isOffline?: boolean;
     isLoading: boolean;
     shouldUpdateLastSearchParams?: boolean;
     /**
@@ -1173,8 +1169,8 @@ function search({
         if (needsTotalsUpgrade || needsSaveRecentSearchUpgrade) {
             // Accumulate desired flags so a later upgrade for one dimension can't drop an earlier
             // upgrade for the other. Only a single pending re-fire is kept.
-            inFlightRequest.pendingShouldCalculateTotals = (inFlightRequest.pendingShouldCalculateTotals ?? false) || shouldCalculateTotals;
-            inFlightRequest.pendingShouldSaveRecentSearch = (inFlightRequest.pendingShouldSaveRecentSearch ?? false) || shouldSaveRecentSearch;
+            inFlightRequest.pendingShouldCalculateTotals = (inFlightRequest.pendingShouldCalculateTotals ?? inFlightRequest.shouldCalculateTotals) || shouldCalculateTotals;
+            inFlightRequest.pendingShouldSaveRecentSearch = (inFlightRequest.pendingShouldSaveRecentSearch ?? inFlightRequest.shouldSaveRecentSearch) || shouldSaveRecentSearch;
             inFlightRequest.pendingUpgradeRequest = () =>
                 search({
                     queryJSON,
@@ -1182,7 +1178,6 @@ function search({
                     offset,
                     shouldCalculateTotals: inFlightRequest.pendingShouldCalculateTotals,
                     prevReportsLength,
-                    isOffline,
                     isLoading: false,
                     shouldUpdateLastSearchParams,
                     skipWaitForWrites,
@@ -1194,7 +1189,7 @@ function search({
     const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch};
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
 
-    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
+    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals);
     const {backendQueryJSON, limit, exactMatchFilterKeys} = getBackendQueryJSON(queryJSON);
     const query = {
         ...backendQueryJSON,
@@ -1502,15 +1497,17 @@ function submitMoneyRequestOnSearch(
     }
 
     const trimmedManagerEmail = managerEmail?.trim();
-    const managerIDFromChain = getKnownAccountIDByLogin(getApprovalChain(firstPolicy, firstReport, submitterLogin).at(0));
     const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, firstPolicy?.employeeList) : undefined;
     const submitReportManagerAccountID = getSubmitReportManagerAccountID(firstPolicy, firstReport, submitterLogin);
-    const resolvedManagerAccountID = trimmedManagerEmail ? (managerAccountID ?? managerAccountIDFromEmail ?? managerIDFromChain ?? firstReport.managerID) : submitReportManagerAccountID;
+
+    // When an explicit manager email can't be resolved to an accountID, send the email alone rather than a mismatched
+    // accountID from the approval chain, which would point the server at someone other than the chosen approver.
+    const resolvedManagerAccountID = trimmedManagerEmail ? (managerAccountID ?? managerAccountIDFromEmail) : submitReportManagerAccountID;
 
     const parameters: SubmitReportParams = {
         reportID: firstReport.reportID,
-        managerAccountID: resolvedManagerAccountID,
         reportActionID: optimisticSubmittedReportAction.reportActionID,
+        ...(resolvedManagerAccountID !== undefined ? {managerAccountID: resolvedManagerAccountID} : {}),
         ...(trimmedManagerEmail ? {managerEmail: trimmedManagerEmail} : {}),
     };
 

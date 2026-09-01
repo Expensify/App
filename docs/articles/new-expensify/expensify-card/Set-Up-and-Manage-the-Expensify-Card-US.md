@@ -102,6 +102,12 @@ Your workspace also has built-in default protections that automatically block ce
 
 ![Click Settings to adjust the settlement account or frequency]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_08.png){:width="100%"}
 
+## When your Expensify Cards settle each month
+
+When your settlement frequency is set to **Monthly**, the **Settings** page shows the recurring day of the month your cards settle. On the Expensify Card **Settings** page, the **Settlement frequency** row displays supporting text below it, such as *Expensify cards will settle on the 27th of each month.*
+
+This date is shown for reference only and cannot be changed. If your settlement frequency is set to **Daily**, no monthly settlement date is shown because balances settle automatically every business day.
+
 ## What the Status column shows in the Expensify Card list
 
 The Expensify Card list includes a **Status** column so you can see each card's lifecycle state at a glance without opening the card. Click the **Status** column header to sort the list by status.
