@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import {
@@ -1434,6 +1436,7 @@ describe('WorkflowUtils', () => {
                 approver: undefined,
                 currency: 'USD',
                 translate: translateLocal,
+                formatPhoneNumber,
                 convertToDisplayString,
             });
 
@@ -1447,6 +1450,7 @@ describe('WorkflowUtils', () => {
                 approver,
                 currency: 'USD',
                 translate: translateLocal,
+                formatPhoneNumber,
                 convertToDisplayString,
             });
 
@@ -1460,6 +1464,7 @@ describe('WorkflowUtils', () => {
                 approver,
                 currency: 'USD',
                 translate: translateLocal,
+                formatPhoneNumber,
                 convertToDisplayString,
             });
 
@@ -1473,6 +1478,7 @@ describe('WorkflowUtils', () => {
                 approver,
                 currency: 'USD',
                 translate: translateLocal,
+                formatPhoneNumber,
                 convertToDisplayString,
             });
 
@@ -1486,6 +1492,7 @@ describe('WorkflowUtils', () => {
                 approver,
                 currency: 'USD',
                 translate: translateLocal,
+                formatPhoneNumber,
                 convertToDisplayString,
             });
 
@@ -1503,6 +1510,7 @@ describe('WorkflowUtils', () => {
                 approver,
                 currency: 'USD',
                 translate: translateLocal,
+                formatPhoneNumber,
                 convertToDisplayString,
             });
 
