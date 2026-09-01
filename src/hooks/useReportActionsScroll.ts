@@ -186,7 +186,7 @@ function useReportActionsScroll({
 
     // A report opened from the "X Replies" link should land on the latest message, which is the opposite of the
     // align-to-top mount that money-request and invoice reports normally get. Multi-expense reports get this from
-    // MoneyRequestReportActionsList; a report holding a single expense renders this list instead, so it has to honor
+    // MoneyRequestReportActionsList. A report holding a single expense renders this list instead, so it has to honor
     // the same route param. The value is latched on mount because clearing the param below must not flip the list
     // back to the top while the user is reading.
     const [shouldScrollToLatestOnOpen] = useState(() => route?.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST] === 'true');
