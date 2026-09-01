@@ -3017,7 +3017,7 @@ function getFirstApprovedAction(snapshotApprovedAction: OnyxTypes.ReportAction |
 /**
  * Returns the latest payment action between the snapshot-derived one and the given report actions, mirroring the
  * backend paid-by rules: payment actions at or before the latest reimbursement cancellation don't count, and a
- * payment action recorded by the report owner that is paired with a MARKEDREDEEMED action is a "received payment"
+ * payment action recorded by the report owner that is paired with a MARKED_REDEEMED action is a "received payment"
  * self-attestation, which doesn't identify a payer.
  */
 function getLastPaidAction(
