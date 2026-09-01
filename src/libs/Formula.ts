@@ -281,6 +281,14 @@ function isSubmissionInfoPart(part: FormulaPart): boolean {
 }
 
 /**
+ * Empty is the value until a cross-border reimbursement exists, matching backend.
+ */
+function isReimbursementAmountPart(part: FormulaPart): boolean {
+    const field = part.fieldPath.at(0)?.toLowerCase();
+    return part.type === FORMULA_PART_TYPES.REPORT && (field === 'debitedamount' || field === 'creditedamount');
+}
+
+/**
  * Compute a formula and report whether any tokenized part fell back to its raw `{...}` definition.
  * Callers doing optimistic recomputes use the flag to discard outputs the BE will render better.
  */
@@ -299,9 +307,8 @@ function computeWithMetadata(formula?: string, context?: FormulaContext): {value
         switch (part.type) {
             case FORMULA_PART_TYPES.REPORT:
                 value = computeReportPart(part, context);
-                // Apply fallback to formula definition for empty values, except for submission info
-                // Submission info explicitly returns empty strings when data is missing (matches backend)
-                if (value === '' && !isSubmissionInfoPart(part)) {
+                // Empty is a real value for submit and reimbursement-amount tokens; keep it.
+                if (value === '' && !isSubmissionInfoPart(part) && !isReimbursementAmountPart(part)) {
                     value = part.definition;
                 }
                 break;
@@ -396,6 +403,20 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'reimbursable': {
             const formattedAmount = formatAmount(getMoneyRequestSpendBreakdown(report).reimbursableSpend, report.currency, format, context.getCurrencyDecimals);
             return formattedAmount ?? '';
+        }
+        case 'debitedamount': {
+            if (!report.debitedAmount || !report.debitedCurrency) {
+                return '';
+            }
+            const formattedAmount = formatAmount(report.debitedAmount, report.debitedCurrency, format, context.getCurrencyDecimals);
+            return formattedAmount ?? part.definition;
+        }
+        case 'creditedamount': {
+            if (!report.creditedAmount || !report.creditedCurrency) {
+                return '';
+            }
+            const formattedAmount = formatAmount(report.creditedAmount, report.creditedCurrency, format, context.getCurrencyDecimals);
+            return formattedAmount ?? part.definition;
         }
         case 'currency':
             return report.currency ?? '';

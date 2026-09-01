@@ -46,6 +46,8 @@ Automatically generate standardized report titles across your workspace using fo
 | `{report:total}` | $325.34 | Total amount on report |
 | `{report:type}` | Expense Report | Report type (Expense Report, Invoice, Bill) |
 | `{report:reimbursable}` | $143.43 | Reimbursable amount |
+| `{report:debitedAmount}` | $82.50 | Amount taken from the company bank account for a cross-border reimbursement |
+| `{report:creditedAmount}` | C$110.00 | Amount deposited to the employee bank account for a cross-border reimbursement |
 | `{report:currency}` | USD | Currency used |
 | `{field:Employee ID}` | 123456 | Custom field from the report |
 | `{report:created}` | 2024-09-15 12:00:00 | When report was created |
