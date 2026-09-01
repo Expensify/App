@@ -147,6 +147,12 @@ const createExpenseOnboardingChoices = {
     SUBMIT: backendOnboardingChoices.SUBMIT,
 } as const;
 
+// Values accepted by the `intent` param on the onboarding deeplink. Deliberately not the internal onboarding choice
+// strings (`newDotEmployer`), so renaming those can't break links already sitting in someone's inbox.
+const onboardingIntents = {
+    SUBMIT: 'submit',
+} as const;
+
 const signupQualifiers = {
     INDIVIDUAL: 'individual',
     VSB: 'vsb',
@@ -428,6 +434,19 @@ const CONST = {
             NAME: 'name',
             REVERSE: 'reverse',
         },
+    },
+
+    // Report kinds the ReportAvatar dispatcher routes on. Each kind maps to a report-type avatar wrapper.
+    REPORT_AVATAR_KIND: {
+        EXPENSE: 'expense',
+        IOU: 'iou',
+        TASK: 'task',
+        INVOICE: 'invoice',
+        CHAT_THREAD: 'chatThread',
+        GROUP_CHAT: 'groupChat',
+        POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+        ROOM: 'room',
+        DEFAULT: 'default',
     },
 
     // Used to track the editing state of report action messages in the ReportActionEditMessageContext provider.
@@ -1039,6 +1058,7 @@ const CONST = {
         TRAVEL_CODING_SYNC: 'travelCodingSync',
         CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
         ARCHIVE_POLICIES: 'archivePolicies',
+        MERGE_ATS: 'mergeATSConnections',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -2220,6 +2240,11 @@ const CONST = {
             REPORT_CREATION: 'report_creation',
             API_RESPONSE: 'api_response',
         },
+        DB_SIZE_SOURCE: {
+            SQLITE: 'sqlite',
+            INDEXED_DB: 'indexed_db',
+            UNAVAILABLE: 'unavailable',
+        },
         BUILD_TYPE_HYBRID_APP: 'hybrid_app',
         BUILD_TYPE_STANDALONE: 'standalone',
         // Span names
@@ -2310,6 +2335,13 @@ const CONST = {
         ATTRIBUTE_SEND_MESSAGE_SOURCE: 'send_message_source',
         ATTRIBUTE_REPORT_ACTION_COUNT: 'report_action_count',
         ATTRIBUTE_MONEY_REQUEST_PREVIEW_COUNT: 'money_request_preview_count',
+        // Exact account-size counts attached to every span
+        ATTRIBUTE_REPORTS_COUNT_RAW: 'reports_count_raw',
+        ATTRIBUTE_PERSONAL_DETAILS_COUNT_RAW: 'personal_details_count_raw',
+        ATTRIBUTE_POLICIES_COUNT_RAW: 'policies_count_raw',
+        ATTRIBUTE_TRANSACTIONS_COUNT_RAW: 'transactions_count_raw',
+        ATTRIBUTE_DB_SIZE_BYTES: 'db_size_bytes',
+        ATTRIBUTE_DB_SIZE_SOURCE: 'db_size_source',
         ATTRIBUTE_CANCELED: 'canceled',
         ATTRIBUTE_CANCELED_BY_SKELETON: 'canceled_by_skeleton',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
@@ -3220,7 +3252,7 @@ const CONST = {
         },
     },
 
-    MERGE_HR: {
+    MERGE: {
         APPROVAL_MODE: {
             BASIC: 'basic',
             MANAGER: 'manager',
@@ -4443,6 +4475,7 @@ const CONST = {
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
+                MERGE_ATS: 'merge_ats',
             },
             SUPPORTED_ONLY_ON_OLDDOT: {},
             UNSUPPORTED_NAMES: {
@@ -4460,6 +4493,7 @@ const CONST = {
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge-hr',
+                MERGE_ATS: 'merge-ats',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
@@ -4474,6 +4508,7 @@ const CONST = {
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
                 merge_hris: 'Merge HR',
+                merge_ats: 'Merge ATS',
                 sap: 'SAP',
                 oracle: 'Oracle',
                 microsoftDynamics: 'Microsoft Dynamics',
@@ -4484,6 +4519,9 @@ const CONST = {
             },
             get HR_CONNECTION_NAMES() {
                 return [this.NAME.GUSTO, this.NAME.ZENEFITS, this.NAME.MERGE_HR] as const;
+            },
+            get RECRUITING_CONNECTION_NAMES() {
+                return [this.NAME.MERGE_ATS] as const;
             },
             get EXPORTED_TO_INTEGRATION_DISPLAY_NAMES(): string[] {
                 return this.ACCOUNTING_CONNECTION_NAMES.map((name) => this.NAME_USER_FRIENDLY[name as keyof typeof this.NAME_USER_FRIENDLY]);
@@ -4729,6 +4767,13 @@ const CONST = {
         XX_LARGE: 'xx-large',
         XXX_LARGE: 'xxx-large',
         XXXX_LARGE: 'xxxx-large',
+    },
+
+    AVATAR_SHAPE: {
+        // Fully round, used for user avatars
+        CIRCLE: 'circle',
+        // Corner radius scaled to the avatar size, used for workspace avatars
+        ROUNDED_SQUARE: 'rounded-square',
     },
 
     COMPANY_CARD: {
@@ -6716,6 +6761,7 @@ const CONST = {
     EXPENSIFY_ICON_NAME: 'Expensify',
 
     ONBOARDING_CHOICES: {...onboardingChoices},
+    ONBOARDING_INTENTS: {...onboardingIntents},
     SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
     CREATE_EXPENSE_ONBOARDING_CHOICES: {...createExpenseOnboardingChoices},
     ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
@@ -7218,6 +7264,7 @@ const CONST = {
                     APPROVED: this.TABLE_COLUMNS.APPROVED,
                     FIRST_APPROVER: this.TABLE_COLUMNS.FIRST_APPROVER,
                     FIRST_APPROVED: this.TABLE_COLUMNS.FIRST_APPROVED,
+                    PAID_BY: this.TABLE_COLUMNS.PAID_BY,
                     EXPORTED: this.TABLE_COLUMNS.EXPORTED,
                     STATUS: this.TABLE_COLUMNS.STATUS,
                     PAID_STATUS: this.TABLE_COLUMNS.PAID_STATUS,
@@ -7414,6 +7461,7 @@ const CONST = {
             APPROVED: 'approved',
             FIRST_APPROVER: 'firstapprover',
             FIRST_APPROVED: 'firstapproved',
+            PAID_BY: 'paidBy',
             POSTED: 'posted',
             EXPORTED: 'exported',
             MERCHANT: 'merchant',
@@ -7522,6 +7570,7 @@ const CONST = {
             FROM: 'from',
             TO: 'to',
             PAYER: 'payer',
+            PAID_BY: 'paidBy',
             EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
@@ -7607,6 +7656,7 @@ const CONST = {
             FROM: 'from',
             TO: 'to',
             PAYER: 'payer',
+            PAID_BY: 'paid-by',
             EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
@@ -8275,6 +8325,7 @@ const CONST = {
         HAS_LOGIN_LIST_ERROR: 'hasLoginListError',
         HAS_WALLET_TERMS_ERRORS: 'hasWalletTermsErrors',
         HAS_LOGIN_LIST_INFO: 'hasLoginListInfo',
+        HAS_HOME_ADDRESS_INFO: 'hasHomeAddressInfo',
         HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
         HAS_PHONE_NUMBER_ERROR: 'hasPhoneNumberError',
         HAS_PENDING_CARD_INFO: 'hasPendingCardInfo',
@@ -9565,6 +9616,9 @@ const CONST = {
         ROUTE_BORDER: 'route-border',
         WAYPOINTS_SOURCE: 'waypoints-source',
         WAYPOINTS: 'waypoints',
+        LAYER_ORDER_ANCHOR_SOURCE: 'layer-order-anchor-source',
+        ROUTE_ANCHOR: 'route-anchor',
+        WAYPOINTS_ANCHOR: 'waypoints-anchor',
     },
 
     ALTERNATE_DIRECTIONS_MAP_VIEW_LAYERS: {
@@ -9606,6 +9660,7 @@ const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
 ] as SearchFilterKey[];
@@ -9648,6 +9703,9 @@ type IOUActionParams = ValueOf<typeof CONST.IOU.ACTION_PARAMS>;
 type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
+/** Valid values for the `intent` param on the onboarding deeplink */
+type OnboardingIntent = ValueOf<typeof CONST.ONBOARDING_INTENTS>;
+
 /** Valid `page` values for the Enable Payments flow */
 type EnablePaymentsPageType = ValueOf<typeof CONST.ENABLE_PAYMENTS.PAGE_NAMES>;
 
@@ -9669,6 +9727,7 @@ export type {
     CancellationType,
     OnboardingInvite,
     OnboardingAccounting,
+    OnboardingIntent,
     IOUActionParams,
     EnablePaymentsPageType,
     EnablePaymentsSubPageType,
