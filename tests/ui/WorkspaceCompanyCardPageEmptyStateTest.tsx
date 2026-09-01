@@ -13,7 +13,7 @@ import React from 'react';
 const POLICY_ID = 'policy123';
 
 let mockIsUserValidated = false;
-let mockIsActingAsDelegate = false;
+let mockIsDelegateAccessRestricted = false;
 let mockOtherFeeds: Array<{value: string}> = [];
 let mockCapturedOnResume: ((payload?: () => void) => void) | undefined;
 const mockVerifyAccountAndResume = jest.fn<void, [payload?: () => void]>();
@@ -28,7 +28,7 @@ jest.mock('@hooks/useVerifyAccountAndResume', () => ({
 }));
 
 jest.mock('@components/DelegateNoAccessModalProvider', () => ({
-    useDelegateNoAccessState: () => ({isActingAsDelegate: mockIsActingAsDelegate}),
+    useDelegateNoAccessState: () => ({isDelegateAccessRestricted: mockIsDelegateAccessRestricted}),
     useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: mockShowDelegateNoAccessModal}),
 }));
 
@@ -108,7 +108,7 @@ describe('WorkspaceCompanyCardPageEmptyState', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockIsUserValidated = false;
-        mockIsActingAsDelegate = false;
+        mockIsDelegateAccessRestricted = false;
         mockOtherFeeds = [];
         mockCapturedOnResume = undefined;
     });
@@ -155,8 +155,8 @@ describe('WorkspaceCompanyCardPageEmptyState', () => {
         expect(mockNavigate).toHaveBeenCalledWith(expectedRoute());
     });
 
-    it('shows the delegate no access modal instead of any navigation for a delegate', () => {
-        mockIsActingAsDelegate = true;
+    it('shows the delegate no access modal instead of any navigation for a submitter only delegate', () => {
+        mockIsDelegateAccessRestricted = true;
         renderEmptyState();
 
         pressAddCards();
