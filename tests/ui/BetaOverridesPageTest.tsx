@@ -67,6 +67,10 @@ describe('BetaOverridesPage', () => {
         mockClearBetaOverrides.mockClear();
     });
 
+    afterEach(() => {
+        mockIsProduction = false;
+    });
+
     it('renders a switch for every beta except the "all" beta', async () => {
         renderBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();

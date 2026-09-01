@@ -19760,6 +19760,8 @@ describe('ReportUtils', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                // createRandomPolicy picks the approval mode at random, and OPTIONAL would submit and close the report instead
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             };
 
             const buildEmptyReportWithBeta = (isASAPSubmitBetaEnabled: boolean) =>
