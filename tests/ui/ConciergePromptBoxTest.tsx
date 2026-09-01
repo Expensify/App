@@ -14,9 +14,11 @@ import {close} from '@userActions/Modal';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import React, {useState} from 'react';
+import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -24,6 +26,8 @@ const CONCIERGE_REPORT_ID = '100';
 const LONG_PLACEHOLDER = 'homePage.conciergePrompt.inputPlaceholder';
 const SHORT_PLACEHOLDER = 'homePage.conciergePrompt.inputPlaceholderMobile';
 const ADD_ATTACHMENT = 'reportActionCompose.addAttachment';
+// `translate` resolves to the key in tests, so the greeting matches whichever time-of-day key the clock lands on.
+const GREETING = /^homePage\.conciergePrompt\.good/;
 const PLUS_BUTTON = 'accessibilityHints.openActionsMenu';
 const SEND_BUTTON = 'common.send';
 
@@ -106,12 +110,13 @@ const mockClose = jest.mocked(close);
 const mockIsAnonymousUser = jest.mocked(isAnonymousUser);
 const mockSignOutAndRedirectToSignIn = jest.mocked(signOutAndRedirectToSignIn);
 
-function ConciergePromptBoxWrapper() {
+function ConciergePromptBoxWrapper({isCopyLoading = false}: {isCopyLoading?: boolean} = {}) {
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     return (
         <ConciergePromptBox
             isMenuVisible={isMenuVisible}
             setIsMenuVisible={setIsMenuVisible}
+            isCopyLoading={isCopyLoading}
         />
     );
 }
@@ -171,8 +176,10 @@ function measureLongPlaceholder(height: number) {
 }
 
 describe('ConciergePromptBox', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllMocks();
+        // The typing tests persist a draft, and it would otherwise be restored into the next test's input.
+        await Onyx.set(ONYXKEYS.CONCIERGE_PROMPT_DRAFT, null);
         pickerHandler.onConfirm = undefined;
         setAskConcierge();
         setResponsiveLayout(false);
@@ -451,6 +458,59 @@ describe('ConciergePromptBox', () => {
 
             // Then the short copy stays
             expect(screen.getByLabelText(SHORT_PLACEHOLDER)).toBeOnTheScreen();
+        });
+
+        // Which copy applies is only known once the probe has measured, so showing either one first means a
+        // visible swap. The bar covers that window instead.
+        it('shows no placeholder copy until the probe has measured on the wide layout', () => {
+            // Given a wide layout whose probe has not measured yet
+            render(<ConciergePromptBoxWrapper />);
+
+            // Then no copy is shown
+            expect(getInput()).toHaveProp('placeholder', '');
+
+            // When the measurement lands
+            measureLongPlaceholder(20);
+
+            // Then the settled copy appears
+            expect(getInput()).toHaveProp('placeholder', LONG_PLACEHOLDER);
+        });
+
+        it('shows the short copy immediately on the narrow layout, which never waits on the probe', () => {
+            // Given a narrow layout
+            setResponsiveLayout(true);
+
+            // When it renders without any measurement
+            render(<ConciergePromptBoxWrapper />);
+
+            // Then the short copy is shown right away
+            expect(getInput()).toHaveProp('placeholder', SHORT_PLACEHOLDER);
+        });
+    });
+
+    // The greeting reads the timezone and first name that arrive during app load, so both the date and the
+    // greeting would paint one value and then swap. See the placeholder tests for the input's own copy.
+    describe('app load', () => {
+        it('stands bars in for the date, greeting and placeholder while loading', () => {
+            // Given the app is still loading
+            render(<ConciergePromptBoxWrapper isCopyLoading />);
+
+            // Then neither the date nor the greeting is painted
+            expect(screen.queryByText(GREETING)).not.toBeOnTheScreen();
+
+            // And the placeholder copy is withheld even once the probe has measured
+            measureLongPlaceholder(20);
+            expect(getInput()).toHaveProp('placeholder', '');
+        });
+
+        it('paints the greeting and placeholder once loaded', () => {
+            // Given the app has loaded
+            render(<ConciergePromptBoxWrapper />);
+            measureLongPlaceholder(20);
+
+            // Then the greeting and the settled placeholder are shown
+            expect(screen.getByText(GREETING)).toBeOnTheScreen();
+            expect(getInput()).toHaveProp('placeholder', LONG_PLACEHOLDER);
         });
     });
 });

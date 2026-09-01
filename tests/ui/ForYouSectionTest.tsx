@@ -57,9 +57,11 @@ jest.mock('@pages/home/ForYouSection/ForYouSkeleton', () => () => {
     return ReactModule.createElement('View', {testID: 'for-you-skeleton'});
 });
 
-jest.mock('@pages/home/ForYouSection/ConciergePromptBox', () => () => {
+// Stubbed, but the stub forwards `isCopyLoading` so these tests can tell whether the date, greeting and placeholder
+// are behind skeleton bars. What the bars actually look like is exercised in ConciergePromptBoxTest.
+jest.mock('@pages/home/ForYouSection/ConciergePromptBox', () => ({isCopyLoading}: {isCopyLoading: boolean}) => {
     const ReactModule = jest.requireActual<typeof React>('react');
-    return ReactModule.createElement('View', {testID: 'concierge-prompt-box'});
+    return ReactModule.createElement('View', {testID: 'concierge-prompt-box'}, isCopyLoading ? ReactModule.createElement('View', {testID: 'concierge-copy-skeleton'}) : null);
 });
 
 // The "Time sensitive" group is exercised in its own tests; stub it out here so these tests stay focused on "For you"
@@ -219,10 +221,10 @@ function pressFirstBeginButton() {
     fireEvent.press(firstButton);
 }
 
-const buildRequest = (command: AnyRequest['command'], initiatedOffline = false): AnyRequest => ({
+const buildRequest = (command: AnyRequest['command'], extra: Partial<AnyRequest> = {}): AnyRequest => ({
     command,
     data: {},
-    initiatedOffline,
+    ...extra,
 });
 
 async function setAppLoadState({
@@ -412,13 +414,44 @@ describe('ForYouSection', () => {
                 hasLoadedApp: false,
                 isLoadingApp: false,
                 isLoadingReportData: false,
-                requests: [buildRequest(WRITE_COMMANDS.OPEN_APP, true)],
+                requests: [buildRequest(WRITE_COMMANDS.OPEN_APP, {initiatedOffline: true})],
             });
 
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
+        });
+
+        it('drops the Concierge copy skeleton, but not the body skeleton, for an OpenApp initiated offline', async () => {
+            await setAppLoadState({
+                hasLoadedApp: false,
+                isLoadingApp: false,
+                isLoadingReportData: false,
+                requests: [buildRequest(WRITE_COMMANDS.OPEN_APP, {initiatedOffline: true})],
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
+            expect(screen.queryByTestId('concierge-copy-skeleton')).not.toBeOnTheScreen();
+        });
+
+        // The counterpart to the case above: this harness runs offline throughout, so without the "did this load
+        // ever reach the network" half of the condition the bars would never show at all.
+        it('keeps the Concierge copy skeleton while an OpenApp queued online is pending', async () => {
+            await setAppLoadState({
+                hasLoadedApp: false,
+                isLoadingApp: false,
+                isLoadingReportData: false,
+                requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)],
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('concierge-copy-skeleton')).toBeOnTheScreen();
         });
     });
 
@@ -528,7 +561,6 @@ describe('ForYouSection', () => {
         it('still shows the skeleton during the initial load for a new user', async () => {
             await act(async () => {
                 await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
-                // The onboarding status must be known, otherwise the skeleton stays hidden to avoid flashing for onboarding users.
                 await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
                 await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
                 await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [buildRequest(WRITE_COMMANDS.OPEN_APP)]);
@@ -538,8 +570,40 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            // The section wrapper (and its title) remain rendered while the skeleton is shown.
-            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            expect(screen.getByTestId('concierge-prompt-box')).toBeOnTheScreen();
+            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
+            expect(screen.queryByText('homePage.forYou')).not.toBeOnTheScreen();
+        });
+
+        it('shows the skeleton during the initial load before the onboarding NVP arrives', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
+                await Onyx.set(ONYXKEYS.NVP_ONBOARDING, null);
+                await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+                await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [buildRequest(WRITE_COMMANDS.OPEN_APP)]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
+        });
+
+        it('drops the skeleton once the onboarding NVP reports the user is still onboarding', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
+                await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+                await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+                await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [buildRequest(WRITE_COMMANDS.OPEN_APP)]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
+            expect(screen.getByTestId('concierge-prompt-box')).toBeOnTheScreen();
         });
     });
 

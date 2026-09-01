@@ -1,6 +1,6 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 
-import {useIsAppLoadPending, useIsLoadingBarPending, useIsOnlineAppLoadPending, useIsReportLoadPending} from '@hooks/useInFlightRequests';
+import {useIsAppLoadPending, useShouldWaitForAppLoad, useIsLoadingBarPending, useIsOnlineAppLoadPending, useIsReportLoadPending} from '@hooks/useInFlightRequests';
 
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {WriteCommand} from '@libs/API/types';
@@ -196,6 +196,27 @@ describe('useInFlightRequests', () => {
             expect(result.current).toBe(false);
 
             await act(() => setPersistedRequests([]));
+            await act(() => waitForBatchedUpdates());
+            expect(result.current).toBe(false);
+        });
+    });
+
+    describe('useShouldWaitForAppLoad', () => {
+        it('returns true while offline when the pending OpenApp was queued online', async () => {
+            await setPersistedRequests([buildRequest(WRITE_COMMANDS.OPEN_APP)]);
+            const {result} = renderHook(() => useShouldWaitForAppLoad());
+            await waitFor(() => expect(result.current).toBe(true));
+        });
+
+        it('returns false for the offline cold start, where the OpenApp was itself initiated offline', async () => {
+            await setPersistedRequests([buildRequest(WRITE_COMMANDS.OPEN_APP, {}, {initiatedOffline: true})]);
+            const {result} = renderHook(() => useShouldWaitForAppLoad());
+            await act(() => waitForBatchedUpdates());
+            expect(result.current).toBe(false);
+        });
+
+        it('returns false while offline with nothing queued', async () => {
+            const {result} = renderHook(() => useShouldWaitForAppLoad());
             await act(() => waitForBatchedUpdates());
             expect(result.current).toBe(false);
         });

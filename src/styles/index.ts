@@ -6926,6 +6926,12 @@ const dynamicStyles = (theme: ThemeColors) =>
             marginBottom: shouldUseNarrowLayout ? 8 : 20,
         }),
 
+        getForYouSectionHeadingStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
+            ...(shouldUseNarrowLayout ? spacing.ph5 : spacing.ph8),
+            ...spacing.mt4,
+            ...spacing.mb2,
+        }),
+
         getSafeAreaPressablePosition: (safeAreaPosition: 'right' | 'left', width: number): ViewStyle => ({
             position: 'absolute',
             [safeAreaPosition]: 0,
@@ -7257,6 +7263,14 @@ const plainStyles = (theme: ThemeColors) =>
             paddingRight: 24,
         },
 
+        conciergePromptBoxPlaceholderSkeleton: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: variables.composerTextInputPaddingLeft,
+            justifyContent: 'center',
+        },
+
         getWidgetItemIconContainerStyle: (backgroundColor: string) =>
             ({
                 alignItems: 'center',
@@ -7274,9 +7288,6 @@ const plainStyles = (theme: ThemeColors) =>
                 width: '100%',
                 maxWidth: variables.centeredContentMaxWidth,
                 alignSelf: 'center',
-                // Claims the leftover height of the scroll container, which sets `flexGrow: 1` too, so a
-                // column can hand that space to a child that asks for it.
-                flexGrow: 1,
             }) satisfies ViewStyle,
 
         centeredContentWidthLimiter: {

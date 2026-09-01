@@ -2,13 +2,12 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
-import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
+import SkeletonTextLine from '@components/Skeletons/SkeletonTextLine';
 import WidgetContainer from '@components/WidgetContainer';
 
 import useContainerWidth from '@hooks/useContainerWidth';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
@@ -26,23 +25,13 @@ const BAR_HEIGHT = 12;
 // The stacked pair of text lines the two-bar rows stand in for: a merchant line over a muted label line.
 const FIRST_LINE_HEIGHT = variables.fontSizeNormalHeight;
 const SECOND_LINE_HEIGHT = variables.lineHeightNormal;
-// The real card titles are `Text` at this line height, so the rows below it do not shift when the
-// real title replaces the placeholder.
 const TITLE_LINE_HEIGHT = variables.widgetHeaderTitleLineHeight;
-const TITLE_BAR_Y = (TITLE_LINE_HEIGHT - BAR_HEIGHT) / 2;
-// The CTA button BaseWidgetItem renders at `BUTTON_SIZE.SMALL` with `widgetItemButton`'s minimum width.
-const PILL_WIDTH = variables.widgetItemButtonMinWidth;
-const PILL_HEIGHT = variables.componentSizeSmall;
-// The real button's `buttonBorderRadius` is 100, which CSS clamps proportionally down to a stadium.
-// SVG clamps `rx` and `ry` independently, so that same 100 would draw an ellipse.
-const PILL_BORDER_RADIUS = PILL_HEIGHT / 2;
 const TRAILING_BAR_WIDTH = 68;
 const TRAILING_SUB_BAR_WIDTH = 40;
 const CARD_TITLE_WIDTH = 120;
-const CARD_SUBTITLE_WIDTH = 180;
 const LOWER_BAR_WIDTH = 80;
 
-// The chart this stands in for holds its own loading spinner at exactly this height, so the card keeps its size when the real chart takes over.
+// The chart this stands in for holds its own loading spinner at exactly this height.
 const SPINNER_CARD_HEIGHT = CHART_CONTENT_MIN_HEIGHT;
 const ROWS_PER_LIST_CARD = 3;
 const ROWS_PER_TABLE_CARD = 5;
@@ -52,8 +41,7 @@ const SPINNER_TEST_ID = 'homePageSkeletonSpinner';
 const LEFT_COLUMN_TEST_ID = 'homePageSkeletonLeftColumn';
 const RIGHT_COLUMN_TEST_ID = 'homePageSkeletonRightColumn';
 
-const PILL_ROW_BAR_WIDTH = 140;
-// Alternating leading-bar widths, so stacked rows read as separate rows rather than one block.
+// Two widths, so stacked rows read as separate rows rather than one block.
 const TWO_BAR_ROW_BAR_WIDTHS = [140, 110] as const;
 
 function getAlternatingBarWidth(widths: readonly [number, number], itemIndex: number) {
@@ -61,22 +49,15 @@ function getAlternatingBarWidth(widths: readonly [number, number], itemIndex: nu
 }
 
 type SkeletonRowArgs = {
-    /** Index of the row inside its card, used to vary bar widths */
+    /** Index of the row inside its card */
     itemIndex: number;
 
     /** Measured width of the card's row area */
     width: number;
 
-    /** Inset applied to both edges of the row */
     horizontalPadding: number;
-
-    /** Height of one row */
     rowHeight: number;
-
-    /** Gap between the icon box and the text bars beside it */
     iconTextGap: number;
-
-    /** Gap between the two stacked text lines of a row */
     textLineGap: number;
 };
 
@@ -97,25 +78,6 @@ function renderRowIcon(horizontalPadding: number, rowHeight: number) {
             height={ICON_SIZE}
             borderRadius={ICON_BORDER_RADIUS}
         />
-    );
-}
-
-function renderIconBarPillRow({width, horizontalPadding, rowHeight, iconTextGap}: SkeletonRowArgs) {
-    return (
-        <>
-            {renderRowIcon(horizontalPadding, rowHeight)}
-            <SkeletonRect
-                transform={[{translateX: horizontalPadding + ICON_SIZE + iconTextGap}, {translateY: (rowHeight - BAR_HEIGHT) / 2}]}
-                width={PILL_ROW_BAR_WIDTH}
-                height={BAR_HEIGHT}
-            />
-            <SkeletonRect
-                transform={[{translateX: width - horizontalPadding - PILL_WIDTH}, {translateY: (rowHeight - PILL_HEIGHT) / 2}]}
-                width={PILL_WIDTH}
-                height={PILL_HEIGHT}
-                borderRadius={PILL_BORDER_RADIUS}
-            />
-        </>
     );
 }
 
@@ -161,60 +123,17 @@ function renderIconTwoBarWithTrailingRow(args: SkeletonRowArgs) {
     );
 }
 
-type HomePageSkeletonCardTitleProps = {
-    /** Whether a second, wider bar is drawn below the title bar */
-    shouldShowSubtitle?: boolean;
-};
-
-function HomePageSkeletonCardTitle({shouldShowSubtitle = false}: HomePageSkeletonCardTitleProps) {
-    const theme = useTheme();
-    const styles = useThemeStyles();
-    // The title is separated from whatever sits under it in the real card header (see WidgetContainer).
-    const titleGap = styles.gap2.gap;
-
-    return (
-        <SkeletonViewContentLoader
-            animate
-            height={shouldShowSubtitle ? TITLE_LINE_HEIGHT * 2 + titleGap : TITLE_LINE_HEIGHT}
-            backgroundColor={theme.skeletonLHNIn}
-            foregroundColor={theme.skeletonLHNOut}
-        >
-            <SkeletonRect
-                transform={[{translateY: TITLE_BAR_Y}]}
-                width={CARD_TITLE_WIDTH}
-                height={BAR_HEIGHT}
-            />
-            {shouldShowSubtitle && (
-                <SkeletonRect
-                    transform={[{translateY: TITLE_LINE_HEIGHT + titleGap + TITLE_BAR_Y}]}
-                    width={CARD_SUBTITLE_WIDTH}
-                    height={BAR_HEIGHT}
-                />
-            )}
-        </SkeletonViewContentLoader>
-    );
-}
-
 type HomePageSkeletonCardProps = {
-    /** How many placeholder rows this card renders */
     numRows: number;
-
-    /** Draws one row. Receives the card's measured width so trailing content can be right-aligned */
     renderRow: (args: SkeletonRowArgs) => React.ReactNode;
-
-    /** Whether rows are divided by separators */
     shouldShowSeparators?: boolean;
-
-    /** Whether the card's title carries a second, wider bar */
-    shouldShowSubtitle?: boolean;
 };
 
-function HomePageSkeletonCard({numRows, renderRow, shouldShowSeparators = false, shouldShowSubtitle = false}: HomePageSkeletonCardProps) {
+function HomePageSkeletonCard({numRows, renderRow, shouldShowSeparators = false}: HomePageSkeletonCardProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {onLayout, containerWidth} = useContainerWidth();
-    // Row geometry read off the styles the real rows use, so the placeholders land in the same places
-    // their content will (see BaseWidgetItem).
+    // Row geometry read off the styles the real rows use (see BaseWidgetItem).
     const iconTextGap = styles.gap3.gap;
     const textLineGap = styles.gap1.gap;
     const rowHeight = ICON_SIZE + styles.pv3.paddingVertical * 2;
@@ -223,7 +142,12 @@ function HomePageSkeletonCard({numRows, renderRow, shouldShowSeparators = false,
     return (
         <View testID={CARD_TEST_ID}>
             <WidgetContainer
-                titleContent={<HomePageSkeletonCardTitle shouldShowSubtitle={shouldShowSubtitle} />}
+                titleContent={
+                    <SkeletonTextLine
+                        lineHeight={TITLE_LINE_HEIGHT}
+                        barWidth={CARD_TITLE_WIDTH}
+                    />
+                }
                 containerStyles={styles.getWidgetContainerBottomPaddingStyle(shouldUseNarrowLayout)}
             >
                 <ItemListSkeletonView
@@ -252,7 +176,12 @@ function HomePageSkeletonSpinnerCard() {
     return (
         <View testID={CARD_TEST_ID}>
             <WidgetContainer
-                titleContent={<HomePageSkeletonCardTitle />}
+                titleContent={
+                    <SkeletonTextLine
+                        lineHeight={TITLE_LINE_HEIGHT}
+                        barWidth={CARD_TITLE_WIDTH}
+                    />
+                }
                 containerStyles={styles.getWidgetContainerBottomPaddingStyle(shouldUseNarrowLayout)}
             >
                 <View style={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getHeight(SPINNER_CARD_HEIGHT)]}>
@@ -266,18 +195,18 @@ function HomePageSkeletonSpinnerCard() {
     );
 }
 
+type HomePageSkeletonProps = {
+    topLeftCard: React.ReactNode;
+};
+
 /** The caller supplies the `homePageMainLayout` container, which is what turns the two columns into a single stack on narrow layouts. */
-function HomePageSkeleton() {
+function HomePageSkeleton({topLeftCard}: HomePageSkeletonProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const leftCards = (
         <>
-            <HomePageSkeletonCard
-                numRows={ROWS_PER_LIST_CARD}
-                renderRow={renderIconBarPillRow}
-                shouldShowSubtitle
-            />
+            {topLeftCard}
             <HomePageSkeletonSpinnerCard />
         </>
     );

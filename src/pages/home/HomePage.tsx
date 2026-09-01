@@ -7,9 +7,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import {useAppLoadSkeletonState, useIsOnlineAppLoadPending} from '@hooks/useInFlightRequests';
+import {useAppLoadSkeletonState, useShouldWaitForAppLoad} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,6 +30,9 @@ import RecentlyAddedSection from './RecentlyAddedSection';
 import UpcomingTravelSection from './UpcomingTravelSection';
 import YourSpendSection from './YourSpendSection';
 
+const LEFT_COLUMN_TEST_ID = 'homePageLeftColumn';
+const RIGHT_COLUMN_TEST_ID = 'homePageRightColumn';
+
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -40,23 +42,26 @@ function HomePage() {
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const isForYouLoading = !!(isLoadingApp || isLoadingReportData);
     const {shouldShowSkeleton} = useAppLoadSkeletonState();
-    const {isOffline} = useNetwork();
-    const isOnlineAppLoadPending = useIsOnlineAppLoadPending();
-    const shouldShowHomeSkeleton = shouldShowSkeleton && (!isOffline || isOnlineAppLoadPending);
+    const shouldWaitForAppLoad = useShouldWaitForAppLoad();
+    const shouldShowHomeSkeleton = shouldShowSkeleton && shouldWaitForAppLoad;
     const receiptDropTargetRef = useRef<View>(null);
 
     // Owned here (above the narrow/wide layout branch) so the Concierge "+" menu survives the ForYouSection remount that
     // happens on breakpoint change, converting between anchored popover and bottom-docked modal instead of vanishing.
     const [isConciergeMenuVisible, setIsConciergeMenuVisible] = useState(false);
 
+    const forYouSection = (
+        <ForYouSection
+            isConciergeMenuVisible={isConciergeMenuVisible}
+            setIsConciergeMenuVisible={setIsConciergeMenuVisible}
+        />
+    );
+
     // Sections handle their own visibility and may return null to avoid duplicating visibility logic here
     const homeSections = shouldUseNarrowLayout ? (
         <>
             <FreeTrialSection />
-            <ForYouSection
-                isConciergeMenuVisible={isConciergeMenuVisible}
-                setIsConciergeMenuVisible={setIsConciergeMenuVisible}
-            />
+            {forYouSection}
             <GettingStartedSection />
             <UpcomingTravelSection />
             <YourSpendSection />
@@ -67,18 +72,15 @@ function HomePage() {
     ) : (
         <>
             <View
-                testID="homePageLeftColumn"
+                testID={LEFT_COLUMN_TEST_ID}
                 style={styles.homePageLeftColumn}
             >
-                <ForYouSection
-                    isConciergeMenuVisible={isConciergeMenuVisible}
-                    setIsConciergeMenuVisible={setIsConciergeMenuVisible}
-                />
+                {forYouSection}
                 <GettingStartedSection />
                 <InsightsSection />
             </View>
             <View
-                testID="homePageRightColumn"
+                testID={RIGHT_COLUMN_TEST_ID}
                 style={styles.homePageRightColumn}
             >
                 <FreeTrialSection />
@@ -119,7 +121,7 @@ function HomePage() {
                                 <QuickCreationActionsBar />
                             </View>
                         )}
-                        <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>{shouldShowHomeSkeleton ? <HomePageSkeleton /> : homeSections}</View>
+                        <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>{shouldShowHomeSkeleton ? <HomePageSkeleton topLeftCard={forYouSection} /> : homeSections}</View>
                     </ScrollView>
                 </ScreenWrapper>
             </View>
@@ -132,3 +134,4 @@ function HomePage() {
 }
 
 export default HomePage;
+export {LEFT_COLUMN_TEST_ID, RIGHT_COLUMN_TEST_ID};

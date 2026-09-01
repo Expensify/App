@@ -1,5 +1,6 @@
 import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
+import SkeletonTextLine from '@components/Skeletons/SkeletonTextLine';
 
 import useContainerWidth from '@hooks/useContainerWidth';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -21,16 +22,20 @@ const BUTTON_HEIGHT = variables.componentSizeSmall;
 // SVG clamps `rx` and `ry` independently, so that same 100 would draw an ellipse.
 const BUTTON_BORDER_RADIUS = BUTTON_HEIGHT / 2;
 
-const ROW_COUNT = 2;
+// Matches the design mockup for this card.
+const ROW_COUNT = 3;
 const TITLE_BAR_WIDTH = 140;
+
+// The section heading the real card paints above its rows ("Time sensitive" or "For you").
+const HEADING_LINE_HEIGHT = variables.widgetHeaderTitleLineHeight;
+const HEADING_BAR_WIDTH = 100;
 
 function ForYouSkeleton() {
     const {onLayout, containerWidth: pageWidth} = useContainerWidth();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    // Row geometry read off the styles the real rows use, so the placeholders land in the same places
-    // their content will (see BaseWidgetItem).
+    // Row geometry read off the styles the real rows use (see BaseWidgetItem).
     const iconTextGap = styles.gap3.gap;
     const rowHeight = ICON_SIZE + styles.pv3.paddingVertical * 2;
     const horizontalPadding = shouldUseNarrowLayout ? styles.ph5.paddingHorizontal : styles.ph8.paddingHorizontal;
@@ -62,17 +67,25 @@ function ForYouSkeleton() {
     };
 
     return (
-        <View
-            style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}
-            onLayout={onLayout}
-        >
-            <ItemListSkeletonView
-                itemViewHeight={rowHeight}
-                shouldAnimate
-                fixedNumItems={ROW_COUNT}
-                renderSkeletonItem={renderSkeletonItem}
-            />
-        </View>
+        <>
+            <View style={styles.getForYouSectionHeadingStyle(shouldUseNarrowLayout)}>
+                <SkeletonTextLine
+                    lineHeight={HEADING_LINE_HEIGHT}
+                    barWidth={HEADING_BAR_WIDTH}
+                />
+            </View>
+            <View
+                style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}
+                onLayout={onLayout}
+            >
+                <ItemListSkeletonView
+                    itemViewHeight={rowHeight}
+                    shouldAnimate
+                    fixedNumItems={ROW_COUNT}
+                    renderSkeletonItem={renderSkeletonItem}
+                />
+            </View>
+        </>
     );
 }
 

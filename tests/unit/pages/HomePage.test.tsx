@@ -87,12 +87,13 @@ jest.mock('@libs/NetworkState', () => ({
 }));
 
 // Deliberately not `mockSection('HomePageSkeleton')`: that helper emits a `section-` testID, which
-// `renderedSectionOrder` matches, so the skeleton would count as a rendered section.
+// `renderedSectionOrder` matches, so the skeleton would count as a rendered section. The stub does render
+// `topLeftCard`, so the cases below can assert that the one real card the skeleton wall carries is present.
 jest.mock('@pages/home/HomePageSkeleton', () => {
     const ReactModule = require('react');
     const {View: RNView} = require('react-native');
-    function MockHomePageSkeleton() {
-        return ReactModule.createElement(RNView, {testID: 'homePageSkeleton'});
+    function MockHomePageSkeleton({topLeftCard}: {topLeftCard: React.ReactNode}) {
+        return ReactModule.createElement(RNView, {testID: 'homePageSkeleton'}, topLeftCard);
     }
     return MockHomePageSkeleton;
 });
@@ -168,10 +169,10 @@ function renderedSectionOrder() {
 
 const mockUseNetwork = jest.mocked(useNetwork);
 
-const buildRequest = (command: AnyRequest['command'], initiatedOffline = false): AnyRequest => ({
+const buildRequest = (command: AnyRequest['command'], extra: Partial<AnyRequest> = {}): AnyRequest => ({
     command,
     data: {},
-    initiatedOffline,
+    ...extra,
 });
 
 // `requests` is the queue of requests not yet sent. `ongoingRequest` is the one being sent, which the
@@ -337,15 +338,17 @@ describe('HomePage', () => {
             expect(leftOrder.indexOf('section-GettingStartedSection')).toBeGreaterThan(leftOrder.indexOf('section-ForYouSection'));
         });
     });
-    // These cases prove that HomePage branches on the gate and composes the offline guard.
+    // These cases prove that HomePage branches on the gate and composes the offline guard. ForYouSection is the
+    // one section that survives the skeleton, because the skeleton renders it through `topLeftCard` rather than
+    // standing in for it, so every skeleton case below asserts exactly that one.
     describe('app load skeleton', () => {
-        it('renders the skeleton instead of the sections while the first OpenApp is in flight', async () => {
+        it('renders the skeleton, carrying only the For You card, while the first OpenApp is in flight', async () => {
             await setAppLoadState({hasLoadedApp: false, isLoadingApp: false, requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)]});
 
             renderHomePage();
 
             expect(screen.getByTestId('homePageSkeleton')).toBeOnTheScreen();
-            expect(screen.queryAllByTestId(/^section-/)).toHaveLength(0);
+            expect(renderedSectionOrder()).toEqual(['section-ForYouSection']);
         });
 
         it('renders the skeleton for an interrupted cold start, where only isLoadingApp survived', async () => {
@@ -378,7 +381,7 @@ describe('HomePage', () => {
         // in progress and must not hold the skeleton there indefinitely.
         it('renders the sections, not the skeleton, on a cold start while offline', async () => {
             mockUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
-            await setAppLoadState({hasLoadedApp: false, isLoadingApp: false, requests: [buildRequest(WRITE_COMMANDS.OPEN_APP, true)]});
+            await setAppLoadState({hasLoadedApp: false, isLoadingApp: false, requests: [buildRequest(WRITE_COMMANDS.OPEN_APP, {initiatedOffline: true})]});
 
             renderHomePage();
 
@@ -395,7 +398,7 @@ describe('HomePage', () => {
             renderHomePage();
 
             expect(screen.getByTestId('homePageSkeleton')).toBeOnTheScreen();
-            expect(screen.queryAllByTestId(/^section-/)).toHaveLength(0);
+            expect(renderedSectionOrder()).toEqual(['section-ForYouSection']);
         });
 
         // The same case one step later in the queue's lifecycle: the request has left PERSISTED_REQUESTS
@@ -407,14 +410,14 @@ describe('HomePage', () => {
             renderHomePage();
 
             expect(screen.getByTestId('homePageSkeleton')).toBeOnTheScreen();
-            expect(screen.queryAllByTestId(/^section-/)).toHaveLength(0);
+            expect(renderedSectionOrder()).toEqual(['section-ForYouSection']);
         });
 
         // Reaching the ongoing key at all means the request was being sent, so the offline stamp is stale by
         // then and the skeleton stays.
         it('keeps the skeleton for an in-flight OpenApp that was first queued offline', async () => {
             mockUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
-            await setAppLoadState({hasLoadedApp: false, isLoadingApp: false, ongoingRequest: buildRequest(WRITE_COMMANDS.OPEN_APP, true)});
+            await setAppLoadState({hasLoadedApp: false, isLoadingApp: false, ongoingRequest: buildRequest(WRITE_COMMANDS.OPEN_APP, {initiatedOffline: true})});
 
             renderHomePage();
 
@@ -432,7 +435,7 @@ describe('HomePage', () => {
             renderHomePage();
 
             expect(screen.getByTestId('homePageSkeleton')).toBeOnTheScreen();
-            expect(screen.queryAllByTestId(/^section-/)).toHaveLength(0);
+            expect(renderedSectionOrder()).toEqual(['section-ForYouSection']);
         });
 
         // The recovery fallback reads a stranded IS_LOADING_APP rather than the queue, so offline it cannot
