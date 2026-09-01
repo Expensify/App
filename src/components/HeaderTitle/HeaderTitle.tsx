@@ -8,28 +8,17 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import {View} from 'react-native';
 
-import HeaderTitleSubtitle from './HeaderTitleSubtitle';
-import HeaderTitleSubtitleLink from './HeaderTitleSubtitleLink';
 import useHeaderDialogAnnouncement from './useHeaderDialogAnnouncement';
 
 type HeaderProps = {
     /** Title of the Header */
-    title?: string;
-
-    /** Subtitle of the header */
-    subtitle?: string;
+    title: string;
 
     /** Additional text styles */
     textStyles?: StyleProp<TextStyle>;
 
-    /** Additional header styles */
-    style?: StyleProp<ViewStyle>;
-
     /** Additional header container styles */
     containerStyles?: StyleProp<ViewStyle>;
-
-    /** The URL link associated with the attachment's subtitle, if available */
-    subTitleLink?: string;
 
     /** Line number for the title */
     numberOfTitleLines?: number;
@@ -39,26 +28,19 @@ type HeaderProps = {
 
     /** Whether to skip focus of the first interactive element inside the header after the RHP transition for screen reader announcement.  */
     shouldSkipFocusAfterTransition?: boolean;
+
+    /** Children to render below the title */
+    children?: React.ReactNode;
 };
 
-function Header({
-    title = '',
-    subtitle = '',
-    textStyles = [],
-    style,
-    containerStyles = [],
-    subTitleLink = '',
-    numberOfTitleLines = 2,
-    dialogTitle,
-    shouldSkipFocusAfterTransition = false,
-}: HeaderProps) {
+function Header({children, title, textStyles, containerStyles, numberOfTitleLines = 2, dialogTitle, shouldSkipFocusAfterTransition = false}: HeaderProps) {
     const styles = useThemeStyles();
 
     useHeaderDialogAnnouncement(dialogTitle ?? title, shouldSkipFocusAfterTransition);
 
     return (
         <View style={[styles.flex1, styles.flexRow, containerStyles]}>
-            <View style={[styles.mw100, style]}>
+            <View style={[styles.mw100]}>
                 <Text
                     numberOfLines={numberOfTitleLines}
                     style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, textStyles]}
@@ -67,8 +49,7 @@ function Header({
                 >
                     {title}
                 </Text>
-                {!!subtitle && <HeaderTitleSubtitle>{subtitle}</HeaderTitleSubtitle>}
-                {!!subTitleLink && <HeaderTitleSubtitleLink>{subTitleLink}</HeaderTitleSubtitleLink>}
+                {children}
             </View>
         </View>
     );
