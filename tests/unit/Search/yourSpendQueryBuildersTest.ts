@@ -5,8 +5,9 @@
  * - `from` resolves to the numeric accountID string (not literal '[me]')
  * - `cardID` uses the numeric card ID (not the card name)
  * - Date filter serializes as `date>YYYY-MM-DD` (not `dateAfter:`)
+ * - `buildCardGroupQuery` covers the whole card set in one `group-by:card` query
  */
-import {buildAwaitingApprovalQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from '@pages/home/YourSpendSection/queries';
+import {buildAwaitingApprovalQuery, buildCardGroupQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from '@pages/home/YourSpendSection/queries';
 
 import CONST from '@src/CONST';
 import {buildSearchQueryJSON, getFilterFromQuery} from '@src/libs/SearchQueryUtils';
@@ -212,5 +213,76 @@ describe('buildRecentCardTransactionsQuery', () => {
         const diffDays = (today.getTime() - parsedDate.getTime()) / (1000 * 60 * 60 * 24);
         expect(diffDays).toBeGreaterThanOrEqual(29);
         expect(diffDays).toBeLessThanOrEqual(31);
+    });
+});
+
+// buildCardGroupQuery
+
+describe('buildCardGroupQuery', () => {
+    const OTHER_CARD_ID = 54321;
+
+    it('groups by card, so one response carries a per-card total', () => {
+        // Given the two cards Home would display
+        const queryString = buildCardGroupQuery(ACCOUNT_ID, [CARD_ID, OTHER_CARD_ID]);
+
+        // When the query is parsed
+        const queryJSON = buildSearchQueryJSON(queryString);
+
+        // Then it is an expense query grouped by card
+        expect(queryJSON?.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+        expect(queryJSON?.groupBy).toBe(CONST.SEARCH.GROUP_BY.CARD);
+    });
+
+    it('scopes the query to exactly the cards it was given', () => {
+        // Given the two cards Home would display
+        const queryString = buildCardGroupQuery(ACCOUNT_ID, [CARD_ID, OTHER_CARD_ID]);
+
+        // When the cardID filter is read back
+        const values = getRawFiltersForKey(queryString, CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID).flatMap((f) => (Array.isArray(f.value) ? f.value : [f.value]));
+
+        // Then both card IDs are present, so the backend never returns groups for cards Home does not display
+        expect(values).toEqual(expect.arrayContaining([String(CARD_ID), String(OTHER_CARD_ID)]));
+        expect(values).toHaveLength(2);
+    });
+
+    it('resolves from to the numeric accountID (not literal [me])', () => {
+        // Given a grouped query for one card
+        const queryString = buildCardGroupQuery(ACCOUNT_ID, [CARD_ID]);
+
+        // When the from filter is read back
+        const values = getRawFiltersForKey(queryString, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM).flatMap((f) => (Array.isArray(f.value) ? f.value : [f.value]));
+
+        // Then it carries the numeric accountID
+        expect(values).toContain(String(ACCOUNT_ID));
+        expect(queryString).not.toContain('[me]');
+    });
+
+    it('windows the query to the same 30 days as the per-card tap-through query', () => {
+        // Given a grouped query for one card
+        const queryString = buildCardGroupQuery(ACCOUNT_ID, [CARD_ID]);
+
+        // When its date bound is compared against 30 days before today
+        const dateStr = queryString.match(/date>([0-9]{4}-[0-9]{2}-[0-9]{2})/)?.[1];
+        const today = new Date();
+        today.setUTCHours(0, 0, 0, 0);
+        const diffDays = (today.getTime() - new Date(`${dateStr}T00:00:00Z`).getTime()) / (1000 * 60 * 60 * 24);
+
+        // Then the row total covers the same window the tap-through will show
+        expect(diffDays).toBeGreaterThanOrEqual(29);
+        expect(diffDays).toBeLessThanOrEqual(31);
+    });
+
+    it('produces a different hash for a different card set, so a card change refires the search', () => {
+        // Given grouped queries for two different card sets
+        const twoCardQuery = buildCardGroupQuery(ACCOUNT_ID, [CARD_ID, OTHER_CARD_ID]);
+        const singleCardQuery = buildCardGroupQuery(ACCOUNT_ID, [CARD_ID]);
+
+        // When their snapshot hashes are compared
+        const twoCardHash = buildSearchQueryJSON(twoCardQuery)?.hash;
+        const singleCardHash = buildSearchQueryJSON(singleCardQuery)?.hash;
+
+        // Then they differ, so adding or losing a card refires rather than reading a stale snapshot
+        expect(twoCardHash).toBeDefined();
+        expect(singleCardHash).not.toBe(twoCardHash);
     });
 });
