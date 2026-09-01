@@ -1,5 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -7,11 +8,12 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTravelBillingSetupFlow from '@hooks/useTravelBillingSetupFlow';
 
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import type {ExpensifyCardFeedEntry} from '@libs/ExpensifyCardFeedSelectorUtils';
@@ -48,6 +50,8 @@ function WorkspaceTravelBillingFeedSelectorPage({route}: WorkspaceTravelBillingF
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const startTravelBillingSetup = useTravelBillingSetupFlow(policyID);
     const {allFeeds} = useExpensifyCardFeedsForFeedSelector(policyID, [CONST.TRAVEL.PROGRAM_TRAVEL_US]);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
@@ -110,6 +114,13 @@ function WorkspaceTravelBillingFeedSelectorPage({route}: WorkspaceTravelBillingF
                     onSelectRow={selectFeed}
                     data={allFeeds.map(toListItem)}
                     customListHeaderContent={<Text style={[styles.ph5, styles.mv2, styles.textLabelSupporting]}>{translate('workspace.companyCards.fromOtherWorkspaces')}</Text>}
+                    listFooterContent={
+                        <MenuItemAction
+                            title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.setUpNewFeed')}
+                            icon={expensifyIcons.Plus}
+                            onPress={startTravelBillingSetup}
+                        />
+                    }
                     onDismissError={onDismissError}
                     addBottomSafeAreaPadding
                 />
