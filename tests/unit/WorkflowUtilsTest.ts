@@ -606,6 +606,37 @@ describe('WorkflowUtils', () => {
             expect(memberEmails).toEqual(['alice@example.com', 'bob@example.com']);
         });
 
+        it('Should not build a workflow from a member that is pending deletion', () => {
+            // Offline removal of an approver leaves that member with a stale submitsTo pointing at whoever
+            // replaced them. They must not create an extra approval workflow with no members.
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {
+                    email: '1@example.com',
+                    forwardsTo: undefined,
+                    submitsTo: '4@example.com',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+                '2@example.com': {
+                    email: '2@example.com',
+                    forwardsTo: undefined,
+                    submitsTo: '2@example.com',
+                },
+                '4@example.com': {
+                    email: '4@example.com',
+                    forwardsTo: undefined,
+                    submitsTo: '2@example.com',
+                },
+            };
+            const defaultApprover = '2@example.com';
+            const policy = createMockPolicy(employees, defaultApprover);
+
+            const {approvalWorkflows, availableMembers, usedApproverEmails} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
+
+            expect(approvalWorkflows).toEqual([buildWorkflow([2, 4], [2], {isDefault: true})]);
+            expect(availableMembers.map((member) => member.email)).toEqual(['2@example.com', '4@example.com']);
+            expect(usedApproverEmails).not.toContain('4@example.com');
+        });
+
         it('Should filter out Expensify team members for non-Expensify customers', () => {
             const employees: PolicyEmployeeList = {
                 'alice@example.com': {
@@ -2006,6 +2037,21 @@ describe('WorkflowUtils', () => {
                         ?.members.map((member) => member.email)
                         .sort(),
                 ).toEqual(['2@example.com', '3@example.com', '4@example.com']);
+            });
+
+            it('Should not build a workflow from a member that is pending deletion', () => {
+                const rules = keyRules(buildApprovalWorkflowRules(buildWorkflow([5], [1])));
+                const employees: PolicyEmployeeList = {
+                    '4@example.com': {email: '4@example.com', submitsTo: '1@example.com', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    '5@example.com': {email: '5@example.com', submitsTo: '1@example.com'},
+                };
+                const policy = createPolicy(employees, '1@example.com');
+
+                const {approvalWorkflows, availableMembers} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules});
+
+                expect(approvalWorkflows).toHaveLength(1);
+                expect(approvalWorkflows.at(0)?.members.map((member) => member.email)).toEqual(['5@example.com']);
+                expect(availableMembers.map((member) => member.email)).toEqual(['5@example.com']);
             });
         });
     });
