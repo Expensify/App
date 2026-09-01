@@ -729,7 +729,6 @@ describe('DateUtils', () => {
             expect(DateUtils.getRemainingSecondsInWindow(Date.now() - 31 * 1000, windowMs)).toBe(0);
         });
 
-        // A backward clock correction leaves the request timestamp in the future.
         it('should clamp to the full window when the timestamp is in the future', () => {
             expect(DateUtils.getRemainingSecondsInWindow(Date.now() + 10 * 1000, windowMs)).toBe(30);
         });

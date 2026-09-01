@@ -24,6 +24,7 @@ function ValidateCodeCountdown({onCountdownFinish, requestedAt, ref}: ValidateCo
     const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     useImperativeHandle(ref, () => ({
+        // Only re-anchors the callers without `requestedAt`; the others stamp a fresh one when they resend.
         resetCountdown: () => {
             setStartedAt(Date.now());
             setTimeRemaining(CONST.REQUEST_CODE_DELAY);
@@ -31,23 +32,36 @@ function ValidateCodeCountdown({onCountdownFinish, requestedAt, ref}: ValidateCo
     }));
 
     useEffect(() => {
-        if (timeRemaining <= 0) {
-            onCountdownFinish();
-            return;
-        }
+        // Each tick arms the next itself: React drops a tick that recomputes the same value, leaving nothing to re-arm the timer.
+        const scheduleTick = () => {
+            // Align to the anchor's second boundary so every tab and reload flips the same second at the same instant.
+            const msUntilNextTick = CONST.MILLISECONDS_PER_SECOND - ((Date.now() - anchor) % CONST.MILLISECONDS_PER_SECOND);
 
-        // Align to the anchor's second boundary so every tab and reload flips the same second at the same instant.
-        const msUntilNextTick = CONST.MILLISECONDS_PER_SECOND - ((Date.now() - anchor) % CONST.MILLISECONDS_PER_SECOND);
+            timerRef.current = setTimeout(() => {
+                // Recompute instead of decrementing: a throttled tab or a suspended app delivers fewer callbacks than seconds.
+                const remaining = DateUtils.getRemainingSecondsInWindow(anchor, CONST.REQUEST_CODE_DELAY * CONST.MILLISECONDS_PER_SECOND);
+                setTimeRemaining(remaining);
 
-        timerRef.current = setTimeout(() => {
-            // Recompute instead of decrementing: a throttled tab or a suspended app delivers fewer callbacks than seconds.
-            setTimeRemaining(DateUtils.getRemainingSecondsInWindow(anchor, CONST.REQUEST_CODE_DELAY * CONST.MILLISECONDS_PER_SECOND));
-        }, msUntilNextTick);
+                if (remaining <= 0) {
+                    return;
+                }
+                scheduleTick();
+            }, msUntilNextTick);
+        };
+
+        scheduleTick();
 
         return () => {
             clearTimeout(timerRef.current);
         };
-    }, [onCountdownFinish, timeRemaining, anchor]);
+    }, [anchor]);
+
+    useEffect(() => {
+        if (timeRemaining > 0) {
+            return;
+        }
+        onCountdownFinish();
+    }, [timeRemaining, onCountdownFinish]);
 
     // Announce countdown start/reset/expiration for screen readers.
     // We check timeRemaining === 1 (not 0) because the component unmounts immediately at 0s, so the expired announcement wouldn't be spoken.

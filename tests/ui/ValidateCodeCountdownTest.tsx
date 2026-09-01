@@ -89,6 +89,16 @@ describe('ValidateCodeCountdown', () => {
         expect(screen.getByText('00:11')).toBeOnTheScreen();
     });
 
+    // A backward clock correction leaves the anchor in the future, where the clamp returns the same value every tick.
+    it('keeps ticking to zero when the clock is corrected backward', () => {
+        const onCountdownFinish = jest.fn();
+        renderCountdown(onCountdownFinish, BASE_TIME + 10 * CONST.MILLISECONDS_PER_SECOND);
+        expect(screen.getByText('00:30')).toBeOnTheScreen();
+
+        tickSeconds(45);
+        expect(onCountdownFinish).toHaveBeenCalled();
+    });
+
     it('measures from the resend time after the countdown is reset', () => {
         const ref = renderCountdown();
 

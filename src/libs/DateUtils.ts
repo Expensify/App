@@ -425,7 +425,7 @@ function getRemainingSecondsInWindow(requestedAt: number | undefined, windowMs: 
     const remainingSeconds = Math.ceil((windowMs - (Date.now() - requestedAt)) / CONST.MILLISECONDS_PER_SECOND);
 
     // A backward clock correction leaves `requestedAt` in the future, which would otherwise report more than the window.
-    return Math.min(windowMs / CONST.MILLISECONDS_PER_SECOND, Math.max(0, remainingSeconds));
+    return Math.min(Math.ceil(windowMs / CONST.MILLISECONDS_PER_SECOND), Math.max(0, remainingSeconds));
 }
 
 /**
