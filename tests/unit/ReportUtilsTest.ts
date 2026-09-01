@@ -5329,8 +5329,18 @@ describe('ReportUtils', () => {
         describe('moved system messages', () => {
             it.each([CONST.REPORT.ACTIONS.TYPE.MOVED, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION])('should be disabled for a %s action with no child visible action count', (actionName) => {
                 // Given a moved system message that has never been threaded
+                // The message is required: without it isDeletedAction treats the action as a legacy deleted
+                // comment, which would disable the thread on its own and make this test pass vacuously.
                 const reportAction = createMock<ReportAction>({
                     actionName,
+                    message: [
+                        {
+                            translationKey: '',
+                            type: 'COMMENT',
+                            html: 'moved this expense',
+                            text: 'moved this expense',
+                        },
+                    ],
                     childVisibleActionCount: 0,
                 });
 
@@ -5345,6 +5355,14 @@ describe('ReportUtils', () => {
                 // Given a moved system message that already has a legitimately threaded child
                 const reportAction = createMock<ReportAction>({
                     actionName,
+                    message: [
+                        {
+                            translationKey: '',
+                            type: 'COMMENT',
+                            html: 'moved this expense',
+                            text: 'moved this expense',
+                        },
+                    ],
                     childVisibleActionCount: 1,
                 });
 
