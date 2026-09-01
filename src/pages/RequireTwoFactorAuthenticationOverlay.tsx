@@ -7,23 +7,25 @@ import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 
+import {signOutInteractively} from '@libs/actions/InteractiveSignOut';
 import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
-import {signOutAndRedirectToSignIn} from '@userActions/Session';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
 import {buildOnboardingFlowParams, getRequired2FAOnboardingResumePath} from '@userActions/Welcome/OnboardingFlow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import {emailSelector} from '@src/selectors/Session';
 import type {Policy} from '@src/types/onyx';
 
@@ -60,8 +62,12 @@ function RequireTwoFactorAuthenticationOverlay() {
     const illustrations = useMemoizedLazyIllustrations(['Encryption']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const network = useNetwork();
     const {showConfirmModal} = useConfirmModal();
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
+    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {
+        selector: isTrackingSelector,
+    });
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -94,12 +100,12 @@ function RequireTwoFactorAuthenticationOverlay() {
         snapshotOnboardingResumePathIfNeeded();
     }, [shouldShowRequire2FAPage, isIn2FASetupFlow, snapshotOnboardingResumePathIfNeeded]);
 
-    const handleEnableTwoFactorAuthPress = () => {
+    const enableTwoFactorAuth = () => {
         snapshotOnboardingResumePathIfNeeded();
         Navigation.navigate(getTwoFactorAuthRoute(ROUTES.SETTINGS_SECURITY, {forceSetup: true}));
     };
 
-    const handleSignOutPress = async () => {
+    const confirmSignOut = async () => {
         const result = await showConfirmModal({
             title: translate('common.areYouSure'),
             prompt: translate('initialSettingsPage.signOutConfirmationText'),
@@ -109,9 +115,17 @@ function RequireTwoFactorAuthenticationOverlay() {
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
 
-        if (result.action === ModalActions.CONFIRM) {
-            signOutAndRedirectToSignIn();
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
         }
+
+        await signOutInteractively({
+            translate,
+            isOffline: network.isOffline,
+            isTrackingGPS,
+            showConfirmModal,
+            hasConfirmedSignOut: true,
+        });
     };
 
     if (!shouldShowRequire2FAPage || isIn2FASetupFlow) {
@@ -144,7 +158,7 @@ function RequireTwoFactorAuthenticationOverlay() {
                                 <View style={styles.flex1}>
                                     <Button
                                         size={CONST.BUTTON_SIZE.LARGE}
-                                        onPress={handleSignOutPress}
+                                        onPress={confirmSignOut}
                                     >
                                         <Button.Text>{translate('initialSettingsPage.signOut')}</Button.Text>
                                     </Button>
@@ -153,7 +167,7 @@ function RequireTwoFactorAuthenticationOverlay() {
                                     <Button
                                         size={CONST.BUTTON_SIZE.LARGE}
                                         variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                        onPress={handleEnableTwoFactorAuthPress}
+                                        onPress={enableTwoFactorAuth}
                                     >
                                         <Button.KeyboardShortcut />
                                         <Button.Text>{translate('twoFactorAuth.enableTwoFactorAuth')}</Button.Text>
