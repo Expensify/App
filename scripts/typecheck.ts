@@ -51,7 +51,7 @@ const results = await Promise.all(
 const failed: string[] = [];
 for (const {tsconfig, result} of results) {
     console.log(`\nType checking ${tsconfig}...`);
-    const output = `${result.stdout}${result.stderr}`.trim();
+    const output = `${result.stdout.toString()}${result.stderr.toString()}`.trim();
     if (output) {
         console.log(output);
     }
