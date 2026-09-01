@@ -39,11 +39,7 @@ Expensify validates the API key, connects to your DualEntry organization, and re
 
 **Note:** Your API key is encrypted and stored securely on Expensify's servers. It is never exposed in the app or stored on your device.
 
-<!-- SCREENSHOT:
-Suggestion: The Accounting page Connections section with DualEntry shown and the Connect button visible.
-Location: Immediately after the connection steps above.
-Purpose: Confirms admins are on the correct page and can locate the DualEntry Connect button, which differs from the OAuth flow used by older integrations.
--->
+![The Accounting page Connections section with DualEntry shown and the Connect button visible]({{site.url}}/assets/images/DualEntry_connect.png){:width="100%"}
 
 ---
 
@@ -54,7 +50,6 @@ After the connection is established, the **Connections** section updates to show
 - The connection status and last sync timestamp.
 - The selected subsidiary.
 - The **Import**, **Export**, and **Advanced** configuration settings.
-- Additional integration options under **Other**.
 
 If your DualEntry organization has multiple subsidiaries, you can choose which one to connect. If only one eligible subsidiary is available, Expensify selects it automatically. The selected subsidiary determines which accounting data is available in Expensify.
 
