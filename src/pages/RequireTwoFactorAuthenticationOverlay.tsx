@@ -1,8 +1,10 @@
 import Button from '@components/ButtonComposed';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import Icon from '@components/Icon';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Text from '@components/Text';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -15,6 +17,7 @@ import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs
 
 import variables from '@styles/variables';
 
+import {signOutAndRedirectToSignIn} from '@userActions/Session';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
 import {buildOnboardingFlowParams, getRequired2FAOnboardingResumePath} from '@userActions/Welcome/OnboardingFlow';
 
@@ -57,6 +60,7 @@ function RequireTwoFactorAuthenticationOverlay() {
     const illustrations = useMemoizedLazyIllustrations(['Encryption']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -90,9 +94,24 @@ function RequireTwoFactorAuthenticationOverlay() {
         snapshotOnboardingResumePathIfNeeded();
     }, [shouldShowRequire2FAPage, isIn2FASetupFlow, snapshotOnboardingResumePathIfNeeded]);
 
-    const handleOnPress = () => {
+    const handleEnableTwoFactorAuthPress = () => {
         snapshotOnboardingResumePathIfNeeded();
         Navigation.navigate(getTwoFactorAuthRoute(ROUTES.SETTINGS_SECURITY, {forceSetup: true}));
+    };
+
+    const handleSignOutPress = async () => {
+        const result = await showConfirmModal({
+            title: translate('common.areYouSure'),
+            prompt: translate('initialSettingsPage.signOutConfirmationText'),
+            confirmText: translate('initialSettingsPage.signOut'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+        });
+
+        if (result.action === ModalActions.CONFIRM) {
+            signOutAndRedirectToSignIn();
+        }
     };
 
     if (!shouldShowRequire2FAPage || isIn2FASetupFlow) {
@@ -121,14 +140,26 @@ function RequireTwoFactorAuthenticationOverlay() {
                                     {translate(is2FARequiredBecauseOfXero ? 'twoFactorAuth.twoFactorAuthIsRequiredXero' : 'twoFactorAuth.twoFactorAuthIsRequiredCompany')}
                                 </Text>
                             </View>
-                            <Button
-                                size={CONST.BUTTON_SIZE.LARGE}
-                                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                onPress={handleOnPress}
-                            >
-                                <Button.KeyboardShortcut />
-                                <Button.Text>{translate('twoFactorAuth.enableTwoFactorAuth')}</Button.Text>
-                            </Button>
+                            <View style={[styles.flexRow, styles.gap2, styles.alignSelfStretch]}>
+                                <View style={styles.flex1}>
+                                    <Button
+                                        size={CONST.BUTTON_SIZE.LARGE}
+                                        onPress={handleSignOutPress}
+                                    >
+                                        <Button.Text>{translate('initialSettingsPage.signOut')}</Button.Text>
+                                    </Button>
+                                </View>
+                                <View style={styles.flex1}>
+                                    <Button
+                                        size={CONST.BUTTON_SIZE.LARGE}
+                                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                        onPress={handleEnableTwoFactorAuthPress}
+                                    >
+                                        <Button.KeyboardShortcut />
+                                        <Button.Text>{translate('twoFactorAuth.enableTwoFactorAuth')}</Button.Text>
+                                    </Button>
+                                </View>
+                            </View>
                         </View>
                     </View>
                 </View>
