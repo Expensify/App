@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-import type {MultiSelectItem} from './MultiSelect/types';
+import type {MultiSelectItem} from './MultiSelect';
 
 import MultiSelect from './MultiSelect';
 
