@@ -27,7 +27,7 @@ function IOURequestStepDistanceGPS(props: IOURequestStepDistanceGPSProps) {
 
     return (
         <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-            <View style={[styles.ph5, styles.pv10, styles.alignItemsCenter, styles.justifyContentCenter, styles.h100]}>
+            <View style={[styles.ph5, styles.pv10, styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh100]}>
                 <View style={[styles.toddInCarIllustrationContainer]}>
                     <ImageSVG
                         src={ToddInCar}
