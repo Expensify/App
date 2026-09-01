@@ -375,6 +375,7 @@ const computeReportName = (
         conciergeReportID,
         reportTransactions: buildTransactionsByReportID(transactions),
         isTrackIntentUser: false,
+        formatPhoneNumber,
     });
 const participantsPersonalDetails: PersonalDetailsList = {
     '1': {
