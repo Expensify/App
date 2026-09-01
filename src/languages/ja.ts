@@ -7841,6 +7841,8 @@ ${reportName}`,
                 thenApplyFollowingDefaults: '次に、以下のデフォルトを適用します。',
                 vendorUnavailable: 'ベンダーを利用できません',
                 supplierUnavailable: 'サプライヤーを利用できません',
+                createRuleFromExpenseAction: 'ルールを作成',
+                createRuleFromExpensePrompt: '条件に一致するすべての経費に変更を適用します。',
             },
             categoryRules: {
                 title: 'カテゴリルール',

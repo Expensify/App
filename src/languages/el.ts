@@ -8299,6 +8299,8 @@ ${reportName}`,
                 importColumnUpdatedDescription: 'Ενημερωμένη περιγραφή',
                 vendorUnavailable: 'Ο προμηθευτής δεν είναι διαθέσιμος',
                 supplierUnavailable: 'Ο προμηθευτής δεν είναι διαθέσιμος',
+                createRuleFromExpenseAction: 'Δημιουργία κανόνα',
+                createRuleFromExpensePrompt: 'για να εφαρμόσετε τις αλλαγές σας σε όλες τις δαπάνες που ταιριάζουν με τα κριτήριά σας.',
             },
             newRule: {
                 title: 'Νέος κανόνας',
