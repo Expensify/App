@@ -4437,6 +4437,7 @@ const staticStyles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeLabel,
             color: theme.textReversed,
             lineHeight: variables.lineHeightLarge,
+            ...wordBreak.breakWord,
         },
 
         merchantRuleCalloutAction: {
