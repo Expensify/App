@@ -51,6 +51,7 @@ import {clearCachedAttachments} from '@userActions/Attachment';
 import clearOnyxAndSeedFullReconnect from '@userActions/clearOnyxAndSeedFullReconnect';
 import {clearOnyxForDelegateTransition} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
+import {setErrorFields} from '@userActions/FormActions';
 import type HybridAppSettings from '@userActions/HybridApp/types';
 import {close} from '@userActions/Modal';
 import redirectToSignIn from '@userActions/SignInRedirect';
@@ -58,10 +59,12 @@ import * as Welcome from '@userActions/Welcome';
 
 import CONFIG from '@src/CONFIG';
 import CONST, {FRAUD_PROTECTION_EVENT} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ADD_WORK_EMAIL_INPUT_IDS from '@src/types/form/AddWorkEmailForm';
 import type {TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Locale from '@src/types/onyx/Locale';
@@ -1575,42 +1578,66 @@ const canAnonymousUserAccessRoute = (route: string) => {
     return false;
 };
 
-function AddWorkEmail(workEmail: string) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
-            value: {
-                onboardingWorkEmail: workEmail,
-                isLoading: true,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
-            value: null,
-        },
-    ];
+/** The forms that submit a work email. Onboarding has its own, the workspace company card and Expensify card flows share one. */
+type AddWorkEmailFormID = typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typeof ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM;
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
+/**
+ * Adds a work email to the account.
+ *
+ * @param workEmail the work email to add.
+ * @param formID the form that submitted the request. Its loading state and errors follow the request, so the submit button stops spinning and the failure
+ * renders inline. Defaults to the onboarding form, which is where this action is called from during onboarding.
+ */
+function AddWorkEmail(workEmail: string, formID: AddWorkEmailFormID = ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM) {
+    const isOnboardingFlow = formID === ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM;
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
+    const optimisticData: Array<OnyxUpdate<AddWorkEmailFormID | typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY>> = isOnboardingFlow
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
+                  value: {
+                      onboardingWorkEmail: workEmail,
+                      isLoading: true,
+                  },
+              },
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
+                  value: null,
+              },
+          ]
+        : [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM,
+                  value: {
+                      isLoading: true,
+                      errorFields: null,
+                  },
+              },
+          ];
+
+    const getLoadingFinishedData = (): Array<OnyxUpdate<AddWorkEmailFormID>> =>
+        isOnboardingFlow
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
+                      value: {
+                          isLoading: false,
+                      },
+                  },
+              ]
+            : [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM,
+                      value: {
+                          isLoading: false,
+                      },
+                  },
+              ];
 
     // We need to inspect the response to detect the closed-account error and surface a specific translation key, which API.write cannot do.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
@@ -1619,26 +1646,34 @@ function AddWorkEmail(workEmail: string) {
         {workEmail},
         {
             optimisticData,
-            successData,
-            failureData,
+            successData: getLoadingFinishedData(),
+            failureData: getLoadingFinishedData(),
         },
     ).then((response) => {
         if (response?.jsonCode !== CONST.JSON_CODE.EXP_ERROR) {
             return;
         }
 
+        let errorTranslationKey: TranslationPaths | undefined;
         if (response?.message?.includes(CONST.MERGE_ACCOUNT_2FA_ERROR)) {
-            Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.workEmail2FAError');
+            errorTranslationKey = 'onboarding.workEmail2FAError';
+        } else if (response?.message?.includes(CONST.MERGE_ACCOUNT_SINGLE_SIGN_ON_ERROR)) {
+            errorTranslationKey = 'onboarding.singleSignOnError';
+        } else if (response?.message === CONST.WORK_ACCOUNT_CLOSED_ERROR || response?.title === CONST.WORK_ACCOUNT_CLOSED_ERROR) {
+            errorTranslationKey = 'onboarding.mergeBlockScreen.workAccountClosedSubtitle';
+        }
+
+        // Outside of onboarding we show the failure on the form the user is looking at, instead of writing onboarding-only state that the caller doesn't render.
+        // The backend also rejects this command with errors we have no specific copy for (e.g. a 403), so fall back to a generic message rather than showing nothing.
+        if (!isOnboardingFlow) {
+            setErrorFields(ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM, {
+                [ADD_WORK_EMAIL_INPUT_IDS.EMAIL]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey(errorTranslationKey ?? 'common.genericErrorMessage'),
+            });
             return;
         }
 
-        if (response?.message?.includes(CONST.MERGE_ACCOUNT_SINGLE_SIGN_ON_ERROR)) {
-            Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.singleSignOnError');
-            return;
-        }
-
-        if (response?.message === CONST.WORK_ACCOUNT_CLOSED_ERROR || response?.title === CONST.WORK_ACCOUNT_CLOSED_ERROR) {
-            Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.workAccountClosedSubtitle');
+        if (errorTranslationKey) {
+            Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, errorTranslationKey);
             return;
         }
         Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
