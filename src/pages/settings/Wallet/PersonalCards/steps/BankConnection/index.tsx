@@ -30,19 +30,19 @@ import openBankConnection from './openBankConnection';
 let customWindow: Window | null = null;
 
 type BankConnectionContentProps = {
-    hasImportError: boolean;
+    errorMessage?: string;
     isPlaid?: boolean;
     onOpenBankConnectionFlow: () => void;
     bankName?: string | null;
     plaidConnectedFeedName?: string;
 };
 
-function BankConnectionContent({hasImportError, isPlaid, onOpenBankConnectionFlow, bankName, plaidConnectedFeedName}: BankConnectionContentProps) {
+function BankConnectionContent({errorMessage, isPlaid, onOpenBankConnectionFlow, bankName, plaidConnectedFeedName}: BankConnectionContentProps) {
     const illustrations = useMemoizedLazyIllustrations(['PendingBank']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    if (hasImportError) {
-        return <PersonalCardsErrorConfirmation />;
+    if (errorMessage) {
+        return <PersonalCardsErrorConfirmation errorMessage={errorMessage} />;
     }
     if (!isPlaid) {
         return (
@@ -82,6 +82,8 @@ function BankConnection() {
     const onImportPlaidAccounts = useImportPersonalPlaidAccounts();
     const newCard = useGetNewPersonalCard();
     const hasImportError = !isEmptyObject(addNewCard?.errors);
+    const latestError = Object.values(addNewCard?.errors ?? {}).at(-1);
+    const errorMessage = typeof latestError === 'string' ? latestError : undefined;
 
     const onOpenBankConnectionFlow = () => {
         if (!url) {
@@ -131,7 +133,7 @@ function BankConnection() {
             <FullPageOfflineBlockingView addBottomSafeAreaPadding>
                 <BankConnectionContent
                     bankName={bankName}
-                    hasImportError={hasImportError}
+                    errorMessage={errorMessage}
                     onOpenBankConnectionFlow={onOpenBankConnectionFlow}
                     plaidConnectedFeedName={addNewCard?.data?.plaidConnectedFeedName}
                     isPlaid={isPlaid}

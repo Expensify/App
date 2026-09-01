@@ -74,7 +74,9 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.[feed]) : false;
     const headerTitleAddCards = translate('workspace.companyCards.addCards');
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
-    const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
+    const latestError = Object.values(addNewCard?.errors ?? (newFeed ? cardFeeds?.[newFeed]?.errors : undefined) ?? {}).at(-1);
+    const errorMessage = typeof latestError === 'string' ? latestError : undefined;
+    const isNewFeedHasError = !!errorMessage;
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const {checkForDuplicateFeed} = useDuplicateFeedDetection({policyID, isPlaid});
@@ -200,6 +202,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                 <WorkspaceCompanyCardsErrorConfirmation
                     policyID={policyID}
                     newFeed={newFeed}
+                    errorMessage={errorMessage}
                 />
             );
         }

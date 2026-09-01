@@ -44,6 +44,8 @@ function BankConnection() {
     const onImportPlaidAccounts = useImportPersonalPlaidAccounts();
     const newCard = useGetNewPersonalCard();
     const isNewCardError = !isEmptyObject(addNewCard?.errors);
+    const latestError = Object.values(addNewCard?.errors ?? {}).at(-1);
+    const errorMessage = typeof latestError === 'string' ? latestError : undefined;
 
     const renderLoading = () => <LoadingIndicator />;
 
@@ -111,7 +113,7 @@ function BankConnection() {
                         style={styles.flex1}
                     />
                 )}
-                {isNewCardError && <PersonalCardsErrorConfirmation />}
+                {isNewCardError && <PersonalCardsErrorConfirmation errorMessage={errorMessage} />}
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
