@@ -10710,6 +10710,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
     domain: {
         notVerified: 'Niet geverifieerd',
         retry: 'Opnieuw proberen',
+        requestSent: 'Aanvraag verzonden',
         verifyDomain: {
             title: 'Domein verifiëren',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -10782,6 +10783,14 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             subtitle: 'Voer de naam in van het privédomein dat je wilt openen (bijv. expensify.com).',
             domainName: 'Domeinnaam',
             newDomain: 'Nieuw domein',
+            alreadyHaveAccessError: 'Dit domein bestaat al in je account.',
+        },
+        domainAlreadyExists: {
+            headerTitle: 'Domein bestaat al',
+            title: 'Domein al ingesteld. Toegang aanvragen?',
+            description: 'Iemand heeft dit domein al ingesteld in Expensify. Wil je beheerderstoegang aanvragen?',
+            requestAccess: 'Beheerderstoegang aanvragen',
+            requestAccessError: 'We konden je aanvraag niet verzenden. Probeer het opnieuw.',
         },
         domainAdded: {
             title: 'Domein toegevoegd',
@@ -10878,6 +10887,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             forceTwoFactorAuthError: 'Verplichte twee-factor-authenticatie kon niet worden gewijzigd. Probeer het later opnieuw.',
             resetTwoFactorAuth: 'Tweeledige verificatie opnieuw instellen',
             error: 'Deze wijziging kon niet worden opgeslagen. Probeer het opnieuw.',
+            neverMind: 'Laat maar',
         },
         groups: {
             title: 'Groepen',
@@ -10886,7 +10896,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             defaultGroupPrompt: (currentName: string, newName: string) =>
                 `Weet je zeker dat je ${newName} de standaardgroep wilt maken? Nieuwe leden worden uitgenodigd voor deze groep in plaats van de vorige standaardgroep (${currentName}). `,
             makeDefault: 'Standaard maken',
-            neverMind: 'Laat maar',
             createGroupError: 'Kan deze groep niet aanmaken. Probeer het opnieuw.',
             permissions: 'Groepsmachtigingen',
             createNewGroupButton: 'Nieuwe groep',
