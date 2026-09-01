@@ -4,16 +4,6 @@ import type {MerchantRuleSuggestionField} from '@src/types/onyx/MerchantRuleSugg
 
 import Onyx from 'react-native-onyx';
 
-// Dismissing appends to the expenses already dismissed, so it needs the current record. This is action-only state,
-// never read during render, so `Onyx.connectWithoutView` is appropriate. Components use `useOnyx`.
-let merchantRuleSuggestion: MerchantRuleSuggestion | undefined;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION,
-    callback: (value) => {
-        merchantRuleSuggestion = value;
-    },
-});
-
 /**
  * Records an edit to a field merchant rules can govern, so the expense detail view can offer to turn it into a rule.
  * Only the most recent edit is kept, since one callout shows at a time.
@@ -44,15 +34,12 @@ function trackMerchantRuleSuggestion(transactionID: string | undefined, field: M
 /**
  * Dismisses the callout for the expense currently offering it, for the rest of the session. Editing a different
  * expense still shows the callout there, and a new session offers this expense again.
+ *
+ * @param suggestion - the offer being dismissed, whose already dismissed expenses this one is appended to
  */
-function dismissMerchantRuleSuggestion() {
-    const transactionID = merchantRuleSuggestion?.transactionID;
-    if (!transactionID) {
-        return;
-    }
-
+function dismissMerchantRuleSuggestion(suggestion: MerchantRuleSuggestion) {
     Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {
-        dismissedTransactionIDs: [...new Set([...(merchantRuleSuggestion?.dismissedTransactionIDs ?? []), transactionID])],
+        dismissedTransactionIDs: [...new Set([...(suggestion.dismissedTransactionIDs ?? []), suggestion.transactionID])],
     });
 }
 

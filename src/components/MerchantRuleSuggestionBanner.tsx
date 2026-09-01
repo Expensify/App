@@ -76,6 +76,8 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, transactionID,
         return null;
     }
 
+    const dismiss = () => dismissMerchantRuleSuggestion(suggestion);
+
     const createRule = () => {
         const draft = getMerchantRuleDraftFromTransaction(transaction, suggestion.field, policy);
         if (!draft) {
@@ -103,7 +105,7 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, transactionID,
             <Banner
                 containerStyles={[styles.merchantRuleCalloutContainer, styles.p4, containerStyles]}
                 shouldShowCloseButton
-                onClose={dismissMerchantRuleSuggestion}
+                onClose={dismiss}
                 content={
                     <>
                         <View style={styles.mr3}>
