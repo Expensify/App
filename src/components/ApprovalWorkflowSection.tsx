@@ -62,7 +62,7 @@ function ApprovalWorkflowSection({
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb', 'Pencil', 'Users', 'UserCheck']);
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, toLocaleOrdinalWithWords, localeCompare} = useLocalize();
+    const {translate, toLocaleOrdinalWithWords, localeCompare, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const approverTitle = (index: number) => {
@@ -88,7 +88,9 @@ function ApprovalWorkflowSection({
     // the workflow (e.g. a member invited offline) is still pending server confirmation.
     const membersPendingAction = sortedMembers.find((member) => !!member.pendingFields?.submitsTo)?.pendingFields?.submitsTo;
 
-    const members = approvalWorkflow.isDefault ? translate('workspace.common.everyone') : sortedMembers.map((m) => Str.removeSMSDomain(m.displayName)).join(', ');
+    const members = approvalWorkflow.isDefault
+        ? translate('workspace.common.everyone')
+        : sortedMembers.map((m) => (Str.isSMSLogin(m.displayName) ? formatPhoneNumber(m.displayName) : m.displayName)).join(', ');
 
     const memberPills = sortedMembers.map((m) => ({
         avatar: m.avatar,
@@ -98,7 +100,9 @@ function ApprovalWorkflowSection({
     const pressAction = isDisabled ? undefined : onPress;
     const accessibilityLabel = translate('workflowsPage.accessibilityLabel', {
         members,
-        approvers: approvalWorkflow?.approvers.map((approver) => Str.removeSMSDomain(approver?.displayName ?? '')).join(', '),
+        approvers: approvalWorkflow?.approvers
+            .map((approver) => (Str.isSMSLogin(approver?.displayName ?? '') ? formatPhoneNumber(approver?.displayName ?? '') : (approver?.displayName ?? '')))
+            .join(', '),
     });
 
     return (
@@ -191,7 +195,7 @@ function ApprovalWorkflowSection({
                                         />
                                     </View>
                                 }
-                                helperText={getApprovalLimitDescription({approver, currency, translate, convertToDisplayString})}
+                                helperText={getApprovalLimitDescription({approver, currency, translate, formatPhoneNumber, convertToDisplayString})}
                                 helperTextStyle={styles.workflowApprovalLimitText}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}
                             />

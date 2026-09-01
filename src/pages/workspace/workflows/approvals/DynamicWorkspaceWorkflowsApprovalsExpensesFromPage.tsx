@@ -58,7 +58,7 @@ function normalizeLogin(login: string | null | undefined): string {
 
 function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportData = true, route}: DynamicWorkspaceWorkflowsApprovalsExpensesFromPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path);
     const [approvalWorkflow, approvalWorkflowResults] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -181,9 +181,10 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                 const login = personalDetails?.[accountID]?.login ?? member.email;
                 const displayName = member.displayName ?? personalDetail?.displayName ?? member.email;
                 const avatar = member.avatar ?? personalDetail?.avatar;
+                const formattedDisplayName = Str.isSMSLogin(displayName) ? formatPhoneNumber(displayName) : displayName;
 
                 return {
-                    text: Str.removeSMSDomain(displayName),
+                    text: formattedDisplayName,
                     alternateText: member.email,
                     keyForList: member.email,
                     isSelected: true,
@@ -193,7 +194,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                         {
                             source: avatar ?? icons.FallbackAvatar,
                             type: CONST.ICON_TYPE_AVATAR,
-                            name: Str.removeSMSDomain(displayName),
+                            name: formattedDisplayName,
                             id: accountID,
                         },
                     ],
@@ -236,8 +237,10 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
             .map((member) => {
                 const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
 
+                const formattedDisplayName = Str.isSMSLogin(member.displayName) ? formatPhoneNumber(member.displayName) : member.displayName;
+
                 return {
-                    text: Str.removeSMSDomain(member.displayName),
+                    text: formattedDisplayName,
                     alternateText: member.email,
                     keyForList: member.email,
                     isSelected: false,
@@ -247,7 +250,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                         {
                             source: member.avatar ?? icons.FallbackAvatar,
                             type: CONST.ICON_TYPE_AVATAR,
-                            name: Str.removeSMSDomain(member.displayName),
+                            name: formattedDisplayName,
                             id: accountID,
                         },
                     ],
@@ -317,6 +320,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         availableOptions.personalDetails,
         icons.FallbackAvatar,
         policyMemberEmailsToAccountIDs,
+        formatPhoneNumber,
     ]);
 
     // Drop any selected members who never made it into the workspace. They were staged for invite but
@@ -524,9 +528,11 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                     : !!existingApproverEmail && existingApproverEmail !== firstApprover;
 
                 if (newMember && existingApproverEmail && belongsToDifferentWorkflow) {
-                    const memberName = Str.removeSMSDomain(newMember.text ?? newMember.login ?? '');
+                    const rawMemberName = newMember.text ?? newMember.login ?? '';
+                    const memberName = Str.isSMSLogin(rawMemberName) ? formatPhoneNumber(rawMemberName) : rawMemberName;
                     const approverDetails = employeeAndApprovalMembersPersonalDetails[existingApproverEmail];
-                    const approverName = Str.removeSMSDomain(approverDetails?.displayName ?? existingApproverEmail);
+                    const rawApproverName = approverDetails?.displayName ?? existingApproverEmail;
+                    const approverName = Str.isSMSLogin(rawApproverName) ? formatPhoneNumber(rawApproverName) : rawApproverName;
 
                     showConfirmModal({
                         title: translate('workflowsExpensesFromPage.memberAlreadyInWorkflowTitle'),
@@ -559,6 +565,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
             currentWorkflowKey,
             showConfirmModal,
             translate,
+            formatPhoneNumber,
         ],
     );
 
