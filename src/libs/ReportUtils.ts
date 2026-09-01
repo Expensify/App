@@ -7281,6 +7281,7 @@ function buildOptimisticInvoiceReport(
         parentReportID: chatReportID,
         created,
         lastVisibleActionCreated: created,
+        transactionCount: 1,
     };
 
     if (deprecatedCurrentUserAccountID) {
@@ -12059,7 +12060,12 @@ function canJoinChat(
         return false;
     }
 
-    const isExpenseChat = isMoneyRequestReport(report) || isMoneyRequest(report) || isInvoiceReport(report) || isTrackExpenseReportNew(report, parentReport, parentReportAction);
+    const isExpenseChat =
+        isMoneyRequestReport(report) ||
+        isMoneyRequest(report) ||
+        isInvoiceReport(report) ||
+        isTrackExpenseReportNew(report, parentReport, parentReportAction) ||
+        isInvoiceReport(parentReport);
     // Anyone viewing these chat types is already a participant and therefore cannot join
     if (isRootGroupChat(report, isReportArchived) || isSelfDM(report) || isInvoiceRoom(report) || isSystemChat(report) || isExpenseChat) {
         return false;

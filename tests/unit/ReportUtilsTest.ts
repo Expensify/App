@@ -13164,6 +13164,26 @@ describe('ReportUtils', () => {
             expect(canJoinChat(report, undefined, undefined, undefined)).toBe(true);
         });
 
+        it('should return false if the report is a transaction thread under an invoice report', async () => {
+            const parentInvoiceReport = createInvoiceReport(1);
+            const report: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    ...buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                    },
+                },
+                parentReportID: parentInvoiceReport.reportID,
+                parentReportActionID: '67890',
+            };
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+            expect(canJoinChat(report, undefined, undefined, parentInvoiceReport)).toBe(false);
+        });
+
         it('should respect workspace membership for restricted visibility rooms', async () => {
             const policyID = '123456';
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
@@ -17595,6 +17615,7 @@ describe('ReportUtils', () => {
 
         expect(optimisticInvoiceReport.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
         expect(optimisticInvoiceReport.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+        expect(optimisticInvoiceReport.transactionCount).toBe(1);
     });
 
     it('should surface a GBR when copiloted into an approver account with a report with outstanding child request', async () => {
