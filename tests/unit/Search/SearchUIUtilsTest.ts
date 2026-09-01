@@ -1193,6 +1193,9 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         firstApproverAvatar: undefined,
         firstApproverAccountID: undefined,
         formattedFirstApprover: '',
+        paidByAvatar: undefined,
+        paidByAccountID: undefined,
+        formattedPaidBy: '',
         stateNum: 0,
         statusNum: 0,
         to: emptyPersonalDetails,
@@ -1322,6 +1325,9 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         firstApproverAvatar: undefined,
         firstApproverAccountID: undefined,
         formattedFirstApprover: '',
+        paidByAvatar: undefined,
+        paidByAccountID: undefined,
+        formattedPaidBy: '',
         stateNum: 1,
         statusNum: 1,
         to: {
@@ -1457,6 +1463,9 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         firstApproverAvatar: undefined,
         firstApproverAccountID: undefined,
         formattedFirstApprover: '',
+        paidByAvatar: undefined,
+        paidByAccountID: undefined,
+        formattedPaidBy: '',
         stateNum: 1,
         statusNum: 1,
         total: 4400,
@@ -1678,6 +1687,9 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         firstApproverAvatar: undefined,
         firstApproverAccountID: undefined,
         formattedFirstApprover: '',
+        paidByAvatar: undefined,
+        paidByAccountID: undefined,
+        formattedPaidBy: '',
         stateNum: 0,
         statusNum: 0,
         to: emptyPersonalDetails,
@@ -6919,6 +6931,106 @@ describe('SearchUIUtils', () => {
                 const item = sections.find((s) => s.keyForList === rptFilterReportID);
                 expect(item?.firstApproved).toBe('');
                 expect(item?.firstApproverAccountID).toBeUndefined();
+            });
+
+            it('should populate paidBy from a snapshot payment action on a paid report', () => {
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            'reimbursed-1': {
+                                reportActionID: 'reimbursed-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                                actorAccountID: approverAccountID,
+                                created: '2024-12-22 09:30:00',
+                            },
+                        },
+                    },
+                );
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.paidByAccountID).toBe(approverAccountID);
+            });
+
+            it('should populate paidBy from a live pay action missing from the snapshot (pay from Search)', () => {
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED});
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'optimistic-pay-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY},
+                                actorAccountID: approverAccountID,
+                                created: '2024-12-22 09:30:00',
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.paidByAccountID).toBe(approverAccountID);
+            });
+
+            it('should leave paidBy blank when the submitter marked the payment as received', () => {
+                const [sections] = callGetReportSections(
+                    makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED}),
+                    {
+                        reportActions: {
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                                {
+                                    reportActionID: 'received-pay-1',
+                                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                                    originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, isSubmitterMarkedPaymentReceived: true},
+                                    actorAccountID: adminAccountID,
+                                    created: '2024-12-22 09:30:00',
+                                },
+                                {
+                                    reportActionID: 'received-reimbursed-1',
+                                    actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                                    actorAccountID: adminAccountID,
+                                    created: '2024-12-22 09:30:00',
+                                },
+                                {
+                                    reportActionID: 'received-redeemed-1',
+                                    actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REDEEMED,
+                                    actorAccountID: adminAccountID,
+                                    created: '2024-12-22 09:30:01',
+                                },
+                            ],
+                        },
+                    },
+                );
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.paidByAccountID).toBeUndefined();
+                expect(item?.formattedPaidBy).toBe('');
+            });
+
+            it('should ignore payment actions at or before the latest reimbursement cancellation', () => {
+                const [sections] = callGetReportSections(
+                    makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED}),
+                    {
+                        reportActions: {
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                                {
+                                    reportActionID: 'reimbursed-1',
+                                    actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                                    actorAccountID: approverAccountID,
+                                    created: '2024-12-20 08:00:00',
+                                },
+                                {
+                                    reportActionID: 'dequeued-1',
+                                    actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED,
+                                    actorAccountID: approverAccountID,
+                                    created: '2024-12-21 10:00:00',
+                                },
+                            ],
+                        },
+                    },
+                );
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.paidByAccountID).toBeUndefined();
             });
 
             it('should use the first approval after the latest UNAPPROVED action when the report was re-approved', () => {

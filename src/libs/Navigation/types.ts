@@ -2719,6 +2719,9 @@ type WorkspacesDomainModalNavigatorParamList = {
     [SCREENS.WORKSPACES_DOMAIN_ACCESS_RESTRICTED]: {
         domainAccountID: number;
     };
+    [SCREENS.WORKSPACES_DOMAIN_ALREADY_EXISTS]: {
+        domainAccountID: number;
+    };
 };
 
 type AvatarCropNavigatorParamList = {
