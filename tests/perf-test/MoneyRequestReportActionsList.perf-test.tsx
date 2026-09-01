@@ -59,13 +59,10 @@ beforeAll(() => {
         keys: ONYXKEYS,
         evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
     });
-    // Register the derived-value computations (e.g. VISIBLE_REPORT_ACTIONS): without this the derived
-    // keys never update in the test, hiding production re-render behavior from the measurements.
     initOnyxDerivedValues();
 });
 
 const mockOnLayout = jest.fn();
-// Built via a function so the value isn't an inline literal the context-split lint rule would flag; these are all refs/accessors with no re-render concern.
 function buildActionListContextValue() {
     return {scrollOffsetRef: {current: 0}, getScrollOffset: () => 0, registerListRef: () => {}, getListRef: () => null};
 }
@@ -75,8 +72,6 @@ const mockReactionListContextValue = {
     hideReactionList: () => {},
     isActiveReportAction: () => false,
 };
-// Transaction items resolve their highlight animation via ScreenWrapper's transition status; the
-// perf harness renders no ScreenWrapper, so provide a settled one.
 const screenWrapperStatusContextValue = {
     didScreenTransitionEnd: true,
     isSafeAreaTopPaddingApplied: false,
@@ -100,8 +95,6 @@ const report = {
     policyID: POLICY_ID,
     total: 10000 * TRANSACTIONS_COUNT,
     currency: CONST.CURRENCY.USD,
-    // Seed the report as already read so mount doesn't fire readNewestAction (a network action whose
-    // timing would add noise to the measurement).
     lastReadTime: sortedReportActions.at(0)?.created,
 };
 
@@ -120,16 +113,12 @@ function buildTransaction(index: number): Transaction {
 const transactions = Array.from({length: TRANSACTIONS_COUNT}, (unused, index) => buildTransaction(index));
 
 beforeEach(async () => {
-    // Initialize the network key for OfflineWithFeedback
     setHasRadio(true);
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
-    // Pre-seed the locale so LocaleContextProvider's mount effect is a no-op (setLocale early-returns),
-    // avoiding post-mount Onyx writes that would re-render outside act().
     await act(async () => {
         signUpWithTestUser();
         await Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT);
 
-        // Seed the report under test: the expense report, its 500 actions, its transactions, and a settled loading state.
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, reportActions);
         for (const transaction of transactions) {
@@ -148,7 +137,6 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-    // Await the clear so its broadcasts settle in teardown instead of leaking into the next test.
     await Onyx.clear();
     await waitForBatchedUpdates();
 });
@@ -187,8 +175,6 @@ test('[MoneyRequestReportActionsList] should measure re-renders when an unrelate
     let run = 0;
     const scenario = async () => {
         await screen.findByTestId('money-request-report-actions-list');
-        // Each merge recomputes the VISIBLE_REPORT_ACTIONS derived value app-wide; the list under test
-        // must not re-render because its own report's slice is unchanged.
         for (let i = 0; i < 5; i++) {
             const newAction = ReportTestUtils.getFakeReportAction(600 + run * 5 + i, {
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -206,7 +192,6 @@ test('[MoneyRequestReportActionsList] should measure re-renders when an unrelate
 });
 
 test('[MoneyRequestReportActionsList] should re-render the unified list when a new report action arrives', async () => {
-    // Per-run counter: each Reassure run must add a genuinely new action (see the comment in the test above).
     let run = 0;
     const scenario = async () => {
         await screen.findByTestId('money-request-report-actions-list');
@@ -225,12 +210,9 @@ test('[MoneyRequestReportActionsList] should re-render the unified list when a n
 });
 
 test('[MoneyRequestReportActionsList] should measure re-renders when a transaction under the report changes', async () => {
-    // Per-run counter: each Reassure run must write a value that differs from the stored one (see above).
     let run = 0;
     const scenario = async () => {
         await screen.findByTestId('money-request-report-actions-list');
-        // The core claim of the transaction decomposition: mutating one transaction must not
-        // re-render the report actions portion of the unified list.
         run++;
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactions.at(0)?.transactionID}`, {amount: 20000 + run * 100, merchant: `Updated Merchant ${run}`});
@@ -242,7 +224,6 @@ test('[MoneyRequestReportActionsList] should measure re-renders when a transacti
 });
 
 test('[MoneyRequestReportActionsList] should render the unified list with 500 reportActions and 100 transactions stored', async () => {
-    // Decomposition wins scale with transaction count; this shape makes the delta visible in the baseline diff.
     const LARGE_TRANSACTIONS_COUNT = 100;
     await act(async () => {
         const extraTransactions = Object.fromEntries(
@@ -251,9 +232,7 @@ test('[MoneyRequestReportActionsList] should render the unified list with 500 re
                 return [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction];
             }),
         );
-        // One multiSet write: 90 sequential sets would each trigger a full REPORT_TRANSACTIONS_AND_VIOLATIONS recompute.
         await Onyx.multiSet(extraTransactions);
-        // Keep the report total consistent with the enlarged transaction set.
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {total: 10000 * LARGE_TRANSACTIONS_COUNT});
         await waitForBatchedUpdates();
     });
