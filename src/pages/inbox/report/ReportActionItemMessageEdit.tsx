@@ -11,6 +11,7 @@ import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTrig
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
@@ -103,6 +104,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
     const containerRef = useRef<View>(null);
     const reportScrollManager = useReportScrollManager();
     const {translate, preferredLocale} = useLocalize();
+    const {isOffline} = useNetwork();
     const {isKeyboardShown} = useKeyboardState();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const suggestionsRef = useRef<SuggestionsRef>(null);
@@ -246,9 +248,9 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
             setEditingMessage(newDraft);
 
             // We want to escape the draft message to differentiate the HTML from the report action and the HTML the user drafted.
-            saveDraft(reportID, action, reportActions, newDraft);
+            saveDraft(reportID, action, reportActions, newDraft, isOffline);
         },
-        [action, preferredLocale, preferredSkinTone, raiseIsScrollLayoutTriggered, reportID, reportActions, selection.end, setEditingMessage, setSelection, saveDraft],
+        [action, preferredLocale, preferredSkinTone, raiseIsScrollLayoutTriggered, reportID, reportActions, selection.end, setEditingMessage, setSelection, saveDraft, isOffline],
     );
 
     useEffect(() => {

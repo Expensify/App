@@ -9,6 +9,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -256,6 +257,7 @@ function ComposerWithSuggestions({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
+    const {isOffline} = useNetwork();
     const {isSidePanelHiddenOrLargeScreen} = useSidePanelState();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
@@ -569,11 +571,11 @@ function ComposerWithSuggestions({
             if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING && shouldUseNarrowLayout) {
                 setEditingMessage(newCommentConverted);
                 if (shouldDebounceSaveComment) {
-                    debouncedSaveReportActionDraft(editingReportID ?? reportID, editingReportAction, reportActions, newCommentConverted);
+                    debouncedSaveReportActionDraft(editingReportID ?? reportID, editingReportAction, reportActions, newCommentConverted, isOffline);
                     return;
                 }
 
-                saveReportActionDraft(editingReportID ?? reportID, editingReportAction, reportActions, newCommentConverted);
+                saveReportActionDraft(editingReportID ?? reportID, editingReportAction, reportActions, newCommentConverted, isOffline);
                 return;
             }
 
@@ -608,6 +610,7 @@ function ComposerWithSuggestions({
             debouncedSaveReportActionDraft,
             debouncedSaveComment,
             currentUserAccountID,
+            isOffline,
         ],
     );
 
@@ -646,7 +649,7 @@ function ComposerWithSuggestions({
                 webEvent.preventDefault();
                 if (lastReportAction) {
                     const message = Array.isArray(lastReportAction?.message) ? (lastReportAction?.message?.at(-1) ?? null) : (lastReportAction?.message ?? null);
-                    saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(message?.html ?? ''));
+                    saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(message?.html ?? ''), isOffline);
                 }
             }
             // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
@@ -698,6 +701,7 @@ function ComposerWithSuggestions({
             reportActions,
             updateComment,
             setCurrentEditMessageSelection,
+            isOffline,
         ],
     );
 

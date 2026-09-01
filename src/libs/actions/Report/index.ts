@@ -3300,10 +3300,11 @@ function deleteReportComment(
     isReportArchived: boolean | undefined,
     isOriginalReportArchived: boolean | undefined,
     currentEmail: string,
+    isOffline: boolean,
     visibleReportActionsDataParam?: VisibleReportActionsDerivedValue,
 ) {
     const reportID = report?.reportID;
-    const originalReportID = getOriginalReportID(reportID, reportAction, reportActions);
+    const originalReportID = getOriginalReportID(reportID, reportAction, reportActions, isOffline);
     const reportActionID = reportAction.reportActionID;
 
     if (!reportActionID || !originalReportID || !reportID) {
@@ -3721,12 +3722,12 @@ function clearAllReportActionDrafts() {
 }
 
 /** Saves the draft for a comment report action. This will put the comment into "edit mode" */
-function saveReportActionDraft(reportID: string | undefined, reportAction: ReportAction | null, reportActions: OnyxEntry<ReportActions>, draftMessage: string) {
+function saveReportActionDraft(reportID: string | undefined, reportAction: ReportAction | null, reportActions: OnyxEntry<ReportActions>, draftMessage: string, isOffline: boolean) {
     if (!reportAction) {
         return;
     }
 
-    const originalReportID = getOriginalReportID(reportID, reportAction, reportActions);
+    const originalReportID = getOriginalReportID(reportID, reportAction, reportActions, isOffline);
     if (!originalReportID) {
         return;
     }
