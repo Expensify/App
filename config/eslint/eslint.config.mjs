@@ -710,7 +710,7 @@ const config = defineConfig([
 
     {
         files: ['src/**/*'],
-        ignores: ['src/languages/**', 'src/CONST/index.ts', 'src/NAICS.ts'],
+        ignores: ['src/languages/**', 'src/CONST/index.ts', 'src/NAICS.ts', 'src/**/__mocks__/**'],
         rules: {
             'max-lines': ['error', 4000],
             'no-restricted-globals': [
