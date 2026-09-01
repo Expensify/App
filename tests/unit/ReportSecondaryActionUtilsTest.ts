@@ -305,7 +305,6 @@ describe('getSecondaryAction', () => {
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
             reimburser: designatedPayerEmail,
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             employeeList: {
                 [ADMIN_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN},
                 [designatedPayerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
@@ -365,7 +364,6 @@ describe('getSecondaryAction', () => {
             // Designated reimburser is someone else, so isPayer is false and only the WORKFLOWS_PAYMENTS branch can pass.
             reimburser: ownerEmail,
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             employeeList: {
                 [paymentsAdminEmail]: {role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
                 [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
@@ -422,7 +420,6 @@ describe('getSecondaryAction', () => {
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
             reimburser: reimburserEmail,
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             employeeList: {
                 [memberEmail]: {role: CONST.POLICY.ROLE.USER},
                 [reimburserEmail]: {role: CONST.POLICY.ROLE.ADMIN},
@@ -476,7 +473,6 @@ describe('getSecondaryAction', () => {
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
             reimburser: reimburserEmail,
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             employeeList: {
                 [managerEmail]: {role: CONST.POLICY.ROLE.USER},
                 [reimburserEmail]: {role: CONST.POLICY.ROLE.ADMIN},
