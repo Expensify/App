@@ -22,6 +22,7 @@ import {
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyOwner,
+    isSubmitPolicy,
     isWorkspaceProvisionedForTravel,
 } from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
@@ -110,8 +111,11 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     }
 
     // Submit is a free plan, so nvp_private_firstDayFreeTrial is only ever written if the user later upgrades. Fall back to
-    // the first workspace creation date so the 60-day window has an anchor for users who never start a trial.
-    if (!isWithinGettingStartedPeriod(isSubmitIntent ? (firstDayFreeTrial ?? firstPolicyCreatedDate) : firstDayFreeTrial)) {
+    // the first workspace creation date so the 60-day window has an anchor for users who never start a trial. That NVP only
+    // arrives from the server, so fall back again to the active workspace's own creation time, which createWorkspace writes
+    // optimistically. Without it a user who onboards offline would not see this section until the queued request completes.
+    const submitOnboardingStartDate = [firstDayFreeTrial, firstPolicyCreatedDate, policy?.created].find((date) => !!date);
+    if (!isWithinGettingStartedPeriod(isSubmitIntent ? submitOnboardingStartDate : firstDayFreeTrial)) {
         return emptyResult;
     }
 
@@ -134,15 +138,22 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         };
     }
 
-    // Submit workspaces use a flat role model — `getRoleForCallerOnNewPolicy` hands even the creator the `editor` role, and
+    // Submit workspaces use a flat role model. `getRoleForCallerOnNewPolicy` hands even the creator the `editor` role, and
     // `updateWorkspaceMembersRole` refuses to change it, so `isPolicyAdmin` is never true for them. Gate the Submit intent on
     // ownership instead: true for the workspace auto-created during onboarding, false for members invited to someone else's.
     if (isSubmitIntent ? !isPolicyOwner(policy, currentUserAccountID) : !isPolicyAdmin(policy)) {
         return emptyResult;
     }
 
+    // These steps are written for a Submit workspace, but useAutoCreateSubmitWorkspace deliberately skips creating one when
+    // the user already owns an editable group workspace. Such a user can pick this intent and land here with a Team or
+    // Corporate workspace active. Hide the section rather than run Submit steps against a workspace they do not describe.
+    if (isSubmitIntent && !isSubmitPolicy(policy)) {
+        return emptyResult;
+    }
+
     // The Submit workspace is auto-created for this intent, so unlike the other intents there is no "Create a workspace"
-    // step to show — it would land pre-checked and add nothing.
+    // step to show. It would land pre-checked and add nothing.
     if (isSubmitIntent) {
         const submitItems: GettingStartedItem[] = [];
 

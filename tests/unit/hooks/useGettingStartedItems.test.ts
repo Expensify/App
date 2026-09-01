@@ -111,7 +111,7 @@ async function setupTrackPersonalScenario(overrides: {policy?: Partial<Policy>; 
 
 /**
  * The Submit intent runs on a free `submit` workspace, so unlike the other intents there is no free trial and
- * NVP_FIRST_DAY_FREE_TRIAL is unset — the 60-day window is anchored on NVP_PRIVATE_FIRST_POLICY_CREATED_DATE instead.
+ * NVP_FIRST_DAY_FREE_TRIAL is unset. The 60-day window is anchored on NVP_PRIVATE_FIRST_POLICY_CREATED_DATE instead.
  */
 async function setupSubmitScenario(
     overrides: {
@@ -1962,8 +1962,40 @@ describe('useGettingStartedItems', () => {
                 expect(result.current.items).toEqual([]);
             });
 
-            it('should be hidden when neither a trial start nor a first policy creation date is available', async () => {
+            it('should be hidden when no trial start, first policy creation date, or workspace creation time is available', async () => {
                 await setupSubmitScenario({firstPolicyCreatedDate: ''});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.shouldShowSection).toBe(false);
+                expect(result.current.items).toEqual([]);
+            });
+
+            it('should fall back to the workspace creation time when the first policy creation NVP has not arrived yet', async () => {
+                // A user who onboards offline has an optimistically created workspace but no NVP, because only the server writes it.
+                const createdSevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').replace('Z', '');
+                await setupSubmitScenario({firstPolicyCreatedDate: '', policy: {created: createdSevenDaysAgo}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.shouldShowSection).toBe(true);
+                expect(result.current.items.map((item) => item.key)).toEqual(['customizeExpenseCategories', 'linkPersonalCard']);
+            });
+
+            it('should be hidden when the workspace creation time is also outside the 60-day window', async () => {
+                const createdSixtyOneDaysAgo = new Date(Date.now() - 61 * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').replace('Z', '');
+                await setupSubmitScenario({firstPolicyCreatedDate: '', policy: {created: createdSixtyOneDaysAgo}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.shouldShowSection).toBe(false);
+                expect(result.current.items).toEqual([]);
+            });
+
+            it('should be hidden when the active workspace is a paid group policy rather than a Submit workspace', async () => {
+                // useAutoCreateSubmitWorkspace skips creating a Submit workspace when the user already owns an editable
+                // group workspace, so this intent can land on a Team or Corporate workspace these steps do not describe.
+                await setupSubmitScenario({policy: {type: CONST.POLICY.TYPE.TEAM}});
 
                 const {result} = renderHook(() => useGettingStartedItems());
 

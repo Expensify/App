@@ -5,8 +5,8 @@ import {fromZonedTime} from 'date-fns-tz';
 const SIXTY_DAYS_MS = 60 * CONST.DATE.SECONDS_PER_DAY * CONST.MILLISECONDS_PER_SECOND;
 
 /**
- * Checks if the current date is within 60 days of the onboarding start date. Paid plans pass their trial start date;
- * free plans (e.g. Submit) never start a trial, so they pass their first workspace creation date instead.
+ * Checks if the current date is within 60 days of the onboarding start date. Paid plans pass their trial start date.
+ * Free plans such as Submit never start a trial, so they pass their first workspace creation date instead.
  * Returns false if no start date is provided.
  */
 function isWithinGettingStartedPeriod(onboardingStartDate: string | undefined): boolean {
