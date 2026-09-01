@@ -377,14 +377,14 @@ function hasVisibleOverAutoApprovalLimitViolation(
     violations: OnyxTypes.TransactionViolations,
     currentUserEmail: string,
     currentUserAccountID: number,
-    iouReport: OnyxEntry<OnyxTypes.Report>,
+    report: OnyxEntry<OnyxTypes.Report>,
     policy: OnyxEntry<OnyxTypes.Policy>,
 ): boolean {
     if (!violations?.some((violation) => violation.name === CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT)) {
         return false;
     }
 
-    return shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, currentUserEmail, currentUserAccountID, true, transaction);
+    return shouldShowViolation(report, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, currentUserEmail, currentUserAccountID, true, transaction);
 }
 
 function createTransactionPreviewConditionals({
