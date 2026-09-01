@@ -6,6 +6,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import VacationDelegatePage from '@pages/settings/Profile/CustomStatus/VacationDelegatePage';
@@ -29,6 +30,8 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 const CREATOR_ACCOUNT_ID = 1;
 const CREATOR_EMAIL = 'creator@example.com';
 const DELEGATE_A_EMAIL = 'delegateA@example.com';
+const DELEGATE_B_EMAIL = 'delegateB@example.com';
+const ORIGINAL_DELEGATE_EMAIL = 'original@example.com';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -155,5 +158,35 @@ describe('VacationDelegatePage', () => {
         fireEvent.press(screen.getByTestId('select-delegate-a'));
         await waitForBatchedUpdatesWithAct();
         expect(apiSideEffectSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('rolls back to the last confirmed delegate, not to an unconfirmed one, when a previous change is still unresolved', async () => {
+        // Never resolves, so the optimistic write for the second selection stays in place for the assertion.
+        apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => new Promise(() => {}));
+
+        // What a failed change the user has not dismissed yet leaves behind: delegateA is shown but was never saved.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
+                creator: CREATOR_EMAIL,
+                delegate: DELEGATE_A_EMAIL,
+                previousDelegate: ORIGINAL_DELEGATE_EMAIL,
+                errors: getMicroSecondOnyxErrorWithTranslationKey('statusPage.vacationDelegateError'),
+            });
+        });
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByTestId('select-delegate-b'));
+        await waitForBatchedUpdatesWithAct();
+
+        // The API call is mocked out, so the optimistic data it was handed is where the rollback target is visible.
+        expect(apiSideEffectSpy).toHaveBeenLastCalledWith(
+            SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE,
+            expect.objectContaining({vacationDelegateEmail: DELEGATE_B_EMAIL}),
+            expect.objectContaining({
+                optimisticData: [expect.objectContaining({value: expect.objectContaining({delegate: DELEGATE_B_EMAIL, previousDelegate: ORIGINAL_DELEGATE_EMAIL})})],
+            }),
+        );
     });
 });

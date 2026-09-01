@@ -269,6 +269,29 @@ const createPoliciesForDomainCardsSelector = (domainNames: string[]) => {
     };
 };
 
+/**
+ * Creates a selector returning only the policies for the given IDs, so a consumer interested in a
+ * known handful of workspaces doesn't re-render when unrelated policies change.
+ */
+const createPoliciesByIDsSelector = (policyIDs: string[]) => {
+    const policyKeys = new Set(policyIDs.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`));
+
+    return (policies: OnyxCollection<Policy>): NonNullable<OnyxCollection<Policy>> => {
+        if (policyKeys.size === 0) {
+            return {};
+        }
+
+        const filtered: NonNullable<OnyxCollection<Policy>> = {};
+        for (const key of policyKeys) {
+            const policy = policies?.[key];
+            if (policy) {
+                filtered[key] = policy;
+            }
+        }
+        return filtered;
+    };
+};
+
 const policyTimeTrackingSelector = (policy: OnyxEntry<Policy>) =>
     policy && {
         outputCurrency: policy.outputCurrency,
@@ -515,6 +538,7 @@ export {
     createTimeSensitiveAdminPoliciesSelector,
     createHasWorkspaceToSubmitToSelector,
     createPoliciesForDomainCardsSelector,
+    createPoliciesByIDsSelector,
     policyTimeTrackingSelector,
     createIOURequestStartPoliciesSelector,
     policyMapper,

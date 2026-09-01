@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {createMoveExpenseReportNVPSelector, getStableReportSelector, policyChatRoomsSelector, policyExpenseChatReportsSelector} from '@src/selectors/Report';
+import {createMoveExpenseReportNVPSelector, getStableReportSelector, policyChatRoomsSelector} from '@src/selectors/Report';
 import type {Report} from '@src/types/onyx';
 
 describe('policyChatRoomsSelector', () => {
@@ -125,51 +125,6 @@ describe('createMoveExpenseReportNVPSelector', () => {
             [currentReportNVPKey]: {private_isArchived: archivedAt},
             [outstandingReportNVPKey]: {private_isArchived: archivedAt},
         });
-    });
-});
-
-describe('policyExpenseChatReportsSelector', () => {
-    const REPORT_KEY_PREFIX = ONYXKEYS.COLLECTION.REPORT;
-    const policyID = 'policy1';
-
-    const policyExpenseChat = {reportID: '1', policyID, chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT} as Report;
-    const policyExpenseChatThread = {
-        reportID: '2',
-        policyID,
-        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-        parentReportID: '1',
-        parentReportActionID: '1',
-    } as Report;
-    const policyRoom = {reportID: '3', policyID, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM} as Report;
-
-    it('returns an empty object when reports is undefined', () => {
-        expect(policyExpenseChatReportsSelector(undefined)).toEqual({});
-    });
-
-    it('includes policy expense chats', () => {
-        const reports = {[`${REPORT_KEY_PREFIX}1`]: policyExpenseChat};
-        expect(policyExpenseChatReportsSelector(reports)).toEqual(reports);
-    });
-
-    it('excludes threads of policy expense chats', () => {
-        const reports = {
-            [`${REPORT_KEY_PREFIX}1`]: policyExpenseChat,
-            [`${REPORT_KEY_PREFIX}2`]: policyExpenseChatThread,
-        };
-        expect(policyExpenseChatReportsSelector(reports)).toEqual({[`${REPORT_KEY_PREFIX}1`]: policyExpenseChat});
-    });
-
-    it('excludes reports that are not policy expense chats', () => {
-        const reports = {[`${REPORT_KEY_PREFIX}3`]: policyRoom};
-        expect(policyExpenseChatReportsSelector(reports)).toEqual({});
-    });
-
-    it('skips missing entries in the collection', () => {
-        const reports = {
-            [`${REPORT_KEY_PREFIX}1`]: policyExpenseChat,
-            [`${REPORT_KEY_PREFIX}_missing`]: undefined,
-        };
-        expect(policyExpenseChatReportsSelector(reports)).toEqual({[`${REPORT_KEY_PREFIX}1`]: policyExpenseChat});
     });
 });
 

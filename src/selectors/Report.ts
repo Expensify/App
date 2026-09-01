@@ -194,17 +194,6 @@ function canShowReportRecipientLocalTimeSelector(report: OnyxEntry<Report>, acco
     return (personalDetailsList: OnyxEntry<PersonalDetailsList>) => canShowReportRecipientLocalTime(personalDetailsList, report, accountID);
 }
 
-function policyExpenseChatReportsSelector(reports: OnyxCollection<Report>): OnyxCollection<Report> {
-    const filtered: OnyxCollection<Report> = {};
-    for (const [key, report] of Object.entries(reports ?? {})) {
-        if (!report?.reportID || !isPolicyExpenseChat(report) || isThread(report)) {
-            continue;
-        }
-        filtered[key] = report;
-    }
-    return filtered;
-}
-
 type ValidReportKeys<T extends ReadonlyArray<keyof Report>> = T;
 
 /**
@@ -348,7 +337,6 @@ export {
     canShowReportRecipientLocalTimeSelector,
     policyChatRoomsSelector,
     reportAvatarKindSelector,
-    policyExpenseChatReportsSelector,
     createMoveExpenseReportNVPSelector,
     openExpenseReportIDsSelector,
     getStableReportSelector,

@@ -40,6 +40,7 @@ const PREVIOUS_DELEGATE_EMAIL = 'previous@example.com';
 
 const MEMBER_POLICY_ID = 'memberPolicy';
 const ADMIN_POLICY_ID = 'adminPolicy';
+const SECOND_ADMIN_POLICY_ID = 'secondAdminPolicy';
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 let mockPreventRemoveCallback: Parameters<typeof ReactNavigation.usePreventRemove>[1] | undefined;
@@ -78,6 +79,22 @@ function getFakePolicy(id: string, name: string): Policy {
         disabledFields: {defaultBillable: true, reimbursable: false},
         approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
     };
+}
+
+type InviteOnyxData = {
+    optimisticData?: Array<{key: string}>;
+    successData?: Array<{key: string}>;
+};
+
+// Only the shape this test asserts on; API.write is spied through an untyped require, so the calls need a type to read.
+type ApiWriteCall = [command: string, params: unknown, onyxData: InviteOnyxData];
+
+function getInviteOnyxData(calls: ApiWriteCall[]): InviteOnyxData[] {
+    return calls.filter(([command]) => command === WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE).map(([, , onyxData]) => onyxData);
+}
+
+function hasPersonalDetailsUpdate(updates: Array<{key: string}> | undefined) {
+    return !!updates?.some((update) => update.key === ONYXKEYS.PERSONAL_DETAILS_LIST);
 }
 
 function VacationDelegateSelectionPage() {
@@ -130,7 +147,7 @@ async function seedVacationDelegate(policyDiff?: VacationDelegatePolicyDiff, del
 
 describe('VacationDelegateMissingWorkspacesPage', () => {
     let apiSideEffectSpy: jest.SpyInstance;
-    let apiWriteSpy: jest.SpyInstance;
+    let apiWriteSpy: jest.SpyInstance<Promise<void>, ApiWriteCall>;
 
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -148,7 +165,9 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
         // from its mocked XHR responses. Mocking them earlier silently no-ops that Onyx application,
         // leaving useCurrentUserPersonalDetails() stuck on its default (unauthenticated) value.
         apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.resolve());
-        apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+        // require('@libs/API') is untyped (any), so the spy has to be re-typed here for mock.calls to be readable.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve()) as jest.SpyInstance<Promise<void>, ApiWriteCall>;
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MEMBER_POLICY_ID}`, {
@@ -157,6 +176,10 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${ADMIN_POLICY_ID}`, {
                 ...getFakePolicy(ADMIN_POLICY_ID, 'Admin Workspace'),
+                employeeList: {[CREATOR_EMAIL]: {email: CREATOR_EMAIL, role: CONST.POLICY.ROLE.ADMIN}},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${SECOND_ADMIN_POLICY_ID}`, {
+                ...getFakePolicy(SECOND_ADMIN_POLICY_ID, 'Second Admin Workspace'),
                 employeeList: {[CREATOR_EMAIL]: {email: CREATOR_EMAIL, role: CONST.POLICY.ROLE.ADMIN}},
             });
         });
@@ -200,6 +223,7 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
         expect(apiWriteSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, expect.anything(), expect.anything());
     });
 
+    // Bug #89578 - this page replaced the warning modal that first carried the fix, so it owns the guarantee now.
     it('formats an SMS delegate login as a phone number in the intro copy instead of the raw @expensify.sms address', async () => {
         const smsDelegate = `+15005550006${CONST.SMS.DOMAIN}`;
         await seedVacationDelegate({adminPolicies: [], nonAdminPolicies: [MEMBER_POLICY_ID]}, smsDelegate);
@@ -262,6 +286,26 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
             expect.objectContaining({employees: expect.stringContaining(DELEGATE_EMAIL), reportCreationData: expect.stringContaining(DELEGATE_EMAIL)}),
             expect.anything(),
         );
+    });
+
+    it('lets only the last queued invite clean up the delegate optimistic personal details', async () => {
+        await seedVacationDelegate({adminPolicies: [ADMIN_POLICY_ID, SECOND_ADMIN_POLICY_ID], nonAdminPolicies: []});
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByRole('button', {name: TestHelper.translateLocal('common.invite')}));
+        await waitForBatchedUpdatesWithAct();
+
+        const inviteCalls = getInviteOnyxData(apiWriteSpy.mock.calls);
+        expect(inviteCalls).toHaveLength(2);
+
+        // Every invite still seeds the optimistic delegate, so each policy expense chat renders them...
+        expect(inviteCalls.every((onyxData) => hasPersonalDetailsUpdate(onyxData.optimisticData))).toBe(true);
+
+        // ...but only the last one tears them down. Writes resolve in queue order, so a cleanup on the first invite
+        // would wipe the delegate out from under the invites still in flight.
+        expect(hasPersonalDetailsUpdate(inviteCalls.at(0)?.successData)).toBe(false);
+        expect(hasPersonalDetailsUpdate(inviteCalls.at(-1)?.successData)).toBe(true);
     });
 
     it('disables Invite and never sends AddMembersToWorkspace when an admin policy has not loaded', async () => {

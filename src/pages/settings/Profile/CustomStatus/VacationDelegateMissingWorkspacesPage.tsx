@@ -1,6 +1,7 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -24,8 +25,9 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {policyExpenseChatReportsSelector} from '@src/selectors/Report';
+import {createPoliciesByIDsSelector} from '@src/selectors/Policy';
 import type {VacationDelegatePolicyDiff} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {NavigationAction} from '@react-navigation/native';
 
@@ -51,13 +53,7 @@ function VacationDelegateMissingWorkspacesPage() {
         avatar: currentUserPersonalDetails.avatar,
     };
 
-    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatReportsSelector});
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
-        selector: (reportActions) => getAllPolicyExpenseChatReportActions(allReports, reportActions),
-    });
+    const [vacationDelegate, vacationDelegateMetadata] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
 
     const [submittedInput, setSubmittedInput] = useState<ScreenInput>();
 
@@ -65,6 +61,13 @@ function VacationDelegateMissingWorkspacesPage() {
     const delegate = submittedInput?.delegate ?? vacationDelegate?.delegate ?? '';
     const previousDelegate = vacationDelegate?.previousDelegate;
     const policyDiff = submittedInput?.policyDiff ?? vacationDelegate?.policyDiff;
+    const adminPolicies = policyDiff?.adminPolicies ?? [];
+    const nonAdminPolicies = policyDiff?.nonAdminPolicies ?? [];
+
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createPoliciesByIDsSelector([...adminPolicies, ...nonAdminPolicies])});
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 
     const isSubmittingRef = useRef(false);
 
@@ -76,10 +79,12 @@ function VacationDelegateMissingWorkspacesPage() {
 
         navigation.dispatch(data.action);
     });
-    const adminPolicies = policyDiff?.adminPolicies ?? [];
-    const nonAdminPolicies = policyDiff?.nonAdminPolicies ?? [];
     const canInvite = adminPolicies.length > 0;
     const hasUnresolvedAdminPolicy = adminPolicies.some((policyID) => !policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.id);
+
+    if (!submittedInput && isLoadingOnyxValue(vacationDelegateMetadata)) {
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+    }
 
     if (!policyDiff) {
         return <NotFoundPage />;
@@ -102,14 +107,18 @@ function VacationDelegateMissingWorkspacesPage() {
     };
 
     const submit = (shouldSkipPolicyInviteEmails: boolean) => {
+        setSubmittedInput({delegate, policyDiff});
+        setVacationDelegate({creator, delegate, currentDelegate: previousDelegate, shouldOverridePolicyDiffWarning: true, shouldSkipPolicyInviteEmails});
+        goBackToStatus();
+    };
+
+    const submitOnce = (shouldSkipPolicyInviteEmails: boolean) => {
         if (isSubmittingRef.current) {
             return;
         }
 
         isSubmittingRef.current = true;
-        setSubmittedInput({delegate, policyDiff});
-        setVacationDelegate({creator, delegate, currentDelegate: previousDelegate, shouldOverridePolicyDiffWarning: true, shouldSkipPolicyInviteEmails});
-        goBackToStatus();
+        submit(shouldSkipPolicyInviteEmails);
     };
 
     const invite = () => {
@@ -117,23 +126,27 @@ function VacationDelegateMissingWorkspacesPage() {
             return;
         }
 
+        isSubmittingRef.current = true;
+
         // The delegate may have been picked from the selector without existing in personal details yet, so fall back to an optimistic accountID.
         const [delegateAccountID] = getAccountIDsByLogins([delegate]);
         const invitedEmailsToAccountIDs = {[delegate]: delegateAccountID};
         const {newAccountIDs, newLogins} = getNewAccountIDsAndLogins(invitedEmailsToAccountIDs, allPersonalDetails);
         const personalDetailsOnyxData = getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
+        const policyExpenseChatReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
 
-        for (const policyID of adminPolicies) {
+        for (const [index, policyID] of adminPolicies.entries()) {
             const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+            const isLastInvite = index === adminPolicies.length - 1;
             addMembersToWorkspace(
                 invitedEmailsToAccountIDs,
-                personalDetailsOnyxData,
+                isLastInvite ? personalDetailsOnyxData : {optimisticData: personalDetailsOnyxData.optimisticData},
                 `# ${currentUserPersonalDetails.displayName ?? ''} invited you to ${policy?.name ?? ''}\n\n${translate('workspace.common.welcomeNote')}`,
                 policy,
                 Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false)),
                 CONST.POLICY.ROLE.USER,
                 currentUser,
-                allReportActions,
+                policyExpenseChatReportActions,
             );
         }
 
@@ -207,7 +220,7 @@ function VacationDelegateMissingWorkspacesPage() {
                             <Button
                                 size={CONST.BUTTON_SIZE.LARGE}
                                 style={styles.mt3}
-                                onPress={() => submit(true)}
+                                onPress={() => submitOnce(true)}
                             >
                                 <Button.Text>{translate('common.skip')}</Button.Text>
                             </Button>
@@ -216,7 +229,7 @@ function VacationDelegateMissingWorkspacesPage() {
                         <Button
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             size={CONST.BUTTON_SIZE.LARGE}
-                            onPress={() => submit(false)}
+                            onPress={() => submitOnce(false)}
                         >
                             <Button.Text>{translate('common.confirm')}</Button.Text>
                         </Button>

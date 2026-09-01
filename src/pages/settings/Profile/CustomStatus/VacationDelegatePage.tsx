@@ -13,13 +13,16 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {useNavigation} from '@react-navigation/native';
 import React, {useRef} from 'react';
 
 function VacationDelegatePage() {
     const {translate} = useLocalize();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
+    const navigation = useNavigation();
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
 
@@ -42,17 +45,20 @@ function VacationDelegatePage() {
         }
 
         if (option?.login === vacationDelegate?.delegate) {
-            isSelectingRef.current = true;
             deleteVacationDelegate(vacationDelegate);
             Navigation.goBack(ROUTES.SETTINGS_STATUS);
-            isSelectingRef.current = false;
             return;
         }
 
         isSelectingRef.current = true;
-        const currentDelegate = vacationDelegate?.delegate;
+        const hasUnconfirmedChange = !!vacationDelegate?.pendingAction || !isEmptyObject(vacationDelegate?.errors) || !!vacationDelegate?.policyDiff;
+        const currentDelegate = hasUnconfirmedChange ? vacationDelegate?.previousDelegate : vacationDelegate?.delegate;
         setVacationDelegate({creator: currentUserLogin, delegate: option?.login ?? '', currentDelegate})
             .then((response) => {
+                if (!navigation.isFocused()) {
+                    return;
+                }
+
                 if (response?.data?.policyDiff) {
                     Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE_MISSING_WORKSPACES);
                     return;
