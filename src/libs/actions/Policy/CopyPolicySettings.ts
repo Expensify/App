@@ -132,6 +132,11 @@ function findCustomUnitByName(policy: Policy | undefined, unitName: string): Cus
  * Units and rates the target doesn't have yet are left out. Auth mints their IDs and pushes them to
  * Onyx as a merge, so optimistically inventing a different ID would leave the same unit or rate on
  * screen twice once the server push lands.
+ *
+ * Skipping the optimistic update for those new rates is fine because the copy runs behind a blocking
+ * modal, so nothing is on screen waiting for them. Showing them optimistically would require sending
+ * an optimisticRateIDs parameter and having Auth use those IDs instead of minting its own, which we
+ * can add later if we need it.
  */
 function buildCustomUnitsPatch(sourcePolicy: Policy, targetPolicy: Policy, isDistanceSelected: boolean, isPerDiemSelected: boolean): {customUnits: Record<string, CustomUnit>} | undefined {
     const unitNames = [...(isDistanceSelected ? [CONST.CUSTOM_UNITS.NAME_DISTANCE] : []), ...(isPerDiemSelected ? [CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL] : [])];
