@@ -6,7 +6,9 @@ import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalMod
 import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
+import type {ContinueActionParams} from '@components/KYCWall/types';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ReportPDFDownloadModal from '@components/ReportPDFDownloadModal';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -18,6 +20,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import useSortedActiveAdminPolicies from '@hooks/useSortedActiveAdminPolicies';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {handleBulkPayItemSelected} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,7 +32,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useContext, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -59,7 +61,8 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    // Sends an unvalidated user to the verify-account (security code) screen and resumes the stored bulk pay once they validate.
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((retry) => retry?.());
     const activeAdminPolicies = useSortedActiveAdminPolicies();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -90,7 +93,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         handleExpensifyCardStatementPDFModalHide,
         isExpensifyCardStatementMultiFeedAlertVisible,
         handleExpensifyCardStatementMultiFeedAlertClose,
-        exportDownloadStatusModal,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
@@ -138,6 +140,31 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
             excludedItemsCount: getItemsCount(excludedTransactions),
         };
     }, [excludedTransactions, selectedTransactions, isExpenseReportType, searchData]);
+
+    const payBulkSelectedItem = (subItem: PopoverMenuItem, triggerKYCFlow: (kycParams: ContinueActionParams) => void) =>
+        handleBulkPayItemSelected({
+            item: subItem,
+            triggerKYCFlow,
+            isAccountLocked,
+            showLockedAccountModal,
+            policy: currentPolicy,
+            businessBankAccountOptions,
+            bankAccountList,
+            activeAdminPolicies,
+            isUserValidated,
+            isDelegateAccessRestricted,
+            showDelegateNoAccessModal,
+            confirmPayment,
+            userBillingGracePeriodEnds,
+            amountOwed,
+            ownerBillingGracePeriodEnd,
+            setPendingPaymentAdditionalData: (data) => {
+                pendingPaymentAdditionalDataRef.current = data;
+            },
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            isOffline,
+            verifyAccountAndResume,
+        });
 
     const allMatchingItemsCount = currentSearchResults?.search?.count;
     const hasSearchErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0;
@@ -202,30 +229,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                 isDisabled={headerButtonsOptions.length === 0}
                                 onPress={() => null}
                                 shouldPopoverUseScrollView={popoverUseScrollView}
-                                onSubItemSelected={(subItem) =>
-                                    handleBulkPayItemSelected({
-                                        item: subItem,
-                                        triggerKYCFlow,
-                                        isAccountLocked,
-                                        showLockedAccountModal,
-                                        policy: currentPolicy,
-                                        businessBankAccountOptions,
-                                        bankAccountList,
-                                        activeAdminPolicies,
-                                        isUserValidated,
-                                        isDelegateAccessRestricted,
-                                        showDelegateNoAccessModal,
-                                        confirmPayment,
-                                        userBillingGracePeriodEnds,
-                                        amountOwed,
-                                        ownerBillingGracePeriodEnd,
-                                        setPendingPaymentAdditionalData: (data) => {
-                                            pendingPaymentAdditionalDataRef.current = data;
-                                        },
-                                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                                        isOffline,
-                                    })
-                                }
+                                onSubItemSelected={(subItem) => payBulkSelectedItem(subItem, triggerKYCFlow)}
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 isSplitButton={false}
                                 style={[styles.w100, styles.ph5]}
@@ -247,30 +251,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                 isLoading={isAllMatchingItemsCountLoading}
                                 options={headerButtonsOptions}
                                 shouldPopoverUseScrollView={popoverUseScrollView}
-                                onSubItemSelected={(subItem) =>
-                                    handleBulkPayItemSelected({
-                                        item: subItem,
-                                        triggerKYCFlow,
-                                        isAccountLocked,
-                                        showLockedAccountModal,
-                                        policy: currentPolicy,
-                                        businessBankAccountOptions,
-                                        bankAccountList,
-                                        activeAdminPolicies,
-                                        isUserValidated,
-                                        isDelegateAccessRestricted,
-                                        showDelegateNoAccessModal,
-                                        confirmPayment,
-                                        userBillingGracePeriodEnds,
-                                        amountOwed,
-                                        ownerBillingGracePeriodEnd,
-                                        setPendingPaymentAdditionalData: (data) => {
-                                            pendingPaymentAdditionalDataRef.current = data;
-                                        },
-                                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                                        isOffline,
-                                    })
-                                }
+                                onSubItemSelected={(subItem) => payBulkSelectedItem(subItem, triggerKYCFlow)}
                                 isSplitButton={false}
                                 buttonRef={buttonRef}
                                 anchorAlignment={{
@@ -339,7 +320,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     isDM={areAllTransactionsFromDMReports}
                 />
             )}
-            {exportDownloadStatusModal}
         </>
     );
 }

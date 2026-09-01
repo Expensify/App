@@ -11,12 +11,19 @@ import {addComment, notifyNewAction} from '@libs/actions/Report';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import type * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
 import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOriginalMessage, isActionOfType, isAddCommentAction, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getAncestors, getReportOrDraftReport} from '@libs/ReportUtils';
 
-import {completeSplitBill, createDistanceRequest, setDraftSplitTransaction, splitBill, startSplitBill} from '@userActions/IOU/Split';
+import {
+    completeSplitBill,
+    createDistanceRequest,
+    resolveOptimisticSplitChatReportID,
+    setDraftSplitTransaction,
+    splitBill,
+    splitBillAndOpenReport,
+    startSplitBill,
+} from '@userActions/IOU/Split';
 import {
     addSplitExpenseField,
     evenlyDistributeSplitExpenseAmounts,
@@ -6698,7 +6705,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, undefined, undefined, undefined, undefined, undefined, getCurrencyDecimals, getCurrencySymbol);
+        initSplitExpense(transaction, undefined, undefined, undefined, undefined, undefined, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -6723,7 +6730,7 @@ describe('initSplitExpense', () => {
     });
     it('should not initialize split expense for null transaction', async () => {
         const transaction: Transaction | undefined = undefined;
-        initSplitExpense(transaction, undefined, undefined, undefined, undefined, undefined, getCurrencyDecimals, getCurrencySymbol);
+        initSplitExpense(transaction, undefined, undefined, undefined, undefined, undefined, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
         await waitForBatchedUpdates();
 
         expect(transaction).toBeFalsy();
@@ -6747,7 +6754,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, undefined, undefined, undefined, undefined, undefined, getCurrencyDecimals, getCurrencySymbol);
+        initSplitExpense(transaction, undefined, undefined, undefined, undefined, undefined, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -6817,7 +6824,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, undefined, policy, undefined, undefined, undefined, getCurrencyDecimals, getCurrencySymbol);
+        initSplitExpense(transaction, undefined, policy, undefined, undefined, undefined, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -6890,7 +6897,7 @@ describe('initSplitExpense', () => {
         await waitForBatchedUpdates();
 
         // When the user initiates a split on the remaining transaction
-        initSplitExpense(remainingTransaction, undefined, undefined, undefined, undefined, undefined, getCurrencyDecimals, getCurrencySymbol);
+        initSplitExpense(remainingTransaction, undefined, undefined, undefined, undefined, undefined, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
         await waitForBatchedUpdates();
 
         // Then a fresh split is started keyed by the remaining transaction (2 new splits)
@@ -6951,7 +6958,7 @@ describe('initSplitExpense', () => {
         await waitForBatchedUpdates();
 
         // When the user opens the edit-splits flow from one of the children
-        initSplitExpense(secondChildTransaction, undefined, undefined, undefined, undefined, undefined, getCurrencyDecimals, getCurrencySymbol);
+        initSplitExpense(secondChildTransaction, undefined, undefined, undefined, undefined, undefined, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
         await waitForBatchedUpdates();
 
         // Then the edit-splits draft is keyed by the original transaction and rebuilt from the existing children
@@ -6981,7 +6988,7 @@ describe('initSplitExpense', () => {
         };
 
         // When the workspace is billing-restricted, the caller passes the restricted policy ID
-        initSplitExpense(transaction, undefined, undefined, undefined, '7', undefined, getCurrencyDecimals, getCurrencySymbol);
+        initSplitExpense(transaction, undefined, undefined, undefined, '7', undefined, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
         await waitForBatchedUpdates();
 
         // Then the user is redirected to the restricted action page and no split draft is created
@@ -7043,7 +7050,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, undefined, effectivePolicy, undefined, undefined, undefined, getCurrencyDecimals, getCurrencySymbol);
+        initSplitExpense(transaction, undefined, effectivePolicy, undefined, undefined, undefined, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -7089,7 +7096,7 @@ describe('initSplitExpense', () => {
         };
 
         // No effectivePolicy (P2P), and personalPolicyOutputCurrency = 'EUR' passed as the 6th argument.
-        initSplitExpense(transaction, undefined, undefined, undefined, undefined, 'EUR', getCurrencyDecimals, getCurrencySymbol);
+        initSplitExpense(transaction, undefined, undefined, undefined, undefined, 'EUR', getCurrencyDecimalsLocal, getCurrencySymbolLocal);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -7160,7 +7167,7 @@ describe('addSplitExpenseField', () => {
             reportID: '456',
         };
 
-        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -7223,7 +7230,7 @@ describe('addSplitExpenseField', () => {
         };
 
         // Action: Add a new split expense field
-        addSplitExpenseField(cardTransaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        addSplitExpenseField(cardTransaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${cardTransaction.transactionID}`);
@@ -7260,7 +7267,7 @@ describe('addSplitExpenseField', () => {
             reportID: '456',
         };
 
-        addSplitExpenseField(undefined, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        addSplitExpenseField(undefined, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const result = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}guard-orig`);
@@ -7278,7 +7285,7 @@ describe('addSplitExpenseField', () => {
             reportID: '456',
         };
 
-        addSplitExpenseField(transaction, undefined, expenseReport, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        addSplitExpenseField(transaction, undefined, expenseReport, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const result = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}guard-tx`);
@@ -7311,7 +7318,7 @@ describe('addSplitExpenseField', () => {
             reportID: '456',
         };
 
-        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         // Should write to the originalTransactionID key, not transaction.transactionID
@@ -7355,7 +7362,7 @@ describe('addSplitExpenseField', () => {
             reportID: '456',
         };
 
-        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}manual-sum`);
@@ -7400,7 +7407,7 @@ describe('addSplitExpenseField', () => {
             reportID: '456',
         };
 
-        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}manual-no-sum`);
@@ -7445,7 +7452,7 @@ describe('addSplitExpenseField', () => {
             reportID: '456',
         };
 
-        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}unedited-sum`);
@@ -7483,7 +7490,7 @@ describe('addSplitExpenseField', () => {
             reportID: '456',
         };
 
-        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}dates-reset`);
@@ -7517,7 +7524,7 @@ describe('addSplitExpenseField', () => {
             reportID: '456',
         };
 
-        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}empty-start`);
@@ -7622,7 +7629,7 @@ describe('addSplitExpenseField', () => {
             currency: 'USD',
         };
 
-        addSplitExpenseField(transaction, draftTransaction, transactionReport, policy, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        addSplitExpenseField(transaction, draftTransaction, transactionReport, policy, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -7634,6 +7641,78 @@ describe('addSplitExpenseField', () => {
         expect(splitExpenses?.[1].customUnit).toBeTruthy();
         expect(splitExpenses?.[1].customUnit?.quantity).toBe(0);
         expect(splitExpenses?.[1].merchant).toBeDefined();
+    });
+
+    it('should build a new split on the unit the expense is stored with', async () => {
+        // Given a distance expense split in miles, whose workspace unit was later switched to kilometers
+        const customUnitRateID = 'rate-unit-switch';
+        const customUnitID = 'distance-unit';
+        const policy: Policy = {
+            ...createRandomPolicy(4),
+            customUnits: {
+                [customUnitID]: {
+                    customUnitID,
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    enabled: true,
+                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
+                    rates: {
+                        [customUnitRateID]: {customUnitRateID, currency: CONST.CURRENCY.USD, rate: 100, enabled: true, name: 'Default Rate', subRates: []},
+                    },
+                },
+            },
+        };
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        await waitForBatchedUpdates();
+
+        const customUnit: TransactionCustomUnit = {
+            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            customUnitID,
+            customUnitRateID,
+            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            quantity: 200,
+        };
+        const transaction: Transaction = {
+            transactionID: 'unit-switch-original',
+            amount: -20000,
+            currency: 'USD',
+            merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {comment: '', splitExpenses: [], attendees: [], type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit},
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+        const draftTransaction: Transaction = {
+            ...transaction,
+            amount: 20000,
+            comment: {
+                comment: '',
+                splitExpenses: [
+                    {
+                        transactionID: 'unit-switch-split',
+                        amount: 10000,
+                        description: '',
+                        category: '',
+                        tags: [],
+                        created: DateUtils.getDBTime(),
+                        customUnit: {...customUnit, quantity: 100},
+                    },
+                ],
+                attendees: [],
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+            },
+        };
+        const transactionReport: Report = {reportID: '456', type: CONST.REPORT.TYPE.EXPENSE, total: 20000, currency: 'USD'};
+
+        // When another split is added
+        addSplitExpenseField(transaction, draftTransaction, transactionReport, policy, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
+        await waitForBatchedUpdates();
+
+        // Then it is stored on that same unit, so the merchant and the Distance field agree
+        const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
+        const splitExpenses = updatedDraftTransaction?.comment?.splitExpenses;
+        expect(splitExpenses).toHaveLength(2);
+        expect(splitExpenses?.[1].customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+        expect(splitExpenses?.[1].merchant).toContain(CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
     });
 
     it('should use EUR P2P mileage rate and EUR currency in merchant when personalPolicyOutputCurrency is EUR', async () => {
@@ -7677,7 +7756,7 @@ describe('addSplitExpenseField', () => {
             reportID: '456',
         };
 
-        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, 'EUR', getCurrencySymbol, getCurrencyDecimalsLocal);
+        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, 'EUR', getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}p2p-eur`);
@@ -7729,7 +7808,7 @@ describe('addSplitExpenseField', () => {
             reportID: '456',
         };
 
-        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}p2p-usd`);
@@ -7742,7 +7821,7 @@ describe('addSplitExpenseField', () => {
 });
 
 describe('evenlyDistributeSplitExpenseAmounts', () => {
-    it('distributes evenly across 3 splits with remainder on last split', async () => {
+    it('distributes evenly across 3 splits with remainder on the first split', async () => {
         const originalTransactionID = 'orig-last';
         const draftTransaction: Transaction = {
             transactionID: 'draft-2',
@@ -7764,13 +7843,13 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
             reportID: 'rep-2',
         };
 
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
         expect(updatedDraft).toBeTruthy();
         const amounts = (updatedDraft?.comment?.splitExpenses ?? []).map((x) => x.amount);
-        expect(amounts).toEqual([33, 33, 34]);
+        expect(amounts).toEqual([34, 33, 33]);
     });
 
     it('assigns full amount when there is only one split', async () => {
@@ -7791,7 +7870,7 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
             reportID: 'rep-3',
         };
 
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -7822,7 +7901,7 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
             reportID: 'rep-4',
         };
 
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -7851,7 +7930,7 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
             reportID: 'rep-5',
         };
 
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -7859,7 +7938,7 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
         expect(amounts).toEqual([50, 50]);
     });
 
-    it('2-way split with remainder (odd cents) -> 50¢ / 51¢', async () => {
+    it('2-way split with remainder (odd cents) -> 51¢ / 50¢', async () => {
         const originalTransactionID = 'orig-2-rem';
         const draftTransaction: Transaction = {
             transactionID: 'draft-6',
@@ -7880,15 +7959,15 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
             reportID: 'rep-6',
         };
 
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
         const amounts = (updatedDraft?.comment?.splitExpenses ?? []).map((x) => x.amount);
-        expect(amounts).toEqual([50, 51]);
+        expect(amounts).toEqual([51, 50]);
     });
 
-    it('3-way split of $1001 with remainder -> [$333.66, $333.66, $333.68]', async () => {
+    it('3-way split of $1001 with remainder -> [$333.68, $333.66, $333.66]', async () => {
         const originalTransactionID = 'orig-1001-3-last';
         const draftTransaction: Transaction = {
             transactionID: 'draft-7',
@@ -7910,16 +7989,16 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
             reportID: 'rep-7',
         };
 
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
         const amounts = (updatedDraft?.comment?.splitExpenses ?? []).map((x) => x.amount);
-        expect(amounts).toEqual([33366, 33366, 33368]);
+        expect(amounts).toEqual([33368, 33366, 33366]);
         expect(amounts.reduce((a, b) => a + b, 0)).toBe(100100);
     });
 
-    it('preserves negative sign and evenly distributes with remainder on last for 3-way split', async () => {
+    it('preserves negative sign and evenly distributes with remainder on the first split for a 3-way split', async () => {
         const originalTransactionID = 'orig-neg-3';
         const draftTransaction: Transaction = {
             transactionID: 'draft-neg-3',
@@ -7941,12 +8020,12 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
             reportID: 'rep-neg-3',
         };
 
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
         const amounts = (updatedDraft?.comment?.splitExpenses ?? []).map((x) => x.amount);
-        expect(amounts).toEqual([-33, -33, -34]);
+        expect(amounts).toEqual([-34, -33, -33]);
         expect(amounts.reduce((a, b) => a + b, 0)).toBe(-100);
     });
 
@@ -7971,12 +8050,12 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
             reportID: 'rep-neg-2',
         };
 
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
         const amounts = (updatedDraft?.comment?.splitExpenses ?? []).map((x) => x.amount);
-        expect(amounts).toEqual([-50, -51]);
+        expect(amounts).toEqual([-51, -50]);
         expect(amounts.reduce((a, b) => a + b, 0)).toBe(-101);
     });
 
@@ -8072,7 +8151,7 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
         };
 
         const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, originalTransaction, policy, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, originalTransaction, policy, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -8087,6 +8166,106 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
         expect(splitExpenses.at(0)?.merchant).toContain('100');
         expect(splitExpenses.at(1)?.merchant).toBeTruthy();
         expect(splitExpenses.at(1)?.merchant).toContain('100');
+    });
+
+    it('should distribute the splits on the rate each one is calculated with', async () => {
+        // Given an expense stored in miles whose splits were switched to a rate that another workspace keeps in kilometers
+        const originalTransactionID = 'even-selected-rate-original';
+        const expenseCustomUnitID = 'even-selected-rate-expense-unit';
+        const expenseRateID = 'even-selected-rate-expense-rate';
+        const selectedCustomUnitID = 'even-selected-rate-selected-unit';
+        const selectedRateID = 'even-selected-rate-selected-rate';
+        const expensePolicy: Policy = {
+            ...createRandomPolicy(11),
+            customUnits: {
+                [expenseCustomUnitID]: {
+                    customUnitID: expenseCustomUnitID,
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    enabled: true,
+                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    rates: {
+                        [expenseRateID]: {customUnitRateID: expenseRateID, currency: CONST.CURRENCY.USD, rate: 100, enabled: true, name: 'Expense Rate', subRates: []},
+                    },
+                },
+            },
+        };
+        const selectedRatePolicy: Policy = {
+            ...createRandomPolicy(12),
+            customUnits: {
+                [selectedCustomUnitID]: {
+                    customUnitID: selectedCustomUnitID,
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    enabled: true,
+                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
+                    rates: {
+                        [selectedRateID]: {customUnitRateID: selectedRateID, currency: CONST.CURRENCY.USD, rate: 50, enabled: true, name: 'Selected Rate', subRates: []},
+                    },
+                },
+            },
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${expensePolicy.id}`, expensePolicy);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${selectedRatePolicy.id}`, selectedRatePolicy);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {
+            transactionID: originalTransactionID,
+            amount: -20000,
+            currency: 'USD',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitID: expenseCustomUnitID,
+                    customUnitRateID: expenseRateID,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    quantity: 200,
+                },
+            },
+        });
+        await waitForBatchedUpdates();
+
+        const splitCustomUnit = {
+            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            customUnitID: selectedCustomUnitID,
+            customUnitRateID: selectedRateID,
+            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            quantity: 200,
+        };
+        const draftTransaction: Transaction = {
+            transactionID: 'even-selected-rate-draft',
+            amount: 20000,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {
+                comment: '',
+                originalTransactionID,
+                splitExpenses: [
+                    {transactionID: 'even-selected-rate-first', amount: 15000, description: '', category: '', tags: [], created: DateUtils.getDBTime(), customUnit: splitCustomUnit},
+                    {transactionID: 'even-selected-rate-second', amount: 5000, description: '', category: '', tags: [], created: DateUtils.getDBTime(), customUnit: splitCustomUnit},
+                ],
+                attendees: [],
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+            },
+            created: DateUtils.getDBTime(),
+            reportID: 'even-selected-rate-report',
+        };
+
+        // When the splits are distributed evenly
+        const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, originalTransaction, expensePolicy, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal, {
+            [`${ONYXKEYS.COLLECTION.POLICY}${selectedRatePolicy.id}`]: selectedRatePolicy,
+        });
+        await waitForBatchedUpdates();
+
+        // Then every split is measured with the rate it carries, on the unit it is stored with
+        const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+        const splitExpenses = updatedDraft?.comment?.splitExpenses ?? [];
+        expect(splitExpenses.at(0)?.customUnit?.quantity).toBe(200);
+        expect(splitExpenses.at(0)?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+        expect(splitExpenses.at(0)?.merchant).toContain(`200.00 ${CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}`);
+        expect(splitExpenses.at(1)?.customUnit?.quantity).toBe(200);
+        expect(splitExpenses.at(1)?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
     });
 });
 
@@ -8121,7 +8300,7 @@ describe('updateSplitExpenseAmountField', () => {
             reportID: '456',
         };
 
-        updateSplitExpenseAmountField(draftTransaction, currentTransactionID, 20, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        updateSplitExpenseAmountField(draftTransaction, currentTransactionID, 20, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -8213,7 +8392,7 @@ describe('updateSplitExpenseAmountField', () => {
             reportID: '456',
         };
 
-        updateSplitExpenseAmountField(draftTransaction, currentTransactionID, 15000, policy, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        updateSplitExpenseAmountField(draftTransaction, currentTransactionID, 15000, policy, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -8224,6 +8403,103 @@ describe('updateSplitExpenseAmountField', () => {
         expect(splitExpenses?.[0].customUnit?.quantity).toBe(150);
         expect(splitExpenses?.[0].merchant).toBeTruthy();
         expect(splitExpenses?.[0].merchant).toContain('150');
+    });
+
+    it('should keep the unit the expense is stored with when the workspace distance unit changed', async () => {
+        // Given a distance split created in miles, whose workspace unit was later switched to kilometers
+        const customUnitRateID = 'rate-unit-change';
+        const customUnitID = 'distance-unit';
+        const originalTransactionID = '321';
+        const currentTransactionID = '987';
+        const policy: Policy = {
+            ...createRandomPolicy(2),
+            customUnits: {
+                [customUnitID]: {
+                    customUnitID,
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    enabled: true,
+                    attributes: {
+                        unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    },
+                    rates: {
+                        [customUnitRateID]: {
+                            customUnitRateID,
+                            currency: CONST.CURRENCY.USD,
+                            rate: 100,
+                            enabled: true,
+                            name: 'Default Rate',
+                            subRates: [],
+                        },
+                    },
+                },
+            },
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {
+            transactionID: originalTransactionID,
+            amount: -20000,
+            currency: 'USD',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitID,
+                    customUnitRateID,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    quantity: 200,
+                },
+            },
+        });
+        await waitForBatchedUpdates();
+
+        const draftTransaction: Transaction = {
+            transactionID: '654',
+            amount: 20000,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {
+                comment: 'Test comment',
+                originalTransactionID,
+                splitExpenses: [
+                    {
+                        transactionID: currentTransactionID,
+                        amount: 10000,
+                        description: 'Test comment',
+                        category: 'Car',
+                        tags: [],
+                        created: DateUtils.getDBTime(),
+                        customUnit: {
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            customUnitID,
+                            customUnitRateID,
+                            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            quantity: 100,
+                        },
+                    },
+                ],
+                attendees: [],
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+            },
+            category: 'Car',
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        // When the amount of the split is edited
+        updateSplitExpenseAmountField(draftTransaction, currentTransactionID, 15000, policy, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
+        await waitForBatchedUpdates();
+
+        // Then the split stays on the unit the expense is stored with, and the distance it stores is expressed in that
+        // same unit, so the merchant and the Distance field agree
+        const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+        const splitExpenses = updatedDraftTransaction?.comment?.splitExpenses;
+        expect(splitExpenses?.[0].customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+        expect(splitExpenses?.[0].customUnit?.quantity).toBe(150);
+        expect(splitExpenses?.[0].merchant).toContain(`150.00 ${CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`);
+        expect(splitExpenses?.[0].merchant).not.toContain(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
     });
 });
 
@@ -8374,7 +8650,7 @@ describe('initSplitExpenseItemData', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         };
 
-        const splitExpense = initSplitExpenseItemData(transaction, transactionReport);
+        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {getCurrencyDecimals: () => 2});
 
         expect(splitExpense.transactionID).toBe('123');
         expect(splitExpense.amount).toBe(100);
@@ -8428,6 +8704,7 @@ describe('initSplitExpenseItemData', () => {
             created: '2024-01-01',
             merchant: 'Custom Merchant',
             customUnit,
+            getCurrencyDecimals: () => 2,
         });
 
         expect(splitExpense.transactionID).toBe('999');
@@ -8474,7 +8751,7 @@ describe('initSplitExpenseItemData', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         };
 
-        const splitExpense = initSplitExpenseItemData(transaction, transactionReport);
+        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {getCurrencyDecimals: () => 2});
 
         expect(splitExpense.waypoints).toEqual(transaction.comment?.waypoints);
         expect(splitExpense.odometerStart).toBe(1000);
@@ -8613,7 +8890,18 @@ describe('resetSplitExpensesByDateRange', () => {
             comment: {...transaction.comment, originalTransactionID: transactionID},
         };
 
-        resetSplitExpensesByDateRange(transaction, draftTransactionInput, transactionReport, startDate, endDate, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        resetSplitExpensesByDateRange({
+            transaction,
+            draftTransaction: draftTransactionInput,
+            transactionReport,
+            startDate,
+            endDate,
+            policy: undefined,
+            isSelfDMSplit: false,
+            personalPolicyOutputCurrency: undefined,
+            getCurrencySymbol: getCurrencySymbolLocal,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+        });
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -8702,7 +8990,18 @@ describe('resetSplitExpensesByDateRange', () => {
             comment: {...transaction.comment, originalTransactionID: transactionID},
         };
 
-        resetSplitExpensesByDateRange(transaction, draftTransactionInput, transactionReport, startDate, endDate, policy, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        resetSplitExpensesByDateRange({
+            transaction,
+            draftTransaction: draftTransactionInput,
+            transactionReport,
+            startDate,
+            endDate,
+            policy,
+            isSelfDMSplit: false,
+            personalPolicyOutputCurrency: undefined,
+            getCurrencySymbol: getCurrencySymbolLocal,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+        });
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -8753,7 +9052,18 @@ describe('resetSplitExpensesByDateRange', () => {
             comment: {...transaction.comment, originalTransactionID: transactionID},
         };
 
-        resetSplitExpensesByDateRange(transaction, draftTransactionInput, transactionReport, startDate, endDate, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        resetSplitExpensesByDateRange({
+            transaction,
+            draftTransaction: draftTransactionInput,
+            transactionReport,
+            startDate,
+            endDate,
+            policy: undefined,
+            isSelfDMSplit: false,
+            personalPolicyOutputCurrency: undefined,
+            getCurrencySymbol: getCurrencySymbolLocal,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+        });
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -8765,7 +9075,18 @@ describe('resetSplitExpensesByDateRange', () => {
     });
 
     it('should not reset if transaction, startDate, or endDate is missing', async () => {
-        resetSplitExpensesByDateRange(undefined, undefined, undefined, '2024-01-01', '2024-01-03', undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+        resetSplitExpensesByDateRange({
+            transaction: undefined,
+            draftTransaction: undefined,
+            transactionReport: undefined,
+            startDate: '2024-01-01',
+            endDate: '2024-01-03',
+            policy: undefined,
+            isSelfDMSplit: false,
+            personalPolicyOutputCurrency: undefined,
+            getCurrencySymbol: getCurrencySymbolLocal,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+        });
         await waitForBatchedUpdates();
     });
 });
@@ -8905,7 +9226,7 @@ describe('updateSplitExpenseField', () => {
             reportID: '456',
         };
 
-        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, undefined, false, undefined, getCurrencySymbol);
+        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, undefined, false, undefined, getCurrencySymbolLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -9041,7 +9362,7 @@ describe('updateSplitExpenseField', () => {
             reportID: '456',
         };
 
-        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, policy, false, undefined, getCurrencySymbol);
+        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, policy, false, undefined, getCurrencySymbolLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -9161,7 +9482,7 @@ describe('updateSplitExpenseField', () => {
             reportID: '456',
         };
 
-        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, policy, false, undefined, getCurrencySymbol);
+        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, policy, false, undefined, getCurrencySymbolLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -9280,7 +9601,7 @@ describe('updateSplitExpenseField', () => {
             reportID: '456',
         };
 
-        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, policy, false, undefined, getCurrencySymbol);
+        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, policy, false, undefined, getCurrencySymbolLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -9348,7 +9669,7 @@ describe('updateSplitExpenseField', () => {
             reportID: '456',
         };
 
-        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, undefined, false, undefined, getCurrencySymbol);
+        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, undefined, false, undefined, getCurrencySymbolLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -9975,5 +10296,63 @@ describe('startSplitBill delegateAccountID forwarding', () => {
 
         expect(splitTransactionID).toBeTruthy();
         expect(splitIOUAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+    });
+});
+
+describe('resolveOptimisticSplitChatReportID', () => {
+    it('returns the existing chat and no optimistic ID when the participants already share one', async () => {
+        const reportID = 'existing-split-chat';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            reportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            participants: {
+                [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+        });
+        await waitForBatchedUpdates();
+
+        const {optimisticSplitChatReportID, chatReportID} = resolveOptimisticSplitChatReportID(reportID, [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}], RORY_ACCOUNT_ID);
+
+        expect(optimisticSplitChatReportID).toBeUndefined();
+        expect(chatReportID).toBe(reportID);
+    });
+
+    it('mints an optimistic ID that splitBillAndOpenReport then builds the chat under, so the UI navigates to the report the split wrote', async () => {
+        const brandNewParticipantAccountID = 987654;
+        const participants: IOUParticipant[] = [{accountID: brandNewParticipantAccountID, login: 'brand-new@test.com'}];
+
+        const {optimisticSplitChatReportID, chatReportID} = resolveOptimisticSplitChatReportID(undefined, participants, RORY_ACCOUNT_ID);
+
+        expect(optimisticSplitChatReportID).toBeTruthy();
+        expect(chatReportID).toBe(optimisticSplitChatReportID);
+
+        splitBillAndOpenReport({
+            participants,
+            currentUserLogin: RORY_EMAIL,
+            currentUserAccountID: RORY_ACCOUNT_ID,
+            comment: '',
+            amount: 100,
+            currency: CONST.CURRENCY.USD,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            merchant: 'test',
+            created: '',
+            optimisticSplitChatReportID,
+            isASAPSubmitBetaEnabled: false,
+            transactionViolations: {},
+            quickAction: undefined,
+            policyRecentlyUsedCurrencies: [],
+            policyRecentlyUsedTags: undefined,
+            betas: [CONST.BETAS.ALL],
+            personalDetails: mockPersonalDetails,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
+            participantsPolicyTags: {},
+        });
+        await waitForBatchedUpdates();
+
+        const splitChatReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticSplitChatReportID}`);
+        expect(splitChatReport?.reportID).toBe(optimisticSplitChatReportID);
     });
 });

@@ -1,7 +1,7 @@
 import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
-import {animatedReceiptPaneRHPWidth, animatedSuperWideRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
+import {animatedReceiptPaneRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
 
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
@@ -27,6 +27,7 @@ import {interpolate} from 'react-native-reanimated';
 import type {ThemeColors} from './theme/types';
 
 import colors from './theme/colors';
+import {fontFamilyScale, fontScale, lineHeightScale, textVariants} from './typography';
 import addOutlineWidth from './utils/addOutlineWidth';
 import addToWalletButtonStyles from './utils/addToWalletButtonStyles';
 import borders from './utils/borders';
@@ -277,6 +278,11 @@ const compactPopoverMenuItemBaseStyle = {
     alignItems: 'center' as const,
 };
 
+// Square size and horizontal margin of the composer's attachment ("+") button, shared by
+// composerSizeButton and the concierge prompt box so its button column stays in sync.
+const COMPOSER_SIZE_BUTTON_SIZE = 40;
+const COMPOSER_SIZE_BUTTON_MARGIN = 3;
+
 const staticStyles = (theme: ThemeColors) =>
     StyleSheet.create({
         ...spacing,
@@ -355,12 +361,12 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         emojiSuggestionsEmoji: {
-            fontSize: variables.fontSizeMedium,
+            fontSize: variables.fontSizeEmojisWithinText,
             width: 51,
             textAlign: 'center',
         },
         emojiSuggestionsText: {
-            fontSize: variables.fontSizeMedium,
+            fontSize: variables.fontSizeNormal,
             flex: 1,
             ...wordBreak.breakWord,
             ...spacing.pr4,
@@ -379,7 +385,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         mentionSuggestionsText: {
-            fontSize: variables.fontSizeMedium,
+            fontSize: variables.fontSizeNormal,
             ...spacing.ml2,
         },
 
@@ -482,14 +488,14 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         label: {
-            fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightLarge,
+            fontSize: fontScale.label,
+            lineHeight: lineHeightScale.label,
         },
 
         textLabel: {
             color: theme.text,
-            fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightLarge,
+            fontSize: fontScale.label,
+            lineHeight: lineHeightScale.label,
         },
 
         themeTextColor: {
@@ -498,19 +504,19 @@ const staticStyles = (theme: ThemeColors) =>
 
         mutedTextLabel: {
             color: theme.textSupporting,
-            fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightLarge,
+            fontSize: fontScale.label,
+            lineHeight: lineHeightScale.label,
         },
 
         mutedNormalTextLabel: {
             color: theme.textSupporting,
-            fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightNormal,
+            fontSize: fontScale.label,
+            lineHeight: lineHeightScale.label,
         },
 
         textSmall: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeSmall,
+            ...fontFamilyScale.regular,
+            fontSize: fontScale.micro,
         },
 
         textExtraSmall: {
@@ -519,36 +525,28 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textMicro: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightSmall,
+            ...textVariants.micro,
         },
 
         textMicroBold: {
+            ...textVariants.microStrong,
             color: theme.text,
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightNormal,
         },
 
         textMicroBoldSupporting: {
+            ...textVariants.microStrong,
             color: theme.textSupporting,
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightNormal,
         },
 
         textMicroSupporting: {
+            ...textVariants.micro,
             color: theme.textSupporting,
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightSmall,
         },
 
         textSupportingNormal: {
             color: theme.textSupporting,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.fontSizeNormalHeight,
+            fontSize: fontScale.text,
+            lineHeight: lineHeightScale.text,
         },
 
         textExtraSmallSupporting: {
@@ -567,12 +565,12 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: 0,
         },
         textNormal: {
-            fontSize: variables.fontSizeNormal,
+            fontSize: fontScale.text,
         },
 
         textNormalThemeText: {
             color: theme.text,
-            fontSize: variables.fontSizeNormal,
+            fontSize: fontScale.text,
         },
 
         textLarge: {
@@ -594,16 +592,15 @@ const staticStyles = (theme: ThemeColors) =>
 
         textXXXLarge: {
             fontSize: variables.fontSizeXXXLarge,
+            lineHeight: variables.lineHeightXXXLarge,
         },
 
         textHero: {
-            fontSize: variables.fontSizeHero,
-            ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
-            lineHeight: variables.lineHeightHero,
+            ...textVariants.introHeadline,
         },
 
         textStrong: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            ...fontFamilyScale.strong,
         },
 
         fontWeightNormal: {
@@ -611,35 +608,23 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textHeadline: {
-            ...headlineFont,
-            ...whiteSpace.preWrap,
+            ...textVariants.h1,
             color: theme.heading,
-            fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightXXXLarge,
         },
 
         textHeadlineH2: {
-            ...headlineFont,
-            ...whiteSpace.preWrap,
+            ...textVariants.h2,
             color: theme.heading,
-            fontSize: variables.fontSizeH2,
-            lineHeight: variables.lineHeightSizeH2,
         },
 
         textHeadlineH1: {
-            ...headlineFont,
-            ...whiteSpace.preWrap,
+            ...textVariants.h1,
             color: theme.heading,
-            fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightSizeH1,
         },
 
         exportDownloadTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            ...whiteSpace.preWrap,
+            ...textVariants.pageHeader,
             color: theme.heading,
-            fontSize: variables.fontSizeLarge,
-            lineHeight: variables.lineHeightXLarge,
         },
 
         textWhite: {
@@ -868,8 +853,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonExtraSmallText: {
-            fontSize: variables.fontSizeExtraSmall,
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            ...textVariants.finePrintStrong,
             textAlign: 'center',
         },
 
@@ -1722,9 +1706,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         labelStrong: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightNormal,
+            ...textVariants.labelStrong,
         },
 
         textLabelSupporting: {
@@ -1991,31 +1973,6 @@ const staticStyles = (theme: ThemeColors) =>
             ...headlineFont,
         },
 
-        breadcrumbsContainer: {
-            minHeight: 24,
-        },
-
-        breadcrumb: {
-            color: theme.textSupporting,
-            fontSize: variables.breadcrumbsFontSize,
-            ...headlineFont,
-        },
-
-        breadcrumbStrong: {
-            color: theme.text,
-            fontSize: variables.breadcrumbsFontSize,
-        },
-
-        breadcrumbSeparator: {
-            color: theme.icon,
-            fontSize: variables.breadcrumbsFontSize,
-            ...headlineFont,
-        },
-
-        breadcrumbLogo: {
-            top: 1.66, // Pixel-perfect alignment due to a small difference between logo height and breadcrumb text height
-        },
-
         onboardingNavigatorOuterView: {
             flex: 1,
             justifyContent: 'center',
@@ -2242,6 +2199,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 178,
         },
 
+        domainAlreadyExistsIllustrationStyle: {
+            width: 180,
+            height: 164,
+        },
+
         appContent: {
             backgroundColor: theme.appBG,
             overflow: 'hidden',
@@ -2432,7 +2394,8 @@ const staticStyles = (theme: ThemeColors) =>
                 // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
                 // paddingVertical: 0, alignSelf: 'center', and verticalAlign: 'middle'
 
-                paddingHorizontal: variables.avatarChatSpacing,
+                paddingRight: variables.avatarChatSpacing,
+                paddingLeft: variables.composerTextInputPaddingLeft,
                 paddingTop: 0,
                 paddingBottom: 0,
                 alignSelf: 'center',
@@ -2470,11 +2433,6 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 5,
             ...flex.flexRow,
             flex: 1,
-        },
-
-        textInputComposeBorder: {
-            borderLeftWidth: 1,
-            borderColor: theme.bordersBold,
         },
 
         chatItemSubmitButton: {
@@ -2561,13 +2519,41 @@ const staticStyles = (theme: ThemeColors) =>
 
         composerSizeButton: {
             alignSelf: 'center',
-            height: 32,
-            width: 32,
+            alignItems: 'center',
+            height: COMPOSER_SIZE_BUTTON_SIZE,
+            width: COMPOSER_SIZE_BUTTON_SIZE,
             padding: 6,
-            marginHorizontal: 3,
+            marginHorizontal: COMPOSER_SIZE_BUTTON_MARGIN,
             borderRadius: variables.componentBorderRadiusRounded,
             backgroundColor: theme.transparent,
             justifyContent: 'center',
+        },
+
+        messageEditCancelButtonWrapper: {
+            justifyContent: 'flex-end',
+            paddingBottom: 3,
+        },
+
+        // Fixed-width column reserving the composer size button's footprint (button + its horizontal margins) so the
+        // input width stays stable whether the button is centered or bottom-aligned.
+        composerButtonColumn: {
+            flexBasis: COMPOSER_SIZE_BUTTON_SIZE + COMPOSER_SIZE_BUTTON_MARGIN * 2,
+            flexGrow: 0,
+            flexShrink: 0,
+        },
+
+        // Absolute stack that fills the column height and reverses direction. The trailing element wraps away when
+        // there isn't room, and the button stays anchored to the bottom (flex-start in a reversed column).
+        composerButtonStack: {
+            display: 'flex',
+            flexDirection: 'column-reverse',
+            flexWrap: 'wrap',
+            justifyContent: 'flex-start',
+            position: 'absolute',
+            height: '100%',
+            width: '100%',
+            overflow: 'hidden',
+            paddingVertical: COMPOSER_SIZE_BUTTON_MARGIN,
         },
 
         chatItemPDFAttachmentLoading: {
@@ -3504,9 +3490,15 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         moneyRequestPreviewBoxAvatar: {
-            // This should "hide" the right border of the last avatar
-            marginRight: -2,
+            // This should "hide" the outer border of the first and last avatar, which matches the card background
+            marginLeft: -variables.avatarBorderWidthSmall,
+            marginRight: -variables.avatarBorderWidthSmall,
             marginBottom: 0,
+        },
+
+        moneyRequestPreviewParticipantsText: {
+            ...textVariants.microStrong,
+            color: theme.text,
         },
 
         moneyRequestLoadingHeight: {
@@ -4197,9 +4189,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         widgetItemTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.fontSizeNormalHeight,
+            ...textVariants.textStrong,
             color: theme.text,
         },
 
@@ -6327,13 +6317,6 @@ const staticStyles = (theme: ThemeColors) =>
             width: animatedWideRHPWidth,
         },
 
-        superWideRHPExtendedCardInterpolatorStyles: {
-            position: 'absolute',
-            height: '100%',
-            right: 0,
-            width: animatedSuperWideRHPWidth,
-        },
-
         singleRHPExtendedCardInterpolatorStyles: {
             position: 'absolute',
             height: '100%',
@@ -6539,7 +6522,6 @@ const staticStyles = (theme: ThemeColors) =>
         commuterExclusionStaticIllustration: {
             width: 160,
             height: 140,
-            alignSelf: 'center',
         },
         helpStaticIllustration: {
             width: 174,
@@ -6586,9 +6568,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 16,
         },
         chartTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.fontSizeNormalHeight,
+            ...textVariants.textStrong,
             color: theme.text,
         },
         chartTooltipWrapper: {
@@ -6655,10 +6635,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: undefined,
             aspectRatio: 2.2,
         },
-        dateIconSize: {
-            width: variables.iconSizeExtraLarge,
-            height: variables.iconSizeExtraLarge,
-        },
         homeWidgetIconContainer: {
             width: variables.iconSizeExtraLarge,
             height: variables.iconSizeExtraLarge,
@@ -6675,6 +6651,17 @@ const dynamicStyles = (theme: ThemeColors) =>
             width: amountWidth,
             marginRight: 4,
         }),
+
+        // The width is shrunk by the Side Panel offset at the call site (passed in), so the super wide
+        // sheet's left edge stays put instead of being pushed off-screen while the Side Panel is open.
+        // See https://github.com/Expensify/App/issues/99035
+        getSuperWideRHPExtendedCardInterpolatorStyles: (width: Animated.AnimatedSubtraction<number>) =>
+            ({
+                position: 'absolute',
+                height: '100%',
+                right: 0,
+                width,
+            }) satisfies ViewStyle,
 
         uploadFileViewBorderWidth: (isSmallScreenWidth: boolean) =>
             ({
@@ -7008,16 +6995,16 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxWidth: '100%',
         }),
 
-        getCenteredModalOuterView: (shouldUseNarrowLayout: boolean) =>
+        getCenteredModalOuterView: (shouldDockToBottom: boolean) =>
             ({
-                justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
+                justifyContent: shouldDockToBottom ? 'flex-end' : 'center',
             }) as const,
 
-        getCenteredModalInnerView: (shouldUseNarrowLayout: boolean, width?: number, height?: DimensionValue) => {
-            const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
+        getCenteredModalInnerView: (shouldDockToBottom: boolean, width?: number, height?: DimensionValue) => {
+            const borderBottomRadius = shouldDockToBottom ? 0 : variables.componentBorderRadiusLarge;
 
             return {
-                width: shouldUseNarrowLayout ? '100%' : (width ?? variables.featureTrainingModalWidth),
+                width: shouldDockToBottom ? '100%' : (width ?? variables.featureTrainingModalWidth),
                 // No default height - the card hugs its content (children must have intrinsic height)
                 height,
                 maxHeight: '100%' as const,
@@ -7253,6 +7240,34 @@ const plainStyles = (theme: ThemeColors) =>
                 marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
                 marginTop: shouldUseNarrowLayout ? 20 : 32,
             }) satisfies ViewStyle,
+
+        // Grows to fill the "+" column so the button sits at the bottom on multi-line input. On a single
+        // line it wraps away inside composerButtonStack (overflow hidden) and the button centers instead.
+        conciergePromptBoxButtonSpacer: {
+            flexGrow: 1,
+            flexShrink: 0,
+            minHeight: COMPOSER_SIZE_BUTTON_SIZE,
+        },
+
+        // Overlays the exceeded-length message just below the compose box so showing it never grows the box's
+        // footprint and pushes the content underneath down.
+        conciergePromptBoxExceededLength: {
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+        },
+
+        // Hidden probe that measures whether the long placeholder wraps. The paddingRight renders it a few px
+        // narrower than the composer so it wraps first, avoiding a flash at borderline widths.
+        conciergePromptBoxPlaceholderProbe: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            opacity: 0,
+            paddingRight: 24,
+        },
 
         getWidgetItemIconContainerStyle: (backgroundColor: string) =>
             ({
