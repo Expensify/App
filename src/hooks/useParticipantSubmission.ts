@@ -264,12 +264,12 @@ function useParticipantSubmission({
         // Keep an explicit p2p rate so the confirmation step can still ask for a workspace rate, and keep whatever we
         // have while the destination's rates are unloaded, since getCustomUnitRateID falls back to the p2p rate there.
         // Anything else resolves nowhere on the destination: the draft is a snapshot and can carry no rate at all.
-        const destinationRates = DistanceRequestUtils.getMileageRates(policy);
+        const isMovingToPolicyExpenseChat = isMovingTransactionFromTrackExpense && isPolicyExpenseChat;
+        const destinationRates = isMovingToPolicyExpenseChat ? DistanceRequestUtils.getMileageRates(policy) : undefined;
         const shouldKeepTrackExpenseRate = (transaction: OnyxEntry<Transaction>) => {
             const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
-            return currentRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID || isEmptyObject(destinationRates) || !!destinationRates[currentRateID ?? ''];
+            return currentRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID || isEmptyObject(destinationRates) || !!destinationRates?.[currentRateID ?? ''];
         };
-        const isMovingToPolicyExpenseChat = isMovingTransactionFromTrackExpense && isPolicyExpenseChat;
 
         if (drafts.length > 0) {
             for (const transaction of drafts) {
