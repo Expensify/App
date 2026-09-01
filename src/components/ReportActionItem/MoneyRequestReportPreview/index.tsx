@@ -48,7 +48,7 @@ import type {MoneyRequestReportPreviewProps} from './types';
 
 import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
 
-const reportActionCountSelector = (reportActions: OnyxEntry<ReportActions>) => Object.keys(reportActions ?? {}).length;
+const hasReportActionsSelector = (reportActions: OnyxEntry<ReportActions>) => Object.keys(reportActions ?? {}).length > 0;
 
 // The stagger between the report and the expense that design asked for: https://github.com/Expensify/App/pull/92546#issuecomment-4687440972
 const PRESSED_EXPENSE_CASCADE_DELAY = 180;
@@ -91,13 +91,24 @@ function MoneyRequestReportPreview({
     const handleOrderedTransactionsChange = useCallback((orderedTransactions: Transaction[]) => {
         orderedTransactionsRef.current = orderedTransactions;
     }, []);
-    const [iouReportActionCount] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {
-        selector: reportActionCountSelector,
+    const [hasIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {
+        selector: hasReportActionsSelector,
+    });
+    const pendingExpenseTransactionRef = useRef<{transaction: Transaction; originRoute: string} | null>(null);
+    // Subscribing to the whole action list re-rendered every card on each write, and a split writes a burst of
+    // them. Narrow it to the one action a deferred press is waiting for, so nothing pending means nothing changes.
+    const pendingPressActionCountSelector = useCallback((reportActions: OnyxEntry<ReportActions>) => {
+        if (!pendingExpenseTransactionRef.current) {
+            return undefined;
+        }
+        return Object.keys(reportActions ?? {}).length;
+    }, []);
+    const [pendingPressActionCount] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {
+        selector: pendingPressActionCountSelector,
     });
     const [isLoadingInitialIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(iouReportID)}`, {
         selector: isLoadingInitialReportActionsSelector,
     });
-    const pendingExpenseTransactionRef = useRef<{transaction: Transaction; originRoute: string} | null>(null);
     const cascadeTimerRef = useRef<{timer: ReturnType<typeof setTimeout>; release: () => void} | null>(null);
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID, allReportTransactions);
     const hasNonReimbursableTransactions = hasNonReimbursableTransactionsTransactionUtils(allReportTransactions);
@@ -340,7 +351,7 @@ function MoneyRequestReportPreview({
                         openReportFromPreview();
                         return;
                     }
-                    openReport({reportID: iouReportID, introSelected, betas, currentUserAccountID, hasReportActions: !!iouReportActionCount});
+                    openReport({reportID: iouReportID, introSelected, betas, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
                 }
                 navigateToExpense(childReportID);
                 return;
@@ -348,13 +359,13 @@ function MoneyRequestReportPreview({
 
             if (!isIOUActionLoaded && iouReportID && !isOffline) {
                 pendingExpenseTransactionRef.current = {transaction, originRoute: Navigation.getActiveRoute()};
-                openReport({reportID: iouReportID, introSelected, betas, currentUserAccountID, hasReportActions: !!iouReportActionCount});
+                openReport({reportID: iouReportID, introSelected, betas, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
                 return;
             }
 
             openReportFromPreview();
         },
-        [betas, currentUserAccountID, introSelected, iouReportActionCount, iouReportID, isOffline, navigateToExpense, openReportFromPreview, resolveChildReportID, transactions.length],
+        [betas, currentUserAccountID, hasIOUReportActions, introSelected, iouReportID, isOffline, navigateToExpense, openReportFromPreview, resolveChildReportID, transactions.length],
     );
 
     useEffect(() => {
@@ -375,7 +386,7 @@ function MoneyRequestReportPreview({
         }
         pendingExpenseTransactionRef.current = null;
         openReportFromPreview();
-    }, [iouReportActionCount, isFocused, isLoadingInitialIOUReportActions, navigateToExpense, openReportFromPreview, resolveChildReportID]);
+    }, [pendingPressActionCount, isFocused, isLoadingInitialIOUReportActions, navigateToExpense, openReportFromPreview, resolveChildReportID]);
 
     useEffect(
         () => () => {
