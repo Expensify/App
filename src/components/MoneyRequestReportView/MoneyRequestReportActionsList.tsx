@@ -25,6 +25,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions, isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
@@ -164,10 +165,18 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const linkedReportActionID = route?.params?.reportActionID;
 
+    // Opened from the "X Replies" link: land on the latest message instead of the default top of the report.
+    // The ref holds the report we already scrolled for, not a plain boolean, because this screen instance is reused
+    // when the route switches to another report and the next report must be able to scroll as well.
+    const shouldScrollToLatestOnOpen = route?.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST] === 'true';
+    const scrolledToLatestOnOpenForReportIDRef = useRef<string | undefined>(undefined);
+
     const parentReportAction = useParentReportAction(report);
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], false, reportTransactionIDs);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
@@ -682,7 +691,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         }, 2000);
 
         if (!hasNewestReportAction) {
-            openReport({reportID, introSelected, betas, hasReportActions: true, currentUserAccountID});
+            openReport({reportID, introSelected, conciergeChat, betas, hasReportActions: true, currentUserAccountID});
             scrollToBottom();
             return;
         }
@@ -690,7 +699,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         // Defer marking the report as read until the scroll actually reaches the bottom (handled in onTrackScrolling).
         pendingMarkAsReadRef.current = true;
         scrollToBottom();
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, scrollToBottom, reportID, introSelected, betas, currentUserAccountID]);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, scrollToBottom, reportID, introSelected, conciergeChat, betas, currentUserAccountID]);
 
     useEffect(() => {
         return () => {
@@ -700,6 +709,19 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             clearTimeout(stickToBottomTimeoutRef.current);
         };
     }, []);
+
+    // When the report is opened from the "X Replies" link, scroll to the latest message once the actions are
+    // available (this list otherwise opens at the top). scrollToLatestMessages pins to the bottom while the
+    // deferred content settles, mirroring the floating "new messages" button. We clear the route param afterwards
+    // so a later re-render or remount doesn't yank the user back down.
+    useEffect(() => {
+        if (!shouldScrollToLatestOnOpen || scrolledToLatestOnOpenForReportIDRef.current === reportIDFromRoute || visibleReportActions.length === 0) {
+            return;
+        }
+        scrolledToLatestOnOpenForReportIDRef.current = reportIDFromRoute;
+        scrollToLatestMessages();
+        Navigation.setParams({[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST]: undefined});
+    }, [shouldScrollToLatestOnOpen, visibleReportActions.length, scrollToLatestMessages, reportIDFromRoute]);
 
     const onListContentSizeChange = () => {
         if (!stickToBottomRef.current) {
@@ -738,7 +760,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         return null;
     }
 
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
         report,
         isTrackIntentUser,
@@ -756,7 +778,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                     hasNewMessages={!!unreadMarkerReportActionID}
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToLatestMessages}
-                    isMarkAsDone={shouldUseMarkAsDoneCopy}
+                    shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
                 />
                 {/* Exactly one of these two branches is active at a time:
                     1. showEmptyState — genuinely empty report

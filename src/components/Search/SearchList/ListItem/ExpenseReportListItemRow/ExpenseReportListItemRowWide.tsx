@@ -46,7 +46,7 @@ function ExpenseReportListItemRowWide({
     isFocused = false,
     isPendingDelete = false,
     shouldDisableActionPointerEvents = false,
-    isMarkAsDone,
+    shouldShowMarkAsDoneCopy,
 }: ExpenseReportListItemRowWideProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -118,6 +118,18 @@ function ExpenseReportListItemRowWide({
                     showTooltip
                     isLargeScreenWidth
                 />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.PAID_BY]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.PAID_BY)]}>
+                {!!item.paidByAccountID && (
+                    <UserInfoCell
+                        accountID={item.paidByAccountID}
+                        avatar={item.paidByAvatar}
+                        displayName={item.formattedPaidBy ?? ''}
+                        isLargeScreenWidth
+                    />
+                )}
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: (
@@ -281,7 +293,7 @@ function ExpenseReportListItemRowWide({
                         hash={item.hash}
                         amount={item.total}
                         chatReport={chatReport}
-                        isMarkAsDone={isMarkAsDone}
+                        shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
                         shouldDisablePointerEvents={isPendingDelete || shouldDisableActionPointerEvents}
                     />
                 </ReportSubmitToPopoverMeasurableAnchor>

@@ -7,7 +7,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Card,
     CardList,
-    OnyxInputOrEntry,
     PersonalDetails,
     PersonalDetailsList,
     Policy,
@@ -25,7 +24,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {SetNonNullable} from 'type-fest';
 
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -38,7 +36,7 @@ import {formatList} from './Localize';
 import {getForReportAction} from './ModifiedExpenseMessage';
 import {getIsOffline} from './NetworkState';
 import Parser from './Parser';
-import {getLoginByAccountID, getPersonalDetailsByID, getPersonalDetailsListByIDs, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {getLoginByAccountID, getPersonalDetailsByID, getPersonalDetailsForAccountIDs, getPersonalDetailsListByIDs, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin} from './PolicyUtils';
 import {
     getActionableCard3DSTransactionApprovalMessage,
@@ -203,6 +201,7 @@ import {
     getDisplayNamesWithTooltips,
     getMovedActionMessage,
     getMovedTransactionMessage,
+    parseMovedTransactionReportIDs,
     getParticipantsAccountIDsForDisplay,
     getPolicyChangeLogCopyMessage,
     getPolicyChangeMessage,
@@ -316,45 +315,6 @@ Onyx.connectWithoutView({
         }
     },
 });
-
-/** Single-account lookup without the allocations required by the plural helper. */
-function getPersonalDetailForAccountID(accountID: number, personalDetails: OnyxInputOrEntry<PersonalDetailsList>): PersonalDetails | undefined {
-    const cleanAccountID = Number(accountID);
-    if (!personalDetails || !cleanAccountID) {
-        return undefined;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    const personalDetail: PersonalDetails = personalDetails[accountID] ?? ({} as PersonalDetails);
-
-    if (cleanAccountID === CONST.ACCOUNT_ID.CONCIERGE) {
-        personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
-    }
-
-    personalDetail.accountID = cleanAccountID;
-    return personalDetail;
-}
-
-/**
- * Returns the personal details for an array of accountIDs
- * @returns keys of the object are emails, values are PersonalDetails objects.
- */
-function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, personalDetails: OnyxInputOrEntry<PersonalDetailsList>): SetNonNullable<PersonalDetailsList> {
-    const personalDetailsForAccountIDs: SetNonNullable<PersonalDetailsList> = {};
-    if (!personalDetails) {
-        return personalDetailsForAccountIDs;
-    }
-    if (accountIDs) {
-        for (const accountID of accountIDs) {
-            const personalDetail = getPersonalDetailForAccountID(accountID, personalDetails);
-            if (!personalDetail) {
-                continue;
-            }
-            personalDetailsForAccountIDs[personalDetail.accountID] = personalDetail;
-        }
-    }
-    return personalDetailsForAccountIDs;
-}
 
 function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountID: number, translate: LocalizedTranslate) {
     if (!lastActorDetails) {
@@ -595,7 +555,7 @@ function getLastMessageTextForReport({
             reportOrID: report,
             iouReportAction: lastReportAction,
             shouldConsiderScanningReceiptOrPendingRoute: true,
-            policy: null,
+            policy,
             isForListPreview: true,
         });
         lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(properSchemaForMoneyRequestMessage));
@@ -620,7 +580,10 @@ function getLastMessageTextForReport({
                 iouReportAction: lastIOUMoneyReportAction ?? lastReportAction,
                 shouldConsiderScanningReceiptOrPendingRoute: true,
                 isPreviewMessageForParentChatReport: reportUtilsIsChatReport(report),
-                policy: null,
+                // `policy` is the containing report's policy. A group-policy expense report renders its preview in the
+                // policy expense chat, which is handled by the branch above, so every report that reaches here shares
+                // its policy with `report` (DM/group personal reports have none; invoice rooms share the room's policy).
+                policy,
                 isForListPreview: true,
                 originalReportAction: lastReportAction,
             });
@@ -667,7 +630,15 @@ function getLastMessageTextForReport({
         const properSchemaForModifiedExpenseMessage = Parser.htmlToText(properSchemaForModifiedExpenseMessageWithHTML);
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
-        lastMessageTextFromReport = Parser.htmlToText(getMovedTransactionMessage(translate, lastReportAction, reportAttributesDerived));
+        const {fromReportID, toReportID, displayReportID} = parseMovedTransactionReportIDs(lastReportAction);
+        lastMessageTextFromReport = Parser.htmlToText(
+            getMovedTransactionMessage({
+                translate,
+                fromReportID,
+                toReportID,
+                derivedReportName: displayReportID ? reportAttributesDerived?.[displayReportID]?.reportName : undefined,
+            }),
+        );
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(translate, lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
@@ -733,8 +704,9 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = translate('workspaceActions.removedRule');
     } else if (isActionableAddPaymentCard(lastReportAction)) {
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
-    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
-        lastMessageTextFromReport = getExportIntegrationLastMessageText(translate, lastReportAction);
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
+        const integrationName = getOriginalMessage(lastReportAction)?.label;
+        lastMessageTextFromReport = getExportIntegrationLastMessageText(translate, lastReportAction, integrationName);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
         // RECEIPT_SCAN_FAILED is submitted by Concierge, so use the IOU action to determine edit permission
         const iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
@@ -779,7 +751,14 @@ function getLastMessageTextForReport({
     } else if (isMovedAction(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getMovedActionMessage(translate, lastReportAction, report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        lastMessageTextFromReport = Parser.htmlToText(getUnreportedTransactionMessage(translate, lastReportAction, reportAttributesDerived));
+        const {fromReportID} = parseMovedTransactionReportIDs(lastReportAction);
+        lastMessageTextFromReport = Parser.htmlToText(
+            getUnreportedTransactionMessage({
+                translate,
+                fromReportID,
+                derivedReportName: fromReportID ? reportAttributesDerived?.[fromReportID]?.reportName : undefined,
+            }),
+        );
     } else if (isActionableMentionWhisper(lastReportAction)) {
         const targetAccountIDs = getOriginalMessage(lastReportAction)?.inviteeAccountIDs;
         lastMessageTextFromReport = Parser.htmlToText(getActionableMentionWhisperMessage(translate, lastReportAction, getPersonalDetailsListByIDs(targetAccountIDs, personalDetails)));
@@ -928,7 +907,7 @@ function getLastMessageTextForReport({
                                 reportOrID: report,
                                 iouReportAction: lastReportAction,
                                 shouldConsiderScanningReceiptOrPendingRoute: true,
-                                policy: null,
+                                policy,
                                 isForListPreview: true,
                             }),
                         ),
@@ -1441,7 +1420,14 @@ function getReportAlternateText({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
             alternateText = getPolicyChangeLogDeleteMemberMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-            alternateText = Parser.htmlToText(getUnreportedTransactionMessage(translate, lastAction, reportAttributesDerived));
+            const {fromReportID} = parseMovedTransactionReportIDs(lastAction);
+            alternateText = Parser.htmlToText(
+                getUnreportedTransactionMessage({
+                    translate,
+                    fromReportID,
+                    derivedReportName: fromReportID ? reportAttributesDerived?.[fromReportID]?.reportName : undefined,
+                }),
+            );
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
             alternateText = getReportActionMessageText(lastAction) ?? '';
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION) {
@@ -1525,7 +1511,15 @@ function getReportAlternateText({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
             alternateText = Parser.htmlToText(getUpdatedOwnershipMessage(translate, lastAction, policy));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
-            alternateText = Parser.htmlToText(getMovedTransactionMessage(translate, lastAction, reportAttributesDerived));
+            const {fromReportID, toReportID, displayReportID} = parseMovedTransactionReportIDs(lastAction);
+            alternateText = Parser.htmlToText(
+                getMovedTransactionMessage({
+                    translate,
+                    fromReportID,
+                    toReportID,
+                    derivedReportName: displayReportID ? reportAttributesDerived?.[displayReportID]?.reportName : undefined,
+                }),
+            );
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
             alternateText = Parser.htmlToText(getSettlementAccountLockedMessage(translate, lastAction));
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
@@ -1642,18 +1636,14 @@ function getExpensifyCardFromReportAction({
     );
 }
 
-export type {WelcomeMessage, WelcomeMessageParams, GetReportAlternateTextParams};
 export {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    deprecatedCachedOneTransactionThreadReportIDs,
     getExpensifyCardFromReportAction,
-    getExpenseReportPreviewText,
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
-    getLatestVisibleMoneyRequestAction,
-    getPersonalDetailForAccountID,
-    getPersonalDetailsForAccountIDs,
     getReportAlternateText,
-    getRoomWelcomeMessage,
     getWelcomeMessage,
     shouldShowLastActorDisplayName,
 };

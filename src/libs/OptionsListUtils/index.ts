@@ -18,7 +18,7 @@ import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailOptionsListUtils/types';
-import {getLoginByAccountID, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getLoginByAccountID, getPersonalDetailForAccountID, getPersonalDetailsForAccountIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {
     canSendInvoiceFromWorkspace,
@@ -38,16 +38,7 @@ import {
     isInviteOrRemovedAction,
     isReportActionVisibleAsLastAction,
 } from '@libs/ReportActionsUtils';
-import {
-    getExpensifyCardFromReportAction,
-    getLastActorDisplayName,
-    getLastActorDisplayNameFromLastVisibleActions,
-    getLastMessageTextForReport,
-    getPersonalDetailForAccountID,
-    getPersonalDetailsForAccountIDs,
-    getReportAlternateText,
-    shouldShowLastActorDisplayName,
-} from '@libs/ReportAlternateTextUtils';
+import {getExpensifyCardFromReportAction, getLastMessageTextForReport, getReportAlternateText} from '@libs/ReportAlternateTextUtils';
 import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
@@ -77,6 +68,7 @@ import {
     isOneOnOneChat as reportUtilsIsOneOnOneChat,
     isPolicyExpenseChat as reportUtilsIsPolicyExpenseChat,
     isSelfDM as reportUtilsIsSelfDM,
+    isSystemChat as reportUtilsIsSystemChat,
     isTaskReport as reportUtilsIsTaskReport,
     shouldReportBeInOptionList,
 } from '@libs/ReportUtils';
@@ -398,18 +390,15 @@ function getAlternateText(
  * Searches for a match when provided with a value
  */
 function isSearchStringMatch(searchValue: string, searchText?: string | null, participantNames = new Set<string>(), isReportChatRoom = false): boolean {
-    const searchWords = new Set(searchValue.replaceAll(',', ' ').split(/\s+/));
+    const searchWords = Array.from(new Set(searchValue.replaceAll(',', ' ').split(/\s+/).filter(Boolean)));
     const valueToSearch = searchText?.replaceAll(new RegExp(/&nbsp;/g), '');
-    let matching = true;
     for (const word of searchWords) {
-        // if one of the word is not matching, we don't need to check further
-        if (!matching) {
-            continue;
+        const regex = new RegExp(Str.escapeForRegExp(word), 'i');
+        if (!(regex.test(valueToSearch ?? '') || (!isReportChatRoom && participantNames.has(word)))) {
+            return false;
         }
-        const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
-        matching = matchRegex.test(valueToSearch ?? '') || (!isReportChatRoom && participantNames.has(word));
     }
-    return matching;
+    return true;
 }
 
 type CreateOptionParams = {
@@ -1813,6 +1802,7 @@ function getUserToInviteOption({
         [optimisticAccountID]: {
             accountID: optimisticAccountID,
             login: searchValue,
+            displayName: displayValue,
         },
     };
     const userToInvite = createOption({
@@ -3190,6 +3180,23 @@ function shouldUseBoldText(report: SearchOptionData): boolean {
 }
 
 /**
+ * Whether the LHN option title is rendered as-is instead of the participant display names.
+ */
+function shouldUseFullTitleForOption(option: OptionData): boolean {
+    return (
+        !!option.isChatRoom ||
+        !!option.isPolicyExpenseChat ||
+        !!option.isTaskReport ||
+        !!option.isThread ||
+        !!option.isMoneyRequestReport ||
+        !!option.isInvoiceReport ||
+        !!option.private_isArchived ||
+        reportUtilsIsGroupChat(option) ||
+        reportUtilsIsSystemChat(option)
+    );
+}
+
+/**
  * Process a search string into normalized search terms
  * @param searchString - The raw search string to process
  * @returns Array of normalized search terms
@@ -3220,12 +3227,8 @@ export {
     getHeaderMessage,
     getHeaderMessageForNonUserList,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
-    getLastActorDisplayName,
-    getLastActorDisplayNameFromLastVisibleActions,
-    getLastMessageTextForReport,
     getNoneOption,
     getParticipantsOption,
-    getPersonalDetailsForAccountIDs,
     getPolicyExpenseReportOption,
     getReportDisplayOption,
     getReportOption,
@@ -3245,8 +3248,8 @@ export {
     orderPersonalDetailsOptions,
     orderWorkspaceOptions,
     recentReportComparator,
-    shouldShowLastActorDisplayName,
     shouldUseBoldText,
+    shouldUseFullTitleForOption,
     sortAlphabetically,
     personalDetailsComparator,
     processSearchString,
