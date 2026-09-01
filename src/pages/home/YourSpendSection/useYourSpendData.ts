@@ -435,8 +435,6 @@ function useYourSpendData(): UseYourSpendDataReturn {
         [expensifyCards, thirdPartyCards],
     );
 
-    // Sorted so an unrelated `cardList` reordering can't change the query hash, which
-    // also keys the search-firing effect below.
     const displayableCardIDs = displayableCards.map(({card}) => card.cardID).sort((a, b) => a - b);
 
     const cardGroupQueryJSON = displayableCardIDs.length > 0 ? buildSearchQueryJSON(buildCardGroupQuery(accountID, displayableCardIDs)) : undefined;

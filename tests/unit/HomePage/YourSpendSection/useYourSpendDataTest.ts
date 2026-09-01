@@ -65,7 +65,6 @@ const CARD_QUERY_2 = `type:expense from:${ACCOUNT_ID} cardID:${CARD_ID_2}`;
 const THIRD_PARTY_QUERY_1 = `type:expense from:${ACCOUNT_ID} cardID:${THIRD_PARTY_CARD_ID_1}`;
 const THIRD_PARTY_QUERY_2 = `type:expense from:${ACCOUNT_ID} cardID:${THIRD_PARTY_CARD_ID_2}`;
 
-/** The one query the whole card set costs. Its hash keys the single grouped snapshot. */
 function cardGroupQueryFor(cardIDs: number[]): string {
     return buildCardGroupQuery(
         ACCOUNT_ID,
@@ -75,8 +74,6 @@ function cardGroupQueryFor(cardIDs: number[]): string {
 
 // Module mocks
 
-// `buildCardGroupQuery` is deliberately NOT mocked: the hook test derives the grouped snapshot
-// key from it, so a mocked stand-in could drift from what ships and pass for the wrong reason.
 jest.mock('@pages/home/YourSpendSection/queries', () => ({
     ...jest.requireActual<Record<string, unknown>>('@pages/home/YourSpendSection/queries'),
     buildAwaitingApprovalQuery: jest.fn(),
@@ -194,11 +191,6 @@ function setupPaymentSnapshot(results: SearchResults | undefined) {
 
 type CardGroupFixture = {cardID: number; count: number; total?: number; currency?: string};
 
-/**
- * Seeds the single `group-by:card` snapshot the hook reads. Every listed card counts towards the
- * displayable set (and so towards the query hash), but only cards with `count > 0` get a group —
- * a card with no transactions in the window comes back with no group at all.
- */
 function setupCardGroups(groups: CardGroupFixture[], searchOverrides: Partial<SearchResults['search']> = {}) {
     const hash = buildSearchQueryJSON(cardGroupQueryFor(groups.map((group) => group.cardID)))?.hash;
     const data: SearchResults['data'] = {};
@@ -639,13 +631,6 @@ describe('useYourSpendData — search dispatch', () => {
         );
     });
 });
-
-// third-party card rows
-//
-// These tests exercise the third-party card branch end-to-end via the hook.
-// `getDisplayableThirdPartyCards` and `getDisplayableExpensifyCards` are both mocked,
-// so each test seeds the displayable cards explicitly. Snapshot results are seeded
-// through the same `setupCardGroups` helper used by the Expensify cardRows block.
 
 describe('useYourSpendData — third-party cardRows', () => {
     it('orders Expensify Card rows before third-party card rows when both exist', () => {

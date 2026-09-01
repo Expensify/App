@@ -5,7 +5,6 @@
  * - `from` resolves to the numeric accountID string (not literal '[me]')
  * - `cardID` uses the numeric card ID (not the card name)
  * - Date filter serializes as `date>YYYY-MM-DD` (not `dateAfter:`)
- * - `buildCardGroupQuery` covers the whole card set in one `group-by:card` query
  */
 import {buildAwaitingApprovalQuery, buildCardGroupQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from '@pages/home/YourSpendSection/queries';
 
@@ -216,7 +215,6 @@ describe('buildRecentCardTransactionsQuery', () => {
     });
 });
 
-// buildCardGroupQuery
 
 describe('buildCardGroupQuery', () => {
     const OTHER_CARD_ID = 54321;
