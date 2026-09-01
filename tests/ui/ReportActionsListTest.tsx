@@ -800,6 +800,7 @@ describe('ReportActionsList (body)', () => {
             originalMessage: {},
             childType: CONST.REPORT.TYPE.TASK,
             childReportID: `task-${reportActionID}`,
+            childManagerAccountID: CURRENT_USER_ACCOUNT_ID,
             childStateNum: stateNum,
             childStatusNum: statusNum,
             shouldShow: true,

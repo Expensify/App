@@ -134,14 +134,21 @@ describe('useConciergeSidePanelReportActions (main DM open-task pinning)', () =>
     const SESSION_START = toDBTime(CLIENT_OPEN_MS);
 
     /** Builds the parent action of a task, carrying the child* fields the backend stamps on it. */
-    function buildTaskAction(reportActionID: string, stateNum: ReportAction['childStateNum'], statusNum: ReportAction['childStatusNum']): ReportAction {
+    function buildTaskAction(
+        reportActionID: string,
+        stateNum: ReportAction['childStateNum'],
+        statusNum: ReportAction['childStatusNum'],
+        overrides: Partial<ReportAction> = {},
+    ): ReportAction {
         return buildAction(reportActionID, {
             actorAccountID: CONCIERGE_ACCOUNT_ID,
             created: toDBTime(CLIENT_OPEN_MS - 3_400_000),
             childType: CONST.REPORT.TYPE.TASK,
             childReportID: `task-${reportActionID}`,
+            childManagerAccountID: CURRENT_USER_ACCOUNT_ID,
             childStateNum: stateNum,
             childStatusNum: statusNum,
+            ...overrides,
         });
     }
 
@@ -208,6 +215,35 @@ describe('useConciergeSidePanelReportActions (main DM open-task pinning)', () =>
         expect(visibleIDs).toContain('30');
         expect(visibleIDs).not.toContain('11');
         expect(visibleIDs).not.toContain('12');
+    });
+
+    it('does not pin an open child task assigned to someone else', () => {
+        // Given an open task whose assignee is another account — `hasOutstandingChildTask` never covered these
+        const {result} = renderMainDM(buildTaskAction('30', CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN, {childManagerAccountID: CONCIERGE_ACCOUNT_ID}), false);
+
+        // When the main DM filters the session's actions
+        const visibleIDs = result.current.filteredReportActions.map((action) => action.reportActionID);
+
+        // Then it is ordinary read history: not pinned, and the welcome state still applies.
+        expect(visibleIDs).not.toContain('30');
+        expect(result.current.showConciergeSidePanelWelcome).toBe(true);
+    });
+
+    it('does not pin a canceled task whose parent action is still optimistically OPEN', () => {
+        // Given a canceled task: `deleteTask` marks the parent action deleted but leaves childStateNum/childStatusNum
+        // at OPEN until the server responds, so the state/status pair alone is not enough to trust
+        const canceledTask = buildTaskAction('30', CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN, {
+            message: [{type: 'COMMENT', html: '', text: '', isDeletedParentAction: true}],
+            childVisibleActionCount: 1,
+        });
+        const {result} = renderMainDM(canceledTask, false);
+
+        // When the main DM filters the session's actions
+        const visibleIDs = result.current.filteredReportActions.map((action) => action.reportActionID);
+
+        // Then the canceled task is not pinned and the welcome state still applies.
+        expect(visibleIDs).not.toContain('30');
+        expect(result.current.showConciergeSidePanelWelcome).toBe(true);
     });
 
     it('hides a completed child task along with the rest of the read history', () => {
