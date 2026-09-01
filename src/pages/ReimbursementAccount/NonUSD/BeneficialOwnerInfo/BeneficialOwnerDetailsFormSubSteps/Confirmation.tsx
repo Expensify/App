@@ -178,6 +178,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
             pageTitle={translate('ownershipInfoStep.letsDoubleCheck')}
             summaryItems={summaryItems}
             showOnfidoLinks={false}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }
