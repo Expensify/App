@@ -2460,6 +2460,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         paddingBottom: safeAreaPaddingBottom,
         backgroundColor: theme.appBG,
     }),
+
+    getStyleWithEnvSafeAreaPadding: (style: ViewStyle): ViewStyle => ({
+        ...style,
+        paddingLeft: 'env(safe-area-inset-left)',
+        paddingRight: 'env(safe-area-inset-right)',
+    }),
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;

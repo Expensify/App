@@ -115,9 +115,7 @@ const useRootNavigatorScreenOptions = () => {
             animation: Animations.NONE,
             web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: {kind: 'none'}, applySidePanelOffset: true}),
-                cardStyle: shouldUseNarrowLayout
-                    ? {...StyleUtils.getNavigationModalCardStyle(), paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)'}
-                    : {...themeStyles.h100, width: '100%'},
+                cardStyle: shouldUseNarrowLayout ? StyleUtils.getStyleWithEnvSafeAreaPadding(StyleUtils.getNavigationModalCardStyle()) : {...themeStyles.h100, width: '100%'},
             },
         },
     } satisfies RootNavigatorScreenOptions;

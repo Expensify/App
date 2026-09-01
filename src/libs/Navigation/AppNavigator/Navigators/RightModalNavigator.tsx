@@ -13,6 +13,7 @@ import {
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -173,6 +174,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {windowWidth} = useWindowDimensions();
     const modalStackScreenOptions = useModalStackScreenOptions();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {sidePanelOffset} = useSidePanelState();
 
     // When a fullscreen route is pre-inserted under the RHP, disable the slide-out animation
@@ -220,12 +222,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const searchSaveScreenOptions = useMemo<PlatformStackNavigationOptions>(
         () => ({
             web: {
-                cardStyle: isSmallScreenWidth
-                    ? {...styles.navigationScreenCardStyle, paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)'}
-                    : styles.navigationScreenCardStyle,
+                cardStyle: isSmallScreenWidth ? StyleUtils.getStyleWithEnvSafeAreaPadding(styles.navigationScreenCardStyle) : styles.navigationScreenCardStyle,
             },
         }),
-        [isSmallScreenWidth, styles.navigationScreenCardStyle],
+        [StyleUtils, isSmallScreenWidth, styles.navigationScreenCardStyle],
     );
 
     const overlayPositionLeft = useMemo(() => -1 * calculateSuperWideRHPWidth(windowWidth), [windowWidth]);
