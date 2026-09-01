@@ -2199,6 +2199,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 178,
         },
 
+        domainAlreadyExistsIllustrationStyle: {
+            width: 180,
+            height: 164,
+        },
+
         appContent: {
             backgroundColor: theme.appBG,
             overflow: 'hidden',
@@ -6507,7 +6512,6 @@ const staticStyles = (theme: ThemeColors) =>
         commuterExclusionStaticIllustration: {
             width: 160,
             height: 140,
-            alignSelf: 'center',
         },
         helpStaticIllustration: {
             width: 174,
