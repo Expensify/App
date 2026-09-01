@@ -423,6 +423,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseReport: '报销报告',
         rateOutOfPolicy: '超出政策的费率',
         leaveWorkspace: '离开工作区',
+        leaveWorkspaceTitle: (workspaceName: string) => `要离开 ${workspaceName} 吗？`,
         leaveWorkspaceConfirmation: '如果你离开此工作区，将无法再向其提交报销。',
         leaveWorkspaceConfirmationAuditor: '如果你离开此工作区，将无法查看其报表和设置。',
         leaveWorkspaceConfirmationAdmin: '如果你离开此工作区，将无法管理其设置。',
@@ -4474,6 +4475,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             settlementFrequency: '结算频率',
             setAsDefault: '设为默认工作区',
             defaultNote: `发送到 ${CONST.EMAIL.RECEIPTS} 的收据将显示在此工作区中。`,
+            deleteWorkspaceTitle: (workspaceName: string) => `删除 ${workspaceName}？`,
             deleteConfirmation: '确定要删除此工作区吗？',
             deleteWithCardsConfirmation: '确定要删除此工作区吗？这将移除所有卡片数据源和已分配的卡片。',
             deleteOpenExpensifyCardsError: '您的公司仍在使用 Expensify 卡。请<concierge-link>联系 Concierge</concierge-link>以停用它们。',
@@ -8098,13 +8100,15 @@ ${reportName}`,
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>已连接。${setupLink ? `<a href="${setupLink}">完成设置</a>` : '完成设置'} 用于导入员工。</muted-text-label>`,
                 groups: {title: '群组', description: '选择要与此工作区同步的员工分组'},
-                syncLimitReached: {title: '请明天再试', prompt: '您已达到今日的同步上限。'},
             },
             notSync: '未同步',
             authenticationError: (providerName: string) => `由于连接已过期，无法连接到 ${providerName}。`,
             reconnect: '重新连接',
             reconnectLink: '重新连接。',
             findIntegration: '查找集成',
+        },
+        merge: {
+            syncLimitReached: {title: '请明天再试', prompt: '您已达到今日的同步上限。'},
         },
         emptyDomain: {title: '通过域名提升安全性', subtitle: '要求您域中的成员通过单点登录登录、限制工作区创建等。'},
     },
@@ -8282,10 +8286,10 @@ ${reportName}`,
             return `已将税率“${newValue}（${newTaxPercentage}）”添加到距离费率“${customUnitRateName}”`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
-                return `已将距离费率“${customUnitRateName}”的可退税部分更改为“${newValue}”（之前为“${oldValue}”）`;
+            if (oldValue !== undefined) {
+                return `已将距离费率“${customUnitRateName}”的可退税部分更改为“${newValue}%”（之前为“${oldValue}%”）`;
             }
-            return `已将“${newValue}”的可退税部分添加到距离费率“${customUnitRateName}”中`;
+            return `已将“${newValue}%”的可退税部分添加到距离费率“${customUnitRateName}”中`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `已将 ${customUnitName} 费率名称从“${oldValue}”重命名为“${newValue}”`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
@@ -8944,6 +8948,7 @@ ${reportName}`,
             approved: '已批准',
             firstApprover: '首位审批人',
             firstApproved: '首次批准',
+            paidBy: '付款人',
             paid: '已支付',
             exported: '已导出',
             posted: '已发布',
@@ -10325,6 +10330,7 @@ ${reportName}`,
     domain: {
         notVerified: '未验证',
         retry: '重试',
+        requestSent: '请求已发送',
         verifyDomain: {
             title: '验证域名',
             beforeProceeding: ({domainName}: {domainName: string}) => `在继续之前，请通过更新其 DNS 设置来验证您拥有 <strong>${domainName}</strong>。`,
@@ -10396,6 +10402,14 @@ ${reportName}`,
             subtitle: '输入你想访问的私有域名（例如 expensify.com）。',
             domainName: '域名',
             newDomain: '新域名',
+            alreadyHaveAccessError: '该域名已存在于您的账户中。',
+        },
+        domainAlreadyExists: {
+            headerTitle: '域名已存在',
+            title: '该域名已被设置。要申请访问权限吗？',
+            description: '有人已经在 Expensify 中设置了此域名。要申请管理员权限吗？',
+            requestAccess: '申请管理员权限',
+            requestAccessError: '我们无法发送你的请求。请重试。',
         },
         domainAdded: {
             title: '已添加域名',
@@ -10487,6 +10501,7 @@ ${reportName}`,
             forceTwoFactorAuthError: '无法更改强制启用双重身份验证设置。请稍后再试。',
             resetTwoFactorAuth: '重置双重身份验证',
             error: '无法保存此更改。请重试。',
+            neverMind: '算了',
         },
         groups: {
             title: '群组',
@@ -10494,7 +10509,6 @@ ${reportName}`,
             defaultGroup: '新成员的默认群组',
             defaultGroupPrompt: (currentName: string, newName: string) => `您确定要将 ${newName} 设为默认群组吗？新成员将被邀请加入此群组，而不是之前的默认群组（${currentName}）。`,
             makeDefault: '设为默认',
-            neverMind: '算了',
             createGroupError: '无法创建此群组。请重试。',
             permissions: '群组权限',
             createNewGroupButton: '新建群组',
