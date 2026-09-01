@@ -20,8 +20,11 @@ type UseUnreadMarkerParams = {
     /** The report whose unread marker is being computed */
     reportID: string;
 
-    /** The visible actions (FlatList `data` domain, newest-first) that the marker scan runs over */
+    /** The visible actions (FlatList `data` domain) that the marker scan runs over — newest-first, or oldest-first when `isReversed` */
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
+
+    /** Whether `sortedVisibleReportActions` is oldest-first (non-inverted list, e.g. the money-request report view) */
+    isReversed?: boolean;
 
     /** All sorted actions (the full chain); used to find the earliest-received-while-offline message index */
     sortedReportActions: OnyxTypes.ReportAction[];
@@ -49,6 +52,7 @@ const lastReadTimeSelector = (report: OnyxTypes.Report | undefined) => report?.l
 function useUnreadMarker({
     reportID,
     sortedVisibleReportActions,
+    isReversed = false,
     sortedReportActions,
     oldestUnreadReportActionID,
     isScrolledOverThreshold,
@@ -118,7 +122,7 @@ function useUnreadMarker({
         unreadMarkerTime,
         isScrolledOverThreshold,
         isOffline,
-        isReversed: false,
+        isReversed,
         isAnonymousUser,
         prevUnreadMarkerReportActionID,
         hasWindowFocus: Visibility.hasFocus(),
@@ -135,7 +139,7 @@ function useUnreadMarker({
     // When the user reads a new message as it is received, push unreadMarkerTime down to the
     // latest action's timestamp so new incoming actions display over those new messages instead of
     // sticking to the initial lastReadTime.
-    const mostRecentReportActionCreated = sortedVisibleReportActions.at(0)?.created ?? '';
+    const mostRecentReportActionCreated = sortedVisibleReportActions.at(isReversed ? -1 : 0)?.created ?? '';
     if (!isAnonymousUser && !unreadMarkerReportActionID && mostRecentReportActionCreated > unreadMarkerTime) {
         setUnreadMarkerTime(mostRecentReportActionCreated);
     }
