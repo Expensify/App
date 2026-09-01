@@ -73,6 +73,7 @@ import {
     canEditWriteCapability,
     canFlagReportAction,
     canHoldUnholdReportAction,
+    canInviteMembersToReport,
     canJoinChat,
     canLeaveChat,
     canMergeReports,
@@ -277,6 +278,7 @@ import {
     createGroupChat,
     createInvoiceReport,
     createInvoiceRoom,
+    createIOUReport,
     createPolicyExpenseChat,
     createPolicyExpenseChatTask,
     createPolicyExpenseChatThread,
@@ -291,7 +293,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
-import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type ClosedReportActionMessage = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>['message'];
@@ -12181,6 +12183,96 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('canInviteMembersToReport', () => {
+        const submitterAccountID = 80001;
+        const otherAccountID = 80002;
+        const adminPolicy: Policy = {...createRandomPolicy(80100), role: CONST.POLICY.ROLE.ADMIN};
+        const memberPolicy: Policy = {...createRandomPolicy(80100), role: CONST.POLICY.ROLE.USER};
+        const openExpenseReport: Report = {
+            ...createExpenseReport(80200),
+            ownerAccountID: submitterAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        it('lets any participant of a group chat invite', () => {
+            // Given a group chat, which has no submitter/admin distinction
+            const groupChat = createGroupChat(80201, [submitterAccountID, otherAccountID]);
+
+            // Then a plain participant can invite, and no policy is needed to decide that
+            expect(canInviteMembersToReport(groupChat, undefined, false, otherAccountID)).toBe(true);
+        });
+
+        it('lets the submitter invite on an open expense report', () => {
+            // Given an open expense report owned by the current user on a workspace where they are only a member
+            // Then the submitter can invite
+            expect(canInviteMembersToReport(openExpenseReport, memberPolicy, false, submitterAccountID)).toBe(true);
+        });
+
+        it('lets a policy admin invite on an open expense report they did not submit', () => {
+            // Given an open expense report submitted by somebody else
+            // Then a policy admin can still invite
+            expect(canInviteMembersToReport(openExpenseReport, adminPolicy, false, otherAccountID)).toBe(true);
+        });
+
+        it('blocks a workspace member who is neither the submitter nor a policy admin', () => {
+            // Given an open expense report submitted by somebody else
+            // Then a plain workspace member cannot invite, because invitees gain visibility of every expense on the report
+            expect(canInviteMembersToReport(openExpenseReport, memberPolicy, false, otherAccountID)).toBe(false);
+        });
+
+        it('blocks the submitter once the expense report is no longer open', () => {
+            // Given an expense report the current user submitted that has already been submitted for approval
+            const submittedExpenseReport: Report = {
+                ...openExpenseReport,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            // Then neither the submitter nor a policy admin can invite
+            expect(canInviteMembersToReport(submittedExpenseReport, memberPolicy, false, submitterAccountID)).toBe(false);
+            expect(canInviteMembersToReport(submittedExpenseReport, adminPolicy, false, otherAccountID)).toBe(false);
+        });
+
+        it('blocks inviting on an archived report', () => {
+            // Given an archived group chat and an archived open expense report
+            const groupChat = createGroupChat(80202, [submitterAccountID, otherAccountID]);
+
+            // Then nobody can invite, regardless of report type or role
+            expect(canInviteMembersToReport(groupChat, undefined, true, otherAccountID)).toBe(false);
+            expect(canInviteMembersToReport(openExpenseReport, adminPolicy, true, submitterAccountID)).toBe(false);
+        });
+
+        it('blocks inviting on an IOU report', () => {
+            // Given an open IOU report, i.e. a 1:1 expense that is not owned by a workspace
+            const iouReport: Report = {
+                ...createIOUReport(80203, submitterAccountID, otherAccountID),
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            // Then the submitter cannot invite, because there is no workspace to widen visibility to
+            expect(canInviteMembersToReport(iouReport, undefined, false, submitterAccountID)).toBe(false);
+        });
+
+        it('blocks inviting on report types that have no members to manage', () => {
+            // Given a regular chat and a self DM
+            const regularChat = createRegularChat(80204, [submitterAccountID, otherAccountID]);
+            const selfDM = createSelfDM(80205, submitterAccountID);
+
+            // Then inviting is not offered on either
+            expect(canInviteMembersToReport(regularChat, undefined, false, submitterAccountID)).toBe(false);
+            expect(canInviteMembersToReport(selfDM, undefined, false, submitterAccountID)).toBe(false);
+        });
+
+        it('blocks the submitter while the session account ID has not loaded yet', () => {
+            // Given an open expense report but no resolved current user account ID
+            // Then the submitter check cannot pass, though an admin is still recognized from the policy alone
+            expect(canInviteMembersToReport(openExpenseReport, memberPolicy, false, undefined)).toBe(false);
+            expect(canInviteMembersToReport(openExpenseReport, adminPolicy, false, undefined)).toBe(true);
+        });
+    });
+
     describe('shouldDisableRename', () => {
         it('should return true for archived reports', async () => {
             // Given an archived policy room
@@ -13070,6 +13162,26 @@ describe('ReportUtils', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
 
             expect(canJoinChat(report, undefined, undefined, undefined)).toBe(true);
+        });
+
+        it('should return false if the report is a transaction thread under an invoice report', async () => {
+            const parentInvoiceReport = createInvoiceReport(1);
+            const report: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    ...buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                    },
+                },
+                parentReportID: parentInvoiceReport.reportID,
+                parentReportActionID: '67890',
+            };
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+            expect(canJoinChat(report, undefined, undefined, parentInvoiceReport)).toBe(false);
         });
 
         it('should respect workspace membership for restricted visibility rooms', async () => {
@@ -15389,6 +15501,7 @@ describe('ReportUtils', () => {
                 reportAction: undefined,
                 linkedTransaction: transaction,
                 report: mockTransactionReport,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(result).toBeDefined();
@@ -15410,6 +15523,7 @@ describe('ReportUtils', () => {
                 reportAction: undefined,
                 linkedTransaction: transaction,
                 report: mockTransactionReport,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(result).toBeDefined();
@@ -15427,6 +15541,7 @@ describe('ReportUtils', () => {
                 reportAction,
                 linkedTransaction: undefined,
                 report: mockTransactionReport,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(result).toBe(translateLocal('parentReportAction.reversedTransaction'));
@@ -15443,6 +15558,7 @@ describe('ReportUtils', () => {
                 reportAction,
                 linkedTransaction: undefined,
                 report: mockTransactionReport,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(result).toBe(translateLocal('parentReportAction.deletedExpense'));
@@ -15463,6 +15579,7 @@ describe('ReportUtils', () => {
                 reportAction: undefined,
                 linkedTransaction: transaction,
                 report: mockTransactionReport,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(result).toBeDefined();
@@ -15476,6 +15593,7 @@ describe('ReportUtils', () => {
                 reportAction: undefined,
                 linkedTransaction: undefined,
                 report: mockTransactionReport,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(result).toBe(translateLocal('iou.expense'));
@@ -15491,6 +15609,7 @@ describe('ReportUtils', () => {
                 reportAction,
                 linkedTransaction: undefined,
                 report: mockTransactionReport,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(result).toBe(translateLocal('iou.createExpense'));
@@ -15509,6 +15628,7 @@ describe('ReportUtils', () => {
                 reportAction: undefined,
                 linkedTransaction: transaction,
                 report: mockTransactionReport,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(result).toBe(translateLocal('iou.receiptScanning', {count: 1}));
@@ -15527,6 +15647,7 @@ describe('ReportUtils', () => {
                 reportAction: undefined,
                 linkedTransaction: transaction,
                 report: mockTransactionReport,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(result).toBe(translateLocal('iou.receiptMissingDetails'));
@@ -15549,10 +15670,104 @@ describe('ReportUtils', () => {
                 reportAction: undefined,
                 linkedTransaction: transaction,
                 report: mockTransactionReport,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(result).toContain('Coffee Shop');
             expect(result).toContain('$25.00');
+        });
+
+        test('uses full route values for personal distance expenses with invalid commuter metadata', async () => {
+            const policyID = 'distance-policy';
+            const policyWithDistanceRate: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            rate1: {
+                                customUnitRateID: 'rate1',
+                                currency: CONST.CURRENCY.USD,
+                                rate: 76,
+                            },
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithDistanceRate);
+            await waitForBatchedUpdates();
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 415,
+                modifiedAmount: 415,
+                merchant: '5.46 mi @ $0.76 / mi',
+                modifiedMerchant: '5.46 mi @ $0.76 / mi',
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            };
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                convertToDisplayString,
+                reportAction: undefined,
+                linkedTransaction: transaction,
+                report: {...mockTransactionReport, type: CONST.REPORT.TYPE.CHAT},
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            expect(result).toContain('$4.91');
+            expect(result).toContain('6.46 mi');
+            expect(result).not.toContain('5.46 mi');
+        });
+
+        test('keeps commuter values for policy distance expenses', () => {
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: -415,
+                modifiedAmount: -415,
+                merchant: '5.46 mi @ $0.76 / mi',
+                modifiedMerchant: '5.46 mi @ $0.76 / mi',
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            };
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                convertToDisplayString,
+                reportAction: undefined,
+                linkedTransaction: transaction,
+                report: mockTransactionReport,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            expect(result).toContain('$4.15');
+            expect(result).toContain('5.46 mi');
         });
     });
 
@@ -17400,6 +17615,7 @@ describe('ReportUtils', () => {
 
         expect(optimisticInvoiceReport.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
         expect(optimisticInvoiceReport.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+        expect(optimisticInvoiceReport.transactionCount).toBe(1);
     });
 
     it('should surface a GBR when copiloted into an approver account with a report with outstanding child request', async () => {

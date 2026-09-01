@@ -24,7 +24,8 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {enablePolicyTravel} from '@libs/actions/Policy/Travel';
 import {filterInactiveCards, getAllCardsForWorkspace, getCardSettings, getCompanyFeeds, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import {getConnectedHRProvider, isAnyHRConnected, isGustoConnected, isMergeHRConnected, isZenefitsConnected} from '@libs/HRUtils';
+import {getConnectedHRProvider, isAnyHRConnected, isGustoConnected, isZenefitsConnected} from '@libs/merge/HRUtils';
+import {isMergeConnected} from '@libs/merge/MergeUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -234,7 +235,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             integration = translate('workspace.hr.zenefits.title');
         } else if (isGustoConnected(policy)) {
             integration = translate('workspace.hr.gusto.title');
-        } else if (isMergeHRConnected(policy)) {
+        } else if (isMergeConnected(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR)) {
             integration = getConnectedHRProvider(policy)?.displayName ?? '';
         }
         await showConfirmModal({

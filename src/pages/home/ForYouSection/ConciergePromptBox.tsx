@@ -235,13 +235,17 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                                                         }}
                                                         style={({hovered, pressed}) => [
                                                             styles.composerSizeButton,
-                                                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered && canAddAttachment, pressed && canAddAttachment)),
+                                                            StyleUtils.getButtonBackgroundColorStyle(
+                                                                getButtonState({isActive: hovered && canAddAttachment, isPressed: pressed && canAddAttachment}),
+                                                            ),
                                                         ]}
                                                     >
                                                         {({hovered, pressed}) => (
                                                             <Icon
                                                                 src={icons.Plus}
-                                                                fill={StyleUtils.getIconFillColor(getButtonState(hovered && canAddAttachment, pressed && canAddAttachment))}
+                                                                fill={StyleUtils.getIconFillColor({
+                                                                    buttonState: getButtonState({isActive: hovered && canAddAttachment, isPressed: pressed && canAddAttachment}),
+                                                                })}
                                                             />
                                                         )}
                                                     </PressableWithoutFeedback>
