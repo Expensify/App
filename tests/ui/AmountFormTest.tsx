@@ -14,6 +14,7 @@ import type * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import currencyList from '../unit/currencyList.json';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native', () => ({
@@ -43,6 +44,13 @@ describe('AmountForm', () => {
         Onyx.init({keys: ONYXKEYS});
     });
 
+    beforeEach(async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.CURRENCY_LIST, currencyList);
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
     afterEach(async () => {
         jest.clearAllMocks();
         await act(async () => {
@@ -52,9 +60,9 @@ describe('AmountForm', () => {
 
     describe('displayAsTextInput without a currency button (NumericField path)', () => {
         it('renders the currency symbol, validates with currency decimals, and reports changes', async () => {
-            // Given a text-input AmountForm for USD (2 decimal places by default)
+            // Given a text-input AmountForm for USD (2 decimal places)
             const onInputChange = jest.fn();
-            renderForm({displayAsTextInput: true, value: '10', currency: 'USD', label: 'Amount', onInputChange});
+            const {unmount} = renderForm({displayAsTextInput: true, value: '10', currency: 'USD', label: 'Amount', onInputChange});
             await waitForBatchedUpdatesWithAct();
 
             // Then the value renders with the currency symbol as a prefix and no currency button
@@ -77,6 +85,21 @@ describe('AmountForm', () => {
             // Then the change is rejected
             expect(onInputChange).toHaveBeenCalledTimes(1);
             expect(screen.getByDisplayValue('10.25')).toBeOnTheScreen();
+
+            unmount();
+
+            // Given a text-input AmountForm for JPY (0 decimal places)
+            const onInputChangeJPY = jest.fn();
+            renderForm({displayAsTextInput: true, value: '10', currency: 'JPY', label: 'Amount', onInputChange: onInputChangeJPY});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user enters a decimal value for a zero-decimal currency
+            fireEvent.changeText(screen.getByDisplayValue('10'), '10.5');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the change is rejected
+            expect(onInputChangeJPY).not.toHaveBeenCalled();
+            expect(screen.getByDisplayValue('10')).toBeOnTheScreen();
         });
 
         it('renders the error text and forwards blur', async () => {
