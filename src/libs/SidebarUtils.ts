@@ -32,6 +32,8 @@ import type {ValueOf} from 'type-fest';
 import type {OptionData} from './ReportUtils';
 
 import {isAnonymousUser} from './actions/Session';
+import Log from './Log';
+import {shouldUseFullTitleForOption} from './OptionsListUtils';
 import {getPersonalDetailsForAccountIDs} from './PersonalDetailsUtils';
 import {getIOUReportIDFromReportActionPreview, getReportAction} from './ReportActionsUtils';
 import {getReportAlternateText, getWelcomeMessage} from './ReportAlternateTextUtils';
@@ -95,6 +97,12 @@ const DIGIT_SEQUENCE = /\d+/g;
  * Persists across renders so sort keys are computed at most once per unique display name.
  */
 const sortKeyCache = new Map<string, string>();
+
+/**
+ * Reports already reported by the `[ChatReportLHN]` diagnostic log, so a stuck row is logged once per session
+ * instead of on every LHN recompute.
+ */
+const loggedChatReportIDs = new Set<string>();
 
 /**
  * Builds a normalized sort key for fast string comparison using plain < / > operators.
@@ -887,6 +895,21 @@ function getOptionData({
     }
 
     const reportName = deprecatedGetReportName(report, reportAttributesDerived);
+
+    if (reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
+        loggedChatReportIDs.delete(report.reportID);
+    } else if (!loggedChatReportIDs.has(report.reportID) && shouldUseFullTitleForOption(result)) {
+        const derivedEntry = reportAttributesDerived?.[report.reportID];
+        loggedChatReportIDs.add(report.reportID);
+        Log.info('[ChatReportLHN] Default report name is shown in LHN', false, {
+            reportID: report.reportID,
+            chatType: report.chatType,
+            rawReportName: report.reportName,
+            hasDerivedEntry: !!derivedEntry,
+            derivedReportName: derivedEntry?.reportName,
+            derivedCount: reportAttributesDerived ? Object.keys(reportAttributesDerived).length : 0,
+        });
+    }
 
     result.text = reportName;
     result.subtitle = subtitle;
