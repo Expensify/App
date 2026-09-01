@@ -29,6 +29,9 @@ type UseSearchTagFiltersResult = {
 
     /** Whether the first fetch is still in flight with no results to show yet */
     isInitialLoading: boolean;
+
+    /** The search query of the currently displayed results */
+    searchQuery: string;
 };
 
 /** Logs tag filter request failures; aborted requests are expected when a newer search supersedes them */
@@ -123,7 +126,7 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
 
     const isInitialLoading = isLoading && !hasCompletedSearch;
 
-    return {searchResults, isLoading, hasMore, loadMore, searchTags, isInitialLoading};
+    return {searchResults, isLoading, hasMore, loadMore, searchTags, isInitialLoading, searchQuery};
 }
 
 export default useSearchTagFilters;

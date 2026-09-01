@@ -9,6 +9,8 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
+import type {MultiSelectItem} from './MultiSelect/types';
+
 import MultiSelect from './MultiSelect';
 
 type TagSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
@@ -19,9 +21,14 @@ function TagSelector({value = [], policyID, selectionListTextInputStyle, selecti
     const {translate} = useLocalize();
     // A negated workspace filter cannot be expressed as an inclusion list, so it falls back to searching every workspace
     const policyIDs = policyID?.isNegated ? '' : (policyID?.value ?? []).join(',');
-    const {searchResults, isLoading, hasMore, loadMore, searchTags, isInitialLoading} = useSearchTagFilters(policyIDs);
+    const {searchResults, isLoading, hasMore, loadMore, searchTags, isInitialLoading, searchQuery} = useSearchTagFilters(policyIDs);
 
-    const tagItems = [{text: translate('search.noTag'), value: CONST.SEARCH.TAG_EMPTY_VALUE as string}];
+    const tagItems: Array<MultiSelectItem<string>> = [];
+    const emptyTagItem = {text: translate('search.noTag'), value: CONST.SEARCH.TAG_EMPTY_VALUE as string};
+    // The empty-tag option is client-side only, so it is matched against the applied search query locally
+    if (!searchQuery || emptyTagItem.text.toLowerCase().includes(searchQuery.toLowerCase())) {
+        tagItems.push(emptyTagItem);
+    }
     const seenTagNames = new Set<string>();
 
     // Preserve backend order - new items append at end for infinite scroll
