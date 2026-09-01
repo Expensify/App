@@ -57,7 +57,7 @@
     "knip-changed": "./scripts/knip-changed.sh",
     "shellcheck": "./scripts/shellCheck.sh",
     "spell": "cspell --color **/*",
-    "spell-changed": "cspell --color --no-must-find-files",
+    "spell-changed": "./scripts/spellChanged.sh",
     "fmt": "oxfmt --write .",
     "fmt-watch": "onchange \"**/*.{js,mjs,ts,tsx,yml,yaml}\" -- oxfmt --write {{changed}}",
     "print-version": "echo $npm_package_version",
