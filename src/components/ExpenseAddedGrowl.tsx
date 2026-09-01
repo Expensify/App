@@ -73,6 +73,8 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const reportID = transaction?.reportID;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -131,6 +133,7 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
         } else {
             const optimisticThread = createTransactionThreadReport({
                 introSelected,
+                conciergeChat,
                 currentUserLogin: currentUserPersonalDetails?.login ?? '',
                 currentUserAccountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 betas,
