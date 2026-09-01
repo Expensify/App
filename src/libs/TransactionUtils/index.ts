@@ -202,6 +202,69 @@ function hasAppliedCommuterExclusion(transaction: OnyxEntry<Transaction>): boole
     return isDistanceRequest(transaction) && (transaction?.comment?.customUnit?.commuterExclusion ?? 0) > 0;
 }
 
+function shouldUseCommuterExclusionForDisplay(transaction: OnyxEntry<Transaction>, isPolicyExpenseChat: boolean): boolean {
+    return hasAppliedCommuterExclusion(transaction) && isPolicyExpenseChat;
+}
+
+function getDisplayTransactionWithoutInvalidCommuterExclusion({
+    transaction,
+    isPolicyExpenseChat,
+    policy,
+    policies,
+    translate,
+    getCurrencySymbol,
+}: {
+    transaction: OnyxEntry<Transaction>;
+    isPolicyExpenseChat: boolean;
+    policy?: OnyxEntry<Policy>;
+    policies?: OnyxCollection<Policy>;
+    translate: LocaleContextProps['translate'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+}): OnyxEntry<Transaction> {
+    const hasCommuterExclusion = hasAppliedCommuterExclusion(transaction);
+    if (!transaction || (hasCommuterExclusion && isPolicyExpenseChat)) {
+        return transaction;
+    }
+
+    const customUnit = transaction.comment?.customUnit;
+    const fullDistance = customUnit?.quantity;
+    if (!hasCommuterExclusion || typeof fullDistance !== 'number') {
+        return transaction;
+    }
+
+    const mileageRate = DistanceRequestUtils.getRateByCustomUnitRateIDAcrossPolicies({customUnitRateID: customUnit?.customUnitRateID, policy, policies});
+    const rate = mileageRate?.rate;
+    const unit = customUnit?.distanceUnit ?? mileageRate?.unit;
+    if (!unit || !rate) {
+        return transaction;
+    }
+
+    const fullDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(fullDistance, unit);
+    const fullDistanceAmount = DistanceRequestUtils.getDistanceRequestAmount(fullDistanceInMeters, unit, rate);
+    const storedAmount = hasValidModifiedAmount(transaction) ? Number(transaction.modifiedAmount) : (transaction.amount ?? 0);
+    const normalizedAmount = storedAmount < 0 ? -fullDistanceAmount : fullDistanceAmount;
+    const currency = mileageRate?.currency ?? getCurrency(transaction);
+    const normalizedMerchant = getDistanceMerchantForTransaction({
+        transaction,
+        distanceInMeters: fullDistanceInMeters,
+        unit,
+        rate,
+        currency,
+        translate,
+        getCurrencySymbol,
+    });
+
+    return {
+        ...transaction,
+        amount: normalizedAmount,
+        convertedAmount: undefined,
+        modifiedAmount: undefined,
+        merchant: normalizedMerchant,
+        modifiedMerchant: undefined,
+        currency,
+    };
+}
+
 /**
  * Whether a distance expense's receipt is a map/route receipt (as opposed to an odometer photo or a
  * pure manual entry that has no route). Used to decide whether the full distance e-receipt (map +
@@ -653,6 +716,39 @@ function getClearedPendingFields(transactionChanges: TransactionChanges) {
     };
 }
 
+function getDistanceMerchantForTransaction({
+    transaction,
+    distanceInMeters,
+    unit,
+    rate,
+    currency,
+    translate,
+    getCurrencySymbol,
+    commuterExclusionData,
+}: {
+    transaction: OnyxEntry<Transaction>;
+    distanceInMeters: number;
+    unit: Unit | undefined;
+    rate: number | undefined;
+    currency: string;
+    translate: LocaleContextProps['translate'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    commuterExclusionData?: CommuterExclusionData | null;
+}): string {
+    return DistanceRequestUtils.getDistanceMerchant(
+        true,
+        distanceInMeters,
+        unit,
+        rate,
+        currency,
+        translate,
+        (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+        getCurrencySymbol,
+        isManualDistanceRequest(transaction),
+        commuterExclusionData,
+    );
+}
+
 /**
  * Build the distance merchant string (e.g. "5.00 mi @ $0.70 / mi") for a recalculated distance, using the
  * imperative locale accessors the optimistic update paths below have to rely on.
@@ -666,18 +762,16 @@ function getRecalculatedDistanceMerchant(
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
     commuterExclusionData?: CommuterExclusionData | null,
 ): string {
-    return DistanceRequestUtils.getDistanceMerchant(
-        true,
+    return getDistanceMerchantForTransaction({
+        transaction,
         distanceInMeters,
         unit,
         rate,
         currency,
-        translateLocal,
-        (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+        translate: translateLocal,
         getCurrencySymbol,
-        isManualDistanceRequest(transaction),
         commuterExclusionData,
-    );
+    });
 }
 
 /**
@@ -2457,7 +2551,8 @@ function hasNoticeTypeViolation(
         (violation: TransactionViolation) =>
             violation.type === CONST.VIOLATION_TYPES.NOTICE &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy),
+            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy) &&
+            shouldShowViolation(iouReport, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction),
     );
 }
 
@@ -3633,6 +3728,8 @@ export {
     isManualDistanceRequest,
     isOdometerDistanceRequest,
     hasAppliedCommuterExclusion,
+    shouldUseCommuterExclusionForDisplay,
+    getDisplayTransactionWithoutInvalidCommuterExclusion,
     isDistanceExpenseType,
     isFetchingWaypointsFromServer,
     hasLocallyKnownDistance,

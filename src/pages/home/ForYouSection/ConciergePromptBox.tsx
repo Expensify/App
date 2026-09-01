@@ -242,12 +242,15 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
             </View>
             <View style={styles.pRelative}>
                 <View
+                    testID="ConciergePromptBox"
                     style={[
                         isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
                         styles.flexRow,
                         styles.chatItemComposeBox,
                         isExceedingMaxLength && styles.borderColorDanger,
                     ]}
+                    // Claim taps here so that the ScrollView does not and we don't lose focus on disabled Send button tap
+                    onStartShouldSetResponder={() => true}
                 >
                     <View style={styles.composerButtonColumn}>
                         <View style={styles.composerButtonStack}>
@@ -275,13 +278,17 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
                                                         }}
                                                         style={({hovered, pressed}) => [
                                                             styles.composerSizeButton,
-                                                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered && canAddAttachment, pressed && canAddAttachment)),
+                                                            StyleUtils.getButtonBackgroundColorStyle(
+                                                                getButtonState({isActive: hovered && canAddAttachment, isPressed: pressed && canAddAttachment}),
+                                                            ),
                                                         ]}
                                                     >
                                                         {({hovered, pressed}) => (
                                                             <Icon
                                                                 src={icons.Plus}
-                                                                fill={StyleUtils.getIconFillColor(getButtonState(hovered && canAddAttachment, pressed && canAddAttachment))}
+                                                                fill={StyleUtils.getIconFillColor({
+                                                                    buttonState: getButtonState({isActive: hovered && canAddAttachment, isPressed: pressed && canAddAttachment}),
+                                                                })}
                                                             />
                                                         )}
                                                     </PressableWithoutFeedback>
@@ -393,6 +400,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
                             icon={icons.Send}
                             label={translate('common.send')}
                             onPress={submit}
+                            onMouseDown={(e) => e.preventDefault()}
                         />
                     </View>
                 </View>

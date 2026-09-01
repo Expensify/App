@@ -423,6 +423,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseReport: 'Relatório de despesas',
         rateOutOfPolicy: 'Tarifa fora da política',
         leaveWorkspace: 'Sair do espaço de trabalho',
+        leaveWorkspaceTitle: (workspaceName: string) => `Sair de ${workspaceName}?`,
         leaveWorkspaceConfirmation: 'Se você sair deste workspace, não poderá enviar despesas para ele.',
         leaveWorkspaceConfirmationAuditor: 'Se você sair deste espaço de trabalho, não poderá visualizar seus relatórios e configurações.',
         leaveWorkspaceConfirmationAdmin: 'Se você sair deste workspace, não poderá mais gerenciar as configurações dele.',
@@ -4622,6 +4623,7 @@ ${amount} para ${merchant} - ${date}`,
             settlementFrequency: 'Frequência de liquidação',
             setAsDefault: 'Definir como espaço de trabalho padrão',
             defaultNote: `Recibos enviados para ${CONST.EMAIL.RECEIPTS} aparecerão neste workspace.`,
+            deleteWorkspaceTitle: (workspaceName: string) => `Excluir ${workspaceName}?`,
             deleteConfirmation: 'Tem certeza de que deseja excluir este workspace?',
             deleteWithCardsConfirmation: 'Tem certeza de que deseja excluir este workspace? Isso removerá todos os feeds de cartão e cartões atribuídos.',
             deleteOpenExpensifyCardsError: 'Sua empresa ainda tem Cartões Expensify. Por favor, <concierge-link>fale com o Concierge</concierge-link> para removê-los.',
@@ -8297,6 +8299,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 confirmErrorCategory: 'Selecione uma categoria.',
                 confirmErrorAmount: 'Insira um valor.',
                 thenFlagForReview: 'Então sinalizar para revisão quando:',
+                thenDoTheFollowing: 'Em seguida, faça o seguinte:',
+                flagType: 'Tipo de sinalização',
+                flagTypeWarning: 'Aviso',
+                flagTypeWarningDescription: 'A pessoa que envia será avisada, mas ainda poderá enviar a despesa',
             },
             agentRulesEmptyState: {title: 'Nenhuma regra de agente adicionada', subtitle: 'Crie uma regra para automatizar as políticas do seu workspace.', cta: 'Adicionar regra de IA'},
             categoriesDisabledEmptyState: {title: 'Categorias não estão ativadas', subtitle: 'Ative categorias para ter mais controle sobre seus gastos.'},
@@ -8404,13 +8410,15 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Concluir configuração</a>` : 'Concluir configuração'} para importar funcionários.</muted-text-label>`,
                 groups: {title: 'Grupos', description: 'Escolha os grupos de funcionários que você gostaria de sincronizar com este workspace'},
-                syncLimitReached: {title: 'Tente novamente amanhã', prompt: 'Você atingiu o limite de sincronizações de hoje.'},
             },
             notSync: 'Não sincronizado',
             authenticationError: (providerName: string) => `Não é possível conectar a ${providerName} devido a uma conexão expirada.`,
             reconnect: 'Reconectar',
             reconnectLink: 'Reconectar.',
             findIntegration: 'Encontrar integração',
+        },
+        merge: {
+            syncLimitReached: {title: 'Tente novamente amanhã', prompt: 'Você atingiu o limite de sincronizações de hoje.'},
         },
         emptyDomain: {
             title: 'Aumente sua segurança com domínios',
@@ -8593,10 +8601,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             return `adicionou a alíquota de imposto "${newValue} (${newTaxPercentage})" à tarifa de distância "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
-                return `alterou a parte recuperável de impostos na taxa de distância "${customUnitRateName}" para "${newValue}" (antes "${oldValue}")`;
+            if (oldValue !== undefined) {
+                return `alterou a parte recuperável de impostos na taxa de distância "${customUnitRateName}" para "${newValue}%" (antes "${oldValue}%")`;
             }
-            return `adicionou uma parte recuperável de impostos de "${newValue}" à taxa de distância "${customUnitRateName}"`;
+            return `adicionou uma parte recuperável de impostos de "${newValue}%" à taxa de distância "${customUnitRateName}"`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `renomeou a taxa de ${customUnitName} de "${oldValue}" para "${newValue}"`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
@@ -9282,6 +9290,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             approved: 'Aprovado',
             firstApprover: 'Primeira pessoa aprovadora',
             firstApproved: 'Primeira aprovada',
+            paidBy: 'Pago por',
             paid: 'Pago',
             exported: 'Exportado',
             posted: 'Publicado',
@@ -10700,6 +10709,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
     domain: {
         notVerified: 'Não verificado',
         retry: 'Tentar novamente',
+        requestSent: 'Solicitação enviada',
         verifyDomain: {
             title: 'Verificar domínio',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -10772,6 +10782,14 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             subtitle: 'Insira o nome do domínio privado que você quer acessar (por exemplo, expensify.com).',
             domainName: 'Nome de domínio',
             newDomain: 'Novo domínio',
+            alreadyHaveAccessError: 'Este domínio já existe na sua conta.',
+        },
+        domainAlreadyExists: {
+            headerTitle: 'O domínio já existe',
+            title: 'Domínio já configurado. Solicitar acesso?',
+            description: 'Alguém já configurou este domínio no Expensify. Quer solicitar acesso de administrador?',
+            requestAccess: 'Solicitar acesso de administrador',
+            requestAccessError: 'Não foi possível enviar sua solicitação. Tente novamente.',
         },
         domainAdded: {
             title: 'Domínio adicionado',
@@ -10866,6 +10884,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             forceTwoFactorAuthError: 'Não foi possível alterar a exigência de autenticação em duas etapas. Tente novamente mais tarde.',
             resetTwoFactorAuth: 'Redefinir autenticação de dois fatores',
             error: 'Não foi possível salvar esta alteração. Tente novamente.',
+            neverMind: 'Deixa pra lá',
         },
         groups: {
             title: 'Grupos',
@@ -10874,7 +10893,6 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             defaultGroupPrompt: (currentName: string, newName: string) =>
                 `Tem certeza de que deseja tornar ${newName} o grupo padrão? Novos membros serão convidados para este grupo em vez do grupo padrão anterior (${currentName}). `,
             makeDefault: 'Tornar padrão',
-            neverMind: 'Deixa pra lá',
             createGroupError: 'Não foi possível criar este grupo. Tente novamente.',
             permissions: 'Permissões do grupo',
             createNewGroupButton: 'Novo grupo',
