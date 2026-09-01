@@ -4975,8 +4975,6 @@ describe('getDistanceInMeters', () => {
         expect(TransactionUtils.getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(1000);
     });
 
-    // A saved distance expense has its routes cleared, so `routeDistanceMeters` is the only distance left until the
-    // backend writes `quantity` back. Reporting 0 there blanks the amount on the confirmation page.
     it('falls back to routeDistanceMeters when the routes are gone and the quantity is not written yet', () => {
         const transaction = generateTransaction({
             comment: {customUnit: {quantity: 0, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, routeDistanceMeters: 4680656}},

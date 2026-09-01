@@ -261,14 +261,9 @@ function useParticipantSubmission({
             setMoneyRequestParticipants(initialTransactionID, val);
         }
 
-        // Only an explicit p2p rate is kept on purpose, so the confirmation step can ask the user to pick a valid
-        // workspace rate. Anything else has to be replaced with the destination's rate: the draft is a snapshot of the
-        // tracked expense taken when the move started, so on a fast submit it can carry another workspace's rate ID or
-        // no rate ID at all, and neither resolves on the destination. This is the check
-        // IOURequestStepConfirmation.handleParticipantsAdded already makes when the participant is picked there.
-        // A destination whose rates have not loaded yet is also left alone: getCustomUnitRateID would fall back to the
-        // p2p rate there, which would hide a real workspace rate behind it. Only the default workspace is guaranteed
-        // full customUnits from OpenApp; the rest arrive with the confirmation step.
+        // Keep an explicit p2p rate so the confirmation step can still ask for a workspace rate, and keep whatever we
+        // have while the destination's rates are unloaded, since getCustomUnitRateID falls back to the p2p rate there.
+        // Anything else resolves nowhere on the destination: the draft is a snapshot and can carry no rate at all.
         const destinationRates = DistanceRequestUtils.getMileageRates(policy);
         const shouldKeepTrackExpenseRate = (transaction: OnyxEntry<Transaction>) => {
             const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;

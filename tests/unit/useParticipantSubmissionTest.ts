@@ -41,8 +41,7 @@ jest.mock('@src/utils/keyboard', () => ({
     },
 }));
 
-// `mock`-prefixed so the jest.mock factories below may close over them; each test sets the workspace policy and
-// the draft transaction it needs before calling addParticipant.
+// `mock`-prefixed so the jest.mock factories below may close over them.
 let mockPolicies: OnyxCollection<Policy> = {};
 let mockDraftTransactions: Transaction[] = [];
 
@@ -199,11 +198,6 @@ describe('useParticipantSubmission goToNextStep backTo', () => {
     });
 });
 
-// A distance expense tracked in the self DM is created with the rate of the workspace it was tracked against, so
-// submitting it to a *different* workspace leaves the draft holding a rate ID that workspace doesn't own. The
-// confirmation step then can't resolve a rate: it shows "Pending..." with the picker disabled and back-calculates the
-// amount as |amount| / quantity, which is Infinity while the route is still being generated and quantity is 0.
-
 const WORKSPACE_RATE_ID = 'RATE_DESTINATION';
 const OTHER_WORKSPACE_RATE_ID = 'RATE_SOURCE';
 const DESTINATION_POLICY_ID = 'WS_DESTINATION';
@@ -239,7 +233,7 @@ function buildTrackedDistanceDraft(customUnitRateID: string | undefined): Transa
         amount: 210917,
         currency: CONST.CURRENCY.USD,
         created: '2026-08-14',
-        // quantity is 0 while the map route is still being generated - the window the reported race lands in.
+        // quantity is 0 while the map route is still being generated.
         comment: {customUnit: {customUnitRateID, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, quantity: 0}},
     } as unknown as Transaction;
 }
@@ -267,8 +261,7 @@ describe('useParticipantSubmission addParticipant distance rate', () => {
         expect(jest.mocked(setCustomUnitRateID).mock.calls.at(0)?.at(1)).toBe(WORKSPACE_RATE_ID);
     });
 
-    // The draft is a snapshot of the tracked expense taken when the move started. Submitting before the created
-    // expense is fully written leaves it with no rate ID at all, which resolves nowhere on the destination.
+    // The draft is a snapshot taken when the move started, so submitting early leaves it with no rate ID at all.
     it("selects the destination workspace's rate when the tracked expense draft has no rate ID yet", () => {
         mockDraftTransactions = [buildTrackedDistanceDraft(undefined)];
         const {result} = renderSubmission();
@@ -292,8 +285,7 @@ describe('useParticipantSubmission addParticipant distance rate', () => {
         expect(setCustomUnitRateID).not.toHaveBeenCalled();
     });
 
-    // Only the default workspace is guaranteed full customUnits from OpenApp. Selecting against a workspace whose
-    // rates have not arrived yet would resolve to the p2p sentinel and hide the real rate behind it.
+    // Only the default workspace is guaranteed full customUnits from OpenApp.
     it('leaves the rate alone when the destination workspace has no rates loaded yet', () => {
         mockPolicies = {[`${ONYXKEYS.COLLECTION.POLICY}${DESTINATION_POLICY_ID}`]: {id: DESTINATION_POLICY_ID} as unknown as Policy};
         mockDraftTransactions = [buildTrackedDistanceDraft(OTHER_WORKSPACE_RATE_ID)];
