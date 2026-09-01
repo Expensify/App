@@ -1246,6 +1246,8 @@ const translations: TranslationDeepObject<typeof en> = {
                     : '在开始记录里程之前，您需要在个人资料中添加您的家庭住址。此工作区会使用该地址计算通勤扣除。',
             cta: '添加家庭住址',
         },
+        expenseAdded: '已添加支出',
+        invoiceSent: '已发送发票',
         amount: '金额',
         percent: '百分比',
         date: '日期',

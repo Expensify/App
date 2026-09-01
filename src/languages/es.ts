@@ -1299,6 +1299,8 @@ const translations: TranslationDeepObject<typeof en> = {
                     : 'Antes de registrar distancias, tienes que añadir tu dirección de casa a tu perfil privado. Este espacio de trabajo utiliza esta dirección para las deducciones por desplazamientos al trabajo.',
             cta: 'Añadir dirección de domicilio',
         },
+        expenseAdded: 'Gasto añadido',
+        invoiceSent: 'Factura enviada',
         amount: 'Importe',
         percent: 'Porcentaje',
         date: 'Fecha',

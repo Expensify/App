@@ -68,7 +68,7 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './MoneyRequestBuilder';
-import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 
 function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string) {
     // Index comes from the route params and is a string
@@ -1126,7 +1126,11 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });
 
-    highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+    TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
+
+    if (isFromGlobalCreate) {
+        signalExpenseAddedGrowl(transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+    }
 
     notifyNewAction(notifyReportID ?? chatReport.reportID, undefined, participantParams.payeeAccountID === currentUserAccountIDParam);
 

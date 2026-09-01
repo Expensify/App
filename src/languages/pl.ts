@@ -1329,6 +1329,8 @@ const translations: TranslationDeepObject<typeof en> = {
                     : 'Zanim zaczniesz śledzić dystans, musisz dodać swój adres domowy do prywatnego profilu. To miejsce pracy używa tego adresu do odliczeń dojazdów.',
             cta: 'Dodaj adres domowy',
         },
+        expenseAdded: 'Dodano wydatek',
+        invoiceSent: 'Wysłano fakturę',
         amount: 'Kwota',
         percent: 'Procent',
         date: 'Data',

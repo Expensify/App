@@ -7,7 +7,6 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -186,13 +185,6 @@ function TransactionGroupListItemImpl({
     const StyleUtils = useStyleUtils();
     const {isSelected: liveRowSelected} = useRowSelection(item?.keyForList);
     const isItemSelected = isSelectAllChecked || (liveRowSelected && (isExpenseReportType || transactionsWithoutPendingDelete.length === 0));
-
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG,
-        shouldApplyOtherStyles: false,
-    });
 
     const pressableStyle = [
         styles.transactionGroupListItemStyle,
@@ -530,7 +522,7 @@ function TransactionGroupListItemImpl({
                 onFocus={onFocus}
                 wrapperStyle={[
                     styles.mh5,
-                    animatedHighlightStyle,
+                    StyleUtils.getSearchRowBackgroundStyle(!!isItemSelected),
                     styles.userSelectNone,
                     isLargeScreenWidth
                         ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected), isLastItem && styles.overflowHidden]

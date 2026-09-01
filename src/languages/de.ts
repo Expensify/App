@@ -1302,6 +1302,8 @@ const translations: TranslationDeepObject<typeof en> = {
                     : 'Bevor Sie Entfernungen erfassen, müssen Sie Ihre Privatadresse in Ihrem privaten Profil hinzufügen. Dieser Arbeitsbereich verwendet diese Adresse für Pendlerabzüge.',
             cta: 'Heimatadresse hinzufügen',
         },
+        expenseAdded: 'Ausgabe hinzugefügt',
+        invoiceSent: 'Rechnung gesendet',
         amount: 'Betrag',
         percent: 'Prozent',
         date: 'Datum',
