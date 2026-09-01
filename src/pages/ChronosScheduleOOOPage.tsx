@@ -317,6 +317,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                 <View style={styles.mb4}>
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
+                        style={styles.ph0}
                         title={selectedLeaveTypeItem?.label ?? ''}
                         description={translate('chronos.leaveType')}
                         onPress={() => setIsLeaveTypeModalVisible(true)}
