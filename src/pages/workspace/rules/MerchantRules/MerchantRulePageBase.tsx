@@ -106,8 +106,9 @@ const getCategoryRuleErrorMessage = (translate: LocalizedTranslate, taxID: strin
 };
 
 /**
- * `isRulesRevampEnabled` picks the copy: the revamp offers a category as a second condition, so telling the admin to
- * enter a merchant is only right on the legacy page where a merchant is the only condition there is.
+ * Only ever a merchant rule: a category rule is scoped before this page opens and validates through
+ * `getCategoryRuleErrorMessage`. `isRulesRevampEnabled` picks the copy only because the revamp calls the fields it
+ * applies "defaults" where the legacy page calls them "updates".
  */
 const getErrorMessage = (translate: LocalizedTranslate, isRulesRevampEnabled: boolean, form?: MerchantRuleForm) => {
     const matchingCriteriaFields = new Set<string>([
@@ -281,7 +282,6 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
     };
     const scopedRuleType = getScopedRuleType();
     const isScopedToCategory = scopedRuleType === 'category';
-    const isScopedToMerchant = scopedRuleType === 'merchant';
     const isCategoryRule = hasCategoryCondition || isEditingCategoryTaxRule || isScopedToCategory;
     // Deleting means writing the workspace default rate back, so without one there is nothing to write.
     const canDeleteCategoryTaxRule = isEditingCategoryTaxRule && !!policy?.taxRates?.defaultExternalID;
@@ -476,17 +476,17 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
                     : {
                           key: 'merchantToMatch',
                           description: translate('common.merchant'),
-                          // Exactly one condition is required, so neither row can be marked required on its own.
-                          required: !isRulesRevampEnabled || isScopedToMerchant,
+                          // The rule's only condition, since the type is chosen before this page opens.
+                          required: true,
                           title: form?.merchantToMatch,
                           onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.getRoute(policyID, ruleID)),
                           icon: getItemIcon(icons.Basket),
                       },
-                isRulesRevampEnabled && !isScopedToMerchant
+                isRulesRevampEnabled && isScopedToCategory
                     ? {
                           key: 'categoriesToMatch',
                           description: translate('common.category'),
-                          required: isScopedToCategory,
+                          required: true,
                           title: categoriesToMatchDisplayName,
                           onPress: () => Navigation.navigate(ROUTES.RULES_CATEGORY_TO_MATCH.getRoute(policyID, ruleID, editCategoryTaxRuleFor)),
                           icon: getItemIcon(icons.Folder),
