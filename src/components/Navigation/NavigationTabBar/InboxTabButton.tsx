@@ -8,6 +8,7 @@ import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getIsInboxTabPreloaded} from '@libs/Navigation/inboxTabPreloadState';
 import Navigation, {startOpenReportSpan} from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {isDeletedAction} from '@libs/ReportActionsUtils';
@@ -37,7 +38,7 @@ function startNavigateToInboxTabSpan({isWideLayout}: {isWideLayout: boolean}) {
         name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
         op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
         forceTransaction: true,
-        attributes: {[CONST.TELEMETRY.ATTRIBUTE_WIDE_LAYOUT]: isWideLayout},
+        attributes: {[CONST.TELEMETRY.ATTRIBUTE_WIDE_LAYOUT]: isWideLayout, [CONST.TELEMETRY.ATTRIBUTE_IS_PRELOADED]: getIsInboxTabPreloaded()},
     });
 }
 
