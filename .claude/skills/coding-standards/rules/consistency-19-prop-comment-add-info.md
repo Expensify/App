@@ -45,7 +45,7 @@ type ComponentProps = {
 
 Flag ONLY when ALL of these are true:
 
-- The changed code adds or modifies a `/** ... */` comment on a component prop or an `src/types/onyx/**` property
+- The changed code adds or modifies a `/** ... */` comment on a component prop or an `src/types/onyx/**` property, or changes that property's own name or type while leaving its existing comment untouched
 - The comment says only what the de-camelCased prop name and its type already say (e.g. "Whether X" / "Is X" / "Has X" restating a boolean name, "The `<name>`" or "`<Name>` of/for the `<owner>`", a bare noun phrase equal to the name, or an echo of the type word like "Style", "Callback", "ID")
 - None of a unit, default, boundary condition, null/undefined semantics, ownership, invariant, or distinction from a sibling prop is present in the comment
 
@@ -54,7 +54,8 @@ Flag ONLY when ALL of these are true:
 - The comment names a unit, default value, boundary condition, null/undefined semantics, ownership/lifetime, an invariant, or how the prop differs from another prop (e.g. "Distinct from `containerStyle`, which styles the outer wrapper")
 - The prop is inherited/spread from a shared base type documented elsewhere
 - The file is a test or story
-- The comment is untouched by the change (only newly added or modified comments are in scope)
+- The comment is untouched by the change and the property's own name/type are also untouched (only a newly added/modified comment, or a comment left stale by a change to its property's name or type, is in scope)
 
 **Search Patterns** (hints for reviewers):
 - Newly added/modified `/** ... */` comments directly above a prop in a `...Props` type or an `src/types/onyx/**` property
+- A renamed or retyped prop/property whose existing `/** ... */` comment was left untouched by the change
