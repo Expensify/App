@@ -386,6 +386,40 @@ describe('OnyxUpdatesTest', () => {
         const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
         expect(report).toStrictEqual(reportValue);
     });
+
+    it.each([
+        ['GetMissingOnyxMessages', SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES, {}],
+        ['an incremental ReconnectApp', SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, {updateIDFrom: 10}],
+    ])('applies the catch-up response of %s even when it trails the pending flush watermark', async (_name, command, data) => {
+        // Given the client is caught up to update 10, with a WRITE staged for the deferred flush up to update 500
+        await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+        await waitForBatchedUpdates();
+        await OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 10,
+            lastUpdateID: 500,
+            request: {command: 'AddComment', data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE}},
+            response: {jsonCode: 200, onyxData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}${NumberUtils.rand64()}`, value: {}}]},
+        });
+        await waitForBatchedUpdates();
+        expect(OnyxUpdates.getEffectiveLastUpdateID()).toBe(500);
+
+        // When a catch-up response fills the range after the persisted watermark, below the staged one
+        const reportID = NumberUtils.rand64();
+        await OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 10,
+            lastUpdateID: 250,
+            request: {command, data},
+            response: {jsonCode: 200, onyxData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, value: {reportID}}]},
+        });
+        await waitForBatchedUpdates();
+
+        // Then it is applied instead of discarded for looking old, which is what pinned the watermark and deadlocked the queue
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toStrictEqual({reportID});
+
+        await flushQueue();
+    });
 });
 
 function getOnyxValues<TKey extends OnyxKey>(...keys: TKey[]) {

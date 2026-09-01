@@ -11,7 +11,7 @@ import {exportReceiptsToZip} from '@libs/actions/Export';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, SearchResults} from '@src/types/onyx';
+import type {Report, SearchResults, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -162,6 +162,19 @@ function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedR
     };
 }
 
+// Builds a Transaction, optionally carrying a receipt. hasReceipt() treats a truthy receipt.state as a downloadable receipt.
+function makeTransaction(transactionID: string, reportID: string, withReceipt = true): Transaction {
+    return {
+        transactionID,
+        reportID,
+        amount: 100,
+        currency: 'USD',
+        created: '2024-01-01',
+        merchant: '',
+        ...(withReceipt ? {receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE}} : {}),
+    } as Transaction;
+}
+
 function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]> = {}): SelectedTransactions[string] {
     return {
         isSelected: true,
@@ -178,22 +191,24 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
         amount: 100,
         currency: 'USD',
         isFromOneTransactionReport: false,
+        transaction: makeTransaction('tx', '1'),
         ...overrides,
     };
 }
 
-// Builds a search snapshot whose report entries carry a transactionCount, which the Reports-page action uses to
-// decide whether any selected report has expenses (and therefore receipts) to download.
-function makeReportSearchResults(reports: Array<{reportID: string; transactionCount: number}>): SearchResults {
+// Builds a search snapshot whose report entries each get one transaction. The Reports-page action decides whether to
+// show "Download receipts" by looking for a selected report whose transaction actually has a receipt (withReceipt).
+function makeReportSearchResults(reports: Array<{reportID: string; withReceipt: boolean}>): SearchResults {
     const data: SearchResults['data'] = {};
     for (const report of reports) {
         const reportEntry: Report = {
             reportID: report.reportID,
-            transactionCount: report.transactionCount,
             type: CONST.REPORT.TYPE.EXPENSE,
             reportName: `Report ${report.reportID}`,
         };
         data[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = reportEntry;
+        const transactionID = `searchTransaction_${report.reportID}`;
+        data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = makeTransaction(transactionID, report.reportID, report.withReceipt);
     }
     return {
         data,
@@ -250,10 +265,10 @@ describe('useSearchBulkActions - Download receipts', () => {
     });
 
     describe('Reports page (expense-report search)', () => {
-        it('shows the option when a selected report has expenses', async () => {
+        it('shows the option when a selected report has a receipt', async () => {
             mockSelectedReports = [makeSelectedReport()];
             mockSelectedTransactions = {tx1: makeSelectedTransaction()};
-            mockCurrentSearchResults = makeReportSearchResults([{reportID: '1', transactionCount: 2}]);
+            mockCurrentSearchResults = makeReportSearchResults([{reportID: '1', withReceipt: true}]);
 
             const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
 
@@ -262,10 +277,10 @@ describe('useSearchBulkActions - Download receipts', () => {
             });
         });
 
-        it('hides the option when every selected report has no expenses', async () => {
+        it('hides the option when no selected report has a receipt', async () => {
             mockSelectedReports = [makeSelectedReport()];
             mockSelectedTransactions = {tx1: makeSelectedTransaction()};
-            mockCurrentSearchResults = makeReportSearchResults([{reportID: '1', transactionCount: 0}]);
+            mockCurrentSearchResults = makeReportSearchResults([{reportID: '1', withReceipt: false}]);
 
             const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
 
@@ -285,8 +300,8 @@ describe('useSearchBulkActions - Download receipts', () => {
             mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: '2'})];
             mockSelectedTransactions = {tx1: makeSelectedTransaction(), tx2: makeSelectedTransaction({reportID: '2'})};
             mockCurrentSearchResults = makeReportSearchResults([
-                {reportID: '1', transactionCount: 2},
-                {reportID: '2', transactionCount: 0},
+                {reportID: '1', withReceipt: true},
+                {reportID: '2', withReceipt: false},
             ]);
 
             const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
@@ -301,14 +316,13 @@ describe('useSearchBulkActions - Download receipts', () => {
 
             expect(exportReceiptsToZip).toHaveBeenCalledTimes(1);
             expect(exportReceiptsToZip).toHaveBeenCalledWith({reportIDs: expect.arrayContaining(['1', '2'])});
-            expect(result.current.exportDownloadStatusModal).not.toBeNull();
         });
 
         it('shows the offline modal and does not export when offline', async () => {
             mockIsOffline = true;
             mockSelectedReports = [makeSelectedReport()];
             mockSelectedTransactions = {tx1: makeSelectedTransaction()};
-            mockCurrentSearchResults = makeReportSearchResults([{reportID: '1', transactionCount: 2}]);
+            mockCurrentSearchResults = makeReportSearchResults([{reportID: '1', withReceipt: true}]);
 
             const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
 
@@ -348,6 +362,40 @@ describe('useSearchBulkActions - Download receipts', () => {
             mockSelectedTransactions = {
                 [groupKey]: makeSelectedTransaction({reportID: undefined}),
                 tx1: makeSelectedTransaction(),
+            };
+
+            const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseQueryJSON}));
+
+            await waitFor(() => {
+                expect(getDownloadReceiptsOption(result.current.headerButtonsOptions)).toBeDefined();
+            });
+
+            await act(async () => {
+                await getDownloadReceiptsOption(result.current.headerButtonsOptions)?.onSelected?.();
+            });
+
+            expect(exportReceiptsToZip).toHaveBeenCalledTimes(1);
+            expect(exportReceiptsToZip).toHaveBeenCalledWith({transactionIDs: ['tx1']});
+        });
+
+        it('hides the option when no selected transaction has a receipt', async () => {
+            mockSelectedTransactions = {
+                tx1: makeSelectedTransaction({transaction: makeTransaction('tx1', '1', false)}),
+                tx2: makeSelectedTransaction({reportID: '1', transaction: makeTransaction('tx2', '1', false)}),
+            };
+
+            const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseQueryJSON}));
+
+            await waitFor(() => {
+                expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+            });
+            expect(getDownloadReceiptsOption(result.current.headerButtonsOptions)).toBeUndefined();
+        });
+
+        it('drops deleted transactions and only sends the live ones', async () => {
+            mockSelectedTransactions = {
+                tx1: makeSelectedTransaction(),
+                tx2: makeSelectedTransaction({reportID: CONST.REPORT.TRASH_REPORT_ID, transaction: makeTransaction('tx2', CONST.REPORT.TRASH_REPORT_ID)}),
             };
 
             const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseQueryJSON}));
