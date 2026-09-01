@@ -50,4 +50,8 @@ type TimeFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptSti
 
 type PerDiemFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'receiptOptions' | 'isCompactMode' | 'compactControls' | 'distanceData'>;
 
-export type {MoneyRequestConfirmationListFooterProps, TimeFooterProps, PerDiemFooterProps};
+type DistanceFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'isCompactMode' | 'compactControls'>;
+
+type DistanceOdometerFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'isCompactMode' | 'compactControls'>;
+
+export type {MoneyRequestConfirmationListFooterProps, TimeFooterProps, PerDiemFooterProps, DistanceFooterProps, DistanceOdometerFooterProps};

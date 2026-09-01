@@ -7,6 +7,9 @@ import React from 'react';
 import type {MoneyRequestConfirmationListFooterProps} from './types';
 
 import DefaultFooter from './variants/DefaultFooter';
+import DistanceManualFooter from './variants/DistanceManualFooter';
+import DistanceMapFooter from './variants/DistanceMapFooter';
+import DistanceOdometerFooter from './variants/DistanceOdometerFooter';
 import PerDiemFooter from './variants/PerDiemFooter';
 import TimeFooter from './variants/TimeFooter';
 
@@ -15,7 +18,7 @@ import TimeFooter from './variants/TimeFooter';
  * fall back to `DefaultFooter`, which renders exactly what the single footer component rendered before the split.
  */
 function MoneyRequestConfirmationListFooter(props: MoneyRequestConfirmationListFooterProps) {
-    const {action, isPerDiemRequest, isTimeRequest} = useConfirmationFields();
+    const {action, isPerDiemRequest, isTimeRequest, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} = useConfirmationFields();
 
     if (isPerDiemRequest && action !== CONST.IOU.ACTION.SUBMIT) {
         return <PerDiemFooter {...props} />;
@@ -23,6 +26,18 @@ function MoneyRequestConfirmationListFooter(props: MoneyRequestConfirmationListF
 
     if (isTimeRequest && action === CONST.IOU.ACTION.CREATE) {
         return <TimeFooter {...props} />;
+    }
+
+    if (isDistanceRequest && isManualDistanceRequest) {
+        return <DistanceManualFooter {...props} />;
+    }
+
+    if (isDistanceRequest && isOdometerDistanceRequest) {
+        return <DistanceOdometerFooter {...props} />;
+    }
+
+    if (isDistanceRequest) {
+        return <DistanceMapFooter {...props} />;
     }
 
     return <DefaultFooter {...props} />;

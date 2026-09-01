@@ -1,21 +1,15 @@
 import FormHelpMessage from '@components/FormHelpMessage';
 import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFooter/ConfirmationFieldList';
-import TransactionDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/TransactionDetailsFields';
-import InvoiceSenderSection from '@components/MoneyRequestConfirmationListFooter/sections/InvoiceSenderSection';
+import DistanceDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/TransactionDetailsFields/DistanceDetailsFields';
 import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/sections/ReceiptSection';
-import type {MoneyRequestConfirmationListFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
+import type {DistanceOdometerFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
 import {View} from 'react-native';
 
-/**
- * Fallback footer for expense types that have not been extracted yet. Deleted once the last one has a variant.
- */
-function DefaultFooter({
-    receiptStitchError,
-    isCompactMode,
+function DistanceOdometerFooter({
     policy,
     policyTags,
     selectedParticipants,
@@ -24,22 +18,16 @@ function DefaultFooter({
     requiredFlags,
     visibilityFlags,
     errorState,
-    toggleHandlers,
+    toggleHandlers = {},
     receiptOptions,
-    compactControls,
-}: MoneyRequestConfirmationListFooterProps) {
+    receiptStitchError,
+}: DistanceOdometerFooterProps) {
     const styles = useThemeStyles();
-    const {showMoreFields, setShowMoreFields} = compactControls;
 
     return (
-        <View style={isCompactMode ? styles.flex1 : undefined}>
-            <View>
-                <InvoiceSenderSection selectedParticipants={selectedParticipants} />
-            </View>
-
+        <View>
             <ReceiptSection
                 policy={policy}
-                showMoreFields={showMoreFields}
                 {...receiptOptions}
             />
 
@@ -57,20 +45,18 @@ function DefaultFooter({
                 requiredFlags={requiredFlags}
                 visibilityFlags={visibilityFlags}
                 errorState={errorState}
-                toggleHandlers={toggleHandlers ?? {}}
-                compactState={{isCompactMode, setShowMoreFields}}
+                toggleHandlers={toggleHandlers}
             >
-                <TransactionDetailsFields
+                <DistanceDetailsFields
                     policy={policy}
                     amountDisplay={amountDisplay}
                     distanceData={distanceData}
-                    requiredFlags={requiredFlags}
+                    isDescriptionRequired={requiredFlags.isDescriptionRequired}
                     errorState={errorState}
-                    isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
                 />
             </ConfirmationFieldList>
         </View>
     );
 }
 
-export default DefaultFooter;
+export default DistanceOdometerFooter;
