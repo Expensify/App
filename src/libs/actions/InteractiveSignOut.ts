@@ -29,7 +29,7 @@ type InteractiveSignOutParams = {
     isOffline: boolean;
     isTrackingGPS: boolean;
     showConfirmModal: ShowConfirmModal;
-    /** When true, the user already confirmed sign-out (e.g. from the require-2FA overlay). Skips the fast-path that signs out without prompts. */
+    /** When true, the user already confirmed generic sign-out (e.g. from the require-2FA overlay). Skips the fast-path and duplicate generic offline prompts; GPS and receipt prompts still run. */
     hasConfirmedSignOut?: boolean;
 };
 
@@ -78,7 +78,8 @@ async function signOutInteractively({translate, isOffline, isTrackingGPS, showCo
         }
         await saveReceipts();
     } else {
-        if (shouldWarnBeforeSignOut) {
+        const shouldShowOfflineOrGpsWarning = shouldWarnBeforeSignOut && (!hasConfirmedSignOut || isTrackingGPS);
+        if (shouldShowOfflineOrGpsWarning) {
             const result = await showConfirmModal({
                 title: confirmModalTitle,
                 prompt: confirmModalPrompt,
@@ -126,4 +127,3 @@ function signOutImmediately() {
 }
 
 export {signOutInteractively, signOutImmediately};
-export type {InteractiveSignOutParams};
