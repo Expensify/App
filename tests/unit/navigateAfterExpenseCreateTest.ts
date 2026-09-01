@@ -21,6 +21,7 @@ const mockGetTrackingState = jest.fn<boolean, []>();
 let mockSetPendingSubmitFollowUpAction: jest.MockedFunction<typeof setPendingSubmitFollowUpAction>;
 const mockGetCurrentSearchQueryJSON = jest.fn<ReturnType<typeof getCurrentSearchQueryJSON>, Parameters<typeof getCurrentSearchQueryJSON>>();
 const mockGetReportTransactions = jest.fn<Array<Partial<Transaction>>, [string | undefined]>();
+const mockGetCurrentRoute = jest.fn<{params?: Record<string, unknown>} | undefined, []>();
 
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => () => mockIsReportTopmostSplitNavigator());
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => mockIsSearchTopmostFullScreenRoute());
@@ -65,6 +66,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({
             routes: [],
         })),
         isReady: jest.fn(() => true),
+        current: {
+            getCurrentRoute: () => mockGetCurrentRoute(),
+        },
     },
 }));
 
@@ -84,6 +88,7 @@ describe('navigateAfterExpenseCreate', () => {
         mockGetTrackingState.mockReturnValue(false);
         mockGetCurrentSearchQueryJSON.mockReturnValue(undefined);
         mockGetReportTransactions.mockReturnValue([]);
+        mockGetCurrentRoute.mockReturnValue(undefined);
     });
 
     it('should dismiss to report when not from global create', () => {
@@ -293,6 +298,23 @@ describe('navigateAfterExpenseCreate', () => {
             // Then the expense report opens with the thread RHP stacked on top of it
             expect(Navigation.navigate).toHaveBeenNthCalledWith(1, ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: 'iou-1', backTo: ''}), {forceReplace: false});
             expect(Navigation.navigate).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: 'thread-1', backTo: ''}));
+        });
+
+        it('should open the expense report without the replaced RHP backTo, so deleting the report falls back to its chat', async () => {
+            // Given the user is on the Inbox tab on a wide layout with another report already open in the RHP
+            mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+            mockGetIsNarrowLayout.mockReturnValue(false);
+            mockGetReportTransactions.mockReturnValue([{transactionID: 'txn-1'}, {transactionID: 'txn-2'}]);
+            mockIsReportOpenInRHP.mockReturnValue(true);
+            mockGetCurrentRoute.mockReturnValue({params: {backTo: '/home'}});
+
+            // When they open a newly-created expense
+            navigateToCreatedExpense({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1'});
+            await waitForBatchedUpdates();
+
+            // Then the expense report opens with no backTo instead of inheriting the replaced RHP's origin
+            expect(Navigation.navigate).toHaveBeenNthCalledWith(1, ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: 'iou-1'}), {forceReplace: true});
         });
 
         it('should open the expense report when the user is on the Inbox tab on a wide layout and the report has a single transaction', () => {

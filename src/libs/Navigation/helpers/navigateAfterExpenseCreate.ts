@@ -108,7 +108,7 @@ function navigateToCreatedExpense({threadReportID, transactionID, iouReportID}: 
         return;
     }
     if (iouReportID) {
-        Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}), {forceReplace});
+        Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: forceReplace ? undefined : backTo}), {forceReplace});
 
         // A multi-transaction report opens super wide RHP, so stack the thread RHP on top of it. A single-transaction
         // report collapses to the thread itself, so the navigation above already landed on it.
