@@ -22,6 +22,7 @@ let mockSetPendingSubmitFollowUpAction: jest.MockedFunction<typeof setPendingSub
 const mockGetCurrentSearchQueryJSON = jest.fn<ReturnType<typeof getCurrentSearchQueryJSON>, Parameters<typeof getCurrentSearchQueryJSON>>();
 const mockGetReportTransactions = jest.fn<Array<Partial<Transaction>>, [string | undefined]>();
 const mockGetCurrentRoute = jest.fn<{params?: Record<string, unknown>} | undefined, []>();
+const mockGetFocusedReportId = jest.fn<string | undefined, []>();
 
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => () => mockIsReportTopmostSplitNavigator());
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => mockIsSearchTopmostFullScreenRoute());
@@ -57,6 +58,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     pop: jest.fn(),
     navigate: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
+    getFocusedReportId: () => mockGetFocusedReportId(),
     revealRouteBeforeDismissingModal: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     getIsFullscreenPreInsertedUnderRHP: jest.fn(() => false),
@@ -89,6 +91,7 @@ describe('navigateAfterExpenseCreate', () => {
         mockGetCurrentSearchQueryJSON.mockReturnValue(undefined);
         mockGetReportTransactions.mockReturnValue([]);
         mockGetCurrentRoute.mockReturnValue(undefined);
+        mockGetFocusedReportId.mockReturnValue(undefined);
     });
 
     it('should dismiss to report when not from global create', () => {
@@ -242,6 +245,68 @@ describe('navigateAfterExpenseCreate', () => {
     });
 
     describe('navigateToCreatedExpense', () => {
+        it('should do nothing when the user already has the transaction thread open', async () => {
+            // Given the user opened the expense themselves before pressing "View"
+            mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+            mockGetIsNarrowLayout.mockReturnValue(true);
+            mockGetFocusedReportId.mockReturnValue('thread-1');
+
+            // When they press "View"
+            navigateToCreatedExpense({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1'});
+            await waitForBatchedUpdates();
+
+            // Then no navigation happens, so the report is not pushed a second time
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('should do nothing when the user already has the collapsed expense report open', async () => {
+            // Given the user opened the single-transaction expense report, which renders the thread itself
+            mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+            mockGetIsNarrowLayout.mockReturnValue(true);
+            mockGetReportTransactions.mockReturnValue([{transactionID: 'txn-1'}]);
+            mockGetFocusedReportId.mockReturnValue('iou-1');
+
+            // When they press "View"
+            navigateToCreatedExpense({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1'});
+            await waitForBatchedUpdates();
+
+            // Then no navigation happens, so the same expense is not opened a second time
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('should still navigate when the focused expense report lists several transactions', async () => {
+            // Given the user is on an expense report holding more than one expense, so it shows a list rather than the thread
+            mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+            mockGetIsNarrowLayout.mockReturnValue(true);
+            mockGetReportTransactions.mockReturnValue([{transactionID: 'txn-1'}, {transactionID: 'txn-2'}]);
+            mockGetFocusedReportId.mockReturnValue('iou-1');
+
+            // When they press "View"
+            navigateToCreatedExpense({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1'});
+            await waitForBatchedUpdates();
+
+            // Then the transaction thread still opens, since the list does not show the expense itself
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('thread-1', undefined, undefined, ''), {forceReplace: false});
+        });
+
+        it('should still navigate when the focused report is a different one', async () => {
+            // Given the user is viewing some other report
+            mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+            mockGetIsNarrowLayout.mockReturnValue(true);
+            mockGetFocusedReportId.mockReturnValue('some-other-report');
+
+            // When they press "View"
+            navigateToCreatedExpense({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1'});
+            await waitForBatchedUpdates();
+
+            // Then the transaction thread still opens
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('thread-1', undefined, undefined, ''), {forceReplace: false});
+        });
+
         it('should open the transaction thread in the Spend RHP when the user is on the Spend tab', async () => {
             // Given the user is on the Spend tab
             mockIsReportTopmostSplitNavigator.mockReturnValue(false);

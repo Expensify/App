@@ -89,6 +89,15 @@ type NavigateToCreatedExpenseParams = {
  * switched tabs while the growl was up, so the destination follows wherever they are now.
  */
 function navigateToCreatedExpense({threadReportID, transactionID, iouReportID}: NavigateToCreatedExpenseParams) {
+    // Don't reopen an expense the user is already looking at
+    const hasMultipleReportTransactions = iouReportID
+        ? getReportTransactions(iouReportID).filter((transaction) => transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 1
+        : false;
+    const focusedReportID = Navigation.getFocusedReportId();
+    if (focusedReportID === threadReportID || (!hasMultipleReportTransactions && !!iouReportID && focusedReportID === iouReportID)) {
+        return;
+    }
+
     const openOnInbox = isReportTopmostSplitNavigator() && !isSearchTopmostFullScreenRoute();
 
     // When a report/expense is already open in the RHP the app's convention is to replace it rather than stack a second
@@ -112,8 +121,6 @@ function navigateToCreatedExpense({threadReportID, transactionID, iouReportID}: 
 
         // A multi-transaction report opens super wide RHP, so stack the thread RHP on top of it. A single-transaction
         // report collapses to the thread itself, so the navigation above already landed on it.
-        const hasMultipleReportTransactions =
-            getReportTransactions(iouReportID).filter((transaction) => transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 1;
         if (hasMultipleReportTransactions) {
             // Defer so the thread RHP stacks on top of the expense report navigation above. This is always a
             // push (never a replace) - it stacks on the report we just opened, not on the previously-open one.
