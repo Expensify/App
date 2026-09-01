@@ -218,6 +218,7 @@ import {
     isMoneyRequestAction,
     isMovedAction,
     isOlderReportAction,
+    isPayAction,
     isPendingRemove,
     isReopenedAction,
     isReportActionVisible,
@@ -251,6 +252,7 @@ import {
     getConvertedAmount,
     getCurrency,
     getDescription,
+    getDisplayTransactionWithoutInvalidCommuterExclusion,
     getDistanceInMeters,
     getExchangeRate,
     getFormattedCreated,
@@ -5850,13 +5852,22 @@ function getTransactionReportName({
         return translate('violations.noRoute');
     }
 
+    const isFromExpenseReport = !isEmptyObject(report) && isExpenseReport(report);
+
     if (isSentMoneyReportAction(reportAction)) {
         return getIOUReportActionDisplayMessage(translate, reportAction as ReportAction, convertToDisplayString, undefined, linkedTransaction);
     }
 
-    const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
-    const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
-    const comment = getMerchantOrDescription(linkedTransaction);
+    const displayTransaction = getDisplayTransactionWithoutInvalidCommuterExclusion({
+        transaction: linkedTransaction,
+        isPolicyExpenseChat: isFromExpenseReport,
+        policies: allPolicies,
+        translate,
+    });
+
+    const amount = getTransactionAmount(displayTransaction, isFromExpenseReport, displayTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
+    const formattedAmount = convertToDisplayString(amount, getCurrency(displayTransaction)) ?? '';
+    const comment = getMerchantOrDescription(displayTransaction);
     return translate('iou.threadExpenseReportName', formattedAmount, Parser.htmlToText(comment));
 }
 
@@ -13823,7 +13834,15 @@ function isSearchRelevantReportAction(action: OnyxInputOrEntry<ReportAction>): a
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED) ||
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED) ||
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RETRACTED) ||
-        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED)
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REDEEMED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE) ||
+        isPayAction(action)
     );
 }
 

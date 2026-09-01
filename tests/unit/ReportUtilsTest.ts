@@ -15554,6 +15554,97 @@ describe('ReportUtils', () => {
             expect(result).toContain('Coffee Shop');
             expect(result).toContain('$25.00');
         });
+
+        test('uses full route values for personal distance expenses with invalid commuter metadata', async () => {
+            const policyID = 'distance-policy';
+            const policyWithDistanceRate: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            rate1: {
+                                customUnitRateID: 'rate1',
+                                currency: CONST.CURRENCY.USD,
+                                rate: 76,
+                            },
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithDistanceRate);
+            await waitForBatchedUpdates();
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 415,
+                modifiedAmount: 415,
+                merchant: '5.46 mi @ $0.76 / mi',
+                modifiedMerchant: '5.46 mi @ $0.76 / mi',
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            };
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                convertToDisplayString,
+                reportAction: undefined,
+                linkedTransaction: transaction,
+                report: {...mockTransactionReport, type: CONST.REPORT.TYPE.CHAT},
+            });
+
+            expect(result).toContain('$4.91');
+            expect(result).toContain('6.46 mi');
+            expect(result).not.toContain('5.46 mi');
+        });
+
+        test('keeps commuter values for policy distance expenses', () => {
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: -415,
+                modifiedAmount: -415,
+                merchant: '5.46 mi @ $0.76 / mi',
+                modifiedMerchant: '5.46 mi @ $0.76 / mi',
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            };
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                convertToDisplayString,
+                reportAction: undefined,
+                linkedTransaction: transaction,
+                report: mockTransactionReport,
+            });
+
+            expect(result).toContain('$4.15');
+            expect(result).toContain('5.46 mi');
+        });
     });
 
     describe('buildOptimisticExpenseReport', () => {

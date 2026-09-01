@@ -10709,6 +10709,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
     domain: {
         notVerified: 'Não verificado',
         retry: 'Tentar novamente',
+        requestSent: 'Solicitação enviada',
         verifyDomain: {
             title: 'Verificar domínio',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -10781,6 +10782,14 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             subtitle: 'Insira o nome do domínio privado que você quer acessar (por exemplo, expensify.com).',
             domainName: 'Nome de domínio',
             newDomain: 'Novo domínio',
+            alreadyHaveAccessError: 'Este domínio já existe na sua conta.',
+        },
+        domainAlreadyExists: {
+            headerTitle: 'O domínio já existe',
+            title: 'Domínio já configurado. Solicitar acesso?',
+            description: 'Alguém já configurou este domínio no Expensify. Quer solicitar acesso de administrador?',
+            requestAccess: 'Solicitar acesso de administrador',
+            requestAccessError: 'Não foi possível enviar sua solicitação. Tente novamente.',
         },
         domainAdded: {
             title: 'Domínio adicionado',
@@ -10875,6 +10884,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             forceTwoFactorAuthError: 'Não foi possível alterar a exigência de autenticação em duas etapas. Tente novamente mais tarde.',
             resetTwoFactorAuth: 'Redefinir autenticação de dois fatores',
             error: 'Não foi possível salvar esta alteração. Tente novamente.',
+            neverMind: 'Deixa pra lá',
         },
         groups: {
             title: 'Grupos',
@@ -10883,7 +10893,6 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             defaultGroupPrompt: (currentName: string, newName: string) =>
                 `Tem certeza de que deseja tornar ${newName} o grupo padrão? Novos membros serão convidados para este grupo em vez do grupo padrão anterior (${currentName}). `,
             makeDefault: 'Tornar padrão',
-            neverMind: 'Deixa pra lá',
             createGroupError: 'Não foi possível criar este grupo. Tente novamente.',
             permissions: 'Permissões do grupo',
             createNewGroupButton: 'Novo grupo',
