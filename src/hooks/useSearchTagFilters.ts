@@ -43,8 +43,9 @@ function logRequestFailure(message: string, error: Error) {
  * Hook for managing paginated tag filter search.
  * Handles API calls, pagination state, and Onyx data subscription.
  * Pagination state is persisted in Onyx (RAM-only) to survive component remounts.
+ * Accepts a comma-separated list of policy IDs to scope results to specific workspaces.
  */
-function useSearchTagFilters(): UseSearchTagFiltersResult {
+function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     const [searchResults] = useOnyx(ONYXKEYS.COLLECTION.SEARCH_POLICY_TAGS);
     const [paginationState] = useOnyx(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION);
     const [isLoading, setIsLoading] = useState(false);
@@ -77,7 +78,7 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
         }
         const requestSeq = requestSeqRef.current;
         setIsLoading(true);
-        openSearchTagFiltersPage({searchQuery: currentQuery, cursor: currentCursor, limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE})
+        openSearchTagFiltersPage({searchQuery: currentQuery, cursor: currentCursor, limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE, policyIDs})
             .then(({hasMore: newHasMore, nextCursor: newCursor}) => {
                 setSearchTagFiltersPagination(newHasMore, newCursor, currentQuery);
             })
@@ -101,7 +102,7 @@ function useSearchTagFilters(): UseSearchTagFiltersResult {
         // With cached data the fetch runs silently in the background.
         setIsLoading(!currentHasCachedData);
 
-        openSearchTagFiltersPage({searchQuery: query, cursor: '', limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE}, true)
+        openSearchTagFiltersPage({searchQuery: query, cursor: '', limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE, policyIDs}, true)
             .then(({hasMore: newHasMore, nextCursor: newCursor}) => {
                 setSearchTagFiltersPagination(newHasMore, newCursor, query);
             })

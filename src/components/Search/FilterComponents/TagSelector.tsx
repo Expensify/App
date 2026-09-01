@@ -1,4 +1,4 @@
-import type {SearchFilterCommonProps} from '@components/Search/types';
+import type {Filter, SearchFilterCommonProps} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
 import useSearchTagFilters from '@hooks/useSearchTagFilters';
@@ -11,11 +11,15 @@ import React from 'react';
 
 import MultiSelect from './MultiSelect';
 
-type TagSelectorProps = SearchFilterCommonProps<string[] | undefined>;
+type TagSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
+    policyID: Filter | undefined;
+};
 
-function TagSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TagSelectorProps) {
+function TagSelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TagSelectorProps) {
     const {translate} = useLocalize();
-    const {searchResults, isLoading, hasMore, loadMore, searchTags, isInitialLoading} = useSearchTagFilters();
+    // A negated workspace filter cannot be expressed as an inclusion list, so it falls back to searching every workspace
+    const policyIDs = policyID?.isNegated ? '' : (policyID?.value ?? []).join(',');
+    const {searchResults, isLoading, hasMore, loadMore, searchTags, isInitialLoading} = useSearchTagFilters(policyIDs);
 
     const tagItems = [{text: translate('search.noTag'), value: CONST.SEARCH.TAG_EMPTY_VALUE as string}];
     const seenTagNames = new Set<string>();
