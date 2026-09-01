@@ -19,10 +19,10 @@ MERGE_BASE_SHA_HASH="$(get_merge_base_with_main)"
 readonly MERGE_BASE_SHA_HASH
 
 # Excludes common binary/media file types since spell-checking them is pointless and wasteful
-CHANGED_FILES_OUTPUT="$(get_changed_files "$MERGE_BASE_SHA_HASH" ':!*.png' ':!*.jpg' ':!*.jpeg' ':!*.gif' ':!*.webp' ':!*.svg' ':!*.ico' ':!*.mp4' ':!*.mov' ':!*.zip' ':!*.tar.gz' ':!*.heapsnapshot' ':!*.pdf')"
+CHANGED_FILES_OUTPUT="$(get_changed_files "$MERGE_BASE_SHA_HASH" ':!*.png' ':!*.jpg' ':!*.jpeg' ':!*.gif' ':!*.webp' ':!*.ico' ':!*.mp4' ':!*.mov' ':!*.zip' ':!*.tar.gz' ':!*.heapsnapshot' ':!*.pdf')"
 declare -a ALL_CHANGED_FILES=()
 if [[ -n "$CHANGED_FILES_OUTPUT" ]]; then
-    # Excludes dotfiles (e.g. .eslintrc) since those aren't meant to be spell-checked; does not exclude files nested under dot-directories (e.g. .github/workflows/foo.yml still passes through)
+    # Excludes any path starting with "." (dotfiles and top-level dot-directories like .github/), matching CI's filter. A nested dot-directory, e.g. docs/.hidden/config.ts, is still checked.
     while IFS= read -r file; do
         if [[ "$file" != .* ]]; then
             ALL_CHANGED_FILES+=("$file")

@@ -43,7 +43,7 @@ function title {
 
 # Function to clear the last printed line
 clear_last_line() {
-  echo -ne "\033[1A\033[K"
+  echo -ne "\033[1A\033[K" >&2
 }
 
 # Function to check if Cloudflare WARP is installed and running
@@ -159,12 +159,14 @@ get_changed_files() {
   local base_sha="$1"
   shift
 
-  git -c core.quotepath=false diff --diff-filter=AMR --name-only "$base_sha" -- "$@" || return 1
+  git -c core.quotepath=false -c diff.relative=false diff --diff-filter=AMR --name-only "$base_sha" -- "$@" || return 1
   git -c core.quotepath=false ls-files --full-name --others --exclude-standard -- "$@"
 }
 
-# Function to read lines from standard input into an array using a temporary file.
-# This is a bash 3 polyfill for readarray.
+# Function to read lines from standard input into an array.
+# This is a bash 3 polyfill for readarray. Uses printf -v (not eval) on each
+# line so special shell characters in the input (e.g. from git-derived filenames)
+# aren't executed.
 # Arguments:
 #   $1: Name of the array variable to store the lines
 # Usage:
@@ -172,7 +174,10 @@ get_changed_files() {
 read_lines_into_array() {
   local array_name="$1"
   local line
+  local index
+  eval "index=\${#${array_name}[@]}"
   while IFS= read -r line || [ -n "$line" ]; do
-    eval "$array_name+=(\"$line\")"
+    printf -v "${array_name}[$index]" '%s' "$line"
+    index=$((index + 1))
   done
 }
