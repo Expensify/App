@@ -215,7 +215,6 @@ describe('buildRecentCardTransactionsQuery', () => {
     });
 });
 
-
 describe('buildCardGroupQuery', () => {
     const OTHER_CARD_ID = 54321;
 
