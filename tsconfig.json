@@ -24,7 +24,7 @@
             "tests/*": ["./tests/*"]
         }
     },
-    "include": ["tests", "jest", "__mocks__", "wdyr.ts", "src/types/**/*.d.ts", "src/types/web/**/*.d.ts", "src/types/app/**/*.d.ts"],
+    "include": ["tests", "jest", "__mocks__", "wdyr.ts", "src/**/__mocks__/**/*", "src/types/**/*.d.ts", "src/types/web/**/*.d.ts", "src/types/app/**/*.d.ts"],
     "exclude": [
         "**/node_modules/*",
         "**/dist/*",

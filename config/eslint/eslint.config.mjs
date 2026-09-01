@@ -756,6 +756,16 @@ const config = defineConfig([
     },
 
     {
+        files: ['modules/background-task/src/**/*', 'modules/hybrid-app/src/**/*'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'tsconfig.app.native.json'),
+                projectService: false,
+            },
+        },
+    },
+
+    {
         files: ['scripts/**/*.ts', 'tests/tooling/**/*.ts', 'server/{libs,plugins,stubs}/**/*.{ts,tsx}', 'evals/**/*.ts'],
         languageOptions: {
             parserOptions: {
@@ -828,6 +838,7 @@ const config = defineConfig([
         'src/libs/SearchParser/autocompleteParser.js',
         'help/_scripts/**/*',
         'modules/ExpensifyNitroUtils/nitrogen/**/*',
+        'modules/ExpensifyNitroUtils/src/**/*',
         'Mobile-Expensify/**/*',
         '**/vendor',
         'modules/group-ib-fp/**/*',
