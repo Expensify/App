@@ -339,3 +339,11 @@
 - Upstream PR/issue: https://github.com/react/react-native/pull/57546 (merged as `06eb1fe`)
 - E/App issue: https://github.com/Expensify/App/issues/97127
 - PR introducing patch: https://github.com/Expensify/App/pull/98095
+
+### [react-native+0.86.0+042+fix-unmount-assert-container-view.patch](react-native+0.86.0+042+fix-unmount-assert-container-view.patch)
+
+- Reason: `-[RCTViewComponentView unmountChildComponentView:index:]` asserts `childComponentView.superview == self.currentContainerView`, but `currentContainerView` is not a pure getter. When `_useCustomContainerView` flips it creates or tears down `_containerView` and moves the existing subviews across, so reading it mutates the very hierarchy the assertion is inspecting. The order in which the two operands of `==` are evaluated is unspecified, so `superview` can be read before the migration runs and the check then compares a pre-migration superview against the post-migration container view. The `[childComponentView removeFromSuperview]` immediately afterwards is unaffected, which is why this only ever surfaces as an assertion failure and never as broken rendering. `_useCustomContainerView` is recomputed on every `finalizeUpdates` from `styleWouldClipOverflowInk`, so any view whose style crosses that threshold while it has mounted children is exposed. The patch resolves the container view into a local before the assertions read `superview`.
+- Symptom: `SIGABRT`, `NSInternalInconsistencyException: Attempt to unmount a view which is mounted inside a different view.` The reported `existing parent` tag equals the parent's own tag, which is the tell that the child really is inside the parent, just not inside the parent's container view. `RCTAssert` compiles out where `NS_BLOCK_ASSERTIONS` is set, so only builds that keep assertions on abort here.
+- Upstream PR/issue: This should ideally be fixed upstream, but no PR has been filed yet.
+- E/App issue: [#100008](https://github.com/Expensify/App/issues/100008) [#98970](https://github.com/Expensify/App/issues/98970) — first seen while bulk-duplicating reports on iOS, but not specific to that flow and it reproduces on `main`
+- PR introducing patch: TBD

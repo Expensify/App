@@ -1,0 +1,43 @@
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
+index 22c6a3c..eeaa8ff 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
+@@ -175,6 +175,12 @@ static BOOL RCTLayerTransformCollapsesAxis(CALayer *layer)
+   if (_removeClippedSubviews) {
+     [_reactSubviews removeObjectAtIndex:index];
+   } else {
++    // `currentContainerView` is not a pure getter: it moves the existing subviews across whenever the custom
++    // container view is created or torn down. Resolve it once, before `superview` is read, so every assertion below
++    // compares state from the same side of that migration. Left as `self.currentContainerView` the `==` operands may
++    // be evaluated in either order, and a pre-migration `superview` then gets compared against the post-migration
++    // container view.
++    UIView *containerView = self.currentContainerView;
+     RCTAssert(
+         childComponentView.superview != nil,
+         @"Attempt to unmount a view which is not mounted. (parent: %@, child: %@, index: %@)",
+@@ -182,21 +188,20 @@ static BOOL RCTLayerTransformCollapsesAxis(CALayer *layer)
+         childComponentView,
+         @(index));
+     RCTAssert(
+-        childComponentView.superview == self.currentContainerView,
++        childComponentView.superview == containerView,
+         @"Attempt to unmount a view which is mounted inside a different view. (parent: %@, child: %@, index: %@, existing parent: %@)",
+         self,
+         childComponentView,
+         @(index),
+         @([childComponentView.superview tag]));
+     RCTAssert(
+-        (self.currentContainerView.subviews.count > index) &&
+-            [self.currentContainerView.subviews objectAtIndex:index] == childComponentView,
++        (containerView.subviews.count > index) && [containerView.subviews objectAtIndex:index] == childComponentView,
+         @"Attempt to unmount a view which has a different index. (parent: %@, child: %@, index: %@, actual index: %@, tag at index: %@)",
+         self,
+         childComponentView,
+         @(index),
+-        @([self.currentContainerView.subviews indexOfObject:childComponentView]),
+-        @([[self.currentContainerView.subviews objectAtIndex:index] tag]));
++        @([containerView.subviews indexOfObject:childComponentView]),
++        @([[containerView.subviews objectAtIndex:index] tag]));
+   }
+ 
+   [childComponentView removeFromSuperview];
