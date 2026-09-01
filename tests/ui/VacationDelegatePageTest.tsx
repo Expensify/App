@@ -22,6 +22,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -130,5 +131,29 @@ describe('VacationDelegatePage', () => {
             expect.objectContaining({vacationDelegateEmail: DELEGATE_A_EMAIL}),
             expect.anything(),
         );
+    });
+
+    it('rolls back the optimistic delegate instead of leaving a stuck pending row when the request rejects', async () => {
+        // Simulates a transport failure (e.g. connection dropped after the tap), which rejects rather than resolving with a jsonCode.
+        apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.reject(new Error('Failed to fetch')));
+        // jest.mock's factory functions (unlike jest.spyOn) are not reset by jest.restoreAllMocks() in afterEach, so call counts otherwise leak across tests in this file.
+        jest.mocked(Navigation.goBack).mockClear();
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByTestId('select-delegate-a'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+        const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+        expect(vacationDelegate?.pendingAction).toBeFalsy();
+        expect(vacationDelegate?.delegate).toBeFalsy();
+        expect(vacationDelegate?.errors).toBeFalsy();
+
+        // A second tap must not be ignored as "still pending" once the failed request has settled.
+        fireEvent.press(screen.getByTestId('select-delegate-a'));
+        await waitForBatchedUpdatesWithAct();
+        expect(apiSideEffectSpy).toHaveBeenCalledTimes(2);
     });
 });

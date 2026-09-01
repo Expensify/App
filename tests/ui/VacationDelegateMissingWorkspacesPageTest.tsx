@@ -7,6 +7,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -56,14 +57,14 @@ function renderPage() {
     );
 }
 
-async function seedVacationDelegate(policyDiff?: VacationDelegatePolicyDiff) {
-    const timestamp = 123;
+async function seedVacationDelegate(policyDiff?: VacationDelegatePolicyDiff, delegate: string = DELEGATE_EMAIL) {
+    // The real 305 policy-diff-warning response never writes NVP errors (see VacationDelegate.ts), so this
+    // page is only ever reached with errors already null.
     await act(async () => {
         await Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
             creator: CREATOR_EMAIL,
-            delegate: DELEGATE_EMAIL,
+            delegate,
             previousDelegate: PREVIOUS_DELEGATE_EMAIL,
-            errors: {[timestamp]: "Vacation delegate is not part of all of vacationer's policies."},
             policyDiff,
         });
     });
@@ -140,6 +141,16 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
         expect(apiWriteSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, expect.anything(), expect.anything());
     });
 
+    it('formats an SMS delegate login as a phone number in the intro copy instead of the raw @expensify.sms address', async () => {
+        const smsDelegate = `+15005550006${CONST.SMS.DOMAIN}`;
+        await seedVacationDelegate({adminPolicies: [], nonAdminPolicies: [MEMBER_POLICY_ID]}, smsDelegate);
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText(smsDelegate)).not.toBeOnTheScreen();
+        expect(screen.getByText(formatPhoneNumber(smsDelegate))).toBeOnTheScreen();
+    });
+
     it('shows only the admin-of section and Invite/Skip buttons when the delegate is admin of all, and Skip sends no invites', async () => {
         await seedVacationDelegate({adminPolicies: [ADMIN_POLICY_ID], nonAdminPolicies: []});
         renderPage();
@@ -194,6 +205,21 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
         );
     });
 
+    it('disables Invite and never sends AddMembersToWorkspace when an admin policy has not loaded', async () => {
+        const UNAVAILABLE_POLICY_ID = 'unavailablePolicy';
+        await seedVacationDelegate({adminPolicies: [ADMIN_POLICY_ID, UNAVAILABLE_POLICY_ID], nonAdminPolicies: []});
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText(TestHelper.translateLocal('workspace.common.unavailable'))).toBeOnTheScreen();
+
+        fireEvent.press(screen.getByRole('button', {name: TestHelper.translateLocal('common.invite')}));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(apiWriteSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, expect.anything(), expect.anything());
+        expect(apiWriteSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.SET_VACATION_DELEGATE, expect.anything(), expect.anything());
+    });
+
     it('shows both sections, member-of before admin-of, for a mixed diff', async () => {
         await seedVacationDelegate({adminPolicies: [ADMIN_POLICY_ID], nonAdminPolicies: [MEMBER_POLICY_ID]});
         renderPage();
@@ -205,7 +231,7 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
         expect(screen.getByRole('button', {name: TestHelper.translateLocal('common.skip')})).toBeOnTheScreen();
     });
 
-    it('clears the error and policyDiff, and restores the previous delegate, on unmount without pressing a button', async () => {
+    it('clears the policyDiff and restores the previous delegate, on unmount without pressing a button', async () => {
         await seedVacationDelegate({adminPolicies: [], nonAdminPolicies: [MEMBER_POLICY_ID]});
         const {unmount} = renderPage();
         await waitForBatchedUpdatesWithAct();
@@ -215,7 +241,6 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
 
         const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
         expect(vacationDelegate?.delegate).toBe(PREVIOUS_DELEGATE_EMAIL);
-        expect(vacationDelegate?.errors).toBeFalsy();
         expect(vacationDelegate?.policyDiff).toBeFalsy();
     });
 

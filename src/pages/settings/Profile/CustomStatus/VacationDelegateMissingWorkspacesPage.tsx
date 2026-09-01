@@ -9,7 +9,6 @@ import Section from '@components/Section';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -25,12 +24,13 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {policyExpenseChatReportsSelector} from '@src/selectors/Report';
 import type {VacationDelegatePolicyDiff} from '@src/types/onyx';
 
+import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
-/** Everything this screen renders from */
 type ScreenInput = {
     delegate: string;
     policyDiff: VacationDelegatePolicyDiff;
@@ -39,7 +39,6 @@ type ScreenInput = {
 function VacationDelegateMissingWorkspacesPage() {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUser = {
         accountID: currentUserPersonalDetails.accountID,
@@ -51,8 +50,10 @@ function VacationDelegateMissingWorkspacesPage() {
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatReportsSelector});
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+        selector: (reportActions) => getAllPolicyExpenseChatReportActions(allReports, reportActions),
+    });
 
     const vacationDelegateRef = useRef(vacationDelegate);
     useEffect(() => {
@@ -89,6 +90,7 @@ function VacationDelegateMissingWorkspacesPage() {
     const adminPolicies = policyDiff?.adminPolicies ?? [];
     const nonAdminPolicies = policyDiff?.nonAdminPolicies ?? [];
     const canInvite = adminPolicies.length > 0;
+    const hasUnresolvedAdminPolicy = adminPolicies.some((policyID) => !policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.id);
 
     if (!policyDiff) {
         return <NotFoundPage />;
@@ -111,6 +113,10 @@ function VacationDelegateMissingWorkspacesPage() {
     };
 
     const submit = (shouldSkipPolicyInviteEmails: boolean) => {
+        if (isSubmittingRef.current) {
+            return;
+        }
+
         isSubmittingRef.current = true;
         setSubmittedInput({delegate, policyDiff});
         setVacationDelegate({creator, delegate, currentDelegate: previousDelegate, shouldOverridePolicyDiffWarning: true, shouldSkipPolicyInviteEmails});
@@ -118,12 +124,15 @@ function VacationDelegateMissingWorkspacesPage() {
     };
 
     const invite = () => {
+        if (isSubmittingRef.current || hasUnresolvedAdminPolicy) {
+            return;
+        }
+
         // The delegate may have been picked from the selector without existing in personal details yet, so fall back to an optimistic accountID.
         const [delegateAccountID] = getAccountIDsByLogins([delegate]);
         const invitedEmailsToAccountIDs = {[delegate]: delegateAccountID};
         const {newAccountIDs, newLogins} = getNewAccountIDsAndLogins(invitedEmailsToAccountIDs, allPersonalDetails);
         const personalDetailsOnyxData = getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
-        const reportActionsList = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
 
         for (const policyID of adminPolicies) {
             const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
@@ -135,7 +144,7 @@ function VacationDelegateMissingWorkspacesPage() {
                 Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false)),
                 CONST.POLICY.ROLE.USER,
                 currentUser,
-                reportActionsList,
+                allReportActions,
             );
         }
 
@@ -143,13 +152,15 @@ function VacationDelegateMissingWorkspacesPage() {
         submit(false);
     };
 
+    // Format SMS delegates as phone numbers rather than raw @expensify.sms logins, and escape the result since this copy is rendered as HTML.
+    const escapedDelegate = Str.htmlEncode(formatPhoneNumber(delegate));
     let introCopy: string;
     if (!canInvite) {
-        introCopy = translate('statusPage.vacationDelegate.notAMemberAdminsWillBeAsked', delegate);
+        introCopy = translate('statusPage.vacationDelegate.notAMemberAdminsWillBeAsked', escapedDelegate);
     } else if (nonAdminPolicies.length > 0) {
-        introCopy = translate('statusPage.vacationDelegate.notAMemberMixed', delegate);
+        introCopy = translate('statusPage.vacationDelegate.notAMemberMixed', escapedDelegate);
     } else {
-        introCopy = translate('statusPage.vacationDelegate.notAMemberInviteThemNow', delegate);
+        introCopy = translate('statusPage.vacationDelegate.notAMemberInviteThemNow', escapedDelegate);
     }
 
     const policySections = (
@@ -193,37 +204,36 @@ function VacationDelegateMissingWorkspacesPage() {
                     </View>
                     {policySections}
                 </ScrollView>
-            </FullPageOfflineBlockingView>
-            <FixedFooter addBottomSafeAreaPadding>
-                {canInvite ? (
-                    <>
+                <FixedFooter addBottomSafeAreaPadding>
+                    {canInvite ? (
+                        <>
+                            <Button
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                size={CONST.BUTTON_SIZE.LARGE}
+                                isDisabled={hasUnresolvedAdminPolicy}
+                                onPress={invite}
+                            >
+                                <Button.Text>{translate('common.invite')}</Button.Text>
+                            </Button>
+                            <Button
+                                size={CONST.BUTTON_SIZE.LARGE}
+                                style={styles.mt3}
+                                onPress={() => submit(true)}
+                            >
+                                <Button.Text>{translate('common.skip')}</Button.Text>
+                            </Button>
+                        </>
+                    ) : (
                         <Button
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             size={CONST.BUTTON_SIZE.LARGE}
-                            isDisabled={isOffline}
-                            onPress={invite}
+                            onPress={() => submit(false)}
                         >
-                            <Button.Text>{translate('common.invite')}</Button.Text>
+                            <Button.Text>{translate('common.confirm')}</Button.Text>
                         </Button>
-                        <Button
-                            size={CONST.BUTTON_SIZE.LARGE}
-                            style={styles.mt3}
-                            onPress={() => submit(true)}
-                        >
-                            <Button.Text>{translate('common.skip')}</Button.Text>
-                        </Button>
-                    </>
-                ) : (
-                    <Button
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        isDisabled={isOffline}
-                        onPress={() => submit(false)}
-                    >
-                        <Button.Text>{translate('common.confirm')}</Button.Text>
-                    </Button>
-                )}
-            </FixedFooter>
+                    )}
+                </FixedFooter>
+            </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }

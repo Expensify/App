@@ -50,6 +50,7 @@ function VacationDelegatePage() {
                 isSelectingRef.current = true;
                 deleteVacationDelegate(vacationDelegate);
                 Navigation.goBack(ROUTES.SETTINGS_STATUS);
+                isSelectingRef.current = false;
                 return;
             }
 
@@ -69,6 +70,7 @@ function VacationDelegatePage() {
 
                     Navigation.goBack(ROUTES.SETTINGS_STATUS);
                 })
+                .catch(() => showErrorModal())
                 .finally(() => {
                     isSelectingRef.current = false;
                 });

@@ -24,7 +24,7 @@ import {
     setTwoFactorAuthExemptEmailForDomain,
     updateDomainSecurityGroup,
 } from '@libs/actions/Domain';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import {generateAccountID} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
@@ -417,7 +417,7 @@ describe('actions/Domain', () => {
 
     describe('setDomainVacationDelegate', () => {
         it('sends SET_VACATION_DELEGATE request with ADD pending action when no existing delegate', () => {
-            const apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const domainMemberAccountID = 456;
             const creator = 'admin@test.com';
@@ -428,8 +428,8 @@ describe('actions/Domain', () => {
 
             setDomainVacationDelegate(domainAccountID, domainMemberAccountID, creator, vacationer, delegate);
 
-            expect(apiSideEffectSpy).toHaveBeenCalledWith(
-                SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE,
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_VACATION_DELEGATE,
                 {creator, vacationerEmail: vacationer, vacationDelegateEmail: delegate, overridePolicyDiffWarning: true, domainAccountID},
                 {
                     optimisticData: expect.arrayContaining([
@@ -474,11 +474,11 @@ describe('actions/Domain', () => {
                 },
             );
 
-            apiSideEffectSpy.mockRestore();
+            apiWriteSpy.mockRestore();
         });
 
         it('uses UPDATE pending action when existing delegate is present', () => {
-            const apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const domainMemberAccountID = 456;
             const creator = 'admin@test.com';
@@ -488,8 +488,8 @@ describe('actions/Domain', () => {
 
             setDomainVacationDelegate(domainAccountID, domainMemberAccountID, creator, vacationer, delegate, existingVacationDelegate);
 
-            expect(apiSideEffectSpy).toHaveBeenCalledWith(
-                SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE,
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_VACATION_DELEGATE,
                 expect.any(Object),
                 expect.objectContaining({
                     optimisticData: expect.arrayContaining([
@@ -501,7 +501,7 @@ describe('actions/Domain', () => {
                 }),
             );
 
-            apiSideEffectSpy.mockRestore();
+            apiWriteSpy.mockRestore();
         });
     });
 
