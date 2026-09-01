@@ -24,10 +24,12 @@ import TooltipSense from './TooltipSense';
  * The generic tooltip implementation, exposing the tooltip's state
  * while leaving the tooltip's target bounds computation to its parent.
  */
+const defaultTooltipMaxWidth = variables.sideBarWidth - 2 * variables.uploadViewMargin;
+
 function GenericTooltip({
     children,
     numberOfLines = CONST.TOOLTIP_MAX_LINES,
-    maxWidth = variables.sideBarWidth - 2 * variables.uploadViewMargin,
+    maxWidth = defaultTooltipMaxWidth,
     minWidth,
     text = '',
     renderTooltipContent,

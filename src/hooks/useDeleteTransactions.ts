@@ -222,7 +222,9 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                         !isExpenseSplit && !!originalTransactionID && isSplitChildTransaction(transaction) && !originalTransaction?.comment?.splits && isIOUReport(transactionCurrentReport);
 
                     if ((isExpenseSplit || isMovedExpenseSplitChild) && originalTransactionID) {
-                        acc.splitTransactionsByOriginalTransactionID[originalTransactionID] ??= [];
+                        if (acc.splitTransactionsByOriginalTransactionID[originalTransactionID] == null) {
+                            acc.splitTransactionsByOriginalTransactionID[originalTransactionID] = [];
+                        }
                         acc.splitTransactionsByOriginalTransactionID[originalTransactionID].push(item);
                     } else {
                         acc.nonSplitTransactions.push(item);

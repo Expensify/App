@@ -83,9 +83,8 @@ function DebugTransactionViolationCreatePage({
             } catch (e) {
                 const {cause, message} = e as SyntaxError;
                 setError(cause ? translate(message as TranslationPaths, cause as never) : message);
-            } finally {
-                setDraftTransactionViolation(updatedJSON);
             }
+            setDraftTransactionViolation(updatedJSON);
         },
         [translate],
     );

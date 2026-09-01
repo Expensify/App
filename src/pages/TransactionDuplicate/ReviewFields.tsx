@@ -44,13 +44,17 @@ function ReviewFields<K extends keyof ReviewDuplicates>({stepNames, label, optio
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    let falsyCount = 0;
+    const noneText = translate('violations.none');
+    let seenNone = false;
     const filteredOptions = options?.filter((name) => {
-        if (name.text !== translate('violations.none')) {
+        if (name.text !== noneText) {
             return true;
         }
-        falsyCount++;
-        return falsyCount <= 1;
+        if (seenNone) {
+            return false;
+        }
+        seenNone = true;
+        return true;
     });
 
     const optionRows = useMemo(
