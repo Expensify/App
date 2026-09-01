@@ -192,7 +192,8 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
                 }
 
                 // Settled off the write promise, so the handover doesn't depend on push() still being
-                // reached synchronously inside write(). Holding a moment longer is safe; opening early isn't.
+                // reached synchronously inside write(). Holding the gate a moment longer is safe. Opening
+                // it early is not.
                 write(command, apiCommandParameters, onyxData).then(resolve, reject).finally(settleReadGateClaim);
 
                 // Isolated so a throwing side effect can't be mistaken for a failed write.

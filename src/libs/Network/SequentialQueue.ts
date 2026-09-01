@@ -839,7 +839,8 @@ function getCurrentRequest(): Promise<void> {
 async function waitForIdle(): Promise<unknown> {
     while (deferredWriteClaims > 0 && !isOfflineNetwork()) {
         Log.info('[SequentialQueue] READ is waiting on a deferred write', false, {claims: deferredWriteClaims});
-        // Wake on a network change too, so going offline releases READs and coming back re-parks them.
+        // The waits are deliberately sequential, not parallel. Each one re-checks the claim count and the
+        // network, so going offline releases READs and coming back re-parks them.
         // eslint-disable-next-line no-await-in-loop
         await Promise.race([deferredWritesLanded, whenNetworkStateChanges()]);
     }
