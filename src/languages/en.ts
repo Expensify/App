@@ -9780,6 +9780,7 @@ const translations = {
         time: 'Time (use 24-hour format)',
         durationAmount: 'Duration',
         durationUnit: 'Unit',
+        leaveType: 'Leave type',
         reason: 'Reason',
         workingPercentage: 'Working percentage',
         dateRequired: 'Start date is required.',

@@ -9675,6 +9675,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         time: 'Heure (format 24 heures)',
         durationAmount: 'Durée',
         durationUnit: 'Unité',
+        leaveType: 'Type de congé',
         reason: 'Raison',
         workingPercentage: 'Pourcentage de travail',
         dateRequired: 'La date de début est obligatoire.',
