@@ -257,6 +257,7 @@ describe('InitialSettingsPage - agent account', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {
                 id: '1',
                 name: 'Boulder Development',
+                areDistanceRatesEnabled: true,
                 commuterExclusions: {method: 'homeAndOffice'},
             });
         });
