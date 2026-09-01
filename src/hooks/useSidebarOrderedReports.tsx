@@ -102,10 +102,8 @@ function SidebarOrderedReportsContextProvider({
     const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const reportsDraftsUpdates = useCollectionDelta(reportsDrafts);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    // The derived value collapses the personal details list down to the guide accountIDs. Each recompute
-    // broadcasts a new array, but useOnyx only hands us a new reference when the set actually differs
-    // (shallowEqual against the previous value, which holds because the IDs are emitted sorted). That makes a
-    // reference comparison enough to detect late guide hydration.
+    // useOnyx only gives us a new reference when the guide set actually differs, so comparing references
+    // below is enough to detect late guide hydration.
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
     const prevGuideAccountIDs = usePrevious(guideAccountIDs);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
