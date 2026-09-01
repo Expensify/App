@@ -3,6 +3,7 @@ import {render} from '@testing-library/react-native';
 import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
+import type * as ReportUtils from '@libs/ReportUtils';
 
 import DynamicReportDetailsExportPage from '@pages/inbox/report/DynamicReportDetailsExportPage';
 import type {ExportType} from '@pages/inbox/report/DynamicReportDetailsExportPage';
@@ -57,7 +58,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 // The report is already exported, which is the state that used to trigger the "export again" confirmation for
 // BOTH export options on this page.
 jest.mock('@libs/ReportUtils', () => ({
-    ...jest.requireActual<typeof import('@libs/ReportUtils')>('@libs/ReportUtils'),
+    ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
     canBeExported: () => true,
     isExported: () => true,
     getIntegrationIcon: () => undefined,

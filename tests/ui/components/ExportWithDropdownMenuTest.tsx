@@ -4,6 +4,7 @@ import type {DropdownOption, ReportExportType} from '@components/ButtonWithDropd
 import ExportWithDropdownMenu from '@components/ReportActionItem/ExportWithDropdownMenu';
 
 import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
+import type * as ReportUtils from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
@@ -48,7 +49,7 @@ jest.mock('@libs/actions/Policy/Policy', () => ({savePreferredExportMethod: jest
 // The report is already exported, which is the state that used to trigger the "export again" confirmation for
 // BOTH dropdown options.
 jest.mock('@libs/ReportUtils', () => ({
-    ...jest.requireActual<typeof import('@libs/ReportUtils')>('@libs/ReportUtils'),
+    ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
     canBeExported: () => true,
     isExported: () => true,
     getIntegrationIcon: () => undefined,
