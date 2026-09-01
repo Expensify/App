@@ -76,4 +76,3 @@ function useMerchantRuleRoute(dynamicSuffix: DynamicRouteSuffix, policyID: strin
 }
 
 export default useMerchantRuleRoute;
-export type {MerchantRuleRoute};
