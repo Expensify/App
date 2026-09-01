@@ -304,9 +304,9 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/travel/upgrade/workspace/confirmation?backTo=/home')).toBe('/travel/travel-upgrade/workspace-confirmation?backTo=/home');
     });
 
-    it('redirects old travel verify account path to dynamic route', () => {
-        expect(getMatchingNewRoute('/travel/verify-account')).toBe('/travel/travel-verify-account');
-        expect(getMatchingNewRoute('/travel/verify-account?policyID=123')).toBe('/travel/travel-verify-account?policyID=123');
+    it('does not redirect the travel verify account path, which is now the generic verify-account suffix on My Trips', () => {
+        expect(getMatchingNewRoute('/travel/verify-account')).toBe(undefined);
+        expect(getMatchingNewRoute('/travel/verify-account?policyID=123')).toBe(undefined);
     });
 
     it('redirects legacy new task flat routes to the new nested dynamic routes', () => {

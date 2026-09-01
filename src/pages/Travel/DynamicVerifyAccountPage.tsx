@@ -2,7 +2,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
-import {requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
+import {setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import getTravelAcceptTermsRoute from '@libs/getTravelAcceptTermsRoute';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 
@@ -41,7 +41,6 @@ function DynamicVerifyAccountPage({route}: DynamicVerifyAccountPageProps) {
         <VerifyAccountPageBase
             navigateBackTo={backPath}
             navigateForwardTo={navigateForwardTo}
-            onValidationSuccess={!isTravelVerifiedBetaEnabled ? requestTravelAccess : undefined}
         />
     );
 }

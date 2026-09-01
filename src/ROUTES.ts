@@ -4005,13 +4005,6 @@ const ROUTES = {
 
         getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/upgrade/workspace/confirmation`, backTo),
     },
-    TRAVEL_VERIFY_ACCOUNT: {
-        // Deliberately NOT `travel/${VERIFY_ACCOUNT}`: that URL would parse as the MY_TRIPS screen plus the
-        // VERIFY_ACCOUNT dynamic suffix (MY_TRIPS is one of its entry screens), hijacking this static route.
-        route: 'travel/verify',
-
-        getRoute: (domain?: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(getUrlWithParams('travel/verify', {domain, policyID}), backTo),
-    },
     TRAVEL_ENABLE: {
         route: 'travel/enable/:policyID/:subPage?/:action?',
         getRoute: (policyID: string, subPage?: string, action?: 'edit') => {
