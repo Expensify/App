@@ -11,7 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isMouseDownOnCopyableText, useCopyableTextRowPress} from '@libs/SelectionScraper';
+import {isPressStartOnCopyableText, useCopyableTextRowPress} from '@libs/SelectionScraper';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 
 import variables from '@styles/variables';
@@ -90,7 +90,7 @@ export default function TableRow({
         tableListMetadata,
         dynamicGridTemplateColumns,
     } = useTableContext();
-    const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
+    const {handleCopyableTextRowPress, markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowLongPress} = useCopyableTextRowPress();
     const semanticRowID = useTableRowSemanticID();
     const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.shouldRenderStickyHeader;
     const isAccessibilityHidden = semanticRowID === null || ariaHidden === true;
@@ -212,29 +212,34 @@ export default function TableRow({
     };
 
     const handleRowPress = (event?: GestureResponderEvent | KeyboardEvent | undefined) => {
-        if (shouldSuppressCopyableTextRowPress(shouldAllowTextSelection, {shouldSuppressOnMouseDown: true})) {
-            return;
-        }
+        handleCopyableTextRowPress(
+            () => {
+                if (isDisabled || !interactive) {
+                    return;
+                }
 
-        if (isDisabled || !interactive) {
-            return;
-        }
+                if (!selectionUsesNarrowLayout || !isMobileSelectionEnabled || !selectionEnabled) {
+                    onPress?.(event);
+                    return;
+                }
 
-        if (!selectionUsesNarrowLayout || !isMobileSelectionEnabled || !selectionEnabled) {
-            onPress?.(event);
-            return;
-        }
+                if (item.disabled) {
+                    return;
+                }
 
-        if (item.disabled) {
-            return;
-        }
-
-        if (!item.isSelectionDisabled) {
-            handleCheckboxPress(event);
-        }
+                if (!item.isSelectionDisabled) {
+                    handleCheckboxPress(event);
+                }
+            },
+            {shouldCheck: shouldAllowTextSelection, shouldDelayMousePress: true},
+        );
     };
 
     const handleRowLongPress = () => {
+        if (shouldSuppressCopyableTextRowLongPress(shouldAllowTextSelection)) {
+            return;
+        }
+
         if (isDisabled || item.disabled || !selectionEnabled || isMobileSelectionEnabled || !shouldEnableMobileSelectionLongPress || !interactive || item.isSelectionDisabled) {
             return;
         }
@@ -263,9 +268,8 @@ export default function TableRow({
                 {...getRowAccessibilityProps(isTableSemanticsEnabled, rowIndex, false, semanticTableHasHeader)}
                 onMouseDown={(e) => {
                     const target = e?.target;
-                    // Reserve direct copyable-text interactions for native selection while preserving normal presses outside the text.
-                    const isCopyableTextMouseDown = shouldAllowTextSelection && isMouseDownOnCopyableText(e);
-                    const isCopyableTarget = markMouseDownOnCopyableText(target, isCopyableTextMouseDown);
+                    const isCopyableTextMouseDown = shouldAllowTextSelection && isPressStartOnCopyableText(e);
+                    const isCopyableTarget = markMouseDownOnCopyableText(target, isCopyableTextMouseDown, {shouldSuppressNextPress: e.detail > 1});
 
                     if (isCopyableTarget) {
                         return;
@@ -286,6 +290,10 @@ export default function TableRow({
                     }
 
                     e.preventDefault();
+                }}
+                onTouchStart={(e) => {
+                    const isCopyableTextTouchStart = shouldAllowTextSelection && isPressStartOnCopyableText(e);
+                    markTouchStartOnCopyableText(e, isCopyableTextTouchStart);
                 }}
                 onPress={(event) => handleRowPress(event)}
                 onLongPress={handleRowLongPress}

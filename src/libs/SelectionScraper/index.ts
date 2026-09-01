@@ -6,7 +6,7 @@ import render from 'dom-serializer';
 import {DataNode, Element} from 'domhandler';
 import {Str} from 'expensify-common';
 import {parseDocument} from 'htmlparser2';
-import {useRef} from 'react';
+import {useEffect, useRef} from 'react';
 
 import type GetCurrentSelection from './types';
 
@@ -18,9 +18,16 @@ const COPYABLE_TEXT_SELECTOR = `[data-${CONST.COPYABLE_TEXT_ELEMENT}=true]`;
 const COPYABLE_TEXT_DATA_SET = {[CONST.COPYABLE_TEXT_ELEMENT]: true} as const;
 const COPYABLE_ROW_SELECTOR = `[data-${CONST.COPYABLE_ROW_ELEMENT}=true]`;
 const COPYABLE_ROW_DATA_SET = {[CONST.COPYABLE_ROW_ELEMENT]: true} as const;
+// Accommodate slower browser double-click intervals while keeping single-click navigation responsive.
+const COPYABLE_TEXT_SINGLE_PRESS_DELAY_MS = 500;
 
-type SuppressCopyableTextRowPressOptions = {
-    shouldSuppressOnMouseDown?: boolean;
+type MarkCopyableTextMouseDownOptions = {
+    shouldSuppressNextPress?: boolean;
+};
+
+type HandleCopyableTextRowPressOptions = {
+    shouldCheck?: boolean;
+    shouldDelayMousePress?: boolean;
 };
 
 function getCopyableTextElement(target: EventTarget | Node | null | undefined): HTMLElement | null {
@@ -47,13 +54,33 @@ function isCopyableTextTarget(target: EventTarget | null | undefined): boolean {
     return !!getCopyableTextElement(target);
 }
 
-function getMouseEventPosition(event: unknown): {clientX: number; clientY: number} | null {
+function getTouchPosition(touches: unknown): {clientX: number; clientY: number} | null {
+    if (typeof touches !== 'object' || touches === null || !('0' in touches)) {
+        return null;
+    }
+
+    const touch = touches[0];
+    if (typeof touch !== 'object' || touch === null || !('clientX' in touch) || !('clientY' in touch) || typeof touch.clientX !== 'number' || typeof touch.clientY !== 'number') {
+        return null;
+    }
+
+    return {clientX: touch.clientX, clientY: touch.clientY};
+}
+
+function getPressStartPosition(event: unknown): {clientX: number; clientY: number} | null {
     if (typeof event !== 'object' || event === null) {
         return null;
     }
 
     if ('clientX' in event && 'clientY' in event && typeof event.clientX === 'number' && typeof event.clientY === 'number') {
         return {clientX: event.clientX, clientY: event.clientY};
+    }
+
+    if ('touches' in event) {
+        const touchPosition = getTouchPosition(event.touches);
+        if (touchPosition) {
+            return touchPosition;
+        }
     }
 
     if (!('nativeEvent' in event) || typeof event.nativeEvent !== 'object' || event.nativeEvent === null) {
@@ -65,10 +92,14 @@ function getMouseEventPosition(event: unknown): {clientX: number; clientY: numbe
         return {clientX: nativeEvent.clientX, clientY: nativeEvent.clientY};
     }
 
+    if ('touches' in nativeEvent) {
+        return getTouchPosition(nativeEvent.touches);
+    }
+
     return null;
 }
 
-function getMouseEventTarget(event: unknown): EventTarget | null {
+function getPressStartTarget(event: unknown): EventTarget | null {
     if (typeof EventTarget === 'undefined' || typeof event !== 'object' || event === null || !('target' in event) || !(event.target instanceof EventTarget)) {
         return null;
     }
@@ -76,9 +107,9 @@ function getMouseEventTarget(event: unknown): EventTarget | null {
     return event.target;
 }
 
-function isMouseDownOnCopyableText(event: unknown): boolean {
-    const position = getMouseEventPosition(event);
-    const copyableElement = getCopyableTextElement(getMouseEventTarget(event));
+function isPressStartOnCopyableText(event: unknown): boolean {
+    const position = getPressStartPosition(event);
+    const copyableElement = getCopyableTextElement(getPressStartTarget(event));
     if (!position || !copyableElement || typeof document === 'undefined' || typeof NodeFilter === 'undefined') {
         return false;
     }
@@ -126,26 +157,79 @@ function shouldSuppressCopyableTextPress(didMouseDownStartOnCopyableText: boolea
 
 function useCopyableTextRowPress() {
     const wasMouseDownOnCopyableTextRef = useRef(false);
+    const wasTouchStartOnCopyableTextRef = useRef(false);
+    const shouldSuppressNextPressRef = useRef(false);
+    const pendingCopyableTextPressRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const markMouseDownOnCopyableText = (target: EventTarget | null | undefined, shouldCheck = true): boolean => {
+    const clearPendingCopyableTextPress = () => {
+        if (!pendingCopyableTextPressRef.current) {
+            return;
+        }
+
+        clearTimeout(pendingCopyableTextPressRef.current);
+        pendingCopyableTextPressRef.current = null;
+    };
+
+    useEffect(() => clearPendingCopyableTextPress, []);
+
+    const markMouseDownOnCopyableText = (target: EventTarget | null | undefined, shouldCheck = true, {shouldSuppressNextPress = false}: MarkCopyableTextMouseDownOptions = {}): boolean => {
+        clearPendingCopyableTextPress();
         const isCopyableTarget = shouldCheck && isCopyableTextTarget(target);
         wasMouseDownOnCopyableTextRef.current = isCopyableTarget;
+        shouldSuppressNextPressRef.current = isCopyableTarget && shouldSuppressNextPress;
         return isCopyableTarget;
     };
 
-    const shouldSuppressCopyableTextRowPress = (shouldCheck = true, {shouldSuppressOnMouseDown = false}: SuppressCopyableTextRowPressOptions = {}): boolean => {
-        const shouldSuppressPress =
-            shouldCheck && wasMouseDownOnCopyableTextRef.current && (shouldSuppressOnMouseDown || shouldSuppressCopyableTextPress(wasMouseDownOnCopyableTextRef.current));
+    const markTouchStartOnCopyableText = (event: unknown, shouldCheck = true): boolean => {
+        clearPendingCopyableTextPress();
+        const isCopyableTarget = shouldCheck && isCopyableTextTarget(getPressStartTarget(event));
         wasMouseDownOnCopyableTextRef.current = false;
+        wasTouchStartOnCopyableTextRef.current = isCopyableTarget;
+        shouldSuppressNextPressRef.current = false;
+        return isCopyableTarget;
+    };
+
+    const shouldSuppressCopyableTextRowPress = (shouldCheck = true): boolean => {
+        const didPressStartOnCopyableText = wasMouseDownOnCopyableTextRef.current || wasTouchStartOnCopyableTextRef.current;
+        const shouldSuppressPress = shouldCheck && (shouldSuppressNextPressRef.current || shouldSuppressCopyableTextPress(didPressStartOnCopyableText));
+        wasMouseDownOnCopyableTextRef.current = false;
+        wasTouchStartOnCopyableTextRef.current = false;
+        shouldSuppressNextPressRef.current = false;
         return shouldSuppressPress;
+    };
+
+    const shouldSuppressCopyableTextRowLongPress = (shouldCheck = true): boolean => {
+        const shouldSuppressLongPress = shouldCheck && wasTouchStartOnCopyableTextRef.current;
+        shouldSuppressNextPressRef.current = shouldSuppressLongPress;
+        return shouldSuppressLongPress;
+    };
+
+    const handleCopyableTextRowPress = (onPress: () => void, {shouldCheck = true, shouldDelayMousePress = false}: HandleCopyableTextRowPressOptions = {}) => {
+        const shouldDelayPress = shouldCheck && shouldDelayMousePress && wasMouseDownOnCopyableTextRef.current && !shouldSuppressNextPressRef.current;
+        if (shouldSuppressCopyableTextRowPress(shouldCheck)) {
+            return;
+        }
+
+        if (!shouldDelayPress) {
+            onPress();
+            return;
+        }
+
+        pendingCopyableTextPressRef.current = setTimeout(() => {
+            pendingCopyableTextPressRef.current = null;
+            onPress();
+        }, COPYABLE_TEXT_SINGLE_PRESS_DELAY_MS);
     };
 
     // Pointer focus from copyable text should not make virtualized lists scroll the row into view.
     const shouldSuppressCopyableTextRowFocus = () => wasMouseDownOnCopyableTextRef.current;
 
     return {
+        handleCopyableTextRowPress,
         markMouseDownOnCopyableText,
+        markTouchStartOnCopyableText,
         shouldSuppressCopyableTextRowFocus,
+        shouldSuppressCopyableTextRowLongPress,
         shouldSuppressCopyableTextRowPress,
     };
 }
@@ -434,7 +518,7 @@ const getCurrentSelection: GetCurrentSelection = () => {
     return newHtml || '';
 };
 
-export {COPYABLE_ROW_DATA_SET, COPYABLE_TEXT_DATA_SET, isMouseDownOnCopyableText, useCopyableTextRowPress};
+export {COPYABLE_ROW_DATA_SET, COPYABLE_TEXT_DATA_SET, isPressStartOnCopyableText, useCopyableTextRowPress};
 
 export default {
     getCurrentSelection,
