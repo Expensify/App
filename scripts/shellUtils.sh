@@ -26,7 +26,7 @@ if [ -z "${RESET+x}" ]; then
 fi
 
 function success {
-  echo -e "🎉 $GREEN$1$RESET"
+  echo -e "🎉 $GREEN$1$RESET" >&2
 }
 
 function error {
@@ -38,7 +38,7 @@ function info {
 }
 
 function title {
-  printf "\n%s%s%s\n" "$TITLE" "$1" "$RESET"
+  printf "\n%s%s%s\n" "$TITLE" "$1" "$RESET" >&2
 }
 
 # Function to clear the last printed line

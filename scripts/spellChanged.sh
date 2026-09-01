@@ -18,10 +18,11 @@ info "Fetching origin/main"
 MERGE_BASE_SHA_HASH="$(get_merge_base_with_main)"
 readonly MERGE_BASE_SHA_HASH
 
-CHANGED_FILES_OUTPUT="$(get_changed_files "$MERGE_BASE_SHA_HASH")"
+# Excludes common binary/media file types since spell-checking them is pointless and wasteful
+CHANGED_FILES_OUTPUT="$(get_changed_files "$MERGE_BASE_SHA_HASH" ':!*.png' ':!*.jpg' ':!*.jpeg' ':!*.gif' ':!*.webp' ':!*.svg' ':!*.ico' ':!*.mp4' ':!*.mov' ':!*.zip' ':!*.tar.gz' ':!*.heapsnapshot' ':!*.pdf')"
 declare -a ALL_CHANGED_FILES=()
 if [[ -n "$CHANGED_FILES_OUTPUT" ]]; then
-    # Excludes dotfiles and files under dot-directories (e.g. .github/) since those aren't meant to be spell-checked
+    # Excludes dotfiles (e.g. .eslintrc) since those aren't meant to be spell-checked; does not exclude files nested under dot-directories (e.g. .github/workflows/foo.yml still passes through)
     while IFS= read -r file; do
         if [[ "$file" != .* ]]; then
             ALL_CHANGED_FILES+=("$file")
