@@ -12,7 +12,7 @@ import ParticipantPicker from '@components/ParticipantPicker';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 
-import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -21,7 +21,6 @@ import useFetchRoute from '@hooks/useFetchRoute';
 import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useMappedPolicies from '@hooks/useMappedPolicies';
 import useNetwork from '@hooks/useNetwork';
 import useOdometerReceiptStitcher from '@hooks/useOdometerReceiptStitcher';
 import useOnyx from '@hooks/useOnyx';
@@ -118,18 +117,6 @@ import TelemetrySpanManager from './confirmation/TelemetrySpanManager';
 import useExpenseSubmission from './confirmation/useExpenseSubmission';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-
-const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
-    policy && {
-        id: policy.id,
-        name: policy.name,
-        type: policy.type,
-        role: policy.role,
-        owner: policy.owner,
-        outputCurrency: policy.outputCurrency,
-        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
-        customUnits: policy.customUnits,
-    };
 
 type IOURequestStepConfirmationIncomingRouteName = typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION | typeof SCREENS.MONEY_REQUEST.CREATE;
 
@@ -268,7 +255,7 @@ function IOURequestStepConfirmation({
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isManualRequest = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
-    const blockDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: policy?.id,
         isDistanceRequest,
         isManualDistanceRequest,
@@ -310,7 +297,6 @@ function IOURequestStepConfirmation({
     }, [transactionReport, currentUserPersonalDetails.accountID, transaction?.transactionID, iouType]);
 
     const participantsPolicies = useParticipantsPolicies(transaction?.participants ?? []);
-    const [mappedPolicies] = useMappedPolicies(policyMapper);
 
     const participants = useMemo(
         () =>
@@ -395,7 +381,7 @@ function IOURequestStepConfirmation({
     }, [activeTransactionID]);
 
     const handleParticipantsAdded = useCallback(
-        (participantsList: Participant[]) => {
+        (participantsList: Participant[], selectedPolicy?: OnyxEntry<Policy>) => {
             if (!activeTransactionID) {
                 return;
             }
@@ -456,7 +442,7 @@ function IOURequestStepConfirmation({
                         setMoneyRequestCategory(activeTransactionID, '', undefined, getCurrencyDecimals);
                         setMoneyRequestTag(activeTransactionID, '');
                     } else {
-                        const workspacePolicy = firstParticipant.policyID ? mappedPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
+                        const workspacePolicy = selectedPolicy;
                         if (isDistanceRequest) {
                             const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
                             const isCurrentRateFromWorkspace = !!currentRateID && !!DistanceRequestUtils.getMileageRates(workspacePolicy)[currentRateID];
@@ -501,7 +487,6 @@ function IOURequestStepConfirmation({
             transaction,
             personalPolicy?.outputCurrency,
             blockDistanceRequestIfNeeded,
-            mappedPolicies,
             getCurrencyDecimals,
             policyID,
         ],
@@ -890,7 +875,7 @@ function IOURequestStepConfirmation({
             prompt: translate('iou.removeExpenseConfirmation'),
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         if (result.action !== ModalActions.CONFIRM) {
             return;
