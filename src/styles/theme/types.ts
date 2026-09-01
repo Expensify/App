@@ -110,7 +110,6 @@ type ThemeColors = {
     ourMentionBG: Color;
     tooltipHighlightBG: Color;
     tooltipHighlightText: Color;
-    tooltipLinkText: Color;
     tooltipSupportingText: Color;
     tooltipPrimaryText: Color;
     trialBannerBackgroundColor: Color;

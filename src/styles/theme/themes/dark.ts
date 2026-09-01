@@ -103,8 +103,6 @@ const darkTheme = {
     ourMentionBG: colors.green600,
     tooltipHighlightBG: colors.green100,
     tooltipHighlightText: colors.green400,
-    // The tooltip background is dark in both themes, so this stays the same in both, like the highlight above
-    tooltipLinkText: colors.blue300,
     tooltipSupportingText: colors.productLight800,
     tooltipPrimaryText: colors.productLight900,
     trialBannerBackgroundColor: colors.green700,

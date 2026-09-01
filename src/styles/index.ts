@@ -4439,17 +4439,17 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         merchantRuleCalloutText: {
-            fontSize: variables.fontSizeLabel,
+            ...textVariants.label,
             color: theme.textReversed,
-            lineHeight: variables.lineHeightLarge,
+            // Banner sets breakAll on its container, which would split this sentence mid-word
             ...wordBreak.breakWord,
         },
 
+        // The callout sits on a reversed surface, dark in the light theme and light in the dark one, which is why the
+        // text and the link both use the reversed colors rather than the ordinary ones.
         merchantRuleCalloutAction: {
-            color: theme.tooltipLinkText,
-            fontWeight: FontUtils.fontWeight.bold,
-            fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightLarge,
+            ...textVariants.labelStrong,
+            color: theme.linkReversed,
         },
 
         quickReactionsContainer: {
