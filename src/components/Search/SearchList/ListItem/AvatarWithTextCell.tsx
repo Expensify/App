@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
 import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,14 +28,10 @@ function AvatarWithTextCell({reportName, icon, isLargeScreenWidth, textStyle}: A
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
             {!!icon && (
-                <Avatar
-                    source={icon.source}
-                    name={icon.name}
-                    avatarID={icon.id}
-                    type={icon.type}
-                    fallbackIcon={icon.fallbackIcon}
+                <AvatarFromIcon
+                    icon={icon}
                     size={CONST.AVATAR_SIZE.XXX_SMALL}
-                    containerStyles={[styles.pr2]}
+                    containerStyles={styles.pr2}
                 />
             )}
 

@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateGeneralSettings} from '@libs/actions/Policy/Policy';
@@ -29,6 +30,7 @@ type Props = WithPolicyProps;
 
 function WorkspaceNamePage({policy}: Props) {
     const styles = useThemeStyles();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {translate} = useLocalize();
 
     const submit = useCallback(
@@ -37,11 +39,11 @@ function WorkspaceNamePage({policy}: Props) {
                 return;
             }
 
-            updateGeneralSettings(policy, values.name.trim(), policy.outputCurrency);
+            updateGeneralSettings(policy, values.name.trim(), policy.outputCurrency, getReviewWorkspaceSettingsTaskCompletion());
             Keyboard.dismiss();
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
         },
-        [policy],
+        [policy, getReviewWorkspaceSettingsTaskCompletion],
     );
 
     const validate = useCallback(
