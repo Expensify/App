@@ -174,6 +174,7 @@ function Header({
                     />
                 ) : (
                     <HeaderTitle
+                        title={title}
                         subtitle={subtitle}
                         stepCounter={stepCounter}
                         titleColor={titleColor}
@@ -181,9 +182,7 @@ function Header({
                         subTitleLink={subTitleLink}
                         shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
                         shouldUseHeadlineHeader={shouldUseHeadlineHeader}
-                    >
-                        {title}
-                    </HeaderTitle>
+                    />
                 )}
                 <HeaderRight>
                     <HeaderActions>
