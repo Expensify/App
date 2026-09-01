@@ -5031,7 +5031,7 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
 
 /**
  * Returns a transaction's amount with the sign it is displayed with. A transaction on an expense report, on a group
- * policy, unreported, or deleted keeps its sign; any other transaction returns its magnitude.
+ * policy, unreported, or deleted keeps its sign. Any other transaction returns its magnitude.
  */
 function getTransactionDisplayAmount(transaction: OnyxInputOrEntry<Transaction>, report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): number {
     const isFromExpenseReport = (!isEmptyObject(report) && isExpenseReport(report)) || isGroupPolicyPolicyUtils(policy);
