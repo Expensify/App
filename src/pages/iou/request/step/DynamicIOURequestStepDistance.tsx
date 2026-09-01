@@ -5,7 +5,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
-import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -363,7 +363,7 @@ function DynamicIOURequestStepDistance({
         return stop;
     }, []);
 
-    const blockDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: policy?.id,
         isDistanceRequest: true,
     });
