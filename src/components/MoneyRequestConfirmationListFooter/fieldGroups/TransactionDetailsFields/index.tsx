@@ -62,22 +62,14 @@ function TransactionDetailsFields({policy, amountDisplay, distanceData, required
         <>
             {!isCompactMode && fieldVisibility.amount && (
                 <AmountField
-                    action={action}
                     amount={amountDisplay.amount}
                     formattedAmount={amountDisplay.formattedAmount}
                     distanceRateCurrency={distanceData.distanceRateCurrency}
                     iouCurrencyCode={iouCurrencyCode}
                     isDistanceRequest={fieldVisibility.distance}
-                    isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
-                    didConfirm={didConfirm}
-                    isReadOnly={isReadOnly}
                     shouldShowTimeRequestFields={fieldVisibility.time}
                     shouldDisplayFieldError={errorState.shouldDisplayFieldError}
                     formError={errorState.formError}
-                    transactionID={transactionID}
-                    iouType={iouType}
-                    reportID={reportID}
-                    reportActionID={reportActionID}
                     policy={policy}
                     clearFormErrors={errorState.clearFormErrors}
                     setFormError={errorState.setFormError}
@@ -103,15 +95,7 @@ function TransactionDetailsFields({policy, amountDisplay, distanceData, required
             )}
 
             <DescriptionField
-                isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
-                isReadOnly={isReadOnly}
-                didConfirm={didConfirm}
                 isDescriptionRequired={requiredFlags.isDescriptionRequired}
-                transactionID={transactionID}
-                action={action}
-                iouType={iouType}
-                reportID={reportID}
-                reportActionID={reportActionID}
                 policy={policy}
             />
 
@@ -158,17 +142,7 @@ function TransactionDetailsFields({policy, amountDisplay, distanceData, required
                 />
             )}
 
-            {!isCompactMode && fieldVisibility.time && (
-                <TimeFields
-                    isReadOnly={isReadOnly}
-                    didConfirm={didConfirm}
-                    transactionID={transactionID}
-                    action={action}
-                    iouType={iouType}
-                    reportID={reportID}
-                    reportActionID={reportActionID}
-                />
-            )}
+            {!isCompactMode && fieldVisibility.time && <TimeFields />}
         </>
     );
 }

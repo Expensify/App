@@ -1,4 +1,3 @@
-import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import AmountField from '@components/MoneyRequestConfirmationList/sections/AmountField';
 import DescriptionField from '@components/MoneyRequestConfirmationList/sections/DescriptionField';
 import TimeFields from '@components/MoneyRequestConfirmationList/sections/TimeFields';
@@ -27,52 +26,27 @@ type TimeDetailsFieldsProps = {
 
 function TimeDetailsFields({policy, amountDisplay, isDescriptionRequired, errorState}: TimeDetailsFieldsProps) {
     const {fieldVisibility, iouCurrencyCode} = useDetailsFields();
-    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isNewManualExpenseFlowEnabled} = useConfirmationFields();
 
     return (
         <>
             {fieldVisibility.amount && (
                 <AmountField
-                    action={action}
                     amount={amountDisplay.amount}
                     formattedAmount={amountDisplay.formattedAmount}
                     iouCurrencyCode={iouCurrencyCode}
                     isDistanceRequest={false}
-                    isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
-                    didConfirm={didConfirm}
-                    isReadOnly={isReadOnly}
                     shouldShowTimeRequestFields
-                    transactionID={transactionID}
-                    iouType={iouType}
-                    reportID={reportID}
-                    reportActionID={reportActionID}
                     policy={policy}
                     {...errorState}
                 />
             )}
 
             <DescriptionField
-                isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
-                isReadOnly={isReadOnly}
-                didConfirm={didConfirm}
                 isDescriptionRequired={isDescriptionRequired}
-                transactionID={transactionID}
-                action={action}
-                iouType={iouType}
-                reportID={reportID}
-                reportActionID={reportActionID}
                 policy={policy}
             />
 
-            <TimeFields
-                isReadOnly={isReadOnly}
-                didConfirm={didConfirm}
-                transactionID={transactionID}
-                action={action}
-                iouType={iouType}
-                reportID={reportID}
-                reportActionID={reportActionID}
-            />
+            <TimeFields />
         </>
     );
 }

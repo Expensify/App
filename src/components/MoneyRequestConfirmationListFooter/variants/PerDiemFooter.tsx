@@ -1,5 +1,5 @@
+import DescriptionField from '@components/MoneyRequestConfirmationList/sections/DescriptionField';
 import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFooter/ConfirmationFieldList';
-import PerDiemDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/TransactionDetailsFields/PerDiemDetailsFields';
 import PerDiemSection from '@components/MoneyRequestConfirmationListFooter/sections/PerDiemSection';
 import type {PerDiemFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
 
@@ -24,7 +24,7 @@ function PerDiemFooter({policy, policyTags, selectedParticipants, amountDisplay,
                 errorState={errorState}
                 toggleHandlers={toggleHandlers}
             >
-                <PerDiemDetailsFields
+                <DescriptionField
                     policy={policy}
                     isDescriptionRequired={requiredFlags.isDescriptionRequired}
                 />
