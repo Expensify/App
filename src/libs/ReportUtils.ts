@@ -5359,6 +5359,27 @@ function canUnreportedBeMoved(transaction: OnyxEntry<Transaction>, policies: Ony
 }
 
 /**
+ * Checks whether the current user is allowed to change an expense at all: they raised it, or they manage, admin or
+ * approve the report it belongs to. This is only about who the person is - callers add their own rules for what may
+ * be changed and when, so it stays usable wherever an expense-level permission is needed.
+ */
+function canCurrentUserEditExpense(reportAction: OnyxInputOrEntry<ReportAction>, moneyRequestReport: OnyxEntry<Report>, reportPolicy: OnyxEntry<Policy>): boolean {
+    const isAdmin = isExpenseReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = isExpenseReport(moneyRequestReport) && deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
+    const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
+    // Resolve approver from policy (managerID stale on drafts). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
+    const ownerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, allPersonalDetails);
+    const isApprover =
+        !!ownerLogin &&
+        isExpenseReport(moneyRequestReport) &&
+        isOpenReport(moneyRequestReport) &&
+        !isSubmitAndClose(reportPolicy) &&
+        deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, ownerLogin);
+
+    return isAdmin || isManager || isRequestor || isApprover;
+}
+
+/**
  * Checks if the current user can edit the provided property of an expense
  *
  */
@@ -5437,24 +5458,18 @@ function canEditFieldOfMoneyRequest({
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const reportPolicy = policy ?? getPolicy(moneyRequestReport?.policyID);
+    const canEditExpense = canCurrentUserEditExpense(reportAction, moneyRequestReport, reportPolicy);
+    const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
+    // Moving an expense to another report weighs these two on their own rather than as part of the combined check.
     const isAdmin = isExpenseReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = isExpenseReport(moneyRequestReport) && deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
-    const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
-    // Resolve approver from policy (managerID stale on drafts). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
-    const ownerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, allPersonalDetails);
-    const isApprover =
-        !!ownerLogin &&
-        isExpenseReport(moneyRequestReport) &&
-        isOpenReport(moneyRequestReport) &&
-        !isSubmitAndClose(reportPolicy) &&
-        deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, ownerLogin);
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REIMBURSABLE) {
-        return isAdmin || isManager || isRequestor || isApprover;
+        return canEditExpense;
     }
 
     if ((fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) && isDistanceRequest(transaction)) {
-        return isAdmin || isManager || isRequestor || isApprover;
+        return canEditExpense;
     }
 
     if (
@@ -5471,7 +5486,7 @@ function canEditFieldOfMoneyRequest({
             !isReceiptBeingScanned(transaction) &&
             !isPerDiemRequest(transaction) &&
             (!isDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction)) &&
-            (isAdmin || isManager || isRequestor || isApprover) &&
+            canEditExpense &&
             (isDeleteAction ? isRequestor : true)
         );
     }
@@ -11017,17 +11032,24 @@ function navigateToLinkedReportAction(
     }
 }
 
-function canUserPerformWriteAction(report: OnyxEntry<Report>, isReportArchived: boolean | undefined) {
+/**
+ * Checks whether a report is in a state where its contents can be reached at all: it exists, it is not archived, it is
+ * not on its way out, it did not fail to be created, and the person looking is signed in. Permission to write is left
+ * out on purpose, so this also covers read-only actions such as opening an attachment.
+ */
+function canUserInteractWithReport(report: OnyxEntry<Report>, isReportArchived: boolean | undefined) {
     const reportErrors = getCreationReportErrors(report);
 
-    // If the expense report is marked for deletion, let us prevent any further write action.
+    // If the expense report is marked for deletion, let us prevent any further interaction.
     if (isMoneyRequestReportPendingDeletion(report)) {
         return false;
     }
 
-    return (
-        !isArchivedNonExpenseReport(report, isReportArchived) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !deprecatedIsAnonymousUser && canWriteInReport(report)
-    );
+    return !isArchivedNonExpenseReport(report, isReportArchived) && isEmptyObject(reportErrors) && report && !deprecatedIsAnonymousUser;
+}
+
+function canUserPerformWriteAction(report: OnyxEntry<Report>, isReportArchived: boolean | undefined) {
+    return canUserInteractWithReport(report, isReportArchived) && isAllowedToComment(report) && canWriteInReport(report);
 }
 
 /**
@@ -14411,6 +14433,7 @@ export {
     canDeleteReportAction,
     canHoldUnholdReportAction,
     canEditReportPolicy,
+    canCurrentUserEditExpense,
     canEditFieldOfMoneyRequest,
     canEditMultipleTransactions,
     canEditMoneyRequest,
@@ -14425,6 +14448,7 @@ export {
     canReportBeMentionedWithinPolicy,
     canSeeDefaultRoom,
     canShowReportRecipientLocalTime,
+    canUserInteractWithReport,
     canUserPerformWriteAction,
     chatIncludesChronos,
     chatIncludesChronosWithID,
