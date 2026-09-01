@@ -276,15 +276,14 @@ describe('useParticipantSubmission addParticipant distance rate', () => {
         expect(jest.mocked(setCustomUnitRateID).mock.calls.at(0)?.at(1)).toBe(WORKSPACE_RATE_ID);
     });
 
-    // A per diem rate ID lives in the per-diem custom unit, so it will never appear among the destination's mileage
-    // rates. Replacing it would leave the expense pointing at a rate its own custom unit cannot resolve.
-    it('leaves a tracked per diem rate alone', () => {
-        mockDraftTransactions = [
-            {
-                ...buildTrackedDistanceDraft('PER_DIEM_RATE'),
-                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
-            },
-        ];
+    // Neither a per diem nor a time expense has a rate in the destination's mileage rates: a per diem rate ID lives in
+    // the per-diem custom unit, and a time expense keeps its rate under `comment.units` with no rate ID at all. Either
+    // one would otherwise be handed a mileage rate their own custom unit cannot resolve.
+    it.each([
+        ['per diem', CONST.IOU.REQUEST_TYPE.PER_DIEM, 'PER_DIEM_RATE'],
+        ['time', CONST.IOU.REQUEST_TYPE.TIME, undefined],
+    ])('leaves a tracked %s expense rate alone', (_name, iouRequestType, rateID) => {
+        mockDraftTransactions = [{...buildTrackedDistanceDraft(rateID), iouRequestType}];
         const {result} = renderSubmission();
 
         act(() => {
