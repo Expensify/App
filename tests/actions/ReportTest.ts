@@ -35,7 +35,17 @@ import DateUtils from '@src/libs/DateUtils';
 import Log from '@src/libs/Log';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import {setHasRadio} from '@src/libs/NetworkState';
-import * as ReportUtils from '@src/libs/ReportUtils';
+import {
+    buildOptimisticAddCommentReportAction,
+    buildOptimisticIOUReportAction,
+    buildOptimisticModifiedExpenseReportAction,
+    buildOptimisticReportPreview,
+    findSelfDMReportID,
+    getPolicyExpenseChat,
+    isUnread,
+    isUnreadWithMention,
+    prepareOnboardingOnyxData,
+} from '@src/libs/ReportUtils';
 import type * as SearchQueryUtilsType from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -84,7 +94,7 @@ const MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID = '1234';
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 jest.mock('@libs/ReportUtils', () => {
-    const actual = jest.requireActual<typeof ReportUtils>('@libs/ReportUtils');
+    const actual = jest.requireActual<Record<string, unknown>>('@libs/ReportUtils');
     const mockGenerateReportID = jest.fn().mockReturnValue('9876');
     return {
         ...actual,
@@ -657,10 +667,10 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Then the report will be unread
-                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(true);
+                expect(isUnread(report, undefined, undefined)).toBe(true);
 
                 // And show a green dot for unread mentions in the LHN
-                expect(ReportUtils.isUnreadWithMention(report)).toBe(true);
+                expect(isUnreadWithMention(report)).toBe(true);
 
                 // When the user visits the report
                 currentTime = DateUtils.getDBTime();
@@ -671,11 +681,11 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // The report will be read
-                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(false);
+                expect(isUnread(report, undefined, undefined)).toBe(false);
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
 
                 // And no longer show the green dot for unread mentions in the LHN
-                expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
+                expect(isUnreadWithMention(report)).toBe(false);
 
                 // When the user manually marks a message as "unread"
                 Report.markCommentAsUnread(REPORT_ID, reportActions, reportActions['1'], USER_1_ACCOUNT_ID, false);
@@ -683,8 +693,8 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Then the report will be unread and show the green dot for unread mentions in LHN
-                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(true);
-                expect(ReportUtils.isUnreadWithMention(report)).toBe(true);
+                expect(isUnread(report, undefined, undefined)).toBe(true);
+                expect(isUnreadWithMention(report)).toBe(true);
                 expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
 
                 // When a new comment is added by the current user
@@ -704,8 +714,8 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // The report will be read, the green dot for unread mentions will go away, and the lastReadTime updated
-                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(false);
-                expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
+                expect(isUnread(report, undefined, undefined)).toBe(false);
+                expect(isUnreadWithMention(report)).toBe(false);
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
                 expect(report?.lastMessageText).toBe('Current User Comment 1');
 
@@ -725,7 +735,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // The report will be read and the lastReadTime updated
-                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(false);
+                expect(isUnread(report, undefined, undefined)).toBe(false);
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
                 expect(report?.lastMessageText).toBe('Current User Comment 2');
 
@@ -745,7 +755,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // The report will be read and the lastReadTime updated
-                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(false);
+                expect(isUnread(report, undefined, undefined)).toBe(false);
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
                 expect(report?.lastMessageText).toBe('Current User Comment 3');
 
@@ -827,7 +837,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // Then no change will occur
                 expect(report?.lastReadTime).toBe(reportActionCreatedDate);
-                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(false);
+                expect(isUnread(report, undefined, undefined)).toBe(false);
 
                 // When the user manually marks a message as "unread"
                 Report.markCommentAsUnread(REPORT_ID, reportActions, reportActions[400], USER_1_ACCOUNT_ID, false);
@@ -835,7 +845,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Then we should expect the report to be to be unread
-                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(true);
+                expect(isUnread(report, undefined, undefined)).toBe(true);
                 expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActions[400].created, 1));
 
                 rerender(report);
@@ -845,7 +855,7 @@ describe('actions/Report', () => {
             })
             .then(() => getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const))
             .then((updatedReport) => {
-                expect(ReportUtils.isUnread(updatedReport, undefined, undefined)).toBe(false);
+                expect(isUnread(updatedReport, undefined, undefined)).toBe(false);
                 expect(updatedReport?.lastMessageText).toBe('Current User Comment 2');
             });
         waitForBatchedUpdates(); // flushing onyx.set as it will be batched
@@ -2816,7 +2826,7 @@ describe('actions/Report', () => {
 
         mockFetchData.pause();
         const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
-        const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
+        const parentReport = getPolicyExpenseChat(accountID, policyID);
 
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
             const connection = Onyx.connect({
@@ -2902,7 +2912,7 @@ describe('actions/Report', () => {
 
         mockFetchData.pause();
         Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
-        const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
+        const parentReport = getPolicyExpenseChat(accountID, policyID);
 
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
@@ -2931,7 +2941,7 @@ describe('actions/Report', () => {
                 enabled: true,
             },
         };
-        const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
+        const parentReport = getPolicyExpenseChat(accountID, policyID);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
         if (parentReport?.reportID) {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`, parentReport);
@@ -2965,7 +2975,7 @@ describe('actions/Report', () => {
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
         };
-        const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
+        const parentReport = getPolicyExpenseChat(accountID, policyID);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
         if (parentReport?.reportID) {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`, parentReport);
@@ -3014,7 +3024,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
-        const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
+        const parentReport = getPolicyExpenseChat(accountID, policyID);
 
         await waitForBatchedUpdates();
 
@@ -3195,7 +3205,7 @@ describe('actions/Report', () => {
             const engagementChoice = CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
             const {onboardingMessages} = getOnboardingMessages();
 
-            const onboardingData = ReportUtils.prepareOnboardingOnyxData({
+            const onboardingData = prepareOnboardingOnyxData({
                 engagementChoice,
                 onboardingMessage: onboardingMessages[engagementChoice],
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
@@ -3242,7 +3252,7 @@ describe('actions/Report', () => {
             const engagementChoice = CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
             const {onboardingMessages} = getOnboardingMessages();
 
-            const onboardingData = ReportUtils.prepareOnboardingOnyxData({
+            const onboardingData = prepareOnboardingOnyxData({
                 engagementChoice,
                 onboardingMessage: onboardingMessages[engagementChoice],
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
@@ -3274,7 +3284,7 @@ describe('actions/Report', () => {
             const engagementChoice = CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
             const {onboardingMessages} = getOnboardingMessages();
 
-            const onboardingData = ReportUtils.prepareOnboardingOnyxData({
+            const onboardingData = prepareOnboardingOnyxData({
                 engagementChoice,
                 onboardingMessage: onboardingMessages[engagementChoice],
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
@@ -3327,7 +3337,7 @@ describe('actions/Report', () => {
                             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
                             callback: (reportVal) => {
                                 Onyx.disconnect(connection);
-                                resolve(ReportUtils.isUnread(reportVal, undefined, undefined));
+                                resolve(isUnread(reportVal, undefined, undefined));
                             },
                         });
                     });
@@ -3448,7 +3458,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Then only the IOU action with type of CREATE and TRACK is moved to the self DM
-            const selfDMReportID = ReportUtils.findSelfDMReportID();
+            const selfDMReportID = findSelfDMReportID();
             const selfDMReportActions = await new Promise<OnyxEntry<OnyxTypes.ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
@@ -9889,12 +9899,12 @@ describe('actions/Report', () => {
         const DELEGATE_ACCOUNT_ID = 999;
 
         it('sets delegateAccountID when delegateAccountIDParam is provided', () => {
-            const result = ReportUtils.buildOptimisticAddCommentReportAction({text: 'test comment', delegateAccountIDParam: DELEGATE_ACCOUNT_ID});
+            const result = buildOptimisticAddCommentReportAction({text: 'test comment', delegateAccountIDParam: DELEGATE_ACCOUNT_ID});
             expect(result.reportAction.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
 
         it('does not set delegateAccountID when delegateAccountIDParam is undefined', () => {
-            const result = ReportUtils.buildOptimisticAddCommentReportAction({text: 'test comment', delegateAccountIDParam: undefined});
+            const result = buildOptimisticAddCommentReportAction({text: 'test comment', delegateAccountIDParam: undefined});
             expect(result.reportAction.delegateAccountID).toBeUndefined();
         });
     });
@@ -9903,12 +9913,12 @@ describe('actions/Report', () => {
         const DELEGATE_ACCOUNT_ID = 999;
 
         it('sets delegateAccountID when delegateAccountIDParam is provided', () => {
-            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, undefined, {}, false, undefined, DELEGATE_ACCOUNT_ID);
+            const result = buildOptimisticModifiedExpenseReportAction(undefined, undefined, {}, false, undefined, DELEGATE_ACCOUNT_ID);
             expect(result.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
 
         it('does not set delegateAccountID when delegateAccountIDParam is undefined', () => {
-            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, undefined, {}, false, undefined, undefined);
+            const result = buildOptimisticModifiedExpenseReportAction(undefined, undefined, {}, false, undefined, undefined);
             expect(result.delegateAccountID).toBeUndefined();
         });
     });
@@ -9919,7 +9929,7 @@ describe('actions/Report', () => {
         const otherAttendee: Attendee = {email: 'other@example.com', displayName: 'Other', avatarUrl: ''};
 
         const getAttendeesOriginalMessage = (oldTransaction: OnyxTypes.Transaction, newAttendees: Attendee[]) => {
-            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, oldTransaction, {attendees: newAttendees}, false, undefined, undefined);
+            const result = buildOptimisticModifiedExpenseReportAction(undefined, oldTransaction, {attendees: newAttendees}, false, undefined, undefined);
             return getOriginalMessage(result as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>);
         };
 
@@ -9967,7 +9977,7 @@ describe('actions/Report', () => {
                 comment: {customUnit: {...oldTransaction.comment?.customUnit, quantity: 20}},
             });
 
-            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, oldTransaction, {selectedRouteKey: 'route1'}, true, undefined, undefined, updatedTransaction);
+            const result = buildOptimisticModifiedExpenseReportAction(undefined, oldTransaction, {selectedRouteKey: 'route1'}, true, undefined, undefined, updatedTransaction);
             const originalMessage = getOriginalMessage(result as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>);
 
             expect(originalMessage?.currency).toBe('EUR');
@@ -9980,7 +9990,7 @@ describe('actions/Report', () => {
         const DELEGATE_ACCOUNT_ID = 998;
 
         it('sets delegateAccountID when delegateAccountIDParam is provided', () => {
-            const result = ReportUtils.buildOptimisticIOUReportAction({
+            const result = buildOptimisticIOUReportAction({
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 100,
@@ -9994,7 +10004,7 @@ describe('actions/Report', () => {
         });
 
         it('does not set delegateAccountID when delegateAccountIDParam is undefined', () => {
-            const result = ReportUtils.buildOptimisticIOUReportAction({
+            const result = buildOptimisticIOUReportAction({
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 100,
@@ -10014,14 +10024,14 @@ describe('actions/Report', () => {
         it('sets delegateAccountID when delegateAccountIDParam is provided', () => {
             const chatReport = createMock<OnyxTypes.Report>({reportID: 'chat1'});
             const iouReport = createMock<OnyxTypes.Report>({reportID: 'iou1', ownerAccountID: 1, managerID: 2});
-            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, TestHelper.getCurrencyDecimalsLocal, '', null, undefined, undefined, DELEGATE_ACCOUNT_ID);
+            const result = buildOptimisticReportPreview(chatReport, iouReport, TestHelper.getCurrencyDecimalsLocal, '', null, undefined, undefined, DELEGATE_ACCOUNT_ID);
             expect(result.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
 
         it('does not set delegateAccountID when delegateAccountIDParam is undefined', () => {
             const chatReport = createMock<OnyxTypes.Report>({reportID: 'chat2'});
             const iouReport = createMock<OnyxTypes.Report>({reportID: 'iou2', ownerAccountID: 1, managerID: 2});
-            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, TestHelper.getCurrencyDecimalsLocal, '', null, undefined, undefined, undefined);
+            const result = buildOptimisticReportPreview(chatReport, iouReport, TestHelper.getCurrencyDecimalsLocal, '', null, undefined, undefined, undefined);
             expect(result.delegateAccountID).toBeUndefined();
         });
     });
