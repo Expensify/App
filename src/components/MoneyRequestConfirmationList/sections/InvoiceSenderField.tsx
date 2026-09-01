@@ -1,4 +1,5 @@
 import MenuItem from '@components/MenuItem';
+import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -19,18 +20,12 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {emailSelector} from '@selectors/Session';
 import React from 'react';
 
+import {invoiceSenderSliceSelector} from './selectors';
+import useTransactionSelector from './useTransactionSelector';
+
 type InvoiceSenderFieldProps = {
     /** The selected participants */
     selectedParticipants: Participant[];
-
-    /** Flag indicating if it is read-only */
-    isReadOnly: boolean;
-
-    /** Flag indicating if the confirmation is done */
-    didConfirm: boolean;
-
-    /** The transaction (only the fields this field reads) */
-    transaction: OnyxEntry<Pick<OnyxTypes.Transaction, 'isFromGlobalCreate' | 'transactionID'>>;
 };
 
 const senderWorkspaceSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => (policy ? {id: policy.id, name: policy.name, avatarURL: policy.avatarURL} : undefined);
@@ -40,9 +35,11 @@ const createCanUpdateSenderWorkspaceSelector =
     (policies: OnyxCollection<OnyxTypes.Policy>): boolean =>
         isFromGlobalCreate && !isInvoiceRoomParticipant && canSendInvoice(policies ?? null, currentUserLogin);
 
-function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, transaction}: InvoiceSenderFieldProps) {
+function InvoiceSenderField({selectedParticipants}: InvoiceSenderFieldProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {transactionID, isReadOnly, didConfirm} = useConfirmationFields();
+    const transaction = useTransactionSelector(transactionID, invoiceSenderSliceSelector);
 
     const senderPolicyID = selectedParticipants.find((participant) => participant.isSender)?.policyID;
 

@@ -1,6 +1,6 @@
+import InvoiceSenderField from '@components/MoneyRequestConfirmationList/sections/InvoiceSenderField';
 import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFooter/ConfirmationFieldList';
 import ManualDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/TransactionDetailsFields/ManualDetailsFields';
-import InvoiceSenderSection from '@components/MoneyRequestConfirmationListFooter/sections/InvoiceSenderSection';
 import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/sections/ReceiptSection';
 import type {InvoiceFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
 
@@ -10,7 +10,7 @@ import {View} from 'react-native';
 function InvoiceFooter({policy, policyTags, selectedParticipants, amountDisplay, requiredFlags, visibilityFlags, errorState, toggleHandlers = {}, receiptOptions}: InvoiceFooterProps) {
     return (
         <View>
-            <InvoiceSenderSection selectedParticipants={selectedParticipants} />
+            <InvoiceSenderField selectedParticipants={selectedParticipants} />
 
             <ReceiptSection
                 policy={policy}
