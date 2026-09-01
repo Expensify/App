@@ -99,6 +99,7 @@ import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
 import {canIOUBePaid} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
@@ -2278,7 +2279,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 text: allReportsShouldMarkAsDone ? translate('common.markAsDone') : translate('common.submit'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
                 shouldCloseModalOnSelect: true,
-                onSelected: () => {
+                onSelected: async () => {
                     if (isOffline) {
                         setIsOfflineModalVisible(true);
                         return;
@@ -2298,14 +2299,66 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                               .map((id) => selectedTransactions[id]?.transaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`])
                               .filter((t): t is NonNullable<typeof t> => !!t);
 
-                    if (hasOnlyPendingCardTransactions(allSelectedTransactionsList)) {
-                        showPendingCardTransactionsBlockModal(showConfirmModal, translate, allReportsShouldMarkAsDone);
-                        return;
+                    // hasOnlyPendingCardTransactions and hasOnlyHeldExpenses are per-report predicates, so
+                    // evaluate them per selected report. On the flattened cross-report list they only fire
+                    // when every transaction of every selected report is blocked, which lets a mixed
+                    // selection silently skip the blocked reports.
+                    const transactionsByReportID = new Map<string, Transaction[]>();
+                    for (const transaction of allSelectedTransactionsList) {
+                        if (!transaction.reportID) {
+                            continue;
+                        }
+                        const reportTransactions = transactionsByReportID.get(transaction.reportID);
+                        if (reportTransactions) {
+                            reportTransactions.push(transaction);
+                        } else {
+                            transactionsByReportID.set(transaction.reportID, [transaction]);
+                        }
                     }
 
-                    if (hasOnlyHeldExpenses(allSelectedTransactionsList)) {
-                        showHeldExpensesBlockModal(showConfirmModal, translate, allReportsShouldMarkAsDone);
-                        return;
+                    const blockedReportIDs = new Set<string>();
+                    let hasPendingOnlyReport = false;
+                    let hasHeldOnlyReport = false;
+                    for (const [reportID, reportTransactions] of transactionsByReportID) {
+                        if (hasOnlyPendingCardTransactions(reportTransactions)) {
+                            blockedReportIDs.add(reportID);
+                            hasPendingOnlyReport = true;
+                        } else if (hasOnlyHeldExpenses(reportTransactions)) {
+                            blockedReportIDs.add(reportID);
+                            hasHeldOnlyReport = true;
+                        }
+                    }
+
+                    if (blockedReportIDs.size > 0) {
+                        if (blockedReportIDs.size === transactionsByReportID.size) {
+                            // Held expenses are the reason the user can act on (remove the hold), so that
+                            // modal wins when the blocked reports mix both reasons.
+                            if (hasHeldOnlyReport) {
+                                showHeldExpensesBlockModal(showConfirmModal, translate, allReportsShouldMarkAsDone);
+                            } else {
+                                showPendingCardTransactionsBlockModal(showConfirmModal, translate, allReportsShouldMarkAsDone);
+                            }
+                            return;
+                        }
+
+                        let promptKey: TranslationPaths;
+                        if (hasHeldOnlyReport && hasPendingOnlyReport) {
+                            promptKey = allReportsShouldMarkAsDone ? 'iou.error.someReportsOnHoldOrPendingMarkAsDoneDescription' : 'iou.error.someReportsOnHoldOrPendingDescription';
+                        } else if (hasHeldOnlyReport) {
+                            promptKey = allReportsShouldMarkAsDone ? 'iou.error.someReportsOnHoldMarkAsDoneDescription' : 'iou.error.someReportsOnHoldDescription';
+                        } else {
+                            promptKey = allReportsShouldMarkAsDone ? 'iou.error.someReportsPendingMarkAsDoneDescription' : 'iou.error.someReportsPendingDescription';
+                        }
+
+                        const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
+                            title: translate(allReportsShouldMarkAsDone ? 'iou.error.unableToMarkSomeReportsAsDone' : 'iou.error.unableToSubmitSomeReports'),
+                            prompt: translate(promptKey, {count: blockedReportIDs.size}),
+                            confirmText: translate(allReportsShouldMarkAsDone ? 'common.markAsDone' : 'common.submit'),
+                            cancelText: translate('common.cancel'),
+                        });
+                        if (result.action !== ModalActions.CONFIRM) {
+                            return;
+                        }
                     }
 
                     const selectedReportForSubmit = selectedReports.at(0);
@@ -2348,6 +2401,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
 
                     for (const item of itemList) {
+                        if (item.reportID && blockedReportIDs.has(item.reportID)) {
+                            continue;
+                        }
                         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
                         if (policy) {
                             submitMoneyRequestOnSearch(hash, [item as Report], [policy], getLoginByAccountID(item.ownerAccountID, personalDetails), getCurrencyDecimals);
