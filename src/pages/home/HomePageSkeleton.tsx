@@ -38,8 +38,6 @@ const ROWS_PER_TABLE_CARD = 5;
 
 const CARD_TEST_ID = 'homePageSkeletonCard';
 const SPINNER_TEST_ID = 'homePageSkeletonSpinner';
-const LEFT_COLUMN_TEST_ID = 'homePageSkeletonLeftColumn';
-const RIGHT_COLUMN_TEST_ID = 'homePageSkeletonRightColumn';
 
 // Two widths, so stacked rows read as separate rows rather than one block.
 const TWO_BAR_ROW_BAR_WIDTHS = [140, 110] as const;
@@ -195,23 +193,8 @@ function HomePageSkeletonSpinnerCard() {
     );
 }
 
-type HomePageSkeletonProps = {
-    topLeftCard: React.ReactNode;
-};
-
-/** The caller supplies the `homePageMainLayout` container, which is what turns the two columns into a single stack on narrow layouts. */
-function HomePageSkeleton({topLeftCard}: HomePageSkeletonProps) {
-    const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-
-    const leftCards = (
-        <>
-            {topLeftCard}
-            <HomePageSkeletonSpinnerCard />
-        </>
-    );
-
-    const rightCards = (
+function HomePageSkeletonRowCards() {
+    return (
         <>
             <HomePageSkeletonCard
                 numRows={ROWS_PER_LIST_CARD}
@@ -224,33 +207,6 @@ function HomePageSkeleton({topLeftCard}: HomePageSkeletonProps) {
             />
         </>
     );
-
-    if (shouldUseNarrowLayout) {
-        return (
-            <>
-                {leftCards}
-                {rightCards}
-            </>
-        );
-    }
-
-    return (
-        <>
-            <View
-                testID={LEFT_COLUMN_TEST_ID}
-                style={styles.homePageLeftColumn}
-            >
-                {leftCards}
-            </View>
-            <View
-                testID={RIGHT_COLUMN_TEST_ID}
-                style={styles.homePageRightColumn}
-            >
-                {rightCards}
-            </View>
-        </>
-    );
 }
 
-export default HomePageSkeleton;
-export {CARD_TEST_ID, SPINNER_TEST_ID, LEFT_COLUMN_TEST_ID, RIGHT_COLUMN_TEST_ID};
+export {HomePageSkeletonSpinnerCard, HomePageSkeletonRowCards, CARD_TEST_ID, SPINNER_TEST_ID};

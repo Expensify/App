@@ -8,7 +8,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type * as NetworkStateModule from '@libs/NetworkState';
 
-import HomePage from '@pages/home/HomePage';
+import HomePage, {LEFT_COLUMN_TEST_ID, RIGHT_COLUMN_TEST_ID} from '@pages/home/HomePage';
 
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
@@ -86,16 +86,21 @@ jest.mock('@libs/NetworkState', () => ({
     getIsOffline: () => true,
 }));
 
-// Deliberately not `mockSection('HomePageSkeleton')`: that helper emits a `section-` testID, which
-// `renderedSectionOrder` matches, so the skeleton would count as a rendered section. The stub does render
-// `topLeftCard`, so the cases below can assert that the one real card the skeleton wall carries is present.
+// Deliberately not `mockSection(...)`: that helper emits a `section-` testID, which `renderedSectionOrder`
+// matches, so a skeleton group would count as a rendered section.
+const mockSpinnerCardTestID = 'homePageSkeletonSpinnerCard';
+const mockRowCardsTestID = 'homePageSkeletonRowCards';
+
 jest.mock('@pages/home/HomePageSkeleton', () => {
     const ReactModule = require('react');
     const {View: RNView} = require('react-native');
-    function MockHomePageSkeleton({topLeftCard}: {topLeftCard: React.ReactNode}) {
-        return ReactModule.createElement(RNView, {testID: 'homePageSkeleton'}, topLeftCard);
+    function MockHomePageSkeletonSpinnerCard() {
+        return ReactModule.createElement(RNView, {testID: mockSpinnerCardTestID});
     }
-    return MockHomePageSkeleton;
+    function MockHomePageSkeletonRowCards() {
+        return ReactModule.createElement(RNView, {testID: mockRowCardsTestID});
+    }
+    return {HomePageSkeletonSpinnerCard: MockHomePageSkeletonSpinnerCard, HomePageSkeletonRowCards: MockHomePageSkeletonRowCards};
 });
 
 // Each section is mocked to render a stable `section-<Name>` testID so we can assert ordering and column placement.
@@ -110,7 +115,21 @@ function mockSection(name: string) {
 
 jest.mock('@pages/home/FreeTrialSection', () => mockSection('FreeTrialSection'));
 jest.mock('@pages/home/GettingStartedSection', () => mockSection('GettingStartedSection'));
-jest.mock('@pages/home/ForYouSection', () => mockSection('ForYouSection'));
+// Counts mounts because a remount blurs the Concierge input and drops the caret, which no presence
+// assertion can see: the card is on screen either way.
+let mockForYouSectionMountCount = 0;
+
+jest.mock('@pages/home/ForYouSection', () => {
+    const ReactModule = require('react');
+    const {View: RNView} = require('react-native');
+    function MockForYouSection() {
+        ReactModule.useEffect(() => {
+            mockForYouSectionMountCount += 1;
+        }, []);
+        return ReactModule.createElement(RNView, {testID: 'section-ForYouSection'});
+    }
+    return MockForYouSection;
+});
 jest.mock('@pages/home/UpcomingTravelSection', () => mockSection('UpcomingTravelSection'));
 jest.mock('@pages/home/RecentlyAddedSection', () => mockSection('RecentlyAddedSection'), {virtual: true});
 jest.mock('@pages/home/YourSpendSection', () => mockSection('YourSpendSection'));
@@ -163,6 +182,11 @@ const renderHomePage = () =>
         </OnyxListItemProvider>,
     );
 
+// Either skeleton group answers "is the wall up": both render in every state the gate covers.
+function querySkeleton() {
+    return screen.queryByTestId(mockRowCardsTestID);
+}
+
 function renderedSectionOrder() {
     return screen.getAllByTestId(/^section-/).map((el) => String(el.props.testID));
 }
@@ -207,6 +231,7 @@ describe('HomePage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockForYouSectionMountCount = 0;
         setNarrowLayout();
         mockUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
         await Onyx.clear();
@@ -285,8 +310,8 @@ describe('HomePage', () => {
 
             renderHomePage();
 
-            const leftColumn = screen.getByTestId('homePageLeftColumn');
-            const rightColumn = screen.getByTestId('homePageRightColumn');
+            const leftColumn = screen.getByTestId(LEFT_COLUMN_TEST_ID);
+            const rightColumn = screen.getByTestId(RIGHT_COLUMN_TEST_ID);
 
             expect(within(rightColumn).getByTestId('section-DiscoverSection')).toBeOnTheScreen();
             expect(within(leftColumn).queryByTestId('section-DiscoverSection')).not.toBeOnTheScreen();
@@ -300,7 +325,7 @@ describe('HomePage', () => {
 
             renderHomePage();
 
-            const rightColumn = screen.getByTestId('homePageRightColumn');
+            const rightColumn = screen.getByTestId(RIGHT_COLUMN_TEST_ID);
             const rightOrder = within(rightColumn)
                 .getAllByTestId(/^section-/)
                 .map((el) => String(el.props.testID));
@@ -326,8 +351,8 @@ describe('HomePage', () => {
             renderHomePage();
 
             // Then Getting started is in the left column, below For you
-            const leftColumn = screen.getByTestId('homePageLeftColumn');
-            const rightColumn = screen.getByTestId('homePageRightColumn');
+            const leftColumn = screen.getByTestId(LEFT_COLUMN_TEST_ID);
+            const rightColumn = screen.getByTestId(RIGHT_COLUMN_TEST_ID);
 
             expect(within(leftColumn).getByTestId('section-GettingStartedSection')).toBeOnTheScreen();
             expect(within(rightColumn).queryByTestId('section-GettingStartedSection')).not.toBeOnTheScreen();
@@ -338,16 +363,13 @@ describe('HomePage', () => {
             expect(leftOrder.indexOf('section-GettingStartedSection')).toBeGreaterThan(leftOrder.indexOf('section-ForYouSection'));
         });
     });
-    // These cases prove that HomePage branches on the gate and composes the offline guard. ForYouSection is the
-    // one section that survives the skeleton, because the skeleton renders it through `topLeftCard` rather than
-    // standing in for it, so every skeleton case below asserts exactly that one.
     describe('app load skeleton', () => {
-        it('renders the skeleton, carrying only the For You card, while the first OpenApp is in flight', async () => {
+        it('renders the skeleton with the For You card as the only section, while the first OpenApp is in flight', async () => {
             await setAppLoadState({hasLoadedApp: false, isLoadingApp: false, requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)]});
 
             renderHomePage();
 
-            expect(screen.getByTestId('homePageSkeleton')).toBeOnTheScreen();
+            expect(querySkeleton()).toBeOnTheScreen();
             expect(renderedSectionOrder()).toEqual(['section-ForYouSection']);
         });
 
@@ -356,7 +378,7 @@ describe('HomePage', () => {
 
             renderHomePage();
 
-            expect(screen.getByTestId('homePageSkeleton')).toBeOnTheScreen();
+            expect(querySkeleton()).toBeOnTheScreen();
         });
 
         it('renders the sections, not the skeleton, while a ReconnectApp is in flight', async () => {
@@ -364,7 +386,7 @@ describe('HomePage', () => {
 
             renderHomePage();
 
-            expect(screen.queryByTestId('homePageSkeleton')).not.toBeOnTheScreen();
+            expect(querySkeleton()).not.toBeOnTheScreen();
             expect(screen.queryAllByTestId(/^section-/)).not.toHaveLength(0);
         });
 
@@ -373,7 +395,7 @@ describe('HomePage', () => {
 
             renderHomePage();
 
-            expect(screen.queryByTestId('homePageSkeleton')).not.toBeOnTheScreen();
+            expect(querySkeleton()).not.toBeOnTheScreen();
             expect(screen.queryAllByTestId(/^section-/)).not.toHaveLength(0);
         });
 
@@ -385,7 +407,7 @@ describe('HomePage', () => {
 
             renderHomePage();
 
-            expect(screen.queryByTestId('homePageSkeleton')).not.toBeOnTheScreen();
+            expect(querySkeleton()).not.toBeOnTheScreen();
             expect(screen.queryAllByTestId(/^section-/)).not.toHaveLength(0);
         });
 
@@ -397,7 +419,7 @@ describe('HomePage', () => {
 
             renderHomePage();
 
-            expect(screen.getByTestId('homePageSkeleton')).toBeOnTheScreen();
+            expect(querySkeleton()).toBeOnTheScreen();
             expect(renderedSectionOrder()).toEqual(['section-ForYouSection']);
         });
 
@@ -409,7 +431,7 @@ describe('HomePage', () => {
 
             renderHomePage();
 
-            expect(screen.getByTestId('homePageSkeleton')).toBeOnTheScreen();
+            expect(querySkeleton()).toBeOnTheScreen();
             expect(renderedSectionOrder()).toEqual(['section-ForYouSection']);
         });
 
@@ -421,7 +443,7 @@ describe('HomePage', () => {
 
             renderHomePage();
 
-            expect(screen.getByTestId('homePageSkeleton')).toBeOnTheScreen();
+            expect(querySkeleton()).toBeOnTheScreen();
         });
 
         // A restart rehydrates PERSISTED_ONGOING_REQUESTS, so the request is not being sent at that instant.
@@ -434,7 +456,7 @@ describe('HomePage', () => {
 
             renderHomePage();
 
-            expect(screen.getByTestId('homePageSkeleton')).toBeOnTheScreen();
+            expect(querySkeleton()).toBeOnTheScreen();
             expect(renderedSectionOrder()).toEqual(['section-ForYouSection']);
         });
 
@@ -446,19 +468,40 @@ describe('HomePage', () => {
 
             renderHomePage();
 
-            expect(screen.queryByTestId('homePageSkeleton')).not.toBeOnTheScreen();
+            expect(querySkeleton()).not.toBeOnTheScreen();
             expect(screen.queryAllByTestId(/^section-/)).not.toHaveLength(0);
         });
 
-        it('renders the skeleton in place of both columns on wide layout', async () => {
+        it('keeps both columns on wide layout, with the For You card leading the left', async () => {
             setWideLayout();
             await setAppLoadState({hasLoadedApp: false, isLoadingApp: false, requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)]});
 
             renderHomePage();
 
-            expect(screen.getByTestId('homePageSkeleton')).toBeOnTheScreen();
-            expect(screen.queryByTestId('homePageLeftColumn')).not.toBeOnTheScreen();
-            expect(screen.queryByTestId('homePageRightColumn')).not.toBeOnTheScreen();
+            const leftColumn = screen.getByTestId(LEFT_COLUMN_TEST_ID);
+            const rightColumn = screen.getByTestId(RIGHT_COLUMN_TEST_ID);
+
+            const leftOrder = within(leftColumn)
+                .getAllByTestId(/^(section-|homePageSkeleton)/)
+                .map((el) => String(el.props.testID));
+            expect(leftOrder).toEqual(['section-ForYouSection', mockSpinnerCardTestID]);
+
+            expect(within(rightColumn).getByTestId(mockRowCardsTestID)).toBeOnTheScreen();
+            expect(renderedSectionOrder()).toEqual(['section-ForYouSection']);
+        });
+
+        it('carries the For You card across the skeleton swap without remounting it', async () => {
+            await setAppLoadState({hasLoadedApp: false, isLoadingApp: false, requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)]});
+
+            renderHomePage();
+
+            expect(querySkeleton()).toBeOnTheScreen();
+            expect(mockForYouSectionMountCount).toBe(1);
+
+            await setAppLoadState({hasLoadedApp: true, isLoadingApp: false});
+
+            expect(querySkeleton()).not.toBeOnTheScreen();
+            expect(mockForYouSectionMountCount).toBe(1);
         });
     });
 });

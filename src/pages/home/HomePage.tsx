@@ -24,7 +24,7 @@ import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
 import FreeTrialSection from './FreeTrialSection';
 import GettingStartedSection from './GettingStartedSection';
-import HomePageSkeleton from './HomePageSkeleton';
+import {HomePageSkeletonRowCards, HomePageSkeletonSpinnerCard} from './HomePageSkeleton';
 import InsightsSection from './InsightsSection';
 import RecentlyAddedSection from './RecentlyAddedSection';
 import UpcomingTravelSection from './UpcomingTravelSection';
@@ -50,24 +50,38 @@ function HomePage() {
     // happens on breakpoint change, converting between anchored popover and bottom-docked modal instead of vanishing.
     const [isConciergeMenuVisible, setIsConciergeMenuVisible] = useState(false);
 
+    // Held at the same array index in both states, and keyed so the match never depends on that index holding:
+    // a match that costs it a move relocates the host node, which blurs a focused Concierge input.
     const forYouSection = (
         <ForYouSection
+            key="forYouSection"
             isConciergeMenuVisible={isConciergeMenuVisible}
             setIsConciergeMenuVisible={setIsConciergeMenuVisible}
         />
     );
 
-    // Sections handle their own visibility and may return null to avoid duplicating visibility logic here
-    const homeSections = shouldUseNarrowLayout ? (
+    // Sections handle their own visibility and may render nothing. The skeleton fills these same slots rather
+    // than replacing the whole layout, which would unmount the Concierge card and interrupt anyone typing in it.
+    const homeLayout = shouldUseNarrowLayout ? (
         <>
-            <FreeTrialSection />
+            {/* Occupies a slot whether or not it renders, so the card below keeps its index across the swap. */}
+            {shouldShowHomeSkeleton ? null : <FreeTrialSection />}
             {forYouSection}
-            <GettingStartedSection />
-            <UpcomingTravelSection />
-            <YourSpendSection />
-            <RecentlyAddedSection />
-            <InsightsSection />
-            <DiscoverSection />
+            {shouldShowHomeSkeleton ? (
+                <>
+                    <HomePageSkeletonSpinnerCard />
+                    <HomePageSkeletonRowCards />
+                </>
+            ) : (
+                <>
+                    <GettingStartedSection />
+                    <UpcomingTravelSection />
+                    <YourSpendSection />
+                    <RecentlyAddedSection />
+                    <InsightsSection />
+                    <DiscoverSection />
+                </>
+            )}
         </>
     ) : (
         <>
@@ -76,18 +90,30 @@ function HomePage() {
                 style={styles.homePageLeftColumn}
             >
                 {forYouSection}
-                <GettingStartedSection />
-                <InsightsSection />
+                {shouldShowHomeSkeleton ? (
+                    <HomePageSkeletonSpinnerCard />
+                ) : (
+                    <>
+                        <GettingStartedSection />
+                        <InsightsSection />
+                    </>
+                )}
             </View>
             <View
                 testID={RIGHT_COLUMN_TEST_ID}
                 style={styles.homePageRightColumn}
             >
-                <FreeTrialSection />
-                <YourSpendSection />
-                <RecentlyAddedSection />
-                <UpcomingTravelSection />
-                <DiscoverSection />
+                {shouldShowHomeSkeleton ? (
+                    <HomePageSkeletonRowCards />
+                ) : (
+                    <>
+                        <FreeTrialSection />
+                        <YourSpendSection />
+                        <RecentlyAddedSection />
+                        <UpcomingTravelSection />
+                        <DiscoverSection />
+                    </>
+                )}
             </View>
         </>
     );
@@ -122,7 +148,7 @@ function HomePage() {
                                 <QuickCreationActionsBar />
                             </View>
                         )}
-                        <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>{shouldShowHomeSkeleton ? <HomePageSkeleton topLeftCard={forYouSection} /> : homeSections}</View>
+                        <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>{homeLayout}</View>
                     </ScrollView>
                 </ScreenWrapper>
             </View>
