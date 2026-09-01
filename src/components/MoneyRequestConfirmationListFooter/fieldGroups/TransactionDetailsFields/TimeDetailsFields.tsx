@@ -5,8 +5,6 @@ import TimeFields from '@components/MoneyRequestConfirmationList/sections/TimeFi
 import {useDetailsFields} from '@components/MoneyRequestConfirmationListFooter/DetailsFieldsContext';
 import type {AmountDisplay, ErrorState} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -30,7 +28,6 @@ type TimeDetailsFieldsProps = {
 function TimeDetailsFields({policy, amountDisplay, isDescriptionRequired, errorState}: TimeDetailsFieldsProps) {
     const {fieldVisibility, iouCurrencyCode} = useDetailsFields();
     const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isNewManualExpenseFlowEnabled} = useConfirmationFields();
-    const shouldAutoFocusAmountField = !canUseTouchScreen();
 
     return (
         <>
@@ -50,7 +47,6 @@ function TimeDetailsFields({policy, amountDisplay, isDescriptionRequired, errorS
                     reportID={reportID}
                     reportActionID={reportActionID}
                     policy={policy}
-                    autoFocus={shouldAutoFocusAmountField}
                     {...errorState}
                 />
             )}
