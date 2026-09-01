@@ -6276,6 +6276,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                                 'Non siamo riusciti a effettuare il provisioning di alcuni membri del tuo workspace per la Fatturazione Viaggi Consolidata. Riprova più tardi oppure contatta Concierge per assistenza.',
                             sendInvoiceNowCta: 'Invia fattura ora',
                         },
+                        setUpNewFeed: 'Configura un nuovo feed di viaggio',
                     },
                     disableModal: {
                         title: 'Disattivare la fatturazione di viaggio consolidata?',

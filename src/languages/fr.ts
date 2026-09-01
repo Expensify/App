@@ -6321,6 +6321,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                                 'Nous n’avons pas pu configurer certains membres de votre espace de travail pour la facturation de voyage consolidée. Veuillez réessayer plus tard ou contacter Concierge pour obtenir de l’aide.',
                             sendInvoiceNowCta: 'Envoyer la facture maintenant',
                         },
+                        setUpNewFeed: 'Configurer un nouveau flux de voyage',
                     },
                     disableModal: {
                         title: 'Désactiver la facturation voyage consolidée ?',
