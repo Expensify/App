@@ -65,7 +65,7 @@ function getTransactionCount(transactionKeys: string[], transactions: SelectedTr
 // inline edit that moves it is detected and the cached conversion is fetched again.
 // Sources are expense-signed (the negation of the displayed amount), so callers sum them with `total - source`.
 function getEntrySource(entry: SelectedTransactionInfo): number {
-    return entry.groupAmount ?? -(entry.displayAmount ?? Math.abs(entry.amount));
+    return entry.groupAmount ?? -entry.displayAmount;
 }
 
 function getTransactionTotal(transactions: SelectedTransactionInfo[]): number {

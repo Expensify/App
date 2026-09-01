@@ -72,8 +72,8 @@ type SelectedTransactionInfo = {
     /** The transaction amount, in the raw stored sign convention */
     amount: number;
 
-    /** The signed amount the row displays. Undefined for report rows that carry no transaction of their own. */
-    displayAmount?: number;
+    /** The signed amount the row displays */
+    displayAmount: number;
 
     /** The transaction currency */
     currency: string;
