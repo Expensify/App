@@ -608,7 +608,7 @@ const ViolationsUtils = {
 
         // Inactive vendor violation, gated behind the `vendorMatching` beta. The transaction's
         // vendor is never cleared here — admins need to see what was set so they can re-pick.
-        if (allBetas !== undefined || betaOverrides?.[CONST.BETAS.VENDOR_MATCHING] !== undefined) {
+        if (allBetas !== undefined) {
             const isVendorMatchingBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.VENDOR_MATCHING, allBetas, betaConfiguration, betaOverrides);
             const hasInactiveVendorViolation = newTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR);
             const isVendorFeatureActive = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
