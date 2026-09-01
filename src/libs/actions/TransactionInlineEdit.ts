@@ -302,6 +302,9 @@ function getIouParamsForTransaction({
         getCurrencyDecimals,
         getCurrencySymbol,
         reportPolicyTags,
+        // The stored violations, not a per-viewer filtered list. They seed the optimistic recompute, which writes the
+        // whole key back, so anything missing from the seed is dropped until the response lands.
+        violations: transactionViolations,
         // Field-specific extras
         transaction,
         policyTagList: policyTags,

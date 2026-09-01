@@ -181,6 +181,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                violations: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
@@ -267,6 +268,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     isASAPSubmitBetaEnabled: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    violations: undefined,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     getCurrencySymbol: getCurrencySymbolLocal,
                 });
@@ -319,6 +321,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     isASAPSubmitBetaEnabled: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    violations: undefined,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     getCurrencySymbol: getCurrencySymbolLocal,
                 });
@@ -382,6 +385,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                violations: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
@@ -400,6 +404,77 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     },
                 });
             });
+        });
+
+        it('should keep a violation the client cannot recompute when the category is set', async () => {
+            const transactionID = '1';
+            const policyID = '2';
+            const transactionThreadReportID = '3';
+            const transactionThreadReport = {reportID: transactionThreadReportID};
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                requiresCategory: true,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                amount: 100,
+                transactionID,
+            });
+
+            // Given a transaction carrying both a violation the client can recompute and one only the backend can send
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                    showInReview: true,
+                },
+                {
+                    type: CONST.VIOLATION_TYPES.NOTICE,
+                    name: CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT,
+                    data: {formattedLimit: '$100'},
+                },
+            ]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {Car: {name: 'Car', enabled: true}});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+
+            // When setting a category that is in the policy
+            updateMoneyRequestCategory({
+                transactionID,
+                transactionThreadReport,
+                parentReport: undefined,
+                iouReportOwnerLogin: undefined,
+                reportPolicyTags: undefined,
+                category: 'Car',
+                policy: fakePolicy,
+                policyTagList: undefined,
+                policyCategories: {Car: {name: 'Car', enabled: true}},
+                policyRecentlyUsedCategories: [],
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                isASAPSubmitBetaEnabled: false,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                violations: [
+                    {
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        showInReview: true,
+                    },
+                    {
+                        type: CONST.VIOLATION_TYPES.NOTICE,
+                        name: CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT,
+                        data: {formattedLimit: '$100'},
+                    },
+                ],
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the now-satisfied MISSING_CATEGORY is dropped, and the backend-only notice survives the optimistic write
+            const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            expect(updatedViolations?.map((violation) => violation.name)).toEqual([CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT]);
         });
     });
 
@@ -845,6 +920,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                violations: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
@@ -908,6 +984,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                violations: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
@@ -1179,6 +1256,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 odometerEnd: 15000,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                violations: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
@@ -1282,6 +1360,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                violations: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
@@ -1397,6 +1476,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 odometerEnd: 50350,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                violations: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
@@ -1474,6 +1554,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                violations: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
@@ -1532,6 +1613,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                violations: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
@@ -1616,6 +1698,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                violations: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
@@ -1695,6 +1778,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                violations: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
@@ -1733,6 +1817,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                violations: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
@@ -1798,6 +1883,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                violations: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
@@ -1856,6 +1942,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                violations: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
@@ -1965,6 +2052,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     isOffline,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    violations: undefined,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     getCurrencySymbol: getCurrencySymbolLocal,
                 });
