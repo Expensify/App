@@ -29,7 +29,7 @@ import ROUTES from '@src/ROUTES';
 import type {Rate} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import {getAllValidConnectedIntegration, getWorkflowRules, getWorkspaceRules} from './utils';
@@ -57,15 +57,12 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const customUnitRates: Record<string, Rate> = customUnits?.rates ?? {};
     const allRates = Object.values(customUnitRates)?.filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length ?? 0;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const totalMembersSelector = useMemo(
-        () => createFilteredMemberCountSelector(policy?.employeeList, policy?.owner, currentUserPersonalDetails.login),
-        [policy?.employeeList, policy?.owner, currentUserPersonalDetails.login],
-    );
+    const totalMembersSelector = createFilteredMemberCountSelector(policy?.employeeList, policy?.owner, currentUserPersonalDetails.login);
     const [totalMembers = 0] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: totalMembersSelector,
     });
     // The invoicing company details are provisioned per workspace, so they aren't copied over to the duplicate and shouldn't be advertised here.
-    const invoiceConfigurationTextSelector = useMemo(() => createInvoiceConfigurationTextSelector(translate, ''), [translate]);
+    const invoiceConfigurationTextSelector = createInvoiceConfigurationTextSelector(translate, '');
     const [invoiceConfigurationText = ''] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
         selector: invoiceConfigurationTextSelector,
     });

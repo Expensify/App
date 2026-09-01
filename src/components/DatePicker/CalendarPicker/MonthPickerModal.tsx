@@ -11,7 +11,7 @@ import DateUtils from '@libs/DateUtils';
 
 import CONST from '@src/CONST';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Keyboard} from 'react-native';
 
 type MonthPickerModalProps = {
@@ -38,15 +38,11 @@ function MonthPickerModal({isVisible, currentMonth, onMonthChange, onClose, shou
     const resolvedCurrentMonth = currentMonth ?? new Date().getMonth();
     const monthNames = DateUtils.getMonthNames(dateFnsLocale);
 
-    const allMonths = useMemo(() => DateUtils.getFilteredMonthItems(monthNames, resolvedCurrentMonth), [monthNames, resolvedCurrentMonth]);
+    const allMonths = DateUtils.getFilteredMonthItems(monthNames, resolvedCurrentMonth);
 
-    const {data, headerMessage} = useMemo(() => {
-        const filteredMonths = searchText === '' ? allMonths : allMonths.filter((month) => month.text.toLowerCase().includes(searchText.toLowerCase()));
-        return {
-            headerMessage: !filteredMonths.length ? translate('common.noResultsFound') : '',
-            data: filteredMonths,
-        };
-    }, [allMonths, searchText, translate]);
+    const filteredMonths = searchText === '' ? allMonths : allMonths.filter((month) => month.text.toLowerCase().includes(searchText.toLowerCase()));
+    const headerMessage = !filteredMonths.length ? translate('common.noResultsFound') : '';
+    const data = filteredMonths;
 
     useEffect(() => {
         if (isVisible) {
@@ -55,15 +51,12 @@ function MonthPickerModal({isVisible, currentMonth, onMonthChange, onClose, shou
         setSearchText('');
     }, [isVisible]);
 
-    const textInputOptions = useMemo(
-        () => ({
-            label: translate('monthPickerPage.selectMonth'),
-            value: searchText,
-            onChangeText: setSearchText,
-            headerMessage,
-        }),
-        [headerMessage, searchText, translate],
-    );
+    const textInputOptions = {
+        label: translate('monthPickerPage.selectMonth'),
+        value: searchText,
+        onChangeText: setSearchText,
+        headerMessage,
+    };
 
     return (
         <Modal

@@ -12,7 +12,7 @@ import callOrReturn from '@src/types/utils/callOrReturn';
 
 import type {LayoutRectangle} from 'react-native';
 
-import React, {memo, useCallback, useEffect, useState} from 'react';
+import React, {memo, useEffect, useState} from 'react';
 import {cancelAnimation, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 
 import type {GenericTooltipProps} from './types';
@@ -88,7 +88,7 @@ function GenericTooltip({
     /**
      * Display the tooltip in an animation.
      */
-    const showTooltip = useCallback(() => {
+    const showTooltip = () => {
         setIsRendered(true);
         setIsVisible(true);
 
@@ -115,7 +115,7 @@ function GenericTooltip({
             );
         }
         TooltipSense.activate();
-    }, [animation, isAnimationCanceled, isTooltipSenseInitiator, shouldForceAnimate]);
+    };
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
@@ -143,7 +143,7 @@ function GenericTooltip({
     /**
      * Hide the tooltip in an animation.
      */
-    const hideTooltip = useCallback(() => {
+    const hideTooltip = () => {
         cancelAnimation(animation);
 
         if (TooltipSense.isActive() && !isTooltipSenseInitiator.get()) {
@@ -155,15 +155,15 @@ function GenericTooltip({
         }
         TooltipSense.deactivate();
         setIsVisible(false);
-    }, [animation, isTooltipSenseInitiator]);
+    };
 
-    const onPressOverlay = useCallback(() => {
+    const onPressOverlay = () => {
         if (!shouldUseOverlay) {
             return;
         }
         setShouldUseOverlay(false);
         hideTooltip();
-    }, [shouldUseOverlay, hideTooltip]);
+    };
 
     // Skip the tooltip and return the children if the text is empty, we don't have a render function.
     if (StringUtils.isEmptyString(text) && renderTooltipContent == null) {

@@ -11,7 +11,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {ReviewDuplicates} from '@src/types/onyx';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type FieldItemType<T extends keyof ReviewDuplicates> = {
@@ -57,16 +57,12 @@ function ReviewFields<K extends keyof ReviewDuplicates>({stepNames, label, optio
         return true;
     });
 
-    const optionRows = useMemo(
-        () =>
-            filteredOptions?.map((option, idx) => ({
-                text: option.text,
-                keyForList: `${option.text}-${idx}`,
-                value: option.value,
-                isSelected: option.value === selectedValue,
-            })),
-        [filteredOptions, selectedValue],
-    );
+    const optionRows = filteredOptions?.map((option, idx) => ({
+        text: option.text,
+        keyForList: `${option.text}-${idx}`,
+        value: option.value,
+        isSelected: option.value === selectedValue,
+    }));
 
     return (
         <View

@@ -19,7 +19,7 @@ import CONST from '@src/CONST';
 import type {GestureResponderEvent, NativeSyntheticEvent} from 'react-native';
 import type {TextInput} from 'react-native-gesture-handler';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import setCursorPosition from './setCursorPosition';
@@ -150,36 +150,33 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
 
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const focusMillisecondInputOnFirstCharacter = useCallback(() => setCursorPosition(0, millisecondInputRef, setSelectionMillisecond), []);
-    const focusSecondInputOnLastCharacter = useCallback(() => setCursorPosition(2, secondInputRef, setSelectionSecond), []);
-    const focusSecondInputOnFirstCharacter = useCallback(() => setCursorPosition(0, secondInputRef, setSelectionSecond), []);
-    const focusMinuteInputOnLastCharacter = useCallback(() => setCursorPosition(2, minuteInputRef, setSelectionMinute), []);
-    const focusMinuteInputOnFirstCharacter = useCallback(() => setCursorPosition(0, minuteInputRef, setSelectionMinute), []);
-    const focusHourInputOnLastCharacter = useCallback(() => setCursorPosition(2, hourInputRef, setSelectionHour), []);
+    const focusMillisecondInputOnFirstCharacter = () => setCursorPosition(0, millisecondInputRef, setSelectionMillisecond);
+    const focusSecondInputOnLastCharacter = () => setCursorPosition(2, secondInputRef, setSelectionSecond);
+    const focusSecondInputOnFirstCharacter = () => setCursorPosition(0, secondInputRef, setSelectionSecond);
+    const focusMinuteInputOnLastCharacter = () => setCursorPosition(2, minuteInputRef, setSelectionMinute);
+    const focusMinuteInputOnFirstCharacter = () => setCursorPosition(0, minuteInputRef, setSelectionMinute);
+    const focusHourInputOnLastCharacter = () => setCursorPosition(2, hourInputRef, setSelectionHour);
 
-    const validate = useCallback(
-        (time: string) => {
-            if (!shouldValidate) {
-                return true;
-            }
-            const timeString = time || `${hours}:${minutes} ${amPmValue}`;
-            const [hourStr] = timeString.split(/[:\s]+/);
-            const hour = parseInt(hourStr, 10);
-            if (hour === 0) {
-                setError(true);
-                setErrorMessage(translate('common.error.invalidTimeRange'));
-                return false;
-            }
-            if (!shouldValidateFutureTime) {
-                return true;
-            }
-            const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({timeString, dateTimeString: defaultValue});
-            setError(!isValid);
-            setErrorMessage(translate('common.error.invalidTimeShouldBeFuture'));
-            return isValid;
-        },
-        [shouldValidate, hours, minutes, amPmValue, shouldValidateFutureTime, defaultValue, translate],
-    );
+    const validate = (time: string) => {
+        if (!shouldValidate) {
+            return true;
+        }
+        const timeString = time || `${hours}:${minutes} ${amPmValue}`;
+        const [hourStr] = timeString.split(/[:\s]+/);
+        const hour = parseInt(hourStr, 10);
+        if (hour === 0) {
+            setError(true);
+            setErrorMessage(translate('common.error.invalidTimeRange'));
+            return false;
+        }
+        if (!shouldValidateFutureTime) {
+            return true;
+        }
+        const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({timeString, dateTimeString: defaultValue});
+        setError(!isValid);
+        setErrorMessage(translate('common.error.invalidTimeShouldBeFuture'));
+        return isValid;
+    };
 
     const resetHours = () => {
         setHours('00');
@@ -619,12 +616,9 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
         setSelectionHour({start: 0, end: 0});
     }, []);
 
-    const arrowConfig = useMemo(
-        () => ({
-            shouldPreventDefault: false,
-        }),
-        [],
-    );
+    const arrowConfig = {
+        shouldPreventDefault: false,
+    };
 
     const arrowLeftCallback = (e?: GestureResponderEvent | KeyboardEvent) => {
         if (minuteInputRef.current?.isFocused() && selectionMinute.start === 0) {
@@ -664,41 +658,27 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT, arrowLeftCallback, arrowConfig);
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT, arrowRightCallback, arrowConfig);
 
-    const handleFocusOnBackspace = useCallback(
-        (e: NativeSyntheticEvent<KeyboardEvent>) => {
-            if (e.nativeEvent.key !== 'Backspace') {
-                return;
-            }
-            if (minuteInputRef.current?.isFocused() && selectionMinute.start === 0 && selectionMinute.end === 0) {
-                e.preventDefault();
-                focusHourInputOnLastCharacter();
-            }
-            if (secondInputRef.current?.isFocused() && selectionSecond.start === 0 && selectionSecond.end === 0) {
-                e.preventDefault();
-                focusMinuteInputOnLastCharacter();
-            }
-            if (millisecondInputRef.current?.isFocused() && selectionMillisecond.start === 0 && selectionMillisecond.end === 0) {
-                e.preventDefault();
-                focusSecondInputOnLastCharacter();
-            }
-        },
-
-        [
-            selectionMinute.start,
-            selectionMinute.end,
-            selectionSecond.start,
-            selectionSecond.end,
-            selectionMillisecond.start,
-            selectionMillisecond.end,
-            focusHourInputOnLastCharacter,
-            focusMinuteInputOnLastCharacter,
-            focusSecondInputOnLastCharacter,
-        ],
-    );
+    const handleFocusOnBackspace = (e: NativeSyntheticEvent<KeyboardEvent>) => {
+        if (e.nativeEvent.key !== 'Backspace') {
+            return;
+        }
+        if (minuteInputRef.current?.isFocused() && selectionMinute.start === 0 && selectionMinute.end === 0) {
+            e.preventDefault();
+            focusHourInputOnLastCharacter();
+        }
+        if (secondInputRef.current?.isFocused() && selectionSecond.start === 0 && selectionSecond.end === 0) {
+            e.preventDefault();
+            focusMinuteInputOnLastCharacter();
+        }
+        if (millisecondInputRef.current?.isFocused() && selectionMillisecond.start === 0 && selectionMillisecond.end === 0) {
+            e.preventDefault();
+            focusSecondInputOnLastCharacter();
+        }
+    };
 
     const {styleForAM, styleForPM} = StyleUtils.getStatusAMandPMButtonStyle(amPmValue);
 
-    const numberPad = useCallback(() => {
+    const numberPad = () => {
         if (!canUseTouchScreen) {
             return null;
         }
@@ -709,7 +689,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                 isLongPressDisabled
             />
         );
-    }, [canUseTouchScreen, updateAmountNumberPad]);
+    };
 
     useEffect(() => {
         onInputChange(showFullFormat ? `${hours}:${minutes}:${seconds}.${milliseconds} ${amPmValue}` : `${hours}:${minutes} ${amPmValue}`);
@@ -725,38 +705,35 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
         }
     };
 
-    const renderedAmPmButtons = useMemo(
-        () => (
-            <View style={styles.timePickerSwitcherContainer}>
-                <Button
-                    enableHapticFeedback
-                    innerStyles={styleForAM}
-                    size={CONST.BUTTON_SIZE.SMALL}
-                    onLongPress={() => {}}
-                    onPress={() => {
-                        setAmPmValue(CONST.TIME_PERIOD.AM);
-                    }}
-                    onPressOut={() => {}}
-                    onMouseDown={(e) => e.preventDefault()}
-                >
-                    <Button.Text>{translate('common.am')}</Button.Text>
-                </Button>
-                <Button
-                    enableHapticFeedback
-                    innerStyles={[styleForPM, styles.ml1]}
-                    size={CONST.BUTTON_SIZE.SMALL}
-                    onLongPress={() => {}}
-                    onPress={() => {
-                        setAmPmValue(CONST.TIME_PERIOD.PM);
-                    }}
-                    onPressOut={() => {}}
-                    onMouseDown={(e) => e.preventDefault()}
-                >
-                    <Button.Text>{translate('common.pm')}</Button.Text>
-                </Button>
-            </View>
-        ),
-        [styles, styleForAM, styleForPM, translate, setAmPmValue],
+    const renderedAmPmButtons = (
+        <View style={styles.timePickerSwitcherContainer}>
+            <Button
+                enableHapticFeedback
+                innerStyles={styleForAM}
+                size={CONST.BUTTON_SIZE.SMALL}
+                onLongPress={() => {}}
+                onPress={() => {
+                    setAmPmValue(CONST.TIME_PERIOD.AM);
+                }}
+                onPressOut={() => {}}
+                onMouseDown={(e) => e.preventDefault()}
+            >
+                <Button.Text>{translate('common.am')}</Button.Text>
+            </Button>
+            <Button
+                enableHapticFeedback
+                innerStyles={[styleForPM, styles.ml1]}
+                size={CONST.BUTTON_SIZE.SMALL}
+                onLongPress={() => {}}
+                onPress={() => {
+                    setAmPmValue(CONST.TIME_PERIOD.PM);
+                }}
+                onPressOut={() => {}}
+                onMouseDown={(e) => e.preventDefault()}
+            >
+                <Button.Text>{translate('common.pm')}</Button.Text>
+            </Button>
+        </View>
     );
 
     return (

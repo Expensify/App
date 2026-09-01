@@ -33,7 +33,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import {compareAsc, parse} from 'date-fns';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import AvailableBookingDay from './AvailableBookingDay';
@@ -81,11 +81,9 @@ function ScheduleCallPage() {
     }, [adminsRoomReportID]);
 
     // Clear selected time when user comes back to the selection screen
-    useFocusEffect(
-        useCallback(() => {
-            saveBookingDraft({timeSlot: null});
-        }, []),
-    );
+    useFocusEffect(() => {
+        saveBookingDraft({timeSlot: null});
+    });
 
     useEffect(() => {
         return () => {
@@ -94,9 +92,9 @@ function ScheduleCallPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const loadTimeSlotsAndSaveDate = useCallback((date: string) => {
+    const loadTimeSlotsAndSaveDate = (date: string) => {
         saveBookingDraft({date});
-    }, []);
+    };
 
     const timeSlotDateMap: Record<string, TimeSlot[]> = (() => {
         if (!calendlySchedule?.data) {
