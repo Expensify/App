@@ -28,6 +28,7 @@ import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Report} from '@s
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
+import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -466,6 +467,12 @@ type BuildReturnToDefaultWorkflowDiffParams = {
 
     /** The policy's rules with the deleted workflow's rules already taken out. */
     existingRules: Record<string, ApprovalWorkflowRule>;
+
+    /** The policy's employees, used to check where these members would fall back to without rules. */
+    employees: PolicyEmployeeList;
+
+    /** The policy's default approver. */
+    defaultApprover: string;
 };
 
 /**
@@ -474,26 +481,39 @@ type BuildReturnToDefaultWorkflowDiffParams = {
  * Without this they end up covered by no rule at all and resolve through the legacy `employeeList.submitsTo`,
  * which still names whoever approved for them before the default workflow was last edited
  */
-function buildReturnToDefaultWorkflowDiff({approvalWorkflow, defaultApprovalWorkflow, existingRules}: BuildReturnToDefaultWorkflowDiffParams): ApprovalWorkflowRulesDiff {
+function buildReturnToDefaultWorkflowDiff({
+    approvalWorkflow,
+    defaultApprovalWorkflow,
+    existingRules,
+    employees,
+    defaultApprover,
+}: BuildReturnToDefaultWorkflowDiffParams): ApprovalWorkflowRulesDiff {
     const memberEmails = getWorkflowMemberEmails(approvalWorkflow.members);
     if (!defaultApprovalWorkflow || memberEmails.length === 0) {
         return {};
     }
 
+    const buildDefaultRules = (isDefault: boolean) => buildApprovalWorkflowRules({...defaultApprovalWorkflow, members: approvalWorkflow.members, isDefault});
+
     // Mirror the marker state of the stored default rules rather than assuming they carry one. Rules written
     // before the marker existed do not, and building marked rules against them matches nothing, which would
     // silently skip the fold below and strand the members.
-    const defaultRules = buildApprovalWorkflowRules({
-        ...defaultApprovalWorkflow,
-        members: approvalWorkflow.members,
-        isDefault: hasMarkedDefaultWorkflow(existingRules),
-    });
-    const diff = reconcileApprovalWorkflowRulesForCreate(defaultRules, memberEmails, {existingRules});
+    const foldDiff = reconcileApprovalWorkflowRulesForCreate(buildDefaultRules(hasMarkedDefaultWorkflow(existingRules)), memberEmails, {existingRules});
+    if (Object.keys(foldDiff).every((ruleID) => ruleID in existingRules)) {
+        return foldDiff;
+    }
 
-    // Fold into the default workflow's own rules or do nothing: a fresh ruleID here means the default workflow
-    // isn't rule-backed, in which case the `employeeList` fallback already routes these members to it and adding
-    // rules would split them off into a separate card.
-    return Object.keys(diff).every((ruleID) => ruleID in existingRules) ? diff : {};
+    // A fresh ruleID means there are no default rules to fold into. That covers both a default workflow that was
+    // never rule-backed and one whose rules were dropped along with their last submitter, so it says nothing
+    // about whether `employeeList` still describes the default - after a default-approver change it names the
+    // previous approver. Skip the write only for members who already submit to the current default approver;
+    // writing rules for those would split them onto a card of their own.
+    if (memberEmails.every((email) => employees[email]?.submitsTo === defaultApprover)) {
+        return {};
+    }
+
+    // Otherwise re-establish the default workflow's rules so these members actually route through it.
+    return reconcileApprovalWorkflowRulesForCreate(buildDefaultRules(true), memberEmails, {existingRules});
 }
 
 /**
@@ -519,6 +539,8 @@ function removeApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow, policy:
         approvalWorkflow,
         defaultApprovalWorkflow,
         existingRules: applyApprovalWorkflowRulesDiff(existingRules, removeDiff),
+        employees: policy.employeeList ?? {},
+        defaultApprover: getDefaultApprover(policy),
     });
 
     setApprovalWorkflowRules({policyID: policy.id, rulesDiff: {...removeDiff, ...returnToDefaultDiff}, previousRules: rules});

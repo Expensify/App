@@ -1716,10 +1716,16 @@ describe('actions/Workflow', () => {
                 id: policyID,
                 owner: ownerEmail,
                 approver: ownerEmail,
+                employeeList: {
+                    [employee1Email]: {email: employee1Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                    [employee2Email]: {email: employee2Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                    [ownerEmail]: {email: ownerEmail, forwardsTo: '', role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                },
                 rules: {},
             };
 
-            // Only the workflow being removed is rule-backed; the default workflow still lives in employeeList.
+            // Only the workflow being removed is rule-backed; the default workflow still lives in employeeList,
+            // and employee2 already submits to the default approver there.
             await createForwardApproveRules(policyID, [employee2Email], employee3Email);
 
             const defaultApprovalWorkflow = {
@@ -1746,6 +1752,70 @@ describe('actions/Workflow', () => {
 
             // Writing rules for employee2 here would split them off from the employeeList-based default workflow.
             expect(await getActivePolicyRules(policyID)).toHaveLength(0);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('re-establishes the edited default workflow when its rules were dropped with their last submitter', async () => {
+            mockFetch.pause();
+
+            const policyID = '123456789';
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                // The default workflow was edited to approve through employee3, so employeeList still names the
+                // previous approver everywhere.
+                approver: employee3Email,
+                owner: ownerEmail,
+                employeeList: {
+                    [employee2Email]: {email: employee2Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                    [employee3Email]: {email: employee3Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                    [ownerEmail]: {email: ownerEmail, forwardsTo: '', role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                },
+                rules: {},
+            };
+
+            // employee2 was the edited default workflow's last member, so moving them into a custom workflow
+            // deleted the default's rules. Only the custom workflow's rules remain.
+            await createForwardApproveRules(policyID, [employee2Email], employee1Email);
+
+            const defaultApprovalWorkflow = {
+                members: [],
+                approvers: [{email: employee3Email, displayName: employee3Email, isCircularReference: false}],
+                isDefault: true,
+            };
+            const approvalWorkflow = {
+                members: [{email: employee2Email, displayName: employee2Email}],
+                approvers: [{email: employee1Email, displayName: employee1Email, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [],
+                isDefault: false,
+                action: 'remove',
+                originalApprovers: [],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            removeApprovalWorkflowRules(approvalWorkflow, policy, await getRulesCollection(), defaultApprovalWorkflow);
+            await waitForBatchedUpdates();
+
+            // No default rules survived to fold into, but employeeList still routes employee2 to the owner, so
+            // the default route has to be written rather than assumed.
+            const rules = await getActivePolicyRules(policyID);
+            expect(rules.length).toBeGreaterThan(0);
+            const forwardApprovers = rules
+                .flatMap((rule) => Object.values(rule.actions))
+                .filter((action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO)
+                .map((action) => action.approver);
+            expect(forwardApprovers).toEqual([employee3Email]);
+            expect(forwardApprovers).not.toContain(ownerEmail);
+            for (const rule of rules) {
+                expect(extractSubmitterEmails(rule)).toEqual([employee2Email]);
+                expect(rule.isDefaultApprovalWorkflow).toBe(true);
+            }
 
             await mockFetch.resume();
             await waitForBatchedUpdates();
