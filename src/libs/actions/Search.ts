@@ -180,8 +180,8 @@ function getReportActionsFromSearchSnapshot(
 
     const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
 
-    // Prefer live report actions so local changes made after the snapshot was taken are respected; fall back to the search snapshot.
-    return allReportActions?.[key] ?? searchData?.[key];
+    // Prefer the search snapshot so the actions match what the user selected on the search page, fall back to live report actions.
+    return searchData?.[key] ?? allReportActions?.[key];
 }
 
 function getPolicyFromSearchSnapshot(policyID: string | undefined, searchData: SearchResultDataType | undefined, policies: OnyxCollection<Policy> | undefined): OnyxEntry<Policy> {
