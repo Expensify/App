@@ -31,6 +31,7 @@ function useReportWorkspaceIcon(report: WorkspaceIconReportFields | undefined): 
         id: report?.policyID,
         type: CONST.ICON_TYPE_WORKSPACE,
         name: workspaceName,
+        // Avatar url can be ''
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         source: avatarURL || getDefaultWorkspaceAvatar(workspaceName),
     };
