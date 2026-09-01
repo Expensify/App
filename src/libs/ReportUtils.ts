@@ -218,6 +218,7 @@ import {
     isMoneyRequestAction,
     isMovedAction,
     isOlderReportAction,
+    isPayAction,
     isPendingRemove,
     isReopenedAction,
     isReportActionVisible,
@@ -13823,7 +13824,15 @@ function isSearchRelevantReportAction(action: OnyxInputOrEntry<ReportAction>): a
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED) ||
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED) ||
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RETRACTED) ||
-        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED)
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REDEEMED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE) ||
+        isPayAction(action)
     );
 }
 
