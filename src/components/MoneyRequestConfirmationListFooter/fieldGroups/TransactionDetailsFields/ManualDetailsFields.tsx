@@ -1,4 +1,3 @@
-import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import AmountField from '@components/MoneyRequestConfirmationList/sections/AmountField';
 import DescriptionField from '@components/MoneyRequestConfirmationList/sections/DescriptionField';
 import MerchantField from '@components/MoneyRequestConfirmationList/sections/MerchantField';
@@ -37,7 +36,6 @@ type ManualDetailsFieldsProps = {
  */
 function ManualDetailsFields({policy, amountDisplay, requiredFlags, errorState, isParticipantPickerVisible}: ManualDetailsFieldsProps) {
     const {fieldVisibility, isCompactMode, iouCurrencyCode} = useDetailsFields();
-    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isNewManualExpenseFlowEnabled} = useConfirmationFields();
 
     return (
         <>
@@ -57,16 +55,8 @@ function ManualDetailsFields({policy, amountDisplay, requiredFlags, errorState, 
             {!isCompactMode && fieldVisibility.merchant && (
                 <MerchantField
                     isMerchantRequired={requiredFlags.isMerchantRequired}
-                    isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
-                    isReadOnly={isReadOnly}
-                    didConfirm={didConfirm}
                     shouldDisplayFieldError={errorState.shouldDisplayFieldError}
                     formError={errorState.formError}
-                    transactionID={transactionID}
-                    action={action}
-                    iouType={iouType}
-                    reportID={reportID}
-                    reportActionID={reportActionID}
                 />
             )}
 

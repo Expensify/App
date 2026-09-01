@@ -1,4 +1,3 @@
-import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import AmountField from '@components/MoneyRequestConfirmationList/sections/AmountField';
 import DescriptionField from '@components/MoneyRequestConfirmationList/sections/DescriptionField';
 import DistanceField from '@components/MoneyRequestConfirmationList/sections/DistanceField';
@@ -31,8 +30,6 @@ type DistanceDetailsFieldsProps = {
 
 function DistanceDetailsFields({policy, amountDisplay, distanceData, isDescriptionRequired, errorState}: DistanceDetailsFieldsProps) {
     const {fieldVisibility, iouCurrencyCode, shouldNavigateToUpgradePath, shouldSelectPolicy} = useDetailsFields();
-    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isPolicyExpenseChat, isManualDistanceRequest, isOdometerDistanceRequest, isGPSDistanceRequest} =
-        useConfirmationFields();
 
     return (
         <>
@@ -58,16 +55,6 @@ function DistanceDetailsFields({policy, amountDisplay, distanceData, isDescripti
                 hasRoute={distanceData.hasRoute}
                 distance={distanceData.distance}
                 unit={distanceData.unit}
-                isManualDistanceRequest={isManualDistanceRequest}
-                isOdometerDistanceRequest={isOdometerDistanceRequest}
-                isGPSDistanceRequest={isGPSDistanceRequest}
-                isReadOnly={isReadOnly}
-                didConfirm={didConfirm}
-                transactionID={transactionID}
-                action={action}
-                iouType={iouType}
-                reportID={reportID}
-                reportActionID={reportActionID}
                 customUnit={distanceData.customUnit}
             />
 
@@ -78,15 +65,7 @@ function DistanceDetailsFields({policy, amountDisplay, distanceData, isDescripti
                 mileageRate={distanceData.mileageRate}
                 expenseDate={distanceData.expenseDate}
                 customUnitRateID={distanceData.customUnitRateID}
-                didConfirm={didConfirm}
-                isReadOnly={isReadOnly}
-                isPolicyExpenseChat={isPolicyExpenseChat}
                 policy={policy}
-                transactionID={transactionID}
-                action={action}
-                iouType={iouType}
-                reportID={reportID}
-                reportActionID={reportActionID}
                 formError={errorState.formError}
                 shouldNavigateToUpgradePath={shouldNavigateToUpgradePath}
                 shouldSelectPolicy={shouldSelectPolicy}
