@@ -20,6 +20,12 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+let mockIsProduction = false;
+jest.mock('@hooks/useEnvironment', () => ({
+    __esModule: true,
+    default: () => ({isProduction: mockIsProduction}),
+}));
+
 const mockSetBetaOverride = jest.fn<void, [string, boolean]>();
 const mockClearBetaOverrides = jest.fn<void, []>();
 jest.mock('@userActions/User', () => ({
@@ -104,5 +110,14 @@ describe('BetaOverridesPage', () => {
         fireEvent.press(screen.getByText('Reset all overrides'));
 
         expect(mockClearBetaOverrides).toHaveBeenCalled();
+    });
+
+    it('shows the not found page in production, since the route can still be reached by a deep link', async () => {
+        mockIsProduction = true;
+        renderBetaOverridesPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryAllByRole(CONST.ROLE.SWITCH).length).toBe(0);
+        expect(screen.queryByText('Reset all overrides')).toBeNull();
     });
 });
