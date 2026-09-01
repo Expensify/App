@@ -346,4 +346,4 @@
 - Symptom: `SIGABRT`, `NSInternalInconsistencyException: Attempt to unmount a view which is mounted inside a different view.` The reported `existing parent` tag equals the parent's own tag, which is the tell that the child really is inside the parent, just not inside the parent's container view. `RCTAssert` compiles out where `NS_BLOCK_ASSERTIONS` is set, so only builds that keep assertions on abort here.
 - Upstream PR/issue: This should ideally be fixed upstream, but no PR has been filed yet.
 - E/App issue: [#100008](https://github.com/Expensify/App/issues/100008) [#98970](https://github.com/Expensify/App/issues/98970) — first seen while bulk-duplicating reports on iOS, but not specific to that flow and it reproduces on `main`
-- PR introducing patch: TBD
+- PR introducing patch: https://github.com/Expensify/App/pull/100016
