@@ -9676,6 +9676,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         durationAmount: 'Durée',
         durationUnit: 'Unité',
         leaveType: 'Type de congé',
+        normalOOO: 'Absence normale',
         reason: 'Raison',
         workingPercentage: 'Pourcentage de travail',
         dateRequired: 'La date de début est obligatoire.',

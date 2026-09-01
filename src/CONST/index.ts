@@ -342,7 +342,7 @@ const CONST = {
             MONTH: 'months',
         },
         OOO_LEAVE_TYPES: {
-            NOT_APPLICABLE: 'N/A',
+            NORMAL: 'normalOOO',
             PARENTAL: 'parental leave',
             MATERNITY: 'maternity leave',
             PATERNITY: 'paternity leave',

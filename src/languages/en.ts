@@ -9781,6 +9781,7 @@ const translations = {
         durationAmount: 'Duration',
         durationUnit: 'Unit',
         leaveType: 'Leave type',
+        normalOOO: 'Normal OOO',
         reason: 'Reason',
         workingPercentage: 'Working percentage',
         dateRequired: 'Start date is required.',

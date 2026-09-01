@@ -9647,6 +9647,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         durationAmount: 'Dauer',
         durationUnit: 'Einheit',
         leaveType: 'Art der Abwesenheit',
+        normalOOO: 'Normale Abwesenheit',
         reason: 'Grund',
         workingPercentage: 'Arbeitsprozentsatz',
         dateRequired: 'Startdatum ist erforderlich.',

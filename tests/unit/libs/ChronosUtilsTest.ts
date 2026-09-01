@@ -27,7 +27,7 @@ describe('buildOOOCommand', () => {
         expect(buildOOOCommand({date: '2025-04-09', reason: 'on vacation'})).toBe('ooo 2025-04-09 on vacation');
     });
 
-    test.each(Object.values(CONST.CHRONOS.OOO_LEAVE_TYPES).filter((leaveType) => leaveType !== CONST.CHRONOS.OOO_LEAVE_TYPES.NOT_APPLICABLE))(
+    test.each(Object.values(CONST.CHRONOS.OOO_LEAVE_TYPES).filter((leaveType) => leaveType !== CONST.CHRONOS.OOO_LEAVE_TYPES.NORMAL))(
         'appends the Chronos-qualified leave reason %s verbatim',
         (leaveType) => {
             expect(buildOOOCommand({date: '2025-04-09', reason: leaveType})).toBe(`ooo 2025-04-09 ${leaveType}`);
