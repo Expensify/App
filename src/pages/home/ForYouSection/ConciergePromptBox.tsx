@@ -66,6 +66,8 @@ const DATE_BAR_WIDTH = 120;
 const GREETING_BAR_WIDTH = 220;
 const PLACEHOLDER_BAR_WIDTH = 200;
 
+const PLACEHOLDER_SKELETON_TEST_ID = 'conciergePromptBoxPlaceholderSkeleton';
+
 type ConciergePromptBoxProps = {
     /**
      * Visibility of the "+" actions menu is owned by HomePage (above the narrow/wide layout branch) so it survives the
@@ -176,15 +178,15 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
     const longPlaceholder = translate('homePage.conciergePrompt.inputPlaceholder');
     const shortPlaceholder = translate('homePage.conciergePrompt.inputPlaceholderMobile');
 
-    // Use the long placeholder only on the wide layout once the probe confirms it fits one line.
-    // Default to the short copy until measured, so it never flashes a wrapped long placeholder that then collapses.
     const longPlaceholderFitsOneLine = longPlaceholderHeight !== null && longPlaceholderHeight <= SINGLE_LINE_PLACEHOLDER_MAX_HEIGHT;
     const placeholder = shouldUseNarrowLayout || !longPlaceholderFitsOneLine ? shortPlaceholder : longPlaceholder;
 
-    // Without this the short copy paints first and swaps to the long one as soon as the measurement lands.
-    const isPlaceholderSettled = shouldUseNarrowLayout || longPlaceholderHeight !== null;
     // Typed text hides the placeholder anyway, so the bar has nothing to stand in for once a draft is restored.
-    const shouldShowPlaceholderSkeleton = (isCopyLoading || !isPlaceholderSettled) && !value;
+    const shouldShowPlaceholderSkeleton = isCopyLoading && !value;
+    // Which copy applies is only known once the probe has measured, so painting either one first means a visible swap.
+    // A breakpoint remount reopens that window on a loaded app, where a bar would claim the app is still loading.
+    const isPlaceholderSettled = shouldUseNarrowLayout || longPlaceholderHeight !== null;
+    const shouldWithholdPlaceholderCopy = shouldShowPlaceholderSkeleton || !isPlaceholderSettled;
     const canSubmit = shouldShowAskConcierge && value.trim().length > 0 && !isExceedingMaxLength;
 
     const canAddAttachment = shouldShowAskConcierge && !isExceedingMaxLength;
@@ -352,8 +354,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
                             multiline
                             textAlignVertical="top"
                             // Blanked while the bar stands in for it, so the two never paint on top of each other.
-                            // The accessibility label keeps the real copy either way, so the input stays described.
-                            placeholder={shouldShowPlaceholderSkeleton ? '' : placeholder}
+                            placeholder={shouldWithholdPlaceholderCopy ? '' : placeholder}
                             placeholderTextColor={theme.placeholderText}
                             accessibilityLabel={placeholder}
                         />
@@ -372,6 +373,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
                         </View>
                         {shouldShowPlaceholderSkeleton && (
                             <View
+                                testID={PLACEHOLDER_SKELETON_TEST_ID}
                                 pointerEvents="none"
                                 style={styles.conciergePromptBoxPlaceholderSkeleton}
                             >
@@ -409,3 +411,4 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
 }
 
 export default ConciergePromptBox;
+export {PLACEHOLDER_SKELETON_TEST_ID};

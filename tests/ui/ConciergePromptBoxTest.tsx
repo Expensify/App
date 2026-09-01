@@ -8,7 +8,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type * as BrowserModule from '@libs/Browser';
 import {isSafari} from '@libs/Browser';
 
-import ConciergePromptBox from '@pages/home/ForYouSection/ConciergePromptBox';
+import ConciergePromptBox, {PLACEHOLDER_SKELETON_TEST_ID} from '@pages/home/ForYouSection/ConciergePromptBox';
 
 import {close} from '@userActions/Modal';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -460,8 +460,6 @@ describe('ConciergePromptBox', () => {
             expect(screen.getByLabelText(SHORT_PLACEHOLDER)).toBeOnTheScreen();
         });
 
-        // Which copy applies is only known once the probe has measured, so showing either one first means a
-        // visible swap. The bar covers that window instead.
         it('shows no placeholder copy until the probe has measured on the wide layout', () => {
             // Given a wide layout whose probe has not measured yet
             render(<ConciergePromptBoxWrapper />);
@@ -476,6 +474,15 @@ describe('ConciergePromptBox', () => {
             expect(getInput()).toHaveProp('placeholder', LONG_PLACEHOLDER);
         });
 
+        it('withholds the copy without a bar when the probe has not measured and the copy is loaded', () => {
+            // Given a wide layout whose probe has not measured yet, on a loaded app
+            render(<ConciergePromptBoxWrapper />);
+
+            // Then no copy is shown and no bar stands in for it
+            expect(getInput()).toHaveProp('placeholder', '');
+            expect(screen.queryByTestId(PLACEHOLDER_SKELETON_TEST_ID)).not.toBeOnTheScreen();
+        });
+
         it('shows the short copy immediately on the narrow layout, which never waits on the probe', () => {
             // Given a narrow layout
             setResponsiveLayout(true);
@@ -488,8 +495,6 @@ describe('ConciergePromptBox', () => {
         });
     });
 
-    // The greeting reads the timezone and first name that arrive during app load, so both the date and the
-    // greeting would paint one value and then swap. See the placeholder tests for the input's own copy.
     describe('app load', () => {
         it('stands bars in for the date, greeting and placeholder while loading', () => {
             // Given the app is still loading
@@ -498,7 +503,8 @@ describe('ConciergePromptBox', () => {
             // Then neither the date nor the greeting is painted
             expect(screen.queryByText(GREETING)).not.toBeOnTheScreen();
 
-            // And the placeholder copy is withheld even once the probe has measured
+            // And a bar stands in for the placeholder copy, which is withheld even once the probe has measured
+            expect(screen.getByTestId(PLACEHOLDER_SKELETON_TEST_ID)).toBeOnTheScreen();
             measureLongPlaceholder(20);
             expect(getInput()).toHaveProp('placeholder', '');
         });
@@ -508,9 +514,10 @@ describe('ConciergePromptBox', () => {
             render(<ConciergePromptBoxWrapper />);
             measureLongPlaceholder(20);
 
-            // Then the greeting and the settled placeholder are shown
+            // Then the greeting and the settled placeholder are shown, with no bar left over
             expect(screen.getByText(GREETING)).toBeOnTheScreen();
             expect(getInput()).toHaveProp('placeholder', LONG_PLACEHOLDER);
+            expect(screen.queryByTestId(PLACEHOLDER_SKELETON_TEST_ID)).not.toBeOnTheScreen();
         });
     });
 });
