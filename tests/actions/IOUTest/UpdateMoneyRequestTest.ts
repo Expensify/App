@@ -14,7 +14,6 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {editTransactionMerchantInline} from '@libs/actions/TransactionInlineEdit';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction} from '@libs/ReportUtils';
@@ -182,8 +181,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -268,8 +267,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     isASAPSubmitBetaEnabled: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
-                    getCurrencyDecimals,
-                    getCurrencySymbol,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
 
                 await waitForBatchedUpdates();
@@ -320,8 +319,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     isASAPSubmitBetaEnabled: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
-                    getCurrencyDecimals,
-                    getCurrencySymbol,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
 
                 await waitForBatchedUpdates();
@@ -383,8 +382,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -986,8 +985,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isOffline: false,
                 isTrackIntentUser: false,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1180,8 +1179,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 odometerEnd: 15000,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             mockFetch.resume();
@@ -1283,8 +1282,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1398,8 +1397,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 odometerEnd: 50350,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             mockFetch.resume();
@@ -1475,8 +1474,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1533,8 +1532,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1617,8 +1616,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -2243,8 +2242,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.anything(), expect.anything());
@@ -2374,8 +2373,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.objectContaining({transactionID, created: '2025-06-15'}), expect.anything());
@@ -2474,8 +2473,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.anything(), expect.anything());
@@ -2595,8 +2594,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.objectContaining({transactionID, created: '2027-06-15'}), expect.anything());
@@ -2719,8 +2718,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.anything(), expect.anything());
@@ -2797,8 +2796,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     delegateAccountID: DELEGATE_ACCOUNT_ID,
                     isTrackIntentUser: false,
                     personalDetailsList: undefined,
-                    getCurrencyDecimals,
-                    getCurrencySymbol,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 },
                 newMerchant,
             );
