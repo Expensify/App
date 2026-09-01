@@ -67,8 +67,8 @@ function ReportFooter() {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
-    // A wide RHP reports a narrow layout but lays the expense out like a wide screen: the receipt moves to its own
-    // panel and the composer sits beside it, so the "Create a rule" callout belongs here rather than above the list.
+    // A wide RHP reports a narrow layout but lays the expense out like a wide screen, with the receipt in its own
+    // panel and the composer beside it, so the "Create a rule" callout belongs here rather than above the list.
     const {wideRHPRouteKeys} = useWideRHPState();
     const isInWideRHP = wideRHPRouteKeys.includes(route.key);
 
@@ -112,7 +112,7 @@ function ReportFooter() {
                 <ReportActionCompose reportID={reportIDFromRoute} />
             </SwipeableView>
         );
-        // On narrow layouts the expense detail view renders this callout above its receipt instead, per design
+        // Narrow layouts pin the callout over the top of the report list instead
         const shouldShowMerchantRuleBanner = (!shouldUseNarrowLayout || isInWideRHP) && !isComposerFullSize;
         const merchantRuleBanner = shouldShowMerchantRuleBanner && (
             <MerchantRuleSuggestionBanner

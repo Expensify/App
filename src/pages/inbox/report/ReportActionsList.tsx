@@ -453,9 +453,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         <>
             {shouldUseNarrowLayout &&
                 !isInWideRHP && (
-                    // Pinned over the top of the list rather than laid out inside it, so scrolling the expense detail view
-                    // does not carry it out of sight. On wide layouts the report footer renders it above the composer
-                    // instead — including in a wide RHP, which reports a narrow layout but lays out like a wide screen.
+                    // Pinned over the top of the list rather than laid out inside it, so scrolling the expense detail
+                    // view does not carry it out of sight. Wide layouts render it above the composer instead.
                     <MerchantRuleSuggestionBanner
                         reportID={reportID}
                         policyID={report?.policyID}

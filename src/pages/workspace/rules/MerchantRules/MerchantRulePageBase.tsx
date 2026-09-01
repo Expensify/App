@@ -47,11 +47,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {MerchantRuleForm} from '@src/types/form';
 import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
-import type {PolicyTagLists} from '@src/types/onyx';
+import type {MerchantRuleSuggestion, PolicyTagLists} from '@src/types/onyx';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {useFocusEffect} from '@react-navigation/native';
@@ -112,6 +113,8 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
     return translate('workspace.rules.merchantRules.confirmError');
 };
 
+const isCreatingRuleSelector = (suggestion: OnyxEntry<MerchantRuleSuggestion>) => suggestion?.isCreatingRule;
+
 function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, testID}: MerchantRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -127,8 +130,8 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
     const getItemIcon = (icon: IconAsset) => (isRulesRevampEnabled ? icon : undefined);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
-    const [merchantRuleSuggestion] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION);
-    const isCreatedFromExpense = !isEditing && !!merchantRuleSuggestion?.isCreatingRule;
+    const [isCreatingRuleFromExpense] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {selector: isCreatingRuleSelector});
+    const isCreatedFromExpense = !isEditing && !!isCreatingRuleFromExpense;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyTagsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const policyTags = useMemo(() => getTagLists(policyTagsFromOnyx) ?? getEmptyArray<ValueOf<PolicyTagLists>>(), [policyTagsFromOnyx]);
@@ -295,8 +298,8 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
         }
         setPolicyCodingRule(policyID, form, policy, ruleID, shouldUpdateMatchingTransactions);
         if (isCreatedFromExpense) {
-            // The rule was created from an expense rather than workspace settings, so pop back to it instead of
-            // landing on the Rules page. Clear the marker first so a later rule created from settings is unaffected.
+            // Created from an expense rather than workspace settings, so go back to the expense, not the Rules page.
+            // Clear the marker so a later rule created from settings is unaffected.
             setIsCreatingMerchantRule(false);
             Navigation.goBack();
         } else if (!isEditing && isRulesRevampEnabled) {

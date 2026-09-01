@@ -22,20 +22,20 @@ type MerchantRuleSuggestion = {
     field: MerchantRuleSuggestionField;
 
     /**
-     * Expenses whose callout the user dismissed this session. Kept alongside the current offer rather than replaced
-     * with it, so dismissing one expense survives a later edit on any expense, including that same one.
+     * Expenses the user dismissed this session. Kept alongside the current offer rather than replaced by it, so a
+     * dismissal survives a later edit on any expense, including that same one.
      */
     dismissedTransactionIDs?: string[];
 
     /**
-     * Whether this offer has been shown and left behind. Distinct from dismissing the expense: it ends only the
-     * current offer, so returning to the expense shows nothing, while editing it again offers afresh.
+     * Whether the offer has been seen and left behind. Unlike dismissing, it ends only the current offer, so
+     * returning to the expense shows nothing while editing it again offers afresh.
      */
     isRetired?: boolean;
 
     /**
-     * Whether the user took the offer and is now in the rule creation flow. The rule page reads this to return to the
-     * expense after saving instead of to the workspace Rules page, which is where creating a rule from settings ends.
+     * Whether the user took the offer. The rule page reads this to return to the expense after saving, rather than
+     * to the workspace Rules page where creating a rule from settings ends.
      */
     isCreatingRule?: boolean;
 };

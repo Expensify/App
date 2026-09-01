@@ -10,8 +10,8 @@ import {resolveCurrentTaxCode} from './PolicyUtils';
 import {getCategory, getDescription, getMerchant, getTag, isMerchantMissing} from './TransactionUtils';
 
 /**
- * Builds the merchant-rule draft that pre-seeds the rule creation flow when an admin turns an expense edit into a
- * rule. Returns undefined when the expense has no merchant to match on, since a rule cannot be saved without one.
+ * Builds the draft that pre-seeds the rule creation flow when an admin turns an expense edit into a rule. Returns
+ * undefined when the expense has no merchant to match on, since a rule cannot be saved without one.
  */
 function getMerchantRuleDraftFromTransaction(transaction: OnyxEntry<Transaction>, field: MerchantRuleSuggestionField, policy: OnyxEntry<Policy>): Partial<MerchantRuleForm> | undefined {
     if (!transaction || isMerchantMissing(transaction)) {
@@ -37,8 +37,8 @@ function getMerchantRuleDraftFromTransaction(transaction: OnyxEntry<Transaction>
             break;
         }
         case CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAX: {
-            // The rule form stores the key of the tax in `policy.taxRates.taxes`, which is the same value a
-            // transaction stores as its taxCode — but the transaction can carry a code that has since been renamed.
+            // The rule form stores the key of the tax in `policy.taxRates.taxes`, which is what a transaction stores
+            // as its taxCode. A transaction can still carry a code that has since been renamed, so resolve it first.
             const taxCode = transaction.taxCode ? resolveCurrentTaxCode(policy, transaction.taxCode) : undefined;
             if (taxCode && policy?.taxRates?.taxes?.[taxCode]) {
                 draft.tax = taxCode;
@@ -71,6 +71,6 @@ function getMerchantRuleDraftFromTransaction(transaction: OnyxEntry<Transaction>
 }
 
 export {
-    // eslint-disable-next-line import/prefer-default-export -- keeps the file consistent as more merchant-rule suggestion helpers are added
+    // eslint-disable-next-line import/prefer-default-export -- Utils modules export their helpers by name
     getMerchantRuleDraftFromTransaction,
 };

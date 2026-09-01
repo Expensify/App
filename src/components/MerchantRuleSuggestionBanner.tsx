@@ -49,9 +49,8 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, transactionID,
     const icons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
     const {suggestion, transaction, policy} = useMerchantRuleSuggestion(reportID, policyID, transactionID);
 
-    // The offer is about the edit the user just made, so it ends once they have seen it and navigated away. Retiring
-    // rather than dismissing leaves the expense itself untouched: returning to it shows nothing, but editing it again
-    // offers afresh. Only the close button silences an expense for the session.
+    // The offer ends once the user has seen it and navigated away. Retiring leaves the expense itself untouched, so
+    // editing it again offers afresh. Only the close button silences an expense for the session.
     const hasBeenShownRef = useRef(false);
     useEffect(() => {
         if (!suggestion) {
@@ -82,8 +81,8 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, transactionID,
         setDraftMerchantRule(draft);
         // Tells that flow it was entered from an expense, so saving returns here rather than to the Rules page
         setIsCreatingMerchantRule(true);
-        // The offer has been taken, so it is over: coming back from the rule flow — saved or abandoned — must not find
-        // the callout still asking. Editing the expense again is what starts a fresh offer.
+        // The offer has been taken, so coming back from the rule flow, saved or abandoned, must not find it still
+        // asking. Editing the expense again starts a fresh offer.
         retireMerchantRuleSuggestion();
         Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
     };
@@ -133,8 +132,8 @@ MerchantRuleSuggestionBannerContent.displayName = 'MerchantRuleSuggestionBannerC
 function MerchantRuleSuggestionBanner({reportID, policyID, transactionID, containerStyles, overlayStyles}: MerchantRuleSuggestionBannerProps) {
     const [storedSuggestion] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION);
 
-    // Nothing is stored for most of a session, so skip the inner component (and its heavy hooks, which subscribe to the
-    // policy, its categories, the transaction and the report's transactions) until an edit is waiting to be offered.
+    // Nothing is stored for most of a session, so skip the inner component and its many Onyx subscriptions until
+    // there is an edit to offer.
     if (!storedSuggestion?.transactionID || storedSuggestion.isRetired || storedSuggestion.dismissedTransactionIDs?.includes(storedSuggestion.transactionID)) {
         return null;
     }
