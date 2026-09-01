@@ -4,16 +4,7 @@ description: Learn how to integrate Egencia with Expensify to automatically impo
 keywords: [Egencia, travel booking, Expensify Classic]
 ---
 
-
-Expensify’s API helps connect your account to third-party tools like NetSuite, Xero, and even internal systems like Workday. This guide includes tips, usage examples, and common troubleshooting questions — many sourced from customers who’ve done it before.
-
----
-
 # Getting Started
-
-To start using the API, review our full [Integration Server Manual](https://integrations.expensify.com/Integration-Server/doc/#introduction).
-
-**Note:** The API is a self-serve tool. Your internal team will need to manage setup and maintenance. While Concierge can assist with basic troubleshooting, hands-on support may vary by team or account manager.
 
 [Egencia](https://www.egencia.com/en/) is a business travel booking platform. Integrating Egencia with Expensify allows travel bookings to be automatically imported as expenses, ensuring seamless expense tracking.
 
@@ -26,16 +17,15 @@ To use the Egencia integration, you must have:
 
 # How Egencia Works with Expensify
 When an employee books travel through Egencia:
-- The receipt and itinerary are automatically imported into the traveler’s Expensify account, eliminating the need for manual entry.
+- The receipt is automatically imported into the traveler’s Expensify account, eliminating the need for manual entry.
 - If the traveler uses a company credit card, the Egencia receipt automatically merges with the corresponding credit card transaction.
-- Travel details are also accessible in the **Trips** section of the Expensify mobile app.
 
 ---
 
-# Enabling the Egencia Feed
-A file feed is an automated data transfer from Egencia to Expensify.
+# Enabling the Egencia Integration
+The integration allows Egencia to automatically send flight and fee data to Expensify.
 
-To enable the feed:
+To enable the integration:
 1. Contact your Egencia account manager.
 2. Request to enable the Expensify feed for your organization.
 
@@ -56,4 +46,3 @@ If your company uses a **central purchasing account**, you can forward all Egenc
 - The receipt in the traveler’s account is marked as a **reservation expense**, which:
   - Is **non-reimbursable**.
   - **Will not be exported** to an integrated accounting system.
-
