@@ -106,8 +106,8 @@ const getErrorMessage = (error: unknown, fallback: string): string => (error ins
  */
 const processPickedAssetsSequentially = async (assets: Asset[], showGeneralAlert: (message?: string) => void, translate: (key: TranslationPaths) => string): Promise<Asset[] | undefined> => {
     const processedAssets: Asset[] = [];
-    // Collected instead of alerted inline: a whole selection can fail the same way, and one native
-    // alert per file would leave the user dismissing a stack of identical modals.
+    // Collected instead of alerted inline so the whole selection produces a single alert: alerting per
+    // asset would leave the user dismissing one native modal after another.
     const failureMessages = new Set<string>();
 
     for (const asset of assets) {
@@ -165,8 +165,8 @@ const processPickedAssetsSequentially = async (assets: Asset[], showGeneralAlert
         }
     }
 
-    for (const message of failureMessages) {
-        showGeneralAlert(message);
+    if (failureMessages.size > 0) {
+        showGeneralAlert([...failureMessages].join('\n'));
     }
 
     return processedAssets.length > 0 ? processedAssets : undefined;
