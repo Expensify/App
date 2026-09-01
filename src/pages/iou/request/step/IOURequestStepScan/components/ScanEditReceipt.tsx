@@ -5,14 +5,17 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import {cancelSpan} from '@libs/telemetry/activeSpans';
 
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 
 import {replaceReceipt, setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -43,6 +46,9 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
 
     const navigateBack = () => {
@@ -60,16 +66,18 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
     };
 
     const handleCapture = (file: FileObject, source: string) => {
+        cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_PREPARE);
         if (isEditing) {
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', false, file.type);
             replaceReceipt({
-                transactionID,
+                transaction,
                 file: file as File,
                 source,
                 transactionPolicy: policy,
                 transactionPolicyCategories: policyCategories,
                 transactionPolicyTagList: policyTagList,
                 transactionViolations,
+                transactionReport,
             });
         } else {
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
@@ -77,7 +85,7 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
         navigateBack();
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
+    const {validateFiles, PDFValidationComponent} = useFilesValidation((files: FileObject[]) => {
         const file = files.at(0);
         if (!file) {
             return;
@@ -100,7 +108,6 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
                 isReplacingReceipt
             />
-            {ErrorModal}
         </StepScreenDragAndDropWrapper>
     );
 }

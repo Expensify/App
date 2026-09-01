@@ -162,6 +162,7 @@ function Section({
                         styles.alignItemsCenter,
                         styles.justifyContentCenter,
                         StyleUtils.getBackgroundColorStyle(illustrationBackgroundColor ?? lottieIllustration?.backgroundColor ?? theme.appBG),
+                        styles.cardSectionIllustrationInset,
                         illustrationContainerStyle,
                     ]}
                 >
@@ -172,6 +173,7 @@ function Section({
                                 style={styles.h100}
                                 webStyle={styles.h100}
                                 loop
+                                autoPlay
                                 shouldLoadAfterInteractions={shouldUseNarrowLayout}
                             />
                         ) : (

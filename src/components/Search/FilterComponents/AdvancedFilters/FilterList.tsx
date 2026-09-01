@@ -1,6 +1,7 @@
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
+import type {Filter} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 
@@ -33,7 +34,7 @@ type FilterItemCallbacks = {
 
 type FilterListProps = FilterItemCallbacks & {
     type: SearchDataTypes | undefined;
-    policyID: string[] | undefined;
+    policyID: Filter;
     selectedFilter?: SearchFilter['key'];
     style?: StyleProp<ViewStyle>;
     contentContainerStyle?: StyleProp<ViewStyle>;
@@ -83,10 +84,15 @@ function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: Filter
                         width={variables.iconSizeSmall}
                         height={variables.iconSizeSmall}
                     />
-                    <Text style={[styles.flex1]}>{translate(labelKey)}</Text>
+                    <Text
+                        numberOfLines={2}
+                        style={[styles.flex1]}
+                    >
+                        {translate(labelKey)}
+                    </Text>
                     <Icon
                         src={icons.ArrowRight}
-                        fill={StyleUtils.getIconFillColor(getButtonState(isSelected, pressed))}
+                        fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isSelected, isPressed: pressed})})}
                         width={variables.iconSizeNormal}
                         height={variables.iconSizeNormal}
                     />

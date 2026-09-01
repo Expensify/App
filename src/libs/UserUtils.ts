@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
 import type {LoginList, Logins, NewLogin, PrivatePersonalDetails, VacationDelegate} from '@src/types/onyx';
@@ -12,7 +12,6 @@ import {Str} from 'expensify-common';
 import type {AvatarSource} from './UserAvatarUtils';
 
 import hashCode from './hashCode';
-import {formatPhoneNumber} from './LocalePhoneNumber';
 
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
 
@@ -191,12 +190,13 @@ function getProfilePageBrickRoadIndicator(
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>,
     vacationDelegate: OnyxEntry<VacationDelegate>,
     email: string | undefined,
+    shouldShowAddHomeAddress = false,
 ): LoginListIndicator {
     const hasPhoneNumberError = !!privatePersonalDetails?.errorFields?.phoneNumber;
     if (hasLoginListError(loginList) || hasPhoneNumberError || !isEmptyObject(vacationDelegate?.errors)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
-    if (hasLoginListInfo(loginList, email)) {
+    if (hasLoginListInfo(loginList, email) || shouldShowAddHomeAddress) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 
@@ -227,7 +227,7 @@ function getContactMethod(primaryLogin: string | undefined, email: string | unde
 /**
  * Gets details about contact methods to be displayed as MenuItems
  */
-function getContactMethodsOptions(translate: LocalizedTranslate, loginList?: LoginList, defaultEmail?: string) {
+function getContactMethodsOptions(translate: LocalizedTranslate, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], loginList?: LoginList, defaultEmail?: string) {
     if (!loginList) {
         return [];
     }

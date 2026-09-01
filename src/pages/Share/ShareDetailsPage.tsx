@@ -58,13 +58,14 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
 
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isDraftReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportOrAccountID}`, {selector: isDraftReportSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const delegateAccountID = useDelegateAccountID();
 
     const reportAttributesDerived = useReportAttributes();
@@ -80,9 +81,22 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const privateIsArchived = useReportIsArchived(report?.reportID);
     const ancestors = useAncestors(report);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const currentUserAccountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const displayReport = useMemo(
-        () => getReportDisplayOption(report, unknownUserDetails, personalDetails, privateIsArchived, policy, reportAttributesDerived),
-        [report, unknownUserDetails, personalDetails, privateIsArchived, reportAttributesDerived, policy],
+        () =>
+            getReportDisplayOption({
+                dateFnsLocale,
+                report,
+                unknownUserDetails,
+                personalDetails,
+                privateIsArchived,
+                policy,
+                conciergeReportID,
+                translate,
+                currentUserAccountID,
+                reportAttributesDerived,
+            }),
+        [report, unknownUserDetails, personalDetails, privateIsArchived, policy, conciergeReportID, translate, currentUserAccountID, reportAttributesDerived, dateFnsLocale],
     );
 
     const shouldShowAttachment = !isTextShared;
@@ -137,6 +151,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 timezoneParam: personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: personalDetail.accountID,
                 delegateAccountID,
+                conciergeReportID,
             });
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
             Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
@@ -160,6 +175,8 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         personalDetails,
                         newReportObject: report,
                         betas,
+                        hasReportActions: false,
+                        currentUserAccountID: personalDetail.accountID,
                     });
                 }
                 if (report.reportID) {
@@ -172,6 +189,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         text: message,
                         timezone: personalDetail.timezone,
                         delegateAccountID,
+                        conciergeReportID,
                     });
                 }
 

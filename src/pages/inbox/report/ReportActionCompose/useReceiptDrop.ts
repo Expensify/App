@@ -46,6 +46,8 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
 
     const onFilesValidated = (files: FileObject[]) => {
         if (files.length === 0) {
@@ -55,13 +57,14 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
         if (shouldAddOrReplaceReceipt && transactionID) {
             const source = URL.createObjectURL(files.at(0) as Blob);
             replaceReceipt({
-                transactionID,
+                transaction,
                 file: files.at(0) as File,
                 source,
                 transactionPolicy: policy,
                 transactionPolicyCategories: policyCategories,
                 transactionPolicyTagList: policyTagList,
                 transactionViolations,
+                transactionReport,
             });
             return;
         }
@@ -73,7 +76,6 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
             report,
             parentReport: newParentReport,
             currentDate,
-            currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
             draftTransactionIDs,
         });
@@ -85,7 +87,6 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
                     ? (initialTransaction as Partial<OnyxTypes.Transaction>)
                     : buildOptimisticTransactionAndCreateDraft({
                           initialTransaction: initialTransaction as Partial<OnyxTypes.Transaction>,
-                          currentUserPersonalDetails,
                           reportID,
                       });
             const newTransactionID = newTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
@@ -102,7 +103,7 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
         );
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(onFilesValidated);
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(onFilesValidated);
 
     const onReceiptDropped = (e: DragEvent) => {
         if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)) {
@@ -126,7 +127,7 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
         validateFiles(files, items, {isValidatingReceipts: true});
     };
 
-    return {onReceiptDropped, PDFValidationComponent, ErrorModal};
+    return {onReceiptDropped, PDFValidationComponent};
 }
 
 export default useReceiptDrop;

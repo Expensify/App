@@ -1,5 +1,6 @@
 import {reconnectApp} from '@libs/actions/App';
 import * as Reconnect from '@libs/actions/Reconnect';
+import {AUTHENTICATION_COMMAND} from '@libs/API/types';
 import {reset as resetFailureTracker} from '@libs/FailureTracker';
 import {resetReauthentication} from '@libs/Middleware/Reauthentication';
 
@@ -20,16 +21,11 @@ import type {Session as OnyxSession} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import MockedOnyx from 'react-native-onyx';
-
-import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
-
+import Onyx from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type OnResolved = (params: {jsonCode?: string | number}) => void;
-
-const Onyx = MockedOnyx as typeof ReactNativeOnyxMock;
 
 jest.mock('@src/libs/Log');
 
@@ -83,14 +79,17 @@ describe('NetworkTests', () => {
             callback: (val) => (sessionState = val),
         });
 
+        let mockedXhr: jest.SpiedFunction<typeof HttpUtils.xhr>;
+
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
                 // Mock XHR with a sequence of responses:
                 // 1. First call fails with NOT_AUTHENTICATED
                 // 2. Second call fails with network error
                 // 3. Third call succeeds with new auth token
-                const mockedXhr = jest
-                    .fn()
+                mockedXhr = jest
+                    .spyOn(HttpUtils, 'xhr')
+                    .mockReset()
                     .mockImplementationOnce(() =>
                         Promise.resolve({
                             jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
@@ -103,8 +102,6 @@ describe('NetworkTests', () => {
                             authToken: NEW_AUTH_TOKEN,
                         }),
                     );
-
-                HttpUtils.xhr = mockedXhr;
 
                 // Trigger an API call that will cause reauthentication flow
                 PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
@@ -119,7 +116,7 @@ describe('NetworkTests', () => {
                 // Verify:
                 // 1. We attempted to authenticate twice (first failed, retry succeeded)
                 // 2. The session has the new auth token (user wasn't logged out)
-                const callsToAuthenticate = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === 'Authenticate');
+                const callsToAuthenticate = mockedXhr.mock.calls.filter(([command]) => command === AUTHENTICATION_COMMAND);
                 expect(callsToAuthenticate.length).toBe(2);
                 expect(sessionState?.authToken).toBe(NEW_AUTH_TOKEN);
             });
@@ -148,14 +145,15 @@ describe('NetworkTests', () => {
         expect(initialAuthToken).toBeDefined();
 
         // Create a promise that we can resolve later to control the timing
-        let resolveAuthRequest: (value: unknown) => void = () => {};
-        const pendingAuthRequest = new Promise((resolve) => {
+        let resolveAuthRequest: (value: Awaited<ReturnType<typeof HttpUtils.xhr>> | PromiseLike<Awaited<ReturnType<typeof HttpUtils.xhr>>>) => void = () => {};
+        const pendingAuthRequest = new Promise<Awaited<ReturnType<typeof HttpUtils.xhr>>>((resolve) => {
             resolveAuthRequest = resolve;
         });
 
         // 2. Mock Setup Phase - Configure XHR mocks for the test sequence
         const mockedXhr = jest
-            .fn()
+            .spyOn(HttpUtils, 'xhr')
+            .mockReset()
             // First call: Return NOT_AUTHENTICATED to trigger reauthentication
             .mockImplementationOnce(() =>
                 Promise.resolve({
@@ -164,8 +162,6 @@ describe('NetworkTests', () => {
             )
             // Second call: Return a pending promise that we'll resolve later
             .mockImplementationOnce(() => pendingAuthRequest);
-
-        HttpUtils.xhr = mockedXhr;
 
         // 3. Test Execution Phase - Start with online network
         setHasRadio(true);
@@ -176,13 +172,19 @@ describe('NetworkTests', () => {
         await waitForBatchedUpdates();
 
         // 4. First API Call Verification - Check that an app sync call was made (OpenApp or ReconnectApp)
-        const firstCall = mockedXhr.mock.calls.at(0) as [string, Record<string, unknown>];
+        const firstCall = mockedXhr.mock.calls.at(0);
+        if (!firstCall) {
+            throw new Error('Expected the initial reconnect request to be recorded.');
+        }
         expect(['OpenApp', 'ReconnectApp']).toContain(firstCall[0]);
 
         // 5. Authentication Start - Verify authenticate was triggered
         await waitForBatchedUpdates();
-        const secondCall = mockedXhr.mock.calls.at(1) as [string, Record<string, unknown>];
-        expect(secondCall[0]).toBe('Authenticate');
+        const secondCall = mockedXhr.mock.calls.at(1);
+        if (!secondCall) {
+            throw new Error('Expected the authentication request to be recorded.');
+        }
+        expect(secondCall[0]).toBe(AUTHENTICATION_COMMAND);
 
         // 6. Network State Change - Set offline and back online while authenticate is pending
         setHasRadio(false);
@@ -206,11 +208,12 @@ describe('NetworkTests', () => {
         const TEST_USER_ACCOUNT_ID = 1;
 
         const reconnectSpy = jest.spyOn(Reconnect, 'reconnect');
+        let mockedXhr: jest.SpiedFunction<typeof HttpUtils.xhr>;
 
         // When we sign in
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                const mockedXhr = jest.fn();
+                mockedXhr = jest.spyOn(HttpUtils, 'xhr').mockReset();
                 mockedXhr
                     // First 3 READ calls return expired session
                     .mockImplementationOnce(() =>
@@ -236,8 +239,6 @@ describe('NetworkTests', () => {
                         }),
                     );
 
-                HttpUtils.xhr = mockedXhr;
-
                 // Make 3 READ requests with an expired authToken
                 PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
                 PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
@@ -246,8 +247,8 @@ describe('NetworkTests', () => {
             })
             .then(() => {
                 // Verify: 3 calls to the API, 1 authenticate call, and reconnect was triggered
-                const callsToOpenPublicProfilePage = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
-                const callsToAuthenticate = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === 'Authenticate');
+                const callsToOpenPublicProfilePage = mockedXhr.mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
+                const callsToAuthenticate = mockedXhr.mock.calls.filter(([command]) => command === AUTHENTICATION_COMMAND);
                 expect(callsToOpenPublicProfilePage.length).toBe(3);
                 expect(callsToAuthenticate.length).toBe(1);
                 expect(reconnectSpy).toHaveBeenCalled();

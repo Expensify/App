@@ -11,6 +11,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {isControlPolicy} from '@libs/PolicyUtils';
@@ -18,7 +19,7 @@ import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ApprovalWorkflowOnyx, Policy} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -52,14 +53,14 @@ type ApprovalWorkflowEditorProps = {
 function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, policy, policyID, ref}: ApprovalWorkflowEditorProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const styles = useThemeStyles();
-    const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
+    const {translate, toLocaleOrdinalWithWords, localeCompare} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const approverCount = approvalWorkflow.approvers.length;
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const approverDescription = useCallback(
-        (index: number) => (approverCount > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`),
-        [approverCount, toLocaleOrdinal, translate],
+        (index: number) => (approverCount > 1 ? `${toLocaleOrdinalWithWords(index + 1)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`),
+        [approverCount, toLocaleOrdinalWithWords, translate],
     );
 
     const getApprovalPendingAction = useCallback(
@@ -147,12 +148,15 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
         // Always pass a backTo so that after editing expenses-from (including the invite-a-member detour),
         // we return to the page we came from. For EDIT that's the edit page; for CREATE we're on the
         // confirm (new) page, so return there instead of falling through to the Approver step.
+        // Preserve memberEmail so a fresh edit mount (e.g. after refresh) re-resolves this exact workflow
+        // instead of the first one sharing firstApproverEmail.
         const backTo =
             approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT
-                ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail)
+                ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail, approvalWorkflow.memberEmail)
                 : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID);
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID, backTo));
-    }, [approvalWorkflow.action, approvalWorkflow.originalApprovers, policyID]);
+
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path, backTo));
+    }, [approvalWorkflow.action, approvalWorkflow.originalApprovers, approvalWorkflow.memberEmail, policyID]);
 
     // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addAdditionalApprover = useCallback(() => {
@@ -200,7 +204,12 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                 {approvalWorkflow.approvers.map((approver, approverIndex) => {
                     const errorText = approverErrorMessage(approver, approverIndex);
                     const isApproverInMultipleWorkflows = !errorText && approvalWorkflow.usedApproverEmails.some((approverEmail) => approverEmail === approver?.email);
-                    const limitDescription = getApprovalLimitDescription({approver, currency, translate, convertToDisplayString});
+                    const limitDescription = getApprovalLimitDescription({
+                        approver,
+                        currency,
+                        translate,
+                        convertToDisplayString,
+                    });
                     const hintText = [isApproverInMultipleWorkflows ? translate('workflowsPage.approverInMultipleWorkflows') : undefined, limitDescription].filter(Boolean).join('\n');
 
                     return (

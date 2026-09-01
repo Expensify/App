@@ -6,6 +6,7 @@ import {isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import {
     allHavePendingRTERViolation,
+    getBrokenConnectionViolation,
     hasDuplicateTransactions,
     hasReceipt,
     isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
@@ -77,8 +78,16 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
 
     const hasScanningReceipt = transactions.filter((t) => hasReceipt(t)).some(isScanning);
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isPending(t));
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations, email ?? '', accountID, moneyRequestReport, policy);
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactions, moneyRequestReport, policy, violations, email ?? '', accountID);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations, email ?? '', accountID, moneyRequestReport, ownerLogin, policy);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
+        transactions,
+        moneyRequestReport,
+        ownerLogin,
+        policy,
+        violations,
+        email ?? '',
+        accountID,
+    );
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
     const isReportSettled = isSettledReportUtils(moneyRequestReport);
@@ -114,10 +123,13 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
             return CONST.REPORT.STATUS_BAR_TYPE.DUPLICATES;
         }
         if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
-            const brokenConnectionError = transactionViolations.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);
+            const brokenConnectionError = getBrokenConnectionViolation(transactionViolations);
             const cardID = brokenConnectionError?.data?.cardID;
             const card = cardID ? cardList?.[cardID] : undefined;
-            if (isPersonalCard(card) && brokenConnectionError) {
+
+            // Only suppress the status bar for a personal card the current user actually holds. A company card the
+            // viewer doesn't own resolves to `undefined` here, and must still surface the broken/re-auth status.
+            if (!!card && isPersonalCard(card) && brokenConnectionError) {
                 return undefined;
             }
             return CONST.REPORT.STATUS_BAR_TYPE.BROKEN_CONNECTION;

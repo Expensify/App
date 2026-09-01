@@ -2,7 +2,7 @@ import createTodosReportsAndTransactions, {buildTransactionsByReportID, getTodoR
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -42,14 +42,12 @@ const createMockPolicy = (policyID: string, overrides: Partial<Policy> = {}): Po
     type: CONST.POLICY.TYPE.TEAM,
     owner: CURRENT_USER_EMAIL,
     outputCurrency: 'USD',
-    isPolicyExpenseChatEnabled: true,
     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
     ...overrides,
 });
 
 // Admin policy with a QBO connection whose auto-sync is disabled, so a report on it is manually exportable.
-// `Policy['connections']` is typed as the full integration map, so the single-integration literal goes through
-// `createMock`, which type-checks the partial and isolates the one unavoidable assertion in that helper.
+// The literal sets only the QBO config fields this test needs; `createMock` deep-partials the rest.
 const createPolicyWithQBOConnection = (policyID: string, {policyExporter, connectionExporter}: {policyExporter: string; connectionExporter: string}): Policy =>
     createMock<Policy>({
         ...createMockPolicy(policyID, {role: CONST.POLICY.ROLE.ADMIN, exporter: policyExporter}),
@@ -88,6 +86,31 @@ const createMockTransaction = (transactionID: string, reportID: string, override
         ...overrides,
     }) as Transaction;
 
+const HOLD_ACTION_ID = 'HOLD_ACTION_ID';
+
+// A money-request (IOU) action whose child report is the transaction thread that carries the HOLD action.
+const createMoneyRequestAction = (reportActionID: string, transactionID: string, transactionThreadReportID: string): ReportAction => ({
+    reportActionID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+    created: '2024-01-01 00:00:00.000',
+    actorAccountID: OTHER_USER_ACCOUNT_ID,
+    childReportID: transactionThreadReportID,
+    originalMessage: {
+        IOUTransactionID: transactionID,
+        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        amount: 100,
+        currency: 'USD',
+    },
+});
+
+// The HOLD action lives on the transaction thread; its actor is whoever placed the hold.
+const createHoldAction = (holderAccountID: number): ReportAction => ({
+    reportActionID: HOLD_ACTION_ID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
+    created: '2024-01-01 00:00:00.000',
+    actorAccountID: holderAccountID,
+});
+
 // The utils take Onyx collections (keyed by full Onyx key) directly as arguments, so the tests build those keyed
 // maps in-memory and call the utils without going through a hook or the live Onyx store.
 const toReportsCollection = (reports: Report[]) => Object.fromEntries(reports.map((report) => [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report]));
@@ -103,6 +126,7 @@ const baseParams = {
     bankAccountList: undefined,
     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
     login: CURRENT_USER_EMAIL,
+    areTransactionsLoaded: true,
 };
 
 describe('TodosUtils', () => {
@@ -236,6 +260,34 @@ describe('TodosUtils', () => {
             });
         });
 
+        it('excludes a report the current user approves for but does not own from the submit bucket', async () => {
+            const OTHER_USER_EMAIL = 'owner@mail.com';
+            const personalDetailsList = {
+                [CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_EMAIL},
+                [OTHER_USER_ACCOUNT_ID]: {accountID: OTHER_USER_ACCOUNT_ID, login: OTHER_USER_EMAIL},
+            };
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+            await waitForBatchedUpdates();
+
+            const approverSubmitReport = createMockReport('approver_submit', {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+            });
+            const policy = createMockPolicy(POLICY_ID, {approver: CURRENT_USER_EMAIL});
+
+            const result = createTodosReportsAndTransactions({
+                ...baseParams,
+                personalDetailsList,
+                allReports: toReportsCollection([approverSubmitReport]),
+                allTransactions: toTransactionsCollection([createMockTransaction('trans_approver_submit', 'approver_submit')]),
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            expect(result.reportsToSubmit).toEqual([]);
+        });
+
         it('excludes a report whose expenses are all on hold', () => {
             const heldOverride: Partial<Transaction> = {comment: {hold: 'HOLD_ACTION_ID'}};
             const submitReport = createMockReport('held_submit', {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
@@ -251,6 +303,108 @@ describe('TodosUtils', () => {
             expect(result.reportsToSubmit).toEqual([]);
         });
 
+        describe('an all-held report where a specific user placed the hold', () => {
+            // Builds params for a single all-held report, wiring its money-request action to a transaction thread so
+            // didCurrentUserPlaceHoldOnReportExpense can resolve who placed the hold.
+            const buildParams = (report: Report) => {
+                const transactionID = `trans_${report.reportID}`;
+                const transactionThreadReportID = `thread_${report.reportID}`;
+                const moneyRequestActionID = `mr_${report.reportID}`;
+                const policy = createMockPolicy(POLICY_ID, {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                });
+                return {
+                    transactionThreadReportID,
+                    params: {
+                        ...baseParams,
+                        allReports: toReportsCollection([report]),
+                        allTransactions: toTransactionsCollection([createMockTransaction(transactionID, report.reportID, {comment: {hold: HOLD_ACTION_ID}})]),
+                        allPolicies: toPoliciesCollection([policy]),
+                        allReportActions: {
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {
+                                [moneyRequestActionID]: createMoneyRequestAction(moneyRequestActionID, transactionID, transactionThreadReportID),
+                            },
+                        },
+                    },
+                };
+            };
+
+            // getReportAction/isHoldCreator read the module cache, so the thread's HOLD action must live in Onyx.
+            const seedHoldAction = async (transactionThreadReportID: string, holderAccountID: number) => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {[HOLD_ACTION_ID]: createHoldAction(holderAccountID)});
+                await waitForBatchedUpdates();
+            };
+
+            const approveReport = () =>
+                createMockReport('held_approve', {
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                    managerID: CURRENT_USER_ACCOUNT_ID,
+                });
+
+            const payReport = () =>
+                createMockReport('held_pay', {
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                    managerID: CURRENT_USER_ACCOUNT_ID,
+                    total: -100,
+                });
+
+            it('keeps the approve report when the current user placed the hold', async () => {
+                const {params, transactionThreadReportID} = buildParams(approveReport());
+                await seedHoldAction(transactionThreadReportID, CURRENT_USER_ACCOUNT_ID);
+
+                const result = createTodosReportsAndTransactions(params);
+
+                expect(result.reportsToApprove.map((report) => report.reportID)).toEqual(['held_approve']);
+            });
+
+            it('excludes the approve report when another user placed the hold', async () => {
+                const {params, transactionThreadReportID} = buildParams(approveReport());
+                await seedHoldAction(transactionThreadReportID, OTHER_USER_ACCOUNT_ID);
+
+                const result = createTodosReportsAndTransactions(params);
+
+                expect(result.reportsToApprove).toEqual([]);
+            });
+
+            it('keeps the pay report when the current user placed the hold', async () => {
+                const {params, transactionThreadReportID} = buildParams(payReport());
+                await seedHoldAction(transactionThreadReportID, CURRENT_USER_ACCOUNT_ID);
+
+                const result = createTodosReportsAndTransactions(params);
+
+                expect(result.reportsToPay.map((report) => report.reportID)).toEqual(['held_pay']);
+            });
+
+            it('excludes the pay report when another user placed the hold', async () => {
+                const {params, transactionThreadReportID} = buildParams(payReport());
+                await seedHoldAction(transactionThreadReportID, OTHER_USER_ACCOUNT_ID);
+
+                const result = createTodosReportsAndTransactions(params);
+
+                expect(result.reportsToPay).toEqual([]);
+            });
+
+            it('still excludes an all-held submit report even when the current user placed the hold', async () => {
+                const submitReport = createMockReport('held_submit_holder', {
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                });
+                const {params, transactionThreadReportID} = buildParams(submitReport);
+                await seedHoldAction(transactionThreadReportID, CURRENT_USER_ACCOUNT_ID);
+
+                const result = createTodosReportsAndTransactions(params);
+
+                expect(result.reportsToSubmit).toEqual([]);
+            });
+        });
+
         it('excludes a report whose expenses are all pending card transactions', () => {
             const pendingOverride: Partial<Transaction> = {status: CONST.TRANSACTION.STATUS.PENDING, bank: CONST.EXPENSIFY_CARD.BANK};
             const submitReport = createMockReport('pending_submit', {
@@ -264,6 +418,89 @@ describe('TodosUtils', () => {
                 ...baseParams,
                 allReports: toReportsCollection([submitReport]),
                 allTransactions: toTransactionsCollection([createMockTransaction('trans_pending', 'pending_submit', pendingOverride)]),
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            expect(result.reportsToSubmit).toEqual([]);
+        });
+
+        it('includes an empty open report owned by the current user in the submit bucket', () => {
+            const emptyReport = createMockReport('empty_draft', {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+            const policy = createMockPolicy(POLICY_ID, {role: CONST.POLICY.ROLE.ADMIN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+
+            const result = createTodosReportsAndTransactions({
+                ...baseParams,
+                allReports: toReportsCollection([emptyReport]),
+                allTransactions: undefined,
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            expect(result.reportsToSubmit.map((report) => report.reportID)).toEqual(['empty_draft']);
+        });
+
+        it('excludes a report from the submit bucket while the transaction collection has not finished loading', () => {
+            // Unloaded transactions look identical to zero transactions, so this must not be misclassified as an empty draft.
+            const reportWithUnloadedTransactions = createMockReport('unloaded_transactions', {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
+            const policy = createMockPolicy(POLICY_ID, {role: CONST.POLICY.ROLE.ADMIN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+
+            const result = createTodosReportsAndTransactions({
+                ...baseParams,
+                areTransactionsLoaded: false,
+                allReports: toReportsCollection([reportWithUnloadedTransactions]),
+                allTransactions: undefined,
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            expect(result.reportsToSubmit).toEqual([]);
+        });
+
+        it('excludes an empty open report owned by another user from the submit bucket', () => {
+            const emptyReport = createMockReport('empty_other_owner', {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: OTHER_USER_ACCOUNT_ID,
+            });
+            const policy = createMockPolicy(POLICY_ID, {role: CONST.POLICY.ROLE.ADMIN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+
+            const result = createTodosReportsAndTransactions({
+                ...baseParams,
+                allReports: toReportsCollection([emptyReport]),
+                allTransactions: undefined,
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            expect(result.reportsToSubmit).toEqual([]);
+        });
+
+        it('excludes an empty open report on a personal policy from the submit bucket', () => {
+            const emptyReport = createMockReport('empty_personal', {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+            const policy = createMockPolicy(POLICY_ID, {type: CONST.POLICY.TYPE.PERSONAL});
+
+            const result = createTodosReportsAndTransactions({
+                ...baseParams,
+                allReports: toReportsCollection([emptyReport]),
+                allTransactions: undefined,
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            expect(result.reportsToSubmit).toEqual([]);
+        });
+
+        it('excludes an empty archived report from the submit bucket', () => {
+            const emptyReport = createMockReport('empty_archived', {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+            const policy = createMockPolicy(POLICY_ID, {role: CONST.POLICY.ROLE.ADMIN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+
+            const result = createTodosReportsAndTransactions({
+                ...baseParams,
+                allReportNameValuePairs: {
+                    [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${emptyReport.chatReportID}`]: {private_isArchived: '2024-01-01 00:00:00'},
+                },
+                allReports: toReportsCollection([emptyReport]),
+                allTransactions: undefined,
                 allPolicies: toPoliciesCollection([policy]),
             });
 
@@ -355,6 +592,39 @@ describe('TodosUtils', () => {
                 ...baseParams,
                 allReports: toReportsCollection([submitReport]),
                 allTransactions: toTransactionsCollection([createMockTransaction('trans_pending', 'pending_submit', pendingOverride)]),
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            expect(result.reports).toEqual([]);
+        });
+
+        it('includes an empty open report owned by the current user in the submit bucket', () => {
+            const emptyReport = createMockReport('empty_draft', {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+            const policy = createMockPolicy(POLICY_ID, {role: CONST.POLICY.ROLE.ADMIN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+
+            const result = getTodoReportsForSearchKey(CONST.SEARCH.SEARCH_KEYS.SUBMIT, {
+                ...baseParams,
+                allReports: toReportsCollection([emptyReport]),
+                allTransactions: undefined,
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            expect(result.reports.map((report) => report.reportID)).toEqual(['empty_draft']);
+        });
+
+        it('excludes a report from the submit bucket while the transaction collection has not finished loading', () => {
+            const reportWithUnloadedTransactions = createMockReport('unloaded_transactions', {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
+            const policy = createMockPolicy(POLICY_ID, {role: CONST.POLICY.ROLE.ADMIN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+
+            const result = getTodoReportsForSearchKey(CONST.SEARCH.SEARCH_KEYS.SUBMIT, {
+                ...baseParams,
+                areTransactionsLoaded: false,
+                allReports: toReportsCollection([reportWithUnloadedTransactions]),
+                allTransactions: undefined,
                 allPolicies: toPoliciesCollection([policy]),
             });
 

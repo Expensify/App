@@ -1,6 +1,5 @@
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {InvoiceReceiver} from '@src/types/onyx/Report';
 
 // Test data for Invoices. The values come from the Onyx store in the app while manually testing.
 import type {OnyxEntry} from 'react-native-onyx';
@@ -12,7 +11,6 @@ const policy: OnyxEntry<OnyxTypes.Policy> = {
     role: 'admin',
     owner: 'a1@53019.com',
     ownerAccountID: 32,
-    isPolicyExpenseChatEnabled: true,
     outputCurrency: 'USD',
     autoReporting: true,
     autoReportingFrequency: 'instant',
@@ -181,13 +179,8 @@ const transaction: OnyxEntry<OnyxTypes.Transaction> = {
         attendees: [
             {
                 email: 'a1@53019.com',
-                login: 'a1@53019.com',
                 displayName: 'a1',
                 avatarUrl: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_9.png',
-                accountID: 32,
-                text: 'a1@53019.com',
-                selected: true,
-                reportID: '3634215302663162',
             },
         ],
     },
@@ -227,13 +220,12 @@ const convertedInvoiceChat: OnyxTypes.Report = {
     hasOutstandingChildRequest: false,
     hasOutstandingChildTask: false,
 
-    // The invoice receiver shouldn't have an accountID when the type is business,
-    // but this is to test that it still works if the value is present, so cast it to unknown
     invoiceReceiver: {
+        // @ts-expect-error -- this fixture exercises legacy malformed data where a business receiver has an accountID.
         accountID: 33,
         policyID: '5F2F82F98C848CAA',
         type: 'policy',
-    } as unknown as InvoiceReceiver,
+    },
     isCancelledIOU: false,
     isOwnPolicyExpenseChat: false,
     isPinned: false,

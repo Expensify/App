@@ -68,8 +68,22 @@ type AddressFormProps = {
     /** Whether the form submit button should be enabled when offline */
     enabledWhenOffline?: boolean;
 
+    /**
+     * Whether to force the zip/postal code to be present. Workspace addresses for homeAndOffice commuter exclusions
+     * require a complete address
+     */
+    shouldRequireZip?: boolean;
+
     /** Whether PO boxes and mail drops are rejected on address lines */
     shouldValidatePhysicalAddress?: boolean;
+
+    /**
+     * Whether the form should apply its own bottom safe-area padding. Defaults to true for the common case of a
+     * screen whose own ScreenWrapper has delegated bottom safe-area handling to this form (edge-to-edge mode).
+     * Set to false when the parent already applies it (e.g. a ScreenWrapper using the legacy, non-edge-to-edge
+     * default), otherwise the inset is padded twice, visible as extra bottom padding on iOS.
+     */
+    addBottomSafeAreaPadding?: boolean;
 };
 
 function AddressForm({
@@ -86,7 +100,9 @@ function AddressForm({
     zip = '',
     shouldHideCountrySelector = false,
     enabledWhenOffline: enabledWhenOfflineProp = true,
+    shouldRequireZip = false,
     shouldValidatePhysicalAddress = false,
+    addBottomSafeAreaPadding = true,
 }: AddressFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -112,7 +128,8 @@ function AddressForm({
             const errors: Errors & {
                 zipPostCode?: string | string[];
             } = {};
-            const requiredFields = shouldHideCountrySelector ? (['addressLine1', 'city', 'state'] as const) : (['addressLine1', 'city', 'country', 'state'] as const);
+            const baseRequiredFields = shouldHideCountrySelector ? (['addressLine1', 'city', 'state'] as const) : (['addressLine1', 'city', 'country', 'state'] as const);
+            const requiredFields = shouldRequireZip ? ([...baseRequiredFields, 'zipPostCode'] as const) : baseRequiredFields;
 
             // Check "State" dropdown is a valid state if selected Country is USA
             if (values.country === CONST.COUNTRY.US && !values.state) {
@@ -178,7 +195,7 @@ function AddressForm({
 
             return errors;
         },
-        [translate, shouldHideCountrySelector, country, shouldValidatePhysicalAddress],
+        [translate, shouldHideCountrySelector, country, shouldRequireZip, shouldValidatePhysicalAddress],
     );
 
     return (
@@ -189,7 +206,7 @@ function AddressForm({
             onSubmit={onSubmit}
             submitButtonText={submitButtonText}
             enabledWhenOffline={enabledWhenOfflineProp}
-            addBottomSafeAreaPadding
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         >
             <View>
                 <InputWrapper

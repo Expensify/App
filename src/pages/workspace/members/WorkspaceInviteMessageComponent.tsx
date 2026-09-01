@@ -1,10 +1,11 @@
+import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar';
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -13,6 +14,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
@@ -21,8 +23,7 @@ import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspace
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getNewAccountIDsAndLogins, getPersonalDetailsForAccountIDs, getPersonalDetailsOnyxDataForOptimisticUsers, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     canMemberAssignElevatedRole,
     canMemberAssignRole,
@@ -85,7 +86,7 @@ function WorkspaceInviteMessageComponent({
     const policyName = policy?.name;
 
     const backToPath = typeof backTo === 'string' ? (backTo.split('?').at(0) ?? '') : '';
-    const isWorkflowApprovalExpensesFromRoute = backToPath.endsWith('/workflows/approvals/expenses-from');
+    const isWorkflowApprovalExpensesFromRoute = backToPath.endsWith('/expenses-from');
     const headerTitle = isWorkflowApprovalExpensesFromRoute ? translate('workflowsExpensesFromPage.title') : translate('workspace.inviteMessage.confirmDetails');
     const subtitle = isWorkflowApprovalExpensesFromRoute ? undefined : policyName;
 
@@ -113,7 +114,7 @@ function WorkspaceInviteMessageComponent({
     const defaultApprover = getDefaultApprover(policy);
     const [approverDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
-    const approverDetails = getPersonalDetailByEmail(workspaceInviteApproverDraft);
+    const approverDetails = usePersonalDetailByLogin(workspaceInviteApproverDraft);
 
     const isControl = isControlPolicy(policy);
     const shouldShowApproverRow = isControl && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED && policy?.areWorkflowsEnabled;
@@ -130,7 +131,7 @@ function WorkspaceInviteMessageComponent({
     const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
     const memberNames = Object.values(personalDetailsOfInvitedEmails)
         .map((personalDetail) => {
-            const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, defaultValue: '', shouldFallbackToHidden: false, translate});
+            const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, defaultValue: '', shouldFallbackToHidden: false, translate, formatPhoneNumber});
             if (displayName) {
                 return displayName;
             }
@@ -182,16 +183,16 @@ function WorkspaceInviteMessageComponent({
         Keyboard.dismiss();
         const filteredReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
+        const {newAccountIDs, newLogins} = getNewAccountIDsAndLogins(invitedEmailsToAccountIDsDraft, allPersonalDetails);
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
         // See https://github.com/Expensify/App/blob/main/README.md#workspace, we set conditions about who can leave the workspace
         addMembersToWorkspace(
             invitedEmailsToAccountIDsDraft ?? {},
+            getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber),
             `${welcomeNoteSubject}\n\n${welcomeNote}`,
             policy,
             policyMemberAccountIDs,
             workspaceInviteRoleDraft,
-            formatPhoneNumber,
-            allPersonalDetails,
             {
                 accountID: currentUserPersonalDetails?.accountID,
                 displayName: currentUserPersonalDetails?.displayName,
@@ -246,7 +247,7 @@ function WorkspaceInviteMessageComponent({
     };
 
     const invitingMemberEmail = Object.keys(invitedEmailsToAccountIDsDraft ?? {}).at(0) ?? '';
-    const invitingMemberDetails = getPersonalDetailByEmail(invitingMemberEmail);
+    const invitingMemberDetails = usePersonalDetailByLogin(invitingMemberEmail);
     const invitingMemberName = Str.removeSMSDomain(invitingMemberDetails?.displayName ?? '');
 
     useEffect(() => {
@@ -291,19 +292,18 @@ function WorkspaceInviteMessageComponent({
                         <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.inviteNewMember')}</Text>
                     )}
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                        <ReportActionAvatars
-                            size={CONST.AVATAR_SIZE.LARGE}
-                            accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
-                            horizontalStacking={{
-                                displayInRows: true,
-                            }}
-                            secondaryAvatarContainerStyle={styles.secondAvatarInline}
-                            invitedEmailsToAccountIDs={invitedEmailsToAccountIDsDraft}
-                            shouldUseCustomFallbackAvatar
-                            shouldShowTooltip={shouldShowTooltip}
-                        />
+                        <AvatarTooltipsProvider isEnabled={shouldShowTooltip}>
+                            <MultiAccountAvatar
+                                size={CONST.AVATAR_SIZE.XXX_LARGE}
+                                accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
+                                horizontalOptions={{
+                                    maxRows: 2,
+                                }}
+                                invitedEmailsToAccountIDs={invitedEmailsToAccountIDsDraft}
+                            />
+                        </AvatarTooltipsProvider>
                     </View>
-                    <View style={[styles.mb3]}>
+                    <View style={styles.mb3}>
                         <View style={[styles.mhn5, styles.mb3]}>
                             {isInviteNewMemberStep && (
                                 <MenuItemWithTopDescription
@@ -342,6 +342,7 @@ function WorkspaceInviteMessageComponent({
                                         defaultValue: workspaceInviteApproverDraft,
                                         shouldFallbackToHidden: false,
                                         translate,
+                                        formatPhoneNumber,
                                     })}
                                     description={translate('workflowsPage.approver')}
                                     shouldShowRightIcon

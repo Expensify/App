@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
+import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 import type {InputType} from 'storybook/internal/csf';
 import type {ValueOf} from 'type-fest';
 
@@ -108,6 +108,7 @@ const story: Meta<typeof TransactionPreviewContent> = {
         chatReport: chatReportR14932,
         personalDetails,
         report: iouReportR14932,
+        policy: undefined,
         transaction: transactionR14932,
         violations: [],
         offlineWithFeedbackOnClose(): void {},
@@ -117,7 +118,7 @@ const story: Meta<typeof TransactionPreviewContent> = {
         areThereDuplicates: false,
         sessionAccountID: 11111111,
         walletTermsErrors: undefined,
-        routeName: SCREENS.TRANSACTION_DUPLICATE.REVIEW,
+        routeName: SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW,
         shouldHideOnDelete: false,
         transactionPreviewWidth: 303,
     },

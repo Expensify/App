@@ -8,7 +8,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {setTransactionReport} from '@libs/actions/Transaction';
 
-import IOURequestStepReportWithWritableReportOrNotFound from '@pages/iou/request/step/IOURequestStepReport';
+import DynamicIOURequestStepReportWithWritableReportOrNotFound from '@pages/iou/request/step/DynamicIOURequestStepReport';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,16 +29,18 @@ jest.mock('@src/hooks/useResponsiveLayout');
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     getCurrentRoute: jest.fn(() => ({
-        name: 'Money_Request_Report',
+        name: 'Dynamic_Money_Request_Report',
         params: {},
     })),
     getState: jest.fn(() => ({})),
+    isReady: jest.fn(() => false),
+    addListener: jest.fn(() => jest.fn()),
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => {
     const mockRef = {
         getCurrentRoute: jest.fn(() => ({
-            name: 'Money_Request_Report',
+            name: 'Dynamic_Money_Request_Report',
             params: {},
         })),
         getState: jest.fn(() => ({})),
@@ -56,12 +58,13 @@ jest.mock('@libs/Navigation/Navigation', () => {
 jest.mock('@react-navigation/native', () => {
     const mockRef = {
         getCurrentRoute: jest.fn(() => ({
-            name: 'Money_Request_Report',
+            name: 'Dynamic_Money_Request_Report',
             params: {},
         })),
         getState: jest.fn(() => ({})),
     };
     return {
+        ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
         createNavigationContainerRef: jest.fn(() => mockRef),
         useIsFocused: () => true,
         useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
@@ -91,14 +94,9 @@ const DEFAULT_SPLIT_TRANSACTION: Transaction = {
     comment: {
         attendees: [
             {
-                accountID: ACCOUNT_ID,
                 avatarUrl: '',
                 displayName: '',
                 email: ACCOUNT_LOGIN,
-                login: ACCOUNT_LOGIN,
-                reportID: REPORT_ID_1,
-                selected: true,
-                text: ACCOUNT_LOGIN,
             },
         ],
     },
@@ -187,16 +185,15 @@ describe('IOURequestStepReport', () => {
                 <HTMLProviderWrapper>
                     <CurrentUserPersonalDetailsProvider>
                         <LocaleContextProvider>
-                            <IOURequestStepReportWithWritableReportOrNotFound
+                            <DynamicIOURequestStepReportWithWritableReportOrNotFound
                                 route={{
-                                    key: 'Money_Request_Report--30aPPAdjWan56sE5OpcG',
-                                    name: 'Money_Request_Report',
+                                    key: 'Dynamic_Money_Request_Report--30aPPAdjWan56sE5OpcG',
+                                    name: 'Dynamic_Money_Request_Report',
                                     params: {
                                         action: 'create',
                                         iouType: 'submit',
                                         transactionID: TRANSACTION_ID,
                                         reportID: REPORT_ID_1,
-                                        backTo: '',
                                     },
                                 }}
                                 // @ts-expect-error we don't need navigation param here.
@@ -215,7 +212,7 @@ describe('IOURequestStepReport', () => {
         fireEvent.press(item);
 
         expect(setTransactionReport).toHaveBeenCalledTimes(2);
-        const [[, {reportID: reportID1}], [, {reportID: reportID2}]] = (setTransactionReport as jest.MockedFunction<typeof setTransactionReport>).mock.calls;
+        const [[, {reportID: reportID1}], [, {reportID: reportID2}]] = jest.mocked(setTransactionReport).mock.calls;
         expect(reportID1).toEqual(REPORT_ID_2);
         expect(reportID2).toEqual(REPORT_ID_2);
     });

@@ -1,5 +1,3 @@
-import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
-
 import {isSafari} from '@libs/Browser';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
@@ -11,9 +9,9 @@ import {getReportLastVisibleActionCreated, shouldReportAlignToTop} from '@libs/R
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
+import {useActionListContext} from '@pages/inbox/ActionListContext';
 import useReportActionsNewActionLiveTail from '@pages/inbox/report/useReportActionsNewActionLiveTail';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 
 import {openReport} from '@userActions/Report';
 
@@ -27,8 +25,9 @@ import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-nat
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
-import {useContext, useEffect, useEffectEvent, useState} from 'react';
+import {useEffect, useEffectEvent, useState} from 'react';
 
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
@@ -37,6 +36,9 @@ import useScrollToEndOnNewMessageReceived from './useScrollToEndOnNewMessageRece
 import useWindowDimensions from './useWindowDimensions';
 
 type UseReportActionsScrollParams = {
+    /** The Concierge chat report */
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
+
     /** The ID of the report currently being looked at */
     reportID: string;
 
@@ -92,9 +94,6 @@ type UseReportActionsScrollParams = {
 };
 
 type UseReportActionsScrollResult = {
-    /** Ref to attach to the inverted FlashList */
-    listRef: ReturnType<typeof useReportScrollManager>['ref'];
-
     /** Scroll handler that tracks vertical offset and floating counter visibility */
     trackVerticalScrolling: (event: NativeSyntheticEvent<NativeScrollEvent> | undefined) => void;
 
@@ -139,6 +138,7 @@ type UseReportActionsScrollResult = {
 };
 
 function useReportActionsScroll({
+    conciergeChat,
     reportID,
     report,
     transactionThreadReport,
@@ -159,14 +159,15 @@ function useReportActionsScroll({
     setTreatAsNoPaginationAnchor,
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
     const reportScrollManager = useReportScrollManager();
+    const {scrollOffsetRef} = useActionListContext();
     const {windowHeight} = useWindowDimensions();
-    const {scrollOffsetRef} = useContext(ActionListContext);
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
     const backTo = route?.params?.backTo;
     const {isOffline} = useNetworkWithOfflineStatus();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${getNonEmptyStringOnyxID(reportID)}`);
     const prevIsLoadingInitialReportActions = usePrevious(reportLoadingState?.isLoadingInitialReportActions);
@@ -224,6 +225,7 @@ function useReportActionsScroll({
         });
 
     const {isScrollToBottomEnabled, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom} = useReportActionsNewActionLiveTail({
+        conciergeChat,
         reportID,
         introSelected,
         betas,
@@ -263,7 +265,7 @@ function useReportActionsScroll({
             return;
         }
 
-        if (scrollOffsetRef.current >= AUTOSCROLL_TO_TOP_THRESHOLD || !hasNewestReportAction) {
+        if (scrollOffsetRef.current >= CONST.REPORT.ACTIONS.AUTOSCROLL_TO_TOP_THRESHOLD || !hasNewestReportAction) {
             return;
         }
 
@@ -350,7 +352,7 @@ function useReportActionsScroll({
             if (!Navigation.getReportRHPActiveRoute()) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, backTo));
             }
-            openReport({reportID, introSelected, betas});
+            openReport({reportID, introSelected, conciergeChat, betas, hasReportActions: true, currentUserAccountID});
             reportScrollManager.scrollToBottom();
             return;
         }
@@ -362,7 +364,7 @@ function useReportActionsScroll({
         if (actionBadgeTargetIndex < 0) {
             return;
         }
-        reportScrollManager.scrollToIndex(actionBadgeTargetIndex);
+        reportScrollManager.scrollToIndex(actionBadgeTargetIndex, {viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
     };
 
     const flushPendingScrollToBottom = () => {
@@ -423,7 +425,6 @@ function useReportActionsScroll({
     }
 
     return {
-        listRef: reportScrollManager.ref,
         trackVerticalScrolling,
         onViewableItemsChanged,
         isFloatingMessageCounterVisible,

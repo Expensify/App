@@ -9,7 +9,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import type {FormOnyxValues} from '@src/components/Form/types';
 import type {Country} from '@src/CONST';
@@ -33,10 +32,16 @@ type AddressPageProps = {
     /** Title of address page */
     title: string;
 
+    /**
+     * When true, the underlying AddressForm also requires the zip/postal code. Used by callers
+     * that need a complete address (e.g. workspace addresses backing homeAndOffice exclusions).
+     */
+    shouldRequireZip?: boolean;
+
     defaultCountry?: Country;
 } & BackToParams;
 
-function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry}: AddressPageProps) {
+function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry, shouldRequireZip}: AddressPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -92,8 +97,6 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
         [currentCountry],
     );
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddressPage', isLoadingApp: !!isLoadingApp};
-
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -107,10 +110,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
                 />
                 {isLoadingApp ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={reasonAttributes}
-                        />
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                     </View>
                 ) : (
                     <AddressForm
@@ -124,6 +124,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
                         street1={street1}
                         street2={street2}
                         zip={zipcode}
+                        shouldRequireZip={shouldRequireZip}
                     />
                 )}
             </DelegateNoAccessWrapper>

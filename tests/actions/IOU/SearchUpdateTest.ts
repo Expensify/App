@@ -1,13 +1,15 @@
-import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
+import type {SearchQueryJSON} from '@components/Search/types';
 
-import {shouldOptimisticallyUpdateSearch} from '@libs/actions/IOU/SearchUpdate';
+import {getSearchOnyxUpdate, shouldOptimisticallyUpdateSearch} from '@libs/actions/IOU/SearchUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import '@libs/actions/IOU/MoneyRequest';
 import type * as PolicyUtils from '@libs/PolicyUtils';
+import type * as SearchQueryUtils from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import {buildCannedSearchQuery} from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 
@@ -19,6 +21,7 @@ import Onyx from 'react-native-onyx';
 import currencyList from '../../unit/currencyList.json';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import {getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -114,7 +117,9 @@ describe('actions/IOU', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                },
                 [ONYXKEYS.CURRENCY_LIST]: currencyList,
             },
         });
@@ -138,9 +143,8 @@ describe('actions/IOU', () => {
             const transaction = {
                 ...createRandomTransaction(1),
             };
-            const currentSearchQueryJSON = {
+            const currentSearchQueryJSON = createMock<SearchQueryJSON>({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                status: '' as SearchStatus,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 filters: {
@@ -177,11 +181,16 @@ describe('actions/IOU', () => {
                         ],
                     },
                 ],
-                hash: 1920151829,
-                recentSearchHash: 2100977843,
+                hash: 939629734,
+                recentSearchHash: 1023339253,
                 similarSearchHash: 1855682507,
-            } as SearchQueryJSON;
-            const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+            });
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
 
             // When the report is in draft status it should return true
             expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
@@ -196,9 +205,8 @@ describe('actions/IOU', () => {
             const transaction = {
                 ...createRandomTransaction(1),
             };
-            const currentSearchQueryJSON = {
+            const currentSearchQueryJSON = createMock<SearchQueryJSON>({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                status: '' as SearchStatus,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 filters: {
@@ -210,7 +218,7 @@ describe('actions/IOU', () => {
                     },
                     right: {
                         operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                        left: 'from',
+                        left: 'to',
                         right: '20671314',
                     },
                 },
@@ -225,7 +233,7 @@ describe('actions/IOU', () => {
                         ],
                     },
                     {
-                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
                         filters: [
                             {
                                 operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
@@ -234,13 +242,17 @@ describe('actions/IOU', () => {
                         ],
                     },
                 ],
-
-                hash: 1510971479,
+                hash: 1685631874,
                 inputQuery: 'sortBy:date sortOrder:desc type:expense-report action:approve to:20671314',
-                recentSearchHash: 967911777,
+                recentSearchHash: 244251677,
                 similarSearchHash: 1539858783,
-            } as SearchQueryJSON;
-            const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+            });
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
 
             // When the report is in draft status it should return false
             expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
@@ -256,18 +268,38 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
                 reimbursable: true,
             };
-            const currentSearchQueryJSON = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                status: '' as SearchStatus,
+            const currentSearchQueryJSON = createMock<SearchQueryJSON>({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 filters: {
-                    operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                    left: 'reimbursable',
-
-                    right: 'yes',
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                    left: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                        right: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+                    },
+                    right: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                        left: 'reimbursable',
+                        right: 'yes',
+                    },
                 },
                 flatFilters: [
+                    {
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                        filters: [
+                            {
+                                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                                value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                            },
+                            {
+                                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                                value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+                            },
+                        ],
+                    },
                     {
                         key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
                         filters: [
@@ -278,13 +310,18 @@ describe('actions/IOU', () => {
                         ],
                     },
                 ],
-                hash: 71801560,
+                hash: 1967417738,
                 inputQuery: 'sortBy:date sortOrder:desc type:expense groupBy:from status:drafts,outstanding reimbursable:yes',
                 recentSearchHash: 1043581824,
                 similarSearchHash: 1832274510,
-            } as SearchQueryJSON;
+            });
 
-            const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
 
             // When the report is in draft status it should return true
             expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
@@ -300,15 +337,18 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
             };
             const policyID = '12345';
-            const currentSearchQueryJSON = {
+            const currentSearchQueryJSON = createMock<SearchQueryJSON>({
                 type: 'expense',
-                status: '',
                 sortBy: 'date',
                 sortOrder: 'desc',
-                policyID: [policyID],
-                filters: null,
+                filters: {operator: 'eq', left: 'policyID', right: policyID},
                 inputQuery: `type:expense sortBy:date sortOrder:desc policyID:${policyID}`,
-                flatFilters: [],
+                flatFilters: [
+                    {
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                        filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: policyID}],
+                    },
+                ],
                 hash: 591785022,
                 recentSearchHash: 714245044,
                 similarSearchHash: 1023624110,
@@ -320,7 +360,7 @@ describe('actions/IOU', () => {
                         isDefault: true,
                     },
                 ],
-            } as unknown as SearchQueryJSON;
+            });
 
             // When the IOU report has a matching policyID, it should return true
             const matchingIOUReport: Report = {
@@ -341,6 +381,271 @@ describe('actions/IOU', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
             expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, nonMatchingIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
+        });
+
+        it('when the current hash includes a non-negated status filter it should only return true if the iou report matches the status', () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+            };
+            const currentSearchQueryJSON: SearchQueryJSON = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                view: CONST.SEARCH.VIEW.TABLE,
+                filters: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                    right: CONST.SEARCH.STATUS.EXPENSE.APPROVED,
+                },
+                inputQuery: 'type:expense sortBy:date sortOrder:desc status:approved',
+                flatFilters: [
+                    {
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                        filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.STATUS.EXPENSE.APPROVED}],
+                    },
+                ],
+                hash: 100000001,
+                recentSearchHash: 100000002,
+                similarSearchHash: 100000003,
+            };
+
+            // When the IOU report is approved (matches status:approved), it should return true
+            const approvedIOUReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            };
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, approvedIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
+
+            // When the IOU report is in draft (does not match status:approved), it should return false
+            const draftIOUReport: Report = {
+                ...createRandomReport(3, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, draftIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
+        });
+
+        it('when the current hash includes a negated status filter it should return true for iou reports that do not match the excluded status', () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+            };
+            const currentSearchQueryJSON: SearchQueryJSON = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                view: CONST.SEARCH.VIEW.TABLE,
+                filters: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO,
+                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                    right: CONST.SEARCH.STATUS.EXPENSE.APPROVED,
+                },
+                inputQuery: 'type:expense sortBy:date sortOrder:desc status!=approved',
+                flatFilters: [
+                    {
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                        filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: CONST.SEARCH.STATUS.EXPENSE.APPROVED}],
+                    },
+                ],
+                hash: 100000011,
+                recentSearchHash: 100000012,
+                similarSearchHash: 100000013,
+            };
+
+            // With status!=approved, a draft report (which is NOT approved) should return true...
+            const draftIOUReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, draftIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
+
+            // ...and an outstanding report (also NOT approved) should return true
+            const outstandingIOUReport: Report = {
+                ...createRandomReport(3, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, outstandingIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
+        });
+
+        it('when the current hash includes a negated policyID filter it should only return true if the iou report does not match the policyID filter', () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+            };
+            const policyID = '12345';
+            const currentSearchQueryJSON: SearchQueryJSON = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                view: CONST.SEARCH.VIEW.TABLE,
+                filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, right: policyID},
+                inputQuery: `type:expense sortBy:date sortOrder:desc policyID!=${policyID}`,
+                flatFilters: [
+                    {
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                        filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: policyID}],
+                    },
+                ],
+                hash: 100000021,
+                recentSearchHash: 100000022,
+                similarSearchHash: 100000023,
+            };
+
+            // When the IOU report has a different policyID (not excluded), it should return true
+            const nonMatchingIOUReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'differentPolicyID',
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, nonMatchingIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
+
+            // When the IOU report has the excluded policyID, it should return false
+            const matchingIOUReport: Report = {
+                ...createRandomReport(3, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, matchingIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
+        });
+    });
+
+    describe('getSearchOnyxUpdate', () => {
+        it('returns undefined when the participant has no accountID', () => {
+            const result = getSearchOnyxUpdate({
+                transaction: {...createRandomTransaction(1)},
+                participant: {},
+                iouReport: undefined,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                isFromOneTransactionReport: false,
+                isInvoice: false,
+            });
+            expect(result).toBeUndefined();
+        });
+
+        it('returns undefined when there is no current user account', async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {});
+            await Onyx.set(ONYXKEYS.SESSION, {});
+            await waitForBatchedUpdates();
+            const result = getSearchOnyxUpdate({
+                transaction: {...createRandomTransaction(1)},
+                participant: {accountID: 42, login: 'test@test.com'},
+                iouReport: undefined,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                isFromOneTransactionReport: false,
+                isInvoice: false,
+            });
+            expect(result).toBeUndefined();
+        });
+
+        it('patches the default Spend > Expenses snapshot even when the page was never visited', async () => {
+            // Compute the real canned Expenses hash from the unmocked helpers.
+            const actualSearchQueryUtils = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
+            const cannedExpensesQuery = actualSearchQueryUtils.buildCannedSearchQuery();
+            const cannedExpensesHash = actualSearchQueryUtils.buildSearchQueryJSON(cannedExpensesQuery)?.hash;
+
+            // Feed the real canned query strings through the mocked builder so getSearchOnyxUpdate can
+            // register the canned hashes (the mock returns undefined by default).
+            jest.mocked(buildCannedSearchQuery).mockImplementation(actualSearchQueryUtils.buildCannedSearchQuery);
+
+            // Simulate a never-visited Spend > Expenses page: SEARCH_QUERY_BY_HASH holds no entry for the
+            // canned hash and the active search (mocked) is a different hash.
+            await Onyx.set(ONYXKEYS.SEARCH_QUERY_BY_HASH, {});
+            await waitForBatchedUpdates();
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const result = getSearchOnyxUpdate({
+                transaction: {...createRandomTransaction(1)},
+                participant: {accountID: 42, login: 'test@test.com'},
+                iouReport,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                isFromOneTransactionReport: false,
+                isInvoice: false,
+            });
+
+            const cannedSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${cannedExpensesHash}`;
+            const cannedUpdate = result?.optimisticData?.find((update) => update.key === cannedSnapshotKey);
+            expect(cannedUpdate).toBeDefined();
+
+            // The snapshot must carry its own `hash` or the never-visited page's `isSearchDataLoaded` gate stays
+            // false and the page renders "Nothing to show" even though the transaction data was merged in.
+            expect(cannedUpdate?.value).toHaveProperty('search.hash', cannedExpensesHash);
+        });
+
+        // Builds the snapshot update for a transaction whose `modifiedMerchant` starts at the given value, and
+        // returns the optimistic snapshot update plus its transaction key so each case only asserts on the outcome.
+        const getSnapshotUpdateForModifiedMerchant = (modifiedMerchant: string | undefined) => {
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const transaction = {
+                ...createRandomTransaction(1),
+                reimbursable: true,
+                merchant: 'Coffee Shop',
+                modifiedMerchant,
+            };
+
+            const result = getSearchOnyxUpdate({
+                transaction,
+                participant: {accountID: 42, login: 'test@test.com'},
+                iouReport,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                isFromOneTransactionReport: false,
+                isInvoice: false,
+            });
+
+            const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`;
+            const update = result?.optimisticData?.find((u) => u.key === snapshotKey);
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
+            return {update, transactionKey};
+        };
+
+        // Repro of #99500: a self-DM split submitted to a workspace inherits a stale `(none)`/`Expense` placeholder
+        // `modifiedMerchant` in its snapshot at split-creation time. Because `isMerchantMissing` reads
+        // `modifiedMerchant` before `merchant`, spreading the fresh transaction via Onyx.merge would keep the stale
+        // placeholder and show a false "Missing Merchant". The snapshot write must clear it with `null` (which
+        // Onyx.merge honors) so `isMerchantMissing` falls through to the merchant the user actually entered.
+        it.each([undefined, '', CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, CONST.TRANSACTION.DEFAULT_MERCHANT])(
+            'clears a non-genuine modifiedMerchant (%s) with null so the stale placeholder cannot survive the Onyx.merge',
+            (modifiedMerchant) => {
+                const {update, transactionKey} = getSnapshotUpdateForModifiedMerchant(modifiedMerchant);
+                expect(update).toBeDefined();
+                expect(update?.value).toHaveProperty(['data', transactionKey, 'merchant'], 'Coffee Shop');
+                expect(update?.value).toHaveProperty(['data', transactionKey, 'modifiedMerchant'], null);
+            },
+        );
+
+        it('preserves a genuinely edited modifiedMerchant in the snapshot', () => {
+            // The clear must only apply to an absent/placeholder modifiedMerchant. A real edited merchant is a
+            // genuine value and must be preserved so the Search view keeps showing it.
+            const {update, transactionKey} = getSnapshotUpdateForModifiedMerchant('Edited Merchant');
+            expect(update).toBeDefined();
+            expect(update?.value).toHaveProperty(['data', transactionKey, 'modifiedMerchant'], 'Edited Merchant');
         });
     });
 });

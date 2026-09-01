@@ -2,12 +2,11 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
-import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
+import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 import WorkspacePerDiemTable from '@components/Tables/WorkspacePerDiemTable';
 import type {PerDiemTableRowData} from '@components/Tables/WorkspacePerDiemTable';
 
@@ -15,8 +14,7 @@ import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilteredSelection from '@hooks/useFilteredSelection';
-import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -35,7 +33,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {canMemberWrite, getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -107,9 +104,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.perDiem');
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const illustrations = useMemoizedLazyIllustrations(['PerDiem']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Trashcan']);
-    const genericIllustration = useGenericEmptyStateIllustration();
 
     const [customUnit, allSubRates] = useMemo(() => {
         const customUnits = getPerDiemCustomUnit(policy);
@@ -278,13 +273,14 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 icon: expensifyIcons.Trashcan,
                 text: translate('workspace.perDiem.deleteRates', {count: selectedSubRateKeys.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     const {action} = await showConfirmModal({
                         title: translate('workspace.perDiem.deletePerDiemRate'),
                         prompt: translate('workspace.perDiem.areYouSureDelete', {count: selectedSubRateKeys.length}),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
                     if (action === ModalActions.CONFIRM) {
                         handleDeletePerDiemRates();
@@ -294,9 +290,10 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
             return (
                 <ButtonWithDropdownMenu
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
-                    buttonSize={CONST.BUTTON_SIZE.MEDIUM}
+                    size={CONST.BUTTON_SIZE.MEDIUM}
                     customText={translate('workspace.common.selected', {count: selectedSubRateKeys.length})}
                     options={options}
                     isSplitButton={false}
@@ -314,7 +311,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         return (
             <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
                 <ButtonWithDropdownMenu
-                    success={false}
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
                     customText={translate('common.more')}
@@ -328,7 +324,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     };
 
     const isLoading = !isOffline && customUnit === undefined;
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspacePerDiemPage', isOffline, isCustomUnitUndefined: customUnit === undefined};
 
     useEffect(() => {
         if (isMobileSelectionModeEnabled) {
@@ -352,33 +347,25 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         </View>
     );
 
-    const emptyStateContent = (
-        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-            <GenericEmptyStateComponent
-                {...genericIllustration}
-                title={translate('workspace.perDiem.emptyList.title')}
-                subtitle={translate('workspace.perDiem.emptyList.subtitle')}
-                headerStyles={styles.emptyStateCardIllustrationContainer}
-                buttons={
-                    canWritePerDiem
-                        ? [
-                              {
-                                  buttonText: translate('spreadsheet.importSpreadsheet'),
-                                  buttonAction: () => {
-                                      if (isOffline) {
-                                          showOfflineModal();
-                                          return;
-                                      }
-                                      Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
-                                  },
-                                  success: true,
-                              },
-                          ]
-                        : []
-                }
-            />
-        </ScrollView>
-    );
+    const emptyState: TableEmptyStateProps = {
+        title: translate('workspace.perDiem.emptyList.title'),
+        subtitle: translate('workspace.perDiem.emptyList.subtitle'),
+        buttons: canWritePerDiem
+            ? [
+                  {
+                      buttonText: translate('spreadsheet.importSpreadsheet'),
+                      buttonAction: () => {
+                          if (isOffline) {
+                              showOfflineModal();
+                              return;
+                          }
+                          Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
+                      },
+                      buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+                  },
+              ]
+            : [],
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -398,7 +385,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 <HeaderWithBackButton
                     shouldShowBackButton={shouldUseNarrowLayout}
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'common.perDiem')}
-                    icon={!selectionModeHeader ? illustrations.PerDiem : undefined}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     shouldDisplayHelpButton
                     onBackButtonPress={() => {
@@ -424,20 +410,17 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
-                        reasonAttributes={reasonAttributes}
                     />
                 )}
                 {!isLoading && (
-                    <>
-                        {hasVisibleSubRates && subtitleContent}
-                        <WorkspacePerDiemTable
-                            perDiemData={perDiemRows}
-                            selectionEnabled={canWritePerDiem}
-                            selectedKeys={selectedSubRateKeys}
-                            onRowSelectionChange={setSelectedSubRateKeys}
-                            EmptyStateComponent={emptyStateContent}
-                        />
-                    </>
+                    <WorkspacePerDiemTable
+                        perDiemData={perDiemRows}
+                        selectionEnabled={canWritePerDiem}
+                        selectedKeys={selectedSubRateKeys}
+                        onRowSelectionChange={setSelectedSubRateKeys}
+                        headerComponent={hasVisibleSubRates ? subtitleContent : undefined}
+                        emptyState={emptyState}
+                    />
                 )}
                 <DecisionModal
                     title={translate('common.downloadFailedTitle')}

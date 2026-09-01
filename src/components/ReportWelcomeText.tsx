@@ -3,13 +3,13 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     getInvoiceReceiverPolicyID,
@@ -49,10 +49,10 @@ type ReportWelcomeTextProps = {
 };
 
 function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
-    const reportAttributes = useReportAttributes();
+    const derivedReportName = useDerivedReportNameByReportID(report?.reportID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
@@ -91,7 +91,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 )}`,
         )
         .join(', ');
-    const reportName = getReportName(report, reportAttributes);
+    const reportName = getReportName(report, derivedReportName);
     const shouldShowUsePlusButtonText =
         moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) ||
@@ -129,13 +129,14 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         translate,
         localeCompare,
         conciergeReportID,
-        reportAttributes,
+        derivedReportName,
         isReportArchived,
         reportDetailsLink,
         shouldShowUsePlusButtonText,
         additionalText,
         isTrackIntentUser: !!isTrackIntentUser,
         currentUserAccountID,
+        formatPhoneNumber,
     });
 
     return (

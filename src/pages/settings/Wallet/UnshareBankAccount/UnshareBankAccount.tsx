@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ConfirmModal from '@components/ConfirmModal';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,11 +13,11 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import Navigation from '@navigation/Navigation';
@@ -49,6 +49,28 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
     const {translate} = useLocalize();
     const admins = bankAccountList?.[bankAccountID]?.accountData?.sharees;
     const totalAdmins = bankAccountList?.[bankAccountID]?.accountData?.sharees?.length;
+    const adminEmails = admins?.filter((admin) => admin !== currentUserPersonalDetails?.email) ?? [];
+    const adminPersonalDetails = usePersonalDetailsByLogins(adminEmails);
+    const adminsWithInfo = adminEmails.map((admin) => {
+        const personalDetails = adminPersonalDetails[admin];
+        const formattedAdmin = formatMemberForList({
+            text: personalDetails?.displayName,
+            alternateText: personalDetails?.login,
+            keyForList: personalDetails?.login ?? '',
+            accountID: personalDetails?.accountID,
+            login: personalDetails?.login,
+            pendingAction: personalDetails?.pendingAction,
+            reportID: '',
+        });
+        return {...formattedAdmin, isInteractive: false};
+    });
+
+    let adminsList = adminsWithInfo;
+    if (debouncedSearchTerm) {
+        const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
+        adminsList = tokenizedSearch(adminsWithInfo, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
+    }
+
     const error = getLatestErrorMessage(bankAccountList?.[bankAccountID] ?? {});
     const isExpensifyCardError = error?.includes(CONST.EXPENSIFY_CARD.BANK);
     const isExpensifyCardSettlementAccount = bankAccountList?.[bankAccountID]?.isExpensifyCardSettlementAccount ?? false;
@@ -89,57 +111,30 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
         setUnshareUser(undefined);
     };
 
-    const getAdminsList = () => {
-        if (admins?.length === 0) {
-            return [];
-        }
-        const adminsWithInfo =
-            admins
-                ?.filter((admin) => admin !== currentUserPersonalDetails?.email)
-                .map((admin) => {
-                    const personalDetails = getPersonalDetailByEmail(admin);
-                    const formattedAdmin = formatMemberForList({
-                        text: personalDetails?.displayName,
-                        alternateText: personalDetails?.login,
-                        keyForList: personalDetails?.login ?? '',
-                        accountID: personalDetails?.accountID,
-                        login: personalDetails?.login,
-                        pendingAction: personalDetails?.pendingAction,
-                        reportID: '',
-                    });
-                    return {...formattedAdmin, isInteractive: false};
-                }) ?? [];
-
-        let adminsToDisplay = [...adminsWithInfo];
-        if (debouncedSearchTerm) {
-            const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
-            adminsToDisplay = tokenizedSearch(adminsWithInfo, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
-        }
-        return adminsToDisplay;
-    };
-
     const hideUnshareErrorModal = () => {
         clearUnshareBankAccountErrors(Number(bankAccountID));
         setShowExpensifyCardErrorModal(false);
     };
 
     const itemRightSideComponent = (item: ListItem) => {
+        const promptUnshare = () => setUnshareUser({login: item?.login, text: item?.text});
+        const isUnshareButtonLoading = isLoading && unsharedBankAccountData?.email === item?.login;
+
         return (
             <Button
-                isLoading={isLoading && unsharedBankAccountData?.email === item?.login}
-                small
+                isLoading={isUnshareButtonLoading}
+                size={CONST.BUTTON_SIZE.SMALL}
                 isDisabled={isLoading}
-                danger
-                text={translate('common.unshare')}
-                onPress={() => setUnshareUser({login: item?.login, text: item?.text})}
-                pressOnEnter
-            />
+                variant={CONST.BUTTON_VARIANT.DANGER}
+                onPress={promptUnshare}
+            >
+                <Button.KeyboardShortcut />
+                <Button.Text>{translate('common.unshare')}</Button.Text>
+            </Button>
         );
     };
 
     const onButtonPress = () => Navigation.goBack(ROUTES.SETTINGS_WALLET);
-
-    const adminsList = getAdminsList();
 
     const getHeaderSearchMessage = () => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
@@ -181,7 +176,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                 title={translate('walletPage.unshareErrorModalTitle')}
                 isVisible={showExpensifyCardErrorModal}
                 onConfirm={hideUnshareErrorModal}
-                success
+                buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
                 prompt={
                     <View style={[styles.renderHTML, styles.flexRow]}>
                         <RenderHTML html={translate('walletPage.reachOutForHelp')} />
@@ -198,7 +193,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                 prompt={translate('walletPage.unshareBankAccountWarning', {admin: unshareUser?.text})}
                 confirmText={translate('common.unshare')}
                 cancelText={translate('common.cancel')}
-                danger
+                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
             />
         </ScreenWrapper>
     );

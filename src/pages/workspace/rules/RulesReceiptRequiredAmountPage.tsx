@@ -10,6 +10,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
@@ -41,6 +42,7 @@ function RulesReceiptRequiredAmountPage({
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     const defaultValue =
@@ -74,7 +76,7 @@ function RulesReceiptRequiredAmountPage({
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >
             <ScreenWrapper
@@ -90,7 +92,7 @@ function RulesReceiptRequiredAmountPage({
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM}
                     onSubmit={({maxExpenseAmountNoReceipt}) => {
-                        setPolicyMaxExpenseAmountNoReceipt(policyID, maxExpenseAmountNoReceipt, policy?.maxExpenseAmountNoReceipt);
+                        setPolicyMaxExpenseAmountNoReceipt(policyID, maxExpenseAmountNoReceipt, policy?.maxExpenseAmountNoReceipt, getReviewWorkspaceSettingsTaskCompletion());
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     validate={validate}

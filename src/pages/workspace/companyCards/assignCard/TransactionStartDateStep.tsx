@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DatePicker from '@components/DatePicker';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
@@ -12,7 +12,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -98,10 +97,6 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
     ];
 
     const isLoading = isLoadingOnyxValue(assignCardMeta);
-    const activityReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'TransactionStartDateStep',
-        isLoading,
-    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -120,7 +115,6 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.h100}
-                        reasonAttributes={activityReasonAttributes}
                     />
                 ) : (
                     <>
@@ -136,12 +130,13 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
                                 addBottomSafeAreaPadding
                                 footerContent={
                                     <Button
-                                        success
-                                        large
-                                        pressOnEnter
-                                        text={translate(isEditing ? 'common.save' : 'common.next')}
+                                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                        size={CONST.BUTTON_SIZE.LARGE}
                                         onPress={submit}
-                                    />
+                                    >
+                                        <Button.KeyboardShortcut />
+                                        <Button.Text>{translate(isEditing ? 'common.save' : 'common.next')}</Button.Text>
+                                    </Button>
                                 }
                                 listFooterContent={
                                     dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM ? (

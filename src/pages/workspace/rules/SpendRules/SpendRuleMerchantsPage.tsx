@@ -21,13 +21,13 @@ function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
     const merchantNames = spendRuleForm?.merchantNames ?? [];
     const merchantMatchTypes = spendRuleForm?.merchantMatchTypes ?? [];
     const restrictionAction = spendRuleForm?.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
+    const merchants = merchantNames.map((name, index) => ({name, matchType: merchantMatchTypes.at(index)}));
 
     return (
         <SpendRuleMerchantsBase
             policyID={policyID}
             action={restrictionAction}
-            merchantNames={merchantNames}
-            merchantMatchTypes={merchantMatchTypes}
+            merchants={merchants}
             getEditMerchantRoute={(merchantIndex) => ROUTES.RULES_SPEND_MERCHANT_EDIT.getRoute(policyID, ruleID, merchantIndex)}
         />
     );

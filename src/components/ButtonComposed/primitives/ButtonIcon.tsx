@@ -3,6 +3,7 @@ import Icon from '@components/Icon';
 
 import useTheme from '@hooks/useTheme';
 
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -22,16 +23,19 @@ type ButtonIconProps = {
 
     /** Default icon color when the button is not hovered. */
     fill?: string;
+
+    /** Accessibility label applied to this icon. When set, the icon is exposed to assistive tech with this label. */
+    accessibilityLabel?: string;
 };
 
-function ButtonIcon({src, style, hoverFill, fill}: ButtonIconProps) {
+function ButtonIcon({src, style, hoverFill, fill, accessibilityLabel}: ButtonIconProps) {
     const theme = useTheme();
     const {isHovered, variant, size} = useButtonContext();
 
     let defaultFill = theme.buttonIcon;
-    if (variant === 'danger') {
+    if (variant === CONST.BUTTON_VARIANT.DANGER) {
         defaultFill = theme.buttonDangerText;
-    } else if (variant === 'success') {
+    } else if (variant === CONST.BUTTON_VARIANT.SUCCESS) {
         defaultFill = theme.textLight;
     }
     const propsFill = isHovered ? hoverFill : fill;
@@ -42,6 +46,7 @@ function ButtonIcon({src, style, hoverFill, fill}: ButtonIconProps) {
                 fill={propsFill ?? defaultFill}
                 size={size}
                 isButtonIcon
+                accessibilityLabel={accessibilityLabel}
             />
         </View>
     );

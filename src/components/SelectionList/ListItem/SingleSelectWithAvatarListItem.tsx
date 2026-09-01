@@ -1,8 +1,6 @@
-import Avatar from '@components/Avatar';
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
 
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -33,14 +31,10 @@ function SingleSelectWithAvatarListItem<TItem extends ListItem>({item, wrapperSt
 
     const avatarElement = (
         <View>
-            <Avatar
-                source={icon.source}
+            <AvatarFromIcon
+                icon={icon}
                 size={CONST.AVATAR_SIZE.DEFAULT}
-                name={icon.name}
-                avatarID={icon.id}
-                type={icon.type ?? CONST.ICON_TYPE_AVATAR}
-                fallbackIcon={icon.fallbackIcon}
-                iconAdditionalStyles={[{width: variables.avatarSizeNormal, height: variables.avatarSizeNormal}, styles.mr3]}
+                iconAdditionalStyles={styles.mr3}
             />
         </View>
     );

@@ -143,9 +143,17 @@ type CardFeedErrorState = {
     hasWorkspaceErrors: boolean;
 
     /**
-     * Whether some feed connection is broken.
+     * Whether some feed connection is broken. This stays true for as long as the connection is broken, so the
+     * Company cards page keeps offering the "log into your bank" fix and the reconnect can complete.
      */
     isFeedConnectionBroken: boolean;
+
+    /**
+     * Whether we should still actively prompt the user about the broken connection (the RBR dots and the
+     * time-sensitive home task). Unlike `isFeedConnectionBroken` this turns false once the connection has been
+     * unresolved past the grace period, so we stop nagging without taking away the ability to fix it.
+     */
+    shouldPromptBrokenConnection: boolean;
 };
 
 /**
@@ -248,6 +256,14 @@ type SortedReportActionsDerivedValue = {
  */
 type PersonalAndWorkspaceCardListDerivedValue = CardList;
 
+/**
+ * The derived value mapping each user's login (lowercased) to their accountID.
+ *
+ * Replaces the imperative `emailToPersonalDetailsCache` login lookup that was built via `Onyx.connect`
+ * in `PersonalDetailsUtils` (see issue #66391). Keys are lowercased since logins/emails are case-insensitive.
+ */
+type LoginToAccountIDMapDerivedValue = Record<string, number>;
+
 export type {
     ReportAttributes,
     ReportAttributesDerivedValue,
@@ -259,6 +275,7 @@ export type {
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
+    LoginToAccountIDMapDerivedValue,
     CardFeedErrorsObject,
     CardFeedErrorState,
     CardFeedErrors,

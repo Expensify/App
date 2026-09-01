@@ -37,7 +37,6 @@ function ExpenseReportListItemRowWide({
     isActionLoading,
     chatReport,
     containerStyle,
-    showTooltip,
     canSelectMultiple,
     isSelectAllChecked,
     isIndeterminate,
@@ -47,7 +46,7 @@ function ExpenseReportListItemRowWide({
     isFocused = false,
     isPendingDelete = false,
     shouldDisableActionPointerEvents = false,
-    isMarkAsDone,
+    shouldShowMarkAsDoneCopy,
 }: ExpenseReportListItemRowWideProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -60,12 +59,12 @@ function ExpenseReportListItemRowWide({
     const submitterUserID = item.submitterUserID;
     const submitterPayrollID = item.submitterPayrollID;
     const orderDealNumbers = item.orderDealNumbers;
+    const {debitedAmount, debitedCurrency, creditedAmount, creditedCurrency} = item;
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
             <ExpenseReportListItemAvatar
                 item={item}
-                showTooltip={showTooltip}
                 isHovered={isHovered}
                 isFocused={isFocused}
                 isLargeScreenWidth
@@ -86,6 +85,7 @@ function ExpenseReportListItemRowWide({
                     date={item.submitted ?? ''}
                     showTooltip
                     isLargeScreenWidth
+                    shouldUseLocalTimeZone
                 />
             </View>
         ),
@@ -95,6 +95,7 @@ function ExpenseReportListItemRowWide({
                     date={item.approved ?? ''}
                     showTooltip
                     isLargeScreenWidth
+                    shouldUseLocalTimeZone
                 />
             </View>
         ),
@@ -119,12 +120,25 @@ function ExpenseReportListItemRowWide({
                 />
             </View>
         ),
+        [CONST.SEARCH.TABLE_COLUMNS.PAID_BY]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.PAID_BY)]}>
+                {!!item.paidByAccountID && (
+                    <UserInfoCell
+                        accountID={item.paidByAccountID}
+                        avatar={item.paidByAvatar}
+                        displayName={item.formattedPaidBy ?? ''}
+                        isLargeScreenWidth
+                    />
+                )}
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, {isExportedColumnWide: item.shouldShowYearExported})]}>
                 <DateCell
                     date={item.exported ?? ''}
                     showTooltip
                     isLargeScreenWidth
+                    shouldUseLocalTimeZone
                 />
             </View>
         ),
@@ -231,6 +245,26 @@ function ExpenseReportListItemRowWide({
                 <TextCell text={orderDealNumbers} />
             </View>
         ),
+        [CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED)]}>
+                {!!debitedAmount && !!debitedCurrency && (
+                    <TotalCell
+                        total={debitedAmount}
+                        currency={debitedCurrency}
+                    />
+                )}
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED)]}>
+                {!!creditedAmount && !!creditedCurrency && (
+                    <TotalCell
+                        total={creditedAmount}
+                        currency={creditedCurrency}
+                    />
+                )}
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REPORT_ID)]}>
                 <TextCell text={item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : item.reportID} />
@@ -259,7 +293,7 @@ function ExpenseReportListItemRowWide({
                         hash={item.hash}
                         amount={item.total}
                         chatReport={chatReport}
-                        isMarkAsDone={isMarkAsDone}
+                        shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
                         shouldDisablePointerEvents={isPendingDelete || shouldDisableActionPointerEvents}
                     />
                 </ReportSubmitToPopoverMeasurableAnchor>
@@ -285,7 +319,7 @@ function ExpenseReportListItemRowWide({
                         isIndeterminate={isIndeterminate}
                         containerStyle={styles.m0}
                         disabled={isDisabledCheckbox}
-                        accessibilityLabel={item.text ?? ''}
+                        accessibilityLabel={item.reportName ?? ''}
                         shouldStopMouseDownPropagation
                         style={[styles.cursorUnset, isDisabledCheckbox && styles.cursorDisabled]}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}

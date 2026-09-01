@@ -56,6 +56,7 @@ import RunOutOfTime from '@assets/images/multifactorAuthentication/running-out-o
 import PendingTravel from '@assets/images/pending-travel.svg';
 // Product Illustrations
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
+import ArmWithCardPos from '@assets/images/product-illustrations/arm_with_card_pos.svg';
 import BigVault from '@assets/images/product-illustrations/big-vault.svg';
 import BrokenCompanyCardBankConnection from '@assets/images/product-illustrations/broken-humpty-dumpty.svg';
 import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
@@ -64,6 +65,7 @@ import EarthWithControls from '@assets/images/product-illustrations/earth-with-c
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
 import HoldExpense from '@assets/images/product-illustrations/emptystate__holdexpense.svg';
 import ReceiptFairy from '@assets/images/product-illustrations/emptystate__receiptfairy.svg';
+import EmptyStateSearchExpenses from '@assets/images/product-illustrations/emptystate__searchexpenses.svg';
 import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__travel.svg';
 import Fireworks from '@assets/images/product-illustrations/fireworks.svg';
 import FolderWithPapersAndWatch from '@assets/images/product-illustrations/folder-with-papers-and-watch.svg';
@@ -72,7 +74,7 @@ import Hands from '@assets/images/product-illustrations/home-illustration-hands.
 import SortingMachine from '@assets/images/product-illustrations/illustration-sorting-machine.svg';
 import CardReplacementSuccess from '@assets/images/product-illustrations/illustration__card-replacement-success.svg';
 import Copilots from '@assets/images/product-illustrations/illustration__copilots.svg';
-import MagicCode from '@assets/images/product-illustrations/magic-code.svg';
+import AgentsIceCream from '@assets/images/product-illustrations/illustration_agents-ice-cream.svg';
 import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
 import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
 import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
@@ -94,6 +96,7 @@ import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phone
 import TopiaryDollarSign from '@assets/images/product-illustrations/topiary-dollar-sign.svg';
 import TvScreenRobot from '@assets/images/product-illustrations/tv-screen-robot.svg';
 import UpgradeRocket from '@assets/images/product-illustrations/upgrade-rocket.svg';
+import ValidateCode from '@assets/images/product-illustrations/validate-code.svg';
 import WorkspaceScene from '@assets/images/product-illustrations/workspace-scene.svg';
 import ReceiptStack from '@assets/images/receipt-upload.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
@@ -111,6 +114,7 @@ import ShareBank from '@assets/images/simple-illustrations/simple-illustration__
 import BankCoin from '@assets/images/simple-illustrations/simple-illustration__bankcoin.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
+import Briefcase from '@assets/images/simple-illustrations/simple-illustration__briefcase.svg';
 import Broom from '@assets/images/simple-illustrations/simple-illustration__broom.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
 import BuildingCross from '@assets/images/simple-illustrations/simple-illustration__building_cross.svg';
@@ -122,6 +126,7 @@ import Car from '@assets/images/simple-illustrations/simple-illustration__car.sv
 import CardReaderAlt from '@assets/images/simple-illustrations/simple-illustration__cardreader-alt.svg';
 import Chair from '@assets/images/simple-illustrations/simple-illustration__chair.svg';
 import Chalkboard from '@assets/images/simple-illustrations/simple-illustration__chalkboard.svg';
+import Chart from '@assets/images/simple-illustrations/simple-illustration__chart.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckboxText from '@assets/images/simple-illustrations/simple-illustration__checkboxtext.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
@@ -153,6 +158,7 @@ import HeadSet from '@assets/images/simple-illustrations/simple-illustration__he
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
 import HouseMoney from '@assets/images/simple-illustrations/simple-illustration__house-money.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
+import HouseWithMap from '@assets/images/simple-illustrations/simple-illustration__housewithmap.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
 import LifeRing from '@assets/images/simple-illustrations/simple-illustration__lifering.svg';
 import Lightbulb from '@assets/images/simple-illustrations/simple-illustration__lightbulb.svg';
@@ -270,10 +276,12 @@ const Illustrations = {
 
     // Product Illustrations
     Abracadabra,
+    ArmWithCardPos,
     BigVault,
     BrokenCompanyCardBankConnection,
     BrokenMagnifyingGlass,
     DjBoothReferenceHands,
+    EmptyStateSearchExpenses,
     EmptyStateExpenses,
     HoldExpense,
     ReceiptFairy,
@@ -285,7 +293,7 @@ const Illustrations = {
     Hands,
     CardReplacementSuccess,
     Copilots,
-    MagicCode,
+    ValidateCode,
     ModalHoldOrReject,
     MushroomTopHat,
     PaymentHands,
@@ -301,6 +309,7 @@ const Illustrations = {
     QuestionMark,
     SmartScan,
     SortingMachine,
+    AgentsIceCream,
     TeleScope,
     Telescope: TeleScope, // Alias for consistency
     ThreeLeggedLaptopWoman,
@@ -377,6 +386,7 @@ const Illustrations = {
     Workflows,
     CarIce,
     BlueShield,
+    Briefcase,
     Pencil,
     ShareBank,
     Luggage,
@@ -408,6 +418,7 @@ const Illustrations = {
     HeadSet,
     Hourglass,
     House,
+    HouseWithMap,
     HouseMoney,
     LifeRing,
     Lightbulb,
@@ -438,6 +449,7 @@ const Illustrations = {
     Trophy1,
     FoodTruck,
     Chalkboard,
+    Chart,
 
     // Multifactor Authentication Illustrations
     MagnifyingGlassSpyMouthClosed,

@@ -21,7 +21,6 @@ import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection'
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
 
@@ -71,7 +70,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const isPlaid = !!plaidToken;
 
-    const url = getCompanyCardBankConnection(policyID, bankName);
+    const url = getCompanyCardBankConnection(policyID, bankName, feed);
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.[feed]) : false;
     const headerTitleAddCards = translate('workspace.companyCards.addCards');
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
@@ -129,11 +128,15 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                     Navigation.closeRHPFlow();
                     return;
                 }
-                setAssignCardStepAndData({
-                    currentStep: assignCard?.cardToAssign?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
-                    isEditing: false,
-                });
-                return;
+                // When refreshing the feed, a healthy connection must not short-circuit into the assignee step.
+                // RefreshCardFeedConnectionPage can't render it and the modal would spin forever.
+                if (!assignCard?.isRefreshing) {
+                    setAssignCardStepAndData({
+                        currentStep: assignCard?.cardToAssign?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                        isEditing: false,
+                    });
+                    return;
+                }
             }
             if (isPlaid) {
                 return;
@@ -182,6 +185,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
         isFeedExpired,
         isOffline,
         assignCard?.cardToAssign?.dateOption,
+        assignCard?.isRefreshing,
         isPlaid,
         onImportPlaidAccounts,
         isFeedConnectionBroken,
@@ -212,17 +216,10 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                 />
             );
         }
-        const activityReasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'BankConnection',
-            isPlaid,
-            isAllFeedsResultLoading,
-            isBlockedToAddNewFeedsWithoutFeed: isBlockedToAddNewFeeds && !feed,
-        };
         return (
             <ActivityIndicator
                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                 style={styles.flex1}
-                reasonAttributes={activityReasonAttributes}
             />
         );
     };

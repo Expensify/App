@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -19,7 +19,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {setConnectionError} from '@userActions/connections';
 import {getQuickbooksDesktopCodatSetupLink} from '@userActions/connections/QuickbooksDesktop';
@@ -81,9 +80,8 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
 
     const shouldShowError = hasError;
 
-    const activityReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'RequireQuickBooksDesktopModal',
-        hasResultOfFetchingSetupLink,
+    const navigateToFirstSync = () => {
+        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRIGGER_FIRST_SYNC.getRoute(policyID));
     };
 
     const children = (
@@ -111,7 +109,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                     <Text style={[styles.textSupporting, styles.textNormal, styles.pt4]}>{translate('workspace.qbd.setupPage.body')}</Text>
                     <View style={[styles.qbdSetupLinkBox, styles.mt5]}>
                         {!hasResultOfFetchingSetupLink ? (
-                            <ActivityIndicator reasonAttributes={activityReasonAttributes} />
+                            <ActivityIndicator />
                         ) : (
                             <CopyTextToClipboard
                                 text={codatSetupLink}
@@ -124,12 +122,13 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                         addBottomSafeAreaPadding
                     >
                         <Button
-                            success
-                            text={translate('common.done')}
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRIGGER_FIRST_SYNC.getRoute(policyID))}
-                            pressOnEnter
-                            large
-                        />
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            onPress={navigateToFirstSync}
+                            size={CONST.BUTTON_SIZE.LARGE}
+                        >
+                            <Button.KeyboardShortcut />
+                            <Button.Text>{translate('common.done')}</Button.Text>
+                        </Button>
                     </FixedFooter>
                 </View>
             )}

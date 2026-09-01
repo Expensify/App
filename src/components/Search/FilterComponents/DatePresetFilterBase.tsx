@@ -97,6 +97,9 @@ type DatePresetFilterBaseProps = {
     /** The date presets */
     presets?: SearchDatePreset[];
 
+    /** Whether to show the "Custom date" (On/After/Before) option. Defaults to true. */
+    shouldShowCustomDate?: boolean;
+
     /** Whether the search advanced filters form Onyx data is loading or not */
     isSearchAdvancedFiltersFormLoading?: boolean;
 
@@ -125,6 +128,7 @@ function DatePresetFilterBase({
     selectedDateModifier,
     onSelectDateModifier,
     presets,
+    shouldShowCustomDate = true,
     isSearchAdvancedFiltersFormLoading,
     onDateValuesChange,
     onRangeValidationErrorChange,
@@ -134,20 +138,23 @@ function DatePresetFilterBase({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
 
     const shouldShowHorizontalRule = !!presets?.length;
     const customDateTitle = translate('search.filters.date.customDate');
     const customRangeTitle = translate('search.filters.date.customRange');
     const normalizedDefaultDateValues = useMemo(() => normalizeDateValues(defaultDateValues), [defaultDateValues]);
 
-    const getRangeDisplayTextFromDateValues = useCallback((dateValues: SearchDateValues) => {
-        const rangeValue = dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE];
-        if (!rangeValue) {
-            return '';
-        }
-        return getDateRangeDisplayValueFromFormValue(rangeValue, dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER], dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
-    }, []);
+    const getRangeDisplayTextFromDateValues = useCallback(
+        (dateValues: SearchDateValues) => {
+            const rangeValue = dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE];
+            if (!rangeValue) {
+                return '';
+            }
+            return getDateRangeDisplayValueFromFormValue(dateFnsLocale, rangeValue, dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER], dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
+        },
+        [dateFnsLocale],
+    );
 
     const getRangeEphemeralValuesFromDateValues = useCallback((dateValues: SearchDateValues) => {
         const rangeBoundaries = getRangeBoundariesFromFormValue(dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE]);
@@ -430,13 +437,15 @@ function DatePresetFilterBase({
                         style={[StyleUtils.getBorderColorStyle(theme.border), styles.mh3]}
                     />
                 )}
-                <MenuItem
-                    shouldShowRightIcon
-                    viewMode={CONST.OPTION_MODE.COMPACT}
-                    title={customDateTitle}
-                    description={customDateDescription}
-                    onPress={selectCustomDateMode}
-                />
+                {shouldShowCustomDate && (
+                    <MenuItem
+                        shouldShowRightIcon
+                        viewMode={CONST.OPTION_MODE.COMPACT}
+                        title={customDateTitle}
+                        description={customDateDescription}
+                        onPress={selectCustomDateMode}
+                    />
+                )}
                 <MenuItem
                     shouldShowRightIcon
                     viewMode={CONST.OPTION_MODE.COMPACT}

@@ -26,7 +26,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import variables from '@styles/variables';
 
@@ -308,10 +307,6 @@ function BaseTextInput({
     const resolvedAccessibilityLabel = inputProps.accessibilityLabel ?? accessibilityLabel;
     const {accessibilityValue, accessibilityLabelledBy, hiddenLabel} = useTextInputAccessibility(value, resolvedAccessibilityLabel);
     const isKeyboardType = props.keyboardType ? undefined : props.inputMode;
-    const loadingSpinnerReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'BaseTextInput.isLoading',
-        isLoading: !!inputProps.isLoading,
-    };
 
     return (
         <>
@@ -474,7 +469,6 @@ function BaseTextInput({
                                 <ActivityIndicator
                                     color={theme.iconSuccessFill}
                                     style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), styles.ml1, loadingSpinnerStyle]}
-                                    reasonAttributes={loadingSpinnerReasonAttributes}
                                 />
                             )}
                             {/* Render rightHandSideComponent only when clear button is not shown

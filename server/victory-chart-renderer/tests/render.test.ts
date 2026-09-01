@@ -1,4 +1,5 @@
 import {afterAll, beforeAll, describe, expect, test} from 'bun:test';
+
 import {spawnSync} from 'node:child_process';
 import {chmodSync, copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
@@ -42,7 +43,7 @@ describe('victory-chart-renderer CLI', () => {
 
     describe('golden PNG renders', () => {
         test('fixture suite includes all expected charts', () => {
-            expect(FIXTURE_NAMES.length).toBe(6);
+            expect(FIXTURE_NAMES.length).toBe(8);
         });
 
         for (const fixtureName of FIXTURE_NAMES) {

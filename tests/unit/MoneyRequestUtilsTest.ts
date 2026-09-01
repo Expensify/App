@@ -1,10 +1,22 @@
 import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
-import {handleNegativeAmountFlipping, isValidMerchant, isValidMoneyRequestAmount, validateAmount, validatePercentage} from '@libs/MoneyRequestUtils';
+import {
+    getAmountHasUnsavedChanges,
+    getStringFieldHasUnsavedChanges,
+    getWaypointsHasUnsavedChanges,
+    handleNegativeAmountFlipping,
+    isValidMerchant,
+    isValidMoneyRequestAmount,
+    validateAmount,
+    validatePercentage,
+} from '@libs/MoneyRequestUtils';
 
 import CONST from '@src/CONST';
 import type Report from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
-import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
+import type {TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
+
+import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 
 describe('ReportActionsUtils', () => {
     describe('validateAmount', () => {
@@ -196,7 +208,8 @@ describe('ReportActionsUtils', () => {
         describe('invalid inputs', () => {
             it('should return false for nullish and NaN values', () => {
                 expect(isValidMoneyRequestAmount(undefined, CONST.IOU.TYPE.SUBMIT)).toBe(false);
-                expect(isValidMoneyRequestAmount(null as unknown as number, CONST.IOU.TYPE.SUBMIT)).toBe(false);
+                // @ts-expect-error -- Deliberately verifies the defensive runtime behavior for null input.
+                expect(isValidMoneyRequestAmount(null, CONST.IOU.TYPE.SUBMIT)).toBe(false);
                 expect(isValidMoneyRequestAmount(NaN, CONST.IOU.TYPE.SUBMIT)).toBe(false);
             });
         });
@@ -263,15 +276,15 @@ describe('ReportActionsUtils', () => {
             type: CONST.REPORT.TYPE.EXPENSE,
         } as Report;
 
-        const unreportedTransaction = {
+        const unreportedTransaction = createMock<Transaction>({
             reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             amount: 0,
-        } as Transaction;
+        });
 
-        const reportedTransaction = {
+        const reportedTransaction = createMock<Transaction>({
             reportID: '123',
             amount: 0,
-        } as Transaction;
+        });
 
         describe('empty merchants', () => {
             it('should return true for empty/undefined merchant when transaction is unreported or IOU', () => {
@@ -284,12 +297,15 @@ describe('ReportActionsUtils', () => {
                 expect(isValidMerchant(undefined, reportedTransaction, iouReport)).toBe(true);
             });
 
-            it('should return false for empty/undefined merchant when transaction is reported or missing', () => {
-                expect(isValidMerchant('', reportedTransaction)).toBe(false);
+            it('should return true for empty/undefined merchant when the report is missing, matching the normal edit flow', () => {
+                expect(isValidMerchant('', reportedTransaction)).toBe(true);
+                expect(isValidMerchant('')).toBe(true);
+            });
+
+            it('should return false for empty/undefined merchant on an expense report', () => {
                 expect(isValidMerchant('', reportedTransaction, expenseReport)).toBe(false);
                 expect(isValidMerchant('   ', reportedTransaction, expenseReport)).toBe(false);
                 expect(isValidMerchant(undefined, reportedTransaction, expenseReport)).toBe(false);
-                expect(isValidMerchant('')).toBe(false);
             });
         });
 
@@ -311,6 +327,175 @@ describe('ReportActionsUtils', () => {
 
         it('should trim whitespace before validation', () => {
             expect(isValidMerchant('  Valid Merchant  ')).toBe(true);
+        });
+    });
+});
+
+describe('getAmountHasUnsavedChanges', () => {
+    const sameCurrency = {selectedCurrency: 'USD', originalCurrency: 'USD'};
+
+    describe('create entry (any input counts)', () => {
+        it('flags a typed value', () => {
+            expect(
+                getAmountHasUnsavedChanges({
+                    ...sameCurrency,
+                    typedAmount: '1',
+                    committedAmount: 100,
+                    isCreateEntry: true,
+                }),
+            ).toBe(true);
+        });
+
+        it('flags an explicit "0" even though it normalizes to the empty backend value', () => {
+            expect(
+                getAmountHasUnsavedChanges({
+                    ...sameCurrency,
+                    typedAmount: '0',
+                    committedAmount: 100,
+                    isCreateEntry: true,
+                }),
+            ).toBe(true);
+        });
+
+        it('does not flag an empty field', () => {
+            expect(
+                getAmountHasUnsavedChanges({
+                    ...sameCurrency,
+                    typedAmount: '',
+                    committedAmount: 0,
+                    isCreateEntry: true,
+                }),
+            ).toBe(false);
+        });
+
+        it('flags a cleared field when the draft already holds an amount (revisited after Next)', () => {
+            expect(
+                getAmountHasUnsavedChanges({
+                    ...sameCurrency,
+                    typedAmount: '',
+                    committedAmount: 100,
+                    isCreateEntry: true,
+                }),
+            ).toBe(true);
+        });
+
+        it('flags a currency change even with no amount entered', () => {
+            expect(
+                getAmountHasUnsavedChanges({
+                    typedAmount: '',
+                    committedAmount: 0,
+                    isCreateEntry: true,
+                    selectedCurrency: 'EUR',
+                    originalCurrency: 'USD',
+                }),
+            ).toBe(true);
+        });
+    });
+
+    describe('editing (only a real change counts)', () => {
+        it('does not flag formatting-only differences like "5" vs "5.00"', () => {
+            expect(
+                getAmountHasUnsavedChanges({
+                    ...sameCurrency,
+                    typedAmount: '5',
+                    committedAmount: 500,
+                    isCreateEntry: false,
+                }),
+            ).toBe(false);
+            expect(
+                getAmountHasUnsavedChanges({
+                    ...sameCurrency,
+                    typedAmount: '5.00',
+                    committedAmount: 500,
+                    isCreateEntry: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('flags a real numeric change', () => {
+            expect(
+                getAmountHasUnsavedChanges({
+                    ...sameCurrency,
+                    typedAmount: '6',
+                    committedAmount: 500,
+                    isCreateEntry: false,
+                }),
+            ).toBe(true);
+        });
+
+        it('flags a currency change even when the amount is unchanged', () => {
+            expect(
+                getAmountHasUnsavedChanges({
+                    typedAmount: '5',
+                    committedAmount: 500,
+                    isCreateEntry: false,
+                    selectedCurrency: 'EUR',
+                    originalCurrency: 'USD',
+                }),
+            ).toBe(true);
+        });
+    });
+});
+
+describe('getStringFieldHasUnsavedChanges (hours, manual distance)', () => {
+    describe('create entry (any input counts)', () => {
+        it('flags any typed value, including "0"', () => {
+            expect(getStringFieldHasUnsavedChanges('2', '', true)).toBe(true);
+            expect(getStringFieldHasUnsavedChanges('0', '', true)).toBe(true);
+        });
+
+        it('does not flag an empty field', () => {
+            expect(getStringFieldHasUnsavedChanges('', '', true)).toBe(false);
+        });
+
+        it('flags a cleared field when the draft already holds a value (revisited after Next)', () => {
+            expect(getStringFieldHasUnsavedChanges('', '5', true)).toBe(true);
+        });
+    });
+
+    describe('editing (only a change counts)', () => {
+        it('flags only a change from the committed value', () => {
+            expect(getStringFieldHasUnsavedChanges('2', '2', false)).toBe(false);
+            expect(getStringFieldHasUnsavedChanges('3', '2', false)).toBe(true);
+        });
+    });
+});
+
+describe('getWaypointsHasUnsavedChanges (distance map)', () => {
+    const waypointsA: WaypointCollection = {
+        waypoint0: {address: 'Q Mall, Doha', lat: 25.3272762, lng: 51.4659325},
+        waypoint1: {address: 'Qatar', lat: 25.354826, lng: 51.183884},
+    };
+    const waypointsB: WaypointCollection = {
+        waypoint0: {address: 'Q Mall, Doha', lat: 25.3272762, lng: 51.4659325},
+        waypoint1: {address: 'West Bay, Doha', lat: 25.2510416, lng: 51.4699357},
+    };
+
+    describe('create entry (any entered waypoint counts)', () => {
+        it('flags a draft that has valid waypoints', () => {
+            const transaction = createRandomTransaction(0);
+            transaction.modifiedWaypoints = undefined;
+            transaction.comment = {...transaction.comment, waypoints: waypointsA};
+            expect(getWaypointsHasUnsavedChanges(transaction, undefined, waypointsA, true)).toBe(true);
+        });
+
+        it('does not flag an empty draft', () => {
+            expect(getWaypointsHasUnsavedChanges(undefined, undefined, undefined, true)).toBe(false);
+        });
+    });
+
+    // The edit branch ignores the transaction and compares the committed vs current waypoints directly.
+    describe('editing (only a waypoint change counts)', () => {
+        it('flags when a waypoint address changed from the committed one', () => {
+            expect(getWaypointsHasUnsavedChanges(undefined, waypointsA, waypointsB, false)).toBe(true);
+        });
+
+        it('does not flag when the waypoints are unchanged', () => {
+            expect(getWaypointsHasUnsavedChanges(undefined, waypointsA, waypointsA, false)).toBe(false);
+        });
+
+        it('does not flag when the committed baseline is missing', () => {
+            expect(getWaypointsHasUnsavedChanges(undefined, undefined, waypointsA, false)).toBe(false);
         });
     });
 });

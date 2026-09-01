@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -71,14 +71,9 @@ function DebugReportPage({
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isOffline} = useNetwork();
-    const reportAttributesSelector = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => attributes?.reports?.[reportID], [reportID]);
-    const [reportAttributes] = useOnyx(
-        ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
-        {
-            selector: reportAttributesSelector,
-        },
-        [reportAttributesSelector],
-    );
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: (attributes: OnyxEntry<ReportAttributesDerivedValue>) => attributes?.reports?.[reportID],
+    });
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -88,8 +83,7 @@ function DebugReportPage({
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID, login: currentUserLogin} = currentUserPersonalDetail;
     const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
-    const reportOwnerSelector = useMemo(() => personalDetailsSelector(report?.ownerAccountID), [report?.ownerAccountID]);
-    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
+    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
 
@@ -112,6 +106,7 @@ function DebugReportPage({
                 hasViolations,
                 reportAttributes?.reportErrors ?? {},
                 isOffline,
+                currentUserAccountID,
                 isReportArchived,
             ) ?? {};
         const hasRBR = !!reasonRBR;
@@ -230,27 +225,28 @@ function DebugReportPage({
                             </View>
                             {!!message && <Text style={styles.textSupporting}>{message}</Text>}
                             {!!action && (
-                                <Button
-                                    text={action.name}
-                                    onPress={action.callback}
-                                />
+                                <Button onPress={action.callback}>
+                                    <Button.Text>{action.name}</Button.Text>
+                                </Button>
                             )}
                         </View>
                     ))}
                     <Button
-                        text={translate('debug.viewReport')}
                         onPress={() => {
                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
                         }}
-                        icon={icons.Eye}
-                    />
+                    >
+                        <Button.Icon src={icons.Eye} />
+                        <Button.Text>{translate('debug.viewReport')}</Button.Text>
+                    </Button>
                     {!!transactionID && (
                         <Button
-                            text={translate('debug.viewTransaction')}
                             onPress={() => {
                                 Navigation.navigate(ROUTES.DEBUG_TRANSACTION.getRoute(transactionID));
                             }}
-                        />
+                        >
+                            <Button.Text>{translate('debug.viewTransaction')}</Button.Text>
+                        </Button>
                     )}
                 </View>
             </DebugDetails>

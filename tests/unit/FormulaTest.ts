@@ -1,5 +1,5 @@
 import type {FormulaContext} from '@libs/Formula';
-import {compute, hasCircularReferences, parse, resolveReportFieldValue} from '@libs/Formula';
+import {compute, computeWithMetadata, hasCircularReferences, parse, resolveReportFieldValue} from '@libs/Formula';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 
@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import type {PersonalDetails, Policy, PolicyReportField, Report, ReportActions, Transaction} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
+import {getCurrencyDecimalsLocal} from '../utils/TestHelper';
 
 jest.mock('@libs/ReportActionsUtils', () => ({
     getAllReportActions: jest.fn(),
@@ -17,8 +18,12 @@ jest.mock('@libs/ReportUtils', () => ({
     getReportTransactions: jest.fn(),
 }));
 
-const mockReportActionsUtils = ReportActionsUtils as jest.Mocked<typeof ReportActionsUtils>;
-const mockReportUtils = ReportUtils as jest.Mocked<typeof ReportUtils>;
+jest.mock('@libs/CurrentUserStore', () => ({
+    getCurrentUserEmail: jest.fn(() => 'jane@example.com'),
+}));
+
+const mockReportActionsUtils = jest.mocked(ReportActionsUtils);
+const mockReportUtils = jest.mocked(ReportUtils);
 
 describe('CustomFormula', () => {
     describe('parse()', () => {
@@ -72,6 +77,7 @@ describe('CustomFormula', () => {
 
     describe('compute()', () => {
         const mockContext: FormulaContext = {
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             report: createMock<Report>({
                 reportID: '123',
                 reportName: '',
@@ -257,8 +263,9 @@ describe('CustomFormula', () => {
 
         test('should handle missing report data gracefully', () => {
             const contextWithMissingData: FormulaContext = {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: createMock<Report>({}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
             const result = compute('{report:total} {report:policyname}', contextWithMissingData);
             expect(result).toBe('{report:total} {report:policyname}'); // Empty data is replaced with definition
@@ -367,6 +374,7 @@ describe('CustomFormula', () => {
 
     describe('Reimbursable Amount', () => {
         const reimbursableContext: FormulaContext = {
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             report: {
                 reportID: '123',
                 reportName: '',
@@ -439,6 +447,7 @@ describe('CustomFormula', () => {
 
         describe('Currency Formatting & Conversion', () => {
             const currencyContext: FormulaContext = {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: createMock<Report>({
                     reportID: '123',
                     total: -10000,
@@ -530,6 +539,7 @@ describe('CustomFormula', () => {
 
     describe('Function Modifiers', () => {
         const mockContext: FormulaContext = {
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             report: createMock<Report>({
                 reportID: 'report123456789',
                 reportName: '',
@@ -556,6 +566,7 @@ describe('CustomFormula', () => {
 
             test('should handle empty strings', () => {
                 const contextWithEmpty: FormulaContext = {
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({}),
                     policy: createMock<Policy>({name: ''}),
                 };
@@ -579,6 +590,7 @@ describe('CustomFormula', () => {
 
             test('should handle empty strings', () => {
                 const contextWithEmpty: FormulaContext = {
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({}),
                     policy: createMock<Policy>({name: ''}),
                 };
@@ -617,7 +629,7 @@ describe('CustomFormula', () => {
 
     describe('Auto-reporting Frequency', () => {
         const mockReport = createMock<Report>({reportID: '123'});
-        const createMockContext = (policy: Policy): FormulaContext => ({report: mockReport, policy});
+        const createMockContext = (policy: Policy): FormulaContext => ({getCurrencyDecimals: getCurrencyDecimalsLocal, report: mockReport, policy});
 
         beforeEach(() => {
             jest.clearAllMocks();
@@ -684,7 +696,144 @@ describe('CustomFormula', () => {
             const context = createMockContext(policy);
 
             expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
+        });
+
+        test('should use context.transaction for trip end date when adding a new expense to existing report', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([
+                createMock<Transaction>({transactionID: 'existing1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000}),
+            ]);
+
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const context: FormulaContext = {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                report: mockReport,
+                policy,
+                transaction: createMock<Transaction>({transactionID: 'optimistic1', reportID: '123', created: '2025-01-14T16:00:00Z', merchant: 'Restaurant', amount: 3000}),
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
+        });
+
+        test('should use allTransactions for trip dates when Onyx is empty (new report optimistic flow)', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const context: FormulaContext = {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    trans1: createMock<Transaction>({transactionID: 'trans1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000}),
+                },
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-08');
+        });
+
+        test('should use allTransactions to merge Onyx + optimistic transaction for trip date range', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([
+                createMock<Transaction>({transactionID: 'existing1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000}),
+            ]);
+
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const context: FormulaContext = {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    existing1: createMock<Transaction>({transactionID: 'existing1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000}),
+                    optimistic1: createMock<Transaction>({transactionID: 'optimistic1', reportID: '123', created: '2025-01-14T16:00:00Z', merchant: 'Restaurant', amount: 3000}),
+                },
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
+        });
+
+        test('should fall back to current date for trip frequency when no transactions', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const context = createMockContext(policy);
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-19');
             expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-19');
+        });
+
+        test('should prefer context.transaction over context.allTransactions when transactionIDs match', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const context: FormulaContext = {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    sharedTxn: createMock<Transaction>({transactionID: 'sharedTxn', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Stale', amount: 1000}),
+                },
+                transaction: createMock<Transaction>({transactionID: 'sharedTxn', reportID: '123', created: '2025-01-14T16:00:00Z', merchant: 'Fresh', amount: 2000}),
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-14');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
+        });
+
+        test('should include context.allTransactions whose reportID does not yet match (moved-transaction flows)', () => {
+            // Reject/Hold pass source transactions before their reportID is rewritten to the new report.
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const context: FormulaContext = {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    movedTxn: createMock<Transaction>({transactionID: 'movedTxn', reportID: '999-source', created: '2025-01-05T12:00:00Z', merchant: 'Rejected Hotel', amount: 5000}),
+                },
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-05');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-05');
+        });
+
+        test('should let context.allTransactions override existing Onyx transactions with the same transactionID', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([
+                createMock<Transaction>({transactionID: 'shared1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Old Hotel', amount: 5000}),
+            ]);
+
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const context: FormulaContext = {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    shared1: createMock<Transaction>({transactionID: 'shared1', reportID: '123', created: '2025-01-12T12:00:00Z', merchant: 'Updated Hotel', amount: 7000}),
+                },
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-12');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-12');
+        });
+
+        test('should pass context through to startdate/enddate via allTransactions', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const context: FormulaContext = {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    trans1: createMock<Transaction>({transactionID: 'trans1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000}),
+                    trans2: createMock<Transaction>({transactionID: 'trans2', reportID: '123', created: '2025-01-14T16:00:00Z', merchant: 'Restaurant', amount: 3000}),
+                },
+            };
+
+            expect(compute('{report:startdate}', context)).toBe('2025-01-08');
+            expect(compute('{report:enddate}', context)).toBe('2025-01-14');
         });
 
         test('should apply custom date formats', () => {
@@ -696,8 +845,82 @@ describe('CustomFormula', () => {
         });
 
         test('should return formula definition when policy or frequency is missing', () => {
-            expect(compute('{report:autoreporting:start}', {report: mockReport, policy: undefined})).toBe('{report:autoreporting:start}');
+            expect(compute('{report:autoreporting:start}', {getCurrencyDecimals: getCurrencyDecimalsLocal, report: mockReport, policy: undefined})).toBe('{report:autoreporting:start}');
             expect(compute('{report:autoreporting:end}', createMockContext(createMock<Policy>({})))).toBe('{report:autoreporting:end}');
+        });
+    });
+
+    describe('computeWithMetadata()', () => {
+        const mockCtx: FormulaContext = {getCurrencyDecimals: getCurrencyDecimalsLocal, report: createMock<Report>({reportID: '1'}), policy: undefined};
+
+        test('flags REPORT parts that fall back to their raw definition as unresolved', () => {
+            const result = computeWithMetadata('{report:autoreporting:end}', mockCtx);
+            expect(result.hasUnresolvedTokens).toBe(true);
+            expect(result.value).toBe('{report:autoreporting:end}');
+        });
+
+        test('leaves hasUnresolvedTokens false when every part resolves', () => {
+            const result = computeWithMetadata('Trip {user:email}', mockCtx);
+            expect(result.hasUnresolvedTokens).toBe(false);
+            expect(result.value).toBe('Trip jane@example.com');
+        });
+    });
+
+    describe('ReportUtils.computeOptimisticReportName()', () => {
+        const titleField = {
+            fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+            name: 'Title',
+            type: CONST.REPORT_FIELD_TYPES.FORMULA,
+            defaultValue: 'Total: {report:total:EUR}',
+            deletable: false,
+            target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+            values: [],
+            keys: [],
+            externalIDs: [],
+            disabledOptions: [],
+            orderWeight: 1,
+            isTax: false,
+        };
+        const groupPolicy = createMock<Policy>({
+            id: 'p-1',
+            type: CONST.POLICY.TYPE.TEAM,
+            fieldList: {[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: titleField},
+        });
+        const usdReport = createMock<Report>({reportID: 'r-1', policyID: 'p-1', total: -10000, currency: CONST.CURRENCY.USD});
+
+        test('returns null when the formula leaves any tokenized part unresolved', () => {
+            // `{report:total:EUR}` on a USD report with no conversion falls back to the raw token → wrapper must return null.
+            expect(ReportUtils.computeOptimisticReportName(usdReport, groupPolicy, 'p-1', {}, getCurrencyDecimalsLocal)).toBeNull();
+        });
+
+        test('resolves TRIP autoreporting formula to today on empty-report create (Option B fallback, buildOptimisticEmptyReport path)', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+            const tripField = {...titleField, defaultValue: 'Trip from {report:autoreporting:start:MMM dd} to {report:autoreporting:end:MMM dd, yyyy}'};
+            const tripPolicy = createMock<Policy>({
+                id: 'p-1',
+                type: CONST.POLICY.TYPE.TEAM,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+                fieldList: {[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: tripField},
+            });
+            const result = ReportUtils.computeOptimisticReportName(usdReport, tripPolicy, 'p-1', {}, getCurrencyDecimalsLocal);
+            expect(result).not.toBeNull();
+            expect(result).toMatch(/^Trip from \w{3} \d{2} to \w{3} \d{2}, \d{4}$/);
+        });
+    });
+
+    describe('User formula parts', () => {
+        const mockUserContext: FormulaContext = {getCurrencyDecimals: getCurrencyDecimalsLocal, report: createMock<Report>({reportID: '1'}), policy: undefined};
+
+        test('should resolve {user:email} to the current user email', () => {
+            expect(compute('{user:email}', mockUserContext)).toBe('jane@example.com');
+        });
+
+        test('should apply the frontPart modifier to the resolved email', () => {
+            expect(compute('{user:email|frontPart}', mockUserContext)).toBe('jane');
+        });
+
+        test('should leave unsupported user fields as the raw token', () => {
+            expect(compute('{user:phone}', mockUserContext)).toBe('{user:phone}');
         });
     });
 
@@ -709,8 +932,9 @@ describe('CustomFormula', () => {
 
         test('should handle undefined amounts', () => {
             const context: FormulaContext = {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: createMock<Report>({total: undefined}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
             const result = compute('{report:total}', context);
             expect(result).toBe('{report:total}');
@@ -719,8 +943,9 @@ describe('CustomFormula', () => {
         test('should handle missing report actions for created', () => {
             mockReportActionsUtils.getAllReportActions.mockReturnValue({});
             const context: FormulaContext = {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: createMock<Report>({reportID: '123'}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
 
             const result = compute('{report:created}', context);
@@ -730,8 +955,9 @@ describe('CustomFormula', () => {
         test('should handle missing transactions for startdate', () => {
             mockReportUtils.getReportTransactions.mockReturnValue([]);
             const context: FormulaContext = {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: createMock<Report>({reportID: '123'}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
             const today = new Date();
             const expected = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -742,8 +968,9 @@ describe('CustomFormula', () => {
         test('should handle missing transactions for enddate', () => {
             mockReportUtils.getReportTransactions.mockReturnValue([]);
             const context: FormulaContext = {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: createMock<Report>({reportID: '123'}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
             const today = new Date();
             const expected = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -753,8 +980,9 @@ describe('CustomFormula', () => {
 
         test('should call getReportTransactions with correct reportID for startdate', () => {
             const context: FormulaContext = {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: createMock<Report>({reportID: 'test-report-123'}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
 
             compute('{report:startdate}', context);
@@ -763,8 +991,9 @@ describe('CustomFormula', () => {
 
         test('should call getAllReportActions with correct reportID for created', () => {
             const context: FormulaContext = {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: createMock<Report>({reportID: 'test-report-456'}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
 
             compute('{report:created}', context);
@@ -795,8 +1024,9 @@ describe('CustomFormula', () => {
 
             mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
             const context: FormulaContext = {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: createMock<Report>({reportID: 'test-report-123'}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
 
             const result = compute('{report:startdate}', context);
@@ -804,6 +1034,32 @@ describe('CustomFormula', () => {
 
             const endResult = compute('{report:enddate}', context);
             expect(endResult).toBe('2025-01-15');
+        });
+
+        test('should fall back to current date when all transactions are partial (scan expense)', () => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2025-01-19T12:00:00Z'));
+
+            const mockTransactions = createMock<Transaction[]>([
+                {
+                    transactionID: 'scan1',
+                    created: '2025-01-15T12:00:00Z',
+                    amount: 0,
+                    merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                },
+            ]);
+
+            mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
+            const context: FormulaContext = {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                report: createMock<Report>({reportID: 'test-report-123'}),
+                policy: undefined,
+            };
+
+            expect(compute('{report:startdate}', context)).toBe('2025-01-19');
+            expect(compute('{report:enddate}', context)).toBe('2025-01-19');
+
+            jest.useRealTimers();
         });
 
         test('should skip partial transactions (partial merchant)', () => {
@@ -831,8 +1087,9 @@ describe('CustomFormula', () => {
 
             mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
             const context: FormulaContext = {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: createMock<Report>({reportID: 'test-report-123'}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
 
             const result = compute('{report:startdate}', context);
@@ -849,8 +1106,9 @@ describe('CustomFormula', () => {
         const morningDate = '2025-01-08T09:05:02.123Z'; // 9:05:02 AM for leading zero tests
 
         const mockContextWithDate: FormulaContext = {
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             report: createMock<Report>({reportID: '123'}),
-            policy: null as unknown as Policy,
+            policy: undefined,
         };
 
         const setupMockDate = (date: string) => {
@@ -1019,6 +1277,7 @@ describe('CustomFormula', () => {
         };
 
         const mockContextWithSubmissionInfo: FormulaContext = {
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             report: createMock<Report>({
                 reportID: '123',
                 reportName: '',
@@ -1107,8 +1366,9 @@ describe('CustomFormula', () => {
 
             test('name fields fall back to email when name missing', () => {
                 const contextWithPartialDetails: FormulaContext = {
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 111,
                         login: 'fallback@email.com',
@@ -1122,6 +1382,7 @@ describe('CustomFormula', () => {
 
             test('customfield1 - return empty when employeeList missing', () => {
                 const contextWithoutEmployeeList: FormulaContext = {
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({reportID: '123'}),
                     policy: createMock<Policy>({
                         name: 'Test Policy',
@@ -1134,6 +1395,7 @@ describe('CustomFormula', () => {
 
             test('customfield2 - return empty when employeeList missing', () => {
                 const contextWithoutEmployeeList: FormulaContext = {
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({reportID: '123'}),
                     policy: createMock<Policy>({
                         name: 'Test Policy',
@@ -1146,6 +1408,7 @@ describe('CustomFormula', () => {
 
             test('customfield1 - return empty when user not in employeeList', () => {
                 const contextWithDifferentEmployee: FormulaContext = {
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({reportID: '123'}),
                     policy: createMock<Policy>({
                         name: 'Test Policy',
@@ -1166,6 +1429,7 @@ describe('CustomFormula', () => {
 
             test('customfield1/customfield2 - return empty when glCodes disabled', () => {
                 const contextWithGlCodesDisabled: FormulaContext = {
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({reportID: '123'}),
                     policy: createMock<Policy>({
                         name: 'Test Policy',
@@ -1222,8 +1486,9 @@ describe('CustomFormula', () => {
 
             test('firstname - fall back to email when manager name missing', () => {
                 const contextWithPartialManagerDetails: FormulaContext = {
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     managerPersonalDetails: createMock<PersonalDetails>({
                         accountID: 222,
                         login: 'manager@email.com',
@@ -1235,8 +1500,9 @@ describe('CustomFormula', () => {
 
             test('fullname - fall back to email when manager displayName missing', () => {
                 const contextWithPartialManagerDetails: FormulaContext = {
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     managerPersonalDetails: createMock<PersonalDetails>({
                         accountID: 222,
                         login: 'manager@email.com',
@@ -1303,8 +1569,9 @@ describe('CustomFormula', () => {
         describe('Edge cases', () => {
             test('empty email - return empty when email empty', () => {
                 const contextWithEmptyEmail: FormulaContext = {
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         login: '',
@@ -1316,8 +1583,9 @@ describe('CustomFormula', () => {
 
             test('empty email with name - return empty when name also empty', () => {
                 const contextWithEmptyEmail: FormulaContext = {
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         login: '',
@@ -1329,8 +1597,9 @@ describe('CustomFormula', () => {
 
             test('empty firstname - fallback to email when firstname is empty string', () => {
                 const contextWithEmptyFirstName: FormulaContext = {
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         firstName: '',
@@ -1343,8 +1612,9 @@ describe('CustomFormula', () => {
 
             test('empty lastname - fallback to email when lastname is empty string', () => {
                 const contextWithEmptyLastName: FormulaContext = {
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         lastName: '',
@@ -1357,8 +1627,9 @@ describe('CustomFormula', () => {
 
             test('empty displayName - fallback to email when displayName is empty string', () => {
                 const contextWithEmptyDisplayName: FormulaContext = {
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         displayName: '',
@@ -1371,8 +1642,9 @@ describe('CustomFormula', () => {
 
             test('empty email with frontpart - return empty for empty email modifier', () => {
                 const contextWithEmptyEmail: FormulaContext = {
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         login: '',
@@ -1444,7 +1716,7 @@ describe('CustomFormula', () => {
             };
             const fieldValues = {b: 'value_from_b'};
 
-            const result = compute('{field:B}', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues});
+            const result = compute('{field:B}', {getCurrencyDecimals: getCurrencyDecimalsLocal, report: mockReport, policy: mockPolicy, fieldsByName, fieldValues});
             expect(result).toBe('value_from_b');
         });
 
@@ -1466,7 +1738,7 @@ describe('CustomFormula', () => {
             const fieldValues = {a: 'stale_value', b: 'current_value_b'};
 
             // When computing {field:A}, it should recursively resolve {field:B} from A's defaultValue
-            const result = compute('{field:A}', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues});
+            const result = compute('{field:A}', {getCurrencyDecimals: getCurrencyDecimalsLocal, report: mockReport, policy: mockPolicy, fieldsByName, fieldValues});
             expect(result).toBe('current_value_b');
         });
 
@@ -1494,7 +1766,7 @@ describe('CustomFormula', () => {
             const fieldValues = {a: 'stale_a', b: 'fresh_value_b', c: 'stale_c'};
 
             // C references A, A references B - should get B's current value
-            const result = compute('{field:C}', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues});
+            const result = compute('{field:C}', {getCurrencyDecimals: getCurrencyDecimalsLocal, report: mockReport, policy: mockPolicy, fieldsByName, fieldValues});
             expect(result).toBe('fresh_value_b');
         });
 
@@ -1509,7 +1781,7 @@ describe('CustomFormula', () => {
             };
             const fieldValues = {name: 'John'};
 
-            const result = compute('Hello {field:Name}!', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues});
+            const result = compute('Hello {field:Name}!', {getCurrencyDecimals: getCurrencyDecimalsLocal, report: mockReport, policy: mockPolicy, fieldsByName, fieldValues});
             expect(result).toBe('Hello John!');
         });
 
@@ -1530,7 +1802,7 @@ describe('CustomFormula', () => {
             };
             const fieldValues = {first: 'Hello', second: 'World'};
 
-            const result = compute('{field:First} {field:Second}', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues});
+            const result = compute('{field:First} {field:Second}', {getCurrencyDecimals: getCurrencyDecimalsLocal, report: mockReport, policy: mockPolicy, fieldsByName, fieldValues});
             expect(result).toBe('Hello World');
         });
 
@@ -1538,7 +1810,7 @@ describe('CustomFormula', () => {
             const fieldsByName = {};
             const fieldValues = {};
 
-            const result = compute('{field:Unknown}', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues});
+            const result = compute('{field:Unknown}', {getCurrencyDecimals: getCurrencyDecimalsLocal, report: mockReport, policy: mockPolicy, fieldsByName, fieldValues});
             expect(result).toBe('{field:Unknown}');
         });
 
@@ -1553,7 +1825,7 @@ describe('CustomFormula', () => {
             };
             const fieldValues = {simple: 'current_value'};
 
-            const result = compute('{field:Simple}', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues});
+            const result = compute('{field:Simple}', {getCurrencyDecimals: getCurrencyDecimalsLocal, report: mockReport, policy: mockPolicy, fieldsByName, fieldValues});
             expect(result).toBe('current_value');
         });
 
@@ -1568,9 +1840,9 @@ describe('CustomFormula', () => {
             };
             const fieldValues = {myfield: 'test_value'};
 
-            expect(compute('{field:MyField}', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues})).toBe('test_value');
-            expect(compute('{field:MYFIELD}', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues})).toBe('test_value');
-            expect(compute('{field:myfield}', {report: mockReport, policy: mockPolicy, fieldsByName, fieldValues})).toBe('test_value');
+            expect(compute('{field:MyField}', {getCurrencyDecimals: getCurrencyDecimalsLocal, report: mockReport, policy: mockPolicy, fieldsByName, fieldValues})).toBe('test_value');
+            expect(compute('{field:MYFIELD}', {getCurrencyDecimals: getCurrencyDecimalsLocal, report: mockReport, policy: mockPolicy, fieldsByName, fieldValues})).toBe('test_value');
+            expect(compute('{field:myfield}', {getCurrencyDecimals: getCurrencyDecimalsLocal, report: mockReport, policy: mockPolicy, fieldsByName, fieldValues})).toBe('test_value');
         });
     });
 
@@ -1586,7 +1858,7 @@ describe('CustomFormula', () => {
                 value: 'current_value',
             });
 
-            const result = resolveReportFieldValue(field, mockReport, mockPolicy, {}, {});
+            const result = resolveReportFieldValue(field, mockReport, mockPolicy, {}, {}, getCurrencyDecimalsLocal);
             expect(result).toBe('current_value');
         });
 
@@ -1598,7 +1870,7 @@ describe('CustomFormula', () => {
                 value: undefined,
             });
 
-            const result = resolveReportFieldValue(field, mockReport, mockPolicy, {}, {});
+            const result = resolveReportFieldValue(field, mockReport, mockPolicy, {}, {}, getCurrencyDecimalsLocal);
             expect(result).toBe('fallback_value');
         });
 
@@ -1620,7 +1892,7 @@ describe('CustomFormula', () => {
             };
             const fieldValues = {b: 'resolved_value'};
 
-            const result = resolveReportFieldValue(field, mockReport, mockPolicy, fieldValues, fieldsByName);
+            const result = resolveReportFieldValue(field, mockReport, mockPolicy, fieldValues, fieldsByName, getCurrencyDecimalsLocal);
             expect(result).toBe('resolved_value');
         });
 
@@ -1661,7 +1933,7 @@ describe('CustomFormula', () => {
             };
             const fieldValues = {a: '', b: 'final_value'};
 
-            const result = resolveReportFieldValue(field, mockReport, mockPolicy, fieldValues, fieldsByName);
+            const result = resolveReportFieldValue(field, mockReport, mockPolicy, fieldValues, fieldsByName, getCurrencyDecimalsLocal);
             expect(result).toBe('final_value');
         });
 
@@ -1671,7 +1943,7 @@ describe('CustomFormula', () => {
                 name: 'Empty',
             });
 
-            const result = resolveReportFieldValue(field, mockReport, mockPolicy, {}, {});
+            const result = resolveReportFieldValue(field, mockReport, mockPolicy, {}, {}, getCurrencyDecimalsLocal);
             expect(result).toBe('');
         });
     });

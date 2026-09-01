@@ -1,12 +1,15 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
+
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
@@ -22,22 +25,32 @@ type WorkspaceRoomsTableProps = {
     /** Pre-built row data for each room */
     rooms: WorkspaceRoomRowData[];
 
+    /** The policyID that we are viewing the rooms of */
+    policyID: string;
+
     /** The reportID of the room that should play the highlight animation (e.g. when it was just created) */
     highlightedReportID?: string;
+
+    /** Content rendered above the table header inside the scrollable list */
+    headerComponent?: React.ReactElement;
 };
 
-function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTableProps) {
+function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, headerComponent}: WorkspaceRoomsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
     const tableRef = useRef<TableHandle<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey>>(null);
+    const [isPolicyRoomDataLoaded] = useOnyx(ONYXKEYS.ARE_POLICY_ROOMS_LOADED, {
+        selector: (value) => value?.[policyID],
+    });
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
         addOfflineIndicatorBottomSafeAreaPadding: true,
         style: styles.pb5,
     });
+
+    const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     useEffect(() => {
         if (!highlightedReportID) {
@@ -47,8 +60,19 @@ function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTablePr
         if (!highlightedRoom) {
             return;
         }
-        tableRef.current?.scrollToItem({item: highlightedRoom, animated: false});
-        tableRef.current?.highlightItems([highlightedRoom.keyForList]);
+        // The room has to be looked up in the table's processed data: an active search can filter it out
+        // (in which case there is nothing to scroll to and the FlashList is not even mounted), and FlashList
+        // matches the scroll target by reference, so the row instance must come from the data the list renders.
+        const highlightedRow = tableRef.current?.getProcessedData().find((row) => row.keyForList === highlightedRoom.keyForList);
+        if (!highlightedRow) {
+            return;
+        }
+        tableRef.current?.scrollToItem({
+            item: highlightedRow,
+            animated: false,
+            viewPosition: 0.5,
+        });
+        tableRef.current?.highlightItems([highlightedRow.keyForList]);
     }, [highlightedReportID, rooms]);
 
     const columns: Array<TableColumn<WorkspaceRoomsTableColumnKey>> = [
@@ -77,6 +101,18 @@ function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTablePr
         />
     );
 
+    if (!isPolicyRoomDataLoaded) {
+        // The page header stays visible above the loading skeleton so the layout doesn't jump once the table renders.
+        return (
+            <>
+                {headerComponent}
+                <Table.LoadingState />
+            </>
+        );
+    }
+
+    const tableHeaderComponent = composeTableListHeader(headerComponent, <Table.FilterBar label={translate('workspace.common.findRoom')} />);
+
     return (
         <Table
             ref={tableRef}
@@ -89,7 +125,8 @@ function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTablePr
             title={translate('workspace.common.rooms')}
             keyExtractor={(row, index) => `${row.reportID}-${index}`}
         >
-            <Table.FilterBar label={translate('workspace.common.findRoom')} />
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />
         </Table>

@@ -18,11 +18,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, ReportAction, ReportActions} from '@src/types/onyx';
 
-import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 /* eslint-disable @typescript-eslint/naming-convention */
-import * as NativeNavigation from '@react-navigation/native';
 import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
 import React from 'react';
@@ -34,8 +32,10 @@ import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/nativ
 
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
+import {isObject} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -83,8 +83,25 @@ function scrollUpToRevealNewMessagesBadge() {
 function isNewMessagesBadgeVisible(): boolean {
     const hintText = TestHelper.translateLocal('accessibilityHints.scrollToNewestMessages');
     const badge = screen.queryByAccessibilityHint(hintText);
-    const badgeProps = badge?.props as {style: ViewStyle};
-    const transformStyle = badgeProps.style.transform?.[0] as {translateY: number};
+    const badgeValue: unknown = badge;
+    if (!badge || !isObject(badgeValue)) {
+        throw new Error('Expected the new messages badge to have a transform style.');
+    }
+
+    const badgeProps = badgeValue.props;
+    if (!isObject(badgeProps) || !isObject(badgeProps.style)) {
+        throw new Error('Expected the new messages badge to have a transform style.');
+    }
+
+    const transform = badgeProps.style.transform;
+    if (!Array.isArray(transform)) {
+        throw new Error('Expected the new messages badge to have a transform style.');
+    }
+
+    const transformStyle: unknown = transform.at(0);
+    if (!isObject(transformStyle) || typeof transformStyle.translateY !== 'number') {
+        throw new Error('Expected the new messages badge transform to include translateY.');
+    }
 
     return Math.round(transformStyle.translateY) === -40;
 }
@@ -230,6 +247,7 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
 
     await Promise.all([
         Onyx.merge(ONYXKEYS.IS_LOADING_APP, false),
+        Onyx.merge(ONYXKEYS.HAS_LOADED_APP, true),
         Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails),
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report),
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, reportActions),
@@ -260,7 +278,7 @@ describe('Unread Indicators', () => {
         signInAndGetAppWithUnreadChat()
             .then(() => {
                 // Verify no notifications are created for these older messages
-                expect((LocalNotification.showCommentNotification as jest.Mock).mock.calls).toHaveLength(0);
+                expect(jest.mocked(LocalNotification.showCommentNotification).mock.calls).toHaveLength(0);
 
                 // Verify the sidebar links are rendered
                 const sidebarLinksHintText = TestHelper.translateLocal('sidebarScreen.listOfChats');
@@ -274,12 +292,18 @@ describe('Unread Indicators', () => {
                 // And that the text is bold
                 const displayNameHintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameText = screen.queryByLabelText(displayNameHintText);
-                expect((displayNameText?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect(displayNameText).toEqual(
+                    expect.objectContaining({
+                        props: expect.objectContaining({
+                            style: expect.objectContaining({fontWeight: FontUtils.fontWeight.bold}),
+                        }),
+                    }),
+                );
 
                 return navigateToSidebarOptionWithoutAct(0);
             })
             .then(async () => {
-                act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+                act(() => jest.requireMock<NativeNavigationMock>('@react-navigation/native').triggerTransitionEnd());
 
                 // That the report actions are visible along with the created action
                 const welcomeMessageHintText = TestHelper.translateLocal('accessibilityHints.chatWelcomeMessage');
@@ -293,8 +317,11 @@ describe('Unread Indicators', () => {
                 const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
-                const reportActionID = unreadIndicator.at(0)?.props?.['data-action-id'] as string;
-                expect(reportActionID).toBe('4');
+                expect(unreadIndicator.at(0)).toEqual(
+                    expect.objectContaining({
+                        props: expect.objectContaining({'data-action-id': '4'}),
+                    }),
+                );
                 // Scroll up and verify that the "New messages" badge appears.
                 // Use waitForBatchedUpdates instead of waitFor to avoid wrapping in act(),
                 // which can hang under heavy CI load while draining scroll-triggered effects.
@@ -307,7 +334,7 @@ describe('Unread Indicators', () => {
             // Navigate to the unread chat from the sidebar
             .then(() => navigateToSidebarOptionWithoutAct(0))
             .then(() => {
-                act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+                act(() => jest.requireMock<NativeNavigationMock>('@react-navigation/native').triggerTransitionEnd());
                 // Verify the unread indicator is present
                 const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
@@ -417,11 +444,23 @@ describe('Unread Indicators', () => {
                 const displayNameTexts = screen.queryAllByLabelText(displayNameHintTexts);
                 expect(displayNameTexts).toHaveLength(2);
                 const firstReportOption = displayNameTexts.at(0);
-                expect((firstReportOption?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect(firstReportOption).toEqual(
+                    expect.objectContaining({
+                        props: expect.objectContaining({
+                            style: expect.objectContaining({fontWeight: FontUtils.fontWeight.bold}),
+                        }),
+                    }),
+                );
                 expect(screen.getByText('B User')).toBeOnTheScreen();
 
                 const secondReportOption = displayNameTexts.at(1);
-                expect((secondReportOption?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect(secondReportOption).toEqual(
+                    expect.objectContaining({
+                        props: expect.objectContaining({
+                            style: expect.objectContaining({fontWeight: FontUtils.fontWeight.bold}),
+                        }),
+                    }),
+                );
                 expect(screen.getByText('C User')).toBeOnTheScreen();
 
                 // Tap the new report option and navigate back to the sidebar again via the back button
@@ -429,14 +468,26 @@ describe('Unread Indicators', () => {
             })
             .then(waitForBatchedUpdates)
             .then(() => {
-                act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+                act(() => jest.requireMock<NativeNavigationMock>('@react-navigation/native').triggerTransitionEnd());
                 // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
                 const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
                 expect(displayNameTexts).toHaveLength(2);
-                expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.normal);
+                expect(displayNameTexts.at(0)).toEqual(
+                    expect.objectContaining({
+                        props: expect.objectContaining({
+                            style: expect.objectContaining({fontWeight: FontUtils.fontWeight.normal}),
+                        }),
+                    }),
+                );
                 expect(screen.getAllByText('B User').at(0)).toBeOnTheScreen();
-                expect((displayNameTexts.at(1)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect(displayNameTexts.at(1)).toEqual(
+                    expect.objectContaining({
+                        props: expect.objectContaining({
+                            style: expect.objectContaining({fontWeight: FontUtils.fontWeight.bold}),
+                        }),
+                    }),
+                );
                 expect(screen.getByText('C User', {includeHiddenElements: true})).toBeOnTheScreen();
             }));
 
@@ -464,8 +515,11 @@ describe('Unread Indicators', () => {
                 const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
-                const reportActionID = unreadIndicator.at(0)?.props?.['data-action-id'] as string;
-                expect(reportActionID).toBe('3');
+                expect(unreadIndicator.at(0)).toEqual(
+                    expect.objectContaining({
+                        props: expect.objectContaining({'data-action-id': '3'}),
+                    }),
+                );
                 // Scroll up and verify the new messages badge appears.
                 // Use waitForBatchedUpdates instead of waitFor to avoid wrapping in act(),
                 // which can hang under heavy CI load while draining scroll-triggered effects.
@@ -480,7 +534,13 @@ describe('Unread Indicators', () => {
                 const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
-                expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect(displayNameTexts.at(0)).toEqual(
+                    expect.objectContaining({
+                        props: expect.objectContaining({
+                            style: expect.objectContaining({fontWeight: FontUtils.fontWeight.bold}),
+                        }),
+                    }),
+                );
                 expect(screen.getByText('B User')).toBeOnTheScreen();
 
                 // Navigate to the report again and back to the sidebar
@@ -492,7 +552,12 @@ describe('Unread Indicators', () => {
                 const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
-                expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(undefined);
+                const displayNameText = displayNameTexts.at(0);
+                expect(displayNameText).toBeDefined();
+                if (!displayNameText || !isObject(displayNameText.props) || !isObject(displayNameText.props.style)) {
+                    throw new Error('Expected the read chat display name to have a style.');
+                }
+                expect(displayNameText.props.style.fontWeight).toBeUndefined();
                 expect(screen.getByText('B User')).toBeOnTheScreen();
 
                 // Navigate to the report again and verify the new line indicator is missing
@@ -521,7 +586,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOptionWithoutAct(0);
             })
             .then(async () => {
-                act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+                act(() => jest.requireMock<NativeNavigationMock>('@react-navigation/native').triggerTransitionEnd());
                 const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
@@ -536,6 +601,7 @@ describe('Unread Indicators', () => {
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: USER_A_ACCOUNT_ID,
                     delegateAccountID: undefined,
+                    conciergeReportID: undefined,
                 });
                 return waitForBatchedUpdates();
             })
@@ -617,6 +683,7 @@ describe('Unread Indicators', () => {
                         timezoneParam: CONST.DEFAULT_TIME_ZONE,
                         currentUserAccountID: USER_A_ACCOUNT_ID,
                         delegateAccountID: undefined,
+                        conciergeReportID: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -641,7 +708,7 @@ describe('Unread Indicators', () => {
 
                     const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
                     if (lastReportAction) {
-                        deleteReportComment(report, lastReportAction, undefined, [], undefined, undefined, '');
+                        deleteReportComment(report, lastReportAction, undefined, undefined, [], undefined, undefined, '');
                     }
                     return waitForBatchedUpdates();
                 })
@@ -672,6 +739,7 @@ describe('Unread Indicators', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: USER_A_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -691,11 +759,12 @@ describe('Unread Indicators', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: USER_A_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
 
             await waitForBatchedUpdates();
 
-            deleteReportComment(report, firstNewReportAction, undefined, [], undefined, undefined, '');
+            deleteReportComment(report, firstNewReportAction, undefined, undefined, [], undefined, undefined, '');
 
             await waitForBatchedUpdates();
         }
@@ -704,8 +773,11 @@ describe('Unread Indicators', () => {
         const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
         const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
         expect(unreadIndicator).toHaveLength(1);
-        const reportActionID = unreadIndicator.at(0)?.props?.['data-action-id'] as string;
-        expect(reportActionID).toBe(secondNewReportAction?.reportActionID);
+        expect(unreadIndicator.at(0)).toEqual(
+            expect.objectContaining({
+                props: expect.objectContaining({'data-action-id': secondNewReportAction?.reportActionID}),
+            }),
+        );
 
         Onyx.disconnect(connection);
     });
@@ -782,6 +854,8 @@ describe('Unread Indicators', () => {
         // When the user track an expense on the self DM
         const participant = {login: USER_A_EMAIL, accountID: USER_A_ACCOUNT_ID};
         trackExpense({
+            conciergeChat: undefined,
+            getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             report: selfDMReport,
             isDraftPolicy: true,
             action: CONST.IOU.ACTION.CREATE,
@@ -803,6 +877,7 @@ describe('Unread Indicators', () => {
             betas: [CONST.BETAS.ALL],
             isSelfTourViewed: false,
             currentUserLocalCurrency: undefined,
+            delegateAccountID: undefined,
             reportActionsList: undefined,
         });
         await waitForBatchedUpdates();
@@ -848,14 +923,29 @@ describe('Unread Indicators', () => {
                 },
             });
         });
-        markCommentAsUnread(REPORT_ID, reportActions, {reportActionID: -1} as unknown as ReportAction, USER_A_ACCOUNT_ID, false); // Marking the chat as unread from LHN passing a dummy reportActionID
+        markCommentAsUnread(
+            REPORT_ID,
+            reportActions,
+            createMock<ReportAction>({
+                // @ts-expect-error -- Deliberately pass the numeric LHN invalid sentinel through MarkAsUnreadParams to exercise the runtime path.
+                reportActionID: -1,
+            }),
+            USER_A_ACCOUNT_ID,
+            false,
+        ); // Marking the chat as unread from LHN passing a dummy reportActionID
 
         await waitForBatchedUpdates();
         const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
         await waitFor(() => {
             const displayNameTexts = screen.queryAllByLabelText(hintText);
             expect(displayNameTexts).toHaveLength(1);
-            expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+            expect(displayNameTexts.at(0)).toEqual(
+                expect.objectContaining({
+                    props: expect.objectContaining({
+                        style: expect.objectContaining({fontWeight: FontUtils.fontWeight.bold}),
+                    }),
+                }),
+            );
         });
     });
 
@@ -874,6 +964,7 @@ describe('Unread Indicators', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: USER_A_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -887,7 +978,16 @@ describe('Unread Indicators', () => {
             });
         });
         // Then USER_A mark the report as unread
-        markCommentAsUnread(REPORT_ID, reportActions, {reportActionID: -1} as unknown as ReportAction, USER_A_ACCOUNT_ID, false);
+        markCommentAsUnread(
+            REPORT_ID,
+            reportActions,
+            createMock<ReportAction>({
+                // @ts-expect-error -- Deliberately pass the numeric LHN invalid sentinel through MarkAsUnreadParams to exercise the runtime path.
+                reportActionID: -1,
+            }),
+            USER_A_ACCOUNT_ID,
+            false,
+        );
         await waitForBatchedUpdates();
 
         // Then the lastReadTime of report should same as last action from USER_B

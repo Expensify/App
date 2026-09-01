@@ -1,15 +1,16 @@
+import {isClientTheLeader} from '@libs/ActiveClientManager';
+import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 
 import type {AppActionsMock} from '@userActions/__mocks__/App';
 import type {OnyxUpdatesMock} from '@userActions/__mocks__/OnyxUpdates';
-import * as AppImport from '@userActions/App';
 import * as OnyxUpdateManager from '@userActions/OnyxUpdateManager';
-import * as OnyxUpdateManagerUtilsImport from '@userActions/OnyxUpdateManager/utils';
 import type {OnyxUpdateManagerUtilsMock} from '@userActions/OnyxUpdateManager/utils/__mocks__';
 import type {ApplyUpdatesMock} from '@userActions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
-import * as ApplyUpdatesImport from '@userActions/OnyxUpdateManager/utils/applyUpdates';
-import * as OnyxUpdatesImport from '@userActions/OnyxUpdates';
+import type * as OnyxUpdatesImport from '@userActions/OnyxUpdates';
 
+import CONST from '@src/CONST';
+import {flushQueue} from '@src/libs/actions/QueuedOnyxUpdates';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 
@@ -33,11 +34,19 @@ jest.mock('@src/libs/SearchUIUtils', () => ({
     getSuggestedSearches: jest.fn().mockReturnValue({}),
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const OnyxUpdates = OnyxUpdatesImport as OnyxUpdatesMock<any>;
-const App = AppImport as AppActionsMock;
-const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
-const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;
+// The native impl hardcodes leadership, so mock it to reach the follower branches.
+jest.mock('@libs/ActiveClientManager', () => ({
+    isClientTheLeader: jest.fn(() => true),
+    isReady: jest.fn(() => Promise.resolve()),
+    init: jest.fn(),
+}));
+const mockedIsClientTheLeader = jest.mocked(isClientTheLeader);
+
+const OnyxUpdates = jest.requireMock<OnyxUpdatesMock<never>>('@userActions/OnyxUpdates');
+const ActualOnyxUpdates = jest.requireActual<typeof OnyxUpdatesImport>('@userActions/OnyxUpdates');
+const App = jest.requireMock<AppActionsMock>('@userActions/App');
+const ApplyUpdates = jest.requireMock<ApplyUpdatesMock>('@userActions/OnyxUpdateManager/utils/applyUpdates');
+const OnyxUpdateManagerUtils = jest.requireMock<OnyxUpdateManagerUtilsMock>('@userActions/OnyxUpdateManager/utils');
 
 const update2: OnyxUpdatesFromServer<never> = OnyxUpdateMockUtils.createUpdate(2);
 const pendingUpdateUpTo2 = OnyxUpdateMockUtils.createPendingUpdate(2);
@@ -71,6 +80,7 @@ describe('OnyxUpdateManager', () => {
         OnyxUpdateManagerUtils.mockValues.beforeValidateAndApplyDeferredUpdates = undefined;
         ApplyUpdates.mockValues.beforeApplyUpdates = undefined;
         App.mockValues.missingOnyxUpdatesToBeApplied = undefined;
+        App.mockValues.missingOnyxUpdatesResponse = undefined;
         OnyxUpdateManager.resetDeferralLogicVariables();
     });
 
@@ -489,6 +499,252 @@ describe('OnyxUpdateManager', () => {
             expect(App.getMissingOnyxUpdates).not.toHaveBeenCalled();
 
             reconnectSpy.mockRestore();
+        });
+    });
+
+    it('should escalate to a single incremental ReconnectApp when the gap fetch returns no progress', async () => {
+        // Simulate the production stall: the server answers the gap fetch with a 200 that carries no updates
+        // and no lastUpdateID, so the client cannot advance no matter how often the fetch is repeated.
+        App.mockValues.missingOnyxUpdatesResponse = {jsonCode: 200, onyxData: []};
+        const alertSpy = jest.spyOn(Log, 'alert');
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        await OnyxUpdateManager.queryPromise;
+
+        // One useless answer is proof the server cannot close this gap: escalate right away to an
+        // incremental ReconnectApp, fired from the stalled client update ID, and raise the alert that
+        // makes stalled clients visible in production monitoring.
+        expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledWith(1);
+        expect(alertSpy).toHaveBeenCalledTimes(1);
+
+        // A further gap push against the same client state must back off: no new fetch, no second reconnect.
+        OnyxUpdateManager.handleMissingOnyxUpdates(update5);
+        await OnyxUpdateManager.queryPromise;
+        expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+
+        // When the ReconnectApp response advances the client (simulated directly here), the guard releases
+        // and a fresh gap is fetched again.
+        App.mockValues.missingOnyxUpdatesResponse = undefined;
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 5);
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update7);
+        await OnyxUpdateManager.queryPromise;
+        expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+    });
+
+    it('should retry the gap fetch and escalate again after the back-off expires when the client still has not advanced', async () => {
+        App.mockValues.missingOnyxUpdatesResponse = {jsonCode: 200, onyxData: []};
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        await OnyxUpdateManager.queryPromise;
+        expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+
+        // Within the back-off window a gap push from the same client state is skipped entirely.
+        OnyxUpdateManager.handleMissingOnyxUpdates(update5);
+        await OnyxUpdateManager.queryPromise;
+        expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+
+        // One useless answer only proves the server could not serve the range at that moment, and the
+        // escalated reconnect is not guaranteed to survive its retries. Once the back-off expires the
+        // normal flow must fetch again, and a repeat stall must escalate again.
+        const dateNowSpy = jest.spyOn(Date, 'now').mockImplementation(() => new Date().getTime() + 61000);
+        OnyxUpdateManager.handleMissingOnyxUpdates(update7);
+        await OnyxUpdateManager.queryPromise;
+        dateNowSpy.mockRestore();
+
+        expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(2);
+        expect(App.reconnectApp).toHaveBeenLastCalledWith(1);
+    });
+
+    it('should not escalate to ReconnectApp when the gap fetch advances the client', async () => {
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        await OnyxUpdateManager.queryPromise;
+
+        expect(lastUpdateIDAppliedToClient).toBe(3);
+        expect(App.reconnectApp).not.toHaveBeenCalled();
+    });
+
+    it('should escalate when the fetch response is ahead of the client but the client did not move', async () => {
+        App.mockValues.missingOnyxUpdatesResponse = {jsonCode: 200, lastUpdateID: 2, onyxData: []};
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        await OnyxUpdateManager.queryPromise;
+
+        expect(lastUpdateIDAppliedToClient).toBe(1);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledWith(1);
+    });
+
+    it('should escalate when a WRITE staged for the deferred flush sits above the fetch origin', async () => {
+        // Given a WRITE staged for the deferred flush, which raises the pending marker above the persisted watermark
+        await ActualOnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 1,
+            lastUpdateID: 500,
+            request: {command: 'AddComment', data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE}},
+            response: {jsonCode: 200, onyxData: []},
+        });
+        await waitForBatchedUpdates();
+        expect(ActualOnyxUpdates.getEffectiveLastUpdateID()).toBe(500);
+        expect(ActualOnyxUpdates.getPersistedLastUpdateID()).toBe(1);
+
+        // When a fetch fired from the persisted watermark (the push notification path) answers without applying anything
+        App.mockValues.missingOnyxUpdatesResponse = {jsonCode: 200, onyxData: []};
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3, 1);
+        await OnyxUpdateManager.queryPromise;
+
+        // Then the staged WRITE does not count as progress, because it never served the requested range
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledWith(1);
+
+        await flushQueue();
+        await waitForBatchedUpdates();
+    });
+
+    it('should not escalate when the client advances through another path while the fetch is in flight', async () => {
+        // The response itself reports no progress, but a contiguous update advanced the client mid-fetch,
+        // so the next fetch fires from a new ID and the client can still catch up.
+        App.getMissingOnyxUpdates.mockImplementationOnce(async () => {
+            await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 2);
+            return {jsonCode: 200, onyxData: []};
+        });
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        await OnyxUpdateManager.queryPromise;
+
+        expect(App.reconnectApp).not.toHaveBeenCalled();
+    });
+
+    it('should not escalate to ReconnectApp when the gap fetch fails', async () => {
+        // A failed fetch proves nothing about the server's ability to serve the range, so it must neither
+        // escalate nor latch the back-off: the next gap push retries the fetch as before.
+        App.mockValues.missingOnyxUpdatesResponse = {jsonCode: 407};
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        await OnyxUpdateManager.queryPromise;
+        expect(App.reconnectApp).not.toHaveBeenCalled();
+        const fetchCallsAfterFailure = App.getMissingOnyxUpdates.mock.calls.length;
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update5);
+        await OnyxUpdateManager.queryPromise;
+        expect(App.getMissingOnyxUpdates.mock.calls.length).toBeGreaterThan(fetchCallsAfterFailure);
+        expect(App.reconnectApp).not.toHaveBeenCalled();
+    });
+
+    it('should back off a pending-updates fetch that returns no progress', async () => {
+        App.mockValues.missingOnyxUpdatesResponse = {jsonCode: 200, onyxData: []};
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(pendingUpdateUpTo2);
+        await OnyxUpdateManager.queryPromise;
+        expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+
+        // The pending-updates branch fires the same fetch as the gap branch, so it must back off the same way.
+        OnyxUpdateManager.handleMissingOnyxUpdates(pendingUpdateUpTo3);
+        await OnyxUpdateManager.queryPromise;
+        expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+    });
+
+    it('should resume the SequentialQueue exactly once per backed-off gap push after escalating', async () => {
+        // Escalation itself is asserted in the escalate test; here it is only the setup for the unpause check.
+        App.mockValues.missingOnyxUpdatesResponse = {jsonCode: 200, onyxData: []};
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        await OnyxUpdateManager.queryPromise;
+
+        // The backed-off cycle must still finalize and resume the queue, or the app would freeze.
+        const unpauseSpy = jest.spyOn(SequentialQueue, 'unpause');
+        OnyxUpdateManager.handleMissingOnyxUpdates(update5);
+        // queryPromise resolves on the first finalize, so drain microtasks first: a leaked second finalize
+        // would resume the queue a second time and must get the chance to surface before the assertion.
+        await OnyxUpdateManager.queryPromise;
+        await waitForBatchedUpdates();
+        expect(unpauseSpy).toHaveBeenCalledTimes(1);
+    });
+
+    // Driven through the real watchdog, so the import-time registration is covered too.
+    describe('pause watchdog escalation', () => {
+        beforeEach(() => {
+            // Keep setImmediate real so Onyx batching still works under fake timers.
+            jest.useFakeTimers({doNotFake: ['setImmediate', 'nextTick']});
+        });
+
+        afterEach(() => {
+            SequentialQueue.resetQueue();
+            mockedIsClientTheLeader.mockReturnValue(true);
+            jest.useRealTimers();
+        });
+
+        const letTheWatchdogFire = async () => {
+            SequentialQueue.pause();
+            await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
+        };
+
+        it('should fire an out-of-queue incremental ReconnectApp from the last applied update ID', async () => {
+            await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 42);
+
+            await letTheWatchdogFire();
+
+            // Incremental, not full: the gap only needs closing from where the client stopped.
+            expect(App.reconnectAppWithSideEffects).toHaveBeenCalledTimes(1);
+            expect(App.reconnectAppWithSideEffects).toHaveBeenCalledWith(42);
+            expect(SequentialQueue.isPaused()).toBe(false);
+        });
+
+        it('should skip the escalation when the client has never received an update ID, instead of firing a full ReconnectApp', async () => {
+            await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 0);
+
+            // At 0 the escalation would call reconnectAppWithSideEffects(0), which omits updateIDFrom and so pulls the
+            // FULL app payload — applied outside the queue while WRITEs are still pending. handleMissingOnyxUpdates has
+            // a dedicated flow for this state; the watchdog must not race it.
+            await letTheWatchdogFire();
+
+            expect(App.reconnectAppWithSideEffects).not.toHaveBeenCalled();
+            expect(SequentialQueue.isPaused()).toBe(false);
+        });
+
+        it('should skip the escalation on a follower client, but still let the pause self-heal', async () => {
+            mockedIsClientTheLeader.mockReturnValue(false);
+
+            await letTheWatchdogFire();
+
+            // A follower escalating would duplicate the leader's request.
+            expect(App.reconnectAppWithSideEffects).not.toHaveBeenCalled();
+            expect(SequentialQueue.isPaused()).toBe(false);
+        });
+
+        it('should skip the escalation while a stalled gap fetch is still inside its back-off window', async () => {
+            // Latch the back-off half a window ago, so it is still open when the watchdog fires.
+            App.mockValues.missingOnyxUpdatesResponse = {jsonCode: 200, onyxData: []};
+            const dateNowSpy = jest.spyOn(Date, 'now').mockImplementation(() => new Date().getTime() + CONST.NETWORK.STALLED_UPDATES_FETCH_BACKOFF_TIME_MS / 2);
+            OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+            await OnyxUpdateManager.queryPromise;
+            dateNowSpy.mockRestore();
+            expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+
+            await letTheWatchdogFire();
+
+            // A client thrashing on GetMissingOnyxMessages must not get another reconnect.
+            expect(App.reconnectAppWithSideEffects).not.toHaveBeenCalled();
+            expect(SequentialQueue.isPaused()).toBe(false);
+        });
+
+        it('should latch the back-off so the escalated reconnect is not immediately followed by a gap fetch', async () => {
+            await letTheWatchdogFire();
+            expect(App.reconnectAppWithSideEffects).toHaveBeenCalledTimes(1);
+
+            // Same client state, so it owns the window like the stalled-fetch escalation does.
+            OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+            await OnyxUpdateManager.queryPromise;
+            expect(App.getMissingOnyxUpdates).not.toHaveBeenCalled();
         });
     });
 

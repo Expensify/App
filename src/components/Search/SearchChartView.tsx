@@ -1,6 +1,7 @@
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 
-import {getCurrencySymbol, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
+import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatToParts} from '@libs/NumberFormatUtils';
@@ -51,8 +52,9 @@ const CHART_VIEW_TO_COMPONENT: Record<ChartView, React.ComponentType<SearchChart
  */
 function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChartViewProps) {
     const {preferredLocale} = useLocalize();
+    const {getCurrencySymbol} = useCurrencyListActions();
 
-    const {getLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
+    const {getLabel, getShortLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
     const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
 
     const handleItemPress = (filterQuery: string) => {
@@ -88,6 +90,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
         <ChartComponent
             data={data}
             getLabel={(item) => StringUtils.normalize(getLabel(item))}
+            getShortLabel={getShortLabel}
             getFilterQuery={getFilterQuery}
             onItemPress={handleItemPress}
             isLoading={isLoading}

@@ -5,6 +5,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
 
@@ -16,12 +17,8 @@ import {getReportOfflinePendingActionAndErrors, isInvoiceReport, isMoneyRequestR
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
-import reportByIDsSelector from '@selectors/ReportAttributes';
 import React from 'react';
 
 import HeaderView from './HeaderView';
@@ -43,9 +40,8 @@ function ReportHeader() {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const reportID = report?.reportID;
 
-    const reportAttributesSelector = (attributes: OnyxEntry<OnyxTypes.ReportAttributesDerivedValue>) => reportByIDsSelector(reportID ? [reportID] : [])(attributes);
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
-    useDocumentTitle(getReportName(report, reportAttributes));
+    const derivedReportName = useDerivedReportNameByReportID(reportID);
+    useDocumentTitle(getReportName(report, derivedReportName));
 
     const isTransactionThreadView = isReportTransactionThread(report);
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);

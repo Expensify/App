@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -7,10 +7,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 
-import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
@@ -40,26 +40,27 @@ function UserSelectionListItem<TItem extends ListItem>({
 }: UserSelectionListItemProps<TItem>) {
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
 
     const userHandle = useMemo(() => {
         const login = item.login ?? '';
 
         // If the emails are not in the same private domain, we just return the users email
         if (!areEmailsFromSamePrivateDomain(login, currentUserPersonalDetails.login ?? '')) {
-            return Str.removeSMSDomain(login);
+            return formatPhoneNumber(login);
         }
 
         // Otherwise, the emails are a part of the same private domain, so we can remove the domain and just show username
         return login.split('@').at(0);
-    }, [currentUserPersonalDetails.login, item.login]);
+    }, [currentUserPersonalDetails.login, item.login, formatPhoneNumber]);
 
     const userDisplayName = useMemo(() => {
         return getDisplayNameForParticipant({
             accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
             formatPhoneNumber,
+            translate,
         });
-    }, [formatPhoneNumber, item.accountID]);
+    }, [formatPhoneNumber, item.accountID, translate]);
 
     return (
         <SelectableListItem
@@ -85,12 +86,10 @@ function UserSelectionListItem<TItem extends ListItem>({
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.h13, styles.gap3]}>
                 {!!item.icons?.length && (
                     <View style={styles.mentionSuggestionsAvatarContainer}>
-                        <Avatar
+                        <UserAvatar
                             source={item.icons.at(0)?.source}
-                            size={CONST.AVATAR_SIZE.SMALLER}
-                            name={item.icons.at(0)?.name}
-                            avatarID={item.icons.at(0)?.id}
-                            type={item.icons.at(0)?.type ?? CONST.ICON_TYPE_AVATAR}
+                            size={CONST.AVATAR_SIZE.X_SMALL}
+                            accountID={getAccountIDFromAvatarID(item.icons.at(0)?.id)}
                             fallbackIcon={item.icons.at(0)?.fallbackIcon}
                         />
                     </View>
@@ -100,7 +99,7 @@ function UserSelectionListItem<TItem extends ListItem>({
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
                         text={userDisplayName}
-                        style={[styles.flexShrink0, styles.optionDisplayName, isFocusVisible ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.sidebarLinkTextBold, styles.pre]}
+                        style={[styles.flexShrink0, styles.optionDisplayName, styles.sidebarLinkText, styles.sidebarLinkTextBold, styles.pre]}
                     />
                     {!!userHandle && (
                         <TextWithTooltip

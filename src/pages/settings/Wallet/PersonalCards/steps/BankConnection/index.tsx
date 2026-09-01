@@ -13,8 +13,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
 import PersonalCardsErrorConfirmation from '@pages/settings/Wallet/PersonalCards/PersonalCardsErrorConfirmation';
 import useGetNewPersonalCard from '@pages/settings/Wallet/PersonalCards/useGetNewPersonalCard';
 
@@ -64,15 +62,10 @@ function BankConnectionContent({hasImportError, isPlaid, onOpenBankConnectionFlo
             />
         );
     }
-    const activityReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'PersonalCardBankConnection',
-        isPlaid,
-    };
     return (
         <ActivityIndicator
             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
             style={styles.flex1}
-            reasonAttributes={activityReasonAttributes}
         />
     );
 }

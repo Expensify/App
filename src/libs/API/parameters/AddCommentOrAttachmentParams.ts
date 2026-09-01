@@ -13,8 +13,11 @@ type AddCommentOrAttachmentParams = {
     idempotencyKey?: string;
     pageHTML?: string;
     optimisticConciergeReportActionID?: string;
+    optimisticConciergeCreated?: string;
     pregeneratedResponse?: string;
     sidePanelContext?: string;
+    conciergeThreadReportID?: string;
+    conciergeThreadCreatedReportActionID?: string;
 };
 
 export default AddCommentOrAttachmentParams;

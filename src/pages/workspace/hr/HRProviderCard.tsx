@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -17,7 +17,8 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {removePolicyConnection, syncConnection} from '@libs/actions/connections';
-import {clearHRConnectionErrorField} from '@libs/actions/connections/MergeHR';
+import {clearMergeConnectionErrorField} from '@libs/actions/connections/merge';
+import {showMergeManualSyncLimitModalIfReached} from '@libs/merge/MergeUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -62,7 +63,7 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
 
     let connectionDescription: string | undefined;
     if (card.isSyncInProgress) {
-        connectionDescription = card.syncStageInProgress ? translate('workspace.hr.syncStageName', {stage: card.syncStageInProgress}) : translate('workspace.hr.syncing');
+        connectionDescription = card.syncStageInProgress ? translate('workspace.hr.syncStageName', card.syncStageInProgress) : translate('workspace.hr.syncing');
     } else if (!card.successfulDate) {
         connectionDescription = translate('workspace.hr.notSync');
     } else {
@@ -115,8 +116,14 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
         return {
             icon: icons.Sync,
             text: translate('workspace.hr.syncNow'),
-            onSelected: () => syncConnection(policy, card.connectionName),
+            onSelected: () => {
+                if (showMergeManualSyncLimitModalIfReached(policy, card.connectionName, translate, showConfirmModal)) {
+                    return;
+                }
+                syncConnection(policy, card.connectionName);
+            },
             disabled: isOffline,
+            shouldCallAfterModalHide: true,
         };
     };
 
@@ -131,7 +138,7 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
                     prompt: translate('workspace.hr.disconnectPrompt', card.displayName),
                     confirmText: translate('workspace.hr.disconnect'),
                     cancelText: translate('common.cancel'),
-                    danger: true,
+                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 }).then((result) => {
                     if (result?.action !== ModalActions.CONFIRM || !policy) {
                         return;
@@ -147,21 +154,17 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
     if (!card.isConnected) {
         rightInset = (
             <Button
-                small
-                text={translate('workspace.hr.connect')}
+                size={CONST.BUTTON_SIZE.SMALL}
                 onPress={handleConnect}
                 innerStyles={!canWriteMoreFeatures ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                 hoverStyles={!canWriteMoreFeatures ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                 isDisabled={isOffline}
-            />
+            >
+                <Button.Text>{translate('workspace.hr.connect')}</Button.Text>
+            </Button>
         );
     } else if (card.isSyncInProgress) {
-        rightInset = (
-            <ActivityIndicator
-                style={[styles.popoverMenuIcon, styles.alignSelfCenter]}
-                reasonAttributes={{context: `HRProviderCard.${card.key}Sync`}}
-            />
-        );
+        rightInset = <ActivityIndicator style={[styles.popoverMenuIcon, styles.alignSelfCenter]} />;
     } else {
         rightInset = (
             <ThreeDotsMenu
@@ -208,7 +211,7 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
                                 key={row.field}
                                 pendingAction={row.pendingAction}
                                 errors={row.errors}
-                                onClose={() => clearHRConnectionErrorField(policy?.id, card.connectionName, row.field)}
+                                onClose={() => clearMergeConnectionErrorField(policy?.id, card.connectionName, row.field)}
                             >
                                 <MenuItemWithTopDescription
                                     description={row.description}

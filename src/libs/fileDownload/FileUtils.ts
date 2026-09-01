@@ -1,6 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import DateUtils from '@libs/DateUtils';
+import fileURIToPath from '@libs/fileURIToPath';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import saveLastRoute from '@libs/saveLastRoute';
@@ -407,7 +408,7 @@ function verifyFileFormat({fileUri, formatSignatures}: {fileUri: string; formatS
         return Promise.resolve(false);
     }
 
-    const cleanUri = fileUri.replace('file://', '');
+    const cleanUri = fileURIToPath(fileUri);
 
     if (Platform.OS === 'ios') {
         return ReactNativeBlobUtil.fs.readFile(cleanUri, 'base64').then((fullBase64Data: string) => {
@@ -562,7 +563,7 @@ function getFileResolution(targetFile: FileObject | undefined): Promise<{width: 
 }
 
 function isHighResolutionImage(resolution: {width: number; height: number} | null): boolean {
-    return resolution !== null && (resolution.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD || resolution.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD);
+    return resolution !== null && resolution.width * resolution.height > CONST.MAX_IMAGE_PIXEL_COUNT;
 }
 
 /**
@@ -734,9 +735,9 @@ const normalizeFileObject = async (file: FileObject): Promise<FileObject> => {
 
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
     const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
-    const isNativePlatform = isAndroidNative || isIOSNative;
+    const isNative = isAndroidNative || isIOSNative;
 
-    if (!isNativePlatform || 'size' in file) {
+    if (!isNative || 'size' in file) {
         return file;
     }
 
@@ -824,6 +825,11 @@ const getFileValidationErrorText = (
             return {
                 title: translate('attachmentPicker.attachmentError'),
                 reason: translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
+            };
+        case CONST.FILE_VALIDATION_ERRORS.HEIC_CONVERSION_FAILED:
+            return {
+                title: translate('attachmentPicker.attachmentError'),
+                reason: translate('attachmentPicker.errorWhileConvertingHeic'),
             };
         case CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE:
             return {

@@ -17,7 +17,11 @@ import type * as ReactNavigation from '@react-navigation/native';
 
 import React from 'react';
 
+import createMock from '../utils/createMock';
+
 const mockUseState = React.useState;
+
+type NetSuiteCustomListSelectorPageProps = Parameters<typeof NetSuiteCustomListSelectorPage>[0];
 
 const mockCustomLists = [
     {id: '123', name: 'Department'},
@@ -75,7 +79,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 describe('NetSuiteCustomListSelectorPage', () => {
-    const mockedSelectionList = jest.mocked(SelectionList);
+    const mockedSelectionList = jest.mocked(SelectionList<CustomListSelectorType>);
     const mockedSetDraftValues = jest.mocked(setDraftValues);
     const mockedNavigationGoBack = jest.mocked(Navigation.goBack);
 
@@ -91,8 +95,8 @@ describe('NetSuiteCustomListSelectorPage', () => {
 
         render(
             <NetSuiteCustomListSelectorPage
-                route={{params: {policyID: 'P1'}} as never}
-                navigation={jest.fn() as never}
+                route={createMock<NetSuiteCustomListSelectorPageProps['route']>({params: {policyID: 'P1'}})}
+                navigation={createMock<NetSuiteCustomListSelectorPageProps['navigation']>({})}
             />,
         );
 
@@ -107,13 +111,16 @@ describe('NetSuiteCustomListSelectorPage', () => {
     it('writes both listName and internalID to the form draft on row select then returns to the custom list name sub-page', () => {
         render(
             <NetSuiteCustomListSelectorPage
-                route={{params: {policyID: 'P1'}} as never}
-                navigation={jest.fn() as never}
+                route={createMock<NetSuiteCustomListSelectorPageProps['route']>({params: {policyID: 'P1'}})}
+                navigation={createMock<NetSuiteCustomListSelectorPageProps['navigation']>({})}
             />,
         );
 
         const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
-        const selectedRow = selectionListProps?.data.find((item) => (item as CustomListSelectorType).value === 'Department') as CustomListSelectorType;
+        const selectedRow = selectionListProps?.data.find((item) => item.value === 'Department');
+        if (!selectedRow) {
+            throw new Error('Expected the Department row to be rendered');
+        }
         selectionListProps?.onSelectRow?.(selectedRow);
 
         expect(mockedSetDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM, {
@@ -129,13 +136,16 @@ describe('NetSuiteCustomListSelectorPage', () => {
     it('returns to the name sub-page in edit mode on row select when the selector was opened while editing from the confirm step', () => {
         render(
             <NetSuiteCustomListSelectorPage
-                route={{params: {policyID: 'P1', action: 'edit'}} as never}
-                navigation={jest.fn() as never}
+                route={createMock<NetSuiteCustomListSelectorPageProps['route']>({params: {policyID: 'P1', action: 'edit'}})}
+                navigation={createMock<NetSuiteCustomListSelectorPageProps['navigation']>({})}
             />,
         );
 
         const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
-        const selectedRow = selectionListProps?.data.find((item) => (item as CustomListSelectorType).value === 'Department') as CustomListSelectorType;
+        const selectedRow = selectionListProps?.data.find((item) => item.value === 'Department');
+        if (!selectedRow) {
+            throw new Error('Expected the Department row to be rendered');
+        }
         selectionListProps?.onSelectRow?.(selectedRow);
 
         expect(mockedNavigationGoBack).toHaveBeenCalledTimes(1);
@@ -147,8 +157,8 @@ describe('NetSuiteCustomListSelectorPage', () => {
     it('renders an empty option set with a no-results header message when search filters everything out', () => {
         render(
             <NetSuiteCustomListSelectorPage
-                route={{params: {policyID: 'P1'}} as never}
-                navigation={jest.fn() as never}
+                route={createMock<NetSuiteCustomListSelectorPageProps['route']>({params: {policyID: 'P1'}})}
+                navigation={createMock<NetSuiteCustomListSelectorPageProps['navigation']>({})}
             />,
         );
 

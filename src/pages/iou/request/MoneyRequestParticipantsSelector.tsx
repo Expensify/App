@@ -1,14 +1,20 @@
+import AlwaysPaintedView from '@components/AlwaysPaintedView';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
+
+import useDeferVisibleUntilFocusTransitionEnd from '@hooks/useDeferVisibleUntilFocusTransitionEnd';
 
 import getPlatform from '@libs/getPlatform';
 
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
 import type {Ref} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useImperativeHandle, useRef, useState} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import {Activity, useImperativeHandle, useRef, useState} from 'react';
 
 import ParticipantSearchResults from './ParticipantSearchResults';
 
@@ -16,8 +22,8 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
     onFinish?: (value?: string, participants?: Participant[]) => void;
 
-    /** Callback to add participants in MoneyRequestModal */
-    onParticipantsAdded: (value: Participant[]) => void;
+    /** Callback to add participants in MoneyRequestModal. selectedPolicy is forwarded to the confirmation step. */
+    onParticipantsAdded: (value: Participant[], selectedPolicy?: OnyxEntry<Policy>) => void;
 
     /** Selected participants from MoneyRequestModal with login */
     participants?: Participant[] | typeof CONST.EMPTY_ARRAY;
@@ -55,6 +61,12 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
     onCloseParticipantPicker?: () => void;
 
+    /**
+     * Called before committing a participant/workspace selection.
+     * Return true to block the selection (e.g. manual/odometer distance into a commuter-exclusion workspace).
+     */
+    shouldBlockParticipantSelection?: (policyID?: string) => boolean;
+
     /** Reference to the outer element */
     ref?: Ref<InputFocusRef>;
 };
@@ -79,8 +91,11 @@ function MoneyRequestParticipantsSelector({
     shouldMoveSelectedToTop = false,
     onRestrictedParticipantSelected,
     onCloseParticipantPicker,
+    shouldBlockParticipantSelection,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
+    const isFocused = useIsFocused();
+    const isActivityVisible = useDeferVisibleUntilFocusTransitionEnd(isFocused);
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
@@ -96,26 +111,31 @@ function MoneyRequestParticipantsSelector({
     }));
 
     return (
-        <ParticipantSearchResults
-            iouType={iouType}
-            action={action}
-            participants={participants}
-            isWorkspacesOnly={isWorkspacesOnly}
-            isPerDiemRequest={isPerDiemRequest}
-            isTimeRequest={isTimeRequest}
-            isNative={isNative}
-            isTransactionFromCreditCardImport={isTransactionFromCreditCardImport}
-            shouldExcludeP2P={shouldExcludeP2P}
-            selectionListRef={selectionListRef}
-            textInputAutoFocus={textInputAutoFocus}
-            setTextInputAutoFocus={setTextInputAutoFocus}
-            onParticipantsAdded={onParticipantsAdded}
-            onFinish={onFinish}
-            initiallySelectedReportID={initiallySelectedReportID}
-            shouldMoveSelectedToTop={shouldMoveSelectedToTop}
-            onRestrictedParticipantSelected={onRestrictedParticipantSelected}
-            onCloseParticipantPicker={onCloseParticipantPicker}
-        />
+        <Activity mode={isActivityVisible ? 'visible' : 'hidden'}>
+            <AlwaysPaintedView inert={!isFocused}>
+                <ParticipantSearchResults
+                    iouType={iouType}
+                    action={action}
+                    participants={participants}
+                    isWorkspacesOnly={isWorkspacesOnly}
+                    isPerDiemRequest={isPerDiemRequest}
+                    isTimeRequest={isTimeRequest}
+                    isNative={isNative}
+                    isTransactionFromCreditCardImport={isTransactionFromCreditCardImport}
+                    shouldExcludeP2P={shouldExcludeP2P}
+                    selectionListRef={selectionListRef}
+                    textInputAutoFocus={textInputAutoFocus}
+                    setTextInputAutoFocus={setTextInputAutoFocus}
+                    onParticipantsAdded={onParticipantsAdded}
+                    onFinish={onFinish}
+                    initiallySelectedReportID={initiallySelectedReportID}
+                    shouldMoveSelectedToTop={shouldMoveSelectedToTop}
+                    onRestrictedParticipantSelected={onRestrictedParticipantSelected}
+                    onCloseParticipantPicker={onCloseParticipantPicker}
+                    shouldBlockParticipantSelection={shouldBlockParticipantSelection}
+                />
+            </AlwaysPaintedView>
+        </Activity>
     );
 }
 

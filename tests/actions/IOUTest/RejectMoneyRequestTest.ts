@@ -22,7 +22,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
+import {getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -75,8 +75,8 @@ describe('actions/IOU/RejectMoneyRequest', () => {
     });
 
     beforeEach(() => {
-        global.fetch = getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = getGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -154,7 +154,17 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            const result = rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, [CONST.BETAS.ALL]);
+            const result = rejectMoneyRequest(
+                transaction.transactionID,
+                iouReport.reportID,
+                comment,
+                policy,
+                TEST_USER_ACCOUNT_ID,
+                TEST_USER_EMAIL,
+                [CONST.BETAS.ALL],
+                undefined,
+                getCurrencyDecimalsLocal,
+            );
 
             // Then: Should return navigation route to chat report
             expect(result).toBe(ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID));
@@ -170,7 +180,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, [CONST.BETAS.ALL]);
+            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, [CONST.BETAS.ALL], undefined, getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Then: Verify violation is added
@@ -226,7 +236,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, [CONST.BETAS.ALL]);
+            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, [CONST.BETAS.ALL], undefined, getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Then: createdIOUReportActionID shouldn't be undefined
@@ -265,17 +275,39 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 throw new Error('Required transaction or report data is missing');
             }
 
-            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, [CONST.BETAS.ALL], {
-                sharedRejectedToReportID,
-                existingRejectedReport,
-                setExistingRejectedReport,
-            });
+            rejectMoneyRequest(
+                transaction.transactionID,
+                iouReport.reportID,
+                comment,
+                policy,
+                TEST_USER_ACCOUNT_ID,
+                TEST_USER_EMAIL,
+                [CONST.BETAS.ALL],
+                undefined,
+                getCurrencyDecimalsLocal,
+                {
+                    sharedRejectedToReportID,
+                    existingRejectedReport,
+                    setExistingRejectedReport,
+                },
+            );
 
-            rejectMoneyRequest(secondTransaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, [CONST.BETAS.ALL], {
-                sharedRejectedToReportID,
-                existingRejectedReport,
-                setExistingRejectedReport,
-            });
+            rejectMoneyRequest(
+                secondTransaction.transactionID,
+                iouReport.reportID,
+                comment,
+                policy,
+                TEST_USER_ACCOUNT_ID,
+                TEST_USER_EMAIL,
+                [CONST.BETAS.ALL],
+                undefined,
+                getCurrencyDecimalsLocal,
+                {
+                    sharedRejectedToReportID,
+                    existingRejectedReport,
+                    setExistingRejectedReport,
+                },
+            );
             await waitForBatchedUpdates();
 
             let allReports: OnyxCollection<Report>;
@@ -301,6 +333,40 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
             expect(firstRejectedTransaction?.reportID).toBe(sharedRejectedToReportID);
             expect(secondRejectedTransaction?.reportID).toBe(sharedRejectedToReportID);
+        });
+
+        it('should not create movedTransactionAction when rejecting an expense to a new draft report', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            const secondTransaction = {
+                ...createRandomTransaction(2),
+                reportID: iouReport?.reportID,
+                amount,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'Test Merchant',
+                transactionID: '2',
+            };
+
+            // Given: An expense report (not IOU) with multiple expenses
+            const expenseReport = {...iouReport, type: CONST.REPORT.TYPE.EXPENSE, total: amount * 2};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransaction.transactionID}`, secondTransaction);
+            await waitForBatchedUpdates();
+
+            // When: Reject the money request (no existing open report, so a new draft report will be created)
+            if (!transaction?.transactionID || !iouReport?.reportID) {
+                throw new Error('Required transaction or report data is missing');
+            }
+            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, [CONST.BETAS.ALL], undefined, getCurrencyDecimalsLocal);
+            await waitForBatchedUpdates();
+
+            // Then: expenseMovedReportActionID should not be present because we don't create
+            // movedTransactionAction when moving to a new draft report
+            const params = writeSpy.mock.calls.at(0)?.[1];
+            expect(writeSpy).toHaveBeenCalled();
+            expect(params).not.toHaveProperty('expenseMovedReportActionID');
+            writeSpy.mockRestore();
         });
     });
 
@@ -345,7 +411,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            rejectExpenseReport(expenseReport, SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR);
+            rejectExpenseReport(expenseReport, SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR, false, undefined);
             await waitForBatchedUpdates();
 
             expect(writeSpy).toHaveBeenCalledWith(
@@ -366,7 +432,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            rejectExpenseReport(expenseReport, SUBMITTER_ACCOUNT_ID, markdownComment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR);
+            rejectExpenseReport(expenseReport, SUBMITTER_ACCOUNT_ID, markdownComment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR, false, undefined);
             await waitForBatchedUpdates();
 
             expect(writeSpy).toHaveBeenCalledWith(
@@ -380,7 +446,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
         });
 
         it('should optimistically update the report when rejecting to submitter', async () => {
-            rejectExpenseReport(expenseReport, SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR);
+            rejectExpenseReport(expenseReport, SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR, false, undefined);
             await waitForBatchedUpdates();
 
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
@@ -390,7 +456,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
         });
 
         it('should optimistically update the report when rejecting to a previous approver', async () => {
-            rejectExpenseReport(expenseReport, APPROVER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR);
+            rejectExpenseReport(expenseReport, APPROVER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR, false, undefined);
             await waitForBatchedUpdates();
 
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
@@ -400,7 +466,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
         });
 
         it('should create optimistic report actions with passed user details', async () => {
-            rejectExpenseReport(expenseReport, SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR);
+            rejectExpenseReport(expenseReport, SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR, false, undefined);
             await waitForBatchedUpdates();
 
             const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`);
@@ -424,19 +490,21 @@ describe('actions/IOU/RejectMoneyRequest', () => {
         let transaction: OnyxEntry<Transaction>;
         let iouReport: OnyxEntry<Report>;
 
+        const rejectViolations = [
+            {
+                name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                type: CONST.VIOLATION_TYPES.WARNING,
+                data: {comment: 'Test reject reason'},
+            },
+        ];
+
         beforeEach(async () => {
             transaction = createRandomTransaction(1);
             iouReport = createRandomReport(1, undefined);
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, transaction);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`, iouReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`, [
-                {
-                    name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
-                    type: CONST.VIOLATION_TYPES.WARNING,
-                    data: {comment: 'Test reject reason'},
-                },
-            ]);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`, rejectViolations);
             await waitForBatchedUpdates();
         });
 
@@ -450,7 +518,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            markRejectViolationAsResolved(transaction.transactionID, false, iouReport.reportID);
+            markRejectViolationAsResolved(transaction.transactionID, false, rejectViolations, iouReport.reportID);
             await waitForBatchedUpdates();
 
             // Then: Verify violation is removed
@@ -469,7 +537,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            markRejectViolationAsResolved(transaction.transactionID, true, iouReport.reportID);
+            markRejectViolationAsResolved(transaction.transactionID, true, rejectViolations, iouReport.reportID);
             await waitForBatchedUpdates();
 
             // Then: Verify violation is removed
@@ -492,7 +560,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             }
 
             // When: Mark violation as resolved
-            markRejectViolationAsResolved(transaction.transactionID, false, iouReport.reportID);
+            markRejectViolationAsResolved(transaction.transactionID, false, rejectViolations, iouReport.reportID);
             await waitForBatchedUpdates();
 
             // Then: API.write should be called with the correct command and transactionID
@@ -514,7 +582,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             }
 
             // When: Mark violation as resolved while online
-            markRejectViolationAsResolved(transaction.transactionID, false, iouReport.reportID);
+            markRejectViolationAsResolved(transaction.transactionID, false, rejectViolations, iouReport.reportID);
             await waitForBatchedUpdates();
 
             // Then: notifyNewAction should be called
@@ -532,7 +600,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             }
 
             // When: Mark violation as resolved without reportID
-            markRejectViolationAsResolved(transaction.transactionID, false, undefined);
+            markRejectViolationAsResolved(transaction.transactionID, false, rejectViolations, undefined);
             await waitForBatchedUpdates();
 
             // Then: API.write should not be called
@@ -540,6 +608,46 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
             // Then: notifyNewAction should not be called
             expect(notifyNewAction).not.toHaveBeenCalled();
+
+            writeSpy.mockRestore();
+        });
+
+        it('uses the passed transactionViolations parameter instead of the global Onyx collection', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            if (!transaction?.transactionID || !iouReport?.reportID) {
+                throw new Error('Required transaction or report data is missing');
+            }
+
+            // Given: Onyx holds an empty violation set, different from what is passed in,
+            // to prove the function relies on the parameter and not the global collection.
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, []);
+            await waitForBatchedUpdates();
+
+            const passedViolations = [
+                {name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: CONST.VIOLATION_TYPES.WARNING, data: {comment: 'Test reject reason'}},
+                {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION},
+            ];
+
+            // When: Mark violation as resolved with the passed violations
+            markRejectViolationAsResolved(transaction.transactionID, false, passedViolations, iouReport.reportID);
+            await waitForBatchedUpdates();
+
+            // Then: the optimistic update removes only AUTO_REPORTED_REJECTED_EXPENSE and keeps the other
+            // violation from the parameter — proving the parameter (not the empty Onyx value) was used.
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MARK_TRANSACTION_VIOLATION_AS_RESOLVED,
+                expect.anything(),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+                            value: [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}],
+                        }),
+                    ]),
+                }),
+            );
 
             writeSpy.mockRestore();
         });

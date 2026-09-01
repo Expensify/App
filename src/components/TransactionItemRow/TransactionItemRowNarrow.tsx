@@ -8,6 +8,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
+import {isScanning} from '@libs/TransactionUtils';
+
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -15,7 +18,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {TransactionItemRowNarrowComputedData, TransactionItemRowProps} from './types';
+import type {TransactionItemRowNarrowComputedData, TransactionItemRowProps, TransactionItemRowRBRDeferControlProps} from './types';
 
 import DeferredChatBubbleCell from './DataCells/DeferredChatBubbleCell';
 import MerchantOrDescriptionCell from './DataCells/MerchantCell';
@@ -48,7 +51,8 @@ type TransactionItemRowNarrowProps = Pick<
     | 'shouldShowArrowRightOnNarrowLayout'
     | 'checkboxSentryLabel'
 > &
-    TransactionItemRowNarrowComputedData;
+    TransactionItemRowNarrowComputedData &
+    TransactionItemRowRBRDeferControlProps;
 
 function TransactionItemRowNarrow({
     transactionItem,
@@ -72,6 +76,7 @@ function TransactionItemRowNarrow({
     onArrowRightPress,
     shouldShowArrowRightOnNarrowLayout,
     checkboxSentryLabel,
+    shouldDeferRBR = true,
     bgActiveStyles,
     merchant,
     merchantOrDescription,
@@ -85,6 +90,8 @@ function TransactionItemRowNarrow({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    // While scanning the merchant slot already says "Scanning...", so the amount and type on the right would only repeat it.
+    const isTransactionScanning = isScanning(transactionItem);
 
     return (
         <>
@@ -96,8 +103,8 @@ function TransactionItemRowNarrow({
                     {shouldShowCheckbox && (
                         <Checkbox
                             disabled={isDisabled}
-                            onPress={() => {
-                                onCheckboxPress(transactionItem.transactionID);
+                            onPress={(event) => {
+                                onCheckboxPress(transactionItem.transactionID, getShiftKeyFromEvent(event));
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
                             isChecked={isSelected}
@@ -130,13 +137,15 @@ function TransactionItemRowNarrow({
                                         isInSingleTransactionReport={isInSingleTransactionReport}
                                     />
                                 )}
-                                <TotalCell
-                                    transactionItem={transactionItem}
-                                    shouldShowTooltip={shouldShowTooltip}
-                                    report={report}
-                                    policy={policy}
-                                    shouldUseNarrowLayout
-                                />
+                                {!isTransactionScanning && (
+                                    <TotalCell
+                                        transactionItem={transactionItem}
+                                        shouldShowTooltip={shouldShowTooltip}
+                                        report={report}
+                                        policy={policy}
+                                        shouldUseNarrowLayout
+                                    />
+                                )}
                             </View>
                         </View>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
@@ -146,11 +155,13 @@ function TransactionItemRowNarrow({
                                 isLargeScreenWidth={false}
                                 suffixText={categoryForDisplay}
                             />
-                            <TypeCell
-                                transactionItem={transactionItem}
-                                shouldShowTooltip={shouldShowTooltip}
-                                shouldUseNarrowLayout
-                            />
+                            {!isTransactionScanning && (
+                                <TypeCell
+                                    transactionItem={transactionItem}
+                                    shouldShowTooltip={shouldShowTooltip}
+                                    shouldUseNarrowLayout
+                                />
+                            )}
                         </View>
                     </View>
                     {!!shouldShowArrowRightOnNarrowLayout && !!onArrowRightPress && (
@@ -179,6 +190,7 @@ function TransactionItemRowNarrow({
                 </View>
                 {shouldShowErrors && (
                     <DeferredTransactionItemRowRBR
+                        shouldDefer={shouldDeferRBR}
                         transaction={transactionItem}
                         violations={violations}
                         report={report}

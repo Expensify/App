@@ -1,9 +1,9 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVacationDelegatePersonalDetails from '@hooks/useVacationDelegatePersonalDetails';
 
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import getVacationDelegateDisplayName from '@libs/getVacationDelegateDisplayName';
 
 import CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -39,14 +39,15 @@ type VacationDelegateSectionProps = {
 
 function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCloseError, onPress}: VacationDelegateSectionProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
-    const personalDetailsByLogin = usePersonalDetailsByLogin();
 
     const hasVacationDelegate = !!vacationDelegate?.delegate;
-    const vacationDelegatePersonalDetails = personalDetailsByLogin[vacationDelegate?.delegate?.toLowerCase() ?? ''];
-    const formattedDelegateLogin = formatPhoneNumber(vacationDelegatePersonalDetails?.login ?? '');
-    const fallbackVacationDelegateLogin = formattedDelegateLogin === '' ? vacationDelegate?.delegate : formattedDelegateLogin;
+    const vacationDelegatePersonalDetails = useVacationDelegatePersonalDetails(vacationDelegate?.delegate);
+
+    const rawDelegateLogin = vacationDelegatePersonalDetails?.login ?? vacationDelegate?.delegate ?? '';
+    const delegateDisplayName = getVacationDelegateDisplayName(rawDelegateLogin, vacationDelegatePersonalDetails?.displayName, formatPhoneNumber);
+    const delegateDescription = formatPhoneNumber(rawDelegateLogin);
 
     return hasVacationDelegate ? (
         <>
@@ -58,8 +59,8 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
                 onClose={onCloseError}
             >
                 <MenuItem
-                    title={vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin}
-                    description={fallbackVacationDelegateLogin}
+                    title={delegateDisplayName}
+                    description={delegateDescription}
                     avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
                     icon={vacationDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar}
                     iconType={CONST.ICON_TYPE_AVATAR}

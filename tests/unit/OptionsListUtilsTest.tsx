@@ -5,16 +5,19 @@ import ComposeProviders from '@components/ComposeProviders';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import SEARCH_ROUTER_OPTIONS_CONFIG from '@components/Search/SearchRouter/searchRouterOptionsConfig';
 
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
+import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from '@libs/AgentRuleChangeLogUtils';
 import DateUtils from '@libs/DateUtils';
 import {translate} from '@libs/Localize';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import type {OptionList, Options, SearchOption, SearchOptionData} from '@libs/OptionsListUtils';
+import type {HydratedPersonalDetailOption, OptionList, Options, PersonalDetailOptionOrShell, SearchOption, SearchOptionData} from '@libs/OptionsListUtils';
 import {
     canCreateOptimisticPersonalDetailOption,
+    clearFilteredOptionListCache,
     createFilteredOptionList,
     createOption,
     createOptionFromReport,
@@ -24,9 +27,8 @@ import {
     filterWorkspaceChats,
     formatMemberForList,
     formatSectionsFromSearchTerm,
-    getFilteredRecentAttendees,
-    getLastActorDisplayName,
-    getLastActorDisplayNameFromLastVisibleActions,
+    getAlternateText,
+    getIOUConfirmationOptionsFromPayeePersonalDetail,
     getLastMessageTextForReport,
     getParticipantsOption,
     getPolicyExpenseReportOption,
@@ -36,14 +38,16 @@ import {
     getSearchValueForPhoneOrEmail,
     getUserToInviteOption,
     getValidOptions,
+    hydrateContactOption,
+    optionsOrderAndGroupBy,
     optionsOrderBy,
     orderOptions,
     orderPersonalDetailsOptions,
     orderWorkspaceOptions,
     recentReportComparator,
-    shouldShowLastActorDisplayName,
     sortAlphabetically,
 } from '@libs/OptionsListUtils';
+import {getLastActorDisplayName, getLastActorDisplayNameFromLastVisibleActions, shouldShowLastActorDisplayName} from '@libs/OptionsListUtils/getChatPreviewParts';
 import {getCurrentUserSearchTerms, getPersonalDetailSearchTerms} from '@libs/OptionsListUtils/searchMatchUtils';
 import Parser from '@libs/Parser';
 import {
@@ -57,7 +61,10 @@ import {
     getRemovedCardFeedMessage,
     getRenamedCardFeedMessage,
     getRequireCompanyCardsEnabledMessage,
+    getRequiresCategoryMessage,
+    getRequiresTagMessage,
     getUnassignedCompanyCardMessage,
+    getUpdatedAutoHarvestingMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
 } from '@libs/ReportActionsUtils';
@@ -67,12 +74,14 @@ import {
     formatReportLastMessageText,
     getMovedActionMessage,
     getMovedTransactionMessage,
-    getReportPreviewMessage,
+    parseMovedTransactionReportIDs,
+    getReportPreviewReportActionMessage,
     getReportTransactions,
     isCanceledTaskReport,
     isExpensifyOnlyParticipantInReport,
 } from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import SidebarUtils from '@libs/SidebarUtils';
 import {isScanning} from '@libs/TransactionUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -82,7 +91,8 @@ import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
-import type {Attendee, Participant} from '@src/types/onyx/IOU';
+import type {Participant} from '@src/types/onyx/IOU';
+import type Login from '@src/types/onyx/Login';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -92,8 +102,9 @@ import Onyx from 'react-native-onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport, createRegularChat} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
-import {localeCompare, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@rnmapbox/maps', () => {
@@ -140,7 +151,6 @@ describe('OptionsListUtils', () => {
         type: CONST.POLICY.TYPE.TEAM,
         owner: 'reedrichards@expensify.com',
         outputCurrency: '',
-        isPolicyExpenseChatEnabled: false,
         approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
     };
 
@@ -721,7 +731,7 @@ describe('OptionsListUtils', () => {
         },
     ];
 
-    const loginList = {};
+    const loginList: OnyxEntry<Login> = {};
     const CURRENT_USER_ACCOUNT_ID = 2;
     const CURRENT_USER_EMAIL = 'tonystark@expensify.com';
 
@@ -823,14 +833,19 @@ describe('OptionsListUtils', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
         await waitForBatchedUpdates();
 
-        OPTIONS = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {isSearching: true});
+        OPTIONS = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            dateFnsLocale: undefined,
+            conciergeReportID: undefined,
+            isSearching: true,
+        });
         OPTIONS_WITH_CONCIERGE = createFilteredOptionList(
             PERSONAL_DETAILS_WITH_CONCIERGE,
             REPORTS_WITH_CONCIERGE,
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             undefined,
-            {isSearching: true},
+            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true},
         );
         OPTIONS_WITH_CHRONOS = createFilteredOptionList(
             PERSONAL_DETAILS_WITH_CHRONOS,
@@ -838,7 +853,7 @@ describe('OptionsListUtils', () => {
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHRONOS,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             undefined,
-            {isSearching: true},
+            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true},
         );
         OPTIONS_WITH_RECEIPTS = createFilteredOptionList(
             PERSONAL_DETAILS_WITH_RECEIPTS,
@@ -846,7 +861,7 @@ describe('OptionsListUtils', () => {
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_RECEIPTS,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             undefined,
-            {isSearching: true},
+            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true},
         );
         OPTIONS_WITH_WORKSPACE_ROOM = createFilteredOptionList(
             PERSONAL_DETAILS,
@@ -854,8 +869,24 @@ describe('OptionsListUtils', () => {
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_WORKSPACE_ROOM,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             undefined,
-            {isSearching: true},
+            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true},
         );
+    });
+
+    beforeEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+        jest.clearAllMocks();
+
+        // createFilteredOptionList caches results at module level; clear it so tests stay order-independent.
+        clearFilteredOptionListCache();
+
+        // Onyx.clear() models sign-out and empties PERSONAL_DETAILS_LIST. Report-holder option text
+        // resolves via ReportUtils.allPersonalDetails (the live connect), so restore the list the
+        // same way a signed-in session would after login.
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+        await waitForBatchedUpdates();
     });
 
     describe('getSearchOptions()', () => {
@@ -863,6 +894,8 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             // When we call getSearchOptions with all betas
             const {options: results} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
@@ -912,11 +945,13 @@ describe('OptionsListUtils', () => {
                 createMockReportAttributesDerived(memberWorkspaceChat, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID),
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 allPolicies,
-                {isSearching: true},
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true},
             );
 
             // When we call getSearchOptions
             const {options: results} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: optionsWithMemberWorkspaceChat,
                 reportAttributesDerived: createMockReportAttributesDerived(memberWorkspaceChat, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID),
                 draftComments: {},
@@ -938,6 +973,8 @@ describe('OptionsListUtils', () => {
             // Given a set of options where the current user is Iron Man (accountID: 2)
             // When we call getSearchOptions with includeCurrentUser set to true
             const {options: results} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS,
                 draftComments: {},
                 betas: [CONST.BETAS.ALL],
@@ -971,6 +1008,8 @@ describe('OptionsListUtils', () => {
             // Given a set of options where the current user is Iron Man (accountID: 2)
             // When we call getSearchOptions with includeCurrentUser set to false (default behavior)
             const {options: results} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS,
                 draftComments: {},
                 betas: [CONST.BETAS.ALL],
@@ -1001,6 +1040,8 @@ describe('OptionsListUtils', () => {
             // Given a set of options with workspace rooms
             // When we call getSearchOptions with policyCollection
             const {options: results} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS_WITH_WORKSPACE_ROOM,
                 draftComments: {},
                 betas: [CONST.BETAS.ALL],
@@ -1031,6 +1072,8 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             // When we call getSearchOptions with empty policyCollection
             const {options: results} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS,
                 draftComments: {},
                 betas: [CONST.BETAS.ALL],
@@ -1060,6 +1103,8 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             // When we call getSearchOptions with undefined policyCollection
             const {options: results} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS,
                 draftComments: {},
                 betas: [CONST.BETAS.ALL],
@@ -1090,6 +1135,8 @@ describe('OptionsListUtils', () => {
             const conciergeReportID = '11';
             // When we call getSearchOptions with conciergeReportID
             const {options: results} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS_WITH_CONCIERGE,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE,
                 draftComments: {},
@@ -1114,6 +1161,8 @@ describe('OptionsListUtils', () => {
             // Given a set of options with Concierge
             // When we call getSearchOptions with conciergeReportID set to undefined
             const {options: results} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS_WITH_CONCIERGE,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE,
                 draftComments: {},
@@ -1140,6 +1189,8 @@ describe('OptionsListUtils', () => {
             const conciergeReportID = '11';
             // When we call getSearchOptions with a search query matching Concierge
             const {options: results} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS_WITH_CONCIERGE,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE,
                 draftComments: {},
@@ -1176,6 +1227,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
             let results: Pick<Options, 'personalDetails' | 'recentReports'> = validOptions;
             // When we call orderOptions()
@@ -1216,6 +1269,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
             let results: Pick<Options, 'personalDetails' | 'recentReports'> = validOptions;
             // When we call orderOptions()
@@ -1244,7 +1299,17 @@ describe('OptionsListUtils', () => {
         it('should return empty options when no reports or personal details are provided', () => {
             // Given empty arrays of reports and personalDetails
             // When we call getValidOptions()
-            const {options: results} = getValidOptions({reports: [], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined);
+            const {options: results} = getValidOptions(
+                {reports: [], personalDetails: []},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
+            );
 
             // Then the result should be empty
             expect(results.personalDetails).toEqual([]);
@@ -1269,12 +1334,75 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
 
             // Then the result should include all personalDetails except the currently logged in user
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 1);
             // Then the result should include Concierge
             expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
+        });
+
+        it.each([
+            {
+                description: 'Vietnamese diacritics',
+                // cspell:disable-next-line
+                displayName: 'Trần Hải',
+                searchString: 'tran',
+            },
+            {
+                description: 'Vietnamese extended diacritics',
+                // cspell:disable-next-line
+                displayName: 'Nguyễn Văn A',
+                searchString: 'nguyen',
+            },
+            {
+                description: 'a zero-width space',
+                displayName: 'Jo\u200Bhn',
+                searchString: 'john',
+            },
+        ])('should preserve a contact when the canonical matcher finds $description', ({displayName, searchString}) => {
+            const accountID = 1003;
+            const personalDetails: PersonalDetailsList = {
+                [accountID]: {
+                    accountID,
+                    displayName,
+                    login: 'contact1003@example.com',
+                    keyForList: 'contact1003@example.com',
+                    reportID: '',
+                },
+            };
+            const optionList = createFilteredOptionList(personalDetails, {}, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
+
+            const {options: preFilteredOptions} = getValidOptions(
+                optionList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {
+                    dateFnsLocale: undefined,
+                    includeRecentReports: false,
+                    personalDetails,
+                    searchString,
+                },
+                translateLocal,
+            );
+
+            // The contact must survive getValidOptions' pre-filter so the final filter can return it.
+            expect(preFilteredOptions.personalDetails).toEqual(expect.arrayContaining([expect.objectContaining({login: 'contact1003@example.com'})]));
+
+            const filteredOptions = filterAndOrderOptions(preFilteredOptions, searchString, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, personalDetails);
+
+            expect(filteredOptions.personalDetails).toEqual([expect.objectContaining({login: 'contact1003@example.com'})]);
         });
 
         it('should exclude Concierge when excludedLogins is specified', () => {
@@ -1291,10 +1419,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {
-                    excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
-                    sortedActions: undefined,
-                },
+                {dateFnsLocale: undefined, excludeLogins: {[CONST.EMAIL.CONCIERGE]: true}, sortedActions: undefined},
+                translateLocal,
             );
 
             // Then the result should include all personalDetails except the currently logged in user and Concierge
@@ -1318,6 +1444,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 conciergeReportID,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
 
             // Then the result should still include Concierge in the results
@@ -1341,10 +1469,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {
-                    excludeLogins: {[CONST.EMAIL.CHRONOS]: true},
-                    sortedActions: undefined,
-                },
+                {dateFnsLocale: undefined, excludeLogins: {[CONST.EMAIL.CHRONOS]: true}, sortedActions: undefined},
+                translateLocal,
             );
 
             // Then the result should include all personalDetails except the currently logged in user and Chronos
@@ -1367,10 +1493,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {
-                    excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
-                    sortedActions: undefined,
-                },
+                {dateFnsLocale: undefined, excludeLogins: {[CONST.EMAIL.RECEIPTS]: true}, sortedActions: undefined},
+                translateLocal,
             );
 
             // Then the result should include all personalDetails except the currently logged in user and receipts
@@ -1422,10 +1546,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {
-                    includeMultipleParticipantReports: true,
-                    sortedActions: undefined,
-                },
+                {dateFnsLocale: undefined, includeMultipleParticipantReports: true, sortedActions: undefined},
+                translateLocal,
             );
             const adminRoomOption = results.recentReports.find((report) => report.reportID === '1455140530846319');
 
@@ -1469,11 +1591,17 @@ describe('OptionsListUtils', () => {
                 notificationPreference: 'hidden',
                 brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
             };
-            const {options: results} = getValidOptions({reports: [workspaceChat], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
-                includeMultipleParticipantReports: true,
-                showRBR: true,
-                sortedActions: undefined,
-            });
+            const {options: results} = getValidOptions(
+                {reports: [workspaceChat], personalDetails: []},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined, includeMultipleParticipantReports: true, showRBR: true, sortedActions: undefined},
+                translateLocal,
+            );
             expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
         });
 
@@ -1513,11 +1641,17 @@ describe('OptionsListUtils', () => {
                 notificationPreference: 'hidden',
                 brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
             };
-            const {options: results} = getValidOptions({reports: [workspaceChat], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
-                includeMultipleParticipantReports: true,
-                showRBR: false,
-                sortedActions: undefined,
-            });
+            const {options: results} = getValidOptions(
+                {reports: [workspaceChat], personalDetails: []},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined, includeMultipleParticipantReports: true, showRBR: false, sortedActions: undefined},
+                translateLocal,
+            );
             expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(null);
         });
 
@@ -1561,12 +1695,17 @@ describe('OptionsListUtils', () => {
                 isBold: false,
             };
 
-            const {options: results} = getValidOptions({reports: [inputOption], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
-                includeRecentReports: true,
-                shouldUnreadBeBold: true,
-                includeMultipleParticipantReports: true,
-                sortedActions: undefined,
-            });
+            const {options: results} = getValidOptions(
+                {reports: [inputOption], personalDetails: []},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined, includeRecentReports: true, shouldUnreadBeBold: true, includeMultipleParticipantReports: true, sortedActions: undefined},
+                translateLocal,
+            );
 
             expect(results.recentReports.at(0)?.isBold).toBe(true);
             expect(results.recentReports.at(0)?.isUnread).toBe(true);
@@ -1596,10 +1735,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {
-                    personalDetails: customPersonalDetails,
-                    sortedActions: undefined,
-                },
+                {dateFnsLocale: undefined, personalDetails: customPersonalDetails, sortedActions: undefined},
+                translateLocal,
             );
 
             // Then the function should complete without errors and return valid results
@@ -1621,11 +1758,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {
-                    selectedOptions,
-                    includeSelectedOptions: true,
-                    sortedActions: undefined,
-                },
+                {dateFnsLocale: undefined, selectedOptions, includeSelectedOptions: true, sortedActions: undefined},
+                translateLocal,
             );
 
             // Then the matching personal detail should be kept in the list and marked as selected
@@ -1647,7 +1781,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {maxElements: 1},
+                {dateFnsLocale: undefined, maxElements: 1},
+                translateLocal,
             );
 
             expect(hasMore).toBe(true);
@@ -1662,10 +1797,734 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {maxElements: 100},
+                {dateFnsLocale: undefined, maxElements: 100},
+                translateLocal,
             );
 
             expect(hasMore).toBe(false);
+        });
+    });
+
+    describe('getValidOptions() with lazy contact options', () => {
+        const hydrateAllPersonalDetails = (list: OptionList): OptionList => ({
+            ...list,
+            personalDetails: list.personalDetails.map(hydrateContactOption),
+        });
+
+        // NOTE: `eagerList` is NOT a correctness baseline for what hydration produces — both sides of every
+        // comparison below run through hydrateContactOption, so a dropped hydration input would
+        // change both and still pass. What these tests prove is that getValidOptions handles the two halves of
+        // PersonalDetailOptionOrShell identically (filtering, ranking, the top-N heap, marking).
+        // The non-circular check — hydration output vs. a direct createOption call with non-default inputs —
+        // lives in 'lazy contact hydration vs. a direct createOption build' below.
+        const buildOptionLists = () => {
+            const lazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
+            const eagerList = hydrateAllPersonalDetails(lazyList);
+            return {eagerList, lazyList};
+        };
+
+        it('should defer the full option build for every contact', () => {
+            // Given an option list from createFilteredOptionList
+            const {lazyList} = buildOptionLists();
+
+            // Then every contact option is a lightweight one: it is not hydrated and skips expensive fields like icons
+            expect(lazyList.personalDetails.length).toBeGreaterThan(0);
+            expect(lazyList.personalDetails.every((option) => !option.isHydrated)).toBe(true);
+            expect(lazyList.personalDetails.every((option) => !('icons' in option))).toBe(true);
+        });
+
+        it('should produce results identical to eagerly built options after hydration', () => {
+            // Given the same data as lightweight shells and as fully hydrated options
+            const {eagerList, lazyList} = buildOptionLists();
+
+            // When both lists go through getValidOptions with a top-N cap that exercises the heap
+            const config = {dateFnsLocale: undefined, maxElements: 3, personalDetails: PERSONAL_DETAILS};
+            const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+            const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+
+            // Then the surviving contacts are hydrated (createOption ran for them) and match the eager results exactly
+            expect(lazyResults.personalDetails.length).toBeGreaterThan(0);
+            expect(lazyResults.personalDetails.every((option) => option.icons !== undefined)).toBe(true);
+            expect(lazyResults.personalDetails.every((option) => !('hydrate' in option))).toBe(true);
+            expect(lazyResults.personalDetails).toEqual(eagerResults.personalDetails);
+        });
+
+        it('should produce results identical to eagerly built options when searching', () => {
+            // Given the same data as lightweight shells and as fully hydrated options
+            const {eagerList, lazyList} = buildOptionLists();
+
+            // When both lists go through getValidOptions with a search string (contact filtering reads text/login/participantsList)
+            const config = {dateFnsLocale: undefined, searchString: 'spider', personalDetails: PERSONAL_DETAILS};
+            const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+            const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+
+            // Then filtering and ordering are unchanged and the hydrated results match
+            expect(lazyResults.personalDetails).toEqual(eagerResults.personalDetails);
+        });
+
+        it.each([
+            {
+                description: 'an apostrophe',
+                reportText: "Don't forget",
+                searchText: 'dont',
+            },
+            {
+                description: 'a hyphen',
+                reportText: 'Foo-Bar',
+                searchText: 'foobar',
+            },
+            {
+                description: 'diacritics',
+                // cspell:disable-next-line
+                reportText: 'Café Zürich',
+                searchText: 'cafe zurich',
+            },
+            {
+                description: 'a zero-width character',
+                reportText: 'Foo\u200BBar',
+                searchText: 'foobar',
+            },
+            {
+                description: 'dots omitted from an email address',
+                reportText: 'Test User',
+                reportLogin: 'test.user@example.com',
+                searchText: 'testuser@example.com',
+            },
+            {
+                description: 'a formatted phone number',
+                reportText: 'Phone Contact',
+                reportLogin: '+12345678901',
+                searchText: '+1 (234) 567-8901',
+            },
+        ])('should preserve a report match through the pre-filter and final filter for $description', ({reportText, reportLogin, searchText}) => {
+            // Given a report option with a search-sensitive display value
+            const sourceReport = OPTIONS.reports.find((report) => !!report.login);
+            expect(sourceReport).toBeDefined();
+            if (!sourceReport) {
+                return;
+            }
+
+            const report = {
+                ...sourceReport,
+                text: reportText,
+                login: reportLogin ?? sourceReport.login,
+            };
+
+            // When getValidOptions receives the NewChat-style normalized search value and the result is
+            // filtered again with the raw search value, as it is in NewChatPage
+            const searchString = getSearchValueForPhoneOrEmail(searchText, COUNTRY_CODE);
+            const {options} = getValidOptions(
+                {reports: [report], personalDetails: []},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined, searchString, includeP2P: true},
+                translateLocal,
+            );
+            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+
+            // Then the report must survive both filtering stages
+            expect(filteredOptions.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({reportID: report.reportID, text: reportText})]));
+        });
+
+        it('should keep every shell filter and sort field identical to the hydrated option', () => {
+            // Given lightweight shells from createFilteredOptionList
+            const {eagerList, lazyList} = buildOptionLists();
+
+            // Then each shell carries the exact values the downstream filter (login/accountID/participantsList/text)
+            // and the heap comparator key read on the hydrated option, which also guarantees identical
+            // tie-breaking for contacts with equal comparator keys
+            expect(lazyList.personalDetails.length).toBe(eagerList.personalDetails.length);
+            for (const [index, eagerOption] of eagerList.personalDetails.entries()) {
+                const shell = lazyList.personalDetails.at(index);
+                expect(shell?.text).toBe(eagerOption.text);
+                expect(shell?.login).toBe(eagerOption.login);
+                expect(shell?.accountID).toBe(eagerOption.accountID);
+                expect(shell?.participantsList).toEqual(eagerOption.participantsList);
+            }
+        });
+
+        it('should not let createOption drift from the lazy shell on any filter- or rank-relevant field', () => {
+            // Drift guard for the lazy shell: it hand-reproduces the subset of createOption's showPersonalDetails
+            // output that getValidOptions filters and ranks on. If createOption ever changes how one of those
+            // values is derived - or starts populating a new one (e.g. displayName / isOptimisticPersonalDetail,
+            // currently undefined on both paths) - the shell must be updated in lockstep or filtering/ranking
+            // will diverge from what is displayed after hydration. This asserts exact parity across every such
+            // field so that a one-sided change to createOption fails here.
+            //
+            // When you add a field that the personal-details filter (see getValidOptions -> filteringFunction
+            // / doesPersonalDetailMatchSearchTerm) or the heap comparator (personalDetailsComparator) reads,
+            // add it to this list AND reproduce it in buildPersonalDetailsOptions.
+            const FILTER_AND_RANK_FIELDS = ['text', 'login', 'accountID', 'participantsList', 'displayName', 'isOptimisticPersonalDetail'] as const;
+
+            // Given lightweight shells and their hydrated counterparts
+            const {eagerList, lazyList} = buildOptionLists();
+
+            // Then every shell reproduces every filter/rank field exactly, and the resolved comparator key matches
+            expect(lazyList.personalDetails.length).toBe(eagerList.personalDetails.length);
+            expect(lazyList.personalDetails.length).toBeGreaterThan(0);
+            for (const [index, eagerOption] of eagerList.personalDetails.entries()) {
+                const shell = lazyList.personalDetails.at(index);
+                for (const field of FILTER_AND_RANK_FIELDS) {
+                    expect(shell?.[field]).toEqual(eagerOption[field]);
+                }
+                // personalDetailsComparator ranks on `text ?? alternateText ?? login`. Both paths always populate
+                // `text` with a string, so the fallbacks are unreachable for personal details and the shells
+                // getValidOptions ranks cannot order differently from the hydrated options orderOptions ranks
+                // later. Assert that invariant directly: if createOption ever leaves `text` nullish, the two
+                // passes would silently diverge (the shell has no alternateText to fall back to, by design).
+                expect(typeof shell?.text).toBe('string');
+                expect(typeof eagerOption.text).toBe('string');
+            }
+        });
+
+        it('should produce results identical to eagerly built options with custom exclusions', () => {
+            // Given the same data as lightweight shells and as fully hydrated options
+            const {eagerList, lazyList} = buildOptionLists();
+
+            // When both lists go through getValidOptions with a custom exclusion (filter reads shell.login)
+            const config = {dateFnsLocale: undefined, excludeLogins: {'peterparker@expensify.com': true}, personalDetails: PERSONAL_DETAILS};
+            const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+            const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+
+            // Then the excluded contact is dropped from both and the remaining results match
+            expect(lazyResults.personalDetails.some((option) => option.login === 'peterparker@expensify.com')).toBe(false);
+            expect(lazyResults.personalDetails).toEqual(eagerResults.personalDetails);
+        });
+
+        it('should handle empty personal details', () => {
+            // Given a lazily built option list with no personal details
+            const lazyList = createFilteredOptionList({}, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
+
+            // When it goes through getValidOptions
+            const {options: results} = getValidOptions(
+                lazyList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
+            );
+
+            // Then no contacts are produced and nothing throws
+            expect(lazyList.personalDetails).toEqual([]);
+            expect(results.personalDetails).toEqual([]);
+        });
+
+        it('should hydrate every rendering-critical property on surviving contacts', () => {
+            // Given a lazily built option list
+            const {lazyList} = buildOptionLists();
+
+            // When it goes through getValidOptions
+            const {options: results} = getValidOptions(
+                lazyList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {
+                    dateFnsLocale: undefined,
+                    personalDetails: PERSONAL_DETAILS,
+                },
+                translateLocal,
+            );
+
+            // Then every surviving contact has the properties SelectionList rendering and selection rely on,
+            // so the deferred build introduces no missing fields
+            expect(results.personalDetails.length).toBeGreaterThan(0);
+            for (const option of results.personalDetails) {
+                expect(option.icons).toBeDefined();
+                expect(option.keyForList).toBeTruthy();
+                expect(option.text).toBeDefined();
+                expect(option.alternateText).toBeDefined();
+                expect(option.login).toBeDefined();
+                expect(option.accountID).toBeDefined();
+                expect(typeof option.isSelected).toBe('boolean');
+            }
+        });
+
+        it('should produce results identical to eagerly built options when searching with a top-N cap', () => {
+            // Given the same data as lightweight shells and as fully hydrated options
+            const {eagerList, lazyList} = buildOptionLists();
+
+            // When both lists go through getValidOptions with search + maxElements together
+            // (filter selects matches, then the heap keeps only the top-N survivors to hydrate)
+            const config = {dateFnsLocale: undefined, searchString: 'man', maxElements: 3, personalDetails: PERSONAL_DETAILS};
+            const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+            const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+
+            // Then filtering, ranking, and hydration match the eager path
+            expect(lazyResults.personalDetails.length).toBeGreaterThan(0);
+            expect(lazyResults.personalDetails.every((option) => option.icons !== undefined)).toBe(true);
+            expect(lazyResults.personalDetails.every((option) => !('hydrate' in option))).toBe(true);
+            expect(lazyResults.personalDetails).toEqual(eagerResults.personalDetails);
+        });
+
+        it('should hydrate correctly after a filtered option list cache hit', () => {
+            // Given lazy contact options built while not searching (the only mode that uses the option-list cache)
+            clearFilteredOptionListCache();
+            const firstLazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+            });
+            const cachedLazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+            });
+            const eagerList = hydrateAllPersonalDetails(firstLazyList);
+
+            // Then the cache hit still returns shells
+            expect(cachedLazyList.personalDetails.every((option) => !option.isHydrated)).toBe(true);
+
+            // And the clone from the cache hit shares each shell's hydration closure, so the expensive build is
+            // reused rather than re-run per clone. cloneOptionList allocates a new shell object on every return,
+            // so a memo keyed on shell identity would start empty here and rebuild the whole visible page.
+            const freshShell = firstLazyList.personalDetails.at(0);
+            const cachedShell = cachedLazyList.personalDetails.at(0);
+            expect(freshShell).toBeDefined();
+            expect(cachedShell).toBeDefined();
+            expect(cachedShell).not.toBe(freshShell);
+            if (freshShell && cachedShell) {
+                expect(hydrateContactOption(cachedShell).icons).toBe(hydrateContactOption(freshShell).icons);
+            }
+
+            // When both the fresh and cached lazy lists go through getValidOptions
+            const config = {dateFnsLocale: undefined, maxElements: 3, personalDetails: PERSONAL_DETAILS};
+            const {options: firstResults} = getValidOptions(firstLazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+            const {options: cachedResults} = getValidOptions(cachedLazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+            const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+
+            // Then hydration from the cached clone matches the fresh lazy build and the eager path
+            expect(cachedResults.personalDetails).toEqual(firstResults.personalDetails);
+            expect(cachedResults.personalDetails).toEqual(eagerResults.personalDetails);
+        });
+
+        it('serves the SearchRouter empty-query list from the cache on the second build', () => {
+            // Given the config the SearchRouter warm-up and SearchAutocompleteList both build with
+            const {maxRecentReports, includeP2P, deferContactsUntilSearch} = SEARCH_ROUTER_OPTIONS_CONFIG;
+            const options = {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                maxRecentReports,
+                includeP2P,
+                deferContactsUntilSearch,
+                isSearching: false,
+            };
+            clearFilteredOptionListCache();
+
+            // When the warm-up builds the list and the first open builds it again from the same Onyx snapshots
+            const warmed = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, options);
+            const opened = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, options);
+
+            // Then the open gets a clone of the warm build instead of rebuilding it, contacts stay deferred,
+            // and typing is a separate entry that still builds them
+            expect(opened.reports.at(0)).not.toBe(warmed.reports.at(0));
+            expect(opened.reports.at(0)?.icons).toBe(warmed.reports.at(0)?.icons);
+            expect(warmed.personalDetails).toHaveLength(0);
+            expect(
+                createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {...options, isSearching: true})
+                    .personalDetails.length,
+            ).toBeGreaterThan(0);
+        });
+
+        it('should hydrate with the build-time inputs, keeping brickRoadIndicator without any caller-provided data', () => {
+            // Given a contact whose 1:1 DM report has a brick road status in the derived report attributes
+            const {lazyList: baseList} = buildOptionLists();
+            const dmReportID = baseList.personalDetails.find((option) => option.reportID)?.reportID;
+            expect(dmReportID).toBeTruthy();
+            const attributesWithError: Record<string, ReportAttributes> = {
+                ...MOCK_REPORT_ATTRIBUTES_DERIVED,
+                [String(dmReportID)]: {
+                    ...MOCK_REPORT_ATTRIBUTES_DERIVED[String(dmReportID)],
+                    brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                },
+            };
+            const lazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, attributesWithError, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
+            const shell = lazyList.personalDetails.find((option) => option.reportID === dmReportID);
+            expect(shell).toBeDefined();
+            if (!shell) {
+                return;
+            }
+
+            // When the shell is hydrated (hydration reads the inputs captured at build time, so no consumer
+            // - e.g. a getSearchOptions caller without report attributes in scope - can drop display data)
+            const hydrated = hydrateContactOption(shell);
+
+            // Then the RBR indicator matches what the eager build would have produced
+            expect(hydrated.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        });
+
+        it('should reuse the built option per shell while still returning a fresh object every time', () => {
+            // Given a shell hydrated once (screens like NewChatPage re-run getValidOptions on every keystroke,
+            // so re-running createOption for every surviving contact would be slower than the eager build)
+            const {lazyList} = buildOptionLists();
+            const shell = lazyList.personalDetails.at(0);
+            expect(shell).toBeDefined();
+            if (!shell) {
+                return;
+            }
+            const first = hydrateContactOption(shell);
+
+            // When the same shell is hydrated again
+            const second = hydrateContactOption(shell);
+
+            // Then the expensive parts are shared, but the option itself is a new object so consumers marking it
+            // in place (isSelected/isBold) cannot leak into other callers and list rows still see a changed reference
+            expect(second).not.toBe(first);
+            expect(second).toEqual(first);
+            expect(second.icons).toBe(first.icons);
+
+            // And mutating one copy leaves later hydrations of the same shell untouched
+            first.isSelected = true;
+            expect(hydrateContactOption(shell).isSelected).toBe(false);
+        });
+
+        it('should hydrate lazy shells when mixed with fully-built device contacts', () => {
+            // Given a fully-built device contact appended onto eager and lazy lists as the hydrated half of the
+            // union, matching useSearchSelector's contactOptions concat path
+            const deviceContactLogin = '+15551234567';
+            const deviceContact: HydratedPersonalDetailOption = {
+                item: {
+                    accountID: 9999,
+                    displayName: 'Device Contact Jane',
+                    login: deviceContactLogin,
+                },
+                reportID: '',
+                keyForList: '9999',
+                text: 'Device Contact Jane',
+                alternateText: deviceContactLogin,
+                login: deviceContactLogin,
+                accountID: 9999,
+                participantsList: [
+                    {
+                        accountID: 9999,
+                        displayName: 'Device Contact Jane',
+                        login: deviceContactLogin,
+                    },
+                ],
+                icons: [
+                    {
+                        source: '',
+                        name: 'Device Contact Jane',
+                        type: CONST.ICON_TYPE_AVATAR,
+                        id: 9999,
+                    },
+                ],
+                isSelected: false,
+                selected: false,
+                brickRoadIndicator: null,
+                isHydrated: true,
+            };
+
+            const {eagerList, lazyList} = buildOptionLists();
+            const eagerWithContacts: OptionList = {
+                ...eagerList,
+                personalDetails: eagerList.personalDetails.concat(deviceContact),
+            };
+            const lazyWithContacts: OptionList = {
+                ...lazyList,
+                personalDetails: lazyList.personalDetails.concat(deviceContact),
+            };
+
+            // When both mixed lists are filtered for the device contact
+            const config = {dateFnsLocale: undefined, searchString: 'Device Contact Jane', personalDetails: PERSONAL_DETAILS};
+            const {options: eagerResults} = getValidOptions(eagerWithContacts, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+            const {options: lazyResults} = getValidOptions(lazyWithContacts, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+
+            // Then the device contact survives hydrate unchanged, lazy shells hydrate, and results match eager
+            expect(lazyResults.personalDetails.some((option) => option.login === deviceContactLogin)).toBe(true);
+            expect(lazyResults.personalDetails.find((option) => option.login === deviceContactLogin)?.icons).toBeDefined();
+            expect(lazyResults.personalDetails.every((option) => !('hydrate' in option))).toBe(true);
+            expect(lazyResults.personalDetails).toEqual(eagerResults.personalDetails);
+        });
+    });
+
+    describe('lazy contact hydration vs. a direct createOption build', () => {
+        // A self-contained fixture so every hydration input can be set to a non-default value and the output
+        // field it drives can be asserted individually. Comparing hydration against another hydration cannot
+        // catch a dropped input; comparing it against a direct createOption call can.
+        const PARITY_ACCOUNT_ID = 77;
+        const PARITY_REPORT_ID = '7700';
+        const PARITY_LOGIN = 'parity@expensify.com';
+
+        const PARITY_PERSONAL_DETAILS: PersonalDetailsList = {
+            '77': {
+                accountID: PARITY_ACCOUNT_ID,
+                displayName: 'Parity Contact',
+                login: PARITY_LOGIN,
+                keyForList: PARITY_LOGIN,
+                reportID: PARITY_REPORT_ID,
+            },
+        };
+        const PARITY_PERSONAL_DETAIL = PARITY_PERSONAL_DETAILS['77'] ?? null;
+
+        // A plain 1:1 DM, so createFilteredOptionList maps it onto the contact above.
+        const PARITY_REPORT: Report = {
+            reportID: PARITY_REPORT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            reportName: 'Parity Contact',
+            lastVisibleActionCreated: '2024-01-01 00:00:00.000',
+            participants: {
+                [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [PARITY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+        };
+        const PARITY_REPORTS: OnyxCollection<Report> = {[PARITY_REPORT_ID]: PARITY_REPORT};
+
+        // Non-default hydration inputs. Each one drives a different field of the built option, asserted below.
+        const PARITY_ATTRIBUTES: Record<string, ReportAttributes> = {
+            [PARITY_REPORT_ID]: {
+                reportName: 'Parity Contact',
+                isEmpty: false,
+                brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                requiresAttention: true,
+                reportErrors: {},
+            },
+        };
+        const PARITY_ARCHIVED_MAP: PrivateIsArchivedMap = {
+            [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${PARITY_REPORT_ID}`]: true,
+        };
+
+        const buildParityShell = () => {
+            clearFilteredOptionListCache();
+            const list = createFilteredOptionList(PARITY_PERSONAL_DETAILS, PARITY_REPORTS, PARITY_ATTRIBUTES, PARITY_ARCHIVED_MAP, allPolicies, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
+            const shell = list.personalDetails.at(0);
+            expect(shell).toBeDefined();
+            // Guard against a vacuous pass: the DM has to be mapped onto the contact, or none of the
+            // report-derived inputs below would reach createOption on either side.
+            expect(shell?.reportID).toBe(PARITY_REPORT_ID);
+            return shell;
+        };
+
+        it('should produce exactly what createOption produces from the same inputs', () => {
+            // Given a shell built from a fixture where every report-derived hydration input is non-default
+            const shell = buildParityShell();
+            if (!shell) {
+                return;
+            }
+
+            // When it is hydrated
+            const hydrated = hydrateContactOption(shell);
+
+            // Then it matches an option built by calling createOption directly with those same inputs.
+            // Dropping any input from the hydration path makes this diverge, because this side names them all.
+            const expected: HydratedPersonalDetailOption = {
+                item: PARITY_PERSONAL_DETAIL,
+                ...createOption({
+                    dateFnsLocale: undefined,
+                    accountIDs: [PARITY_ACCOUNT_ID],
+                    personalDetails: PARITY_PERSONAL_DETAILS,
+                    report: PARITY_REPORT,
+                    policy: undefined,
+                    privateIsArchived: true,
+                    conciergeReportID: undefined,
+                    config: {showPersonalDetails: true},
+                    reportAttributesDerived: PARITY_ATTRIBUTES,
+                    policyTags: undefined,
+                    visibleReportActionsData: {},
+                }),
+                isHydrated: true,
+            };
+
+            expect(hydrated).toEqual(expected);
+        });
+
+        it('should carry the brick road status from reportAttributesDerived into the built option', () => {
+            // Given reportAttributesDerived marking the mapped DM with an error brick road
+            const shell = buildParityShell();
+            if (!shell) {
+                return;
+            }
+
+            // Then hydration surfaces it, so a caller with no report attributes in scope cannot lose it
+            expect(hydrateContactOption(shell).brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        });
+
+        it('should carry the archived state from privateIsArchivedMap into the built option', () => {
+            // Given a privateIsArchivedMap marking the mapped DM as archived
+            const shell = buildParityShell();
+            if (!shell) {
+                return;
+            }
+
+            // Then hydration reflects it
+            expect(hydrateContactOption(shell).private_isArchived).toBe(true);
+        });
+
+        it('should carry conciergeReportID into the built option', () => {
+            // Given the mapped DM is the Concierge report
+            clearFilteredOptionListCache();
+            const list = createFilteredOptionList(PARITY_PERSONAL_DETAILS, PARITY_REPORTS, PARITY_ATTRIBUTES, PARITY_ARCHIVED_MAP, allPolicies, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: PARITY_REPORT_ID,
+                isSearching: true,
+            });
+            const shell = list.personalDetails.at(0);
+            expect(shell).toBeDefined();
+            if (!shell) {
+                return;
+            }
+
+            // Then hydration builds the same option a direct createOption call with that conciergeReportID does,
+            // rather than the one it would build with conciergeReportID dropped
+            const hydrated = hydrateContactOption(shell);
+            const withConcierge = createOption({
+                dateFnsLocale: undefined,
+                accountIDs: [PARITY_ACCOUNT_ID],
+                personalDetails: PARITY_PERSONAL_DETAILS,
+                report: PARITY_REPORT,
+                policy: undefined,
+                privateIsArchived: true,
+                conciergeReportID: PARITY_REPORT_ID,
+                config: {showPersonalDetails: true},
+                reportAttributesDerived: PARITY_ATTRIBUTES,
+                policyTags: undefined,
+                visibleReportActionsData: {},
+            });
+
+            expect(hydrated).toEqual({item: PARITY_PERSONAL_DETAIL, ...withConcierge, isHydrated: true});
+        });
+    });
+
+    describe('lazy contact options on the warm path', () => {
+        // createOption is called through a module-local binding, so a jest spy on the export never sees it.
+        // buildFullOption allocates a fresh `icons` array per build instead, so sharing that array by reference
+        // is exactly "no createOption ran": a rebuild could not produce the same array object.
+        const buildIdentity = (option: PersonalDetailOptionOrShell) => hydrateContactOption(option).icons;
+
+        it('should not rebuild any contact option when the second option list comes from the entry cache', () => {
+            // Given two identical createFilteredOptionList calls, the second served from the entry cache
+            clearFilteredOptionListCache();
+            const first = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+            });
+            const second = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+            });
+            expect(first.personalDetails.length).toBeGreaterThan(0);
+            expect(second.personalDetails.length).toBe(first.personalDetails.length);
+
+            // When both are run through getValidOptions (the first pass builds, the second must not)
+            const config = {dateFnsLocale: undefined, personalDetails: PERSONAL_DETAILS};
+            const firstBuilds = first.personalDetails.map(buildIdentity);
+            const {options: firstResults} = getValidOptions(first, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+            const {options: secondResults} = getValidOptions(second, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+            const secondBuilds = second.personalDetails.map(buildIdentity);
+
+            // Then every contact on the second pass reused the first pass's build.
+            // cloneOptionList hands out fresh shell objects on every return, so a memo keyed on shell identity
+            // starts empty for each clone and rebuilds the whole visible page — slower than the eager build it
+            // replaced. Keying the memo inside the shell's own closure is what makes the warm path free.
+            expect(secondBuilds).toHaveLength(firstBuilds.length);
+            for (let i = 0; i < firstBuilds.length; i++) {
+                expect(secondBuilds.at(i)).toBe(firstBuilds.at(i));
+            }
+
+            // And the two passes still produce equal output
+            expect(secondResults.personalDetails).toEqual(firstResults.personalDetails);
+        });
+
+        it('should freeze the memoized build in dev while leaving the copy handed to callers writable', () => {
+            // Given a hydrated contact option
+            clearFilteredOptionListCache();
+            const list = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
+            const shell = list.personalDetails.at(0);
+            expect(shell).toBeDefined();
+            if (!shell) {
+                return;
+            }
+            const hydrated = hydrateContactOption(shell);
+            const icons = hydrated.icons;
+            expect(icons?.length).toBeGreaterThan(0);
+
+            // Then its nested objects — shared with every other caller that hydrates the same contact — are
+            // locked, so a consumer that mutates one cannot silently corrupt what the next caller reads.
+            // NOTE: jest runs this file in sloppy mode, where assigning to a frozen property fails silently
+            // instead of throwing, so assert the freeze itself plus a mutation that throws in either mode.
+            expect(Object.isFrozen(icons)).toBe(true);
+            expect(Object.isFrozen(icons?.at(0))).toBe(true);
+            const originalSource = icons?.at(0)?.source;
+            const icon = icons?.at(0);
+            if (icon) {
+                icon.source = '';
+            }
+            expect(icons?.at(0)?.source).toBe(originalSource);
+            expect(() => icons?.pop()).toThrow(TypeError);
+
+            // While the top-level copy stays writable, because getValidOptions marks options in place
+            hydrated.isBold = true;
+            expect(hydrated.isBold).toBe(true);
+            expect(Object.isFrozen(hydrated)).toBe(false);
+        });
+    });
+
+    describe('PersonalDetailOptionOrShell typing', () => {
+        it('should not let a display field be read without narrowing on isHydrated', () => {
+            clearFilteredOptionListCache();
+            const list = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
+            const option = list.personalDetails.at(0);
+            expect(option).toBeDefined();
+            if (!option) {
+                return;
+            }
+
+            // The display fields only exist on the hydrated half of the union, so reading one off the union is
+            // a compile error rather than an `undefined` that reaches a rendered row.
+            // @ts-expect-error icons is not readable without narrowing on isHydrated
+            const {icons} = option;
+            // @ts-expect-error subtitle is not readable without narrowing on isHydrated
+            const {subtitle} = option;
+            expect(icons).toBeUndefined();
+            expect(subtitle).toBeUndefined();
+
+            // Narrowing (or hydrating) is what makes them readable
+            expect(hydrateContactOption(option).icons).toBeDefined();
         });
     });
 
@@ -1673,13 +2532,17 @@ describe('OptionsListUtils', () => {
         it('should include all reports by default', () => {
             // Given a set of reports and personalDetails that includes workspace rooms
             // When we call getValidOptions()
-            const {options: results} = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
-                includeRecentReports: true,
-                includeMultipleParticipantReports: true,
-                includeP2P: true,
-                includeOwnedWorkspaceChats: true,
-                sortedActions: undefined,
-            });
+            const {options: results} = getValidOptions(
+                OPTIONS_WITH_WORKSPACE_ROOM,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined, includeRecentReports: true, includeMultipleParticipantReports: true, includeP2P: true, includeOwnedWorkspaceChats: true, sortedActions: undefined},
+                translateLocal,
+            );
 
             // Then the result should include all reports except the currently logged in user
             expect(results.recentReports.length).toBe(OPTIONS_WITH_WORKSPACE_ROOM.reports.length - 1);
@@ -1706,15 +2569,26 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call getValidOptions with shouldSeparateWorkspaceChat and personalDetails config
-            const {options: results} = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
-                includeRecentReports: true,
-                includeMultipleParticipantReports: true,
-                includeP2P: true,
-                includeOwnedWorkspaceChats: true,
-                shouldSeparateWorkspaceChat: true,
-                personalDetails: customPersonalDetails,
-                sortedActions: undefined,
-            });
+            const {options: results} = getValidOptions(
+                OPTIONS_WITH_WORKSPACE_ROOM,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {
+                    dateFnsLocale: undefined,
+                    includeRecentReports: true,
+                    includeMultipleParticipantReports: true,
+                    includeP2P: true,
+                    includeOwnedWorkspaceChats: true,
+                    shouldSeparateWorkspaceChat: true,
+                    personalDetails: customPersonalDetails,
+                    sortedActions: undefined,
+                },
+                translateLocal,
+            );
 
             // Then the function should process without errors and return workspace chats
             expect(results.workspaceChats).toBeDefined();
@@ -1725,15 +2599,26 @@ describe('OptionsListUtils', () => {
         it('should handle undefined personalDetails config in workspace chat lookups', () => {
             // Given a set of reports with workspace rooms
             // When we call getValidOptions with shouldSeparateWorkspaceChat but no personalDetails config
-            const {options: results} = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
-                includeRecentReports: true,
-                includeMultipleParticipantReports: true,
-                includeP2P: true,
-                includeOwnedWorkspaceChats: true,
-                shouldSeparateWorkspaceChat: true,
-                personalDetails: undefined,
-                sortedActions: undefined,
-            });
+            const {options: results} = getValidOptions(
+                OPTIONS_WITH_WORKSPACE_ROOM,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {
+                    dateFnsLocale: undefined,
+                    includeRecentReports: true,
+                    includeMultipleParticipantReports: true,
+                    includeP2P: true,
+                    includeOwnedWorkspaceChats: true,
+                    shouldSeparateWorkspaceChat: true,
+                    personalDetails: undefined,
+                    sortedActions: undefined,
+                },
+                translateLocal,
+            );
 
             // Then the function should fall back to allPersonalDetails and process without errors
             expect(results.workspaceChats).toBeDefined();
@@ -1743,15 +2628,26 @@ describe('OptionsListUtils', () => {
         it('should handle empty personalDetails config in workspace chat lookups', () => {
             // Given a set of reports with workspace rooms
             // When we call getValidOptions with shouldSeparateWorkspaceChat and empty personalDetails
-            const {options: results} = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
-                includeRecentReports: true,
-                includeMultipleParticipantReports: true,
-                includeP2P: true,
-                includeOwnedWorkspaceChats: true,
-                shouldSeparateWorkspaceChat: true,
-                personalDetails: {},
-                sortedActions: undefined,
-            });
+            const {options: results} = getValidOptions(
+                OPTIONS_WITH_WORKSPACE_ROOM,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {
+                    dateFnsLocale: undefined,
+                    includeRecentReports: true,
+                    includeMultipleParticipantReports: true,
+                    includeP2P: true,
+                    includeOwnedWorkspaceChats: true,
+                    shouldSeparateWorkspaceChat: true,
+                    personalDetails: {},
+                    sortedActions: undefined,
+                },
+                translateLocal,
+            );
 
             // Then the function should fall back to allPersonalDetails and process without errors
             expect(results.workspaceChats).toBeDefined();
@@ -1761,15 +2657,26 @@ describe('OptionsListUtils', () => {
         it('should handle null personalDetails config in workspace chat lookups', () => {
             // Given a set of reports with workspace rooms
             // When we call getValidOptions with shouldSeparateWorkspaceChat and null personalDetails
-            const {options: results} = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
-                includeRecentReports: true,
-                includeMultipleParticipantReports: true,
-                includeP2P: true,
-                includeOwnedWorkspaceChats: true,
-                shouldSeparateWorkspaceChat: true,
-                personalDetails: {},
-                sortedActions: undefined,
-            });
+            const {options: results} = getValidOptions(
+                OPTIONS_WITH_WORKSPACE_ROOM,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {
+                    dateFnsLocale: undefined,
+                    includeRecentReports: true,
+                    includeMultipleParticipantReports: true,
+                    includeP2P: true,
+                    includeOwnedWorkspaceChats: true,
+                    shouldSeparateWorkspaceChat: true,
+                    personalDetails: {},
+                    sortedActions: undefined,
+                },
+                translateLocal,
+            );
 
             // Then the function should fall back to allPersonalDetails and process without errors
             expect(results.workspaceChats).toBeDefined();
@@ -1789,6 +2696,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
             const reportLogins = new Set(results.recentReports.map((reportOption) => reportOption.login));
             const personalDetailsOverlapWithReports = results.personalDetails.every((personalDetailOption) => reportLogins.has(personalDetailOption.login));
@@ -1810,10 +2719,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {
-                    excludeLogins: {'peterparker@expensify.com': true},
-                    sortedActions: undefined,
-                },
+                {dateFnsLocale: undefined, excludeLogins: {'peterparker@expensify.com': true}, sortedActions: undefined},
+                translateLocal,
             );
 
             // Then the option should not appear anywhere in either list
@@ -1835,6 +2742,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
 
             // Then the result should include all personalDetails except the currently logged in user
@@ -1857,10 +2766,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {
-                    excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
-                    sortedActions: undefined,
-                },
+                {dateFnsLocale: undefined, excludeLogins: {[CONST.EMAIL.CONCIERGE]: true}, sortedActions: undefined},
+                translateLocal,
             );
 
             // Then the result should include all personalDetails except the currently logged in user and Concierge
@@ -1884,10 +2791,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {
-                    excludeLogins: {[CONST.EMAIL.CHRONOS]: true},
-                    sortedActions: undefined,
-                },
+                {dateFnsLocale: undefined, excludeLogins: {[CONST.EMAIL.CHRONOS]: true}, sortedActions: undefined},
+                translateLocal,
             );
 
             // Then the result should include all personalDetails except the currently logged in user and Chronos
@@ -1911,10 +2816,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {
-                    excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
-                    sortedActions: undefined,
-                },
+                {dateFnsLocale: undefined, excludeLogins: {[CONST.EMAIL.RECEIPTS]: true}, sortedActions: undefined},
+                translateLocal,
             );
 
             // Then the result should include all personalDetails except the currently logged in user and receipts
@@ -1936,10 +2839,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {
-                    maxRecentReportElements: maxRecentReports,
-                    sortedActions: undefined,
-                },
+                {dateFnsLocale: undefined, maxRecentReportElements: maxRecentReports, sortedActions: undefined},
+                translateLocal,
             );
 
             // Then the recent reports should be limited to the specified number
@@ -1957,6 +2858,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
             const {options: resultsWithLimit} = getValidOptions(
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
@@ -1966,10 +2869,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {
-                    maxRecentReportElements: 2,
-                    sortedActions: undefined,
-                },
+                {dateFnsLocale: undefined, maxRecentReportElements: 2, sortedActions: undefined},
+                translateLocal,
             );
 
             // Then the results without limit should have more or equal reports
@@ -1987,6 +2888,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
             const {options: resultsWithLimit} = getValidOptions(
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
@@ -1996,10 +2899,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {
-                    maxRecentReportElements: 2,
-                    sortedActions: undefined,
-                },
+                {dateFnsLocale: undefined, maxRecentReportElements: 2, sortedActions: undefined},
+                translateLocal,
             );
 
             // Then personalDetails should remain the same regardless of maxRecentReportElements
@@ -2019,11 +2920,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {
-                    maxElements: maxTotalElements,
-                    maxRecentReportElements: maxRecentReports,
-                    sortedActions: undefined,
-                },
+                {dateFnsLocale: undefined, maxElements: maxTotalElements, maxRecentReportElements: maxRecentReports, sortedActions: undefined},
+                translateLocal,
             );
 
             // Then recent reports should be limited by maxRecentReportElements
@@ -2034,6 +2932,11 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getShareDestinationsOptions()', () => {
+        beforeEach(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}10`, REPORTS['10'] ?? {});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
+        });
+
         it('should exclude archived rooms and hidden threads from share destinations', () => {
             // Given a set of filtered current Reports (as we do in the component) before getting share destination options
             const filteredReports = Object.values(OPTIONS.reports).reduce<OptionList['reports']>((filtered, option) => {
@@ -2055,6 +2958,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
+                    dateFnsLocale: undefined,
                     betas: [],
                     includeMultipleParticipantReports: true,
                     showChatPreviewLine: true,
@@ -2069,6 +2973,7 @@ describe('OptionsListUtils', () => {
                     includeUserToInvite: false,
                     sortedActions: undefined,
                 },
+                translateLocal,
             );
 
             // Then all the recent reports should be returned except the archived rooms and the hidden thread
@@ -2100,6 +3005,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
+                    dateFnsLocale: undefined,
                     betas: [],
                     includeMultipleParticipantReports: true,
                     showChatPreviewLine: true,
@@ -2114,6 +3020,7 @@ describe('OptionsListUtils', () => {
                     includeUserToInvite: false,
                     sortedActions: undefined,
                 },
+                translateLocal,
             );
 
             // Then all recent reports should be returned except the archived rooms and the hidden thread
@@ -2190,10 +3097,11 @@ describe('OptionsListUtils', () => {
 
         it('should return false when report is a DM but lastActorDetails is not the current user', () => {
             // Given a DM report where last actor is not current user
-            const report = {
-                ...REPORTS['2'],
-                type: CONST.REPORT.TYPE.CHAT,
-            } as Report;
+            const report = REPORTS['2'];
+            expect(report).toBeDefined();
+            if (!report) {
+                throw new Error('Expected the DM report fixture to be defined');
+            }
             const lastActorDetails = PERSONAL_DETAILS['3'];
             const lastAction = createRandomReportAction(1);
 
@@ -2300,6 +3208,8 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             // When we call getSearchOptions with all betas
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
@@ -2324,6 +3234,8 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             // When we call getSearchOptions with all betas
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
@@ -2338,6 +3250,7 @@ describe('OptionsListUtils', () => {
             });
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                dateFnsLocale: undefined,
                 sortByReportTypeInSearch: true,
             });
 
@@ -2357,6 +3270,8 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             // When we call getSearchOptions with all betas
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
@@ -2384,9 +3299,16 @@ describe('OptionsListUtils', () => {
             const archivedMap: PrivateIsArchivedMap = {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`]: !!reportNameValuePairs.private_isArchived,
             };
-            const OPTIONS_WITH_ARCHIVED = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, archivedMap, undefined, {isSearching: true});
+            const OPTIONS_WITH_ARCHIVED = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, archivedMap, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
             // When we call getSearchOptions with all betas
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS_WITH_ARCHIVED,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
@@ -2412,9 +3334,16 @@ describe('OptionsListUtils', () => {
             // cspell:disable-next-line
             const searchText = 'barryallen';
             // Given a set of options created from PERSONAL_DETAILS_WITH_PERIODS
-            const OPTIONS_WITH_PERIODS = createFilteredOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
+            const OPTIONS_WITH_PERIODS = createFilteredOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
             // When we call getSearchOptions with all betas
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS_WITH_PERIODS,
                 draftComments: {},
                 loginList,
@@ -2428,6 +3357,7 @@ describe('OptionsListUtils', () => {
             });
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS_WITH_PERIODS, {
+                dateFnsLocale: undefined,
                 sortByReportTypeInSearch: true,
             });
 
@@ -2442,6 +3372,8 @@ describe('OptionsListUtils', () => {
             // Given a set of options with workspace rooms
             // When we call getSearchOptions with all betas
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS_WITH_WORKSPACE_ROOM,
                 draftComments: {},
                 loginList,
@@ -2466,6 +3398,8 @@ describe('OptionsListUtils', () => {
             const searchText = 'reedrichards@expensify.com';
             // Given a set of options with all betas
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
@@ -2497,10 +3431,12 @@ describe('OptionsListUtils', () => {
                 MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHAT_ROOM,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 undefined,
-                {isSearching: true},
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true},
             );
             // When we call getSearchOptions with all betas
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS_WITH_CHAT_ROOMS,
                 draftComments: {},
                 loginList,
@@ -2526,6 +3462,8 @@ describe('OptionsListUtils', () => {
             const searchText = 'fantastic';
             // Given a set of options
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
@@ -2552,6 +3490,8 @@ describe('OptionsListUtils', () => {
             const searchText = 'test@email.com';
             // Given a set of options
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
@@ -2582,13 +3522,12 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {
-                    excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                    sortedActions: undefined,
-                },
+                {dateFnsLocale: undefined, excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT, sortedActions: undefined},
+                translateLocal,
             );
             // When we call filterAndOrderOptions with a search value and excluded logins list
             const filterOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                dateFnsLocale: undefined,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             });
 
@@ -2600,6 +3539,8 @@ describe('OptionsListUtils', () => {
             const searchText = 'test@email.com';
             // Given a set of options
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
@@ -2614,6 +3555,7 @@ describe('OptionsListUtils', () => {
             });
             // When we call filterAndOrderOptions with a search value and excludeLogins
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                dateFnsLocale: undefined,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             });
 
@@ -2625,6 +3567,8 @@ describe('OptionsListUtils', () => {
             const searchText = '';
             // Given a set of options
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
@@ -2639,6 +3583,7 @@ describe('OptionsListUtils', () => {
             });
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 2
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                dateFnsLocale: undefined,
                 maxRecentReportsToShow: 2,
             });
 
@@ -2648,6 +3593,7 @@ describe('OptionsListUtils', () => {
             // Note: in the past maxRecentReportsToShow: 0 would return all recent reports, this has changed, and is expected to return none now
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 0
             const limitToZeroOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                dateFnsLocale: undefined,
                 maxRecentReportsToShow: 0,
             });
 
@@ -2659,6 +3605,8 @@ describe('OptionsListUtils', () => {
             const searchText = 'natasharomanoff@expensify.com';
             // Given a set of options with all betas
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
@@ -2699,6 +3647,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
+                    dateFnsLocale: undefined,
                     betas: [],
                     includeMultipleParticipantReports: true,
                     showChatPreviewLine: true,
@@ -2713,6 +3662,7 @@ describe('OptionsListUtils', () => {
                     includeUserToInvite: false,
                     sortedActions: undefined,
                 },
+                translateLocal,
             );
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
             const filteredOptions = filterAndOrderOptions(options, 'mutants', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2745,6 +3695,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
+                    dateFnsLocale: undefined,
                     betas: [],
                     includeMultipleParticipantReports: true,
                     showChatPreviewLine: true,
@@ -2759,6 +3710,7 @@ describe('OptionsListUtils', () => {
                     includeUserToInvite: false,
                     sortedActions: undefined,
                 },
+                translateLocal,
             );
             // When we pass the returned options to filterAndOrderOptions with a search value that matches the group chat name
             const filteredOptions = filterAndOrderOptions(options, 'Avengers Room', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2791,6 +3743,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
+                    dateFnsLocale: undefined,
                     betas: [],
                     includeMultipleParticipantReports: true,
                     showChatPreviewLine: true,
@@ -2805,6 +3758,7 @@ describe('OptionsListUtils', () => {
                     includeUserToInvite: false,
                     sortedActions: undefined,
                 },
+                translateLocal,
             );
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
             const filteredOptions = filterAndOrderOptions(options, 'Mutants Lair', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2823,6 +3777,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that matches a personal detail with no existing report
             const filteredOptions = filterAndOrderOptions(options, 'hulk', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2860,10 +3816,17 @@ describe('OptionsListUtils', () => {
                 },
             };
 
-            const OPTIONS_WITH_GROUP_CHAT = createFilteredOptionList(PERSONAL_DETAILS, REPORTS_WITH_GROUP_CHAT, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
+            const OPTIONS_WITH_GROUP_CHAT = createFilteredOptionList(PERSONAL_DETAILS, REPORTS_WITH_GROUP_CHAT, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
 
             // When we call getSearchOptions with a search query that matches a participant display name
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS_WITH_GROUP_CHAT,
                 draftComments: {},
                 loginList,
@@ -2908,10 +3871,17 @@ describe('OptionsListUtils', () => {
                 },
             };
 
-            const OPTIONS_WITH_GROUP_CHAT = createFilteredOptionList(PERSONAL_DETAILS, REPORTS_WITH_GROUP_CHAT, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
+            const OPTIONS_WITH_GROUP_CHAT = createFilteredOptionList(PERSONAL_DETAILS, REPORTS_WITH_GROUP_CHAT, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
 
             // When we call getSearchOptions with a search query that matches a participant login
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS_WITH_GROUP_CHAT,
                 draftComments: {},
                 loginList,
@@ -2956,10 +3926,17 @@ describe('OptionsListUtils', () => {
                 },
             };
 
-            const OPTIONS_WITH_GROUP_CHAT = createFilteredOptionList(PERSONAL_DETAILS, REPORTS_WITH_GROUP_CHAT, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
+            const OPTIONS_WITH_GROUP_CHAT = createFilteredOptionList(PERSONAL_DETAILS, REPORTS_WITH_GROUP_CHAT, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
 
             // When we call getSearchOptions with a search query that matches a participant name
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS_WITH_GROUP_CHAT,
                 draftComments: {},
                 loginList,
@@ -3004,10 +3981,17 @@ describe('OptionsListUtils', () => {
                 },
             };
 
-            const OPTIONS_WITH_GROUP_CHAT = createFilteredOptionList(PERSONAL_DETAILS, REPORTS_WITH_GROUP_CHAT, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
+            const OPTIONS_WITH_GROUP_CHAT = createFilteredOptionList(PERSONAL_DETAILS, REPORTS_WITH_GROUP_CHAT, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
 
             // When we call getSearchOptions with a search query that does not match any participant
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS_WITH_GROUP_CHAT,
                 draftComments: {},
                 loginList,
@@ -3053,11 +4037,13 @@ describe('OptionsListUtils', () => {
                 undefined,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 undefined,
-                {isSearching: true},
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true},
             );
 
             // When we call getSearchOptions with all betas
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS_WITH_GROUP_CHAT_NO_PARTICIPANTS,
                 draftComments: {},
                 loginList,
@@ -3088,6 +4074,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
             const filteredOptions = filterAndOrderOptions(options, 'marc@expensify', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -3109,6 +4097,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
             const filteredOptions = filterAndOrderOptions(options, 'marc@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -3130,6 +4120,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
             const filteredOptions = filterAndOrderOptions(options, 'peter.parker@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -3150,6 +4142,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
             // When we call filterAndOrderOptions with a search value without accent mark
             const filteredOptions = filterAndOrderOptions(options, 'Timothee', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -3168,6 +4162,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
             const filteredOptions = filterAndOrderOptions(options, '5005550006', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -3191,6 +4187,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
             const filteredOptions = filterAndOrderOptions(options, '+15005550006', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -3214,6 +4212,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
             const filteredOptions = filterAndOrderOptions(options, '+1 (800)324-3233', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -3237,6 +4237,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
             const filteredOptions = filterAndOrderOptions(options, '998243aaaa', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -3258,14 +4260,13 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {
-                    includeUserToInvite: true,
-                    sortedActions: undefined,
-                },
+                {dateFnsLocale: undefined, includeUserToInvite: true, sortedActions: undefined},
+                translateLocal,
             );
 
             // When we call filterAndOrderOptions with a plain text name (not email or phone) without shouldAcceptName
             const filteredOptions = filterAndOrderOptions(options, 'Jeff Amazon', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                dateFnsLocale: undefined,
                 shouldAcceptName: false,
             });
 
@@ -3283,14 +4284,13 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {
-                    includeUserToInvite: true,
-                    sortedActions: undefined,
-                },
+                {dateFnsLocale: undefined, includeUserToInvite: true, sortedActions: undefined},
+                translateLocal,
             );
 
             // When we call filterAndOrderOptions with a plain text name (not email or phone) with shouldAcceptName
             const filteredOptions = filterAndOrderOptions(options, 'Jeff', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                dateFnsLocale: undefined,
                 shouldAcceptName: true,
             });
 
@@ -3308,6 +4308,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details
             const filteredOptions = filterAndOrderOptions(options, 'magneto', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -3326,9 +4328,12 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that matches an email
             const filteredOptions = filterAndOrderOptions(options, 'peterparker@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                dateFnsLocale: undefined,
                 sortByReportTypeInSearch: true,
             });
 
@@ -3350,9 +4355,12 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that matches both reports and personal details and maxRecentReportsToShow param
             const filteredOptions = filterAndOrderOptions(options, '.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                dateFnsLocale: undefined,
                 maxRecentReportsToShow: 5,
             });
 
@@ -3370,6 +4378,8 @@ describe('OptionsListUtils', () => {
         it('should return matching option when searching (getSearchOptions)', () => {
             // Given a set of options
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
@@ -3393,6 +4403,8 @@ describe('OptionsListUtils', () => {
         it('should return latest lastVisibleActionCreated item on top when search value matches multiple items (getSearchOptions)', () => {
             // Given a set of options
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
@@ -3418,9 +4430,16 @@ describe('OptionsListUtils', () => {
                 .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
                 .then(() => {
                     // Given a set of options with periods
-                    const OPTIONS_WITH_PERIODS = createFilteredOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
+                    const OPTIONS_WITH_PERIODS = createFilteredOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                        dateFnsLocale: undefined,
+                        conciergeReportID: undefined,
+                        isSearching: true,
+                    });
                     // When we call getSearchOptions
                     const {options: results} = getSearchOptions({
+                        dateFnsLocale: undefined,
+                        translate: translateLocal,
                         options: OPTIONS_WITH_PERIODS,
                         draftComments: {},
                         loginList,
@@ -3440,9 +4459,7 @@ describe('OptionsListUtils', () => {
                         CURRENT_USER_EMAIL,
                         CURRENT_USER_ACCOUNT_ID,
                         PERSONAL_DETAILS_WITH_PERIODS,
-                        {
-                            sortByReportTypeInSearch: true,
-                        },
+                        {dateFnsLocale: undefined, sortByReportTypeInSearch: true},
                     );
 
                     // Then only one report should be returned
@@ -3460,6 +4477,8 @@ describe('OptionsListUtils', () => {
 
             // Given a set of options
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
@@ -3484,10 +4503,17 @@ describe('OptionsListUtils', () => {
 
         it('should order self dm always on top if the search matches with the self dm login', () => {
             const searchTerm = 'tonystark@expensify.com';
-            const OPTIONS_WITH_SELF_DM = createFilteredOptionList(PERSONAL_DETAILS, REPORTS_WITH_SELF_DM, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
+            const OPTIONS_WITH_SELF_DM = createFilteredOptionList(PERSONAL_DETAILS, REPORTS_WITH_SELF_DM, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
 
             // Given a set of options with self dm and all betas
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS_WITH_SELF_DM,
                 draftComments: {},
                 loginList,
@@ -3505,6 +4531,30 @@ describe('OptionsListUtils', () => {
             // Then the self dm should be on top.
             expect(filteredOptions.recentReports.at(0)?.isSelfDM).toBe(true);
         });
+
+        it('should return the same matches for normalized multi-word queries with extra spaces', () => {
+            const {options} = getSearchOptions({
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+                options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
+                draftComments: {},
+                loginList,
+                betas: [CONST.BETAS.ALL],
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
+                personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
+                conciergeReportID: undefined,
+            });
+
+            const multiSpaceQueryResults = filterAndOrderOptions(options, 'Invisible   Woman', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const spaceSeparatedQueryResults = filterAndOrderOptions(options, 'Invisible Woman', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+
+            expect(multiSpaceQueryResults.recentReports.map((option) => option.reportID)).toEqual(spaceSeparatedQueryResults.recentReports.map((option) => option.reportID));
+            expect(multiSpaceQueryResults.personalDetails.map((option) => option.accountID)).toEqual(spaceSeparatedQueryResults.personalDetails.map((option) => option.accountID));
+        });
     });
 
     describe('canCreateOptimisticPersonalDetailOption()', () => {
@@ -3516,7 +4566,9 @@ describe('OptionsListUtils', () => {
                 searchValue: VALID_EMAIL,
                 currentUserOption: {
                     login: currentUserEmail,
-                } as OptionData,
+                    reportID: currentUserEmail,
+                    keyForList: currentUserEmail,
+                },
                 // Note: in the past this would check for the existence of the email in the personalDetails list, this has changed.
                 // We expect only filtered lists to be passed to this function, so we don't need to check for the existence of the email in the personalDetails list.
                 // This is a performance optimization.
@@ -3536,7 +4588,9 @@ describe('OptionsListUtils', () => {
                 personalDetailsOptions: [],
                 currentUserOption: {
                     login: currentUserEmail,
-                } as OptionData,
+                    reportID: currentUserEmail,
+                    keyForList: currentUserEmail,
+                },
             });
 
             // Then the returned value should be false
@@ -3546,8 +4600,14 @@ describe('OptionsListUtils', () => {
         it('createFilteredOptionList() localization', async () => {
             renderLocaleContextProvider();
             // Given a set of reports and personal details
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
             // When we call createFilteredOptionList and extract the reports
-            const reports = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {isSearching: true}).reports;
+            const reports = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching: true,
+            }).reports;
 
             // Then the returned reports should match the expected values
             expect(reports.at(10)?.subtitle).toBe(`Submits to Mister Fantastic`);
@@ -3557,7 +4617,12 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             // When we call createFilteredOptionList again
-            const newReports = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {isSearching: true}).reports;
+            const newReports = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching: true,
+            }).reports;
             // Then the returned reports should change to Spanish
             // cspell:disable-next-line
             expect(newReports.at(10)?.subtitle).toBe('Se envía a Mister Fantastic');
@@ -3640,11 +4705,467 @@ describe('OptionsListUtils', () => {
             const archivedMap: PrivateIsArchivedMap = {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`]: !!reportNameValuePairs.private_isArchived,
             };
-            const reports = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, archivedMap, undefined, {isSearching: true}).reports;
+            const reports = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, archivedMap, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching: true,
+            }).reports;
             const archivedReport = reports.find((report) => report.reportID === '10');
 
             // Then the returned report should contain default archived reason
             expect(archivedReport?.lastMessageText).toBe('This chat room has been archived.');
+        });
+    });
+
+    describe('getAlternateText()', () => {
+        const ROOM_REPORT_ID = '9100';
+        const DM_REPORT_ID = '9200';
+
+        const participants = {
+            2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+        };
+
+        const buildRoomReport = (overrides: Partial<Report> = {}): Report => ({
+            reportID: ROOM_REPORT_ID,
+            reportName: '#galaxy',
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+            policyID,
+            lastReadTime: '2024-01-01 10:00:00.000',
+            lastVisibleActionCreated: '2024-01-01 10:00:00.000',
+            lastMessageText: 'hello',
+            lastActionType: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            lastActorAccountID: 3,
+            participants,
+            ...overrides,
+        });
+
+        const buildDMReport = (overrides: Partial<Report> = {}): Report => ({
+            reportID: DM_REPORT_ID,
+            reportName: '',
+            type: CONST.REPORT.TYPE.CHAT,
+            lastReadTime: '2024-01-01 10:00:00.000',
+            lastVisibleActionCreated: '2024-01-01 10:00:00.000',
+            lastMessageText: 'hello',
+            lastActionType: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            lastActorAccountID: 3,
+            participants,
+            ...overrides,
+        });
+
+        const buildAction = (actionName: Parameters<typeof getFakeAdvancedReportAction>[0], actorAccountID = 3, originalMessage?: Record<string, unknown>): ReportAction =>
+            ({
+                ...getFakeAdvancedReportAction(actionName),
+                actorAccountID,
+                ...(originalMessage === undefined ? {} : {originalMessage}),
+            }) as ReportAction;
+
+        const setReport = async (report: Report) => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await waitForBatchedUpdates();
+        };
+
+        type AlternateTextConfig = Parameters<typeof getAlternateText>[2];
+
+        const buildConfig = (lastAction?: ReportAction, reportID: string = ROOM_REPORT_ID, overrides: Partial<AlternateTextConfig> = {}): AlternateTextConfig => ({
+            isReportArchived: false,
+            personalDetails: PERSONAL_DETAILS,
+            dateFnsLocale: undefined,
+            conciergeReportID: undefined,
+            translate: translateLocal,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            ...(lastAction ? {sortedActions: {[reportID]: [lastAction]}} : {}),
+            ...overrides,
+        });
+
+        it('should keep the raw comment text when the last action is ADD_COMMENT', async () => {
+            // Given a DM whose last action is a plain comment containing markup typed by the user
+            const report = buildDMReport({lastMessageText: '<b>test</b>'});
+            await setReport(report);
+            const option: OptionData = {reportID: DM_REPORT_ID, keyForList: '', lastMessageText: '<b>test</b>'};
+
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, DM_REPORT_ID));
+
+            // Then the markup is preserved as typed (https://github.com/Expensify/App/issues/82036)
+            expect(result).toBe('<b>test</b>');
+        });
+
+        it('should strip HTML from the last message when the last action is not ADD_COMMENT', async () => {
+            // Given a DM whose last action is not a comment, so the last message is server-built HTML
+            const report = buildDMReport({lastMessageText: '<b>test</b>', lastActionType: CONST.REPORT.ACTIONS.TYPE.RENAMED});
+            await setReport(report);
+            const option: OptionData = {reportID: DM_REPORT_ID, keyForList: '', lastMessageText: '<b>test</b>'};
+
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, DM_REPORT_ID));
+
+            expect(result).toBe('test');
+        });
+
+        it('should prefix the room preview with the last actor display name', async () => {
+            await setReport(buildRoomReport());
+            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
+
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment));
+
+            expect(result).toBe('Spider-Man: hello');
+        });
+
+        it('should use "You" as the prefix when the current user sent the last message', async () => {
+            await setReport(buildRoomReport({lastActorAccountID: CURRENT_USER_ACCOUNT_ID}));
+            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CURRENT_USER_ACCOUNT_ID);
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
+
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment));
+
+            expect(result).toBe('You: hello');
+        });
+
+        it('should omit the actor prefix when the report is archived', async () => {
+            await setReport(buildRoomReport());
+            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
+
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment, ROOM_REPORT_ID, {isReportArchived: true}));
+
+            expect(result).toBe('hello');
+        });
+
+        it('should omit the actor prefix when currentUserAccountID is undefined', async () => {
+            await setReport(buildRoomReport());
+            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
+
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment, ROOM_REPORT_ID, {currentUserAccountID: undefined}));
+
+            expect(result).toBe('hello');
+        });
+
+        it('should omit the actor prefix when the last action is a report preview', async () => {
+            await setReport(buildRoomReport({lastActionType: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, lastMessageText: 'owes $10'}));
+            const preview = buildAction(CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, 3);
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'owes $10', isChatRoom: true};
+
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(preview));
+
+            expect(result).toBe('owes $10');
+        });
+
+        it('should fall back to the report action person text when the actor is missing from personal details', async () => {
+            await setReport(buildRoomReport({lastActorAccountID: 999}));
+            // The fake action carries person: [{text: 'Email One'}] and account 999 is not in PERSONAL_DETAILS
+            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 999);
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
+
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment));
+
+            expect(result).toBe('Email One: hello');
+        });
+
+        it('should replace the preview with the rename message for a RENAMED last action', async () => {
+            await setReport(buildRoomReport({lastActionType: CONST.REPORT.ACTIONS.TYPE.RENAMED, lastMessageText: 'renamed this room'}));
+            const renamed = buildAction(CONST.REPORT.ACTIONS.TYPE.RENAMED, 3, {oldName: 'Old Room', newName: 'New Room'});
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'renamed this room', isChatRoom: true};
+
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(renamed));
+
+            expect(result).toBe('Spider-Man renamed this room to "New Room" (previously "Old Room")');
+        });
+
+        it('should replace the preview with the leave message for a room LEAVE_ROOM last action', async () => {
+            await setReport(buildRoomReport({lastMessageText: 'left the chat'}));
+            const leave = buildAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM, 3);
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'left the chat', isChatRoom: true};
+
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(leave));
+
+            expect(result).toBe('Spider-Man: left the chat');
+        });
+
+        it('should prefix the action message with the actor for a policy LEAVE_ROOM last action', async () => {
+            await setReport(buildRoomReport({lastMessageText: 'left the workspace'}));
+            // The fake action's message text is 'hey'
+            const leave = buildAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM, 3);
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'left the workspace', isChatRoom: true};
+
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(leave));
+
+            expect(result).toBe('Spider-Man: hey');
+        });
+
+        it('should build the invite message with member count and room name', async () => {
+            await setReport(buildRoomReport({lastMessageText: 'invited'}));
+            const invite = buildAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM, 3, {targetAccountIDs: [4, 5], roomName: '#galaxy'});
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'invited', isChatRoom: true};
+
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(invite));
+
+            expect(result).toBe('Spider-Man: invited 2 members to #galaxy');
+        });
+
+        it('should build the remove message with a singular member and room name', async () => {
+            await setReport(buildRoomReport({lastMessageText: 'removed'}));
+            const remove = buildAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM, 3, {targetAccountIDs: [4], roomName: '#galaxy'});
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'removed', isChatRoom: true};
+
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(remove));
+
+            expect(result).toBe('Spider-Man: removed 1 member from #galaxy');
+        });
+
+        it('should count invited members from lastMessageHtml mentions when targetAccountIDs is empty', async () => {
+            await setReport(
+                buildRoomReport({
+                    lastMessageText: 'invited',
+                    lastMessageHtml: '<mention-user accountID="4"></mention-user> <mention-user accountID="5"></mention-user>',
+                }),
+            );
+            const invite = buildAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM, 3, {targetAccountIDs: []});
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'invited', isChatRoom: true};
+
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(invite));
+
+            expect(result).toBe('Spider-Man: invited 2 members');
+        });
+
+        it.each([CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.RETRACTED])(
+            'should suppress the actor prefix for %s because its text already embeds the actor',
+            async (actionName) => {
+                await setReport(buildRoomReport({lastActionType: actionName, lastMessageText: 'issued a new card'}));
+                const action = buildAction(actionName, 3);
+                const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'issued a new card', isChatRoom: true};
+
+                const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(action));
+
+                expect(result).toBe('issued a new card');
+            },
+        );
+
+        it('should skip whisper actions when picking the last visible action from sortedActions', async () => {
+            await setReport(buildRoomReport());
+            // getWhisperedTo prefers message.whisperedTo over originalMessage, so mark the whisper there
+            const whisper = {
+                ...buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 4),
+                message: [{type: 'COMMENT', html: 'psst', text: 'psst', isEdited: false, whisperedTo: [999], isDeletedParentAction: false}],
+            } as ReportAction;
+            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
+
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, ROOM_REPORT_ID, {sortedActions: {[ROOM_REPORT_ID]: [whisper, comment]}}));
+
+            expect(result).toBe('Spider-Man: hello');
+        });
+
+        it('should resolve the same last action from Onyx when sortedActions is not provided', async () => {
+            // Dedicated reportID: module-level report-action caches survive Onyx.clear(), so writing
+            // REPORT_ACTIONS for the shared room would poison later tests that reuse its reportID.
+            const onyxRoomReportID = '9150';
+            await setReport(buildRoomReport({reportID: onyxRoomReportID}));
+            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${onyxRoomReportID}`, {[comment.reportActionID]: comment});
+            await waitForBatchedUpdates();
+            const option: OptionData = {reportID: onyxRoomReportID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
+
+            const withSortedActions = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment, onyxRoomReportID));
+            const fromOnyx = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, onyxRoomReportID));
+
+            expect(fromOnyx).toBe('Spider-Man: hello');
+            expect(fromOnyx).toBe(withSortedActions);
+        });
+
+        it('should fall back to type subtitles when showChatPreviewLine is false', async () => {
+            await setReport(buildRoomReport());
+            const roomOption: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true, subtitle: 'Custom subtitle'};
+            const threadOption: OptionData = {reportID: '', keyForList: '', isThread: true};
+
+            expect(getAlternateText(roomOption, {showChatPreviewLine: false}, buildConfig())).toBe('Custom subtitle');
+            expect(getAlternateText(threadOption, {showChatPreviewLine: false}, buildConfig())).toBe(translateLocal('threads.thread'));
+        });
+
+        it('should thread currentUserAccountID through getValidOptions to build the actor prefix', async () => {
+            // Given a room whose last visible action is a comment from another user
+            const report = buildRoomReport();
+            await setReport(report);
+            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
+
+            const optionList = createFilteredOptionList(PERSONAL_DETAILS, {[ROOM_REPORT_ID]: report}, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
+
+            const {options} = getValidOptions(
+                {reports: optionList.reports, personalDetails: []},
+                undefined,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {
+                    dateFnsLocale: undefined,
+                    showChatPreviewLine: true,
+                    includeMultipleParticipantReports: true,
+                    personalDetails: PERSONAL_DETAILS,
+                    sortedActions: {[ROOM_REPORT_ID]: [comment]},
+                },
+                translateLocal,
+            );
+
+            // Then the search option preview matches the LHN format: `Name: message`
+            const roomOption = options.recentReports.find((option) => option.reportID === ROOM_REPORT_ID);
+            expect(roomOption?.alternateText).toBe('Spider-Man: hello');
+        });
+
+        it('should match the LHN alternate text from SidebarUtils.getOptionData for the same room and last action', async () => {
+            const report = buildRoomReport();
+            await setReport(report);
+            // Align the action's own message with report.lastMessageText — the LHN reads the former, search options the latter
+            const comment = {
+                ...buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3),
+                message: [{type: 'COMMENT', html: 'hello', text: 'hello', isEdited: false, whisperedTo: [], isDeletedParentAction: false}],
+            } as ReportAction;
+
+            const lhnOption = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                oneTransactionThreadReport: undefined,
+                reportNameValuePairs: {},
+                personalDetails: PERSONAL_DETAILS,
+                policy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: undefined,
+                invoiceReceiverPolicy: undefined,
+                card: undefined,
+                lastAction: comment,
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+                localeCompare,
+                isReportArchived: false,
+                lastActionReport: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                formatPhoneNumber,
+            });
+
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
+            const searchAlternateText = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment));
+
+            expect(lhnOption?.alternateText).toBe('Spider-Man: hello');
+            expect(searchAlternateText).toBe(lhnOption?.alternateText);
+        });
+
+        it.each([CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT])(
+            'should keep the actor prefix for %s to match the generic LHN preview',
+            async (actionName) => {
+                // Given a room whose last action is a policy change log action that has no custom
+                // alternate text branch in SidebarUtils.getOptionData, so the LHN shows `Name: message`
+                const report = buildRoomReport({lastMessageText: 'updated a custom unit'});
+                await setReport(report);
+                const action = {
+                    ...buildAction(actionName, 3),
+                    message: [{type: 'COMMENT', html: 'updated a custom unit', text: 'updated a custom unit', isEdited: false, whisperedTo: [], isDeletedParentAction: false}],
+                } as ReportAction;
+
+                const lhnOption = SidebarUtils.getOptionData({
+                    report,
+                    reportAttributes: undefined,
+                    oneTransactionThreadReport: undefined,
+                    reportNameValuePairs: {},
+                    personalDetails: PERSONAL_DETAILS,
+                    policy: undefined,
+                    parentReportAction: undefined,
+                    conciergeReportID: undefined,
+                    invoiceReceiverPolicy: undefined,
+                    card: undefined,
+                    lastAction: action,
+                    translate: translateLocal,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    localeCompare,
+                    isReportArchived: false,
+                    lastActionReport: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_EMAIL,
+                    formatPhoneNumber,
+                });
+
+                const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'updated a custom unit', isChatRoom: true};
+                const searchAlternateText = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(action));
+
+                expect(lhnOption?.alternateText).toBe('Spider-Man: updated a custom unit');
+                expect(searchAlternateText).toBe(lhnOption?.alternateText);
+            },
+        );
+
+        it('should resolve the actor from the transaction thread when its comment is the newest action of a one-transaction report', async () => {
+            // Given a one-transaction expense report whose newest visible action is a comment in its transaction thread
+            const EXPENSE_REPORT_ID = '9300';
+            const TRANSACTION_THREAD_REPORT_ID = '9301';
+            const CHAT_REPORT_ID = '9302';
+
+            const expenseReport: Report = {
+                reportID: EXPENSE_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: CHAT_REPORT_ID,
+                parentReportID: CHAT_REPORT_ID,
+                parentReportActionID: '9400',
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                lastReadTime: '2024-01-01 10:00:00.000',
+                lastVisibleActionCreated: '2024-01-02 10:00:00.000',
+                lastMessageText: 'thread comment',
+                lastActionType: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                lastActorAccountID: 3,
+                participants,
+            };
+            const transactionThreadReport: Report = {
+                reportID: TRANSACTION_THREAD_REPORT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+                parentReportID: EXPENSE_REPORT_ID,
+                parentReportActionID: '9401',
+                participants,
+            };
+            const iouAction: ReportAction = {
+                ...buildAction(CONST.REPORT.ACTIONS.TYPE.IOU, CURRENT_USER_ACCOUNT_ID, {
+                    IOUTransactionID: 'txn9300',
+                    IOUReportID: EXPENSE_REPORT_ID,
+                    amount: 100,
+                    currency: 'USD',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                }),
+                reportActionID: '9401',
+                reportID: EXPENSE_REPORT_ID,
+                created: '2024-01-01 10:00:00.000',
+                childReportID: TRANSACTION_THREAD_REPORT_ID,
+            };
+            const threadComment: ReportAction = {
+                ...buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3),
+                reportActionID: '9402',
+                reportID: TRANSACTION_THREAD_REPORT_ID,
+                created: '2024-01-02 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'thread comment', text: 'thread comment', isEdited: false, whisperedTo: [], isDeletedParentAction: false}],
+            };
+
+            // Reports must exist before the report actions merge so the one-transaction thread caches resolve the thread ID
+            await setReport(expenseReport);
+            await setReport(transactionThreadReport);
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXPENSE_REPORT_ID}`]: {[iouAction.reportActionID]: iouAction},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TRANSACTION_THREAD_REPORT_ID}`]: {[threadComment.reportActionID]: threadComment},
+            });
+            await waitForBatchedUpdates();
+
+            const option: OptionData = {reportID: EXPENSE_REPORT_ID, keyForList: '', lastMessageText: 'thread comment', isMoneyRequestReport: true};
+
+            // When the alternate text is built without sortedActions, forcing the fallback last-action lookup
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, EXPENSE_REPORT_ID));
+
+            // Then the actor prefix comes from the transaction thread comment, not from the parent report's IOU action
+            expect(result).toBe('Spider-Man: thread comment');
         });
     });
 
@@ -3658,11 +5179,17 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call createFilteredOptionList with this privateIsArchivedMap
-            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, privateIsArchivedMap, undefined, {isSearching: true});
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, privateIsArchivedMap, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
 
-            // Then the personal detail option for account 1 (Mister Fantastic) should have private_isArchived set
+            // Then the hydrated personal detail option for account 1 (Mister Fantastic) should have private_isArchived set
             const misterFantasticOption = result.personalDetails.find((pd) => pd.item?.accountID === 1);
-            expect(misterFantasticOption?.private_isArchived).toBe(true);
+            const hydratedMisterFantasticOption = misterFantasticOption ? hydrateContactOption(misterFantasticOption) : undefined;
+            expect(hydratedMisterFantasticOption?.private_isArchived).toBe(true);
         });
 
         it('should not set private_isArchived on personal details options when privateIsArchivedMap is empty', () => {
@@ -3671,10 +5198,15 @@ describe('OptionsListUtils', () => {
             const emptyMap: PrivateIsArchivedMap = {};
 
             // When we call createFilteredOptionList with an empty privateIsArchivedMap
-            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, emptyMap, undefined, {isSearching: true});
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, emptyMap, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
 
-            // Then no personal details options should have private_isArchived set
-            const optionsWithArchived = result.personalDetails.filter((pd) => pd.private_isArchived);
+            // Then no personal details options should have private_isArchived set once hydrated
+            const optionsWithArchived = result.personalDetails.map(hydrateContactOption).filter((pd) => pd.private_isArchived);
             expect(optionsWithArchived.length).toBe(0);
         });
 
@@ -3687,14 +5219,21 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call createFilteredOptionList with this privateIsArchivedMap
-            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, privateIsArchivedMap, undefined, {isSearching: true});
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, privateIsArchivedMap, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
 
-            // Then the personal detail options should have the correct private_isArchived values
+            // Then the hydrated personal detail options should have the correct private_isArchived values
             const misterFantasticOption = result.personalDetails.find((pd) => pd.item?.accountID === 1);
             const invisibleWomanOption = result.personalDetails.find((pd) => pd.item?.accountID === 5);
+            const hydratedMisterFantasticOption = misterFantasticOption ? hydrateContactOption(misterFantasticOption) : undefined;
+            const hydratedInvisibleWomanOption = invisibleWomanOption ? hydrateContactOption(invisibleWomanOption) : undefined;
 
-            expect(misterFantasticOption?.private_isArchived).toBe(true);
-            expect(invisibleWomanOption?.private_isArchived).toBe(true);
+            expect(hydratedMisterFantasticOption?.private_isArchived).toBe(true);
+            expect(hydratedInvisibleWomanOption?.private_isArchived).toBe(true);
         });
 
         it('should set private_isArchived on report options when privateIsArchivedMap is provided', () => {
@@ -3706,7 +5245,11 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call createFilteredOptionList with this privateIsArchivedMap
-            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, privateIsArchivedMap, undefined);
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, privateIsArchivedMap, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+            });
 
             // Then the report options should have the correct private_isArchived values
             const report3Option = result.reports.find((r) => r.item?.reportID === '3');
@@ -3725,7 +5268,11 @@ describe('OptionsListUtils', () => {
             const emptyMap: PrivateIsArchivedMap = {};
 
             // When we call createFilteredOptionList with an empty privateIsArchivedMap
-            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, emptyMap, undefined);
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, emptyMap, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+            });
 
             // Then reports NOT in Onyx (like report 3, 5) should not have private_isArchived set
             // Note: Report 10 gets private_isArchived from Onyx (set in beforeAll)
@@ -3746,7 +5293,11 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call createFilteredOptionList with this privateIsArchivedMap
-            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, privateIsArchivedMap, undefined);
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, privateIsArchivedMap, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+            });
 
             // Then the report options should have the correct private_isArchived values
             const report1Option = result.reports.find((r) => r.item?.reportID === '1');
@@ -3774,6 +5325,9 @@ describe('OptionsListUtils', () => {
 
             // When we call createFilteredOptionList with a maxRecentReports limit that includes all reports
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, privateIsArchivedMap, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
                 maxRecentReports: 20,
             });
 
@@ -3933,7 +5487,7 @@ describe('OptionsListUtils', () => {
         it('should match a user with an accented name when searching using non-accented characters', () => {
             // Given a report with accented characters in the text property
             // cspell:disable-next-line
-            const reports = [{text: "Álex Timón D'artagnan Zo-e"} as OptionData];
+            const reports: OptionData[] = [{text: "Álex Timón D'artagnan Zo-e", reportID: 'accented', keyForList: 'accented'}];
             // Given a search term with non-accented characters
             // cspell:disable-next-line
             const searchTerms = ['Alex Timon Dartagnan Zoe'];
@@ -3943,6 +5497,59 @@ describe('OptionsListUtils', () => {
             // Then the returned value should match the search term
             expect(filteredReports).toEqual(reports);
         });
+
+        it.each([
+            {
+                description: 'an apostrophe',
+                reportText: "Don't forget",
+                searchText: 'dont',
+            },
+            {
+                description: 'a hyphen',
+                reportText: 'Foo-Bar',
+                searchText: 'foobar',
+            },
+            {
+                description: 'a zero-width character',
+                reportText: 'Foo\u200BBar',
+                searchText: 'foobar',
+            },
+        ])('should match report text containing $description', ({reportText, searchText}) => {
+            // Given a report whose display text contains characters normalized by report search
+            const report: OptionData = {text: reportText, reportID: 'normalized', keyForList: 'normalized'};
+
+            // When the report is filtered with the normalized search value
+            const filteredReports = filterReports([report], [searchText]);
+
+            // Then the report should remain in the results
+            expect(filteredReports).toEqual([report]);
+        });
+
+        it('should match a report by email when dots are omitted from the search', () => {
+            const report: OptionData = {
+                text: 'Test User',
+                login: 'test.user@example.com',
+                reportID: 'email',
+                keyForList: 'email',
+            };
+
+            const filteredReports = filterReports([report], ['testuser@example.com']);
+
+            expect(filteredReports).toEqual([report]);
+        });
+
+        it('should match a report by its normalized phone number', () => {
+            const report: OptionData = {
+                text: 'Phone Contact',
+                login: '+12345678901',
+                reportID: 'phone',
+                keyForList: 'phone',
+            };
+
+            const filteredReports = filterReports([report], [getSearchValueForPhoneOrEmail('+1 (234) 567-8901', COUNTRY_CODE)]);
+
+            expect(filteredReports).toEqual([report]);
+        });
     });
 
     describe('getMostRecentOptions()', () => {
@@ -3951,19 +5558,23 @@ describe('OptionsListUtils', () => {
                 {
                     reportID: '1',
                     lastVisibleActionCreated: '2022-01-01T10:00:00Z',
-                } as OptionData,
+                    keyForList: '1',
+                },
                 {
                     reportID: '2',
                     lastVisibleActionCreated: '2022-01-01T12:00:00Z',
-                } as OptionData,
+                    keyForList: '2',
+                },
                 {
                     reportID: '3',
                     lastVisibleActionCreated: '2022-01-01T09:00:00Z',
-                } as OptionData,
+                    keyForList: '3',
+                },
                 {
                     reportID: '4',
                     lastVisibleActionCreated: '2022-01-01T13:00:00Z',
-                } as OptionData,
+                    keyForList: '4',
+                },
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
             const result = optionsOrderBy(options, comparator, 2).options;
@@ -3979,11 +5590,13 @@ describe('OptionsListUtils', () => {
                 {
                     reportID: '1',
                     lastVisibleActionCreated: '2022-01-01T10:00:00Z',
-                } as OptionData,
+                    keyForList: '1',
+                },
                 {
                     reportID: '2',
                     lastVisibleActionCreated: '2022-01-01T12:00:00Z',
-                } as OptionData,
+                    keyForList: '2',
+                },
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
             const result = optionsOrderBy(options, comparator, 5).options;
@@ -4005,17 +5618,20 @@ describe('OptionsListUtils', () => {
                     reportID: '1',
                     lastVisibleActionCreated: '2022-01-01T10:00:00Z',
                     isPinned: true,
-                } as OptionData,
+                    keyForList: '1',
+                },
                 {
                     reportID: '2',
                     lastVisibleActionCreated: '2022-01-01T12:00:00Z',
                     isPinned: false,
-                } as OptionData,
+                    keyForList: '2',
+                },
                 {
                     reportID: '3',
                     lastVisibleActionCreated: '2022-01-01T09:00:00Z',
                     isPinned: true,
-                } as OptionData,
+                    keyForList: '3',
+                },
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
             const result = optionsOrderBy(options, comparator, 2, (option) => option.isPinned).options;
@@ -4031,15 +5647,18 @@ describe('OptionsListUtils', () => {
                 {
                     reportID: '1',
                     lastVisibleActionCreated: '2022-01-01T10:00:00Z',
-                } as OptionData,
+                    keyForList: '1',
+                },
                 {
                     reportID: '2',
                     lastVisibleActionCreated: '2022-01-01T12:00:00Z',
-                } as OptionData,
+                    keyForList: '2',
+                },
                 {
                     reportID: '3',
                     lastVisibleActionCreated: '2022-01-01T09:00:00Z',
-                } as OptionData,
+                    keyForList: '3',
+                },
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
             const result = optionsOrderBy(options, comparator, -1).options;
@@ -4069,11 +5688,13 @@ describe('OptionsListUtils', () => {
                 {
                     reportID: '1',
                     lastVisibleActionCreated: '2022-01-01T10:00:00Z',
-                } as OptionData,
+                    keyForList: '1',
+                },
                 {
                     reportID: '2',
                     lastVisibleActionCreated: '2022-01-01T12:00:00Z',
-                } as OptionData,
+                    keyForList: '2',
+                },
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
             const result = optionsOrderBy(options, comparator, 0).options;
@@ -4085,19 +5706,23 @@ describe('OptionsListUtils', () => {
                 {
                     reportID: '1',
                     lastVisibleActionCreated: '2022-01-01T10:00:00Z',
-                } as OptionData,
+                    keyForList: '1',
+                },
                 {
                     reportID: '2',
                     lastVisibleActionCreated: '2022-01-01T12:00:00Z',
-                } as OptionData,
+                    keyForList: '2',
+                },
                 {
                     reportID: '3',
                     lastVisibleActionCreated: '2022-01-01T09:00:00Z',
-                } as OptionData,
+                    keyForList: '3',
+                },
                 {
                     reportID: '4',
                     lastVisibleActionCreated: '2022-01-01T13:00:00Z',
-                } as OptionData,
+                    keyForList: '4',
+                },
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
             // We will pass reversed === true to sort the list in ascending order
@@ -4110,9 +5735,206 @@ describe('OptionsListUtils', () => {
         });
     });
 
+    describe('optionsOrderBy()', () => {
+        const createRecentOptions = (count: number): OptionData[] =>
+            Array.from({length: count}, (_, index) => ({
+                reportID: String(index + 1),
+                lastVisibleActionCreated: `2022-01-01T${String(10 + index).padStart(2, '0')}:00:00Z`,
+                keyForList: String(index + 1),
+            }));
+
+        it('calls comparator exactly once per option that passes the filter', () => {
+            const options = createRecentOptions(8);
+            const comparator = jest.fn((option: OptionData) => option.lastVisibleActionCreated ?? '');
+
+            optionsOrderBy(options, comparator, 3);
+
+            expect(comparator).toHaveBeenCalledTimes(8);
+            for (const option of options) {
+                expect(comparator).toHaveBeenCalledWith(option);
+            }
+        });
+
+        it('does not call comparator for options rejected by the filter', () => {
+            const passingOptions: OptionData[] = [
+                {
+                    reportID: '1',
+                    lastVisibleActionCreated: '2022-01-01T10:00:00Z',
+                    isPinned: true,
+                    keyForList: '1',
+                },
+                {
+                    reportID: '3',
+                    lastVisibleActionCreated: '2022-01-01T12:00:00Z',
+                    isPinned: true,
+                    keyForList: '3',
+                },
+            ];
+            const filteredOutOptions: OptionData[] = [
+                {
+                    reportID: '2',
+                    lastVisibleActionCreated: '2022-01-01T11:00:00Z',
+                    isPinned: false,
+                    keyForList: '2',
+                },
+            ];
+            const options = [...passingOptions, ...filteredOutOptions];
+            const comparator = jest.fn((option: OptionData) => option.lastVisibleActionCreated ?? '');
+
+            optionsOrderBy(options, comparator, 2, (option) => option.isPinned);
+
+            expect(comparator).toHaveBeenCalledTimes(passingOptions.length);
+            for (const option of passingOptions) {
+                expect(comparator).toHaveBeenCalledWith(option);
+            }
+            for (const option of filteredOutOptions) {
+                expect(comparator).not.toHaveBeenCalledWith(option);
+            }
+        });
+
+        it('calls comparator exactly once per passing option when heap evictions occur', () => {
+            const options = createRecentOptions(12);
+            const comparator = jest.fn((option: OptionData) => option.lastVisibleActionCreated ?? '');
+
+            optionsOrderBy(options, comparator, 3);
+
+            expect(comparator).toHaveBeenCalledTimes(12);
+        });
+
+        it('does not call comparator when limit is 0', () => {
+            const options = createRecentOptions(5);
+            const comparator = jest.fn((option: OptionData) => option.lastVisibleActionCreated ?? '');
+
+            optionsOrderBy(options, comparator, 0);
+
+            expect(comparator).not.toHaveBeenCalled();
+        });
+
+        it('returns hasMore true when limit is less than the number of options', () => {
+            const options = createRecentOptions(5);
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+
+            const result = optionsOrderBy(options, comparator, 3);
+
+            expect(result.options).toHaveLength(3);
+            expect(result.hasMore).toBe(true);
+        });
+
+        it('returns hasMore false when limit is greater than or equal to the number of options', () => {
+            const options = createRecentOptions(5);
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+
+            const result = optionsOrderBy(options, comparator, 5);
+
+            expect(result.options).toHaveLength(5);
+            expect(result.hasMore).toBe(false);
+        });
+    });
+
+    describe('optionsOrderAndGroupBy()', () => {
+        const createGroupedOptions = (count: number): OptionData[] =>
+            Array.from({length: count}, (_, index) => {
+                const groupType = index % 3;
+                return {
+                    reportID: String(index + 1),
+                    lastVisibleActionCreated: `2022-01-01T${String(10 + index).padStart(2, '0')}:00:00Z`,
+                    keyForList: String(index + 1),
+                    isSelfDM: groupType === 0,
+                    isPolicyExpenseChat: groupType === 1,
+                };
+            });
+
+        const separators = [(option: OptionData) => option.isSelfDM, (option: OptionData) => option.isPolicyExpenseChat];
+
+        it('calls comparator exactly once per option that passes the filter', () => {
+            const options = createGroupedOptions(9);
+            const comparator = jest.fn((option: OptionData) => option.lastVisibleActionCreated ?? '');
+
+            optionsOrderAndGroupBy(separators, options, comparator, 2);
+
+            expect(comparator).toHaveBeenCalledTimes(9);
+            for (const option of options) {
+                expect(comparator).toHaveBeenCalledWith(option);
+            }
+        });
+
+        it('does not call comparator for options rejected by the filter', () => {
+            const passingOptions: OptionData[] = [
+                {
+                    reportID: '1',
+                    lastVisibleActionCreated: '2022-01-01T10:00:00Z',
+                    isSelfDM: true,
+                    keyForList: '1',
+                },
+                {
+                    reportID: '2',
+                    lastVisibleActionCreated: '2022-01-01T11:00:00Z',
+                    isPolicyExpenseChat: true,
+                    keyForList: '2',
+                },
+            ];
+            const filteredOutOptions: OptionData[] = [
+                {
+                    reportID: '3',
+                    lastVisibleActionCreated: '2022-01-01T12:00:00Z',
+                    keyForList: '3',
+                },
+            ];
+            const options = [...passingOptions, ...filteredOutOptions];
+            const comparator = jest.fn((option: OptionData) => option.lastVisibleActionCreated ?? '');
+
+            optionsOrderAndGroupBy(separators, options, comparator, 2, (option) => option.isSelfDM === true || option.isPolicyExpenseChat === true);
+
+            expect(comparator).toHaveBeenCalledTimes(passingOptions.length);
+            for (const option of passingOptions) {
+                expect(comparator).toHaveBeenCalledWith(option);
+            }
+            for (const option of filteredOutOptions) {
+                expect(comparator).not.toHaveBeenCalledWith(option);
+            }
+        });
+
+        it('calls comparator exactly once per passing option when heap evictions occur across groups', () => {
+            const options = createGroupedOptions(15);
+            const comparator = jest.fn((option: OptionData) => option.lastVisibleActionCreated ?? '');
+
+            optionsOrderAndGroupBy(separators, options, comparator, 2);
+
+            expect(comparator).toHaveBeenCalledTimes(15);
+        });
+
+        it('does not call comparator when limit is 0', () => {
+            const options = createGroupedOptions(5);
+            const comparator = jest.fn((option: OptionData) => option.lastVisibleActionCreated ?? '');
+
+            const result = optionsOrderAndGroupBy(separators, options, comparator, 0);
+
+            expect(comparator).not.toHaveBeenCalled();
+            expect(result.options).toStrictEqual([[], [], []]);
+        });
+
+        it('keeps the oldest options per group up to the limit when reversed', () => {
+            const options = createGroupedOptions(9);
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+
+            const result = optionsOrderAndGroupBy(separators, options, comparator, 2, undefined, true);
+
+            expect(result.options.map((group) => group.map((option) => option.reportID))).toStrictEqual([
+                ['1', '4'],
+                ['2', '5'],
+                ['3', '6'],
+            ]);
+            expect(result.hasMore).toBe(true);
+        });
+    });
+
     describe('sortAlphabetically', () => {
         it('should sort options alphabetically by text', () => {
-            const options: OptionData[] = [{text: 'Banana', reportID: '1'} as OptionData, {text: 'Apple', reportID: '2'} as OptionData, {text: 'Cherry', reportID: '3'} as OptionData];
+            const options: OptionData[] = [
+                {text: 'Banana', reportID: '1', keyForList: '1'},
+                {text: 'Apple', reportID: '2', keyForList: '2'},
+                {text: 'Cherry', reportID: '3', keyForList: '3'},
+            ];
             const sortedOptions = sortAlphabetically(options, 'text', localeCompare);
             expect(sortedOptions.at(0)?.reportID).toBe('2');
             expect(sortedOptions.at(1)?.reportID).toBe('1');
@@ -4125,7 +5947,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should handle single option', () => {
-            const options: OptionData[] = [{text: 'Single', reportID: '1'} as OptionData];
+            const options: OptionData[] = [{text: 'Single', reportID: '1', keyForList: '1'}];
             const sortedOptions = sortAlphabetically(options, 'text', localeCompare);
             expect(sortedOptions.length).toBe(1);
             expect(sortedOptions.at(0)?.text).toBe('Single');
@@ -4160,8 +5982,8 @@ describe('OptionsListUtils', () => {
 
     describe('createOption', () => {
         it('should return alternative text correctly when the last action is report preview action', async () => {
-            const report = {
-                chatType: '',
+            const report: Report = {
+                chatType: undefined,
                 currency: 'USD',
                 description: '',
                 errorFields: {},
@@ -4172,19 +5994,19 @@ describe('OptionsListUtils', () => {
                 lastMessageText: '',
                 participants: {
                     '1': {
-                        notificationPreference: 'always',
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
                     '2': {
-                        notificationPreference: 'always',
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
                 },
                 reportID: '123',
-                type: 'chat',
+                type: CONST.REPORT.TYPE.CHAT,
                 lastActorAccountID: 1,
-            } as unknown as Report;
+            };
 
-            const reportPreviewAction = {
-                actionName: 'REPORTPREVIEW',
+            const reportPreviewAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                 actorAccountID: 1,
                 childManagerAccountID: 2,
                 childOwnerAccountID: 1,
@@ -4201,9 +6023,9 @@ describe('OptionsListUtils', () => {
                         whisperedTo: [],
                     },
                 ],
-            } as unknown as ReportAction;
+            };
 
-            const iouReport = {
+            const iouReport: Report = {
                 chatReportID: '123',
                 currency: 'VND',
                 managerID: 2,
@@ -4212,19 +6034,20 @@ describe('OptionsListUtils', () => {
                 parentReportID: '123',
                 participants: {
                     '19960856': {
-                        notificationPreference: '',
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
                     '20669492': {
-                        notificationPreference: '',
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
                 },
                 reportID: '456',
                 reportName: 'IOU',
                 total: 3400,
-            } as unknown as Report;
+            };
 
-            const iouAction = {
+            const iouAction: ReportAction = {
                 actorAccountID: 1,
+                created: '2025-10-02 06:50:36.302',
                 message: [
                     {
                         type: 'COMMENT',
@@ -4234,7 +6057,6 @@ describe('OptionsListUtils', () => {
                         whisperedTo: [],
                         isDeletedParentAction: false,
                         deleted: '',
-                        reactions: [],
                     },
                 ],
                 originalMessage: {
@@ -4244,12 +6066,12 @@ describe('OptionsListUtils', () => {
                     currency: 'VND',
                     participantAccountIDs: [1, 2],
                 },
-                actionName: 'IOU',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 reportActionID: '789',
                 reportID: '456',
-            } as unknown as ReportAction;
+            };
 
-            const transaction = {
+            const transaction: Transaction = {
                 transactionID: '123456',
                 amount: 3400,
                 currency: 'VND',
@@ -4262,7 +6084,7 @@ describe('OptionsListUtils', () => {
                 category: '',
                 taxAmount: 0,
                 reimbursable: true,
-            } as unknown as Transaction;
+            };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[reportPreviewAction.reportActionID]: reportPreviewAction});
@@ -4272,6 +6094,8 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             const result = createOption({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
                 accountIDs: [1, 2],
                 personalDetails: PERSONAL_DETAILS,
                 report,
@@ -4310,6 +6134,8 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             const result = createOption({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
                 accountIDs: [1, 2],
                 personalDetails: PERSONAL_DETAILS,
                 report,
@@ -4338,6 +6164,8 @@ describe('OptionsListUtils', () => {
 
             // Should not throw when reports is undefined
             const result = createOption({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
                 accountIDs: [1, 2],
                 personalDetails: PERSONAL_DETAILS,
                 report,
@@ -4435,6 +6263,22 @@ describe('OptionsListUtils', () => {
         });
     });
 
+    describe('getIOUConfirmationOptionsFromPayeePersonalDetail', () => {
+        it('formats payee text and alternate text with the injected phone-number formatter', () => {
+            const personalDetail = {
+                accountID: 42,
+                login: '+18332403627@expensify.sms',
+                keyForList: '+18332403627@expensify.sms',
+                reportID: '',
+            };
+
+            const result = getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, translateLocal, formatPhoneNumber);
+
+            expect(result.text).toBe('(833) 240-3627');
+            expect(result.alternateText).toBe('(833) 240-3627');
+        });
+    });
+
     describe('getLastMessageTextForReport', () => {
         describe('getReportPreviewMessage', () => {
             it('should format report preview message correctly for non-policy expense chat with IOU action', async () => {
@@ -4490,14 +6334,17 @@ describe('OptionsListUtils', () => {
                     [iouAction.reportActionID]: iouAction,
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                const reportPreviewMessage = getReportPreviewMessage({
-                    reportOrID: iouReport,
-                    iouReportAction: iouAction,
-                    shouldConsiderScanningReceiptOrPendingRoute: true,
-                    policy: null,
-                    isForListPreview: true,
-                    originalReportAction: reportPreviewAction,
-                });
+                const reportPreviewMessage = getReportPreviewReportActionMessage(
+                    {
+                        reportOrID: iouReport,
+                        iouReportAction: iouAction,
+                        shouldConsiderScanningReceiptOrPendingRoute: true,
+                        policy: null,
+                        isForListPreview: true,
+                        originalReportAction: reportPreviewAction,
+                    },
+                    getCurrencyDecimalsLocal,
+                );
                 const formattedMessage = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
                 expect(formattedMessage).toBe('$1.00 for A A A');
             });
@@ -4540,6 +6387,9 @@ describe('OptionsListUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     personalDetails: undefined,
                     translate: translateLocal,
                     report,
@@ -4604,6 +6454,9 @@ describe('OptionsListUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     personalDetails: undefined,
                     translate: translateLocal,
                     report,
@@ -4653,6 +6506,9 @@ describe('OptionsListUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     personalDetails: undefined,
                     translate: translateLocal,
                     report,
@@ -4702,6 +6558,9 @@ describe('OptionsListUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     personalDetails: undefined,
                     translate: translateLocal,
                     report,
@@ -4751,6 +6610,9 @@ describe('OptionsListUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     personalDetails: undefined,
                     translate: translateLocal,
                     report,
@@ -4799,6 +6661,9 @@ describe('OptionsListUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     personalDetails: undefined,
                     translate: translateLocal,
                     report,
@@ -4835,6 +6700,9 @@ describe('OptionsListUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     personalDetails: undefined,
                     translate: translateLocal,
                     report,
@@ -4897,6 +6765,9 @@ describe('OptionsListUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     personalDetails: undefined,
                     translate: translateLocal,
                     report,
@@ -4945,6 +6816,9 @@ describe('OptionsListUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     personalDetails: undefined,
                     translate: translateLocal,
                     report,
@@ -4979,6 +6853,9 @@ describe('OptionsListUtils', () => {
                 [movedTransactionAction.reportActionID]: movedTransactionAction,
             });
             const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
                 translate: translateLocal,
                 report,
@@ -4988,7 +6865,8 @@ describe('OptionsListUtils', () => {
 
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
-            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionAction)));
+            const {fromReportID, toReportID} = parseMovedTransactionReportIDs(movedTransactionAction);
+            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage({translate: translateLocal, fromReportID, toReportID})));
         });
         describe('SUBMITTED action', () => {
             it('should return automatic submitted message if submitted via harvesting', async () => {
@@ -5006,6 +6884,9 @@ describe('OptionsListUtils', () => {
                     [submittedAction.reportActionID]: submittedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     personalDetails: undefined,
                     translate: translateLocal,
                     report,
@@ -5034,6 +6915,9 @@ describe('OptionsListUtils', () => {
                     [approvedAction.reportActionID]: approvedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     personalDetails: undefined,
                     translate: translateLocal,
                     report,
@@ -5064,6 +6948,9 @@ describe('OptionsListUtils', () => {
                     [forwardedAction.reportActionID]: forwardedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     personalDetails: undefined,
                     translate: translateLocal,
                     report,
@@ -5091,6 +6978,9 @@ describe('OptionsListUtils', () => {
                     [forwardedAction.reportActionID]: forwardedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     personalDetails: undefined,
                     translate: translateLocal,
                     report,
@@ -5116,6 +7006,9 @@ describe('OptionsListUtils', () => {
                     [corporateForceUpgradeAction.reportActionID]: corporateForceUpgradeAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     personalDetails: undefined,
                     translate: translateLocal,
                     report,
@@ -5140,6 +7033,9 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
                 translate: translateLocal,
                 report,
@@ -5163,6 +7059,9 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
                 translate: translateLocal,
                 report,
@@ -5173,6 +7072,81 @@ describe('OptionsListUtils', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(getCurrencyDefaultTaxUpdateMessage(translateLocal, action));
+        });
+        it('ADD_AGENT_RULE action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_AGENT_RULE,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {ruleTitle: 'Receipts required', prompt: 'Flag any expense over $25 that is missing a receipt'},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                conciergeReportID: undefined,
+            });
+            expect(lastMessage).toBe(getAddAgentRuleMessage(translateLocal, action));
+        });
+        it('UPDATE_AGENT_RULE action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AGENT_RULE,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {ruleTitle: 'Receipts required', prompt: 'Reject any expense that includes alcohol'},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+                conciergeReportID: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(getUpdateAgentRuleMessage(translateLocal, action));
+        });
+        it('DELETE_AGENT_RULE action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {ruleTitle: 'Receipts required'},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+                conciergeReportID: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(getDeleteAgentRuleMessage(translateLocal, action));
         });
         it('UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX action', async () => {
             const report: Report = createRandomReport(0, undefined);
@@ -5189,6 +7163,9 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
                 translate: translateLocal,
                 report,
@@ -5212,6 +7189,9 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
                 translate: translateLocal,
                 report,
@@ -5222,6 +7202,113 @@ describe('OptionsListUtils', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(getRequireCompanyCardsEnabledMessage(translateLocal, action));
+        });
+        it('UPDATE_REQUIRES_CATEGORY action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {enabled: true},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(getRequiresCategoryMessage(translateLocal, action));
+        });
+        it.each([
+            [CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY, 'updated the currency conversion fee setting to "Company pays"'],
+            [CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.EMPLOYEE, 'updated the currency conversion fee setting to "Employee pays"'],
+        ])('UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE action with the %s preference', async (preference, expectedMessage) => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {preference},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(expectedMessage);
+        });
+        it('UPDATE_AUTO_HARVESTING action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {value: true},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(getUpdatedAutoHarvestingMessage(translateLocal, action));
+        });
+        it('UPDATE_REQUIRES_TAG action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {enabled: false},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(getRequiresTagMessage(translateLocal, action));
         });
         it('ADD_CARD_FEED action', async () => {
             const report: Report = createRandomReport(0, undefined);
@@ -5235,6 +7322,9 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
                 translate: translateLocal,
                 report,
@@ -5257,6 +7347,9 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
                 translate: translateLocal,
                 report,
@@ -5279,6 +7372,9 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
                 translate: translateLocal,
                 report,
@@ -5305,6 +7401,9 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
                 translate: translateLocal,
                 report,
@@ -5331,6 +7430,9 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
                 translate: translateLocal,
                 report,
@@ -5356,6 +7458,9 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
                 translate: translateLocal,
                 report,
@@ -5382,6 +7487,9 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
                 translate: translateLocal,
                 report,
@@ -5404,6 +7512,9 @@ describe('OptionsListUtils', () => {
                 [takeControlAction.reportActionID]: takeControlAction,
             });
             const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
                 translate: translateLocal,
                 report,
@@ -5427,6 +7538,9 @@ describe('OptionsListUtils', () => {
                 [rerouteAction.reportActionID]: rerouteAction,
             });
             const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
                 translate: translateLocal,
                 report,
@@ -5450,6 +7564,9 @@ describe('OptionsListUtils', () => {
                 [movedAction.reportActionID]: movedAction,
             });
             const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
                 translate: translateLocal,
                 report,
@@ -5477,6 +7594,9 @@ describe('OptionsListUtils', () => {
 
             // When getting the last message text for the report
             const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
                 translate: translateLocal,
                 report,
@@ -5506,6 +7626,9 @@ describe('OptionsListUtils', () => {
 
             const expectedVisibleText = '';
             const result = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
                 translate: translateLocal,
                 report,
@@ -5517,6 +7640,58 @@ describe('OptionsListUtils', () => {
             });
             expect(result).toBe(expectedVisibleText);
         });
+        it('should return "@Hidden" when last action is an ADD_COMMENT mentioning a user not in personal details', async () => {
+            // Given a chat report whose last action is an ADD_COMMENT that mentions a user who does not exist in personal details
+            const mentionedAccountID = 999999;
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+                lastActionType: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
+            const addCommentAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: DateUtils.getDBTime(),
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: `<mention-user accountID="${mentionedAccountID}"></mention-user>`,
+                        text: '',
+                        isEdited: false,
+                        isDeletedParentAction: false,
+                        whisperedTo: [],
+                    },
+                ],
+                originalMessage: {
+                    html: `<mention-user accountID="${mentionedAccountID}"></mention-user>`,
+                    mentionedAccountIDs: [mentionedAccountID],
+                },
+                shouldShow: true,
+                pendingAction: null,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [addCommentAction.reportActionID]: addCommentAction,
+            });
+            await waitForBatchedUpdates();
+
+            // When we get the last message text while the mentioned user is absent from personal details
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+                lastAction: addCommentAction,
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+
+            // Then the mention should fall back to the hidden placeholder
+            expect(lastMessage).toBe(`@${translateLocal('common.hidden')}`);
+        });
         it('should return "No activity yet" for MoneyRequestReport with zero transactions', async () => {
             const report: Report = {
                 ...createRandomReport(0, undefined),
@@ -5526,6 +7701,9 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
                 translate: translateLocal,
                 report,
@@ -5558,6 +7736,9 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             const result = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
                 translate: translateLocal,
                 report,
@@ -5603,6 +7784,9 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             const result = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
                 report,
                 translate: translateLocal,
@@ -5616,13 +7800,6 @@ describe('OptionsListUtils', () => {
         });
 
         describe('DEW (Dynamic External Workflow)', () => {
-            beforeEach(async () => {
-                await act(async () => {
-                    await Onyx.clear();
-                });
-                jest.clearAllMocks();
-            });
-
             it('should show queued message for SUBMITTED action with DEW policy when offline and pending submit', async () => {
                 const reportID = 'dewReport1';
                 const report: Report = {
@@ -5632,11 +7809,12 @@ describe('OptionsListUtils', () => {
                     policyID: 'dewPolicy1',
                 };
                 const policy: Policy = {
+                    ...POLICY,
                     id: 'dewPolicy1',
                     name: 'Test Policy',
                     type: CONST.POLICY.TYPE.CORPORATE,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
-                } as Policy;
+                };
                 const submittedAction: ReportAction = {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
@@ -5655,6 +7833,9 @@ describe('OptionsListUtils', () => {
                     [submittedAction.reportActionID]: submittedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     personalDetails: undefined,
                     translate: translateLocal,
                     report,
@@ -5691,6 +7872,9 @@ describe('OptionsListUtils', () => {
                     [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     personalDetails: undefined,
                     translate: translateLocal,
                     report,
@@ -5723,6 +7907,9 @@ describe('OptionsListUtils', () => {
                     [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     personalDetails: undefined,
                     translate: translateLocal,
                     report,
@@ -5740,10 +7927,11 @@ describe('OptionsListUtils', () => {
             it('should use the passed policy name for POLICY_DELETED archive reason', async () => {
                 const testPolicyID = 'archivePolicyTest';
                 const policy: Policy = {
+                    ...POLICY,
                     id: testPolicyID,
                     name: 'Test Workspace',
                     type: CONST.POLICY.TYPE.TEAM,
-                } as Policy;
+                };
                 const report: Report = {
                     ...createRandomReport(0, undefined),
                     policyID: testPolicyID,
@@ -5762,6 +7950,9 @@ describe('OptionsListUtils', () => {
                 });
 
                 const lastMessage = getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     personalDetails: undefined,
                     translate: translateLocal,
                     report,
@@ -5772,20 +7963,17 @@ describe('OptionsListUtils', () => {
                     currentUserLogin: '',
                 });
 
-                expect(lastMessage).toBe(
-                    translateLocal('reportArchiveReasons.policyDeleted', {
-                        policyName: policy.name,
-                    }),
-                );
+                expect(lastMessage).toBe(translateLocal('reportArchiveReasons.policyDeleted', {policyName: policy.name}));
             });
 
             it('should use the passed policy name for REMOVED_FROM_POLICY archive reason', async () => {
                 const testPolicyID = 'archivePolicyTest2';
                 const policy: Policy = {
+                    ...POLICY,
                     id: testPolicyID,
                     name: 'My Workspace',
                     type: CONST.POLICY.TYPE.TEAM,
-                } as Policy;
+                };
                 const report: Report = {
                     ...createRandomReport(0, undefined),
                     policyID: testPolicyID,
@@ -5804,6 +7992,9 @@ describe('OptionsListUtils', () => {
                 });
 
                 const lastMessage = getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     personalDetails: undefined,
                     translate: translateLocal,
                     report,
@@ -5814,12 +8005,45 @@ describe('OptionsListUtils', () => {
                     currentUserLogin: '',
                 });
 
-                expect(lastMessage).toBe(
-                    translateLocal('reportArchiveReasons.removedFromPolicy', {
-                        displayName: 'Hidden',
-                        policyName: policy.name,
-                    }),
-                );
+                expect(lastMessage).toBe(translateLocal('reportArchiveReasons.removedFromPolicy', {displayName: 'Hidden', policyName: policy.name}));
+            });
+
+            it('resolves the workspace-unavailable fallback through the provided translate function when the archived policy is unavailable', async () => {
+                const report: Report = {
+                    ...createRandomReport(0, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    // No resolvable policy, so the archived preview name falls back to the unavailable label.
+                    policyID: 'missing-archive-policy',
+                    policyName: undefined,
+                    reportName: undefined,
+                };
+                const closedAction = createMock<ReportAction>({
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+                    originalMessage: {
+                        reason: CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY,
+                    },
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [closedAction.reportActionID]: closedAction,
+                });
+                const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                    path === 'workspace.common.unavailable' ? 'UnavailableMarker' : translateLocal(path, ...parameters);
+
+                const lastMessage = getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    personalDetails: undefined,
+                    translate: translateWithUnavailableMarker,
+                    report,
+                    lastActorDetails: null,
+                    policy: undefined,
+                    isReportArchived: true,
+
+                    currentUserLogin: '',
+                });
+
+                expect(lastMessage).toContain('UnavailableMarker');
             });
         });
         describe('UPDATE_CATEGORY_TAX_RATE action', () => {
@@ -5842,6 +8066,9 @@ describe('OptionsListUtils', () => {
                 });
 
                 const lastMessage = getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
@@ -5873,6 +8100,9 @@ describe('OptionsListUtils', () => {
                 });
 
                 const lastMessage = getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     personalDetails: undefined,
                     translate: translateLocal,
                     report,
@@ -6028,8 +8258,7 @@ describe('OptionsListUtils', () => {
             const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined, translateLocal);
 
             // Then it should return the display name from reportAction.person
-            // Note: formatPhoneNumberPhoneUtils replaces spaces with non-breaking spaces
-            expect(result).toBe('Unknown User'.replaceAll(' ', '\u00A0'));
+            expect(result).toBe('Unknown User');
         });
 
         it('should return "You" when the last actor is the current user', async () => {
@@ -6172,7 +8401,17 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, personalDetails, undefined, undefined);
+            const result = getReportDisplayOption({
+                dateFnsLocale: undefined,
+                report,
+                unknownUserDetails: undefined,
+                personalDetails,
+                privateIsArchived: undefined,
+                policy: undefined,
+                conciergeReportID: undefined,
+                translate: translateLocal,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
 
             // Then it should return an option with isSelfDM and alternateText set
             expect(result.isSelfDM).toBe(true);
@@ -6192,7 +8431,17 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, personalDetails, undefined, undefined);
+            const result = getReportDisplayOption({
+                dateFnsLocale: undefined,
+                report,
+                unknownUserDetails: undefined,
+                personalDetails,
+                privateIsArchived: undefined,
+                policy: undefined,
+                conciergeReportID: undefined,
+                translate: translateLocal,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
 
             // Then it should return an option with invoice room text and alternateText
             expect(result.isInvoiceRoom).toBe(true);
@@ -6214,7 +8463,17 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, unknownUserDetails, personalDetails, undefined, undefined);
+            const result = getReportDisplayOption({
+                dateFnsLocale: undefined,
+                report,
+                unknownUserDetails,
+                personalDetails,
+                privateIsArchived: undefined,
+                policy: undefined,
+                conciergeReportID: undefined,
+                translate: translateLocal,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
 
             // Then it should return an option with unknownUserDetails data
             expect(result.text).toBe('Unknown User');
@@ -6235,7 +8494,17 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, personalDetails, undefined, undefined);
+            const result = getReportDisplayOption({
+                dateFnsLocale: undefined,
+                report,
+                unknownUserDetails: undefined,
+                personalDetails,
+                privateIsArchived: undefined,
+                policy: undefined,
+                conciergeReportID: undefined,
+                translate: translateLocal,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
 
             // Then it should return an option with workspace name
             expect(result.text).toBe(POLICY.name);
@@ -6264,7 +8533,17 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call getReportDisplayOption with custom personalDetails
-            const result = getReportDisplayOption(report, undefined, customPersonalDetails, undefined, undefined);
+            const result = getReportDisplayOption({
+                dateFnsLocale: undefined,
+                report,
+                unknownUserDetails: undefined,
+                personalDetails: customPersonalDetails,
+                privateIsArchived: undefined,
+                policy: undefined,
+                conciergeReportID: undefined,
+                translate: translateLocal,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
 
             // Then it should use the custom personalDetails parameter
             expect(result).toBeDefined();
@@ -6281,7 +8560,17 @@ describe('OptionsListUtils', () => {
             const emptyPersonalDetails: PersonalDetailsList = {};
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, emptyPersonalDetails, undefined, undefined);
+            const result = getReportDisplayOption({
+                dateFnsLocale: undefined,
+                report,
+                unknownUserDetails: undefined,
+                personalDetails: emptyPersonalDetails,
+                privateIsArchived: undefined,
+                policy: undefined,
+                conciergeReportID: undefined,
+                translate: translateLocal,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
 
             // Then it should not throw and return a valid option
             expect(result).toBeDefined();
@@ -6293,7 +8582,17 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption with undefined report
-            const result = getReportDisplayOption(undefined, undefined, personalDetails, undefined, undefined);
+            const result = getReportDisplayOption({
+                dateFnsLocale: undefined,
+                report: undefined,
+                unknownUserDetails: undefined,
+                personalDetails,
+                privateIsArchived: undefined,
+                policy: undefined,
+                conciergeReportID: undefined,
+                translate: translateLocal,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
 
             // Then it should return a valid option (createOption handles undefined)
             expect(result).toBeDefined();
@@ -6310,7 +8609,6 @@ describe('OptionsListUtils', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 owner: 'owner@test.com',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 areCategoriesEnabled: true,
             };
@@ -6320,7 +8618,17 @@ describe('OptionsListUtils', () => {
             };
 
             // Test that getValidOptions accepts policies collection as second parameter
-            const {options: results} = getValidOptions({reports: [], personalDetails: []}, policies, undefined, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined);
+            const {options: results} = getValidOptions(
+                {reports: [], personalDetails: []},
+                policies,
+                undefined,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
+            );
 
             expect(results).toBeDefined();
             expect(results.recentReports).toBeDefined();
@@ -6329,7 +8637,17 @@ describe('OptionsListUtils', () => {
 
         it('should work with undefined policies', () => {
             const options = {reports: [], personalDetails: []};
-            const {options: results} = getValidOptions(options, undefined, undefined, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined);
+            const {options: results} = getValidOptions(
+                options,
+                undefined,
+                undefined,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
+            );
 
             expect(results).toBeDefined();
             expect(results.recentReports).toBeDefined();
@@ -6338,7 +8656,7 @@ describe('OptionsListUtils', () => {
 
         it('should work with empty policies collection', () => {
             const options = {reports: [], personalDetails: []};
-            const {options: results} = getValidOptions(options, {}, undefined, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined);
+            const {options: results} = getValidOptions(options, {}, undefined, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {dateFnsLocale: undefined}, translateLocal);
 
             expect(results).toBeDefined();
             expect(results.recentReports).toBeDefined();
@@ -6354,7 +8672,6 @@ describe('OptionsListUtils', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 owner: 'owner@test.com',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 areCategoriesEnabled: true,
             };
@@ -6372,11 +8689,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {
-                    betas: [],
-                    includeRecentReports: true,
-                    sortedActions: undefined,
-                },
+                {dateFnsLocale: undefined, betas: [], includeRecentReports: true, sortedActions: undefined},
+                translateLocal,
             );
 
             expect(results.recentReports).toBeDefined();
@@ -6385,13 +8699,6 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getReportOption', () => {
-        beforeEach(async () => {
-            await act(async () => {
-                await Onyx.clear();
-            });
-            jest.clearAllMocks();
-        });
-
         it('should return option with correct workspace name when policy is provided', async () => {
             const reportID = '101';
             const testPolicyID = 'policy123';
@@ -6403,7 +8710,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 outputCurrency: 'USD',
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-                isPolicyExpenseChatEnabled: false,
             };
             const report: Report = {
                 reportID,
@@ -6423,11 +8729,47 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, undefined, policy, {}, undefined, undefined, undefined);
+            const option = getReportOption(participant, undefined, policy, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option.text).toBe('Test Workspace');
             expect(option.alternateText).toBe(translateLocal('workspace.common.workspace'));
             expect(option.isSelected).toBe(undefined);
+        });
+
+        it('should title a self DM with "<display name> (you)" even when the derived report name is empty', async () => {
+            // The report-attributes derivation has not populated the self DM's name yet on a cold load, so the option
+            // has to resolve the title itself instead of rendering only the "Your space" subtitle. See #96559.
+            const reportID = '109';
+            const ownerAccountID = 7777;
+            const report: Report = {
+                reportID,
+                reportName: '',
+                ownerAccountID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                // A self DM's own participant entry is excluded from the display list (the backend sends an empty
+                // notificationPreference, which isHiddenForCurrentUser treats the same as HIDDEN), so createOption has
+                // no personal details to build a name from and has to fall back to the report name.
+                participants: {[ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
+            };
+            const selfPersonalDetails = {
+                [ownerAccountID]: {accountID: ownerAccountID, displayName: 'Test', login: 'test@test.com'},
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: ownerAccountID, email: 'test@test.com'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const option = getReportOption({reportID}, undefined, undefined, selfPersonalDetails, undefined, undefined, undefined, ownerAccountID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
+
+            expect(option.text).toBe(`Test (${translateLocal('common.you').toLowerCase()})`);
+            expect(option.alternateText).toBe(translateLocal('reportActionsView.yourSpace'));
         });
 
         it('should show submits to info when policy has approval workflow', async () => {
@@ -6443,7 +8785,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 outputCurrency: 'USD',
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-                isPolicyExpenseChatEnabled: false,
             };
             const report: Report = {
                 reportID,
@@ -6478,12 +8819,16 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, undefined, policy, {}, undefined, undefined, undefined);
+            // Pass the real personalDetails so the submits-to subtitle resolves to a name
+            const option = getReportOption(participant, undefined, policy, personalDetails, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option.text).toBe('Test Workspace with Submit');
-            // The submitsTo logic may or may not apply depending on complex approval rules
-            // Just verify the option was created correctly
-            expect(option.alternateText).toBeDefined();
+            // For a BASIC-approval policy the report submits to the default approver (the owner),
+            // so the subtitle is produced by the injected translate via the `iou.submitsTo` copy
+            expect(option.alternateText).toBe(translateLocal('iou.submitsTo', 'Report Owner'));
         });
 
         it('should mark draft reports as disabled', async () => {
@@ -6501,7 +8846,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, report);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, report, CONST.DEFAULT_NUMBER_ID, {translate: translateLocal, dateFnsLocale: undefined});
 
             expect(option.isDisabled).toBe(true);
         });
@@ -6542,7 +8887,10 @@ describe('OptionsListUtils', () => {
                 isSelfDM: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, personalDetails, undefined, undefined, undefined);
+            const option = getReportOption(participant, undefined, POLICY, personalDetails, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             // The option.isSelfDM is set by createOption based on the report type
             // Just verify the alternateText is correct for self DM
@@ -6577,7 +8925,10 @@ describe('OptionsListUtils', () => {
                 isInvoiceRoom: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option.isInvoiceRoom).toBe(true);
             expect(option.alternateText).toBe(translateLocal('workspace.common.invoices'));
@@ -6619,7 +8970,10 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived, POLICY, {}, undefined, undefined, undefined);
+            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option.text).toBe(POLICY.name);
             expect(option.alternateText).toBeTruthy();
@@ -6662,7 +9016,10 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived, POLICY, {}, undefined, {}, draftReport);
+            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived, POLICY, {}, undefined, {}, draftReport, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option.isDisabled).toBe(true);
         });
@@ -6681,7 +9038,10 @@ describe('OptionsListUtils', () => {
             const participant: Participant = {reportID, selected: false};
 
             // Pass reportDraft = undefined → not a draft, should NOT be disabled
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option.isDisabled).toBeFalsy();
         });
@@ -6697,7 +9057,10 @@ describe('OptionsListUtils', () => {
             const participant: Participant = {reportID, selected: false};
 
             // Pass reportDraft explicitly → should be disabled regardless of Onyx state
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, draftReport);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, draftReport, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option.isDisabled).toBe(true);
         });
@@ -6717,7 +9080,10 @@ describe('OptionsListUtils', () => {
             const participant: Participant = {reportID, selected: false};
 
             // Callers are responsible for passing reportDraft explicitly — undefined means not disabled
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option.isDisabled).toBeFalsy();
         });
@@ -6739,12 +9105,22 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, !!reportNameValuePair?.private_isArchived, undefined);
+            const option = getReportDisplayOption({
+                dateFnsLocale: undefined,
+                report,
+                unknownUserDetails: undefined,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: !!reportNameValuePair?.private_isArchived,
+                policy: undefined,
+                conciergeReportID: undefined,
+                translate: translateLocal,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
             expect(option.private_isArchived).toBeDefined();
-            expect(option.private_isArchived).toBe(true);
+            expect(option?.private_isArchived).toBe(true);
             expect(option.isDisabled).toBe(true);
             expect(option.isSelected).toBe(false);
         });
@@ -6762,7 +9138,17 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, !!reportNameValuePair?.private_isArchived, undefined);
+            const option = getReportDisplayOption({
+                dateFnsLocale: undefined,
+                report,
+                unknownUserDetails: undefined,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: !!reportNameValuePair?.private_isArchived,
+                policy: undefined,
+                conciergeReportID: undefined,
+                translate: translateLocal,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -6782,7 +9168,17 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, undefined, undefined);
+            const option = getReportDisplayOption({
+                dateFnsLocale: undefined,
+                report,
+                unknownUserDetails: undefined,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: undefined,
+                policy: undefined,
+                conciergeReportID: undefined,
+                translate: translateLocal,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -6806,7 +9202,17 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, !!reportNameValuePair?.private_isArchived, undefined);
+            const option = getReportDisplayOption({
+                dateFnsLocale: undefined,
+                report,
+                unknownUserDetails: undefined,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: !!reportNameValuePair?.private_isArchived,
+                policy: undefined,
+                conciergeReportID: undefined,
+                translate: translateLocal,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -6830,7 +9236,17 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, !!reportNameValuePair?.private_isArchived, undefined);
+            const option = getReportDisplayOption({
+                dateFnsLocale: undefined,
+                report,
+                unknownUserDetails: undefined,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: !!reportNameValuePair?.private_isArchived,
+                policy: undefined,
+                conciergeReportID: undefined,
+                translate: translateLocal,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -6853,7 +9269,10 @@ describe('OptionsListUtils', () => {
                 selected: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option.isSelected).toBe(true);
             expect(option.selected).toBe(true);
@@ -6874,7 +9293,10 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, undefined, {}, undefined, undefined, undefined);
+            const option = getReportOption(participant, undefined, undefined, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option).toBeDefined();
             expect(option.text).toBeDefined();
@@ -6896,7 +9318,10 @@ describe('OptionsListUtils', () => {
             };
 
             // Test that the function works with reportAttributesDerived parameter (optional)
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option).toBeDefined();
         });
@@ -6932,7 +9357,10 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, undefined, undefined, undefined);
+            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option).toBeDefined();
             // The createOption function uses personalDetails to build display names
@@ -6968,7 +9396,6 @@ describe('OptionsListUtils', () => {
                 role: 'user',
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: false,
             };
 
             // PersonalDetails with the approver's information
@@ -6995,7 +9422,10 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, undefined, policy, testPersonalDetails, undefined, undefined, undefined);
+            const option = getReportOption(participant, undefined, policy, testPersonalDetails, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Test Workspace with Approver');
@@ -7020,7 +9450,10 @@ describe('OptionsListUtils', () => {
             };
 
             // Pass empty personalDetails
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option).toBeDefined();
             expect(option.text).toBeDefined();
@@ -7042,7 +9475,10 @@ describe('OptionsListUtils', () => {
             };
 
             // Pass undefined personalDetails
-            const option = getReportOption(participant, undefined, POLICY, undefined, undefined, undefined, undefined);
+            const option = getReportOption(participant, undefined, POLICY, undefined, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option).toBeDefined();
             expect(option.text).toBeDefined();
@@ -7092,7 +9528,10 @@ describe('OptionsListUtils', () => {
                 isInvoiceRoom: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, undefined, undefined, undefined);
+            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option).toBeDefined();
             expect(option.isInvoiceRoom).toBe(true);
@@ -7114,7 +9553,10 @@ describe('OptionsListUtils', () => {
 
             const participant = {reportID};
 
-            const option = getReportOption(participant, undefined, POLICY, {}, conciergeReportID, undefined, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, conciergeReportID, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -7133,7 +9575,10 @@ describe('OptionsListUtils', () => {
 
             const participant = {reportID};
 
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -7170,7 +9615,10 @@ describe('OptionsListUtils', () => {
 
             // Passing conciergeReportID matching the reportID identifies this as the Concierge chat,
             // which affects getMovedTransactionMessage to use CONST.CONCIERGE_DISPLAY_NAME ('Concierge')
-            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, conciergeReportID, undefined, undefined);
+            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, conciergeReportID, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -7190,8 +9638,14 @@ describe('OptionsListUtils', () => {
 
             const participant = {reportID};
 
-            const optionWithConcierge = getReportOption(participant, undefined, POLICY, {}, differentConciergeReportID, undefined, undefined);
-            const optionWithoutConcierge = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined);
+            const optionWithConcierge = getReportOption(participant, undefined, POLICY, {}, differentConciergeReportID, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
+            const optionWithoutConcierge = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             // Both should produce the same result since the IDs don't match
             expect(optionWithConcierge.reportID).toBe(optionWithoutConcierge.reportID);
@@ -7226,7 +9680,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'user',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             const testPersonalDetails = {
@@ -7249,12 +9702,45 @@ describe('OptionsListUtils', () => {
                 selected: true,
             };
 
-            const option = getPolicyExpenseReportOption(participant, undefined, testPersonalDetails, report, undefined);
+            const option = getPolicyExpenseReportOption(
+                participant,
+                undefined,
+                testPersonalDetails,
+                report,
+                undefined,
+                {translate: translateLocal, dateFnsLocale: undefined},
+                CURRENT_USER_ACCOUNT_ID,
+            );
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Test Workspace Policy');
             expect(option.alternateText).toBe(translateLocal('workspace.common.workspace'));
             expect(option.isSelected).toBe(true);
+        });
+
+        it('routes the workspace subtitle through the injected translate function', async () => {
+            const reportID = '9001';
+            const testPolicyID = 'policyMarker';
+            const report: Report = {
+                reportID,
+                reportName: 'Marker Workspace Policy',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: testPolicyID,
+                isOwnPolicyExpenseChat: true,
+                ownerAccountID: 1,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            // A translate that tags the workspace subtitle so we can prove the option used the injected translate
+            const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'workspace.common.workspace' ? 'WorkspaceMarker' : translateLocal(path, ...parameters));
+
+            const participant = {reportID, policyID: testPolicyID, isPolicyExpenseChat: true, selected: false};
+            const option = getPolicyExpenseReportOption(participant, undefined, {}, report, undefined, {translate: translateWithMarker, dateFnsLocale: undefined}, CURRENT_USER_ACCOUNT_ID);
+
+            // The subtitle resolves to the marker, proving the option builder used the injected translate (not translateLocal)
+            expect(option.alternateText).toBe('WorkspaceMarker');
         });
 
         it('should use personalDetails to create option with participant info', async () => {
@@ -7287,7 +9773,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'admin',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             const testPersonalDetails = {
@@ -7314,7 +9799,15 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getPolicyExpenseReportOption(participant, undefined, testPersonalDetails, report, undefined);
+            const option = getPolicyExpenseReportOption(
+                participant,
+                undefined,
+                testPersonalDetails,
+                report,
+                undefined,
+                {translate: translateLocal, dateFnsLocale: undefined},
+                CURRENT_USER_ACCOUNT_ID,
+            );
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Team Workspace');
@@ -7346,7 +9839,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'user',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
@@ -7360,7 +9852,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Should not throw when personalDetails is empty
-            const option = getPolicyExpenseReportOption(participant, undefined, {}, report, undefined);
+            const option = getPolicyExpenseReportOption(participant, undefined, {}, report, undefined, {translate: translateLocal, dateFnsLocale: undefined}, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Workspace Without Details');
@@ -7392,7 +9884,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'user',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
@@ -7406,7 +9897,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Should not throw when personalDetails is undefined
-            const option = getPolicyExpenseReportOption(participant, undefined, undefined, report, undefined);
+            const option = getPolicyExpenseReportOption(participant, undefined, undefined, report, undefined, {translate: translateLocal, dateFnsLocale: undefined}, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Workspace Undefined Details');
@@ -7438,7 +9929,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'user',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
@@ -7460,15 +9950,86 @@ describe('OptionsListUtils', () => {
                 selected: false,
             };
 
-            const optionSelected = getPolicyExpenseReportOption(participantSelected, undefined, {}, report, undefined);
+            const optionSelected = getPolicyExpenseReportOption(
+                participantSelected,
+                undefined,
+                {},
+                report,
+                undefined,
+                {translate: translateLocal, dateFnsLocale: undefined},
+                CURRENT_USER_ACCOUNT_ID,
+            );
 
             // eslint-disable-next-line rulesdir/no-negated-variables
-            const optionNotSelected = getPolicyExpenseReportOption(participantNotSelected, undefined, {}, report, undefined);
+            const optionNotSelected = getPolicyExpenseReportOption(
+                participantNotSelected,
+                undefined,
+                {},
+                report,
+                undefined,
+                {translate: translateLocal, dateFnsLocale: undefined},
+                CURRENT_USER_ACCOUNT_ID,
+            );
 
             expect(optionSelected.isSelected).toBe(true);
             expect(optionSelected.selected).toBe(true);
             expect(optionNotSelected.isSelected).toBe(false);
             expect(optionNotSelected.selected).toBe(false);
+        });
+
+        it('should return a valid option when called with different currentUserAccountID values', async () => {
+            const reportID = '210';
+            const testPolicyID = 'policy210';
+            const ownerAccountID = 1001;
+
+            const report: Report = {
+                reportID,
+                reportName: 'Thread Test',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: testPolicyID,
+                ownerAccountID,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const testPersonalDetails = {
+                [ownerAccountID]: {
+                    accountID: ownerAccountID,
+                    displayName: 'Policy Owner',
+                    login: 'owner@test.com',
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const participant = {reportID, policyID: testPolicyID, isPolicyExpenseChat: true, selected: true};
+
+            const optionWithCurrentUser = getPolicyExpenseReportOption(
+                participant,
+                undefined,
+                testPersonalDetails,
+                report,
+                undefined,
+                {translate: translateLocal, dateFnsLocale: undefined},
+                CURRENT_USER_ACCOUNT_ID,
+            );
+            const optionWithDifferentUser = getPolicyExpenseReportOption(
+                participant,
+                undefined,
+                testPersonalDetails,
+                report,
+                undefined,
+                {translate: translateLocal, dateFnsLocale: undefined},
+                9999,
+            );
+
+            expect(optionWithCurrentUser).toBeDefined();
+            expect(optionWithDifferentUser).toBeDefined();
+            expect(optionWithCurrentUser.reportID).toBe(reportID);
+            expect(optionWithDifferentUser.reportID).toBe(reportID);
         });
     });
 
@@ -7498,7 +10059,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'user',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             const testPersonalDetails = {
@@ -7521,7 +10081,15 @@ describe('OptionsListUtils', () => {
                 selected: false,
             };
 
-            const option = getPolicyExpenseReportOption(participant, true, testPersonalDetails, report, undefined);
+            const option = getPolicyExpenseReportOption(
+                participant,
+                true,
+                testPersonalDetails,
+                report,
+                undefined,
+                {translate: translateLocal, dateFnsLocale: undefined},
+                CURRENT_USER_ACCOUNT_ID,
+            );
 
             expect(option).toBeDefined();
             expect(option.private_isArchived).toBe(true);
@@ -7554,7 +10122,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'user',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
@@ -7567,10 +10134,10 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getPolicyExpenseReportOption(participant, undefined, {}, report, undefined);
+            const option = getPolicyExpenseReportOption(participant, undefined, {}, report, undefined, {translate: translateLocal, dateFnsLocale: undefined}, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
-            expect(option.private_isArchived).toBeUndefined();
+            expect(option?.private_isArchived).toBeUndefined();
         });
     });
 
@@ -7588,7 +10155,6 @@ describe('OptionsListUtils', () => {
             owner: 'formatowner@test.com',
             role: 'admin',
             outputCurrency: 'USD',
-            isPolicyExpenseChatEnabled: true,
         };
 
         const formatPersonalDetails = {
@@ -7604,7 +10170,7 @@ describe('OptionsListUtils', () => {
             },
         };
 
-        beforeAll(async () => {
+        beforeEach(async () => {
             const report1: Report = {
                 reportID: formatReportID1,
                 reportName: 'Archived Format Chat',
@@ -7653,15 +10219,28 @@ describe('OptionsListUtils', () => {
                     text: 'Format Test Workspace',
                     alternateText: '',
                     isSelected: true,
-                } as SearchOptionData,
+                    keyForList: formatReportID1,
+                },
             ];
 
-            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, formatPersonalDetails, true);
+            const result = formatSectionsFromSearchTerm(
+                '',
+                selectedOptions,
+                [],
+                [],
+                privateIsArchivedMap,
+                CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                undefined,
+                formatPersonalDetails,
+                true,
+            );
 
             expect(result.section.data).toHaveLength(1);
 
-            const option = result.section.data.at(0) as SearchOptionData;
-            expect(option.private_isArchived).toBe(true);
+            const option = result.section.data.at(0);
+            expect(option?.private_isArchived).toBe(true);
         });
 
         it('should not set private_isArchived when report is not in the archived map', () => {
@@ -7675,14 +10254,31 @@ describe('OptionsListUtils', () => {
                     text: 'Format Test Workspace',
                     alternateText: '',
                     isSelected: true,
-                } as SearchOptionData,
+                    keyForList: formatReportID2,
+                },
             ];
 
-            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, formatPersonalDetails, true);
+            const result = formatSectionsFromSearchTerm(
+                '',
+                selectedOptions,
+                [],
+                [],
+                privateIsArchivedMap,
+                CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                undefined,
+                formatPersonalDetails,
+                true,
+            );
 
             expect(result.section.data).toHaveLength(1);
 
-            const option = result.section.data.at(0) as SearchOptionData;
+            const option = result.section.data.at(0);
+            expect(option).toBeDefined();
+            if (!option) {
+                throw new Error('Expected the active policy expense option to be defined');
+            }
             expect(option.private_isArchived).toBeUndefined();
         });
 
@@ -7699,7 +10295,8 @@ describe('OptionsListUtils', () => {
                     text: 'Archived Workspace',
                     alternateText: '',
                     isSelected: true,
-                } as SearchOptionData,
+                    keyForList: formatReportID1,
+                },
                 {
                     reportID: formatReportID2,
                     isPolicyExpenseChat: true,
@@ -7707,16 +10304,33 @@ describe('OptionsListUtils', () => {
                     text: 'Active Workspace',
                     alternateText: '',
                     isSelected: true,
-                } as SearchOptionData,
+                    keyForList: formatReportID2,
+                },
             ];
 
-            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, formatPersonalDetails, true);
+            const result = formatSectionsFromSearchTerm(
+                '',
+                selectedOptions,
+                [],
+                [],
+                privateIsArchivedMap,
+                CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                undefined,
+                formatPersonalDetails,
+                true,
+            );
 
             expect(result.section.data).toHaveLength(2);
 
-            const archivedOption = result.section.data.at(0) as SearchOptionData;
-            const activeOption = result.section.data.at(1) as SearchOptionData;
-            expect(archivedOption.private_isArchived).toBe(true);
+            const archivedOption = result.section.data.at(0);
+            const activeOption = result.section.data.at(1);
+            expect(archivedOption?.private_isArchived).toBe(true);
+            expect(activeOption).toBeDefined();
+            if (!activeOption) {
+                throw new Error('Expected the active policy expense option to be defined');
+            }
             expect(activeOption.private_isArchived).toBeUndefined();
         });
 
@@ -7733,10 +10347,23 @@ describe('OptionsListUtils', () => {
                     text: 'Format Test Workspace',
                     alternateText: '',
                     isSelected: true,
-                } as SearchOptionData,
+                    keyForList: formatReportID1,
+                },
             ];
 
-            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, formatPersonalDetails, false);
+            const result = formatSectionsFromSearchTerm(
+                '',
+                selectedOptions,
+                [],
+                [],
+                privateIsArchivedMap,
+                CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                undefined,
+                formatPersonalDetails,
+                false,
+            );
 
             expect(result.section.data).toHaveLength(1);
             // When shouldGetOptionDetails is false, the original selectedOptions are returned unchanged
@@ -7759,7 +10386,8 @@ describe('OptionsListUtils', () => {
                     isSelected: true,
                     login: 'formatowner@test.com',
                     displayName: 'Format Owner',
-                } as SearchOptionData,
+                    keyForList: formatReportID1,
+                },
             ];
 
             // Pass empty filtered lists so the selected option is not deduplicated
@@ -7772,14 +10400,15 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
                 translateLocal,
+                undefined,
                 formatPersonalDetails,
                 true,
             );
 
             expect(result.section.data).toHaveLength(1);
 
-            const option = result.section.data.at(0) as SearchOptionData;
-            expect(option.private_isArchived).toBe(true);
+            const option = result.section.data.at(0);
+            expect(option?.private_isArchived).toBe(true);
         });
 
         it('should handle non-policy expense chat participants without privateIsArchived', () => {
@@ -7798,10 +10427,23 @@ describe('OptionsListUtils', () => {
                     isSelected: true,
                     login: 'formatowner@test.com',
                     displayName: 'Format Owner',
-                } as SearchOptionData,
+                    keyForList: formatReportID1,
+                },
             ];
 
-            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, formatPersonalDetails, true);
+            const result = formatSectionsFromSearchTerm(
+                '',
+                selectedOptions,
+                [],
+                [],
+                privateIsArchivedMap,
+                CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                undefined,
+                formatPersonalDetails,
+                true,
+            );
 
             expect(result.section.data).toHaveLength(1);
 
@@ -7809,19 +10451,77 @@ describe('OptionsListUtils', () => {
             // so private_isArchived is not set
             const option = result.section.data.at(0);
             expect(option).toBeDefined();
-            expect((option as SearchOptionData).private_isArchived).toBeUndefined();
+            expect(option?.private_isArchived).toBeUndefined();
         });
 
         it('should return empty section when no selectedOptions are provided', () => {
-            const result = formatSectionsFromSearchTerm('', [], [], [], {}, CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, formatPersonalDetails, true);
+            const result = formatSectionsFromSearchTerm('', [], [], [], {}, CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, undefined, formatPersonalDetails, true);
 
             expect(result.section.data).toHaveLength(0);
+        });
+
+        it('should resolve the policy expense report through the getReportByID resolver instead of the module-level Onyx cache', () => {
+            // This report is intentionally NOT merged into Onyx, so it is only reachable through the resolver.
+            // If the function used the module-level Onyx.connect() cache, the report would not be found and
+            // private_isArchived would be undefined.
+            const resolverReportID = 'resolverOnlyReport1';
+            const resolverReport: Report = {
+                reportID: resolverReportID,
+                reportName: 'Resolver Workspace',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: formatTestPolicyID,
+                ownerAccountID: formatOwnerAccountID,
+                participants: {
+                    [formatOwnerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            const getReportByID = (reportID: string | undefined) => (reportID === resolverReportID ? resolverReport : undefined);
+
+            const privateIsArchivedMap: Record<string, boolean> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${resolverReportID}`]: true,
+            };
+
+            const selectedOptions: SearchOptionData[] = [
+                {
+                    reportID: resolverReportID,
+                    keyForList: resolverReportID,
+                    isPolicyExpenseChat: true,
+                    selected: true,
+                    text: 'Resolver Workspace',
+                    alternateText: '',
+                    isSelected: true,
+                },
+            ];
+
+            const result = formatSectionsFromSearchTerm(
+                '',
+                selectedOptions,
+                [],
+                [],
+                privateIsArchivedMap,
+                CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                undefined,
+                formatPersonalDetails,
+                true,
+                undefined,
+                undefined,
+                getReportByID,
+            );
+
+            expect(result.section.data).toHaveLength(1);
+
+            const option = result.section.data.at(0);
+            expect(option?.private_isArchived).toBe(true);
         });
     });
 
     describe('getUserToInviteOption', () => {
         it('should not return userToInvite for plain text name when shouldAcceptName is false', () => {
             const result = getUserToInviteOption({
+                dateFnsLocale: undefined,
                 searchValue: 'Jeff Amazon',
                 personalDetails: PERSONAL_DETAILS,
                 loginList: {},
@@ -7832,6 +10532,7 @@ describe('OptionsListUtils', () => {
 
         it('should return userToInvite for plain text name when shouldAcceptName is true', () => {
             const result = getUserToInviteOption({
+                dateFnsLocale: undefined,
                 searchValue: 'Jeff Amazon',
                 personalDetails: PERSONAL_DETAILS,
                 shouldAcceptName: true,
@@ -7854,6 +10555,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
 
             // Then the function should complete without errors and return valid results
@@ -7872,6 +10575,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
 
             // When we call filterAndOrderOptions with the reports parameter
@@ -7886,6 +10591,8 @@ describe('OptionsListUtils', () => {
         it('getSearchOptions should use reports parameter from config', () => {
             // When we call getSearchOptions with reports in the config
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS,
                 draftComments: {},
                 loginList,
@@ -7906,6 +10613,8 @@ describe('OptionsListUtils', () => {
         it('getSearchOptions should forward sortedActions to getValidOptions', () => {
             const sortedActions = {};
             const {options} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: OPTIONS,
                 draftComments: {},
                 loginList,
@@ -7925,6 +10634,7 @@ describe('OptionsListUtils', () => {
         it('getUserToInviteOption should use reports parameter correctly', () => {
             // Given a valid email search value and reports collection
             const result = getUserToInviteOption({
+                dateFnsLocale: undefined,
                 searchValue: 'newuser@example.com',
                 loginList: {},
                 currentUserEmail: CURRENT_USER_EMAIL,
@@ -7946,6 +10656,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
 
             // Then the function should still work correctly
@@ -7964,6 +10676,8 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
             );
 
             // Then the function should still work correctly
@@ -8005,6 +10719,8 @@ describe('OptionsListUtils', () => {
 
             // When we call createOption with the linked chat report
             const result = createOption({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
                 accountIDs: [1, 2],
                 personalDetails: PERSONAL_DETAILS,
                 report: expenseReport,
@@ -8041,7 +10757,17 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             // When we call getReportDisplayOption with chat report
-            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, undefined, undefined);
+            const option = getReportDisplayOption({
+                dateFnsLocale: undefined,
+                report,
+                unknownUserDetails: undefined,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: undefined,
+                policy: undefined,
+                conciergeReportID: undefined,
+                translate: translateLocal,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
 
             // Then the option should be created successfully using the reports collection
             expect(option).toBeDefined();
@@ -8068,7 +10794,6 @@ describe('OptionsListUtils', () => {
                 owner: 'owner@test.com',
                 role: 'admin',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
@@ -8082,7 +10807,15 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call getPolicyExpenseReportOption with report passed directly
-            const option = getPolicyExpenseReportOption(participant, undefined, PERSONAL_DETAILS, report, undefined);
+            const option = getPolicyExpenseReportOption(
+                participant,
+                undefined,
+                PERSONAL_DETAILS,
+                report,
+                undefined,
+                {translate: translateLocal, dateFnsLocale: undefined},
+                CURRENT_USER_ACCOUNT_ID,
+            );
 
             // Then the option should be created successfully
             expect(option).toBeDefined();
@@ -8091,6 +10824,46 @@ describe('OptionsListUtils', () => {
     });
 
     describe('createOptionFromReport', () => {
+        it('should subtitle the option as Concierge support only when the threaded conciergeReportID matches the report', () => {
+            const report: Report = {
+                reportID: 'concierge-option-1',
+                reportName: 'Chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    1: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+
+            // When the threaded conciergeReportID matches the report
+            const conciergeOption = createOptionFromReport({
+                dateFnsLocale: undefined,
+                report,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: undefined,
+                policy: undefined,
+                sortedActions: undefined,
+                conciergeReportID: report.reportID,
+            });
+            expect(conciergeOption.subtitle).toBe(translateLocal('reportActionsView.conciergeSupport'));
+
+            // And an identical report with a non-matching conciergeReportID is not treated as Concierge
+            const regularOption = createOptionFromReport({
+                dateFnsLocale: undefined,
+                report,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: undefined,
+                policy: undefined,
+                sortedActions: undefined,
+                conciergeReportID: 'a-different-report-id',
+            });
+            expect(regularOption.subtitle).not.toBe(translateLocal('reportActionsView.conciergeSupport'));
+        });
+
         it('should create an option from a report with all required parameters', () => {
             const report: Report = {
                 reportID: '1',
@@ -8108,7 +10881,15 @@ describe('OptionsListUtils', () => {
             const reportAction = createRandomReportAction(1);
             const sortedActions = {[report.reportID]: [reportAction]};
 
-            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, undefined, sortedActions);
+            const result = createOptionFromReport({
+                dateFnsLocale: undefined,
+                report,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: undefined,
+                policy: undefined,
+                sortedActions,
+                conciergeReportID: undefined,
+            });
 
             expect(result).toBeDefined();
             expect(result.reportID).toBe('1');
@@ -8132,7 +10913,15 @@ describe('OptionsListUtils', () => {
             const reportAction = createRandomReportAction(1);
             const sortedActions = {[report.reportID]: [reportAction]};
 
-            const result = createOptionFromReport(report, PERSONAL_DETAILS, true, undefined, sortedActions);
+            const result = createOptionFromReport({
+                dateFnsLocale: undefined,
+                report,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: true,
+                policy: undefined,
+                sortedActions,
+                conciergeReportID: undefined,
+            });
 
             expect(result).toBeDefined();
             expect(result.private_isArchived).toBe(true);
@@ -8155,7 +10944,15 @@ describe('OptionsListUtils', () => {
             const reportAction = createRandomReportAction(1);
             const sortedActions = {[report.reportID]: [reportAction]};
 
-            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, undefined, sortedActions);
+            const result = createOptionFromReport({
+                dateFnsLocale: undefined,
+                report,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: undefined,
+                policy: undefined,
+                sortedActions,
+                conciergeReportID: undefined,
+            });
 
             expect(result).toBeDefined();
             expect(result.private_isArchived).toBeUndefined();
@@ -8178,7 +10975,15 @@ describe('OptionsListUtils', () => {
             const reportAction = createRandomReportAction(1);
             const sortedActions = {[report.reportID]: [reportAction]};
 
-            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, undefined, sortedActions);
+            const result = createOptionFromReport({
+                dateFnsLocale: undefined,
+                report,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: undefined,
+                policy: undefined,
+                sortedActions,
+                conciergeReportID: undefined,
+            });
 
             expect(result).toBeDefined();
             expect(result.reportID).toBe('1');
@@ -8202,24 +11007,176 @@ describe('OptionsListUtils', () => {
             const sortedActions = {[report.reportID]: [reportAction]};
 
             const config = {showPersonalDetails: true};
-            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, undefined, sortedActions, undefined, config);
+            const result = createOptionFromReport({
+                dateFnsLocale: undefined,
+                report,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: undefined,
+                policy: undefined,
+                sortedActions,
+                conciergeReportID: undefined,
+                config,
+            });
 
             expect(result).toBeDefined();
             expect(result.reportID).toBe('1');
         });
+
+        it('should keep the room name for a chat room unless showPersonalDetails is enabled', async () => {
+            const report: Report = {
+                reportID: '20',
+                reportName: '#admins',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                policyID,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    1: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+            const reportAction = createRandomReportAction(1);
+            const sortedActions = {[report.reportID]: [reportAction]};
+
+            // The participant's display name is resolved from Onyx, so seed it to keep the assertion below deterministic.
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+
+            const roomOption = createOptionFromReport({
+                dateFnsLocale: undefined,
+                report,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                sortedActions,
+                conciergeReportID: undefined,
+            });
+            const personalDetailsOption = createOptionFromReport({
+                dateFnsLocale: undefined,
+                report,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                sortedActions,
+                conciergeReportID: undefined,
+                config: {showPersonalDetails: true},
+            });
+
+            expect(roomOption.text).toBe('#admins');
+            // With showPersonalDetails the option is named after the other participant (account 1 in PERSONAL_DETAILS).
+            expect(personalDetailsOption.text).toBe('Mister Fantastic');
+        });
     });
 
     describe('createFilteredOptionList', () => {
+        const createChatReport = (reportID: string, lastVisibleActionCreated: string, chatType?: Report['chatType']): Report => ({
+            reportID,
+            reportName: `Report ${reportID}`,
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType,
+            lastVisibleActionCreated,
+            participants: {
+                [CURRENT_USER_ACCOUNT_ID]: {
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                },
+                1: {
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                },
+            },
+        });
+
+        const reportsToCollection = (reports: Report[]): OnyxCollection<Report> => Object.fromEntries(reports.map((report) => [report.reportID, report]));
+
+        it('returns the most recent reports when maxRecentReports is less than the input size', () => {
+            const reports = [createChatReport('101', '2022-01-01 00:00:00'), createChatReport('102', '2024-01-01 00:00:00'), createChatReport('103', '2023-01-01 00:00:00')];
+
+            const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                maxRecentReports: 2,
+                includeP2P: false,
+            });
+
+            expect(result.reports.map((option) => option.item?.reportID)).toEqual(['102', '103']);
+        });
+
+        it('prioritizes self-DM over newer non-self-DM reports', () => {
+            const reports = [createChatReport('101', '2024-01-01 00:00:00'), createChatReport('102', '2020-01-01 00:00:00', CONST.REPORT.CHAT_TYPE.SELF_DM)];
+
+            const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                maxRecentReports: 1,
+                includeP2P: false,
+            });
+
+            expect(result.reports.map((option) => option.item?.reportID)).toEqual(['102']);
+        });
+
+        it('prioritizes non-archived reports over newer archived reports', () => {
+            const reports = [createChatReport('101', '2022-01-01 00:00:00'), createChatReport('102', '2024-01-01 00:00:00')];
+            const privateIsArchivedMap: PrivateIsArchivedMap = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}102`]: true,
+            };
+
+            const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, privateIsArchivedMap, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                maxRecentReports: 1,
+                includeP2P: false,
+            });
+
+            expect(result.reports.map((option) => option.item?.reportID)).toEqual(['101']);
+        });
+
+        it('returns all reports when isSearching is true', () => {
+            const reports = [createChatReport('101', '2022-01-01 00:00:00'), createChatReport('102', '2024-01-01 00:00:00'), createChatReport('103', '2023-01-01 00:00:00')];
+
+            const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                maxRecentReports: 1,
+                isSearching: true,
+                includeP2P: false,
+            });
+
+            expect(result.reports.map((option) => option.item?.reportID)).toEqual(['101', '102', '103']);
+        });
+
+        it('returns an empty array when maxRecentReports is zero', () => {
+            const reports = [createChatReport('101', '2024-01-01 00:00:00')];
+
+            const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                maxRecentReports: 0,
+                includeP2P: false,
+            });
+
+            expect(result.reports).toEqual([]);
+        });
         it('should return report options limited by maxRecentReports', () => {
-            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined, {maxRecentReports: 5});
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                maxRecentReports: 5,
+            });
 
             expect(result).toBeDefined();
             expect(result.reports.length).toBeLessThanOrEqual(5);
         });
 
         it('should sort reports by lastVisibleActionCreated (most recent first)', () => {
-            const reportsWithDates: OnyxCollection<Report> = {
-                '101': {
+            const reportsWithDates = [
+                {
                     reportID: '101',
                     reportName: 'Oldest Report',
                     type: CONST.REPORT.TYPE.CHAT,
@@ -8233,7 +11190,7 @@ describe('OptionsListUtils', () => {
                         },
                     },
                 },
-                '102': {
+                {
                     reportID: '102',
                     reportName: 'Newest Report',
                     type: CONST.REPORT.TYPE.CHAT,
@@ -8247,7 +11204,7 @@ describe('OptionsListUtils', () => {
                         },
                     },
                 },
-                '103': {
+                {
                     reportID: '103',
                     reportName: 'Middle Report',
                     type: CONST.REPORT.TYPE.CHAT,
@@ -8261,15 +11218,26 @@ describe('OptionsListUtils', () => {
                         },
                     },
                 },
-            };
+            ] satisfies Report[];
 
-            const result = createFilteredOptionList(PERSONAL_DETAILS, reportsWithDates, undefined, {}, undefined, {maxRecentReports: 3});
+            const result = createFilteredOptionList({}, Object.fromEntries(reportsWithDates.map((report) => [report.reportID, report])), undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                maxRecentReports: 3,
+                includeP2P: false,
+                conciergeReportID: undefined,
+            });
 
-            expect(result.reports.length).toBeGreaterThan(0);
+            expect(result.reports.map((option) => option.item?.reportID)).toEqual(['102', '103', '101']);
         });
 
         it('should include personal details when includeP2P is true', () => {
-            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined, {includeP2P: true});
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                includeP2P: true,
+            });
 
             expect(result).toBeDefined();
             expect(result.personalDetails).toBeDefined();
@@ -8277,21 +11245,34 @@ describe('OptionsListUtils', () => {
         });
 
         it('should exclude personal details when includeP2P is false', () => {
-            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined, {includeP2P: false});
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                includeP2P: false,
+            });
 
             expect(result).toBeDefined();
             expect(result.personalDetails.length).toBe(0);
         });
 
         it('should handle empty reports collection', () => {
-            const result = createFilteredOptionList(PERSONAL_DETAILS, {}, undefined, {}, undefined);
+            const result = createFilteredOptionList(PERSONAL_DETAILS, {}, undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+            });
 
             expect(result).toBeDefined();
             expect(result.reports.length).toBe(0);
         });
 
         it('should handle undefined reports collection', () => {
-            const result = createFilteredOptionList(PERSONAL_DETAILS, undefined, undefined, {}, undefined);
+            const result = createFilteredOptionList(PERSONAL_DETAILS, undefined, undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+            });
 
             expect(result).toBeDefined();
             expect(result.reports.length).toBe(0);
@@ -8321,13 +11302,23 @@ describe('OptionsListUtils', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}999`]: true,
             };
 
-            const result = createFilteredOptionList(PERSONAL_DETAILS, reportsCollection, undefined, privateIsArchivedMap, undefined, {maxRecentReports: 10});
+            const result = createFilteredOptionList(PERSONAL_DETAILS, reportsCollection, undefined, privateIsArchivedMap, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                maxRecentReports: 10,
+            });
 
             expect(result).toBeDefined();
         });
 
         it('should handle isSearching filtering', () => {
-            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined, {isSearching: true});
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
 
             expect(result).toBeDefined();
             expect(result.reports.length).toBe(Object.keys(REPORTS).length);
@@ -8340,10 +11331,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {},
                 {},
-                {
-                    isSearching: true,
-                    maxRecentReports: 2,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true, maxRecentReports: 2},
             );
 
             expect(result).toBeDefined();
@@ -8351,91 +11339,130 @@ describe('OptionsListUtils', () => {
         });
 
         it('should return both reports and personal details', () => {
-            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined);
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+            });
 
             expect(result).toBeDefined();
             expect(result).toHaveProperty('reports');
             expect(result).toHaveProperty('personalDetails');
         });
+
+        // The SearchRouter relies on this: its empty-query state renders recent reports only,
+        // so contacts must not be built until the user starts searching.
+        it('should not build personal details when deferContactsUntilSearch is true and not searching', () => {
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                deferContactsUntilSearch: true,
+            });
+
+            expect(result.reports.length).toBeGreaterThan(0);
+            expect(result.personalDetails.length).toBe(0);
+        });
+
+        it('should build personal details when deferContactsUntilSearch is true and searching', () => {
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                deferContactsUntilSearch: true,
+                isSearching: true,
+            });
+
+            expect(result.personalDetails.length).toBeGreaterThan(0);
+        });
+
+        it('should keep top-level fields of returned options mutable while the cached entry stays pristine', () => {
+            const first = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+            });
+            const firstOption = first.personalDetails.at(0);
+            expect(firstOption).toBeDefined();
+            if (firstOption) {
+                firstOption.isSelected = true;
+            }
+
+            const second = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+            });
+            const secondOption = second.personalDetails.at(0);
+
+            // Same cache entry (nested objects are shared between clones), but each caller gets fresh top-level objects.
+            // Personal detail shells share participantsList; report options share icons.
+            expect(secondOption?.participantsList).toBe(firstOption?.participantsList);
+            expect(secondOption).not.toBe(firstOption);
+            expect(secondOption?.isSelected).toBeFalsy();
+            expect(second.reports.at(0)?.icons).toBe(first.reports.at(0)?.icons);
+        });
+
+        // conciergeReportID affects the Concierge option's subtitle/alternate text, so a change must
+        // invalidate the cache instead of serving options built with the previous value.
+        it('should recompute cached options when only conciergeReportID changes', () => {
+            const first = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+            });
+            const second = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: '1',
+            });
+
+            // A cache hit copies each shell's `hydrate` by reference between clones (see the pristine-cache test
+            // above), so a fresh closure is what proves the entry was rebuilt rather than served.
+            const getHydrate = (option: PersonalDetailOptionOrShell | undefined) => (option && !option.isHydrated ? option.hydrate : undefined);
+            expect(getHydrate(first.personalDetails.at(0))).toBeDefined();
+            expect(getHydrate(second.personalDetails.at(0))).not.toBe(getHydrate(first.personalDetails.at(0)));
+        });
+
+        // The cached entry is frozen in dev, so a consumer that mutates a nested object shared with the
+        // cache throws instead of silently corrupting the results returned to every other screen.
+        it('should throw when a nested object shared with the cache is mutated', () => {
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+            });
+            // Report options still carry fully-built icons; personal detail shells do not.
+            const icons = result.reports.at(0)?.icons;
+
+            expect(icons?.length).toBeGreaterThan(0);
+            expect(() => icons?.pop()).toThrow(TypeError);
+        });
+
+        // Onyx snapshot objects referenced by the options are shared with the whole app and existing code
+        // still writes to them in place, so the dev freeze must leave them untouched (see deepFreeze).
+        it('should not freeze the Onyx snapshot objects referenced by cached options', () => {
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+            });
+            const personalDetailItem = result.personalDetails.at(0)?.item;
+            const reportItem = result.reports.at(0)?.item;
+
+            expect(personalDetailItem).toBeDefined();
+            expect(Object.isFrozen(personalDetailItem)).toBe(false);
+            expect(reportItem).toBeDefined();
+            expect(Object.isFrozen(reportItem)).toBe(false);
+
+            // Hydration freezes the option it memoizes, and it reads shared Onyx Reports out of its captured
+            // build inputs — those must survive unfrozen too.
+            const hydrated = result.personalDetails.map(hydrateContactOption);
+            expect(hydrated.length).toBeGreaterThan(0);
+            expect(hydrated.every((option) => !Object.isFrozen(option))).toBe(true);
+            expect(Object.values(REPORTS).every((report) => !Object.isFrozen(report))).toBe(true);
+        });
     });
-    describe('getFilteredRecentAttendees', () => {
-        it('should deduplicate recent attendees by email', () => {
-            const personalDetails = {};
-            const attendees: Array<{
-                email: string;
-                displayName: string;
-                avatarUrl: string;
-            }> = [];
-            const recentAttendees = [
-                {email: 'user1@example.com', displayName: 'User One', avatarUrl: ''},
-                {
-                    email: 'user1@example.com',
-                    displayName: 'User One Duplicate',
-                    avatarUrl: '',
-                }, // Duplicate by email
-                {email: 'user2@example.com', displayName: 'User Two', avatarUrl: ''},
-            ];
-
-            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, translateLocal);
-
-            // Should deduplicate by email - user1@example.com should only appear once
-            const logins = result.map((r) => r.login);
-            const user1Count = logins.filter((login) => login === 'user1@example.com').length;
-            expect(user1Count).toBe(1);
-        });
-
-        it('should deduplicate name-only attendees by displayName', () => {
-            const personalDetails = {};
-            const attendees: Array<{
-                email: string;
-                displayName: string;
-                avatarUrl: string;
-            }> = [];
-            const recentAttendees = [
-                {email: '', displayName: 'Name Only', avatarUrl: ''},
-                {email: '', displayName: 'Name Only', avatarUrl: ''}, // Duplicate by displayName (name-only attendee)
-                {email: '', displayName: 'Another Name', avatarUrl: ''},
-            ];
-
-            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, translateLocal);
-
-            // Should deduplicate by displayName - Name Only should only appear once
-            const logins = result.map((r) => r.login);
-            const nameOnlyCount = logins.filter((login) => login === 'Name Only').length;
-            expect(nameOnlyCount).toBe(1);
-        });
-
-        it('should use displayName as login for name-only attendees', () => {
-            const personalDetails = {};
-            const attendees: Array<{
-                email: string;
-                displayName: string;
-                avatarUrl: string;
-            }> = [];
-            const recentAttendees = [{email: '', displayName: 'John Smith', avatarUrl: ''}];
-
-            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, translateLocal);
-
-            // Name-only attendee should have displayName as login
-            const johnSmith = result.find((r) => r.login === 'John Smith');
-            expect(johnSmith).toBeDefined();
-        });
-
-        it('should preserve displayName for recent attendees with undefined email', () => {
-            const personalDetails = {};
-            const attendees: Array<{
-                email: string;
-                displayName: string;
-                avatarUrl: string;
-            }> = [];
-            const recentAttendees: Attendee[] = [{displayName: 'Login Only User', avatarUrl: ''}];
-
-            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, translateLocal);
-
-            expect(result.find((r) => r.login === 'Login Only User')).toBeDefined();
-        });
-    });
-
     describe('getValidOptions() with recentAttendees', () => {
         const recentAttendees = Array.from({length: 8}, (_, index) => ({
             login: `john${index}@example.com`,
@@ -8445,12 +11472,17 @@ describe('OptionsListUtils', () => {
 
         it('caps recent attendees to maxRecentReportElements when there is no search term', () => {
             // When we call getValidOptions with more recent attendees than the display cap and no search term
-            const {options: results} = getValidOptions({reports: [], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
-                includeRecentReports: false,
-                recentAttendees,
-                maxRecentReportElements: 5,
-                sortedActions: undefined,
-            });
+            const {options: results} = getValidOptions(
+                {reports: [], personalDetails: []},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined, includeRecentReports: false, recentAttendees, maxRecentReportElements: 5, sortedActions: undefined},
+                translateLocal,
+            );
 
             // Then only the first 5 recent attendees are shown
             expect(results.recentReports.length).toBe(5);
@@ -8458,13 +11490,17 @@ describe('OptionsListUtils', () => {
 
         it('shows all matching recent attendees beyond the cap when there is a search term', () => {
             // When we call getValidOptions with a search term that matches all recent attendees
-            const {options: results} = getValidOptions({reports: [], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
-                includeRecentReports: false,
-                recentAttendees,
-                maxRecentReportElements: 5,
-                searchString: 'john',
-                sortedActions: undefined,
-            });
+            const {options: results} = getValidOptions(
+                {reports: [], personalDetails: []},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined, includeRecentReports: false, recentAttendees, maxRecentReportElements: 5, searchString: 'john', sortedActions: undefined},
+                translateLocal,
+            );
 
             // Then all matching recent attendees are shown, not just the first 5
             expect(results.recentReports.length).toBe(8);
@@ -8473,7 +11509,11 @@ describe('OptionsListUtils', () => {
 
     describe('policy parameter passing', () => {
         it('createFilteredOptionList should accept policiesCollection parameter', () => {
-            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies);
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+            });
             expect(result).toBeDefined();
             expect(result.reports).toBeDefined();
             expect(result.personalDetails).toBeDefined();
@@ -8497,7 +11537,15 @@ describe('OptionsListUtils', () => {
             const reportAction = createRandomReportAction(1);
             const sortedActions = {[report.reportID]: [reportAction]};
 
-            const result = createOptionFromReport(report, PERSONAL_DETAILS, undefined, POLICY, sortedActions);
+            const result = createOptionFromReport({
+                dateFnsLocale: undefined,
+                report,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                sortedActions,
+                conciergeReportID: undefined,
+            });
             expect(result).toBeDefined();
             expect(result.policyID).toBe(policyID);
         });
@@ -8518,7 +11566,17 @@ describe('OptionsListUtils', () => {
                 },
             };
 
-            const result = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, undefined, POLICY);
+            const result = getReportDisplayOption({
+                dateFnsLocale: undefined,
+                report,
+                unknownUserDetails: undefined,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                conciergeReportID: undefined,
+                translate: translateLocal,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
             expect(result).toBeDefined();
             expect(result.policyID).toBe(policyID);
         });
@@ -8547,13 +11605,21 @@ describe('OptionsListUtils', () => {
                 selected: true,
             };
 
-            const result = getPolicyExpenseReportOption(participant, undefined, PERSONAL_DETAILS, report, POLICY);
+            const result = getPolicyExpenseReportOption(
+                participant,
+                undefined,
+                PERSONAL_DETAILS,
+                report,
+                POLICY,
+                {translate: translateLocal, dateFnsLocale: undefined},
+                CURRENT_USER_ACCOUNT_ID,
+            );
             expect(result).toBeDefined();
             expect(result.policyID).toBe(policyID);
         });
 
         it('formatSectionsFromSearchTerm should accept policy parameter', () => {
-            const result = formatSectionsFromSearchTerm('', [], [], [], {}, CURRENT_USER_ACCOUNT_ID, allPolicies, translateLocal, PERSONAL_DETAILS, true);
+            const result = formatSectionsFromSearchTerm('', [], [], [], {}, CURRENT_USER_ACCOUNT_ID, allPolicies, translateLocal, undefined, PERSONAL_DETAILS, true);
             expect(result).toBeDefined();
             expect(result.section).toBeDefined();
         });
@@ -8619,12 +11685,17 @@ describe('OptionsListUtils', () => {
                 [iouReportID]: [iouAction],
             };
 
-            const {options: results} = getValidOptions({reports: [inputOption], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
-                includeRecentReports: true,
-                includeMultipleParticipantReports: true,
-                action: CONST.IOU.ACTION.CREATE,
-                sortedActions,
-            });
+            const {options: results} = getValidOptions(
+                {reports: [inputOption], personalDetails: []},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined, includeRecentReports: true, includeMultipleParticipantReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
+                translateLocal,
+            );
 
             expect(results.recentReports.length).toBe(1);
             const resultOption = results.recentReports.at(0);
@@ -8673,11 +11744,17 @@ describe('OptionsListUtils', () => {
 
             const sortedActions = {};
 
-            const {options: results} = getValidOptions({reports: [inputOption], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
-                includeRecentReports: true,
-                action: CONST.IOU.ACTION.CREATE,
-                sortedActions,
-            });
+            const {options: results} = getValidOptions(
+                {reports: [inputOption], personalDetails: []},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
+                translateLocal,
+            );
 
             const resultOption = results.recentReports.at(0);
             expect(resultOption?.lastIOUCreationDate).toBeUndefined();
@@ -8723,11 +11800,17 @@ describe('OptionsListUtils', () => {
                 isBold: false,
             };
 
-            const {options: results} = getValidOptions({reports: [inputOption], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
-                includeRecentReports: true,
-                action: CONST.IOU.ACTION.CREATE,
-                sortedActions: undefined,
-            });
+            const {options: results} = getValidOptions(
+                {reports: [inputOption], personalDetails: []},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions: undefined},
+                translateLocal,
+            );
 
             const resultOption = results.recentReports.at(0);
             expect(resultOption?.lastIOUCreationDate).toBeUndefined();
@@ -8799,12 +11882,17 @@ describe('OptionsListUtils', () => {
                 [iouReportID]: [newerIOUAction, olderIOUAction],
             };
 
-            const {options: results} = getValidOptions({reports: [inputOption], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
-                includeRecentReports: true,
-                includeMultipleParticipantReports: true,
-                action: CONST.IOU.ACTION.CREATE,
-                sortedActions,
-            });
+            const {options: results} = getValidOptions(
+                {reports: [inputOption], personalDetails: []},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined, includeRecentReports: true, includeMultipleParticipantReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
+                translateLocal,
+            );
 
             expect(results.recentReports.length).toBe(1);
             const resultOption = results.recentReports.at(0);
@@ -8869,10 +11957,17 @@ describe('OptionsListUtils', () => {
                 [iouReportID]: [iouAction],
             };
 
-            const {options: results} = getValidOptions({reports: [inputOption], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
-                includeRecentReports: true,
-                sortedActions,
-            });
+            const {options: results} = getValidOptions(
+                {reports: [inputOption], personalDetails: []},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined, includeRecentReports: true, sortedActions},
+                translateLocal,
+            );
 
             const resultOption = results.recentReports.at(0);
             expect(resultOption?.lastIOUCreationDate).toBeUndefined();
@@ -8927,11 +12022,17 @@ describe('OptionsListUtils', () => {
                 [reportID]: [nonPreviewAction],
             };
 
-            const {options: results} = getValidOptions({reports: [inputOption], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
-                includeRecentReports: true,
-                action: CONST.IOU.ACTION.CREATE,
-                sortedActions,
-            });
+            const {options: results} = getValidOptions(
+                {reports: [inputOption], personalDetails: []},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
+                translateLocal,
+            );
 
             const resultOption = results.recentReports.at(0);
             expect(resultOption?.lastIOUCreationDate).toBeUndefined();
@@ -8940,11 +12041,11 @@ describe('OptionsListUtils', () => {
 
     describe('orderPersonalDetailsOptions()', () => {
         it('sorts options alphabetically using text values', () => {
-            const options = [
-                {accountID: 1, text: 'Charlie', login: 'c@example.com'},
-                {accountID: 2, text: 'aaron', login: 'a@example.com'},
-                {accountID: 3, text: 'Bob', login: 'b@example.com'},
-            ] as SearchOptionData[];
+            const options: SearchOptionData[] = [
+                {accountID: 1, reportID: '1', keyForList: '1', text: 'Charlie', login: 'c@example.com'},
+                {accountID: 2, reportID: '2', keyForList: '2', text: 'aaron', login: 'a@example.com'},
+                {accountID: 3, reportID: '3', keyForList: '3', text: 'Bob', login: 'b@example.com'},
+            ];
 
             const sorted = orderPersonalDetailsOptions(options);
 
@@ -8952,21 +12053,25 @@ describe('OptionsListUtils', () => {
         });
 
         it('falls back to alternateText and login when text is missing', () => {
-            const options = [
+            const options: SearchOptionData[] = [
                 {
                     accountID: 1,
+                    reportID: '1',
+                    keyForList: '1',
                     text: undefined,
                     alternateText: 'mango',
                     login: 'm@example.com',
                 },
-                {accountID: 2, text: 'apple', login: 'a@example.com'},
+                {accountID: 2, reportID: '2', keyForList: '2', text: 'apple', login: 'a@example.com'},
                 {
                     accountID: 3,
+                    reportID: '3',
+                    keyForList: '3',
                     text: undefined,
                     alternateText: undefined,
                     login: 'banana@example.com',
                 },
-            ] as SearchOptionData[];
+            ];
 
             const sorted = orderPersonalDetailsOptions(options);
 
@@ -9034,12 +12139,17 @@ describe('OptionsListUtils', () => {
                 [iouReportID]: [iouAction],
             };
 
-            const {options: results} = getValidOptions({reports: [inputOption], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
-                includeRecentReports: true,
-                includeMultipleParticipantReports: true,
-                action: CONST.IOU.ACTION.CREATE,
-                sortedActions,
-            });
+            const {options: results} = getValidOptions(
+                {reports: [inputOption], personalDetails: []},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined, includeRecentReports: true, includeMultipleParticipantReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
+                translateLocal,
+            );
 
             expect(results.recentReports.length).toBe(1);
             expect(results.recentReports.at(0)?.lastIOUCreationDate).toBe(expectedDate);
@@ -9090,11 +12200,17 @@ describe('OptionsListUtils', () => {
                 isBold: false,
             };
 
-            const {options: results} = getValidOptions({reports: [inputOption], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
-                includeRecentReports: true,
-                action: CONST.IOU.ACTION.CREATE,
-                sortedActions: {[reportID]: [commentAction]},
-            });
+            const {options: results} = getValidOptions(
+                {reports: [inputOption], personalDetails: []},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions: {[reportID]: [commentAction]}},
+                translateLocal,
+            );
 
             expect(results.recentReports.at(0)?.lastIOUCreationDate).toBeUndefined();
         });
@@ -9142,6 +12258,8 @@ describe('OptionsListUtils', () => {
             };
 
             const {options: results} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: {reports: [inputOption], personalDetails: []},
                 draftComments: {},
                 betas: [CONST.BETAS.ALL],
@@ -9208,6 +12326,8 @@ describe('OptionsListUtils', () => {
             };
 
             const {options: results} = getSearchOptions({
+                dateFnsLocale: undefined,
+                translate: translateLocal,
                 options: {reports: [inputOption], personalDetails: []},
                 draftComments: {},
                 betas: [CONST.BETAS.ALL],
@@ -9221,6 +12341,8 @@ describe('OptionsListUtils', () => {
             });
 
             expect(results.recentReports.length).toBe(1);
+            expect(results.recentReports.at(0)?.isUnread).toBe(true);
+            expect(results.recentReports.at(0)?.isBold).toBe(true);
         });
     });
 });

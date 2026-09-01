@@ -4,6 +4,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -13,10 +15,10 @@ import {close} from '@libs/actions/Modal';
 import {getLatestError} from '@libs/ErrorUtils';
 import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 
+import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -27,13 +29,13 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 import {accountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
-import React, {useRef, useState} from 'react';
+import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {PopoverMenuItem} from './PopoverMenu';
 
-import Avatar from './Avatar';
-import Button from './Button';
+import UserAvatar from './Avatar/UserAvatar';
+import Button from './ButtonComposed';
 import {ModalActions} from './Modal/Global/ModalContext';
 import PopoverMenu from './PopoverMenu';
 import {useProductTrainingContext} from './ProductTrainingContext';
@@ -64,15 +66,21 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
 
+    const delegate = account?.delegatedAccess?.delegate;
+    const delegators = account?.delegatedAccess?.delegators ?? [];
+    const personalDetailsByLogin = usePersonalDetailsByLogins([delegate, ...delegators.map((delegator) => delegator.email)]);
+
     const buttonRef = useRef<View>(null);
-    const {windowHeight} = useWindowDimensions();
+    const {windowHeight, windowWidth} = useWindowDimensions();
+    const {calculatePopoverPosition} = usePopoverPosition();
 
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
-    const delegators = account?.delegatedAccess?.delegators ?? [];
+    // Measured from the Switch button so the menu opens directly below it, rather than a fixed position.
+    const [popoverPosition, setPopoverPosition] = useState<AnchorPosition>();
 
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
+    const isActingAsDelegate = !!delegate;
     const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
-    const displayName = currentUserPersonalDetails?.displayName ?? '';
+    const displayName = currentUserPersonalDetails.displayName ?? '';
     const doesDisplayNameContainEmojis = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g')).test(displayName);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
@@ -108,10 +116,36 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         switchAccount();
     };
 
+    // Anchor the menu to the bottom-right of the Switch button so it opens directly below it.
+    const measureDelegatorMenuPosition = useCallback(
+        () =>
+            calculatePopoverPosition(buttonRef, {
+                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+            }),
+        [calculatePopoverPosition],
+    );
+
     const onPressSwitcher = () => {
         hideProductTrainingTooltip();
-        setShouldShowDelegatorMenu(!shouldShowDelegatorMenu);
+        if (shouldShowDelegatorMenu) {
+            setShouldShowDelegatorMenu(false);
+            return;
+        }
+        // Measure the button before opening so the menu renders at the right spot on the first frame.
+        measureDelegatorMenuPosition().then((position) => {
+            setPopoverPosition(position);
+            setShouldShowDelegatorMenu(true);
+        });
     };
+
+    // Keep the menu anchored to the button if the window is resized while it is open.
+    useLayoutEffect(() => {
+        if (!shouldShowDelegatorMenu) {
+            return;
+        }
+        measureDelegatorMenuPosition().then(setPopoverPosition);
+    }, [shouldShowDelegatorMenu, windowWidth, windowHeight, measureDelegatorMenuPosition]);
 
     const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
     const tooltipProps = shouldShowProductTrainingTooltip
@@ -131,12 +165,11 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
               // The switcher lives in the settings sidebar, which isn't the navigation-focused screen on wide layouts.
               // Without this the educational tooltip is suppressed (it relies on the screen being focused), so keep it shown until dismissed.
               shouldHideOnNavigate: false,
+              // The switcher scrolls away with the settings list, so the tooltip has to follow it or get out of the way.
+              shouldHideOnScroll: true,
           }
         : {
               text: translate('delegate.copilotAccess'),
-              shiftVertical: 8,
-              shiftHorizontal: 8,
-              anchorAlignment: {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM},
               shouldRender: canSwitchAccounts,
           };
 
@@ -166,18 +199,15 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true});
 
         if (isActingAsDelegate) {
-            const delegateEmail = account?.delegatedAccess?.delegate ?? '';
-
             // Avoid duplicating the current user in the list when switching accounts
-            if (delegateEmail === currentUserPersonalDetails.login) {
+            if (delegate === currentUserPersonalDetails.login) {
                 return [currentUserMenuItem];
             }
 
-            const delegatePersonalDetails = getPersonalDetailByEmail(delegateEmail);
             const error = getLatestError(account?.delegatedAccess?.errorFields?.disconnect);
 
             return [
-                createBaseMenuItem(delegatePersonalDetails, error, {
+                createBaseMenuItem(personalDetailsByLogin[delegate], error, {
                     onSelected: () => {
                         if (isOffline) {
                             close(showOfflineModal);
@@ -202,9 +232,9 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                 .map(({email, role}) => {
                     const errorFields = account?.delegatedAccess?.errorFields ?? {};
                     const error = getLatestError(errorFields?.connect?.[email]);
-                    const personalDetails = getPersonalDetailByEmail(email);
+                    const personalDetails = personalDetailsByLogin[email];
                     return createBaseMenuItem(personalDetails, error, {
-                        badgeText: translate('delegate.role', {role}),
+                        badgeText: translate('delegate.role', role),
                         onSelected: () => {
                             if (isOffline) {
                                 close(showOfflineModal);
@@ -234,11 +264,10 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         <>
             <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flexGrow1, styles.flex1, styles.mnw0]}>
                 <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flex1, styles.flexShrink1, styles.mnw0, styles.justifyContentCenter]}>
-                    <Avatar
-                        type={CONST.ICON_TYPE_AVATAR}
+                    <UserAvatar
                         size={CONST.AVATAR_SIZE.DEFAULT}
-                        avatarID={currentUserPersonalDetails?.accountID}
-                        source={currentUserPersonalDetails?.avatar}
+                        accountID={currentUserPersonalDetails.accountID}
+                        source={currentUserPersonalDetails.avatar}
                         fallbackIcon={currentUserPersonalDetails.fallbackIcon}
                     />
                     <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
@@ -261,7 +290,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                             numberOfLines={1}
                             style={[styles.colorMuted, styles.fontSizeLabel]}
                         >
-                            {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
+                            {Str.removeSMSDomain(currentUserPersonalDetails.login ?? '')}
                         </Text>
                         {!!isDebugModeEnabled && (
                             <Text
@@ -278,14 +307,14 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                         {/* View wrapper forwards the hover events Tooltip injects; Button doesn't pass them to its underlying pressable, so the tooltip wouldn't show without it */}
                         <View>
                             <Button
-                                small
+                                size={CONST.BUTTON_SIZE.SMALL}
                                 ref={buttonRef}
-                                text={translate('delegate.switch')}
                                 onPress={onPressSwitcher}
                                 sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.SHOW_ACCOUNTS}
-                                shouldShowRightIcon
-                                iconRight={icons.CaretUpDown}
-                            />
+                            >
+                                <Button.Text>{translate('delegate.switch')}</Button.Text>
+                                <Button.Icon src={icons.CaretUpDown} />
+                            </Button>
                         </View>
                     </TooltipToRender>
                 )}
@@ -297,9 +326,9 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     onClose={hideDelegatorMenu}
                     onItemSelected={hideDelegatorMenu}
                     anchorRef={buttonRef}
-                    anchorPosition={CONST.POPOVER_ACCOUNT_SWITCHER_POSITION}
+                    anchorPosition={popoverPosition ?? CONST.POPOVER_ACCOUNT_SWITCHER_POSITION}
                     anchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                     }}
                     menuItems={menuItems()}

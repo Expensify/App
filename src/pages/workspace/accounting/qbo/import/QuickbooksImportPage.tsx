@@ -11,6 +11,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 
 import {shouldSwitchLocationsToReportFields} from '@pages/workspace/accounting/qbo/utils';
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -28,10 +29,11 @@ type QBOSectionType = {
 
 function QuickbooksImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
-    const {syncClasses, syncCustomers, syncLocations, syncTax, pendingFields, errorFields} = qboConfig ?? {};
+    const {syncClasses, syncCustomers, syncLocations, syncItems, syncTax, pendingFields, errorFields} = qboConfig ?? {};
 
     // If we previously selected tags but now we have the line items restriction for locations, we need to switch to report fields
     useEffect(() => {
@@ -66,6 +68,12 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
             title: translate(`workspace.accounting.importTypes.${syncLocations ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS],
         },
+        {
+            description: translate('workspace.qbo.items'),
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_ITEMS.getRoute(policyID)),
+            title: translate(syncItems ? 'workspace.accounting.imported' : 'workspace.accounting.notImported'),
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.SYNC_ITEMS],
+        },
     ];
 
     if (policy?.connections?.quickbooksOnline?.data?.country !== CONST.COUNTRY.US) {
@@ -82,6 +90,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
             displayName="QuickbooksImportPage"
             headerTitle="workspace.accounting.import"
             title="workspace.qbo.importDescription"
+            titleAlreadyTranslated={translate('workspace.qbo.importDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}

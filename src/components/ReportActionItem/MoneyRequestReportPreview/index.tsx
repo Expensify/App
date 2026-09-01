@@ -13,8 +13,9 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
-import {isIOUReport} from '@libs/ReportUtils';
+import {areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils, getTransactionsWithReceipts, isIOUReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import {hasNonReimbursableTransactions as hasNonReimbursableTransactionsTransactionUtils} from '@libs/TransactionUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -60,9 +61,13 @@ function MoneyRequestReportPreview({
     const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
     const {isOffline} = useNetwork();
     // Full set of the report's transactions (matches ReportUtils' `getReportTransactions`). Used for the receipt/scan/
-    // reimbursable derivations so they include optimistically-deleted rows, exactly as before the decomposition.
+    // reimbursable derivations below so they include optimistically-deleted rows, exactly as before the decomposition.
+    // Kept local to this component rather than passed down, so children only receive the derived values they need.
     const allReportTransactions = Object.values(reportTransactionsCollection ?? {}).filter((transaction): transaction is Transaction => !!transaction);
     const transactions = allReportTransactions.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID, allReportTransactions);
+    const hasNonReimbursableTransactions = hasNonReimbursableTransactionsTransactionUtils(allReportTransactions);
+    const areAllRequestsBeingSmartScanned = areAllRequestsBeingSmartScannedReportUtils(iouReportID, action, allReportTransactions);
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
@@ -138,7 +143,9 @@ function MoneyRequestReportPreview({
     });
     const isFocused = useIsFocused();
     const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions, pendingNewTransactionIDs, chatReportID, isFocused);
-    const newTransactionIDs = new Set(newTransactions.map((transaction) => transaction.transactionID));
+    // Don't surface the highlight while the preview is covered — it'd animate the one-shot off-screen and be missed.
+    const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
+    const newTransactionIDs = new Set(isReportVisible ? newTransactions.map((transaction) => transaction.transactionID) : []);
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
 
@@ -177,7 +184,9 @@ function MoneyRequestReportPreview({
             onPaymentOptionsShow={onPaymentOptionsShow}
             onPaymentOptionsHide={onPaymentOptionsHide}
             transactions={transactions}
-            allReportTransactions={allReportTransactions}
+            transactionsWithReceipts={transactionsWithReceipts}
+            hasNonReimbursableTransactions={hasNonReimbursableTransactions}
+            areAllRequestsBeingSmartScanned={areAllRequestsBeingSmartScanned}
             policy={policy}
             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
             invoiceReceiverPolicy={invoiceReceiverPolicy}

@@ -2,6 +2,7 @@ import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
 
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -11,8 +12,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {cleanFileName, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import fileURIToPath from '@libs/fileURIToPath';
 import Log from '@libs/Log';
-import moveReceiptToDurableStorage from '@libs/moveReceiptToDurableStorage';
+import ReceiptStorage from '@libs/ReceiptStorage';
+import {getPickerCaptureSource, logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -128,20 +131,21 @@ const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
 
     const fileWithSize = fileResult.size
         ? Promise.resolve(fileResult)
-        : RNFetchBlob.fs.stat(fileData.uri.replace('file://', '')).then((stats) => {
+        : RNFetchBlob.fs.stat(fileURIToPath(fileData.uri)).then((stats) => {
               fileResult.size = stats.size;
               return fileResult;
           });
 
-    // Move the file out of the cache directory (which the OS can purge) into durable storage so it
-    // survives an app force-kill while the upload is queued offline. `source` is what prepareRequestPayload
-    // re-reads on offline replay, so it must point at the durable path too. On failure
-    // moveReceiptToDurableStorage returns the original URI, so the catch is just a safeguard.
+    // `source` is what prepareRequestPayload re-resolves on offline replay, so it must point into the
+    // receipts folder too, not just `uri`.
     return fileWithSize.then((file) =>
-        moveReceiptToDurableStorage(file.uri ?? '', file.name ?? CONST.DEFAULT_ATTACHMENT_FILENAME)
-            .then((durableUri) => ({...file, uri: durableUri, source: durableUri}) as FileObject)
+        ReceiptStorage.adopt(file.uri ?? '', file.name ?? CONST.DEFAULT_ATTACHMENT_FILENAME)
+            .then((durableName) => {
+                const durableUri = ReceiptStorage.toLocalUri(durableName);
+                return {...file, uri: durableUri, source: durableUri} as FileObject;
+            })
             .catch((error: unknown) => {
-                Log.warn('[AttachmentPicker] Failed to move attachment to durable storage, using original URI', {error});
+                logReceiptAdoptFailed({error, captureSource: getPickerCaptureSource()});
                 return file;
             }),
     );
@@ -178,6 +182,7 @@ function AttachmentPicker({
 
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
 
     /**
      * A generic handling when we don't know the exact reason for an error
@@ -260,9 +265,8 @@ function AttachmentPicker({
                                                 checkAllProcessed();
                                             })
                                             .catch((error: Error) => {
-                                                Log.warn('Failed to convert HEIC image, falling back to original', {error: error.message});
-                                                const fallbackAsset = processAssetWithFallbacks(asset);
-                                                processedAssets.push(fallbackAsset);
+                                                Log.warn('Failed to convert HEIC image, skipping asset', {error: error.message});
+                                                showGeneralAlert(translate('attachmentPicker.errorWhileConvertingHeic'));
                                                 checkAllProcessed();
                                             });
                                     } else {
@@ -583,8 +587,9 @@ function AttachmentPicker({
                 isVisible={isVisible}
                 anchorRef={popoverRef}
                 onModalHide={() => onModalHide.current?.()}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <View style={!shouldUseNarrowLayout && styles.createMenuContainer}>
+                <View style={[!shouldUseNarrowLayout && styles.createMenuContainer, bottomSafeAreaPaddingStyle]}>
                     {menuItemData.map((item, menuIndex) => (
                         <MenuItem
                             key={item.textTranslationKey}

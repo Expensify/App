@@ -6,11 +6,12 @@ import type {ListItem} from '@components/SelectionList/ListItem/types';
 import type {TextInputOptions} from '@components/SelectionList/types';
 
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -28,6 +29,9 @@ type MultiSelectItem<T> = {
     icons?: Icon[];
     leftElement?: ReactNode;
     searchableText?: string;
+
+    /** Optional supporting text rendered on a second line beneath `text` */
+    alternateText?: string;
 };
 
 type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & {
@@ -36,6 +40,9 @@ type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & 
 
     /** Whether the search input should be displayed. */
     isSearchable?: boolean;
+
+    /** Custom height for each item in the list */
+    itemHeight?: number;
 
     /** Search input placeholder. Defaults to 'common.search' when not provided. */
     searchPlaceholder?: string;
@@ -53,6 +60,8 @@ function MultiSelect<T extends string>({
     value,
     items,
     isSearchable,
+    isNegatable,
+    itemHeight,
     searchPlaceholder,
     selectionListTextInputStyle,
     selectionListStyle,
@@ -67,10 +76,20 @@ function MultiSelect<T extends string>({
     const [selectedItems, setSelectedItems] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
+    // Snapshot the values selected when the filter first opened so they can be floated to the top of a long list on
+    // first render without repinning rows that are toggled afterwards.
+    // moveInitialSelectionToTop gates on the *unfiltered* items length so the decision doesn't flip as the user types,
+    // and reordering before filtering keeps the pinned items on top among the results that still match.
+    const initialSelectedValues = useInitialValue(() => value.map((item) => item.value));
+    const orderedItems = moveInitialSelectionToTop(items, initialSelectedValues);
+
     const searchLower = debouncedSearchTerm.toLowerCase();
-    const filteredItems = isSearchable ? items.filter((item) => item.text.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower)) : items;
+    const filteredItems = isSearchable
+        ? orderedItems.filter((item) => item.text.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower))
+        : orderedItems;
     const listData: ListItem[] = filteredItems.map((item) => ({
         text: item.text,
+        alternateText: item.alternateText,
         keyForList: item.value,
         isSelected: !!selectedItems.find((i) => i.value === item.value),
         icons: item.icons,
@@ -107,24 +126,24 @@ function MultiSelect<T extends string>({
         disableAutoFocus: !autoFocus,
     };
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'MultiSelectDataLoading'};
-
     return (
         <ListFilterView
             itemCount={listData.length}
+            itemHeight={itemHeight}
             isSearchable={isSearchable}
+            isNegatable={isNegatable}
         >
             {loading ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
                         color={theme.spinner}
-                        reasonAttributes={reasonAttributes}
                     />
                 </View>
             ) : (
                 <SelectionList
                     shouldSingleExecuteRowSelect
+                    shouldUpdateFocusedIndex
                     shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     data={listData}
                     ListItem={MultiSelectListItem}

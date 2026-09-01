@@ -1,3 +1,5 @@
+import type {ReceiptCaptureSource} from '@libs/telemetry/ReceiptObservability';
+import {logReceiptCaptured, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
 import {shouldReuseInitialTransaction} from '@libs/TransactionUtils';
 
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -5,7 +7,6 @@ import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -16,7 +17,6 @@ type BuildReceiptFilesParams = {
     getFileSource: (file: FileObject) => string;
     initialTransaction: OnyxEntry<Transaction>;
     initialTransactionID: string;
-    currentUserPersonalDetails: CurrentUserPersonalDetails;
     reportID: string;
     shouldAcceptMultipleFiles: boolean;
     isMultiScanEnabled: boolean;
@@ -26,6 +26,9 @@ type BuildReceiptFilesParams = {
      * IDs of stale draft transactions to wipe before building new ones.
      */
     draftTransactionIDsToCleanUp?: string[];
+
+    /** How the receipt entered the app, recorded on the capture log. */
+    captureSource?: ReceiptCaptureSource;
 };
 
 /**
@@ -38,12 +41,12 @@ function buildReceiptFiles({
     getFileSource,
     initialTransaction,
     initialTransactionID,
-    currentUserPersonalDetails,
     reportID,
     shouldAcceptMultipleFiles,
     isMultiScanEnabled,
     transactions,
     draftTransactionIDsToCleanUp,
+    captureSource = 'file',
 }: BuildReceiptFilesParams): ReceiptFile[] {
     if (files.length === 0) {
         return [];
@@ -61,13 +64,14 @@ function buildReceiptFiles({
             ? initialTransaction
             : buildOptimisticTransactionAndCreateDraft({
                   initialTransaction: initialTransaction as Partial<Transaction>,
-                  currentUserPersonalDetails,
                   reportID,
               });
 
         const transactionID = transaction?.transactionID ?? initialTransactionID;
+        const receiptTraceId = mintAndStampReceiptTraceId(file);
+        logReceiptCaptured({file, captureSource, receiptTraceId});
         receiptFiles.push({file, source, transactionID});
-        setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
+        setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type, false, false, undefined, receiptTraceId);
     }
 
     return receiptFiles;

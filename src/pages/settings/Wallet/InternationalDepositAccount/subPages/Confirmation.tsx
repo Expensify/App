@@ -12,11 +12,14 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useShouldCollectInternationalDepositDetails from '@hooks/useShouldCollectInternationalDepositDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {shouldShowInternationalDetailOnConfirmation} from '@libs/BankAccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
+import {getAccountDetailsFieldsMap} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 
 import {clearReimbursementAccountBankCreation, createCorpayBankAccountForWalletFlow, hideBankAccountErrors} from '@userActions/BankAccounts';
 
@@ -30,6 +33,7 @@ import React, {useCallback, useEffect} from 'react';
 const STEP_INDEXES = CONST.CORPAY_FIELDS.INDEXES.MAPPING;
 
 type MenuItemProps = {
+    id: string;
     description: string;
     title: string;
     shouldShowRightIcon: boolean;
@@ -50,6 +54,8 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const {isOffline} = useNetwork();
     const {getCurrencySymbol} = useCurrencyListActions();
+    const shouldCollectInternationalDepositDetails = useShouldCollectInternationalDepositDetails(formValues.bankCountry);
+    const accountDetailsFields = getAccountDetailsFieldsMap(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS], shouldCollectInternationalDepositDetails);
 
     const getTitle = (field: CorpayFormField, fieldName: string) => {
         if ((field.valueSet ?? []).length > 0) {
@@ -91,6 +97,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
 
     const summaryItems: MenuItemProps[] = [
         {
+            id: 'bankCountry',
             description: translate('common.country'),
             title: translate(`allCountries.${formValues.bankCountry}` as TranslationPaths),
             shouldShowRightIcon: true,
@@ -100,6 +107,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
             disabled: isOffline,
         },
         {
+            id: 'bankCurrency',
             description: translate('common.currency'),
             title: `${formValues.bankCurrency} - ${getCurrencySymbol(formValues.bankCurrency)}`,
             shouldShowRightIcon: true,
@@ -110,8 +118,9 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
         },
     ];
 
-    for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS] ?? {})) {
+    for (const [fieldName, field] of Object.entries(accountDetailsFields)) {
         summaryItems.push({
+            id: `${CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS}-${fieldName}`,
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: getTitle(field, fieldName),
             shouldShowRightIcon: true,
@@ -121,8 +130,33 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
         });
     }
 
+    if (shouldShowInternationalDetailOnConfirmation(formValues.iban, formValues.accountNumber)) {
+        summaryItems.push({
+            id: `${CONST.CORPAY_FIELDS.PAGE_NAME.INTERNATIONAL_BANK_ACCOUNT_DETAILS}-iban`,
+            description: translate('bankAccount.iban'),
+            title: formValues.iban,
+            shouldShowRightIcon: true,
+            onPress: () => {
+                onMove(STEP_INDEXES.INTERNATIONAL_BANK_ACCOUNT_DETAILS);
+            },
+        });
+    }
+
+    if (shouldShowInternationalDetailOnConfirmation(formValues.swiftCode, formValues.swiftBicCode)) {
+        summaryItems.push({
+            id: `${CONST.CORPAY_FIELDS.PAGE_NAME.INTERNATIONAL_BANK_ACCOUNT_DETAILS}-swiftCode`,
+            description: translate('bankAccount.swiftBicCode'),
+            title: formValues.swiftCode,
+            shouldShowRightIcon: true,
+            onPress: () => {
+                onMove(STEP_INDEXES.INTERNATIONAL_BANK_ACCOUNT_DETAILS);
+            },
+        });
+    }
+
     for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE] ?? {})) {
         summaryItems.push({
+            id: `${CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE}-${fieldName}`,
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: getTitle(field, fieldName),
             shouldShowRightIcon: true,
@@ -136,6 +170,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
         ([field1], [field2]) => CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(field1) - CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(field2),
     )) {
         summaryItems.push({
+            id: `${CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION}-${fieldName}`,
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: getTitle(field, fieldName),
             shouldShowRightIcon: true,
@@ -149,6 +184,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
         ([field1], [field2]) => CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(field1) - CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(field2),
     )) {
         summaryItems.push({
+            id: `${CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS}-${fieldName}`,
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: fieldName === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? translate(`allCountries.${formValues.bankCountry}` as TranslationPaths) : getTitle(field, fieldName),
             shouldShowRightIcon: fieldName !== CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY,
@@ -176,9 +212,10 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
         <ScrollView contentContainerStyle={styles.flexGrow1}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('addPersonalBankAccount.confirmationStepHeader')}</Text>
             <Text style={[styles.mb6, styles.ph5, styles.textSupporting]}>{translate('addPersonalBankAccount.confirmationStepSubHeader')}</Text>
-            {summaryItems.map(({description, title, shouldShowRightIcon, interactive, disabled, onPress}) => (
+            {summaryItems.map(({id, description, title, shouldShowRightIcon, interactive, disabled, onPress}) => (
                 <MenuItemWithTopDescription
-                    key={`${title}_${description}`}
+                    key={id}
+                    pressableTestID={id}
                     description={description}
                     title={title}
                     shouldShowRightIcon={shouldShowRightIcon}

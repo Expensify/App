@@ -689,13 +689,14 @@
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-NewExpensify/Pods-NewExpensify-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/MapboxMaps/MapboxMaps.framework",
-				"${BUILT_PRODUCTS_DIR}/Turf/Turf.framework",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/FullStory/FullStory.framework/FullStory",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoModulesJSI/ExpoModulesJSI.framework/ExpoModulesJSI",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/MapboxCommon/MapboxCommon.framework/MapboxCommon",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/MapboxCoreMaps/MapboxCoreMaps.framework/MapboxCoreMaps",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/MapboxMobileEvents/MapboxMobileEvents.framework/MapboxMobileEvents",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/Onfido/Onfido.framework/Onfido",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/OpenSSL-Universal/OpenSSL.framework/OpenSSL",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/Plaid/LinkKit.framework/LinkKit",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/Turf/Turf.framework/Turf",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/group-ib-fp/GIBMobileSdk.framework/GIBMobileSdk",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/group-ib-fp/FPAppsCapability.framework/FPAppsCapability",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/group-ib-fp/FPCallCapability.framework/FPCallCapability",
@@ -704,13 +705,14 @@
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MapboxMaps.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Turf.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/FullStory.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ExpoModulesJSI.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MapboxCommon.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MapboxCoreMaps.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MapboxMobileEvents.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Onfido.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/OpenSSL.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/LinkKit.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Turf.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GIBMobileSdk.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/FPAppsCapability.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/FPCallCapability.framework",
@@ -813,6 +815,7 @@
 				"${PODS_CONFIGURATION_BUILD_DIR}/RNSVG/RNSVGFilters.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/React-Core_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-cxxreact/React-cxxreact_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/React-timing/React-timing_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/SDWebImage/SDWebImage.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/Sentry/Sentry.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/TrustKit/TrustKit.bundle",
@@ -846,6 +849,7 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RNSVGFilters.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-Core_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-cxxreact_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-timing_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/SDWebImage.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Sentry.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/TrustKit.bundle",
@@ -1023,6 +1027,20 @@
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers/react/renderer/graphics/platform/ios",
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-runtimeexecutor/React_runtimeexecutor.framework/Headers",
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-runtimeexecutor/React_runtimeexecutor.framework/Headers/platform/ios",
+					"${PODS_ROOT}/ReactCommon",
+					"${PODS_ROOT}/ReactCommon/react/nativemodule/core",
+					"${PODS_ROOT}/React-runtimeexecutor",
+					"${PODS_ROOT}/React-runtimeexecutor/platform/ios",
+					"${PODS_ROOT}/ReactCommon-Samples",
+					"${PODS_ROOT}/ReactCommon-Samples/platform/ios",
+					"${PODS_ROOT}/React-Fabric/react/renderer/components/view/platform/cxx",
+					"${PODS_ROOT}/React-NativeModulesApple",
+					"${PODS_ROOT}/React-graphics",
+					"${PODS_ROOT}/React-graphics/react/renderer/graphics/platform/ios",
+					"${PODS_ROOT}/React-featureflags",
+					"${PODS_ROOT}/React-renderercss",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-featureflags/React_featureflags.framework/Headers",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-renderercss/React_renderercss.framework/Headers",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD = "";
@@ -1041,16 +1059,20 @@
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-DRN_FABRIC_ENABLED",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(inherited)",
 					"-DRN_FABRIC_ENABLED",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
 				);
 				OTHER_LDFLAGS = "$(inherited)";
+				PODFILE_DIR = "$(SRCROOT)";
 				PRODUCT_BUNDLE_IDENTIFIER = "";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				USE_HERMES = true;
 			};
 			name = Debug;
@@ -2285,6 +2307,20 @@
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers/react/renderer/graphics/platform/ios",
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-runtimeexecutor/React_runtimeexecutor.framework/Headers",
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-runtimeexecutor/React_runtimeexecutor.framework/Headers/platform/ios",
+					"${PODS_ROOT}/ReactCommon",
+					"${PODS_ROOT}/ReactCommon/react/nativemodule/core",
+					"${PODS_ROOT}/React-runtimeexecutor",
+					"${PODS_ROOT}/React-runtimeexecutor/platform/ios",
+					"${PODS_ROOT}/ReactCommon-Samples",
+					"${PODS_ROOT}/ReactCommon-Samples/platform/ios",
+					"${PODS_ROOT}/React-Fabric/react/renderer/components/view/platform/cxx",
+					"${PODS_ROOT}/React-NativeModulesApple",
+					"${PODS_ROOT}/React-graphics",
+					"${PODS_ROOT}/React-graphics/react/renderer/graphics/platform/ios",
+					"${PODS_ROOT}/React-featureflags",
+					"${PODS_ROOT}/React-renderercss",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-featureflags/React_featureflags.framework/Headers",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-renderercss/React_renderercss.framework/Headers",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD = "";
@@ -2303,15 +2339,19 @@
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-DRN_FABRIC_ENABLED",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(inherited)",
 					"-DRN_FABRIC_ENABLED",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
 				);
 				OTHER_LDFLAGS = "$(inherited)";
+				PODFILE_DIR = "$(SRCROOT)";
 				PRODUCT_BUNDLE_IDENTIFIER = "";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				USE_HERMES = true;
 			};
 			name = DebugDevelopment;
@@ -2371,6 +2411,20 @@
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers/react/renderer/graphics/platform/ios",
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-runtimeexecutor/React_runtimeexecutor.framework/Headers",
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-runtimeexecutor/React_runtimeexecutor.framework/Headers/platform/ios",
+					"${PODS_ROOT}/ReactCommon",
+					"${PODS_ROOT}/ReactCommon/react/nativemodule/core",
+					"${PODS_ROOT}/React-runtimeexecutor",
+					"${PODS_ROOT}/React-runtimeexecutor/platform/ios",
+					"${PODS_ROOT}/ReactCommon-Samples",
+					"${PODS_ROOT}/ReactCommon-Samples/platform/ios",
+					"${PODS_ROOT}/React-Fabric/react/renderer/components/view/platform/cxx",
+					"${PODS_ROOT}/React-NativeModulesApple",
+					"${PODS_ROOT}/React-graphics",
+					"${PODS_ROOT}/React-graphics/react/renderer/graphics/platform/ios",
+					"${PODS_ROOT}/React-featureflags",
+					"${PODS_ROOT}/React-renderercss",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-featureflags/React_featureflags.framework/Headers",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-renderercss/React_renderercss.framework/Headers",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD = "";
@@ -2388,16 +2442,20 @@
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-DRN_FABRIC_ENABLED",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(inherited)",
 					"-DRN_FABRIC_ENABLED",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
 				);
 				OTHER_LDFLAGS = "$(inherited)";
+				PODFILE_DIR = "$(SRCROOT)";
 				PRODUCT_BUNDLE_IDENTIFIER = "";
 				PRODUCT_NAME = "";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -2465,6 +2523,20 @@
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers/react/renderer/graphics/platform/ios",
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-runtimeexecutor/React_runtimeexecutor.framework/Headers",
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-runtimeexecutor/React_runtimeexecutor.framework/Headers/platform/ios",
+					"${PODS_ROOT}/ReactCommon",
+					"${PODS_ROOT}/ReactCommon/react/nativemodule/core",
+					"${PODS_ROOT}/React-runtimeexecutor",
+					"${PODS_ROOT}/React-runtimeexecutor/platform/ios",
+					"${PODS_ROOT}/ReactCommon-Samples",
+					"${PODS_ROOT}/ReactCommon-Samples/platform/ios",
+					"${PODS_ROOT}/React-Fabric/react/renderer/components/view/platform/cxx",
+					"${PODS_ROOT}/React-NativeModulesApple",
+					"${PODS_ROOT}/React-graphics",
+					"${PODS_ROOT}/React-graphics/react/renderer/graphics/platform/ios",
+					"${PODS_ROOT}/React-featureflags",
+					"${PODS_ROOT}/React-renderercss",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-featureflags/React_featureflags.framework/Headers",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-renderercss/React_renderercss.framework/Headers",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD = "";
@@ -2483,15 +2555,19 @@
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-DRN_FABRIC_ENABLED",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(inherited)",
 					"-DRN_FABRIC_ENABLED",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
 				);
 				OTHER_LDFLAGS = "$(inherited)";
+				PODFILE_DIR = "$(SRCROOT)";
 				PRODUCT_BUNDLE_IDENTIFIER = "";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				USE_HERMES = true;
 			};
 			name = DebugProduction;
@@ -2598,6 +2674,20 @@
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers/react/renderer/graphics/platform/ios",
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-runtimeexecutor/React_runtimeexecutor.framework/Headers",
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-runtimeexecutor/React_runtimeexecutor.framework/Headers/platform/ios",
+					"${PODS_ROOT}/ReactCommon",
+					"${PODS_ROOT}/ReactCommon/react/nativemodule/core",
+					"${PODS_ROOT}/React-runtimeexecutor",
+					"${PODS_ROOT}/React-runtimeexecutor/platform/ios",
+					"${PODS_ROOT}/ReactCommon-Samples",
+					"${PODS_ROOT}/ReactCommon-Samples/platform/ios",
+					"${PODS_ROOT}/React-Fabric/react/renderer/components/view/platform/cxx",
+					"${PODS_ROOT}/React-NativeModulesApple",
+					"${PODS_ROOT}/React-graphics",
+					"${PODS_ROOT}/React-graphics/react/renderer/graphics/platform/ios",
+					"${PODS_ROOT}/React-featureflags",
+					"${PODS_ROOT}/React-renderercss",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-featureflags/React_featureflags.framework/Headers",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-renderercss/React_renderercss.framework/Headers",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD = "";
@@ -2616,15 +2706,19 @@
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-DRN_FABRIC_ENABLED",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(inherited)",
 					"-DRN_FABRIC_ENABLED",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
 				);
 				OTHER_LDFLAGS = "$(inherited)";
+				PODFILE_DIR = "$(SRCROOT)";
 				PRODUCT_BUNDLE_IDENTIFIER = "";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				USE_HERMES = true;
 			};
 			name = DebugAdHoc;
@@ -2724,6 +2818,20 @@
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers/react/renderer/graphics/platform/ios",
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-runtimeexecutor/React_runtimeexecutor.framework/Headers",
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-runtimeexecutor/React_runtimeexecutor.framework/Headers/platform/ios",
+					"${PODS_ROOT}/ReactCommon",
+					"${PODS_ROOT}/ReactCommon/react/nativemodule/core",
+					"${PODS_ROOT}/React-runtimeexecutor",
+					"${PODS_ROOT}/React-runtimeexecutor/platform/ios",
+					"${PODS_ROOT}/ReactCommon-Samples",
+					"${PODS_ROOT}/ReactCommon-Samples/platform/ios",
+					"${PODS_ROOT}/React-Fabric/react/renderer/components/view/platform/cxx",
+					"${PODS_ROOT}/React-NativeModulesApple",
+					"${PODS_ROOT}/React-graphics",
+					"${PODS_ROOT}/React-graphics/react/renderer/graphics/platform/ios",
+					"${PODS_ROOT}/React-featureflags",
+					"${PODS_ROOT}/React-renderercss",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-featureflags/React_featureflags.framework/Headers",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-renderercss/React_renderercss.framework/Headers",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD = "";
@@ -2741,16 +2849,20 @@
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-DRN_FABRIC_ENABLED",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(inherited)",
 					"-DRN_FABRIC_ENABLED",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
 				);
 				OTHER_LDFLAGS = "$(inherited)";
+				PODFILE_DIR = "$(SRCROOT)";
 				PRODUCT_BUNDLE_IDENTIFIER = "";
 				PRODUCT_NAME = "";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -2849,6 +2961,20 @@
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers/react/renderer/graphics/platform/ios",
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-runtimeexecutor/React_runtimeexecutor.framework/Headers",
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-runtimeexecutor/React_runtimeexecutor.framework/Headers/platform/ios",
+					"${PODS_ROOT}/ReactCommon",
+					"${PODS_ROOT}/ReactCommon/react/nativemodule/core",
+					"${PODS_ROOT}/React-runtimeexecutor",
+					"${PODS_ROOT}/React-runtimeexecutor/platform/ios",
+					"${PODS_ROOT}/ReactCommon-Samples",
+					"${PODS_ROOT}/ReactCommon-Samples/platform/ios",
+					"${PODS_ROOT}/React-Fabric/react/renderer/components/view/platform/cxx",
+					"${PODS_ROOT}/React-NativeModulesApple",
+					"${PODS_ROOT}/React-graphics",
+					"${PODS_ROOT}/React-graphics/react/renderer/graphics/platform/ios",
+					"${PODS_ROOT}/React-featureflags",
+					"${PODS_ROOT}/React-renderercss",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-featureflags/React_featureflags.framework/Headers",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-renderercss/React_renderercss.framework/Headers",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD = "";
@@ -2866,16 +2992,20 @@
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-DRN_FABRIC_ENABLED",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(inherited)",
 					"-DRN_FABRIC_ENABLED",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
 				);
 				OTHER_LDFLAGS = "$(inherited)";
+				PODFILE_DIR = "$(SRCROOT)";
 				PRODUCT_BUNDLE_IDENTIFIER = "";
 				PRODUCT_NAME = "";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
 			};

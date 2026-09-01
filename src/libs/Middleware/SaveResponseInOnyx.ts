@@ -1,4 +1,4 @@
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 
 import * as OnyxUpdates from '@userActions/OnyxUpdates';
 
@@ -21,6 +21,9 @@ const requestsToIgnoreLastUpdateID = new Set<string>([
     SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES,
 ]);
 
+// A request belongs here when its successData/finallyData is what unblocks authentication, because parking that leaves the client unable to reauthenticate.
+const requestsToApplyWithoutAdvancingLastUpdateID = new Set<string>([READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN]);
+
 const SaveResponseInOnyx: Middleware = <TKey extends OnyxKey>(requestResponse: Promise<Response<TKey> | void>, request: OnyxRequest<TKey>) =>
     requestResponse.then((response = {}) => {
         const onyxUpdates = response?.onyxData ?? [];
@@ -39,8 +42,14 @@ const SaveResponseInOnyx: Middleware = <TKey extends OnyxKey>(requestResponse: P
             response: response ?? {},
         };
 
-        if (requestsToIgnoreLastUpdateID.has(request.command) || !OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: Number(response?.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID)})) {
-            return OnyxUpdates.apply(responseToApply);
+        const shouldApplyWithoutAdvancingLastUpdateID = requestsToApplyWithoutAdvancingLastUpdateID.has(request.command);
+
+        if (
+            shouldApplyWithoutAdvancingLastUpdateID ||
+            requestsToIgnoreLastUpdateID.has(request.command) ||
+            !OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: Number(response?.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID)})
+        ) {
+            return OnyxUpdates.apply(shouldApplyWithoutAdvancingLastUpdateID ? {...responseToApply, lastUpdateID: CONST.DEFAULT_NUMBER_ID} : responseToApply);
         }
 
         // Save the update IDs to Onyx so they can be used to fetch incremental updates if the client gets out of sync from the server

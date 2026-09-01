@@ -4,7 +4,9 @@ import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
 import useAncestors from '@hooks/useAncestors';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
@@ -84,6 +86,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     });
     const instanceIDRef = useRef('');
     const {email, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     // UI-thread timer driving the delayed hide. https://github.com/Expensify/App/issues/89069
@@ -351,8 +354,10 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
     const childParentReportAction = useParentReportAction(childReport);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {currentSearchHash} = useSearchQueryContext();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {deleteTransactions} = useDeleteTransactions({
         report,
         reportActions: reportActionRef.current ? [reportActionRef.current] : [],
@@ -379,6 +384,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 deleteTrackExpense({
                     chatReportID: reportIDRef.current,
                     chatReport: report,
+                    chatReportActions: reportActions,
                     transactionID: originalMessage?.IOUTransactionID,
                     reportAction,
                     iouReport,
@@ -391,6 +397,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     allTransactionViolationsParam: allTransactionViolations,
                     currentUserAccountID,
                     currentUserEmail: email ?? '',
+                    policy: iouPolicy,
+                    getCurrencyDecimals,
                 });
             } else if (originalMessage?.IOUTransactionID) {
                 const deleteResult = deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined);
@@ -411,6 +419,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 reportTransactions,
                 allTransactionViolations,
                 bankAccountList,
+                delegateAccountID,
                 hash: currentSearchHash,
             });
         } else if (reportAction) {
@@ -419,6 +428,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     report,
                     reportAction,
                     originalReportActions,
+                    reportActions,
                     ancestorsRef.current,
                     isReportArchived,
                     isOriginalReportArchived,
@@ -432,6 +442,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         setIsDeleteCommentConfirmModalVisible(false);
     }, [
         report,
+        reportActions,
         originalReportActions,
         childReportActions,
         childParentReportAction,
@@ -445,6 +456,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         isChatIOUReportArchived,
         allTransactionViolations,
         currentUserAccountID,
+        delegateAccountID,
         deleteTransactions,
         currentSearchHash,
         email,
@@ -454,6 +466,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         visibleReportActionsData,
         iouTransaction,
         iouOriginalTransaction,
+        iouPolicy,
+        getCurrencyDecimals,
     ]);
 
     const hideDeleteModal = () => {
@@ -524,7 +538,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 />
             </PopoverWithMeasuredContent>
             <ConfirmModal
-                title={translate('reportActionContextMenu.deleteAction', {action: reportAction})}
+                title={translate('reportActionContextMenu.deleteAction', reportAction)}
                 isVisible={isDeleteCommentConfirmModalVisible}
                 shouldSetModalVisibility={shouldSetModalVisibilityForDeleteConfirmation}
                 onConfirm={confirmDeleteAndHideModal}
@@ -533,10 +547,10 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     clearActiveReportAction();
                     callbackWhenDeleteModalHide.current();
                 }}
-                prompt={translate('reportActionContextMenu.deleteConfirmation', {action: reportAction})}
+                prompt={translate('reportActionContextMenu.deleteConfirmation', reportAction)}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
-                danger
+                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
             />
         </>
     );
