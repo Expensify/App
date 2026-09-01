@@ -37,7 +37,7 @@ type TooltipProps = {
 
 Flag ONLY when ALL of these are true:
 
-- The changed code adds, modifies, or removes one or more members' `/** ... */` comments of a component props type/interface (a `type`/`interface` whose name ends in `Props`) or of a type/interface in `src/types/onyx/**` - whether the type declaration itself is new or pre-existing
+- The changed code adds or modifies one or more members, or adds, modifies, or removes one or more members' `/** ... */` comments, of a component props type/interface (a `type`/`interface` whose name ends in `Props`) or of a type/interface in `src/types/onyx/**` - whether the type declaration itself is new or pre-existing
 - **None** of the type's members - old or newly added - has a `/** ... */` block comment above it after the change
 - At least one undocumented member - whether it was already undocumented, newly added, or had its comment just deleted by this change - has a non-obvious fact to add (a unit, default, boundary condition, null/undefined semantics, ownership, invariant, or distinction from a sibling) - a member whose name and type are already self-explanatory needs no comment and does not trigger this rule
 
