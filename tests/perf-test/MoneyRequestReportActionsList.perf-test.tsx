@@ -104,7 +104,7 @@ const report = {
     lastReadTime: sortedReportActions.at(0)?.created,
 };
 
-const transactions = Array.from({length: TRANSACTIONS_COUNT}, (unused, index) => {
+function buildTransaction(index: number): Transaction {
     return {
         transactionID: `PERF_TXN_${index + 1}`,
         reportID: REPORT_ID,
@@ -114,7 +114,9 @@ const transactions = Array.from({length: TRANSACTIONS_COUNT}, (unused, index) =>
         created: '2025-01-01',
         status: CONST.TRANSACTION.STATUS.POSTED,
     } as Transaction;
-});
+}
+
+const transactions = Array.from({length: TRANSACTIONS_COUNT}, (unused, index) => buildTransaction(index));
 
 beforeEach(async () => {
     // Initialize the network key for OfflineWithFeedback
@@ -203,6 +205,37 @@ test('[MoneyRequestReportActionsList] should re-render the unified list when a n
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[newAction.reportActionID]: newAction});
             await waitForBatchedUpdates();
         });
+    };
+    await waitForBatchedUpdates();
+    await measureRenders(<MoneyRequestReportActionsListWrapper />, {scenario});
+});
+
+test('[MoneyRequestReportActionsList] should scope re-renders to the transaction list when a transaction under the report changes', async () => {
+    const scenario = async () => {
+        await screen.findByTestId('money-request-report-actions-list');
+        // The core claim of the transaction decomposition: mutating one transaction must not
+        // re-render the report actions portion of the unified list.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactions.at(0)?.transactionID}`, {amount: 20000, merchant: 'Updated Merchant'});
+            await waitForBatchedUpdates();
+        });
+    };
+    await waitForBatchedUpdates();
+    await measureRenders(<MoneyRequestReportActionsListWrapper />, {scenario});
+});
+
+test('[MoneyRequestReportActionsList] should render the unified list with 500 reportActions and 100 transactions stored', async () => {
+    // Decomposition wins scale with transaction count; this shape makes the delta visible in the baseline diff.
+    await act(async () => {
+        for (let index = TRANSACTIONS_COUNT; index < 100; index++) {
+            const transaction = buildTransaction(index);
+            // eslint-disable-next-line no-await-in-loop
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+        }
+        await waitForBatchedUpdates();
+    });
+    const scenario = async () => {
+        await screen.findByTestId('money-request-report-actions-list');
     };
     await waitForBatchedUpdates();
     await measureRenders(<MoneyRequestReportActionsListWrapper />, {scenario});
