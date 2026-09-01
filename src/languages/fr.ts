@@ -8014,7 +8014,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 confirmErrorCategoryTax: 'Veuillez sélectionner un taux de taxe',
                 confirmErrorCondition: 'Veuillez sélectionner un commerçant ou une catégorie',
                 confirmErrorConditionAndDefault: 'Sélectionnez un commerçant ou une catégorie, et appliquez au moins un paramètre par défaut',
-                turnOnTaxesFirstTitle: 'Activez d’abord les taxes',
+                turnOnTaxesFirstTitle: 'Activer d’abord les taxes',
                 turnOnTaxesFirstPrompt: 'Les règles de catégorie définissent un taux de taxe par défaut. Activez les taxes dans les paramètres de votre espace de travail pour les utiliser.',
                 categoryRulesApplyGoingForwardTitle: 'Les règles de catégorie s’appliquent à partir de maintenant',
                 categoryRulesApplyGoingForwardPrompt:
@@ -8320,7 +8320,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 flagForReviewDescription: 'Avertir les approbateurs lorsque les dépenses dépassent les limites de catégorie',
                 requireFields: 'Définir les champs obligatoires',
                 requireFieldsDescription: 'Rendre certains champs de dépense obligatoires ou renoncer à les exiger.',
-                createAgentRule: 'Décrire la règle de l’agent',
+                createAgentRule: 'Décrire la règle d’agent',
                 createAgentRuleDescription: 'Créez des règles flexibles qui s’exécutent quand vous en avez besoin.',
             },
             expenseDefaultsTable: {
@@ -8349,7 +8349,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 requireReceipt: 'Reçu obligatoire',
                 doNotRequireReceipt: 'Ne pas exiger de reçu',
                 doNotRequireItemizedReceipt: 'Ne pas exiger de reçu détaillé',
-                typeLabel: 'Exiger',
+                typeLabel: 'Obliger',
             },
             requireFieldsEmptyState: {
                 title: 'Identifiez les informations manquantes dès le départ',
@@ -8402,6 +8402,15 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 cta: 'Ajouter une règle IA',
             },
             categoriesDisabledEmptyState: {title: 'Les catégories ne sont pas activées', subtitle: 'Activez les catégories pour mieux contrôler vos dépenses.'},
+            expenseDefaultType: {
+                title: 'Appliquer les valeurs par défaut des dépenses',
+                subtitle: 'Sur quoi cette règle doit-elle faire correspondre ?',
+                merchant: 'Commerçant',
+                merchantDescription: 'Mettre à jour les champs des dépenses d’un commerçant spécifique',
+                category: 'Catégorie',
+                categoryDescription: 'Définir un taux de taxe par défaut pour une catégorie spécifique',
+            },
+            taxesDisabledEmptyState: {title: 'Les taxes ne sont pas activées', subtitle: 'Activez les taxes pour documenter et récupérer les taxes admissibles.', cta: 'Activer les taxes'},
         },
         planTypePage: {
             planTypes: {

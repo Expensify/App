@@ -7993,9 +7993,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 confirmErrorCategoryTax: 'Bitte wählen Sie einen Steuersatz aus',
                 confirmErrorCondition: 'Bitte wählen Sie einen Händler oder eine Kategorie aus',
                 confirmErrorConditionAndDefault: 'Wählen Sie einen Händler oder eine Kategorie aus und wenden Sie mindestens eine Standardeinstellung an',
-                turnOnTaxesFirstTitle: 'Aktivieren Sie zuerst Steuern',
-                turnOnTaxesFirstPrompt: 'Kategorienregeln legen einen standardmäßigen Steuersatz fest. Aktivieren Sie Steuern in Ihren Arbeitsbereichseinstellungen, um sie zu verwenden.',
-                categoryRulesApplyGoingForwardTitle: 'Kategorie-Regeln gelten ab jetzt',
+                turnOnTaxesFirstTitle: 'Schalten Sie zuerst Steuern ein',
+                turnOnTaxesFirstPrompt: 'Kategorienregeln legen einen standardmäßigen Steuersatz fest. Aktivieren Sie Steuern in Ihren Workspace-Einstellungen, um sie zu verwenden.',
+                categoryRulesApplyGoingForwardTitle: 'Kategorienregeln gelten ab jetzt',
                 categoryRulesApplyGoingForwardPrompt: 'Ein Standardsteuersatz gilt für neue Ausgaben in dieser Kategorie. Bereits vorhandene Ausgaben werden nicht geändert.',
             },
             categoryRules: {
@@ -8379,6 +8379,19 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 cta: 'KI-Regel hinzufügen',
             },
             categoriesDisabledEmptyState: {title: 'Kategorien sind nicht aktiviert', subtitle: 'Aktivieren Sie Kategorien, um Ihre Ausgaben besser zu kontrollieren.'},
+            expenseDefaultType: {
+                title: 'Standard-Ausgabenvorgaben anwenden',
+                subtitle: 'Worauf soll diese Regel angewendet werden?',
+                merchant: 'Händler',
+                merchantDescription: 'Felder bei Ausgaben eines bestimmten Händlers aktualisieren',
+                category: 'Kategorie',
+                categoryDescription: 'Legen Sie einen standardmäßigen Steuersatz für eine bestimmte Kategorie fest',
+            },
+            taxesDisabledEmptyState: {
+                title: 'Steuern sind nicht aktiviert',
+                subtitle: 'Aktivieren Sie Steuern, um berechtigte Steuern zu dokumentieren und zurückzufordern.',
+                cta: 'Steuern aktivieren',
+            },
         },
         planTypePage: {
             planTypes: {
