@@ -520,7 +520,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 customUnitID: '1000000000001',
                 name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                 attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
-                rates: {SRC_RATE: {customUnitRateID: 'SRC_RATE', name: 'IRS', rate: 67, enabled: true, currency: 'USD'}},
+                rates: {SRC_RATE: {customUnitRateID: 'SRC_RATE', name: 'Default Rate', rate: 67, enabled: true, currency: 'USD'}},
             };
             const sourcePerDiemUnit: CustomUnit = {
                 customUnitID: '1000000000002',
@@ -539,8 +539,8 @@ describe('actions/Policy/CopyPolicySettings', () => {
                             name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                             attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
                             rates: {
-                                TGT_RATE: {customUnitRateID: 'TGT_RATE', name: 'IRS', rate: 1, enabled: true, currency: 'EUR'},
-                                OLD: {customUnitRateID: 'OLD', name: 'old', rate: 1, enabled: true, currency: 'EUR'},
+                                TGT_RATE: {customUnitRateID: 'TGT_RATE', name: 'Default Rate', rate: 0.55, enabled: true, currency: 'EUR'},
+                                OLD: {customUnitRateID: 'OLD', name: 'Team offsite', rate: 0.3, enabled: true, currency: 'EUR'},
                             },
                         },
                     },
@@ -552,7 +552,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(policy?.customUnits).toBeDefined();
                 expect(Object.keys(policy?.customUnits ?? {})).toEqual([targetExistingDistanceID]);
                 expect(policy?.customUnits?.[targetExistingDistanceID]?.customUnitID).toBe(targetExistingDistanceID);
-                // The source's 'IRS' rate lands on the target's rate ID, and the target's unmatched rate is dropped
+                // The source's 'Default Rate' lands on the target's rate ID, and the target's unmatched rate is dropped
                 expect(policy?.customUnits?.[targetExistingDistanceID]?.rates).toEqual({
                     TGT_RATE: {...sourceDistanceUnit.rates.SRC_RATE, customUnitRateID: 'TGT_RATE'},
                 });
@@ -581,7 +581,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                             customUnitID: targetExistingDistanceID,
                             name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                             attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
-                            rates: {TGT_DEFAULT: {customUnitRateID: 'TGT_DEFAULT', name: 'Default Rate', rate: 1, enabled: true, currency: 'EUR'}},
+                            rates: {TGT_DEFAULT: {customUnitRateID: 'TGT_DEFAULT', name: 'Default Rate', rate: 0.55, enabled: true, currency: 'EUR'}},
                         },
                     },
                 });
@@ -614,13 +614,13 @@ describe('actions/Policy/CopyPolicySettings', () => {
                             customUnitID: targetExistingDistanceID,
                             name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                             attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
-                            rates: {TGT_RATE: {customUnitRateID: 'TGT_RATE', name: 'IRS', rate: 1, enabled: true, currency: 'EUR'}},
+                            rates: {TGT_RATE: {customUnitRateID: 'TGT_RATE', name: 'Default Rate', rate: 0.55, enabled: true, currency: 'EUR'}},
                         },
                         [targetExistingPerDiemID]: {
                             customUnitID: targetExistingPerDiemID,
                             name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
                             attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
-                            rates: {TGT_PD_RATE: {customUnitRateID: 'TGT_PD_RATE', name: 'NYC', rate: 1, enabled: true, currency: 'EUR'}},
+                            rates: {TGT_PD_RATE: {customUnitRateID: 'TGT_PD_RATE', name: 'NYC', rate: 85, enabled: true, currency: 'EUR'}},
                         },
                     },
                 });
@@ -699,15 +699,15 @@ describe('actions/Policy/CopyPolicySettings', () => {
                     customUnitID: '1000000000001',
                     name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                     attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
-                    rates: {NEW_RATE: {customUnitRateID: 'NEW_RATE', name: 'OldA', rate: 67, enabled: true, currency: 'USD'}},
+                    rates: {NEW_RATE: {customUnitRateID: 'NEW_RATE', name: 'Default Rate', rate: 67, enabled: true, currency: 'USD'}},
                 };
                 const targetDistanceUnit: CustomUnit = {
                     customUnitID: '2000000000001',
                     name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                     attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
                     rates: {
-                        OLD_RATE_A: {customUnitRateID: 'OLD_RATE_A', name: 'OldA', rate: 50, enabled: true, currency: 'EUR'},
-                        OLD_RATE_B: {customUnitRateID: 'OLD_RATE_B', name: 'OldB', rate: 30, enabled: false, currency: 'EUR'},
+                        OLD_RATE_A: {customUnitRateID: 'OLD_RATE_A', name: 'Default Rate', rate: 0.55, enabled: true, currency: 'EUR'},
+                        OLD_RATE_B: {customUnitRateID: 'OLD_RATE_B', name: 'Team offsite', rate: 0.3, enabled: false, currency: 'EUR'},
                     },
                 };
 
