@@ -1,4 +1,4 @@
-import {processPickedAssetsSequentially} from '@components/AttachmentPicker/index.native';
+import processPickedAssetsSequentially from '@libs/fileDownload/processPickedAssets';
 
 import type {Asset} from 'react-native-image-picker';
 
@@ -9,8 +9,6 @@ const mockRelease = jest.fn();
 const mockImageRelease = jest.fn();
 
 jest.mock('@libs/fileDownload/FileUtils', () => ({
-    cleanFileName: (name: string) => name,
-    showCameraPermissionsAlert: jest.fn(),
     verifyFileFormat: () => mockVerifyFileFormat() as unknown,
 }));
 
