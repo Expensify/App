@@ -305,6 +305,7 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: 'Fatturabile',
         nonBillable: 'Non fatturabile',
         tag: 'Etichetta',
+        violations: 'Violazioni',
         receipt: 'Ricevuta',
         verified: 'Verificato',
         replace: 'Sostituisci',
@@ -5890,9 +5891,34 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 label: 'Conto carta aziendale',
                 description: 'Scegli dove esportare le transazioni delle carte aziendali.',
             },
-            expensifyCardAccount: {
-                label: 'Conto Expensify Card',
-                description: 'Scegli dove esportare le transazioni Expensify Card.',
+            exportToMultipleAccounts: 'Configura l’esportazione su più conti',
+            cardProgramAccount: {
+                label: 'Conto del programma carta',
+                description: 'Sostituisci il conto dell’area di lavoro per questi programmi di carta.',
+                descriptionLevel2: 'Ignora il conto della workspace per questo programma di carte.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Tutti i programmi usano il conto predefinito';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programma con conto personalizzato`;
+                    }
+                    return `${customAccountsCount} programmi con conti personalizzati`;
+                },
+            },
+            cardAccount: {
+                label: 'Conto per carta',
+                description: 'Ignora il conto del programma per le singole carte.',
+                descriptionLevel2: 'Ignora il conto del programma per queste carte.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Tutte le carte usano conti di programma';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} carta con conto personalizzato`;
+                    }
+                    return `${customAccountsCount} carte con conti personalizzati`;
+                },
             },
             autoSyncDescription: 'Sincronizza DualEntry ed Expensify automaticamente, ogni giorno. I report si sincronizzano in tempo reale.',
             accountingMethods: {
@@ -6214,6 +6240,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             deleteFailureMessage: 'Si è verificato un errore durante l’eliminazione della categoria, riprova per favore',
             categoryName: 'Nome categoria',
             requiresCategory: 'I membri devono categorizzare tutte le spese',
+            autoCategorizeNewExpenses: 'Categorizza automaticamente le nuove spese',
             showCategoryGLCodes: 'Mostra i codici CO.GE. quando classifichi le spese',
             needCategoryForExportToIntegration: (connectionName: string) => `Tutte le spese devono essere categorizzate per poterle esportare su ${connectionName}.`,
             subtitle: 'Ottieni una panoramica migliore di dove viene speso il denaro. Usa le nostre categorie predefinite oppure aggiungi le tue.',
@@ -8429,13 +8456,15 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Connesso. ${setupLink ? `<a href="${setupLink}">Completa la configurazione</a>` : 'Completa configurazione'} per importare i dipendenti.</muted-text-label>`,
                 groups: {title: 'Gruppi', description: 'Scegli i gruppi di dipendenti che vuoi sincronizzare con questo spazio di lavoro'},
-                syncLimitReached: {title: 'Riprova domani', prompt: 'Hai raggiunto il limite di sincronizzazioni per oggi.'},
             },
             notSync: 'Non sincronizzato',
             authenticationError: (providerName: string) => `Impossibile connettersi a ${providerName} a causa di una connessione scaduta.`,
             reconnect: 'Riconnetti',
             reconnectLink: 'Riconnetti.',
             findIntegration: 'Trova integrazione',
+        },
+        merge: {
+            syncLimitReached: {title: 'Riprova domani', prompt: 'Hai raggiunto il limite di sincronizzazioni per oggi.'},
         },
         emptyDomain: {
             title: 'Migliora la tua sicurezza con i domini',
@@ -8620,10 +8649,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             return `ha aggiunto l’aliquota fiscale "${newValue} (${newTaxPercentage})" alla tariffa distanza "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
-                return `ha modificato la parte di imposta recuperabile sulla tariffa distanza "${customUnitRateName}" a "${newValue}" (in precedenza "${oldValue}")`;
+            if (oldValue !== undefined) {
+                return `ha modificato la parte di imposta recuperabile sulla tariffa distanza "${customUnitRateName}" a "${newValue}%" (in precedenza "${oldValue}%")`;
             }
-            return `ha aggiunto una parte di imposta rimborsabile di "${newValue}" alla tariffa distanza "${customUnitRateName}"`;
+            return `ha aggiunto una parte di imposta rimborsabile di "${newValue}%" alla tariffa distanza "${customUnitRateName}"`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `ha rinominato la tariffa ${customUnitName} da "${oldValue}" a "${newValue}"`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
@@ -9449,6 +9478,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             topSpenders: 'Maggiori spendaccioni',
             topCategories: 'Categorie principali',
             topMerchants: 'Principali esercenti',
+            violationsBySubmitter: 'Violazioni da parte dell’autore dell’invio',
         },
     },
     genericErrorPage: {
@@ -10154,6 +10184,53 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `La tariffa è valida solo a partire dal ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `La tariffa è valida solo fino al ${endDate}`,
         cannotMergeDuplicates: 'Puoi unire le spese solo nei report in bozza o in sospeso. Revoca il report e riprova.',
+        shortName: {
+            allTagLevelsRequired: 'Tutti i tag obbligatori',
+            autoReportedRejectedExpense: 'Spesa rifiutata',
+            billableExpense: 'Fatturabile non più valido',
+            cashExpenseWithNoReceipt: 'Ricevuta obbligatoria',
+            categoryOutOfPolicy: 'Categoria non più valida',
+            companyCardRequired: 'Carta aziendale richiesta',
+            conversionSurcharge: 'Sovrapprezzo di conversione applicato',
+            customUnitOutOfPolicy: 'Tariffa non valida per lo spazio di lavoro',
+            customUnitRateOutOfDateRange: 'Tariffa fuori dalle date valide',
+            duplicatedTransaction: 'Possibile duplicato',
+            fieldRequired: 'Campo del report obbligatorio',
+            futureDate: 'Data futura non consentita',
+            hold: 'Spesa in sospeso',
+            inactiveVendor: 'Fornitore non più valido',
+            increasedDistance: 'La distanza supera il percorso',
+            invoiceMarkup: 'Fattura maggiorata',
+            itemizedReceiptRequired: 'Ricevuta dettagliata obbligatoria',
+            maxAge: 'Data precedente al limite massimo per le spese',
+            missingAttendees: 'Partecipanti obbligatori',
+            missingCategory: 'Categoria mancante',
+            missingComment: 'Descrizione obbligatoria',
+            missingTag: 'Tag mancante',
+            modifiedAmount: 'Importo modificato',
+            modifiedDate: 'Data modifica',
+            noRoute: 'Nessun percorso valido',
+            nonExpensiworksExpense: 'Spesa non Expensiworks',
+            overAutoApprovalLimit: 'Oltre il limite di approvazione automatica',
+            overCategoryLimit: 'Oltre il limite di categoria',
+            overLimit: 'Oltre il limite',
+            overTripLimit: 'Oltre il limite del viaggio',
+            perDayLimit: 'Supera il limite giornaliero',
+            prohibitedExpense: 'Spesa vietata',
+            receiptGeneratedWithAI: "Possibile ricevuta generata dall'IA",
+            receiptNotSmartScanned: 'Ricevuta aggiunta manualmente',
+            receiptRequired: 'Ricevuta obbligatoria',
+            rter: 'In attesa di abbinamento carta',
+            smartscanFailed: 'Scansione della ricevuta non riuscita',
+            someTagLevelsRequired: 'Tag obbligatorio',
+            tagOutOfPolicy: 'Tag non più valido',
+            overLimitAttendee: 'Oltre il limite di persone',
+            customRules: 'Violazione regola personalizzata',
+            taxAmountChanged: 'Importo imposta modificato',
+            taxOutOfPolicy: 'Aliquota fiscale non più valida',
+            taxRateChanged: 'Aliquota fiscale modificata',
+            taxRequired: 'Aliquota fiscale mancante',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} è obbligatorio`,
@@ -10750,6 +10827,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
     domain: {
         notVerified: 'Non verificato',
         retry: 'Riprova',
+        requestSent: 'Richiesta inviata',
         verifyDomain: {
             title: 'Verifica dominio',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -10822,6 +10900,14 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             subtitle: 'Inserisci il nome del dominio privato a cui vuoi accedere (ad es. expensify.com).',
             domainName: 'Nome di dominio',
             newDomain: 'Nuovo dominio',
+            alreadyHaveAccessError: 'Questo dominio esiste già nel tuo account.',
+        },
+        domainAlreadyExists: {
+            headerTitle: 'Il dominio esiste già',
+            title: "Dominio già configurato. Vuoi richiedere l'accesso?",
+            description: "Qualcuno ha già configurato questo dominio in Expensify. Vuoi richiedere l'accesso come amministratore?",
+            requestAccess: "Richiedi l'accesso come amministratore",
+            requestAccessError: 'Non siamo riusciti a inviare la tua richiesta. Riprova.',
         },
         domainAdded: {
             title: 'Dominio aggiunto',
@@ -10919,6 +11005,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             forceTwoFactorAuthError: 'Impossibile modificare l’impostazione “Forza l’autenticazione a due fattori”. Riprova più tardi.',
             resetTwoFactorAuth: 'Reimposta l’autenticazione a due fattori',
             error: 'Impossibile salvare questa modifica. Riprova.',
+            neverMind: 'Lascia perdere',
         },
         groups: {
             title: 'Gruppi',
@@ -10927,7 +11014,6 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             defaultGroupPrompt: (currentName: string, newName: string) =>
                 `Sei sicuro di voler impostare ${newName} come gruppo predefinito? I nuovi membri verranno invitati a questo gruppo invece del precedente gruppo predefinito (${currentName}). `,
             makeDefault: 'Imposta come predefinito',
-            neverMind: 'Lascia perdere',
             createGroupError: 'Impossibile creare questo gruppo. Riprova.',
             permissions: 'Autorizzazioni del gruppo',
             createNewGroupButton: 'Nuovo gruppo',

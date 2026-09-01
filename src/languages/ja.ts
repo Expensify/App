@@ -305,6 +305,7 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: '請求可能',
         nonBillable: '請求不可',
         tag: 'タグ',
+        violations: '違反事項',
         receipt: 'レシート',
         verified: '確認済み',
         replace: '置換',
@@ -5821,9 +5822,34 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 label: '会社カード口座',
                 description: '会社カード取引のエクスポート先を選択してください。',
             },
-            expensifyCardAccount: {
-                label: 'Expensify カード口座',
-                description: 'Expensify カード取引のエクスポート先を選択してください。',
+            exportToMultipleAccounts: '複数アカウントへのエクスポートを設定',
+            cardProgramAccount: {
+                label: 'カードプログラム口座',
+                description: 'これらのカードプログラムのワークスペース口座を上書きします。',
+                descriptionLevel2: 'このカードプログラムのワークスペース口座を上書きします。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'すべてのプログラムがデフォルトアカウントを使用します';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `カスタム勘定科目付きプログラム：${customAccountsCount}`;
+                    }
+                    return `${customAccountsCount} 件のカスタムアカウントを含むプログラム`;
+                },
+            },
+            cardAccount: {
+                label: 'カード単位のアカウント',
+                description: '個々のカードに対してプログラム口座を上書きします。',
+                descriptionLevel2: 'これらのカードのプログラム口座を上書きします。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'すべてのカードはプログラムアカウントを使用します';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `カスタム口座のカードが ${customAccountsCount} 枚`;
+                    }
+                    return `${customAccountsCount} 枚のカスタムアカウント付きカード`;
+                },
             },
             autoSyncDescription: 'DualEntry と Expensify を毎日自動で同期します。レポートはリアルタイムで同期されます。',
             accountingMethods: {
@@ -6139,6 +6165,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             deleteFailureMessage: 'カテゴリの削除中にエラーが発生しました。もう一度お試しください',
             categoryName: 'カテゴリ名',
             requiresCategory: 'メンバーはすべての経費を分類する必要があります',
+            autoCategorizeNewExpenses: '新しい経費を自動分類する',
             showCategoryGLCodes: '経費を分類するときに GL コードを表示する',
             needCategoryForExportToIntegration: (connectionName: string) => `${connectionName} にエクスポートするには、すべての経費にカテゴリを指定する必要があります。`,
             subtitle: 'お金がどこで使われているかを、より分かりやすく把握しましょう。デフォルトのカテゴリを使うか、自分用のカテゴリを追加できます。',
@@ -8317,13 +8344,15 @@ ${reportName}`,
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>接続されました。従業員をインポートするには ${setupLink ? `<a href="${setupLink}">セットアップを完了</a>` : '設定を完了'} に接続してください。</muted-text-label>`,
                 groups: {title: 'グループ', description: 'このワークスペースと同期したい従業員グループを選択してください'},
-                syncLimitReached: {title: '明日もう一度お試しください', prompt: '本日の同期上限に達しました。'},
             },
             notSync: '未同期',
             authenticationError: (providerName: string) => `有効期限が切れた接続のため、${providerName} に接続できません。`,
             reconnect: '再接続',
             reconnectLink: '再接続する',
             findIntegration: '連携を検索',
+        },
+        merge: {
+            syncLimitReached: {title: '明日もう一度お試しください', prompt: '本日の同期上限に達しました。'},
         },
         emptyDomain: {
             title: 'ドメインでセキュリティを強化しましょう',
@@ -8507,10 +8536,10 @@ ${reportName}`,
             return `距離レート「${customUnitRateName}」に税率「${newValue}（${newTaxPercentage}）」を追加しました`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
-                return `距離レート「${customUnitRateName}」の税還付可能部分を「${newValue}」（以前は「${oldValue}」）に変更しました`;
+            if (oldValue !== undefined) {
+                return `距離レート「${customUnitRateName}」の税還付可能部分を「${newValue}%」（以前は「${oldValue}%」）に変更しました`;
             }
-            return `距離単価「${customUnitRateName}」に対して、税金還付対象額「${newValue}」を追加しました`;
+            return `距離単価「${customUnitRateName}」に対して、税金還付対象額「${newValue}%」を追加しました`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `${customUnitName}のレート名を「${oldValue}」から「${newValue}」に変更しました`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
@@ -9312,6 +9341,7 @@ ${reportName}`,
             topSpenders: '上位の支出者',
             topCategories: '上位カテゴリ',
             topMerchants: '上位加盟店',
+            violationsBySubmitter: '申請者による違反',
         },
     },
     genericErrorPage: {
@@ -10008,6 +10038,53 @@ ${reportName}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `料金は${startDate}からのみ有効です`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `料金は${endDate}までのみ有効です`,
         cannotMergeDuplicates: '経費を統合できるのは、下書きまたは未清算のレポートのみです。レポートを取り下げて、もう一度お試しください。',
+        shortName: {
+            allTagLevelsRequired: 'すべてのタグが必須です',
+            autoReportedRejectedExpense: '経費が却下されました',
+            billableExpense: '請求可能区分は無効になりました',
+            cashExpenseWithNoReceipt: '領収書が必要です',
+            categoryOutOfPolicy: 'カテゴリは無効になっています',
+            companyCardRequired: '会社カードが必要です',
+            conversionSurcharge: '両替手数料が適用されました',
+            customUnitOutOfPolicy: 'ワークスペースに有効なレートではありません',
+            customUnitRateOutOfDateRange: '有効な日付期間外のレートです',
+            duplicatedTransaction: '重複の可能性',
+            fieldRequired: 'レポートの必須項目です',
+            futureDate: '未来の日付は使用できません',
+            hold: '保留中の経費',
+            inactiveVendor: '取引先は有効ではありません',
+            increasedDistance: '距離がルートを超えています',
+            invoiceMarkup: '請求書にマークアップを適用しました',
+            itemizedReceiptRequired: '明細付き領収書が必要です',
+            maxAge: '経費の最長期限を過ぎた日付です',
+            missingAttendees: '参加者は必須です',
+            missingCategory: 'カテゴリが未選択です',
+            missingComment: '説明が必要です',
+            missingTag: 'タグがありません',
+            modifiedAmount: '金額を変更しました',
+            modifiedDate: '更新日',
+            noRoute: '有効なルートがありません',
+            nonExpensiworksExpense: 'Expensiworks 以外の経費',
+            overAutoApprovalLimit: '自動承認限度額を超過',
+            overCategoryLimit: 'カテゴリ上限を超えています',
+            overLimit: '上限超過',
+            overTripLimit: '出張上限超過',
+            perDayLimit: '1 日あたりの上限超過',
+            prohibitedExpense: '禁止経費',
+            receiptGeneratedWithAI: 'AI が生成した可能性のあるレシート',
+            receiptNotSmartScanned: '手動でレシートを追加しました',
+            receiptRequired: '領収書が必要です',
+            rter: 'カードとの照合待ち',
+            smartscanFailed: 'レシートのスキャンに失敗しました',
+            someTagLevelsRequired: 'タグが必須です',
+            tagOutOfPolicy: 'タグは無効です',
+            overLimitAttendee: '人数上限超過',
+            customRules: 'カスタムルール違反',
+            taxAmountChanged: '税額が変更されました',
+            taxOutOfPolicy: '税率が無効になりました',
+            taxRateChanged: '税率を変更しました',
+            taxRequired: '税率が未設定です',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} は必須です`,
@@ -10597,6 +10674,7 @@ ${reportName}`,
     domain: {
         notVerified: '未確認',
         retry: '再試行',
+        requestSent: 'リクエストを送信しました',
         verifyDomain: {
             title: 'ドメインを確認',
             beforeProceeding: ({domainName}: {domainName: string}) => `続行する前に、DNS 設定を更新して、<strong>${domainName}</strong> の所有者であることを確認してください。`,
@@ -10668,6 +10746,14 @@ ${reportName}`,
             subtitle: 'アクセスしたいプライベートドメイン名を入力してください（例: expensify.com）。',
             domainName: 'ドメイン名',
             newDomain: '新しいドメイン',
+            alreadyHaveAccessError: 'このドメインはすでにアカウントに存在します。',
+        },
+        domainAlreadyExists: {
+            headerTitle: 'ドメインはすでに存在します',
+            title: 'このドメインはすでに設定されています。アクセスをリクエストしますか？',
+            description: '誰かがこのドメインをExpensifyにすでに設定しています。管理者アクセスをリクエストしますか？',
+            requestAccess: '管理者アクセスをリクエスト',
+            requestAccessError: 'リクエストを送信できませんでした。もう一度お試しください。',
         },
         domainAdded: {
             title: 'ドメインを追加しました',
@@ -10762,6 +10848,7 @@ ${reportName}`,
             forceTwoFactorAuthError: '2要素認証の強制設定を変更できませんでした。後でもう一度お試しください。',
             resetTwoFactorAuth: '2 要素認証をリセット',
             error: 'この変更を保存できませんでした。もう一度お試しください。',
+            neverMind: 'やめておく',
         },
         groups: {
             title: 'グループ',
@@ -10770,7 +10857,6 @@ ${reportName}`,
             defaultGroupPrompt: (currentName: string, newName: string) =>
                 `本当に ${newName} をデフォルトグループに設定しますか？新しいメンバーは、以前のデフォルトグループ (${currentName}) ではなく、このグループに招待されます。`,
             makeDefault: 'デフォルトに設定',
-            neverMind: 'やめておく',
             createGroupError: 'このグループを作成できませんでした。もう一度お試しください。',
             permissions: 'グループの権限',
             createNewGroupButton: '新しいグループ',
