@@ -22,6 +22,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import type {ViewProps} from 'react-native';
+
 import React, {useState} from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -539,6 +541,20 @@ describe('ConciergePromptBox', () => {
 
             // Then the list stays open, since the user never scrolled
             expect(screen.getByTestId('mention-suggestions')).toBeOnTheScreen();
+        });
+    });
+
+    describe('focus', () => {
+        it('claims taps that land on the box itself', () => {
+            // Given a rendered prompt box
+            render(<ConciergePromptBoxWrapper />);
+
+            // When the box is asked whether it wants the touch
+            // Then it claims it, so the surrounding ScrollView never becomes the responder and cannot blur the input,
+            // and nothing is handled on release, so the tap neither steals nor grants focus
+            const box = screen.getByTestId('ConciergePromptBox');
+            expect(fireEvent(box, 'startShouldSetResponder')).toBe(true);
+            expect((box.props as ViewProps).onResponderRelease).toBeUndefined();
         });
     });
 
