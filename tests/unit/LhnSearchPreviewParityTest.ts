@@ -15,7 +15,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, PersonalDetailsList, Policy, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Card, CardList, PersonalDetailsList, Policy, Report, ReportAction, ReportActions} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -75,6 +75,7 @@ type ParityCase = {
     policy?: OnyxEntry<Policy>;
     /** LHN-only input (OptionRowLHNData resolves it per row); Search has no per-row source for it. */
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
+    cardList?: OnyxEntry<CardList>;
     isReportArchived?: boolean;
     isTrackIntentUser?: boolean;
 };
@@ -84,7 +85,16 @@ type ParityCase = {
  * (LHN: getOptionData with deps assembled like OptionRowLHNData; Search: the real
  * createFilteredOptionList → getSearchOptions pipeline) and returns both strings.
  */
-async function computeBothSurfaces({report = makeReport(), lastAction, extraReports = [], policy, invoiceReceiverPolicy, isReportArchived = false, isTrackIntentUser = false}: ParityCase) {
+async function computeBothSurfaces({
+    report = makeReport(),
+    lastAction,
+    extraReports = [],
+    policy,
+    invoiceReceiverPolicy,
+    cardList,
+    isReportArchived = false,
+    isTrackIntentUser = false,
+}: ParityCase) {
     const reportsById: Record<string, Report> = {[report.reportID]: report};
     for (const extra of extraReports) {
         reportsById[extra.reportID] = extra;
@@ -117,7 +127,7 @@ async function computeBothSurfaces({report = makeReport(), lastAction, extraRepo
     }
     const movedFromReportID = getMovedReportID(lhnLastAction, CONST.REPORT.MOVE_TYPE.FROM);
     const movedToReportID = getMovedReportID(lhnLastAction, CONST.REPORT.MOVE_TYPE.TO);
-    const card: Card | undefined = getExpensifyCardFromReportAction({reportAction: lhnLastAction, policy, cardList: undefined, workspaceCardList: undefined});
+    const card: Card | undefined = getExpensifyCardFromReportAction({reportAction: lhnLastAction, policy, cardList, workspaceCardList: undefined});
 
     const lhnOption = SidebarUtils.getOptionData({
         report,
@@ -193,6 +203,7 @@ async function computeBothSurfaces({report = makeReport(), lastAction, extraRepo
         sortedActions: sortedData?.sortedActions,
         transactionThreadIDs: sortedData?.transactionThreadIDs,
         lastActions: sortedData?.lastActions,
+        cardList,
         localeCompare,
         formatPhoneNumber,
         convertToDisplayString,
@@ -393,9 +404,74 @@ describe('LHN vs Search preview parity', () => {
             });
         });
 
-        it('should match for CARD_ISSUED', async () => {
+        it('should match for CARD_ISSUED without card', async () => {
             await expectParity({
                 lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, {originalMessage: {assigneeAccountID: 2, cardID: 11}}),
+            });
+        });
+
+        it('should match for CARD_ISSUED with card', async () => {
+            await expectParity({
+                lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, {originalMessage: {assigneeAccountID: 2, cardID: 11}}),
+                cardList: {
+                    11: {
+                        cardID: 11,
+                        state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED,
+                        bank: CONST.EXPENSIFY_CARD.BANK,
+                        domainName: 'test.com',
+                        lastUpdated: '2024-01-01',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastFourPAN: '1234',
+                    },
+                },
+            });
+        });
+
+        it('should match when ROOM invite without targetAccountIDs falls back to mention-user count in lastMessageHtml', async () => {
+            await expectParity({
+                report: makeReport({lastMessageHtml: '<mention-user></mention-user><mention-user></mention-user>'}),
+                lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM, {originalMessage: {}}),
+            });
+        });
+
+        it('should match for ADD_INTEGRATION with connection name', async () => {
+            await expectParity({
+                lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION, {originalMessage: {connectionName: CONST.POLICY.CONNECTIONS.NAME.QBO}}),
+            });
+        });
+
+        it('should match for DELETE_INTEGRATION with connection name', async () => {
+            await expectParity({
+                lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION, {originalMessage: {connectionName: CONST.POLICY.CONNECTIONS.NAME.XERO}}),
+            });
+        });
+
+        it('should match for UPDATE_EMPLOYEE with role change', async () => {
+            await expectParity({
+                lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE, {
+                    originalMessage: {email: 'bob@test.com', field: 'role', oldValue: CONST.POLICY.ROLE.USER, newValue: CONST.POLICY.ROLE.ADMIN},
+                }),
+            });
+        });
+
+        it('should match for REASSIGN_APPROVER with new approver', async () => {
+            await expectParity({
+                lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER, {originalMessage: {newApproverID: 2}}),
+            });
+        });
+
+        it('should match for TRAVEL_UPDATE booking ticketed', async () => {
+            await expectParity({
+                lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE, {
+                    originalMessage: {
+                        type: CONST.RESERVATION_TYPE.FLIGHT,
+                        operation: CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_TICKETED,
+                        start: {date: '2024-03-01 10:00:00', shortName: 'KRK'},
+                        end: {date: '2024-03-01 14:00:00', shortName: 'SFO'},
+                        route: {airlineCode: 'LO 3925', number: '3925'},
+                        confirmations: [{name: 'PNR', value: 'ABC123'}],
+                    },
+                }),
             });
         });
 
