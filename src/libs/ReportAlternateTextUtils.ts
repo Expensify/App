@@ -33,7 +33,7 @@ import {convertToDisplayString as convertToDisplayStringUtil} from './CurrencyUt
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {formatList} from './Localize';
-import {getForReportAction} from './ModifiedExpenseMessage';
+import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import {getIsOffline} from './NetworkState';
 import Parser from './Parser';
 import {getLoginByAccountID, getPersonalDetailsByID, getPersonalDetailsForAccountIDs, getPersonalDetailsListByIDs, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
@@ -169,6 +169,7 @@ import {
     isDynamicExternalWorkflowApproveFailedAction,
     isDynamicExternalWorkflowSubmitFailedAction,
     isInviteOrRemovedAction,
+    isReportActionVisibleAsLastAction,
     isLeavePolicyAction,
     isMarkAsClosedAction,
     isModifiedExpenseAction,
@@ -401,6 +402,45 @@ function getExpenseReportPreviewText(
     return formatReportLastMessageText(translate('iou.expenseAmount', formattedAmount, comment || undefined));
 }
 
+/**
+ * Resolves the last visible action for a report row plus the report lookups derived from it.
+ * Shared by the Search option builders (createOption / getAlternateText) so the message text and the
+ * preview line derive from the same, transaction-thread-aware action — matching the LHN.
+ */
+function resolveLastActionContext(
+    report: Report,
+    isReportArchived: boolean | undefined,
+    visibleReportActionsData: VisibleReportActionsDerivedValue | undefined,
+    currentUserAccountID: number,
+    sortedActions?: Record<string, ReportAction[]>,
+    oneTransactionThreadReportID?: string,
+): {
+    lastAction: OnyxEntry<ReportAction>;
+    lastActionReport: OnyxEntry<Report>;
+    movedFromReport: OnyxEntry<Report>;
+    movedToReport: OnyxEntry<Report>;
+} {
+    const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
+    const sortedActionsForReport = sortedActions?.[report.reportID];
+    // TODO: Remove the deprecated-cache fallback once all callers pass the derived value. Refactor issue: https://github.com/Expensify/App/issues/66381
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const resolvedOneTransactionThreadReportID = oneTransactionThreadReportID ?? deprecatedCachedOneTransactionThreadReportIDs[report.reportID];
+    const lastAction = sortedActionsForReport
+        ? sortedActionsForReport.find((action) => isReportActionVisibleAsLastAction(action, canUserPerformWrite, visibleReportActionsData, report.reportID, currentUserAccountID))
+        : getLastVisibleActionIncludingTransactionThread(report.reportID, canUserPerformWrite, undefined, visibleReportActionsData, resolvedOneTransactionThreadReportID);
+    let lastActionReport: OnyxEntry<Report>;
+    if (isInviteOrRemovedAction(lastAction)) {
+        const lastActionOriginalMessage = getOriginalMessage(lastAction);
+        lastActionReport = lastActionOriginalMessage?.reportID ? getReportOrDraftReport(String(lastActionOriginalMessage.reportID)) : undefined;
+    }
+    return {
+        lastAction,
+        lastActionReport,
+        movedFromReport: getReportOrDraftReport(getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)),
+        movedToReport: getReportOrDraftReport(getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)),
+    };
+}
+
 function getLastActorDisplayNameFromLastVisibleActions(
     report: OnyxEntry<Report>,
     lastActorDetails: Partial<PersonalDetails> | null,
@@ -410,10 +450,13 @@ function getLastActorDisplayNameFromLastVisibleActions(
     translate: LocalizedTranslate,
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
     lastAction?: OnyxEntry<ReportAction>,
+    oneTransactionThreadReportID?: string,
 ): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, privateIsArchived);
-    const lastReportAction = lastAction ?? getLastVisibleAction(reportID, canUserPerformWrite, {}, undefined, visibleReportActionsData);
+    // For one-transaction reports the newest visible action may live in the transaction thread, so the
+    // fallback lookup must include it — otherwise the actor comes from the parent report's IOU action.
+    const lastReportAction = lastAction ?? getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, undefined, visibleReportActionsData, oneTransactionThreadReportID);
 
     if (lastReportAction) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1105,6 +1148,10 @@ type GetReportAlternateTextParams = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
     policy: OnyxEntry<Policy>;
     invoiceReceiverPolicy: OnyxEntry<Policy>;
+    /** Precomputed report metadata; when absent it is fetched here. LHN passes its own copy to avoid a duplicate fetch per row. */
+    reportMetadata?: OnyxEntry<ReportMetadata>;
+    /** Precomputed participant details (current user excluded); when absent they are derived lazily for the welcome message. */
+    participantPersonalDetailListExcludeCurrentUser?: PersonalDetails[];
     policyTags?: OnyxEntry<PolicyTagLists>;
     isReportArchived: boolean | undefined;
     privateIsArchived: boolean;
@@ -1141,6 +1188,8 @@ function getReportAlternateText({
     personalDetails,
     policy,
     invoiceReceiverPolicy,
+    reportMetadata: reportMetadataParam,
+    participantPersonalDetailListExcludeCurrentUser: participantPersonalDetailListExcludeCurrentUserParam,
     policyTags,
     isReportArchived,
     privateIsArchived,
@@ -1166,8 +1215,14 @@ function getReportAlternateText({
     const isTaskReportFlag = isTaskReport(report);
     const isAllowedToComment = canUserPerformWriteAction(report, isReportArchived);
     const isExpense = isExpenseReport(report);
-    const reportMetadata = getReportMetadata(report.reportID);
+    const reportMetadata = reportMetadataParam ?? getReportMetadata(report.reportID);
+    // TODO: Resolve here once all callers pass the derived value. Refactor issue: https://github.com/Expensify/App/issues/66381
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const resolvedOneTransactionThreadReportID = oneTransactionThreadReportID ?? deprecatedCachedOneTransactionThreadReportIDs[report.reportID];
     const getParticipantPersonalDetailListExcludeCurrentUser = () => {
+        if (participantPersonalDetailListExcludeCurrentUserParam) {
+            return participantPersonalDetailListExcludeCurrentUserParam;
+        }
         const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
         const participantAccountIDsExcludeCurrentUser = excludeParticipantsForDisplay(participantAccountIDs, report.participants ?? {}, reportMetadata, {shouldExcludeCurrentUser: true});
         return Object.values(getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails));
@@ -1190,9 +1245,11 @@ function getReportAlternateText({
     }
 
     const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID, translate);
-    let lastMessageTextFromReport = lastMessageTextFromReportProp;
-    if (!lastMessageTextFromReport) {
-        lastMessageTextFromReport = getLastMessageTextForReport({
+    // An empty precomputed text means "not computed yet", so `||` (not `??`) keeps the recompute fallback meaningful.
+    const lastMessageTextFromReport =
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        lastMessageTextFromReportProp ||
+        getLastMessageTextForReport({
             translate,
             dateFnsLocale,
             report,
@@ -1211,10 +1268,25 @@ function getReportAlternateText({
             isTrackIntentUser,
             currentUserAccountID,
             sortedActions,
-            oneTransactionThreadReportID,
+            oneTransactionThreadReportID: resolvedOneTransactionThreadReportID,
             lastOriginalAction,
         });
-    }
+
+    // Actor prefix from the last visible action; falls back to the report-level actor when the action list yields nothing.
+    const getLastActorDisplayNamePrefix = () =>
+        (lastMessageTextFromReport.length > 0 &&
+            getLastActorDisplayNameFromLastVisibleActions(
+                report,
+                lastActorDetails,
+                currentUserAccountID,
+                personalDetails,
+                privateIsArchived,
+                translate,
+                visibleReportActionsData,
+                lastAction,
+                resolvedOneTransactionThreadReportID,
+            )) ||
+        lastActorDisplayName;
 
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
     let lastMessageText = Str.removeSMSDomain(lastMessageTextFromReport);
@@ -1523,20 +1595,7 @@ function getReportAlternateText({
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
             alternateText = Parser.htmlToText(getSettlementAccountLockedMessage(translate, lastAction));
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
-            const displayName =
-                (lastMessageTextFromReport.length > 0 &&
-                    getLastActorDisplayNameFromLastVisibleActions(
-                        report,
-                        lastActorDetails,
-                        currentUserAccountID,
-                        personalDetails,
-                        privateIsArchived,
-                        translate,
-                        visibleReportActionsData,
-                        lastAction,
-                    )) ||
-                lastActorDisplayName;
-            alternateText = formatReportLastMessageText(`${displayName}: ${lastMessageText}`);
+            alternateText = formatReportLastMessageText(`${getLastActorDisplayNamePrefix()}: ${lastMessageText}`);
         } else {
             alternateText =
                 lastMessageTextFromReport.length > 0
@@ -1582,20 +1641,7 @@ function getReportAlternateText({
             );
         }
         if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID, translate) && !isReportArchived) {
-            const displayName =
-                (lastMessageTextFromReport.length > 0 &&
-                    getLastActorDisplayNameFromLastVisibleActions(
-                        report,
-                        lastActorDetails,
-                        currentUserAccountID,
-                        personalDetails,
-                        privateIsArchived,
-                        translate,
-                        visibleReportActionsData,
-                        lastAction,
-                    )) ||
-                lastActorDisplayName;
-            alternateText = `${displayName}: ${formatReportLastMessageText(lastMessageText)}`;
+            alternateText = `${getLastActorDisplayNamePrefix()}: ${formatReportLastMessageText(lastMessageText)}`;
         } else {
             alternateText = formatReportLastMessageText(lastMessageText);
         }
@@ -1637,13 +1683,12 @@ function getExpensifyCardFromReportAction({
 }
 
 export {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    deprecatedCachedOneTransactionThreadReportIDs,
     getExpensifyCardFromReportAction,
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
     getReportAlternateText,
     getWelcomeMessage,
+    resolveLastActionContext,
     shouldShowLastActorDisplayName,
 };

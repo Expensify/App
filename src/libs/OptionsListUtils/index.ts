@@ -14,7 +14,6 @@ import {translate as translateWithLocale, translateLocal} from '@libs/Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import MaxHeap from '@libs/MaxHeap';
 import MinHeap from '@libs/MinHeap';
-import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailOptionsListUtils/types';
@@ -28,21 +27,13 @@ import {
     getSubmitToAccountID,
     isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
-import {
-    getIOUReportIDFromReportActionPreview,
-    getLastVisibleAction,
-    getOneTransactionThreadReportID,
-    getOriginalMessage,
-    isActionOfType,
-    isCardIssuedAction,
-    isInviteOrRemovedAction,
-    isReportActionVisibleAsLastAction,
-} from '@libs/ReportActionsUtils';
-import {getExpensifyCardFromReportAction, getLastMessageTextForReport, getReportAlternateText} from '@libs/ReportAlternateTextUtils';
+import {getIOUReportIDFromReportActionPreview, getOneTransactionThreadReportID, isActionOfType, isCardIssuedAction} from '@libs/ReportActionsUtils';
+import {getExpensifyCardFromReportAction, getLastMessageTextForReport, getReportAlternateText, resolveLastActionContext} from '@libs/ReportAlternateTextUtils';
 import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     canUserPerformWriteAction,
+    formatReportLastMessageText,
     getChatRoomSubtitle,
     getDisplayNameForParticipant,
     getEffectiveReportErrors,
@@ -265,9 +256,18 @@ type GetAlternateTextConfig = {
 /**
  * Fallback for non-React callers that cannot provide the hook-bound localeCompare.
  * Mirrors LocaleContextProvider's collator options against the active locale.
+ * The collator is cached at module scope: constructing an Intl.Collator loads locale data,
+ * which is far too expensive to repeat per comparison inside a sort.
  */
+let fallbackCollator: Intl.Collator | undefined;
+let fallbackCollatorLocale: Locale | undefined;
 function fallbackLocaleCompare(a: string, b: string): number {
-    return new Intl.Collator(IntlStore.getCurrentLocale(), {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'}).compare(a, b);
+    const locale = IntlStore.getCurrentLocale();
+    if (!fallbackCollator || fallbackCollatorLocale !== locale) {
+        fallbackCollatorLocale = locale;
+        fallbackCollator = new Intl.Collator(locale, {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
+    }
+    return fallbackCollator.compare(a, b);
 }
 
 /**
@@ -311,52 +311,59 @@ function getAlternateText(
     // getReportAlternateText pipeline. forcePolicyNamePreview keeps the workspace-name subtitle for policy
     // chats and admin/announce rooms (existing picker semantics).
     const forcePolicyName = forcePolicyNamePreview && ((option.isPolicyExpenseChat ?? false) || isAdminRoom || isAnnounceRoom);
-    if (showChatPreviewLine && !forcePolicyName && report) {
-        // TODO: Make currentUserAccountID required and remove the fallback. Refactor issue: https://github.com/Expensify/App/issues/66408
-        const resolvedCurrentUserAccountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
-        const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
-        const sortedActionsForReport = sortedActions?.[report.reportID];
-        const lastAction = sortedActionsForReport
-            ? sortedActionsForReport.find((action) => isReportActionVisibleAsLastAction(action, canUserPerformWrite, visibleReportActionsData, report.reportID, resolvedCurrentUserAccountID))
-            : getLastVisibleAction(report.reportID, canUserPerformWrite, {}, undefined, visibleReportActionsData);
-        let lastActionReport: OnyxEntry<Report>;
-        if (isInviteOrRemovedAction(lastAction)) {
-            const lastActionOriginalMessage = getOriginalMessage(lastAction);
-            lastActionReport = lastActionOriginalMessage?.reportID ? getReportOrDraftReport(String(lastActionOriginalMessage.reportID)) : undefined;
+    if (showChatPreviewLine && !forcePolicyName) {
+        if (report) {
+            // TODO: Make currentUserAccountID required and remove the fallback. Refactor issue: https://github.com/Expensify/App/issues/66408
+            const resolvedCurrentUserAccountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+            const oneTransactionThreadReportID = transactionThreadIDs?.[report.reportID];
+            const {lastAction, lastActionReport, movedFromReport, movedToReport} = resolveLastActionContext(
+                report,
+                isReportArchived,
+                visibleReportActionsData,
+                resolvedCurrentUserAccountID,
+                sortedActions,
+                oneTransactionThreadReportID,
+            );
+            const card = isCardIssuedAction(lastAction) ? getExpensifyCardFromReportAction({reportAction: lastAction, policy, cardList, workspaceCardList}) : undefined;
+            return getReportAlternateText({
+                report,
+                lastAction,
+                lastActionReport,
+                movedFromReport,
+                movedToReport,
+                card,
+                // createOption already computed this via the same pipeline; reuse it instead of recomputing per option.
+                lastMessageTextFromReport: option.lastMessageText,
+                personalDetails,
+                policy,
+                invoiceReceiverPolicy,
+                policyTags,
+                isReportArchived,
+                // The Search path has no separate report NVP source here; the archived flag and private_isArchived
+                // both derive from the same NVP, so the option's archived flag is the equivalent input.
+                privateIsArchived: !!isReportArchived,
+                conciergeReportID,
+                reportAttributesDerived,
+                visibleReportActionsData,
+                sortedActions,
+                oneTransactionThreadReportID,
+                lastOriginalAction: lastActions?.[report.reportID],
+                currentUserAccountID: resolvedCurrentUserAccountID,
+                currentUserLogin: currentUserLogin ?? '',
+                isTrackIntentUser,
+                translate: translateFn,
+                localeCompare: localeCompare ?? fallbackLocaleCompare,
+                formatPhoneNumber: formatPhoneNumber ?? formatPhoneNumberPhoneUtils,
+                dateFnsLocale,
+                convertToDisplayString: convertToDisplayString ?? convertToDisplayStringUtil,
+            });
         }
-        const movedFromReport = getReportOrDraftReport(getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM));
-        const movedToReport = getReportOrDraftReport(getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO));
-        const card = isCardIssuedAction(lastAction) ? getExpensifyCardFromReportAction({reportAction: lastAction, policy, cardList, workspaceCardList}) : undefined;
-        return getReportAlternateText({
-            report,
-            lastAction,
-            lastActionReport,
-            movedFromReport,
-            movedToReport,
-            card,
-            personalDetails,
-            policy,
-            invoiceReceiverPolicy,
-            policyTags,
-            isReportArchived,
-            // The Search path has no separate report NVP source here; the archived flag and private_isArchived
-            // both derive from the same NVP, so the option's archived flag is the equivalent input.
-            privateIsArchived: !!isReportArchived,
-            conciergeReportID,
-            reportAttributesDerived,
-            visibleReportActionsData,
-            sortedActions,
-            oneTransactionThreadReportID: transactionThreadIDs?.[report.reportID],
-            lastOriginalAction: lastActions?.[report.reportID],
-            currentUserAccountID: resolvedCurrentUserAccountID,
-            currentUserLogin: currentUserLogin ?? '',
-            isTrackIntentUser,
-            translate: translateFn,
-            localeCompare: localeCompare ?? fallbackLocaleCompare,
-            formatPhoneNumber: formatPhoneNumber ?? formatPhoneNumberPhoneUtils,
-            dateFnsLocale,
-            convertToDisplayString: convertToDisplayString ?? convertToDisplayStringUtil,
-        });
+        // The report can be missing from the report cache (e.g. it was cleared during sign-out while a cached
+        // option list is still rendered). The shared pipeline needs the report, so keep the option's own
+        // preview text instead of dropping to the bare type label below.
+        if (option.lastMessageText) {
+            return formatReportLastMessageText(option.lastMessageText);
+        }
     }
 
     if (isExpenseThread || option.isMoneyRequestReport) {
@@ -549,12 +556,26 @@ function createOption({
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
         const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)] ?? {};
+        // Resolve the last action the same way the preview line does, so the message text carries the
+        // action-derived context (e.g. source/destination report names for moved expenses).
+        const {lastAction, movedFromReport, movedToReport} = resolveLastActionContext(
+            report,
+            result.private_isArchived,
+            visibleReportActionsData,
+            // TODO: Make currentUserAccountID required and remove the fallback. Refactor issue: https://github.com/Expensify/App/issues/66408
+            currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+            sortedActions,
+            transactionThreadIDs?.[report.reportID],
+        );
         result.lastMessageText = getLastMessageTextForReport({
             translate: translateFn,
             dateFnsLocale,
             report,
             personalDetails,
             lastActorDetails,
+            lastAction,
+            movedFromReport,
+            movedToReport,
             policy,
             isReportArchived: result.private_isArchived,
             visibleReportActionsDataParam: visibleReportActionsData,
@@ -942,8 +963,6 @@ function processReport(
         lastActions,
         currentUserAccountID,
         currentUserLogin,
-        cardList,
-        workspaceCardList,
         localeCompare,
         formatPhoneNumber,
         convertToDisplayString,
@@ -958,8 +977,6 @@ function processReport(
         transactionThreadIDs?: Record<string, string | undefined>;
         lastActions?: Record<string, ReportAction>;
         currentUserLogin?: string;
-        cardList?: OnyxEntry<CardList>;
-        workspaceCardList?: OnyxCollection<WorkspaceCardsList>;
         localeCompare?: LocaleContextProps['localeCompare'];
         formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
         convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'];
@@ -1004,8 +1021,6 @@ function processReport(
                 lastActions,
                 currentUserAccountID,
                 currentUserLogin,
-                cardList,
-                workspaceCardList,
                 localeCompare,
                 formatPhoneNumber,
                 convertToDisplayString,
@@ -1177,8 +1192,6 @@ function createFilteredOptionList(
     options: {
         currentUserAccountID: number;
         currentUserLogin?: string;
-        cardList?: OnyxEntry<CardList>;
-        workspaceCardList?: OnyxCollection<WorkspaceCardsList>;
         transactionThreadIDs?: Record<string, string | undefined>;
         lastActions?: Record<string, ReportAction>;
         dateFnsLocale: DateFnsLocale | undefined;
@@ -1205,8 +1218,6 @@ function createFilteredOptionList(
     const {
         currentUserAccountID,
         currentUserLogin,
-        cardList,
-        workspaceCardList,
         transactionThreadIDs,
         lastActions,
         conciergeReportID,
@@ -1252,8 +1263,6 @@ function createFilteredOptionList(
         lastActions,
         currentUserAccountID,
         currentUserLogin,
-        cardList,
-        workspaceCardList,
     ];
     const cachedEntry = shouldUseCache ? filteredOptionListCache.get(cacheEntryKey) : undefined;
     if (cachedEntry && cacheInputs.every((value, index) => value === cachedEntry.inputs.at(index))) {
@@ -1317,8 +1326,6 @@ function createFilteredOptionList(
             lastActions,
             currentUserAccountID,
             currentUserLogin,
-            cardList,
-            workspaceCardList,
         });
         if (reportMapEntry) {
             const [accountID, reportValue] = reportMapEntry;

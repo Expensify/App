@@ -1,5 +1,3 @@
-import {useCardList, useWorkspaceCardList} from '@components/OnyxListItemProvider';
-
 import {createFilteredOptionList} from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils/types';
 
@@ -100,8 +98,6 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
     const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
     const lastActions = sortedReportActionsData?.lastActions;
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const cardList = useCardList();
-    const workspaceCardList = useWorkspaceCardList();
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
 
@@ -122,8 +118,6 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
                       {
                           currentUserAccountID,
                           currentUserLogin,
-                          cardList,
-                          workspaceCardList,
                           transactionThreadIDs,
                           lastActions,
                           dateFnsLocale,
@@ -155,8 +149,6 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
             preferredLocale,
             isTrackIntentUser,
             currentUserLogin,
-            cardList,
-            workspaceCardList,
             allPolicyTags,
             visibleReportActionsData,
             sortedActions,

@@ -4560,11 +4560,17 @@ describe('OptionsListUtils', () => {
             ...overrides,
         });
 
-        const buildAction = (actionName: Parameters<typeof getFakeAdvancedReportAction>[0], actorAccountID = 3, originalMessage?: Record<string, unknown>): ReportAction =>
+        const buildAction = (
+            actionName: Parameters<typeof getFakeAdvancedReportAction>[0],
+            actorAccountID = 3,
+            originalMessage?: Record<string, unknown>,
+            messageText?: string,
+        ): ReportAction =>
             ({
                 ...getFakeAdvancedReportAction(actionName),
                 actorAccountID,
                 ...(originalMessage === undefined ? {} : {originalMessage}),
+                ...(messageText === undefined ? {} : {message: [{type: 'COMMENT', html: messageText, text: messageText, isEdited: false, whisperedTo: [], isDeletedParentAction: false}]}),
             }) as ReportAction;
 
         const setReport = async (report: Report) => {
@@ -4597,20 +4603,21 @@ describe('OptionsListUtils', () => {
             expect(result).toBe('<b>test</b>');
         });
 
-        it('should strip HTML from the last message when the last action is not ADD_COMMENT', async () => {
-            // Given a DM whose last action is not a comment, so the last message is server-built HTML
+        it('should fall back to the raw report lastMessageText when no last action is available', async () => {
+            // Given a DM with no report actions anywhere, so the shared LHN pipeline has nothing to derive from
             const report = buildDMReport({lastMessageText: '<b>test</b>', lastActionType: CONST.REPORT.ACTIONS.TYPE.RENAMED});
             await setReport(report);
             const option: OptionData = {reportID: DM_REPORT_ID, keyForList: '', lastMessageText: '<b>test</b>'};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, DM_REPORT_ID));
 
-            expect(result).toBe('test');
+            // Then it falls back to report.lastMessageText verbatim, matching the LHN row for the same report
+            expect(result).toBe('<b>test</b>');
         });
 
         it('should prefix the room preview with the last actor display name', async () => {
             await setReport(buildRoomReport());
-            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
+            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3, undefined, 'hello');
             const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment));
@@ -4620,7 +4627,7 @@ describe('OptionsListUtils', () => {
 
         it('should use "You" as the prefix when the current user sent the last message', async () => {
             await setReport(buildRoomReport({lastActorAccountID: CURRENT_USER_ACCOUNT_ID}));
-            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CURRENT_USER_ACCOUNT_ID);
+            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CURRENT_USER_ACCOUNT_ID, undefined, 'hello');
             const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment));
@@ -4628,29 +4635,32 @@ describe('OptionsListUtils', () => {
             expect(result).toBe('You: hello');
         });
 
-        it('should omit the actor prefix when the report is archived', async () => {
+        it('should show the archive reason without an actor prefix when the report is archived', async () => {
             await setReport(buildRoomReport());
-            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
-            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
+            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3, undefined, 'hello');
+            // An empty lastMessageText forces the shared pipeline to derive the text, exercising the archive-reason branch
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: '', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment, ROOM_REPORT_ID, {isReportArchived: true}));
 
-            expect(result).toBe('hello');
+            // Then the preview matches the LHN row for an archived room: the archive reason, no actor prefix
+            expect(result).toBe('This chat room has been archived.');
         });
 
-        it('should omit the actor prefix when currentUserAccountID is undefined', async () => {
+        it('should keep the actor prefix when currentUserAccountID is undefined', async () => {
             await setReport(buildRoomReport());
-            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
+            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3, undefined, 'hello');
             const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment, ROOM_REPORT_ID, {currentUserAccountID: undefined}));
 
-            expect(result).toBe('hello');
+            // Then the missing ID falls back to the default account ID, so the actor still gets a prefix like in the LHN
+            expect(result).toBe('Spider-Man: hello');
         });
 
         it('should omit the actor prefix when the last action is a report preview', async () => {
             await setReport(buildRoomReport({lastActionType: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, lastMessageText: 'owes $10'}));
-            const preview = buildAction(CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, 3);
+            const preview = buildAction(CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, 3, undefined, 'owes $10');
             const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'owes $10', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(preview));
@@ -4661,7 +4671,7 @@ describe('OptionsListUtils', () => {
         it('should fall back to the report action person text when the actor is missing from personal details', async () => {
             await setReport(buildRoomReport({lastActorAccountID: 999}));
             // The fake action carries person: [{text: 'Email One'}] and account 999 is not in PERSONAL_DETAILS
-            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 999);
+            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 999, undefined, 'hello');
             const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment));
@@ -4735,18 +4745,18 @@ describe('OptionsListUtils', () => {
             expect(result).toBe('Spider-Man: invited 2 members');
         });
 
-        it.each([CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.RETRACTED])(
-            'should suppress the actor prefix for %s because its text already embeds the actor',
-            async (actionName) => {
-                await setReport(buildRoomReport({lastActionType: actionName, lastMessageText: 'issued a new card'}));
-                const action = buildAction(actionName, 3);
-                const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'issued a new card', isChatRoom: true};
+        it.each([
+            [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, 'issued @Hidden an Expensify Card! The card will arrive in 2-3 business days.'],
+            [CONST.REPORT.ACTIONS.TYPE.RETRACTED, 'retracted'],
+        ])('should suppress the actor prefix for %s because its text already embeds the actor', async (actionName, expectedText) => {
+            await setReport(buildRoomReport({lastActionType: actionName, lastMessageText: 'issued a new card'}));
+            const action = buildAction(actionName, 3);
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'issued a new card', isChatRoom: true};
 
-                const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(action));
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(action));
 
-                expect(result).toBe('issued a new card');
-            },
-        );
+            expect(result).toBe(expectedText);
+        });
 
         it('should skip whisper actions when picking the last visible action from sortedActions', async () => {
             await setReport(buildRoomReport());
@@ -4755,7 +4765,7 @@ describe('OptionsListUtils', () => {
                 ...buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 4),
                 message: [{type: 'COMMENT', html: 'psst', text: 'psst', isEdited: false, whisperedTo: [999], isDeletedParentAction: false}],
             } as ReportAction;
-            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
+            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3, undefined, 'hello');
             const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, ROOM_REPORT_ID, {sortedActions: {[ROOM_REPORT_ID]: [whisper, comment]}}));
@@ -4768,7 +4778,7 @@ describe('OptionsListUtils', () => {
             // REPORT_ACTIONS for the shared room would poison later tests that reuse its reportID.
             const onyxRoomReportID = '9150';
             await setReport(buildRoomReport({reportID: onyxRoomReportID}));
-            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
+            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3, undefined, 'hello');
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${onyxRoomReportID}`, {[comment.reportActionID]: comment});
             await waitForBatchedUpdates();
             const option: OptionData = {reportID: onyxRoomReportID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
@@ -4793,7 +4803,7 @@ describe('OptionsListUtils', () => {
             // Given a room whose last visible action is a comment from another user
             const report = buildRoomReport();
             await setReport(report);
-            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
+            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3, undefined, 'hello');
 
             const optionList = createFilteredOptionList(PERSONAL_DETAILS, {[ROOM_REPORT_ID]: report}, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,

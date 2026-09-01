@@ -354,38 +354,38 @@ describe('LHN vs Search preview parity', () => {
     });
 
     describe('special-action chain branches (policy room)', () => {
-        it.each(SIMPLE_CHAIN_ACTIONS)('%s', async (actionName) => {
+        it.each(SIMPLE_CHAIN_ACTIONS)('should match for %s', async (actionName) => {
             await expectParity({lastAction: makeAction(actionName)});
         });
     });
 
     describe('branches with bespoke payloads', () => {
-        it('RENAMED with old/new name', async () => {
+        it('should match for RENAMED with old/new name', async () => {
             await expectParity({
                 lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.RENAMED, {originalMessage: {oldName: 'Old room name', newName: 'New room name'}}),
             });
         });
 
-        it('ROOM invite with targetAccountIDs and room name from originalMessage', async () => {
+        it('should match for ROOM invite with targetAccountIDs and room name from originalMessage', async () => {
             await expectParity({
                 lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM, {originalMessage: {targetAccountIDs: [2, 3], roomName: 'general'}}),
             });
         });
 
-        it('POLICY remove with single target', async () => {
+        it('should match for POLICY remove with single target', async () => {
             await expectParity({
                 lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM, {originalMessage: {targetAccountIDs: [2]}}),
             });
         });
 
-        it('invite with room name resolved from lastActionReport', async () => {
+        it('should match for invite with room name resolved from lastActionReport', async () => {
             await expectParity({
                 lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM, {originalMessage: {targetAccountIDs: [2], reportID: 200}}),
                 extraReports: [makeReport({reportID: '200', reportName: '#target-room'})],
             });
         });
 
-        it('ACTIONABLE_CARD_FRAUD_ALERT with resolution', async () => {
+        it('should match for ACTIONABLE_CARD_FRAUD_ALERT with resolution', async () => {
             await expectParity({
                 lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT, {
                     originalMessage: {resolution: CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED, cardID: 11, maskedCardNumber: '4444', triggerAmount: 1000, triggerMerchant: 'ACME'},
@@ -393,38 +393,38 @@ describe('LHN vs Search preview parity', () => {
             });
         });
 
-        it('CARD_ISSUED', async () => {
+        it('should match for CARD_ISSUED', async () => {
             await expectParity({
                 lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, {originalMessage: {assigneeAccountID: 2, cardID: 11}}),
             });
         });
 
-        it('MOVED_TRANSACTION with derived report name', async () => {
+        it('should match for MOVED_TRANSACTION with derived report name', async () => {
             await expectParity({
                 lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION, {originalMessage: {toReportID: '300', fromReportID: '100'}}),
                 extraReports: [makeReport({reportID: '300', reportName: 'Target Expense Report', chatType: undefined, type: CONST.REPORT.TYPE.EXPENSE})],
             });
         });
 
-        it('generic ADD_COMMENT in room gets actor prefix', async () => {
+        it('should match when generic ADD_COMMENT in room gets actor prefix', async () => {
             await expectParity({
                 lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT),
             });
         });
 
-        it('generic ADD_COMMENT from current user in room', async () => {
+        it('should match for generic ADD_COMMENT from current user in room', async () => {
             await expectParity({
                 lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {actorAccountID: CURRENT_USER_ACCOUNT_ID, person: [{type: 'TEXT', style: 'strong', text: 'Current User'}]}),
             });
         });
 
-        it('generic branch resolves actor from person[0].text when personalDetails miss the actor', async () => {
+        it('should match when generic branch resolves actor from person[0].text when personalDetails miss the actor', async () => {
             await expectParity({
                 lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {actorAccountID: 42, person: [{type: 'TEXT', style: 'strong', text: 'Mystery Person'}]}),
             });
         });
 
-        it('REPORT_PREVIEW on policy expense chat', async () => {
+        it('should match for REPORT_PREVIEW on policy expense chat', async () => {
             await expectParity({
                 report: makeReport({chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, reportName: 'Workspace chat', lastMessageText: 'owes $1.00', lastMessageHtml: 'owes $1.00'}),
                 lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW),
@@ -433,11 +433,11 @@ describe('LHN vs Search preview parity', () => {
     });
 
     describe('report-type and fallback variants', () => {
-        it('empty room falls back to welcome message', async () => {
+        it('should match when empty room falls back to welcome message', async () => {
             await expectParity({report: makeReport({lastMessageText: '', lastMessageHtml: ''})});
         });
 
-        it('empty policy expense chat falls back to welcome message', async () => {
+        it('should match when empty policy expense chat falls back to welcome message', async () => {
             await expectParity({
                 report: makeReport({
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
@@ -449,11 +449,11 @@ describe('LHN vs Search preview parity', () => {
             });
         });
 
-        it('empty DM falls back to welcome message', async () => {
+        it('should match when empty DM falls back to welcome message', async () => {
             await expectParity({report: makeReport({chatType: undefined, reportName: '', lastMessageText: '', lastMessageHtml: ''})});
         });
 
-        it('empty self-DM with isTrackIntentUser true', async () => {
+        it('should match for empty self-DM with isTrackIntentUser true', async () => {
             await expectParity({
                 report: makeReport({
                     chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
@@ -466,7 +466,7 @@ describe('LHN vs Search preview parity', () => {
             });
         });
 
-        it('empty self-DM with isTrackIntentUser false', async () => {
+        it('should match for empty self-DM with isTrackIntentUser false', async () => {
             await expectParity({
                 report: makeReport({
                     chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
@@ -478,21 +478,21 @@ describe('LHN vs Search preview parity', () => {
             });
         });
 
-        it('DM with last message shows actor prefix', async () => {
+        it('should match when DM with last message shows actor prefix', async () => {
             await expectParity({
                 report: makeReport({chatType: undefined, reportName: '', lastActorAccountID: 1}),
                 lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT),
             });
         });
 
-        it('DM last message from current user has no actor prefix', async () => {
+        it('should match when DM last message from current user has no actor prefix', async () => {
             await expectParity({
                 report: makeReport({chatType: undefined, reportName: '', lastActorAccountID: CURRENT_USER_ACCOUNT_ID}),
                 lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {actorAccountID: CURRENT_USER_ACCOUNT_ID, person: [{type: 'TEXT', style: 'strong', text: 'Current User'}]}),
             });
         });
 
-        it('group chat with last comment', async () => {
+        it('should match for group chat with last comment', async () => {
             await expectParity({
                 report: makeReport({
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
@@ -508,14 +508,14 @@ describe('LHN vs Search preview parity', () => {
             });
         });
 
-        it('archived room skips the special-action chain', async () => {
+        it('should match when archived room skips the special-action chain', async () => {
             await expectParity({
                 lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.RENAMED, {originalMessage: {oldName: 'Old', newName: 'New'}}),
                 isReportArchived: true,
             });
         });
 
-        it('multiline last message collapses line breaks', async () => {
+        it('should match when multiline last message collapses line breaks', async () => {
             await expectParity({
                 report: makeReport({lastMessageText: 'line one\nline two\nline three', lastMessageHtml: 'line one<br />line two<br />line three'}),
                 lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
@@ -524,7 +524,7 @@ describe('LHN vs Search preview parity', () => {
             });
         });
 
-        it('empty invoice room: LHN uses invoiceReceiverPolicy for the welcome payer, Search cannot (documented gap)', async () => {
+        it('should diverge for empty invoice room where LHN uses invoiceReceiverPolicy for the welcome payer but Search cannot (documented gap)', async () => {
             // TODO(parity): invoiceReceiverPolicy is not threaded on the Search path (no per-row source),
             // so the invoice-room welcome message payer name is empty in Search while LHN shows the
             // receiver policy name. Remove this divergence assertion once a per-row source exists.
@@ -543,7 +543,7 @@ describe('LHN vs Search preview parity', () => {
             expect(searchText).not.toBe(lhnText);
         });
 
-        it('SMS domain is stripped from last message', async () => {
+        it('should match when SMS domain is stripped from last message', async () => {
             await expectParity({
                 report: makeReport({lastMessageText: 'ping +15551234567@expensify.sms please', lastMessageHtml: 'ping +15551234567@expensify.sms please'}),
                 lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
