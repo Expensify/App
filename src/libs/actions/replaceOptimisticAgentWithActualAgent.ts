@@ -21,17 +21,17 @@ import Onyx from 'react-native-onyx';
  *
  * This module mirrors replaceOptimisticReportWithActualReport: it listens to that mapping key, and for each
  * entry it
- * 1. Redirects every agent settings screen anywhere in the navigation stack (not just the focused one — an
- *    agent screen buried under another would otherwise keep the dead ID and 404 on back navigation) from the
- *    optimistic accountID to the real one, so those screens survive reconciliation instead of falling through
- *    to their not-found views.
- * 2. Remaps the owner<->agent DM's participants from the optimistic accountID to the real one. CreateAgent's
- *    response data normally does this swap already, so this is a defensive no-op on the happy path; the real
- *    participant is only filled in when missing so the server's version always wins.
+ * 1. Redirects every agent settings screen anywhere in the navigation stack from the optimistic accountID to
+ *    the real one, so those screens survive reconciliation instead of falling through to their not-found views.
+ *    Every screen is redirected, not just the focused one, because an agent screen buried under another would
+ *    otherwise keep the dead ID and 404 on back navigation.
+ * 2. Remaps the participants of the DM between the owner and the agent from the optimistic accountID to the
+ *    real one. CreateAgent's response data normally does this swap already, so this is a defensive no-op on the
+ *    happy path. The real participant is only filled in when missing so the server's version always wins.
  * 3. Migrates the optimistic personal detail and agent prompt onto the real accountID's keys, then clears the
  *    optimistic ones. Pending edits or errors from requests queued against the optimistic agent (which the
  *    HandleUnusedOptimisticAgentAccountID middleware rewrites to the real ID) carry over this way instead of
- *    vanishing from the UI; only the ADD pendingAction is dropped, since it denotes the CreateAgent that just
+ *    vanishing from the UI. Only the ADD pendingAction is dropped, since it denotes the CreateAgent that just
  *    succeeded. This cleanup lives here rather than in createAgent()'s successData so it is guaranteed to run
  *    after the redirect.
  * 4. Clears the consumed mapping entry, so the mapping never accumulates stale entries.
@@ -45,7 +45,7 @@ const AGENT_SETTINGS_SCREENS = new Set<string>([SCREENS.SETTINGS.AGENTS.EDIT, SC
 
 // In-memory (not persisted) record of consumed mappings. The Onyx mapping entry is cleared once consumed, so
 // this is the only place a late caller can still translate an optimistic accountID it captured earlier in the
-// session; persisted requests don't need it because the middleware rewrites them when the mapping arrives.
+// session. Persisted requests don't need it because the middleware rewrites them when the mapping arrives.
 const consumedOptimisticAccountIDs = new Map<number, number>();
 
 /**
@@ -57,7 +57,7 @@ function resolveAgentAccountID(accountID: number): number {
 }
 
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
-// Personal details are cached only to migrate the optimistic agent's entry onto the real accountID; no UI subscribes here, so connectWithoutView() is used.
+// Personal details are cached only to migrate the optimistic agent's entry onto the real accountID. No UI subscribes here, so connectWithoutView() is used.
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
@@ -66,7 +66,7 @@ Onyx.connectWithoutView({
 });
 
 let allAgentPrompts: OnyxCollection<AgentPrompt>;
-// Agent prompts are cached only to migrate the optimistic agent's entry onto the real accountID; no UI subscribes here, so connectWithoutView() is used.
+// Agent prompts are cached only to migrate the optimistic agent's entry onto the real accountID. No UI subscribes here, so connectWithoutView() is used.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT,
     callback: (value) => {
@@ -75,7 +75,7 @@ Onyx.connectWithoutView({
 });
 
 let allReports: OnyxCollection<Report>;
-// Reports are cached only to locate DMs still keyed by the optimistic accountID; no UI subscribes here, so connectWithoutView() is used.
+// Reports are cached only to locate DMs still keyed by the optimistic accountID. No UI subscribes here, so connectWithoutView() is used.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (value) => {
@@ -121,7 +121,7 @@ function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, real
             }
 
             // CreateAgent's response data already swaps the DM's participants to the real accountID, so this
-            // usually finds nothing; it only repairs reports still keyed by the optimistic accountID (e.g. when
+            // usually finds nothing. It only repairs reports still keyed by the optimistic accountID (e.g. when
             // that response data was lost). The real participant is only filled in when missing so a
             // server-provided one is never clobbered.
             for (const report of Object.values(allReports ?? {})) {
@@ -140,7 +140,7 @@ function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, real
             // Migrate the optimistic entries onto the real accountID's keys before clearing them. When nothing
             // was queued against the optimistic agent, the migrated fields equal what the server already sent,
             // so the merges are harmless no-ops. accountID and isOptimisticPersonalDetail are excluded because
-            // the real entry keeps its own identity; an ADD pendingAction is excluded because it denotes the
+            // the real entry keeps its own identity. An ADD pendingAction is excluded because it denotes the
             // CreateAgent that just succeeded, while a DELETE pendingAction or errors must survive so the
             // strikethrough/RBR from queued requests stays visible.
             const optimisticPersonalDetail = allPersonalDetails?.[optimisticAccountID];
@@ -168,7 +168,7 @@ function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, real
     });
 }
 
-// The mapping is observed only to run the replacement; no UI subscribes to it, so connectWithoutView() is used.
+// The mapping is observed only to run the replacement. No UI subscribes to it, so connectWithoutView() is used.
 // The callback also fires with the persisted value on app start, which consumes any entry that arrived while the
 // module wasn't loaded yet (e.g. the app was killed between the server response and the cleanup).
 Onyx.connectWithoutView({

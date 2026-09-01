@@ -4,7 +4,7 @@ import type {Middleware} from '@libs/Request';
 import {getAll, getOngoingRequest, update, updateOngoingRequest} from '@userActions/PersistedRequests';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
+import type {AnyOnyxUpdate, AnyRequest} from '@src/types/onyx/Request';
 
 import clone from 'lodash/clone';
 
@@ -23,8 +23,8 @@ import clone from 'lodash/clone';
 // parameter and the Onyx keys inside success/failure data) and as a number (e.g. the agentAccountID parameter of
 // the agent update commands). deepReplaceKeysAndValues only replaces string keys and values, so the number
 // occurrences need this extra pass. Its substring replacement is still needed for the string pass because the
-// success/failure data embeds the accountID inside Onyx key strings (e.g. sharedNVP_agentPrompt_<accountID>);
-// optimistic accountIDs are long random numbers, so an accidental substring match is not a practical concern.
+// success/failure data embeds the accountID inside Onyx key strings (e.g. sharedNVP_agentPrompt_<accountID>).
+// Optimistic accountIDs are long random numbers, so an accidental substring match is not a practical concern.
 // Number replacement, by contrast, only ever needs strict equality.
 function replaceNumberValues(target: unknown, oldVal: number, newVal: number): unknown {
     if (target === oldVal) {
@@ -86,6 +86,21 @@ function rewriteOnyxUpdates(
     });
 }
 
+// Returns a clone of the request with every occurrence of the optimistic accountID (in the request data and in
+// each stored Onyx-update array) rewritten to the real accountID.
+function rewriteRequest(request: AnyRequest, optimisticAccountIDKey: string, realAccountIDString: string, optimisticAccountID: number, realAccountID: number): AnyRequest {
+    const requestClone = clone(request);
+    const dataWithReplacedStrings = deepReplaceKeysAndValues(request.data, optimisticAccountIDKey, realAccountIDString);
+    requestClone.data = dataWithReplacedStrings ? replaceNumbersInRecord(dataWithReplacedStrings, optimisticAccountID, realAccountID) : dataWithReplacedStrings;
+    for (const fieldName of REQUEST_ONYX_DATA_FIELDS) {
+        if (!request[fieldName]) {
+            continue;
+        }
+        requestClone[fieldName] = rewriteOnyxUpdates(request[fieldName], optimisticAccountIDKey, realAccountIDString, optimisticAccountID, realAccountID);
+    }
+    return requestClone;
+}
+
 const handleUnusedOptimisticAgentAccountID: Middleware = (requestResponse, request, isFromSequentialQueue) =>
     requestResponse.then((response) => {
         const responseOnyxData = response?.onyxData ?? [];
@@ -113,30 +128,12 @@ const handleUnusedOptimisticAgentAccountID: Middleware = (requestResponse, reque
                     const ongoingRequest = getOngoingRequest();
                     const ongoingRequestAgentAccountIDParam = ongoingRequest?.data?.agentAccountID ?? ongoingRequest?.data?.optimisticAccountID;
                     if (ongoingRequest && (ongoingRequestAgentAccountIDParam === optimisticAccountID || ongoingRequestAgentAccountIDParam === optimisticAccountIDKey)) {
-                        const ongoingRequestClone = clone(ongoingRequest);
-                        const dataWithReplacedStrings = deepReplaceKeysAndValues(ongoingRequest.data, optimisticAccountIDKey, realAccountIDString);
-                        ongoingRequestClone.data = dataWithReplacedStrings ? replaceNumbersInRecord(dataWithReplacedStrings, optimisticAccountID, realAccountID) : dataWithReplacedStrings;
-                        for (const fieldName of REQUEST_ONYX_DATA_FIELDS) {
-                            if (!ongoingRequest[fieldName]) {
-                                continue;
-                            }
-                            ongoingRequestClone[fieldName] = rewriteOnyxUpdates(ongoingRequest[fieldName], optimisticAccountIDKey, realAccountIDString, optimisticAccountID, realAccountID);
-                        }
-                        updateOngoingRequest(ongoingRequestClone);
+                        updateOngoingRequest(rewriteRequest(ongoingRequest, optimisticAccountIDKey, realAccountIDString, optimisticAccountID, realAccountID));
                     }
                 }
 
                 for (const [index, persistedRequest] of getAll().entries()) {
-                    const persistedRequestClone = clone(persistedRequest);
-                    const dataWithReplacedStrings = deepReplaceKeysAndValues(persistedRequest.data, optimisticAccountIDKey, realAccountIDString);
-                    persistedRequestClone.data = dataWithReplacedStrings ? replaceNumbersInRecord(dataWithReplacedStrings, optimisticAccountID, realAccountID) : dataWithReplacedStrings;
-                    for (const fieldName of REQUEST_ONYX_DATA_FIELDS) {
-                        if (!persistedRequest[fieldName]) {
-                            continue;
-                        }
-                        persistedRequestClone[fieldName] = rewriteOnyxUpdates(persistedRequest[fieldName], optimisticAccountIDKey, realAccountIDString, optimisticAccountID, realAccountID);
-                    }
-                    update(index, persistedRequestClone);
+                    update(index, rewriteRequest(persistedRequest, optimisticAccountIDKey, realAccountIDString, optimisticAccountID, realAccountID));
                 }
             }
         }
