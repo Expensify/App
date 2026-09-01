@@ -1,5 +1,3 @@
-import EnvironmentBadge from '@components/EnvironmentBadge';
-
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useDialogContainerFocus from '@hooks/useDialogContainerFocus';
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
@@ -20,9 +18,6 @@ type HeaderProps = {
 
     /** Subtitle of the header */
     subtitle?: string;
-
-    /** Should we show the environment badge (dev/stg)?  */
-    shouldShowEnvironmentBadge?: boolean;
 
     /** Additional text styles */
     textStyles?: StyleProp<TextStyle>;
@@ -52,7 +47,6 @@ function Header({
     textStyles = [],
     style,
     containerStyles = [],
-    shouldShowEnvironmentBadge = false,
     subTitleLink = '',
     numberOfTitleLines = 2,
     isScreenHeader = false,
@@ -90,7 +84,6 @@ function Header({
                 </>
                 {!!subTitleLink && <HeaderTitleSubtitleLink>{subTitleLink}</HeaderTitleSubtitleLink>}
             </View>
-            {shouldShowEnvironmentBadge && <EnvironmentBadge />}
         </View>
     );
 }
