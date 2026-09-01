@@ -107,8 +107,9 @@ const createReportAttributesSelector =
 /**
  * Building an option per personal details entry is the expensive step of this hook and depends only on Onyx values.
  * Arguments are compared one level deep because the maps are rebuilt each render from those same unchanged values.
- * A single entry is held because it covers the whole contact list: consumers narrowing it with `includeLoginsOnly`
- * take turns in that entry, and each of them builds a small list.
+ * A single entry is held because the whole contact list is the expensive case. A consumer narrowing it with
+ * `includeLoginsOnly` evicts that entry, but both its own build and the next whole-list one are cheap enough to be
+ * worth the memory saved.
  */
 const memoizedCreateOptionList = memoize(createOptionList, {
     maxSize: 1,

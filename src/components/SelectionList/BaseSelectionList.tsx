@@ -335,10 +335,12 @@ function BaseSelectionListImpl({
     // A hidden `<Activity>` subtree keeps its state but unmounts its effects, so this runs again when the list is
     // revealed. Its container loses the scroll position while the rendered window still describes the old offset, which
     // leaves the visible area blank until something scrolls it; scrolling back to the reported offset realigns them.
-    const hasMountedRef = useRef(false);
+    // The ref rather than the mount: this component stays mounted while it is hidden, which is the whole premise here.
+    const hasEffectRunRef = useRef(false);
     useEffect(() => {
-        if (!hasMountedRef.current) {
-            hasMountedRef.current = true;
+        // The first run is the real mount, where the list is already where it belongs.
+        if (!hasEffectRunRef.current) {
+            hasEffectRunRef.current = true;
             return;
         }
 

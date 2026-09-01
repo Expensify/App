@@ -29,19 +29,22 @@ type SearchAdvancedFiltersPopupProps = {
     queryJSON: SearchQueryJSON;
 };
 
-/** Which filter contents are mounted and what each of them was given, held together so one filter change moves all of it. */
+/** Which filter contents are mounted and what each was given. Kept in one object so a single update moves them together. */
 type MountedFilterState = {
     /** The filter whose content is shown. */
     activeFilter: SearchFilter['key'];
 
-    /** The filters whose contents are mounted, in the order they were first visited. */
+    /** The filters whose contents are mounted, in the order they were first visited. They stay mounted until the popover closes. */
     mountedFilters: Array<SearchFilter['key']>;
 
-    /** Per mounted content, the filter values it was given when it last became active. */
+    /** Per mounted content, the filter values it was given when it last became the shown one. What a hidden content goes on rendering, and what a revisit is compared against. */
     formAtLastVisit: Partial<Record<SearchFilter['key'], Partial<SearchAdvancedFiltersForm> | undefined>>;
 
     /** Per mounted content, how many times it has been remounted. Part of its key, so a bump replaces the instance. */
     contentVersions: Partial<Record<SearchFilter['key'], number>>;
+
+    /** The deferred filters now allowed to derive their contents. A deferred filter left out of this stands as its own loading state. */
+    readyFilters: Array<SearchFilter['key']>;
 };
 
 const filterComponents = {
@@ -55,6 +58,18 @@ const filterComponents = {
 /** The filter the popover opens on. */
 const INITIAL_FILTER = CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE;
 
+/**
+ * The filters whose contents are derived from the whole contact list, which is the one derivation heavy enough to be
+ * felt. They are the four routed to `UserSelector`, the only component under Search that reads personal detail options.
+ * Every other filter renders as fast as the row is pointed at.
+ */
+const DEFERRED_CONTENT_FILTERS = new Set<SearchFilter['key']>([
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+]);
+
 type MountedFilterContentProps = {
     /** The filter whose content this is. */
     filterKey: SearchFilter['key'];
@@ -62,14 +77,18 @@ type MountedFilterContentProps = {
     /** The filter values the content reads. */
     values: Partial<SearchAdvancedFiltersForm> | undefined;
 
+    /** Whether the content may derive itself, or has to stand as its own loading state for now. */
+    ready: boolean;
+
     /** Called with the values a change in the content produces. */
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
 // React Compiler caches the whole `mountedFilters.map()` result in a single slot, so changing the shown filter rebuilds
-// every element of it. Each content sits in its own component, so one whose props are unchanged returns the element it
-// returned before and the render ends there.
-function MountedFilterContent({filterKey, values, onChange}: MountedFilterContentProps) {
+// every element of it. Each content sits in its own component, so moving between filters ends the render at the boundary
+// of the ones whose props did not change. A change to the form does change `onChange`, and then every mounted content
+// re-renders.
+function MountedFilterContent({filterKey, values, ready, onChange}: MountedFilterContentProps) {
     const styles = useThemeStyles();
 
     return (
@@ -78,6 +97,7 @@ function MountedFilterContent({filterKey, values, onChange}: MountedFilterConten
                 values={values}
                 baseFilterKey={filterKey}
                 components={filterComponents}
+                ready={ready}
                 onChange={onChange}
             />
         </View>
@@ -90,20 +110,19 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
     const {windowHeight} = useWindowDimensions();
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const filterContentRef = useRef<View>(null);
-    // The list highlights `hoveredFilter` immediately. The content pane follows `activeFilter`.
-    const [hoveredFilter, setHoveredFilter] = useState<SearchFilter['key']>(INITIAL_FILTER);
     const [mountedFilterState, setMountedFilterState] = useState<MountedFilterState>(() => ({
         activeFilter: INITIAL_FILTER,
         mountedFilters: [INITIAL_FILTER],
         formAtLastVisit: {[INITIAL_FILTER]: searchAdvancedFiltersForm},
         contentVersions: {},
+        readyFilters: [],
     }));
-    const {activeFilter, mountedFilters, formAtLastVisit, contentVersions} = mountedFilterState;
+    const {activeFilter, mountedFilters, formAtLastVisit, contentVersions, readyFilters} = mountedFilterState;
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
 
-    // A content stays mounted once visited, so revisiting a filter reveals it instead of building it again. Contents
-    // are built only for the filters actually visited and live only while the popover is open.
-    const activateFilter = (filterKey: SearchFilter['key']) => {
+    // The pane follows the cursor with no wait of its own, so pointing at a row shows that filter at any speed. A content
+    // stays mounted once visited, so coming back to one reveals it instead of building it again.
+    const showFilter = (filterKey: SearchFilter['key']) => {
         setMountedFilterState((currentState) => {
             if (currentState.activeFilter === filterKey) {
                 return currentState;
@@ -120,49 +139,59 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                 mountedFilters: isMounted ? currentState.mountedFilters : [...currentState.mountedFilters, filterKey],
                 formAtLastVisit: {...currentState.formAtLastVisit, [filterKey]: searchAdvancedFiltersForm},
                 contentVersions: isStale ? {...currentState.contentVersions, [filterKey]: (currentState.contentVersions[filterKey] ?? 0) + 1} : currentState.contentVersions,
+                // A remounted content derives itself from scratch, so it waits for the cursor again like a new one.
+                readyFilters: isStale ? currentState.readyFilters.filter((key) => key !== filterKey) : currentState.readyFilters,
             };
         });
     };
 
-    // Shows the content of whichever row the cursor is on once it comes to rest. Time spent on a row cannot tell a
-    // deliberate hover from a slow pass over it, but coming to rest can.
-    const activateRestingFilter = () => {
-        activateFilter(hoveredFilter);
-    };
-    // Held in a ref so a wait started by an earlier render still activates the row the cursor is on now.
-    const activateRestingFilterRef = useRef(activateRestingFilter);
-    useEffect(() => {
-        activateRestingFilterRef.current = activateRestingFilter;
-    });
+    /**
+     * Lets the shown filter derive what it withheld. Which filter that is comes from the updater rather than from the
+     * render that scheduled the wait, so a wait outlives the render it started in. Only a deferred filter withholds
+     * anything, so marking any other one would be an update that changes nothing on screen.
+     */
+    const markShownFilterReady = () => {
+        setMountedFilterState((currentState) => {
+            if (!DEFERRED_CONTENT_FILTERS.has(currentState.activeFilter) || currentState.readyFilters.includes(currentState.activeFilter)) {
+                return currentState;
+            }
 
+            return {...currentState, readyFilters: [...currentState.readyFilters, currentState.activeFilter]};
+        });
+    };
     const restTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const rowAllowanceTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-    const cancelPendingActivation = () => {
+    const cancelReadyWaits = () => {
         clearTimeout(restTimeoutRef.current);
         clearTimeout(rowAllowanceTimeoutRef.current);
     };
-    useEffect(() => cancelPendingActivation, []);
+    // Drops both waits when the popover closes.
+    useEffect(() => cancelReadyWaits, []);
 
-    /** Restarted by every movement of the cursor, so it only elapses once the cursor has come to rest. */
+    /**
+     * Restarted by every movement of the cursor, so it only elapses once the cursor has come to rest. Time spent on a
+     * row cannot tell a deliberate hover from a slow pass over it, but coming to rest can.
+     */
     const waitForCursorToRest = () => {
         clearTimeout(restTimeoutRef.current);
-        restTimeoutRef.current = setTimeout(() => activateRestingFilterRef.current(), CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
+        restTimeoutRef.current = setTimeout(markShownFilterReady, CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
     };
 
-    /** What a cursor that never comes to rest is given instead. Only moving on to the next row restarts it. */
+    /** What a cursor that wanders inside one row without ever resting is given instead. Only entering a row restarts it. */
     const waitForRowAllowance = () => {
         clearTimeout(rowAllowanceTimeoutRef.current);
-        rowAllowanceTimeoutRef.current = setTimeout(() => activateRestingFilterRef.current(), CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_MAX_DELAY);
+        rowAllowanceTimeoutRef.current = setTimeout(markShownFilterReady, CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_MAX_DELAY);
     };
 
     const hoverFilter = (filterKey: SearchFilter['key']) => {
-        setHoveredFilter(filterKey);
+        showFilter(filterKey);
         waitForCursorToRest();
         waitForRowAllowance();
     };
 
     // Where the cursor was when it last counted as moving. Distance is measured from there rather than from the previous
-    // event, so a shaking hand stays within HOVER_INTENT_REST_RADIUS_PX of one point while a slow crossing does not.
+    // event, so a shaking hand stays within HOVER_INTENT_REST_RADIUS_PX of one point while a slow crossing does not. The
+    // anchor marks where the cursor last moved, not which row it is over, so entering a row does not reset it.
     const restAnchorRef = useRef<{x: number; y: number} | null>(null);
     const trackPointerMovement = (event: {clientX: number; clientY: number}) => {
         const anchor = restAnchorRef.current;
@@ -174,20 +203,22 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
         waitForCursorToRest();
     };
 
-    // Nothing is left to wait for once the cursor is gone, so the row it ended on is shown and the highlight and the
-    // content agree again.
+    // Nothing is left to wait for once the cursor is gone, so whatever the row it ended on was withholding is released.
     const stopTrackingPointer = () => {
-        cancelPendingActivation();
+        cancelReadyWaits();
         restAnchorRef.current = null;
-        activateFilter(hoveredFilter);
+        markShownFilterReady();
     };
 
-    // Moving the focus is deliberate and never passes over rows on the way, so it shows the content right away.
+    // Moving the focus is deliberate and never passes over rows on the way, so nothing is withheld from it.
     const focusFilter = (filterKey: SearchFilter['key']) => {
-        cancelPendingActivation();
-        setHoveredFilter(filterKey);
-        activateFilter(filterKey);
+        cancelReadyWaits();
+        showFilter(filterKey);
+        markShownFilterReady();
     };
+
+    // Only the contact-list filters withhold anything; every other content is ready as soon as it is mounted.
+    const mayDeriveContent = (filterKey: SearchFilter['key']) => !DEFERRED_CONTENT_FILTERS.has(filterKey) || readyFilters.includes(filterKey);
 
     return (
         <SafeTriangle submenuRef={filterContentRef}>
@@ -196,7 +227,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                     style={[styles.typeFiltersPopupContainer]}
                     type={searchAdvancedFiltersForm?.type}
                     policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, searchAdvancedFiltersForm)}
-                    selectedFilter={hoveredFilter}
+                    selectedFilter={activeFilter}
                     onHoverIn={hoverFilter}
                     onPointerMove={trackPointerMovement}
                     onPointerLeave={stopTrackingPointer}
@@ -217,6 +248,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                             <MountedFilterContent
                                 filterKey={filterKey}
                                 values={filterKey === activeFilter ? searchAdvancedFiltersForm : formAtLastVisit[filterKey]}
+                                ready={mayDeriveContent(filterKey)}
                                 onChange={updateFilterQueryParams}
                             />
                         </Activity>

@@ -1,3 +1,4 @@
+import LoadingIndicator from '@components/LoadingIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {Filter, SearchFilterCommonProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
@@ -47,7 +48,9 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         return acc;
     }, new Set<string>());
 
-    const expensifyTeamExclusions = getExpensifyTeamExclusions(personalDetails, policies, currentUserPersonalDetails.email);
+    // getExpensifyTeamExclusions walks every personal detail, and it only narrows options that are not being built while
+    // the selector stands as its own loading state, so it is skipped until then.
+    const expensifyTeamExclusions = ready ? getExpensifyTeamExclusions(personalDetails, policies, currentUserPersonalDetails.email) : CONST.EMPTY_OBJECT;
 
     // Snapshot the pre-selected accountIDs from when the filter first opened so they can be floated to the
     // top on first render without repinning rows that are toggled afterwards.
@@ -133,19 +136,27 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
             itemCount={listData.length}
             isSearchable={shouldShowSearchInput}
             isNegatable={isNegatable}
+            // Held at the height a contact list occupies, so what arrives does not push the panel open under the cursor.
+            shouldUseFixedPopoverHeight={!ready}
         >
-            <SelectionList
-                data={listData}
-                textInputOptions={textInputOptions}
-                canSelectMultiple
-                ListItem={UserSelectionListItem}
-                onSelectRow={selectUser}
-                shouldUpdateFocusedIndex
-                isLoadingNewOptions={isLoadingNewOptions}
-                shouldShowLoadingPlaceholder={!areOptionsInitialized || !ready}
-                style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
-                footerContent={footer}
-            />
+            {ready ? (
+                <SelectionList
+                    data={listData}
+                    textInputOptions={textInputOptions}
+                    canSelectMultiple
+                    ListItem={UserSelectionListItem}
+                    onSelectRow={selectUser}
+                    shouldUpdateFocusedIndex
+                    isLoadingNewOptions={isLoadingNewOptions}
+                    shouldShowLoadingPlaceholder={!areOptionsInitialized}
+                    style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
+                    footerContent={footer}
+                />
+            ) : (
+                // One spinner while the contact list is not being built yet. A skeleton of rows would draw a list that
+                // is not there and flicker row by row as the cursor moves from filter to filter.
+                <LoadingIndicator />
+            )}
         </ListFilterWrapper>
     );
 }

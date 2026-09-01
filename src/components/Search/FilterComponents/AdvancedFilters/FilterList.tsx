@@ -39,10 +39,10 @@ type FilterListProps = FilterItemCallbacks & {
     style?: StyleProp<ViewStyle>;
     contentContainerStyle?: StyleProp<ViewStyle>;
 
-    /** Called as the cursor travels over the list. Web only - it reports the movement between rows that `onHoverIn` cannot. */
+    /** Called as the cursor travels over the list. Web only - it reports the movement inside a row, which `onHoverIn` only reports entering. */
     onPointerMove?: (event: {clientX: number; clientY: number}) => void;
 
-    /** Called when the cursor leaves the list, for whatever it has pending for the row it was on. Web only. */
+    /** Called when the cursor leaves the list, so the consumer can settle whatever it was still waiting on for the last row. Web only. */
     onPointerLeave?: () => void;
 };
 

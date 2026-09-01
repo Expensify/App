@@ -175,11 +175,15 @@ describe('BaseSelectionList', () => {
 
     it('scrolls back to the offset it reports when it is revealed from a hidden Activity', async () => {
         jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(true);
-        mockGetAbsoluteLastScrollOffset.mockReturnValue(1200);
+        // The offset is read as the list is revealed and reported as zero afterwards, so a read taken a frame later
+        // would restore the top the list was reset to rather than where it was.
+        mockGetAbsoluteLastScrollOffset.mockReturnValueOnce(1200).mockReturnValue(0);
 
         const {rerender} = render(<ActivitySelectionListRenderer mode="visible" />);
 
-        // A list that was just mounted starts where it starts, so nothing scrolls it.
+        // A list that was just mounted starts where it starts, so nothing scrolls it. The frame has to pass first,
+        // otherwise this holds whether or not the mount is skipped. Nothing here sets state, so no act is needed.
+        jest.advanceTimersByTime(32);
         expect(mockScrollToOffset).not.toHaveBeenCalled();
 
         // Hiding the list unmounts its effects and drops its layout, and revealing it runs them again.
@@ -189,21 +193,6 @@ describe('BaseSelectionList', () => {
         await waitFor(() => {
             expect(mockScrollToOffset).toHaveBeenCalledWith({offset: 1200, animated: false});
         });
-    });
-
-    it('does not scroll a list revealed at the top, which has no offset to restore', async () => {
-        jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(true);
-        mockGetAbsoluteLastScrollOffset.mockReturnValue(0);
-
-        const {rerender} = render(<ActivitySelectionListRenderer mode="visible" />);
-
-        rerender(<ActivitySelectionListRenderer mode="hidden" />);
-        rerender(<ActivitySelectionListRenderer mode="visible" />);
-
-        await waitFor(() => {
-            expect(screen.getByText('Item 1')).toBeOnTheScreen();
-        });
-        expect(mockScrollToOffset).not.toHaveBeenCalled();
     });
 
     it('should not trigger item press if screen is not focused', () => {

@@ -7,7 +7,7 @@ import {isFilterNegatable} from '@libs/SearchQueryUtils';
 
 import React, {useState} from 'react';
 
-function ListFilterContentPopupWrapper({baseFilterKey, value, isNegated: initialIsNegated, type, policyID, onChange}: ListFilterContentWrapperProps) {
+function ListFilterContentPopupWrapper({baseFilterKey, value, isNegated: initialIsNegated, type, policyID, ready, onChange}: ListFilterContentWrapperProps) {
     const styles = useThemeStyles();
     const [isNegated, setIsNegated] = useState(initialIsNegated);
     const isFilterKeyNegatable = isFilterNegatable(baseFilterKey);
@@ -19,6 +19,7 @@ function ListFilterContentPopupWrapper({baseFilterKey, value, isNegated: initial
             isNegated={isNegated}
             type={type}
             policyID={policyID}
+            ready={ready}
             style={[styles.mt6, styles.flex1]}
             selectionListTextInputStyle={[!isFilterKeyNegatable && [styles.pt5, styles.pb1]]}
             selectionListStyle={{contentContainerStyle: [isFilterKeyNegatable ? styles.pb2 : styles.pv2]}}

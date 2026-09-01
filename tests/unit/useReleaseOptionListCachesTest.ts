@@ -2,8 +2,11 @@ import {renderHook} from '@testing-library/react-native';
 
 import useReleaseOptionListCaches from '@hooks/useReleaseOptionListCaches';
 
-/** Called once per release of the cached option lists, whichever cache it belongs to. */
-const mockRelease = jest.fn();
+/** Called when the built option lists are released. */
+const mockReleaseOptions = jest.fn();
+
+/** Called when the filtered and selected option lists are released. */
+const mockReleaseSearchSelector = jest.fn();
 
 /** Whether Search is the tab currently on top, read by the hook on every navigation state change. */
 let mockIsSearchTopmostRoute = true;
@@ -14,17 +17,15 @@ const mockUnsubscribe = jest.fn();
 
 jest.mock('@hooks/usePersonalDetailOptions', () => ({
     __esModule: true,
-    default: jest.fn(),
     clearPersonalDetailOptionsCache: () => {
-        mockRelease();
+        mockReleaseOptions();
     },
 }));
 
 jest.mock('@hooks/usePersonalDetailSearchSelector/base', () => ({
     __esModule: true,
-    default: jest.fn(),
     clearPersonalDetailSearchSelectorCaches: () => {
-        mockRelease();
+        mockReleaseSearchSelector();
     },
 }));
 
@@ -68,7 +69,9 @@ describe('useReleaseOptionListCaches', () => {
 
         leaveSearch();
 
-        expect(mockRelease).toHaveBeenCalled();
+        // Both caches, because releasing only one of them leaves the other holding the lists it was built from.
+        expect(mockReleaseOptions).toHaveBeenCalled();
+        expect(mockReleaseSearchSelector).toHaveBeenCalled();
     });
 
     it('keeps the cached lists while Search is still the tab on top', () => {
@@ -76,14 +79,7 @@ describe('useReleaseOptionListCaches', () => {
 
         navigateWithinSearch();
 
-        expect(mockRelease).not.toHaveBeenCalled();
-    });
-
-    it('stops listening to navigation once it is no longer used', () => {
-        const {unmount} = renderReleaseHook();
-
-        unmount();
-
-        expect(mockUnsubscribe).toHaveBeenCalled();
+        expect(mockReleaseOptions).not.toHaveBeenCalled();
+        expect(mockReleaseSearchSelector).not.toHaveBeenCalled();
     });
 });

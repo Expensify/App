@@ -12819,3 +12819,101 @@ describe('getSavedSearchIconName', () => {
         spy.mockRestore();
     });
 });
+
+describe('hasFilterContentValuesChanged', () => {
+    const FILTER_KEYS = CONST.SEARCH.SYNTAX_FILTER_KEYS;
+    type FilterKey = Parameters<typeof SearchUIUtils.hasFilterContentValuesChanged>[0];
+    type FilterValues = Parameters<typeof SearchUIUtils.hasFilterContentValuesChanged>[1];
+    type ContentValuesCase = {
+        /** The kind of content the filter is given, which decides what it reads. */
+        kind: string;
+
+        /** The filter whose content is being judged. */
+        filterKey: FilterKey;
+
+        /** Two forms differing only in something that content reads. */
+        read: [FilterValues, FilterValues];
+
+        /** Two forms differing only in something it does not. */
+        ignored: [FilterValues, FilterValues];
+    };
+
+    it('reports no change when handed the same form twice', () => {
+        const values = {[FILTER_KEYS.FROM]: ['1']};
+
+        expect(SearchUIUtils.hasFilterContentValuesChanged(FILTER_KEYS.FROM, values, values)).toBe(false);
+    });
+
+    // One case per kind of content, because each is handed a different slice of the form and a filter that reads a
+    // slice must not be rebuilt for a change outside it.
+    const contentValuesCases: ContentValuesCase[] = [
+        {
+            kind: 'list',
+            filterKey: FILTER_KEYS.FROM,
+            read: [{[FILTER_KEYS.FROM]: ['1']}, {[FILTER_KEYS.FROM]: ['2']}],
+            ignored: [{[FILTER_KEYS.FROM]: ['1']}, {[FILTER_KEYS.FROM]: ['1'], [FILTER_KEYS.TO]: ['2']}],
+        },
+        {
+            kind: 'list, negated',
+            filterKey: FILTER_KEYS.FROM,
+            // Built the way the content builds it, so the negated key cannot drift from what the comparator reads.
+            read: [SearchQueryUtils.getFilterFormValues(FILTER_KEYS.FROM, ['1'], false), SearchQueryUtils.getFilterFormValues(FILTER_KEYS.FROM, ['1'], true)],
+            ignored: [{[FILTER_KEYS.FROM]: ['1']}, {[FILTER_KEYS.FROM]: ['1'], [FILTER_KEYS.CATEGORY]: ['food']}],
+        },
+        {
+            kind: 'list, reading the search type it offers options for',
+            filterKey: FILTER_KEYS.CATEGORY,
+            read: [{type: CONST.SEARCH.DATA_TYPES.EXPENSE}, {type: CONST.SEARCH.DATA_TYPES.INVOICE}],
+            ignored: [{type: CONST.SEARCH.DATA_TYPES.EXPENSE}, {type: CONST.SEARCH.DATA_TYPES.EXPENSE, [FILTER_KEYS.KEYWORD]: 'a'}],
+        },
+        {
+            kind: 'list, reading the workspace that narrows its options',
+            filterKey: FILTER_KEYS.CATEGORY,
+            read: [{[FILTER_KEYS.POLICY_ID]: ['1']}, {[FILTER_KEYS.POLICY_ID]: ['2']}],
+            ignored: [{[FILTER_KEYS.POLICY_ID]: ['1']}, {[FILTER_KEYS.POLICY_ID]: ['1'], [FILTER_KEYS.MERCHANT]: 'a'}],
+        },
+        {
+            kind: 'text',
+            filterKey: FILTER_KEYS.MERCHANT,
+            read: [{[FILTER_KEYS.MERCHANT]: 'a'}, {[FILTER_KEYS.MERCHANT]: 'b'}],
+            ignored: [{[FILTER_KEYS.MERCHANT]: 'a'}, {[FILTER_KEYS.MERCHANT]: 'a', [FILTER_KEYS.DESCRIPTION]: 'b'}],
+        },
+        {
+            kind: 'amount',
+            filterKey: FILTER_KEYS.AMOUNT,
+            read: [{[`${FILTER_KEYS.AMOUNT}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`]: '10'}, {[`${FILTER_KEYS.AMOUNT}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`]: '20'}],
+            ignored: [
+                {[`${FILTER_KEYS.AMOUNT}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`]: '10'},
+                {[`${FILTER_KEYS.AMOUNT}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`]: '10', [FILTER_KEYS.MERCHANT]: 'a'},
+            ],
+        },
+        {
+            kind: 'date',
+            filterKey: FILTER_KEYS.DATE,
+            read: [{[`${FILTER_KEYS.DATE}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`]: '2026-01-01'}, {[`${FILTER_KEYS.DATE}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`]: '2026-02-01'}],
+            ignored: [
+                {[`${FILTER_KEYS.DATE}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`]: '2026-01-01'},
+                {[`${FILTER_KEYS.DATE}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`]: '2026-01-01', [FILTER_KEYS.MERCHANT]: 'a'},
+            ],
+        },
+        {
+            // The date content offers card periods only when a feed is picked, so it reads whether one is.
+            kind: 'date, reading whether a feed is picked',
+            filterKey: FILTER_KEYS.DATE,
+            read: [{}, {[FILTER_KEYS.FEED]: ['1']}],
+            ignored: [{[FILTER_KEYS.FEED]: ['1']}, {[FILTER_KEYS.FEED]: ['2']}],
+        },
+        {
+            // The report field content is handed the whole form, so nothing in it is outside what it reads.
+            kind: 'report field',
+            filterKey: FILTER_KEYS.REPORT_FIELD,
+            read: [{[FILTER_KEYS.MERCHANT]: 'a'}, {[FILTER_KEYS.MERCHANT]: 'b'}],
+            ignored: [{[FILTER_KEYS.MERCHANT]: 'a'}, {[FILTER_KEYS.MERCHANT]: 'a'}],
+        },
+    ];
+
+    it.each(contentValuesCases)('$kind: reports a change to what it reads and none to what it does not', ({filterKey, read, ignored}) => {
+        expect(SearchUIUtils.hasFilterContentValuesChanged(filterKey, read.at(0), read.at(1))).toBe(true);
+        expect(SearchUIUtils.hasFilterContentValuesChanged(filterKey, ignored.at(0), ignored.at(1))).toBe(false);
+    });
+});

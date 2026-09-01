@@ -5860,12 +5860,6 @@ function getDisplayValue(
     return Array.isArray(formValue) ? formValue.join(', ') : formValue;
 }
 
-/** A filter value together with whether the form holds it under the negated key. */
-type FilterNegatableValue = {
-    isNegated: boolean;
-    value: unknown;
-};
-
 function getFilterNegatableValue<K extends ListFilterContentProps['baseFilterKey'] | TextInputFilterContentProps['baseFilterKey']>(
     baseFilterKey: K,
     values: (Partial<SearchAdvancedFiltersForm> & Partial<Record<`${K}${typeof CONST.SEARCH.NOT_MODIFIER}`, SearchAdvancedFiltersForm[K]>>) | undefined,
@@ -5878,15 +5872,59 @@ function getFilterNegatableValue<K extends ListFilterContentProps['baseFilterKey
     return {isNegated: !!negatedValue, value: negatedValue ?? values?.[baseFilterKey]};
 }
 
-/** Whether a negatable value, the pair `SearchAdvancedFiltersContent` hands to a content, changed between two forms. */
-function hasNegatableValueChanged(previousNegatableValue: FilterNegatableValue, negatableValue: FilterNegatableValue): boolean {
-    return previousNegatableValue.isNegated !== negatableValue.isNegated || !deepEqual(previousNegatableValue.value, negatableValue.value);
+/**
+ * Everything the content of `baseFilterKey` is given out of the form, tagged with the kind of content it is.
+ * `SearchAdvancedFiltersContent` builds its props from this and `hasFilterContentValuesChanged` compares two of them,
+ * so which values a content reads is decided in one place and the two cannot drift apart. The key is handed back
+ * narrowed to the kind that was matched, which is what the matching content requires of it.
+ */
+function getFilterContentValues(baseFilterKey: SearchFilter['key'], values: Partial<SearchAdvancedFiltersForm> | undefined) {
+    if (isAmountFilterKey(baseFilterKey)) {
+        return {
+            kind: 'amount',
+            baseFilterKey,
+            value: {
+                [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO]: values?.[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`],
+                [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]: values?.[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`],
+                [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]: values?.[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`],
+            },
+        } as const;
+    }
+
+    if (isDateFilterKey(baseFilterKey)) {
+        return {
+            kind: 'date',
+            baseFilterKey,
+            value: {
+                [CONST.SEARCH.DATE_MODIFIERS.ON]: values?.[`${baseFilterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`],
+                [CONST.SEARCH.DATE_MODIFIERS.AFTER]: values?.[`${baseFilterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`],
+                [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: values?.[`${baseFilterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`],
+                [CONST.SEARCH.DATE_MODIFIERS.RANGE]: values?.[`${baseFilterKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}`],
+            },
+            hasFeed: !!values?.feed,
+        } as const;
+    }
+
+    // The report field content is handed the whole form, so anything in it counts.
+    if (baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD) {
+        return {kind: 'reportField', values} as const;
+    }
+
+    if (isTextFilterKey(baseFilterKey)) {
+        return {kind: 'text', baseFilterKey, negatable: getFilterNegatableValue(baseFilterKey, values)} as const;
+    }
+
+    // A list content also reads the search type and the workspace filter, which decide the options it offers.
+    return {
+        kind: 'list',
+        baseFilterKey,
+        negatable: getFilterNegatableValue(baseFilterKey, values),
+        type: values?.type,
+        policyID: getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, values),
+    } as const;
 }
 
-/**
- * Whether the values the content of `baseFilterKey` reads differ between two versions of the form, mirroring what
- * `SearchAdvancedFiltersContent` hands to it - so a change to a filter it doesn't read leaves it alone.
- */
+/** Whether the values the content of `baseFilterKey` reads differ between two versions of the form, so a change to a filter it doesn't read leaves it alone. */
 function hasFilterContentValuesChanged(
     baseFilterKey: SearchFilter['key'],
     previousValues: Partial<SearchAdvancedFiltersForm> | undefined,
@@ -5896,35 +5934,7 @@ function hasFilterContentValuesChanged(
         return false;
     }
 
-    // The report field content is handed the whole form, so anything in it counts.
-    if (baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD) {
-        return true;
-    }
-
-    if (isAmountFilterKey(baseFilterKey)) {
-        return Object.values(CONST.SEARCH.AMOUNT_MODIFIERS).some((modifier) => previousValues?.[`${baseFilterKey}${modifier}`] !== values?.[`${baseFilterKey}${modifier}`]);
-    }
-
-    if (isDateFilterKey(baseFilterKey)) {
-        return (
-            !previousValues?.feed !== !values?.feed ||
-            Object.values(CONST.SEARCH.DATE_MODIFIERS).some((modifier) => previousValues?.[`${baseFilterKey}${modifier}`] !== values?.[`${baseFilterKey}${modifier}`])
-        );
-    }
-
-    if (isTextFilterKey(baseFilterKey)) {
-        return hasNegatableValueChanged(getFilterNegatableValue(baseFilterKey, previousValues), getFilterNegatableValue(baseFilterKey, values));
-    }
-
-    // A list content also reads the search type and the workspace filter, which decide the options it offers.
-    return (
-        hasNegatableValueChanged(getFilterNegatableValue(baseFilterKey, previousValues), getFilterNegatableValue(baseFilterKey, values)) ||
-        previousValues?.type !== values?.type ||
-        hasNegatableValueChanged(
-            getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, previousValues),
-            getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, values),
-        )
-    );
+    return !deepEqual(getFilterContentValues(baseFilterKey, previousValues), getFilterContentValues(baseFilterKey, values));
 }
 
 function getLabelValue(key: SearchAdvancedFiltersKey, labelKey: TranslationPaths | undefined, translate: LocalizedTranslate) {
@@ -7085,6 +7095,7 @@ export {
     adjustTimeRangeToDateFilters,
     getDateDisplayValue,
     getDisplayValue,
+    getFilterContentValues,
     getFilterNegatableValue,
     hasFilterContentValuesChanged,
     shouldShowFilter,
