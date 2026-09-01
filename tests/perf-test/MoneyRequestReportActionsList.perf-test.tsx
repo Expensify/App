@@ -186,7 +186,6 @@ test('[MoneyRequestReportActionsList] should not re-render when an unrelated rep
         // must not re-render because its own report's slice is unchanged.
         for (let i = 0; i < 5; i++) {
             const newAction = ReportTestUtils.getFakeReportAction(600 + i, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: `2023-09-14 00:00:0${i}.000`});
-            // eslint-disable-next-line no-await-in-loop
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${UNRELATED_REPORT_ID}`, {[newAction.reportActionID]: newAction});
                 await waitForBatchedUpdates();
@@ -229,7 +228,6 @@ test('[MoneyRequestReportActionsList] should render the unified list with 500 re
     await act(async () => {
         for (let index = TRANSACTIONS_COUNT; index < 100; index++) {
             const transaction = buildTransaction(index);
-            // eslint-disable-next-line no-await-in-loop
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
         }
         await waitForBatchedUpdates();
