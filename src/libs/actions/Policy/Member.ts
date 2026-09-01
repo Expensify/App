@@ -24,6 +24,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 
 import * as FormActions from '@userActions/FormActions';
+import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1146,11 +1147,19 @@ function inviteMemberToWorkspace(policyID: string, inviterEmail?: string) {
  * NotFoundPage flash in `WorkspaceInitialPage` / `AccessOrNotFoundWrapper`
  * until the backend response hydrates the policy with its actual shape.
  */
-function joinAccessiblePolicy(policyID: string, onboardingTaskReportID?: string) {
+function joinAccessiblePolicy(
+    policyID: string,
+    joinWorkspaceTaskReport?: OnyxEntry<Report>,
+    joinWorkspaceTaskParentReport?: OnyxEntry<Report>,
+    isJoinWorkspaceTaskParentReportArchived?: boolean,
+    joinWorkspaceTaskHasOutstandingChildTask?: boolean,
+    joinWorkspaceTaskParentReportAction?: OnyxEntry<ReportAction>,
+    currentUserAccountID?: number,
+) {
     const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER | typeof ONYXKEYS.COLLECTION.POLICY | `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER | typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
@@ -1163,19 +1172,6 @@ function joinAccessiblePolicy(policyID: string, onboardingTaskReportID?: string)
         },
     ];
 
-    // Auth auto-completes the join workspace task as part of JoinAccessiblePolicy, but it forwards a separate
-    // CompleteTask command whose Onyx updates only arrive over Pusher, so tick the task here to avoid a stale checkbox.
-    if (onboardingTaskReportID) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${onboardingTaskReportID}`,
-            value: {
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-            },
-        });
-    }
-
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1184,7 +1180,7 @@ function joinAccessiblePolicy(policyID: string, onboardingTaskReportID?: string)
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER | typeof ONYXKEYS.COLLECTION.POLICY | `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER | typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
@@ -1197,15 +1193,20 @@ function joinAccessiblePolicy(policyID: string, onboardingTaskReportID?: string)
         },
     ];
 
-    if (onboardingTaskReportID) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${onboardingTaskReportID}`,
-            value: {
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            },
-        });
+    // Auth auto-completes the join workspace task as part of JoinAccessiblePolicy via a forwarded CompleteTask, but
+    // ticking it here too, the same way completing any other onboarding task does, avoids waiting on that command's
+    // Pusher update to reach the client.
+    if (joinWorkspaceTaskReport && currentUserAccountID) {
+        getFinishOnboardingTaskOnyxData(
+            joinWorkspaceTaskReport,
+            joinWorkspaceTaskParentReport,
+            isJoinWorkspaceTaskParentReportArchived ?? false,
+            currentUserAccountID,
+            joinWorkspaceTaskHasOutstandingChildTask ?? false,
+            joinWorkspaceTaskParentReportAction,
+            // delegateEmail: matches the pattern in createPolicyTag, which also passes undefined pending Onyx-value threading
+            undefined,
+        );
     }
 
     API.write(WRITE_COMMANDS.JOIN_ACCESSIBLE_POLICY, {policyID}, {optimisticData, successData, failureData});

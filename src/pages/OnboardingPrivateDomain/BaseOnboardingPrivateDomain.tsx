@@ -4,8 +4,10 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -64,7 +66,14 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     // than to a fixed destination. goBack() is unreliable from a task link and falls through to Home.
     const [originReportID] = useState(() => Navigation.getTopmostReportId());
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const {
+        taskReport: validateEmailTaskReport,
+        taskParentReport: validateEmailTaskParentReport,
+        isOnboardingTaskParentReportArchived: isValidateEmailTaskParentReportArchived,
+        hasOutstandingChildTask: validateEmailTaskHasOutstandingChildTask,
+        parentReportAction: validateEmailTaskParentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const returnToOriginReport = useCallback(() => {
         dismissOnboardingModalBeforeExit();
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(originReportID ?? conciergeReportID));
@@ -183,7 +192,15 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                     <ValidateCodeForm
                         validateCodeActionErrorField="getAccessiblePolicies"
                         handleSubmitForm={(code) => {
-                            getAccessiblePolicies(code, introSelected?.validateEmail);
+                            getAccessiblePolicies(
+                                code,
+                                validateEmailTaskReport,
+                                validateEmailTaskParentReport,
+                                isValidateEmailTaskParentReportArchived,
+                                validateEmailTaskHasOutstandingChildTask,
+                                validateEmailTaskParentReportAction,
+                                currentUserPersonalDetails.accountID,
+                            );
                             setHasValidateCodeBeenSent(false);
                         }}
                         sendValidateCode={() => {

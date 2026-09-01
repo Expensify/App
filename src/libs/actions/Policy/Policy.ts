@@ -102,7 +102,7 @@ import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
 
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
-import {buildTaskData} from '@userActions/Task';
+import {buildTaskData, getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
 
@@ -7733,12 +7733,20 @@ function updateInvoiceCompanyWebsite(policyID: string, companyWebsite: string, c
  * Validates user account and returns a list of accessible policies.
  */
 /**
- * @param onboardingTaskReportID Task report for the join-workspace intent's "validate your email" Concierge task, when
- * one exists. Auth auto-completes it as part of this command, but forwards a separate CompleteTask whose Onyx updates
- * only arrive over Pusher, so the checkbox would otherwise stay unticked until a reload.
+ * @param validateEmailTaskReport The join-workspace intent's "validate your email" Concierge task, when one exists.
+ * Auth auto-completes it as part of this command via a forwarded CompleteTask, but ticking it here too, the same way
+ * completing any other onboarding task does, avoids waiting on that command's Pusher update to reach the client.
  */
-function getAccessiblePolicies(validateCode?: string, onboardingTaskReportID?: string) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES | `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`>> = [
+function getAccessiblePolicies(
+    validateCode?: string,
+    validateEmailTaskReport?: OnyxEntry<Report>,
+    validateEmailTaskParentReport?: OnyxEntry<Report>,
+    isValidateEmailTaskParentReportArchived?: boolean,
+    validateEmailTaskHasOutstandingChildTask?: boolean,
+    validateEmailTaskParentReportAction?: OnyxEntry<ReportAction>,
+    currentUserAccountID?: number,
+) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
@@ -7748,17 +7756,6 @@ function getAccessiblePolicies(validateCode?: string, onboardingTaskReportID?: s
             },
         },
     ];
-
-    if (onboardingTaskReportID) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${onboardingTaskReportID}`,
-            value: {
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-            },
-        });
-    }
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES>> = [
         {
@@ -7771,7 +7768,7 @@ function getAccessiblePolicies(validateCode?: string, onboardingTaskReportID?: s
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES | `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
@@ -7781,15 +7778,17 @@ function getAccessiblePolicies(validateCode?: string, onboardingTaskReportID?: s
         },
     ];
 
-    if (onboardingTaskReportID) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${onboardingTaskReportID}`,
-            value: {
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            },
-        });
+    if (validateEmailTaskReport && currentUserAccountID) {
+        getFinishOnboardingTaskOnyxData(
+            validateEmailTaskReport,
+            validateEmailTaskParentReport,
+            isValidateEmailTaskParentReportArchived ?? false,
+            currentUserAccountID,
+            validateEmailTaskHasOutstandingChildTask ?? false,
+            validateEmailTaskParentReportAction,
+            // delegateEmail: matches the pattern in createPolicyTag, which also passes undefined pending Onyx-value threading
+            undefined,
+        );
     }
 
     const command = validateCode ? WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES : WRITE_COMMANDS.GET_ACCESSIBLE_POLICIES;

@@ -12,10 +12,12 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -66,10 +68,15 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     });
     const onboardingIntent = useOnboardingIntent();
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const addWorkEmailTaskReportID = introSelected?.addWorkEmail;
-    const [addWorkEmailTask] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${addWorkEmailTaskReportID}`);
-    const isAddWorkEmailTaskCompleted = addWorkEmailTask?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
+    const {
+        taskReport: addWorkEmailTaskReport,
+        taskParentReport: addWorkEmailTaskParentReport,
+        isOnboardingTaskParentReportArchived: isAddWorkEmailTaskParentReportArchived,
+        hasOutstandingChildTask: addWorkEmailTaskHasOutstandingChildTask,
+        parentReportAction: addWorkEmailTaskParentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL);
+    const isAddWorkEmailTaskCompleted = addWorkEmailTaskReport?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     // This screen can be opened from the Concierge chat or from the task thread, and it is pushed over whichever one
@@ -190,9 +197,24 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const submitWorkEmail = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
             setHasSubmittedWorkEmail(true);
-            AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim(), addWorkEmailTaskReportID);
+            AddWorkEmail(
+                values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim(),
+                addWorkEmailTaskReport,
+                addWorkEmailTaskParentReport,
+                isAddWorkEmailTaskParentReportArchived,
+                addWorkEmailTaskHasOutstandingChildTask,
+                addWorkEmailTaskParentReportAction,
+                currentUserPersonalDetails.accountID,
+            );
         },
-        [addWorkEmailTaskReportID],
+        [
+            addWorkEmailTaskReport,
+            addWorkEmailTaskParentReport,
+            isAddWorkEmailTaskParentReportArchived,
+            addWorkEmailTaskHasOutstandingChildTask,
+            addWorkEmailTaskParentReportAction,
+            currentUserPersonalDetails.accountID,
+        ],
     );
 
     useEffect(() => {

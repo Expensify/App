@@ -54,6 +54,7 @@ import * as Device from '@userActions/Device';
 import type HybridAppSettings from '@userActions/HybridApp/types';
 import {close} from '@userActions/Modal';
 import redirectToSignIn from '@userActions/SignInRedirect';
+import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 import * as Welcome from '@userActions/Welcome';
 
 import CONFIG from '@src/CONFIG';
@@ -62,7 +63,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {TryNewDot} from '@src/types/onyx';
+import type {Report, ReportAction, TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -1576,14 +1577,20 @@ const canAnonymousUserAccessRoute = (route: string) => {
 };
 
 /**
- * @param onboardingTaskReportID Task report for the join-workspace intent's "add work email" Concierge task, when one
- * exists. Auth auto-completes that task as part of AddWorkEmail, but it does so by forwarding a separate CompleteTask
- * command whose Onyx updates only arrive over Pusher, so the checkbox would otherwise stay unticked until a reload.
+ * @param addWorkEmailTaskReport The join-workspace intent's "add work email" Concierge task, when one exists. Auth
+ * auto-completes it as part of AddWorkEmail via a forwarded CompleteTask, but ticking it here too, the same way
+ * completing any other onboarding task does, avoids waiting on that command's Pusher update to reach the client.
  */
-function AddWorkEmail(workEmail: string, onboardingTaskReportID?: string) {
-    const optimisticData: Array<
-        OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY | `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`>
-    > = [
+function AddWorkEmail(
+    workEmail: string,
+    addWorkEmailTaskReport?: OnyxEntry<Report>,
+    addWorkEmailTaskParentReport?: OnyxEntry<Report>,
+    isAddWorkEmailTaskParentReportArchived?: boolean,
+    addWorkEmailTaskHasOutstandingChildTask?: boolean,
+    addWorkEmailTaskParentReportAction?: OnyxEntry<ReportAction>,
+    currentUserAccountID?: number,
+) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
@@ -1599,17 +1606,6 @@ function AddWorkEmail(workEmail: string, onboardingTaskReportID?: string) {
         },
     ];
 
-    if (onboardingTaskReportID) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${onboardingTaskReportID}`,
-            value: {
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-            },
-        });
-    }
-
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1620,7 +1616,7 @@ function AddWorkEmail(workEmail: string, onboardingTaskReportID?: string) {
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
@@ -1630,15 +1626,17 @@ function AddWorkEmail(workEmail: string, onboardingTaskReportID?: string) {
         },
     ];
 
-    if (onboardingTaskReportID) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${onboardingTaskReportID}`,
-            value: {
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            },
-        });
+    if (addWorkEmailTaskReport && currentUserAccountID) {
+        getFinishOnboardingTaskOnyxData(
+            addWorkEmailTaskReport,
+            addWorkEmailTaskParentReport,
+            isAddWorkEmailTaskParentReportArchived ?? false,
+            currentUserAccountID,
+            addWorkEmailTaskHasOutstandingChildTask ?? false,
+            addWorkEmailTaskParentReportAction,
+            // delegateEmail: matches the pattern in createPolicyTag, which also passes undefined pending Onyx-value threading
+            undefined,
+        );
     }
 
     // We need to inspect the response to detect the closed-account error and surface a specific translation key, which API.write cannot do.

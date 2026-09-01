@@ -7,11 +7,13 @@ import BareUserListItem from '@components/SelectionList/ListItem/BareUserListIte
 import Text from '@components/Text';
 
 import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -63,6 +65,14 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const {
+        taskReport: joinWorkspaceTaskReport,
+        taskParentReport: joinWorkspaceTaskParentReport,
+        isOnboardingTaskParentReportArchived: isJoinWorkspaceTaskParentReportArchived,
+        hasOutstandingChildTask: joinWorkspaceTaskHasOutstandingChildTask,
+        parentReportAction: joinWorkspaceTaskParentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
@@ -95,7 +105,15 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         const shouldUseSubmitFlow = policy.automaticJoiningEnabled && isJoiningSubmitPolicy;
 
         if (policy.automaticJoiningEnabled) {
-            joinAccessiblePolicy(policy.policyID, introSelected?.joinWorkspace);
+            joinAccessiblePolicy(
+                policy.policyID,
+                joinWorkspaceTaskReport,
+                joinWorkspaceTaskParentReport,
+                isJoinWorkspaceTaskParentReportArchived,
+                joinWorkspaceTaskHasOutstandingChildTask,
+                joinWorkspaceTaskParentReportAction,
+                currentUserPersonalDetails.accountID,
+            );
         } else {
             // Asking to join only sends a request, so the task stays open until an admin approves it.
             askToJoinPolicy(policy.policyID);
