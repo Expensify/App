@@ -13,7 +13,7 @@ concurrency:
 jobs:
   proposal-police-workflow:
     runs-on: blacksmith-4vcpu-ubuntu-2404
-    if: '!contains(fromJSON(''["OSBotify", "imgbot[bot]", "melvin-bot[bot]", "codecov[bot]"]''), github.actor)'
+    if: '!contains(fromJSON(''["OSBotify", "imgbot[bot]", "melvin-bot[bot]", "codecov[bot]"]''), github.actor) && !contains(github.event.issue.assignees.*.login, github.event.comment.user.login)'
     steps:
       # A content-free job claim is acceptable from approved contributors and partner engineers, but is spam
       # from everyone else. author_association is not enough for concealed members, so verify team membership
