@@ -1,4 +1,5 @@
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
+import RuleTaxesDisabledEmptyState from '@components/Rule/RuleTaxesDisabledEmptyState';
 
 import useOnyx from '@hooks/useOnyx';
 
@@ -22,6 +23,10 @@ function AddTaxPage({route}: AddTaxPageProps) {
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+
+    // Reachable with taxes off by opening a rule saved while they were on, so the page explains that rather than
+    // showing an empty picker.
+    const areTaxesEnabled = !!policy?.tax?.trackingEnabled;
 
     // Writing the workspace default rate deletes the rule, so offering it here would remove rather than save.
     const isCategoryRule = !!categoryName || form?.ruleType === 'category' || !!form?.categoriesToMatch?.length;
@@ -57,12 +62,16 @@ function AddTaxPage({route}: AddTaxPageProps) {
             testID="AddTaxPage"
             onBack={() => Navigation.goBack(backToRoute)}
         >
-            <RuleSelectionBase.Picker
-                selectedItem={selectedTaxItem}
-                items={taxItems}
-                onSave={onSave}
-                backToRoute={backToRoute}
-            />
+            {areTaxesEnabled ? (
+                <RuleSelectionBase.Picker
+                    selectedItem={selectedTaxItem}
+                    items={taxItems}
+                    onSave={onSave}
+                    backToRoute={backToRoute}
+                />
+            ) : (
+                <RuleTaxesDisabledEmptyState policyID={policyID} />
+            )}
         </RuleSelectionBase>
     );
 }

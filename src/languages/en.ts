@@ -8297,6 +8297,11 @@ const translations = {
                 title: 'Categories are not enabled',
                 subtitle: 'Enable categories to gain more control of your spend.',
             },
+            taxesDisabledEmptyState: {
+                title: 'Taxes are not enabled',
+                subtitle: 'Enable taxes to document and reclaim eligible taxes.',
+                cta: 'Enable taxes',
+            },
             requireFieldsRule: {
                 title: 'Field requirements',
                 subtitle: 'Require specific expense fields or waive requiring them.',

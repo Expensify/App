@@ -527,7 +527,9 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
                               };
                           })
                     : []),
-                hasTaxes()
+                // Tax is a category rule's only default, so the row stays with taxes off rather than leaving the
+                // section blank. The picker then explains that taxes are disabled.
+                hasTaxes() || isCategoryRule
                     ? {
                           key: 'tax',
                           description: translate('common.tax'),
