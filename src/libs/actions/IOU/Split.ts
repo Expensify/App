@@ -1392,6 +1392,25 @@ function setIndividualShare(transactionID: string, participantAccountID: number,
     });
 }
 
+/*
+ * getAllReports lags Onyx by a tick, so within one synchronous split burst a later scan cannot see the new chat
+ * an earlier scan just minted. Track the ids minted this tick so later scans add to that chat, not recreate it.
+ */
+const splitChatReportIDsCreatedThisTick = new Set<string>();
+let isSplitChatLedgerResetScheduled = false;
+
+function rememberSplitChatReportCreatedThisTick(reportID: string) {
+    splitChatReportIDsCreatedThisTick.add(reportID);
+    if (isSplitChatLedgerResetScheduled) {
+        return;
+    }
+    isSplitChatLedgerResetScheduled = true;
+    queueMicrotask(() => {
+        splitChatReportIDsCreatedThisTick.clear();
+        isSplitChatLedgerResetScheduled = false;
+    });
+}
+
 function findExistingSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
     // The existing chat report could be passed as reportID or exist on the sole "participant" (in this case a report option)
     const existingChatReportID = existingSplitChatReportID ?? participants.at(0)?.reportID;
@@ -1429,26 +1448,31 @@ function getOrCreateOptimisticSplitChatReport(
         return {existingSplitChatReport, splitChatReport: existingSplitChatReport};
     }
 
-    // Create a Group Chat if we have multiple participants
-    if (participants.length > 1) {
-        const splitChatReport = buildOptimisticChatReport({
-            participantList: [...participantAccountIDs, currentUserAccountID],
-            reportName: '',
-            chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-            currentUserAccountID,
-            optimisticReportID: optimisticSplitChatReportID,
-        });
+    // Create a Group Chat if we have multiple participants, otherwise a new 1:1 chat report.
+    const splitChatReport =
+        participants.length > 1
+            ? buildOptimisticChatReport({
+                  participantList: [...participantAccountIDs, currentUserAccountID],
+                  reportName: '',
+                  chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                  notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                  currentUserAccountID,
+                  optimisticReportID: optimisticSplitChatReportID,
+              })
+            : buildOptimisticChatReport({
+                  participantList: participantAccountIDs,
+                  currentUserAccountID,
+                  optimisticReportID: optimisticSplitChatReportID,
+              });
 
-        return {existingSplitChatReport: null, splitChatReport};
+    // Already minted by an earlier scan this tick, so add to it instead of recreating it.
+    if (optimisticSplitChatReportID && splitChatReportIDsCreatedThisTick.has(optimisticSplitChatReportID)) {
+        return {existingSplitChatReport: splitChatReport, splitChatReport};
     }
 
-    // Otherwise, create a new 1:1 chat report
-    const splitChatReport = buildOptimisticChatReport({
-        participantList: participantAccountIDs,
-        currentUserAccountID,
-        optimisticReportID: optimisticSplitChatReportID,
-    });
+    if (optimisticSplitChatReportID) {
+        rememberSplitChatReportCreatedThisTick(optimisticSplitChatReportID);
+    }
     return {existingSplitChatReport: null, splitChatReport};
 }
 
