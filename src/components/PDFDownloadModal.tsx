@@ -1,10 +1,9 @@
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 
@@ -12,7 +11,7 @@ import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import ActivityIndicator from './ActivityIndicator';
-import Button from './Button';
+import Button from './ButtonComposed';
 import Header from './Header';
 import Icon from './Icon';
 import Modal from './Modal';
@@ -29,9 +28,6 @@ type PDFDownloadModalProps = {
     /** Downloads the generated PDF; called on auto-download and on the download button press */
     onDownloadPDF: () => void;
 
-    /** Telemetry context for the loading indicator's skeleton span */
-    loadingReasonContext: string;
-
     /** Whether pressing the download button also closes the modal */
     shouldCloseOnDownload?: boolean;
 
@@ -40,6 +36,9 @@ type PDFDownloadModalProps = {
 
     /** Whether the modal is visible */
     isVisible: boolean;
+
+    /** Whether this modal should count as covering the product marketing window */
+    shouldTreatModalAsCovering?: boolean;
 
     /** Called when the modal is closed */
     onClose: () => void;
@@ -57,10 +56,10 @@ function PDFDownloadModal({
     hasFinishedPDFDownload,
     message,
     onDownloadPDF,
-    loadingReasonContext,
     shouldCloseOnDownload = false,
     shouldUseSuccessButton = false,
     isVisible,
+    shouldTreatModalAsCovering = false,
     onClose,
     onModalHide,
 }: PDFDownloadModalProps) {
@@ -86,19 +85,23 @@ function PDFDownloadModal({
         shouldAutoDownloadPDF.current = false;
     }, [hasFinishedPDFDownload, isVisible, onDownloadPDF]);
 
-    const pdfLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: loadingReasonContext,
-    };
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: isSmallScreenWidth,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
+        style: [styles.flexRow, styles.m5],
+    });
 
     return (
         <Modal
             onClose={onClose}
             onModalHide={onModalHide}
             isVisible={isVisible}
+            shouldTreatModalAsCovering={shouldTreatModalAsCovering}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View style={[styles.flexRow, styles.m5]}>
+            <View style={bottomSafeAreaPaddingStyle}>
                 <View style={[styles.flex1]}>
                     <View style={[styles.flexRow, styles.mb4]}>
                         <View style={[styles.flex1]}>
@@ -114,14 +117,13 @@ function PDFDownloadModal({
                                     size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
                                     color={theme.textSupporting}
                                     style={styles.ml3}
-                                    reasonAttributes={pdfLoadingReasonAttributes}
                                 />
                             </View>
                         )}
                     </View>
                     <Button
                         style={[styles.mt3, styles.noSelect]}
-                        success={shouldUseSuccessButton && hasFinishedPDFDownload}
+                        variant={shouldUseSuccessButton && hasFinishedPDFDownload ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                         onPress={() => {
                             if (!hasFinishedPDFDownload) {
                                 onClose();
@@ -133,8 +135,9 @@ function PDFDownloadModal({
                                 onClose();
                             }
                         }}
-                        text={hasFinishedPDFDownload ? translate('common.download') : translate('common.cancel')}
-                    />
+                    >
+                        <Button.Text>{hasFinishedPDFDownload ? translate('common.download') : translate('common.cancel')}</Button.Text>
+                    </Button>
                 </View>
                 <PressableWithFeedback
                     onPress={onClose}

@@ -1,3 +1,5 @@
+import ActivityIndicator from '@components/ActivityIndicator';
+import RuleCategoriesDisabledEmptyState from '@components/Rule/RuleCategoriesDisabledEmptyState';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 
 import useNetwork from '@hooks/useNetwork';
@@ -5,7 +7,9 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useThemeStyles from '@hooks/useThemeStyles';
 
+import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {setDraftRequireFieldsRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -18,7 +22,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
 
+import {useFocusEffect} from '@react-navigation/native';
 import React from 'react';
+import {View} from 'react-native';
 
 type RequireFieldsRuleCategoryPageBaseProps = {
     policyID: string;
@@ -38,10 +44,29 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const {isOffline} = useNetwork();
+    const styles = useThemeStyles();
 
     const [form] = useOnyx(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const areCategoriesEnabled = !!policy?.areCategoriesEnabled;
+
+    const fetchPolicyCategories = () => {
+        if (!areCategoriesEnabled || policyCategories !== undefined) {
+            return;
+        }
+        openPolicyCategoriesPage(policyID);
+    };
+
+    const {isOffline} = useNetwork({onReconnect: fetchPolicyCategories});
+
+    useFocusEffect(() => {
+        fetchPolicyCategories();
+    });
+
+    // Only spin while a fetch can actually resolve. Offline there's nothing to wait for, so fall through to the
+    // picker (empty list + offline indicator) instead of a spinner that never goes away. The reconnect callback
+    // fetches and flips this back on once we're online.
+    const arePolicyCategoriesLoading = areCategoriesEnabled && policyCategories === undefined && !isOffline;
 
     const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
     const selectedCategory = selectedCategoryName ? policyCategories?.[selectedCategoryName] : undefined;
@@ -91,8 +116,9 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
 
         for (const fieldKey of SETTING_FIELD_KEYS) {
             if (isEditing) {
-                // Edit drafts are seeded with DO_NOT_REQUIRE for inactive fields. Only carry over
-                // settings that are actually selected in the UI (active category overrides).
+                // Carry over whatever the row currently shows. Description and Attendees are boolean-backed,
+                // so they always resolve to a direction (Don't require when there is no override) and are
+                // always carried; the receipt fields keep their blank "no override" state and are skipped.
                 const displayedSetting = getRequireFieldsDisplayedSetting({
                     fieldKey,
                     category: selectedCategory,
@@ -118,6 +144,27 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
         setDraftRequireFieldsRule(preservedSettings);
     };
 
+    let content: React.ReactNode;
+    if (!areCategoriesEnabled) {
+        content = <RuleCategoriesDisabledEmptyState policyID={policyID} />;
+    } else if (arePolicyCategoriesLoading) {
+        content = (
+            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+            </View>
+        );
+    } else {
+        content = (
+            <RuleSelectionBase.Picker
+                selectedItem={selectedCategoryItem}
+                items={categoryItems}
+                onSave={onSave}
+                backToRoute={backToRoute}
+                allowNoneOption={false}
+            />
+        );
+    }
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -129,13 +176,10 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
             <RuleSelectionBase
                 titleKey="common.category"
                 testID="RequireFieldsRuleCategoryPage"
-                selectedItem={selectedCategoryItem}
-                items={categoryItems}
-                onSave={onSave}
                 onBack={() => Navigation.goBack(backToRoute())}
-                backToRoute={backToRoute}
-                allowNoneOption={false}
-            />
+            >
+                {content}
+            </RuleSelectionBase>
         </AccessOrNotFoundWrapper>
     );
 }

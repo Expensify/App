@@ -7,7 +7,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
 import {getLastShortAuthToken} from '@libs/Network/NetworkStore';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {setAccountError, signInWithShortLivedAuthToken, signInWithSupportAuthToken} from '@userActions/Session';
 
@@ -79,11 +78,7 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
     }, [route]);
 
     if (account?.isLoading) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'LogInWithShortLivedAuthTokenPage',
-            isAccountLoading: account.isLoading,
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return <SessionExpiredPage />;

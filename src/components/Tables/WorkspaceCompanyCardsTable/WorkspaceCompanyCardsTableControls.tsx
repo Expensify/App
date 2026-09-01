@@ -8,6 +8,7 @@ import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {unassignWorkspaceCompanyCard} from '@libs/actions/CompanyCards';
@@ -40,6 +41,9 @@ type WorkspaceCompanyCardsTableControlsProps = {
 
     /** Clear selected card rows */
     clearCardSelection: () => void;
+
+    /** Whether the narrow-layout selection mode is active */
+    isSelectionModeEnabled: boolean;
 };
 
 const CSV_FORMULA_PREFIX_REGEXP = /^(?:[\t\r\n]|\s*[=+\-@])/;
@@ -52,16 +56,25 @@ function escapeCsvField(value: string): string {
     return safeValue;
 }
 
-function WorkspaceCompanyCardsTableControls({policyID, domainOrWorkspaceAccountID, bankName, canWriteCompanyCards, clearCardSelection}: WorkspaceCompanyCardsTableControlsProps) {
+function WorkspaceCompanyCardsTableControls({
+    policyID,
+    domainOrWorkspaceAccountID,
+    bankName,
+    canWriteCompanyCards,
+    clearCardSelection,
+    isSelectionModeEnabled,
+}: WorkspaceCompanyCardsTableControlsProps) {
     const styles = useThemeStyles();
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const icons = useMemoizedLazyExpensifyIcons(['Export', 'MoneySearch', 'RemoveMembers']);
     const {processedData, shouldUseNarrowTableLayout} = useTableContext<WorkspaceCompanyCardTableItemData>();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const selectedCards = processedData.filter((card) => card.selected && !card.disabled);
     const selectedAssignedCards = selectedCards.filter((card) => card.isAssigned && !!card.assignedCard);
     const isOnlyAssignedCardsSelected = selectedCards.length > 0 && selectedAssignedCards.length === selectedCards.length;
+    const isSingleAssignedCard = selectedAssignedCards.length === 1;
 
     const exportSelectedCardsToCSV = () => {
         if (selectedCards.length === 0) {
@@ -108,11 +121,11 @@ function WorkspaceCompanyCardsTableControls({policyID, domainOrWorkspaceAccountI
 
         const {action} = await showConfirmModal({
             shouldSetModalVisibility: false,
-            title: translate('workspace.moreFeatures.companyCards.unassignCards'),
-            prompt: translate('workspace.moreFeatures.companyCards.unassignCardsDescription'),
+            title: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCard' : 'workspace.moreFeatures.companyCards.unassignCards'),
+            prompt: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCardDescription' : 'workspace.moreFeatures.companyCards.unassignCardsDescription'),
             confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
 
         if (action !== ModalActions.CONFIRM) {
@@ -145,8 +158,9 @@ function WorkspaceCompanyCardsTableControls({policyID, domainOrWorkspaceAccountI
             if (canWriteCompanyCards) {
                 options.push({
                     icon: icons.RemoveMembers,
-                    text: translate('workspace.moreFeatures.companyCards.unassignCards'),
+                    text: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCard' : 'workspace.moreFeatures.companyCards.unassignCards'),
                     value: 'unassign',
+                    shouldSkipFocusRestore: !!bankName,
                     onSelected: confirmBulkUnassign,
                 });
             }
@@ -170,15 +184,11 @@ function WorkspaceCompanyCardsTableControls({policyID, domainOrWorkspaceAccountI
     };
 
     const hasSelectedCards = selectedCards.length > 0;
+    const shouldShowBulkActions = shouldUseNarrowLayout ? isSelectionModeEnabled : hasSelectedCards;
 
     return (
         <>
-            {/* The filter bar must stay mounted while rows are selected: unmounting it resets the search string
-                (TableSearchBar clears it on unmount), which would immediately clear the selection that was just made. */}
-            <View style={hasSelectedCards && styles.dNone}>
-                <Table.FilterBar label={translate('workspace.companyCards.findCompanyCard')} />
-            </View>
-            {hasSelectedCards && (
+            {shouldShowBulkActions && (
                 <View style={[styles.w100, styles.ph5, styles.pb3, !shouldUseNarrowTableLayout && styles.flexRow]}>
                     <ButtonWithDropdownMenu<WorkspaceCompanyCardBulkActionType>
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -187,11 +197,21 @@ function WorkspaceCompanyCardsTableControls({policyID, domainOrWorkspaceAccountI
                         options={getBulkActionOptions()}
                         isSplitButton={false}
                         shouldAlwaysShowDropdownMenu
+                        isDisabled={!hasSelectedCards}
+                        anchorAlignment={{
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                        }}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BULK_ACTIONS_DROPDOWN}
                         wrapperStyle={[shouldUseNarrowTableLayout ? styles.w100 : styles.flexGrow0, styles.tableBulkActionsButton(shouldUseNarrowTableLayout)]}
                     />
                 </View>
             )}
+            {/* The filter bar must stay mounted while rows are selected: unmounting it resets the search string
+                (TableSearchBar clears it on unmount), which would immediately clear the selection that was just made. */}
+            <View style={hasSelectedCards && !shouldUseNarrowLayout && styles.dNone}>
+                <Table.FilterBar label={translate('workspace.companyCards.findCompanyCard')} />
+            </View>
         </>
     );
 }

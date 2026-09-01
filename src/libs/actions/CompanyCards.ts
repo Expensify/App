@@ -23,7 +23,6 @@ import parseCSVDate from '@libs/CSVDateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -67,7 +66,7 @@ type AddNewCompanyCardFlowData = {
 
 type ImportCSVCompanyCardsData = {
     policyID: string;
-    workspaceAccountID: number;
+    domainAccountID: number;
     layoutName: string;
     layoutType: string;
     columnMappings: string[];
@@ -110,8 +109,14 @@ function buildOptimisticCompanyCardCSVTransactions(
     const normalizedColumnMappings = [...columnMappings];
     const csvDataWithGeneratedIDs = csvData.map((row) => [...row]);
 
-    normalizedColumnMappings.push(CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID);
-    const externalIDColumnIndex = normalizedColumnMappings.length - 1;
+    // The backend dedupes rows by their `externalID`, so a mapped Unique ID column makes re-uploading
+    // the same file idempotent. Without one, every row gets a fresh generated ID and always imports.
+    const mappedExternalIDColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID);
+    const isExternalIDColumnMapped = mappedExternalIDColumnIndex >= 0;
+    if (!isExternalIDColumnMapped) {
+        normalizedColumnMappings.push(CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID);
+    }
+    const externalIDColumnIndex = isExternalIDColumnMapped ? mappedExternalIDColumnIndex : normalizedColumnMappings.length - 1;
 
     const cardNumberColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER);
     const postedDateColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.POSTED_DATE);
@@ -126,7 +131,11 @@ function buildOptimisticCompanyCardCSVTransactions(
     const transactions: OptimisticCompanyCardCSVTransaction[] = [];
     for (const row of csvDataWithGeneratedIDs) {
         const transactionID = rand64();
-        row[externalIDColumnIndex] = transactionID;
+
+        // Fills the synthetic column, and any row whose mapped Unique ID cell is blank.
+        if (!row.at(externalIDColumnIndex)?.trim()) {
+            row[externalIDColumnIndex] = transactionID;
+        }
 
         const cardName = row.at(cardNumberColumnIndex)?.trim();
         const rawPostedDate = row.at(postedDateColumnIndex)?.trim();
@@ -219,7 +228,7 @@ function addNewCompanyCardsFeed(
     }
 
     const feedType = CardUtils.getFeedType(cardFeed, cardFeeds);
-    const newSelectedFeed = getCardFeedWithDomainID(feedType, workspaceAccountID) as CompanyCardFeedWithDomainID;
+    const newSelectedFeed = getCardFeedWithDomainID(feedType, workspaceAccountID);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
         {
@@ -450,16 +459,15 @@ function deleteWorkspaceCompanyCardFeed(
 function assignWorkspaceCompanyCard(
     policy: OnyxEntry<Policy>,
     domainOrWorkspaceAccountID: number,
-    translate: LocaleContextProps['translate'],
     data: Partial<AssignCardData>,
+    assigneeAccountID: number | undefined,
     currentUserAccountID: number,
 ) {
     if (!policy?.id) {
         return;
     }
     const {bankName, email = '', encryptedCardNumber = '', startDate = '', customCardName = ''} = data;
-    const assigneeDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
-    const optimisticCardAssignedReportAction = ReportUtils.buildOptimisticCardAssignedReportAction(assigneeDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID);
+    const optimisticCardAssignedReportAction = ReportUtils.buildOptimisticCardAssignedReportAction(assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID);
 
     const parameters: AssignCompanyCardParams = {
         domainAccountID: domainOrWorkspaceAccountID,
@@ -1236,7 +1244,7 @@ function setFeedStatementPeriodEndDay(
 
 function importCSVCompanyCards({
     policyID,
-    workspaceAccountID,
+    domainAccountID,
     layoutName,
     layoutType,
     columnMappings,
@@ -1260,9 +1268,10 @@ function importCSVCompanyCards({
             layoutType,
         }),
         csvData: JSON.stringify(csvDataWithGeneratedIDs),
+        domainAccountID,
     };
 
-    const feedNameWithDomainID = getCardFeedWithDomainID(feedName, workspaceAccountID);
+    const feedNameWithDomainID = getCardFeedWithDomainID(feedName, domainAccountID);
     const existingCompanyCards = workspaceCardFeeds?.settings?.companyCards ?? {};
     const existingNicknames = workspaceCardFeeds?.settings?.companyCardNicknames ?? {};
     const shouldCreateFeed = !existingCompanyCards?.[feedName];
@@ -1274,7 +1283,7 @@ function importCSVCompanyCards({
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
-            value: feedNameWithDomainID as CompanyCardFeedWithDomainID,
+            value: feedNameWithDomainID,
         },
     ];
 
@@ -1282,7 +1291,7 @@ function importCSVCompanyCards({
         titleKey: 'spreadsheet.importSuccessfulTitle',
         promptKey: 'spreadsheet.importCompanyCardTransactionsSuccessfulDescription',
         promptKeyParams: {
-            transactions: transactionsCount,
+            count: transactionsCount,
         },
         pendingMessageKey: 'spreadsheet.importCompanyCardTransactionsPendingMessage',
     };
@@ -1303,7 +1312,7 @@ function importCSVCompanyCards({
     if (shouldCreateFeed || shouldSetNickname) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
             value: {
                 settings: {
                     ...(shouldCreateFeed
@@ -1329,7 +1338,7 @@ function importCSVCompanyCards({
 
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
             value: {
                 settings: {
                     ...(shouldCreateFeed ? {companyCards: {[feedName]: null}} : {}),
@@ -1358,14 +1367,14 @@ function importCSVCompanyCards({
 }
 
 /**
- * Seeds ASSIGN_CARD Onyx state for a card feed refresh flow. The correct connection step (Plaid vs OAuth) is
- * derived from the feed type. For Plaid feeds, ADD_NEW_COMPANY_CARD.data.selectedCountry is also populated
- * so that PlaidConnectionStep can open the correct institution login.
+ * Starts the card feed refresh flow: seeds ASSIGN_CARD Onyx state and navigates to the refresh connection page.
+ * The correct connection step (Plaid vs OAuth) is derived from the feed type. For Plaid feeds,
+ * ADD_NEW_COMPANY_CARD.data.selectedCountry is also populated so that PlaidConnectionStep can open the correct
+ * institution login.
  *
- * Called directly after identity verification succeeds (from VerifyAccountPageBase.onValidationSuccess).
- * Navigation to the refresh page is handled by the caller (VerifyAccountPageBase.navigateForwardTo).
+ * When identity validation is required first, call this from the `useVerifyAccountAndResume` resume callback.
  */
-function seedCardFeedRefresh(feed: CompanyCardFeedWithDomainID, outputCurrency?: string, currencyList?: CurrencyList, countryByIp?: string) {
+function startCardFeedRefresh(policyID: string, feed: CompanyCardFeedWithDomainID, outputCurrency?: string, currencyList?: CurrencyList, countryByIp?: string) {
     const isPlaidFeed = !!CardUtils.getPlaidInstitutionId(feed);
     const currentStep = isPlaidFeed ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
 
@@ -1379,17 +1388,7 @@ function seedCardFeedRefresh(feed: CompanyCardFeedWithDomainID, outputCurrency?:
         isRefreshing: true,
         isEditing: false,
     });
-}
 
-/**
- * Starts the card feed refresh flow for an already-validated user: seeds Onyx state and navigates
- * directly to the refresh connection page.
- *
- * When identity validation is required first, use the VERIFY_ACCOUNT screen with seedCardFeedRefresh
- * as the onValidationSuccess callback instead.
- */
-function startCardFeedRefresh(policyID: string, feed: CompanyCardFeedWithDomainID, outputCurrency?: string, currencyList?: CurrencyList, countryByIp?: string) {
-    seedCardFeedRefresh(feed, outputCurrency, currencyList, countryByIp);
     Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION.getRoute(policyID, feed));
 }
 
@@ -1496,7 +1495,6 @@ export {
     clearErrorField,
     clearAssignCardErrors,
     linkCardFeedToPolicy,
-    seedCardFeedRefresh,
     startCardFeedRefresh,
     getExpensifyCardStatementPDF,
 };

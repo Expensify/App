@@ -13,8 +13,9 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
-import {isIOUReport} from '@libs/ReportUtils';
+import {areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils, getTransactionsWithReceipts, isIOUReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import {hasNonReimbursableTransactions as hasNonReimbursableTransactionsTransactionUtils} from '@libs/TransactionUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -60,9 +61,13 @@ function MoneyRequestReportPreview({
     const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
     const {isOffline} = useNetwork();
     // Full set of the report's transactions (matches ReportUtils' `getReportTransactions`). Used for the receipt/scan/
-    // reimbursable derivations so they include optimistically-deleted rows, exactly as before the decomposition.
+    // reimbursable derivations below so they include optimistically-deleted rows, exactly as before the decomposition.
+    // Kept local to this component rather than passed down, so children only receive the derived values they need.
     const allReportTransactions = Object.values(reportTransactionsCollection ?? {}).filter((transaction): transaction is Transaction => !!transaction);
     const transactions = allReportTransactions.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID, allReportTransactions);
+    const hasNonReimbursableTransactions = hasNonReimbursableTransactionsTransactionUtils(allReportTransactions);
+    const areAllRequestsBeingSmartScanned = areAllRequestsBeingSmartScannedReportUtils(iouReportID, action, allReportTransactions);
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
@@ -137,7 +142,19 @@ function MoneyRequestReportPreview({
         selector: pendingNewTransactionIDsSelector,
     });
     const isFocused = useIsFocused();
-    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions, pendingNewTransactionIDs, chatReportID, isFocused);
+    // Transactions arrive in batches and `useNewTransactions` would diff each batch as newly added expenses.
+    // Withhold the list until every transaction the report claims has arrived.
+    const expectedTransactionCount = iouReport?.transactionCount ?? 0;
+    const isDeliveryComplete = allReportTransactions.length >= expectedTransactionCount;
+    // Adding an expense raises `transactionCount` the moment it happens, before its transaction reaches Onyx.
+    // That would briefly make the check above false again and discard the list we compare against, so once
+    // every expected transaction has arrived we keep comparing from then on.
+    const [hasCompletedDelivery, setHasCompletedDelivery] = useState(false);
+    if (isDeliveryComplete && !hasCompletedDelivery) {
+        setHasCompletedDelivery(true);
+    }
+    const transactionsForDiff = isDeliveryComplete || hasCompletedDelivery ? transactions : undefined;
+    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactionsForDiff, pendingNewTransactionIDs, chatReportID, isFocused);
     // Don't surface the highlight while the preview is covered — it'd animate the one-shot off-screen and be missed.
     const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
     const newTransactionIDs = new Set(isReportVisible ? newTransactions.map((transaction) => transaction.transactionID) : []);
@@ -179,7 +196,9 @@ function MoneyRequestReportPreview({
             onPaymentOptionsShow={onPaymentOptionsShow}
             onPaymentOptionsHide={onPaymentOptionsHide}
             transactions={transactions}
-            allReportTransactions={allReportTransactions}
+            transactionsWithReceipts={transactionsWithReceipts}
+            hasNonReimbursableTransactions={hasNonReimbursableTransactions}
+            areAllRequestsBeingSmartScanned={areAllRequestsBeingSmartScanned}
             policy={policy}
             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
             invoiceReceiverPolicy={invoiceReceiverPolicy}

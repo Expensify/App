@@ -25,6 +25,7 @@ import {PixelRatio, Dimensions as RNDimensions, StyleSheet} from 'react-native';
 import type {ThemeStyles} from '..';
 import type {
     AllStyles,
+    AvatarShape,
     AvatarSizeName,
     AvatarStyle,
     ButtonSizeValue,
@@ -32,6 +33,7 @@ import type {
     ButtonVariantStyles,
     EReceiptColorName,
     EreceiptColorStyle,
+    GetIconFillColorParams,
     ParsableStyle,
     SVGAvatarColorStyle,
     TextColorStyle,
@@ -299,10 +301,17 @@ function getAvatarBorderWidth(size: AvatarSizeName): ViewStyle {
 }
 
 /**
- * Return the border radius for an avatar
+ * Map an icon type to the avatar shape it renders with
  */
-function getAvatarBorderRadius(size: AvatarSizeName, type?: string): ViewStyle {
-    if (type === CONST.ICON_TYPE_WORKSPACE) {
+function getShapeFromIconType(type?: string): AvatarShape {
+    return type === CONST.ICON_TYPE_WORKSPACE ? CONST.AVATAR_SHAPE.ROUNDED_SQUARE : CONST.AVATAR_SHAPE.CIRCLE;
+}
+
+/**
+ * Return the border radius for an avatar of the given shape
+ */
+function getAvatarBorderRadius(size: AvatarSizeName, shape: AvatarShape): ViewStyle {
+    if (shape === CONST.AVATAR_SHAPE.ROUNDED_SQUARE) {
         return {borderRadius: avatarBorderSizes[size]};
     }
 
@@ -311,12 +320,12 @@ function getAvatarBorderRadius(size: AvatarSizeName, type?: string): ViewStyle {
 }
 
 /**
- * Return the border style for an avatar
+ * Return the border style for an avatar of the given shape
  */
-function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
+function getAvatarBorderStyle(size: AvatarSizeName, shape: AvatarShape): ViewStyle {
     return {
         overflow: 'hidden',
-        ...getAvatarBorderRadius(size, type),
+        ...getAvatarBorderRadius(size, shape),
     };
 }
 
@@ -902,7 +911,8 @@ type AvatarBorderStyleParams = {
     isHovered: boolean;
     isPressed: boolean;
     isInReportAction: boolean;
-    shouldUseCardBackground: boolean;
+    /** Border color when the avatar is idle — should match the surface behind the avatars. Defaults to `theme.appBG`. */
+    avatarBorderColor?: ColorValue;
     isActive?: boolean;
     customPressedBorderColor?: string;
 };
@@ -912,11 +922,11 @@ function getHorizontalStackedAvatarBorderStyle({
     isHovered,
     isPressed,
     isInReportAction = false,
-    shouldUseCardBackground = false,
+    avatarBorderColor,
     isActive = false,
     customPressedBorderColor,
 }: AvatarBorderStyleParams): ViewStyle {
-    let borderColor = shouldUseCardBackground ? theme.cardBG : theme.appBG;
+    let borderColor = avatarBorderColor ?? theme.appBG;
 
     if (isHovered) {
         borderColor = isInReportAction ? theme.hoverComponentBG : theme.border;
@@ -1412,6 +1422,7 @@ const staticStyleUtils = {
     getAvatarSizeWithBorder,
     getAvatarWidthStyle,
     getAvatarSubscriptIconContainerStyle,
+    getShapeFromIconType,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
@@ -1780,13 +1791,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getHeightOfValidateCodeInput: (): ViewStyle => ({height: styles.validateCodeInputContainer.height - styles.textInputContainer.borderWidth * 2}),
 
     /**
-     * Generate fill color of an icon based on its state.
-     *
-     * @param buttonState - One of {'default', 'hovered', 'pressed'}
-     * @param isMenuIcon - whether this icon is apart of a list
-     * @param isPane - whether this icon is in a pane, e.g. Account or Workspace Settings
+     * Generate fill color of an icon based on its state. See `GetIconFillColorParams` for what each option does.
      */
-    getIconFillColor: (buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuIcon = false, isPane = false): string => {
+    getIconFillColor: ({buttonState = CONST.BUTTON_STATES.DEFAULT, isMenuIcon = false, isPane = false}: GetIconFillColorParams = {}): string => {
         switch (buttonState) {
             case CONST.BUTTON_STATES.ACTIVE:
             case CONST.BUTTON_STATES.PRESSED:
@@ -2014,6 +2021,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES:
                 columnWidth = {...getWidthStyle(variables.w130)};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED:
+            case CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED:
+            case CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED:
+                // Fixed width: wide enough for the long headers these columns carry, so no amount-based widening is needed.
+                columnWidth = {...getWidthStyle(variables.w130), ...styles.alignItemsEnd};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL:
             case CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL:
             case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
@@ -2082,6 +2096,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.FROM:
             case CONST.SEARCH.TABLE_COLUMNS.TO:
             case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER:
+            case CONST.SEARCH.TABLE_COLUMNS.PAID_BY:
             case CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE:
             case CONST.SEARCH.TABLE_COLUMNS.TITLE:
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
@@ -2450,4 +2465,4 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
 
 export default createStyleUtils;
-export type {StyleUtilsType, AvatarSizeName};
+export type {StyleUtilsType, AvatarShape, AvatarSizeName};

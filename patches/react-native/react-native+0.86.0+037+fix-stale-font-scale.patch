@@ -1,0 +1,246 @@
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.cpp
+index c0f5dab..0a09558 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.cpp
+@@ -469,6 +469,7 @@ void YogaLayoutableShadowNode::updateYogaProps() {
+ 
+ void YogaLayoutableShadowNode::configureYogaTree(
+     float pointScaleFactor,
++    Float fontSizeMultiplier,
+     YGErrata defaultErrata,
+     bool swapLeftAndRight) {
+   ensureUnsealed();
+@@ -478,6 +479,18 @@ void YogaLayoutableShadowNode::configureYogaTree(
+   YGConfigSetErrata(&yogaConfig_, errata);
+   YGConfigSetPointScaleFactor(&yogaConfig_, pointScaleFactor);
+ 
++  // A measurable node's measurement depends on `fontSizeMultiplier`, but unlike
++  // `pointScaleFactor` it is not part of the Yoga config, so a change does not
++  // invalidate Yoga's layout cache. Dirty the node when it changes to force
++  // re-measurement. We propagate up to the root so an unchanged, still-cached
++  // ancestor isn't skipped by `calculateLayoutInternal` before reaching us.
++  if (ReactNativeFeatureFlags::enableFontScaleChangesUpdatingLayout() &&
++      getTraits().check(ShadowNodeTraits::Trait::MeasurableYogaNode) &&
++      !floatEquality(
++          getLayoutMetrics().fontSizeMultiplier, fontSizeMultiplier)) {
++    yogaNode_.markDirtyAndPropagate();
++  }
++
+   // TODO: `swapLeftAndRight` modified backing props and cannot be undone
+   if (swapLeftAndRight) {
+     swapStyleLeftAndRight();
+@@ -496,6 +509,8 @@ void YogaLayoutableShadowNode::configureYogaTree(
+ 
+     if (child.yogaTreeHasBeenConfigured_ &&
+         childLayoutMetrics.pointScaleFactor == pointScaleFactor &&
++        floatEquality(
++            childLayoutMetrics.fontSizeMultiplier, fontSizeMultiplier) &&
+         childLayoutMetrics.wasLeftAndRightSwapped == swapLeftAndRight &&
+         childErrata == child.resolveErrata(errata)) {
+       continue;
+@@ -504,10 +519,13 @@ void YogaLayoutableShadowNode::configureYogaTree(
+     if (doesOwn(child)) {
+       auto& mutableChild = const_cast<YogaLayoutableShadowNode&>(child);
+       mutableChild.configureYogaTree(
+-          pointScaleFactor, child.resolveErrata(errata), swapLeftAndRight);
++          pointScaleFactor,
++          fontSizeMultiplier,
++          child.resolveErrata(errata),
++          swapLeftAndRight);
+     } else {
+       cloneChildInPlace(i).configureYogaTree(
+-          pointScaleFactor, errata, swapLeftAndRight);
++          pointScaleFactor, fontSizeMultiplier, errata, swapLeftAndRight);
+     }
+   }
+ }
+@@ -604,6 +622,7 @@ void YogaLayoutableShadowNode::layoutTree(
+     TraceSection s2("YogaLayoutableShadowNode::configureYogaTree");
+     configureYogaTree(
+         layoutContext.pointScaleFactor,
++        layoutContext.fontSizeMultiplier,
+         YGErrataAll /*defaultErrata*/,
+         swapLeftAndRight);
+   }
+@@ -669,6 +688,7 @@ void YogaLayoutableShadowNode::layoutTree(
+   if (yogaNode_.getHasNewLayout()) {
+     auto layoutMetrics = layoutMetricsFromYogaNode(yogaNode_);
+     layoutMetrics.pointScaleFactor = layoutContext.pointScaleFactor;
++    layoutMetrics.fontSizeMultiplier = layoutContext.fontSizeMultiplier;
+     layoutMetrics.wasLeftAndRightSwapped = swapLeftAndRight;
+     setLayoutMetrics(layoutMetrics);
+     yogaNode_.setHasNewLayout(false);
+@@ -716,6 +736,7 @@ void YogaLayoutableShadowNode::layout(LayoutContext layoutContext) {
+ 
+       auto newLayoutMetrics = layoutMetricsFromYogaNode(*childYogaNode);
+       newLayoutMetrics.pointScaleFactor = layoutContext.pointScaleFactor;
++      newLayoutMetrics.fontSizeMultiplier = layoutContext.fontSizeMultiplier;
+       newLayoutMetrics.wasLeftAndRightSwapped =
+           layoutContext.swapLeftAndRightInRTL &&
+           newLayoutMetrics.layoutDirection == LayoutDirection::RightToLeft;
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.h b/node_modules/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.h
+index 25714d5..fff9c00 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.h
+@@ -137,7 +137,8 @@ class YogaLayoutableShadowNode : public LayoutableShadowNode {
+    * ShadowTree has been constructed, but before it has been is laid out or
+    * committed.
+    */
+-  void configureYogaTree(float pointScaleFactor, YGErrata defaultErrata, bool swapLeftAndRight);
++  void
++  configureYogaTree(float pointScaleFactor, Float fontSizeMultiplier, YGErrata defaultErrata, bool swapLeftAndRight);
+ 
+   /**
+    * Return an errata based on a `layoutConformance` prop if given, otherwise
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/core/LayoutMetrics.h b/node_modules/react-native/ReactCommon/react/renderer/core/LayoutMetrics.h
+index 794f899..cb38378 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/core/LayoutMetrics.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/core/LayoutMetrics.h
+@@ -45,6 +45,10 @@ struct LayoutMetrics {
+   // Negative values indicate that children are clipped inside the node
+   // (like when using `overflow: clip` on Web).
+   EdgeInsets overflowInset{};
++  // Surface font scale this node was last laid out with. Declared last so that
++  // positional aggregate initialization of the fields above (as done by
++  // @rnmapbox/maps) still binds each initializer to the intended field.
++  Float fontSizeMultiplier{1.0};
+ 
+   // Origin: the outer border of the node.
+   // Size: includes content only.
+@@ -120,6 +124,7 @@ struct hash<facebook::react::LayoutMetrics> {
+         layoutMetrics.displayType,
+         layoutMetrics.layoutDirection,
+         layoutMetrics.pointScaleFactor,
++        layoutMetrics.fontSizeMultiplier,
+         layoutMetrics.overflowInset);
+   }
+ };
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/SurfaceHandler.cpp b/node_modules/react-native/ReactCommon/react/renderer/scheduler/SurfaceHandler.cpp
+index 3d4adc6..930472f 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/scheduler/SurfaceHandler.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/scheduler/SurfaceHandler.cpp
+@@ -9,7 +9,6 @@
+ 
+ #include <cxxreact/TraceSection.h>
+ #include <react/debug/react_native_assert.h>
+-#include <react/featureflags/ReactNativeFeatureFlags.h>
+ #include <react/renderer/uimanager/UIManager.h>
+ 
+ namespace facebook::react {
+@@ -213,78 +212,6 @@ Size SurfaceHandler::measure(
+   return rootShadowNode->getLayoutMetrics().frame.size;
+ }
+ 
+-std::shared_ptr<const ShadowNode> SurfaceHandler::dirtyMeasurableNodesRecursive(
+-    std::shared_ptr<const ShadowNode> node) const {
+-  const auto nodeHasChildren = !node->getChildren().empty();
+-  const auto isMeasurableYogaNode =
+-      node->getTraits().check(ShadowNodeTraits::Trait::MeasurableYogaNode);
+-
+-  // Node is not measurable and has no children, its layout will not be affected
+-  if (!nodeHasChildren && !isMeasurableYogaNode) {
+-    return nullptr;
+-  }
+-
+-  std::shared_ptr<const std::vector<std::shared_ptr<const ShadowNode>>>
+-      newChildren = ShadowNodeFragment::childrenPlaceholder();
+-
+-  if (nodeHasChildren) {
+-    std::shared_ptr<std::vector<std::shared_ptr<const ShadowNode>>>
+-        newChildrenMutable = nullptr;
+-    for (size_t i = 0; i < node->getChildren().size(); i++) {
+-      const auto& child = node->getChildren()[i];
+-
+-      if (const auto& layoutableNode =
+-              std::dynamic_pointer_cast<const YogaLayoutableShadowNode>(
+-                  child)) {
+-        auto newChild = dirtyMeasurableNodesRecursive(layoutableNode);
+-
+-        if (newChild != nullptr) {
+-          if (newChildrenMutable == nullptr) {
+-            newChildrenMutable = std::make_shared<
+-                std::vector<std::shared_ptr<const ShadowNode>>>(
+-                node->getChildren());
+-            newChildren = newChildrenMutable;
+-          }
+-
+-          (*newChildrenMutable)[i] = newChild;
+-        }
+-      }
+-    }
+-
+-    // Node is not measurable and its children were not dirtied, its layout will
+-    // not be affected
+-    if (!isMeasurableYogaNode && newChildrenMutable == nullptr) {
+-      return nullptr;
+-    }
+-  }
+-
+-  const auto newNode = node->getComponentDescriptor().cloneShadowNode(
+-      *node,
+-      {
+-          .children = newChildren,
+-          // Preserve the original state of the node
+-          .state = node->getState(),
+-      });
+-
+-  if (isMeasurableYogaNode) {
+-    std::static_pointer_cast<YogaLayoutableShadowNode>(newNode)->dirtyLayout();
+-  }
+-
+-  return newNode;
+-}
+-
+-void SurfaceHandler::dirtyMeasurableNodes(ShadowNode& root) const {
+-  for (const auto& child : root.getChildren()) {
+-    if (const auto& layoutableNode =
+-            std::dynamic_pointer_cast<const YogaLayoutableShadowNode>(child)) {
+-      const auto newChild = dirtyMeasurableNodesRecursive(layoutableNode);
+-      if (newChild != nullptr) {
+-        root.replaceChild(*child, newChild);
+-      }
+-    }
+-  }
+-}
+-
+ void SurfaceHandler::constraintLayout(
+     const LayoutConstraints& layoutConstraints,
+     const LayoutContext& layoutContext) const {
+@@ -315,19 +242,8 @@ void SurfaceHandler::constraintLayout(
+         link_.shadowTree && "`link_.shadowTree` must not be null.");
+     link_.shadowTree->commit(
+         [&](const RootShadowNode& oldRootShadowNode) {
+-          auto newRoot = oldRootShadowNode.clone(
++          return oldRootShadowNode.clone(
+               propsParserContext, layoutConstraints, layoutContext);
+-
+-          // Dirty all measurable nodes when the fontSizeMultiplier changes to
+-          // trigger re-measurement.
+-          if (ReactNativeFeatureFlags::enableFontScaleChangesUpdatingLayout() &&
+-              layoutContext.fontSizeMultiplier !=
+-                  oldRootShadowNode.getConcreteProps()
+-                      .layoutContext.fontSizeMultiplier) {
+-            dirtyMeasurableNodes(*newRoot);
+-          }
+-
+-          return newRoot;
+         },
+         {/* default commit options */});
+   }
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/SurfaceHandler.h b/node_modules/react-native/ReactCommon/react/renderer/scheduler/SurfaceHandler.h
+index b031a51..93cfb22 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/scheduler/SurfaceHandler.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/scheduler/SurfaceHandler.h
+@@ -151,12 +151,6 @@ class SurfaceHandler {
+ 
+   void applyDisplayMode(DisplayMode displayMode) const;
+ 
+-  /*
+-   * An utility for dirtying all measurable shadow nodes present in the tree.
+-   */
+-  void dirtyMeasurableNodes(ShadowNode &root) const;
+-  std::shared_ptr<const ShadowNode> dirtyMeasurableNodesRecursive(std::shared_ptr<const ShadowNode> node) const;
+-
+ #pragma mark - Link & Parameters
+ 
+   /*

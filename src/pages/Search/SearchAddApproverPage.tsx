@@ -38,7 +38,6 @@ function SearchAddApproverPage() {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {selectedReports} = useSearchSelectionContext();
@@ -139,7 +138,6 @@ function SearchAddApproverPage() {
                 }
 
                 const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
-                const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${selectedReport.reportID}`];
                 addReportApprover({
                     report,
                     newApproverEmail: selectedApproverEmail,
@@ -149,7 +147,6 @@ function SearchAddApproverPage() {
                     policy,
                     hasViolations,
                     isASAPSubmitBetaEnabled,
-                    reportCurrentNextStepDeprecated: reportNextStep,
                     isTrackIntentUser,
                     formatPhoneNumber,
                 });
@@ -169,7 +166,7 @@ function SearchAddApproverPage() {
             shouldShowLoadingImmediatelyOnPress={false}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline
-            shouldBlendOpacity
+            blendButtonOpacity
         />
     );
 
@@ -188,7 +185,7 @@ function SearchAddApproverPage() {
     }, [selectedReports.length]);
 
     if (isLoading) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'SearchAddApproverPage'}} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

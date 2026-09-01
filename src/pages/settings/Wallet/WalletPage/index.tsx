@@ -41,7 +41,6 @@ import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUt
 import {getStreetLines} from '@libs/PersonalDetailsUtils';
 import {getActiveAdminWorkspaces, getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces, hasEligibleBankAccountShareRecipient, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {getFirstPageName} from '@pages/settings/Wallet/UpdatePersonalBankAccountPage';
@@ -115,7 +114,7 @@ function WalletPage() {
     const hasSinglePolicy = activeAdminPolicies.length === 1;
 
     const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus', 'UserMinus', 'Table', 'Plus']);
-    const illustrations = useMemoizedLazyIllustrations(['MoneyIntoWallet', 'VerticalCreditCards']);
+    const illustrations = useMemoizedLazyIllustrations(['VerticalCreditCards']);
     const walletIllustration = useWalletSectionIllustration();
 
     const theme = useTheme();
@@ -141,7 +140,6 @@ function WalletPage() {
     const hasFailedOnfido = userWallet?.hasFailedOnfido ?? false;
     const hasEligibleShareRecipient = hasEligibleBankAccountShareRecipient(allPolicies, currentUserLogin, paymentMethod?.selectedPaymentMethod?.bankAccountID?.toString());
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find(isPaidGroupPolicy);
-    const walletLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'WalletPage', shouldShowLoadingSpinner};
 
     const updateShouldShowLoadingSpinner = useCallback(() => {
         // In order to prevent a loop, only update state of the spinner if there is a change
@@ -382,7 +380,7 @@ function WalletPage() {
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
 
         if (result.action === ModalActions.CONFIRM) {
@@ -432,7 +430,7 @@ function WalletPage() {
     const shouldShowEnableGlobalReimbursementsButton =
         paymentMethod.selectedPaymentMethod?.additionalData?.currency === CONST.CURRENCY.USD &&
         paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
-        !paymentMethod.selectedPaymentMethod?.additionalData?.corpay?.achAuthorizationForm &&
+        !paymentMethod.selectedPaymentMethod?.additionalData?.verifications?.corpay &&
         paymentMethod.selectedPaymentMethod?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
 
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web screen
@@ -441,7 +439,6 @@ function WalletPage() {
     const headerWithBackButton = (
         <HeaderWithBackButton
             title={translate('common.wallet')}
-            icon={illustrations.MoneyIntoWallet}
             shouldUseHeadlineHeader
             shouldShowBackButton={shouldUseNarrowLayout}
             shouldDisplaySearchRouter
@@ -471,7 +468,7 @@ function WalletPage() {
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         resetSelectedPaymentMethodData();
         if (result.action !== ModalActions.CONFIRM) {
@@ -667,7 +664,6 @@ function WalletPage() {
     }, [bottomMountItem, confirmDeleteCard, icons.MoneySearch, icons.Table, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate]);
 
     if (isAppLoadPending) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WalletPage', isLoadingApp: isAppLoadPending};
         return (
             <ScreenWrapper
                 testID="WalletPage"
@@ -675,10 +671,7 @@ function WalletPage() {
             >
                 {headerWithBackButton}
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={reasonAttributes}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             </ScreenWrapper>
         );
@@ -789,7 +782,6 @@ function WalletPage() {
                                         <ActivityIndicator
                                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                             style={[styles.mb5]}
-                                            reasonAttributes={walletLoadingReasonAttributes}
                                         />
                                     )}
                                     {!shouldShowLoadingSpinner && hasActivatedWallet && (

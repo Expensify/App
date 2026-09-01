@@ -1,3 +1,4 @@
+import Log from '@libs/Log';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 
 import type {NavigationState, PartialState} from '@react-navigation/routers';
@@ -7,6 +8,8 @@ import {getPathFromState as RNGetPathFromState} from '@react-navigation/native';
 jest.mock('@react-navigation/native', () => ({
     getPathFromState: jest.fn(),
 }));
+
+const mockLogAlert = jest.spyOn(Log, 'alert').mockImplementation(() => {});
 
 jest.mock('@libs/Navigation/linkingConfig/config', () => ({
     config: {},
@@ -40,40 +43,34 @@ jest.mock('@src/ROUTES', () => ({
     },
 }));
 
-type RouteEntry = {
-    name: string;
-    params?: Record<string, unknown>;
-    path?: string;
-    state?: {routes: RouteEntry[]; index: number};
-};
+type RNGetPathFromStateState = Parameters<typeof RNGetPathFromState>[0];
+type NavigationStateTree = RNGetPathFromStateState | PartialState<NavigationState>;
+type RouteEntry = NavigationStateTree['routes'][number];
+type TestState = Pick<PartialState<NavigationState>, 'routes' | 'index'>;
+type TestRouteEntry = TestState['routes'][number];
 
-type TestState = {
-    routes: RouteEntry[];
-    index: number;
-};
-
-function buildState(routes: RouteEntry[], index?: number): TestState {
+function buildState(routes: TestRouteEntry[], index?: number): TestState {
     return {
         routes,
         index: index ?? routes.length - 1,
-    } as TestState;
+    };
 }
 
-function realFindFocusedRoute(s: TestState | RouteEntry['state']): RouteEntry | undefined {
-    let current: TestState | RouteEntry['state'] = s;
+function realFindFocusedRoute(s: NavigationStateTree): RouteEntry | undefined {
+    let current: NavigationStateTree | undefined = s;
     while (current?.routes?.[current.index ?? 0]?.state != null) {
         current = current.routes[current.index ?? 0].state;
     }
     return current?.routes?.[current?.index ?? 0];
 }
 
-const staticBasePaths: Record<string, (params?: Record<string, unknown>) => string> = {
+const staticBasePaths: Record<string, (params?: RouteEntry['params']) => string> = {
     WalletScreen: () => '/settings/wallet',
-    ReportScreen: (params) => `/r/${(params?.reportID as string) ?? ''}`,
+    ReportScreen: (params) => `/r/${params && 'reportID' in params && typeof params.reportID === 'string' ? params.reportID : ''}`,
 };
 
 describe('getPathFromState', () => {
-    const mockRNGetPathFromState = RNGetPathFromState as jest.Mock;
+    const mockRNGetPathFromState = jest.mocked(RNGetPathFromState);
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -87,6 +84,30 @@ describe('getPathFromState', () => {
         const result = getPathFromState(state as PartialState<NavigationState>);
 
         expect(result).toBe('/settings/wallet/test-dynamic');
+    });
+
+    it('does not log an alert for a well-formed path built from a root base', () => {
+        // With the root-base join restored, a base screen that resolves to '/' yields '/test-dynamic'
+        // (never '//test-dynamic'), so this is a happy path that must not trip the safety-net alert.
+        // Regression guard for the AI Features Promo crash (issue #97470).
+        mockRNGetPathFromState.mockReturnValue('/');
+
+        const state = buildState([{name: 'StandardScreen'}, {name: 'TestDynamicScreen'}]);
+
+        expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/test-dynamic');
+        expect(mockLogAlert).not.toHaveBeenCalled();
+    });
+
+    it('normalizes a malformed doubled slash and alerts with the screen name only', () => {
+        // If an upstream base ever carries a doubled slash, the safety net collapses it to a single slash
+        // (so history.pushState can't throw a SecurityError) and alerts. The alert must carry only the
+        // screen name - never the path, which can hold sensitive query params.
+        mockRNGetPathFromState.mockReturnValue('//settings');
+
+        const state = buildState([{name: 'StandardScreen'}, {name: 'TestDynamicScreen'}]);
+
+        expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/test-dynamic');
+        expect(mockLogAlert).toHaveBeenCalledWith(expect.stringContaining('malformed path'), {screenName: 'TestDynamicScreen'});
     });
 
     it('should use RN getPathFromState for standard screens', () => {
@@ -112,7 +133,7 @@ describe('getPathFromState', () => {
 
     describe('dynamic route resolution from pattern and params', () => {
         beforeEach(() => {
-            mockRNGetPathFromState.mockImplementation((s: TestState) => {
+            mockRNGetPathFromState.mockImplementation((s) => {
                 const route = realFindFocusedRoute(s);
                 const builder = staticBasePaths[route?.name ?? ''];
                 return builder ? builder(route?.params) : '/unknown';
@@ -271,7 +292,7 @@ describe('getPathFromState', () => {
 
     describe('tab navigator integration (OnyxTabNavigator)', () => {
         beforeEach(() => {
-            mockRNGetPathFromState.mockImplementation((s: TestState) => {
+            mockRNGetPathFromState.mockImplementation((s) => {
                 const route = realFindFocusedRoute(s);
                 const builder = staticBasePaths[route?.name ?? ''];
                 return builder ? builder(route?.params) : '/unknown';

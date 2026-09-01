@@ -53,7 +53,6 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const {isLoading, startWithLoading} = usePressLoading();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
-    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const employeeList = policy?.employeeList;
@@ -110,7 +109,6 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 policy,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                reportCurrentNextStepDeprecated: reportNextStep,
                 isTrackIntentUser,
                 formatPhoneNumber,
             });
@@ -127,7 +125,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             onSubmit={addApprover}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline
-            shouldBlendOpacity
+            blendButtonOpacity
         />
     );
 

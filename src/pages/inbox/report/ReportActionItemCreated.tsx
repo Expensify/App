@@ -1,9 +1,10 @@
+import ReportAvatar from '@components/Avatar/connected/ReportAvatar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportWelcomeText from '@components/ReportWelcomeText';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -36,6 +37,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const styles = useThemeStyles();
 
     const {translate} = useLocalize();
+    const isInSidePanel = useIsInSidePanel();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -93,22 +95,22 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                 >
                     <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>
                         <PressableWithoutFeedback
-                            onPress={() => navigateToDetailsPage(report)}
+                            onPress={() => navigateToDetailsPage(report, isInSidePanel)}
                             style={[styles.mh5, styles.mb3, styles.alignSelfStart, shouldDisableDetailPage && styles.cursorDefault]}
                             accessibilityLabel={translate('common.details')}
                             role={CONST.ROLE.BUTTON}
                             disabled={shouldDisableDetailPage}
                             sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_CREATED}
                         >
-                            <ReportActionAvatars
+                            <ReportAvatar
                                 reportID={reportID}
                                 size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                 horizontalStacking={{
-                                    displayInRows: shouldUseNarrowLayout,
-                                    maxAvatarsInRow: shouldUseNarrowLayout ? CONST.AVATAR_ROW_SIZE.DEFAULT : CONST.AVATAR_ROW_SIZE.LARGE_SCREEN,
+                                    maxRows: shouldUseNarrowLayout ? 2 : 1,
+                                    maxAvatarsPerRow: shouldUseNarrowLayout ? CONST.AVATAR_ROW_SIZE.DEFAULT : CONST.AVATAR_ROW_SIZE.LARGE_SCREEN,
                                     overlapDivider: 4,
-                                    sort: isInvoiceRoom(report) && isCurrentUserInvoiceReceiver(report) ? CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE : undefined,
                                 }}
+                                sort={isInvoiceRoom(report) && isCurrentUserInvoiceReceiver(report) ? CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE : undefined}
                             />
                         </PressableWithoutFeedback>
                     </OfflineWithFeedback>

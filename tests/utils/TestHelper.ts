@@ -28,11 +28,12 @@ import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import currencyListFixture from '../unit/currencyList.json';
+import createMock from './createMock';
 import {isObject} from './typeGuards';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
-type MockFetch = jest.MockedFn<typeof fetch> & {
+type MockFetch = jest.Mock<ReturnType<typeof fetch>, Parameters<typeof fetch>> & {
     pause: () => void;
     fail: () => void;
     succeed: () => void;
@@ -54,8 +55,8 @@ type APIWriteOnyxUpdate<TKey extends string = APIWriteOnyxKey> = {
 type APIWriteOnyxUpdateWithObjectValue<TKey extends string = APIWriteOnyxKey> = Omit<APIWriteOnyxUpdate<TKey>, 'value'> & {value: Record<PropertyKey, unknown>};
 
 type QueueItem = {
-    resolve: (value: Partial<Response> | PromiseLike<Partial<Response>>) => void;
-    input: RequestInfo;
+    resolve: (value: Response | PromiseLike<Response>) => void;
+    input: Parameters<typeof fetch>[0];
     options?: RequestInit;
 };
 
@@ -118,7 +119,7 @@ function getOnyxData<TKey extends OnyxKey>(options: ConnectOptions<TKey>) {
             ...options,
             callback: (...params: ConnectionCallbackParams<TKey>) => {
                 Onyx.disconnect(connectionID);
-                (options.callback as (...args: ConnectionCallbackParams<TKey>) => void)?.(...params);
+                options.callback?.(...params);
                 resolve();
             },
         });
@@ -281,7 +282,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                 // Return a Promise that resolves with the mocked response
                 return Promise.resolve(mockedResponse);
             });
-            Session.signIn(password, undefined);
+            Session.signIn(password, undefined, undefined, login, undefined);
             return waitForBatchedUpdates();
         })
         .then(() => {
@@ -318,13 +319,13 @@ function createGlobalFetchMock(mockResponse?: Partial<Response>): MockFetch {
     let isPaused = false;
     let shouldFail = false;
 
-    const getResponse = (input: RequestInfo, options?: RequestInit): Partial<Response> =>
+    const getResponse = (input: Parameters<typeof fetch>[0], options?: RequestInit): Response =>
         shouldFail
-            ? {
+            ? createMock<Response>({
                   ok: true,
                   json: () => Promise.resolve({jsonCode: 400}),
-              }
-            : {
+              })
+            : createMock<Response>({
                   ok: true,
                   json: async () => {
                       const commandMatch = typeof input === 'string' ? input.match(/https:\/\/www.expensify.com.dev\/api\/(\w+)\?/) : null;
@@ -339,16 +340,34 @@ function createGlobalFetchMock(mockResponse?: Partial<Response>): MockFetch {
                       return Promise.resolve({jsonCode: 200});
                   },
                   ...mockResponse,
-              };
+              });
 
-    const mockFetch = jest.fn().mockImplementation((input: RequestInfo, options?: RequestInit) => {
-        if (!isPaused) {
-            return Promise.resolve(getResponse(input, options));
-        }
-        return new Promise((resolve) => {
-            queue.push({resolve, input, options});
-        });
-    }) as MockFetch;
+    const mockFetch = Object.assign(
+        jest.fn<ReturnType<typeof fetch>, Parameters<typeof fetch>>().mockImplementation((input: Parameters<typeof fetch>[0], options: Parameters<typeof fetch>[1]) => {
+            if (!isPaused) {
+                return Promise.resolve(getResponse(input, options));
+            }
+            return new Promise<Response>((resolve) => {
+                queue.push({resolve, input, options});
+            });
+        }),
+        {
+            pause: () => (isPaused = true),
+            resume: () => {
+                isPaused = false;
+                for (const {resolve, input} of queue) {
+                    resolve(getResponse(input));
+                }
+                return waitForBatchedUpdates();
+            },
+            fail: () => (shouldFail = true),
+            succeed: () => (shouldFail = false),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            mockAPICommand: <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse<any>): void => {
+                responses.set(command, responseHandler);
+            },
+        },
+    );
 
     const baseMockReset = mockFetch.mockReset.bind(mockFetch);
     mockFetch.mockReset = () => {
@@ -360,24 +379,10 @@ function createGlobalFetchMock(mockResponse?: Partial<Response>): MockFetch {
         return mockFetch;
     };
 
-    mockFetch.pause = () => (isPaused = true);
-    mockFetch.resume = () => {
-        isPaused = false;
-        for (const {resolve, input} of queue) {
-            resolve(getResponse(input));
-        }
-        return waitForBatchedUpdates();
-    };
-    mockFetch.fail = () => (shouldFail = true);
-    mockFetch.succeed = () => (shouldFail = false);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mockFetch.mockAPICommand = <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse<any>): void => {
-        responses.set(command, responseHandler);
-    };
     return mockFetch;
 }
 
-function getGlobalFetchMock(mockResponse?: Partial<Response>): typeof fetch {
+function getGlobalFetchMock(mockResponse?: Partial<Response>): MockFetch {
     return createGlobalFetchMock(mockResponse);
 }
 
@@ -385,17 +390,20 @@ function setupGlobalFetchMock(): MockFetch {
     const mockFetch = getGlobalFetchMock();
     const originalFetch = global.fetch;
 
-    global.fetch = mockFetch as unknown as typeof global.fetch;
+    global.fetch = mockFetch;
 
     afterAll(() => {
         global.fetch = originalFetch;
     });
 
-    return mockFetch as MockFetch;
+    return mockFetch;
 }
 
 function getFetchMockCalls(commandName: ApiCommand) {
-    return (global.fetch as MockFetch).mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${commandName}?`);
+    if (!jest.isMockFunction(global.fetch)) {
+        throw new Error('Expected global.fetch to be a Jest mock function.');
+    }
+    return jest.mocked(global.fetch).mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${commandName}?`);
 }
 
 /**
@@ -411,7 +419,7 @@ function expectAPICommandToHaveBeenCalled(commandName: ApiCommand, expectedCalls
 function expectAPICommandToHaveBeenCalledWith<TCommand extends ApiCommand>(commandName: TCommand, callIndex: number, expectedParams: ApiRequestCommandParameters[TCommand]) {
     const call = getFetchMockCalls(commandName).at(callIndex);
     expect(call).toBeTruthy();
-    const body = (call?.at(1) as RequestInit)?.body;
+    const body = call?.[1]?.body;
     const params = body instanceof FormData ? Object.fromEntries(body) : {};
     expect(params).toEqual(expect.objectContaining(expectedParams));
 }
@@ -473,6 +481,14 @@ function getCurrencyDecimalsLocal(currencyCode: string | undefined): number {
 }
 
 /**
+ * A local version of useCurrencyListActions().getCurrencySymbol for tests that call lib
+ * functions directly and need to inject the symbol resolver without the full app context.
+ */
+function getCurrencySymbolLocal(currencyCode: string | undefined): string | undefined {
+    return testCurrencyList?.[currencyCode ?? '']?.symbol;
+}
+
+/**
  * A local version of useCurrencyListActions().convertToDisplayString for tests that call lib
  * functions directly and need to inject the currency formatter without the full app context.
  * Mirrors the implementation in CurrencyListContextProvider, pinned to the `en` locale.
@@ -513,13 +529,15 @@ function localeCompare(a: string, b: string): number {
     return customCollator.compare(a, b);
 }
 
-export type {MockFetch, FormData};
+export type {MockFetch};
 export {
     anyArray,
     anyObject,
     anyString,
     translateLocal,
     convertToDisplayString,
+    getCurrencyDecimalsLocal,
+    getCurrencySymbolLocal,
     assertFormDataMatchesObject,
     buildPersonalDetails,
     buildTestReportComment,

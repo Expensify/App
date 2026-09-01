@@ -72,6 +72,8 @@ function AddPaymentMethodMenu({
     const [introSelected, introSelectedStatus] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     // Users can choose to pay with business bank account in case of Expense reports or in case of P2P IOU report
@@ -91,9 +93,9 @@ function AddPaymentMethodMenu({
             return;
         }
 
-        completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, isSelfTourViewed, betas, currentUserAccountID);
+        completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, isSelfTourViewed, betas, currentUserAccountID, conciergeChat);
         onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
-    }, [betas, currentUserAccountID, introSelected, isLoadingIntroSelected, isPersonalOnlyOption, isVisible, onItemSelected, isSelfTourViewed]);
+    }, [betas, currentUserAccountID, introSelected, isLoadingIntroSelected, isPersonalOnlyOption, isVisible, onItemSelected, isSelfTourViewed, conciergeChat]);
 
     if (isPersonalOnlyOption) {
         return null;
@@ -109,6 +111,7 @@ function AddPaymentMethodMenu({
             anchorPosition={anchorPosition}
             anchorAlignment={anchorAlignment}
             anchorRef={anchorRef}
+            enableEdgeToEdgeBottomSafeAreaPadding
             onItemSelected={() => {
                 setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE);
                 onClose();
@@ -120,7 +123,7 @@ function AddPaymentMethodMenu({
                               text: translate('common.personalBankAccount'),
                               icon: icons.Bank,
                               onSelected: () => {
-                                  completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, isSelfTourViewed, betas, currentUserAccountID);
+                                  completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, isSelfTourViewed, betas, currentUserAccountID, conciergeChat);
                                   onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                               },
                           },

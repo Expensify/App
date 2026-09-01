@@ -2,8 +2,8 @@ import {renderHook} from '@testing-library/react-native';
 
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 
-import Clipboard from '@libs/Clipboard';
 import getClipboardText from '@libs/Clipboard/getClipboardText';
+import type {CanSetHtml, SetHtml, SetString} from '@libs/Clipboard/types';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import SelectionScraper from '@libs/SelectionScraper';
 
@@ -12,9 +12,9 @@ import CONST from '@src/CONST';
 jest.mock('@libs/Clipboard', () => ({
     __esModule: true,
     default: {
-        canSetHtml: jest.fn(),
-        setString: jest.fn(),
-        setHtml: jest.fn(),
+        canSetHtml: jest.fn<ReturnType<CanSetHtml>, Parameters<CanSetHtml>>(),
+        setString: jest.fn<ReturnType<SetString>, Parameters<SetString>>(),
+        setHtml: jest.fn<ReturnType<SetHtml>, Parameters<SetHtml>>(),
     },
 }));
 
@@ -37,14 +37,16 @@ jest.mock('@libs/SelectionScraper', () => ({
     },
 }));
 
-const mockClipboard = Clipboard as {
-    canSetHtml: jest.Mock;
-    setString: jest.Mock;
-    setHtml: jest.Mock;
+type ClipboardMock = {
+    canSetHtml: jest.Mock<ReturnType<CanSetHtml>, Parameters<CanSetHtml>>;
+    setString: jest.Mock<ReturnType<SetString>, Parameters<SetString>>;
+    setHtml: jest.Mock<ReturnType<SetHtml>, Parameters<SetHtml>>;
 };
-const mockGetClipboardText = getClipboardText as jest.Mock;
-const mockSubscribe = KeyboardShortcut.subscribe as jest.Mock;
-const mockGetCurrentSelection = SelectionScraper.getCurrentSelection as jest.Mock;
+
+const mockClipboard = jest.requireMock<{default: ClipboardMock}>('@libs/Clipboard').default;
+const mockGetClipboardText = jest.mocked(getClipboardText);
+const mockSubscribe = jest.mocked(KeyboardShortcut.subscribe);
+const mockGetCurrentSelection = jest.mocked(SelectionScraper.getCurrentSelection);
 
 describe('useCopySelectionHelper', () => {
     const unsubscribeCopyShortcut = jest.fn();
@@ -56,8 +58,7 @@ describe('useCopySelectionHelper', () => {
     });
 
     const triggerCopyShortcut = () => {
-        const calls = mockSubscribe.mock.calls as Array<[string, () => void, ...unknown[]]>;
-        const copyShortcutHandler = calls.at(0)?.[1];
+        const copyShortcutHandler = mockSubscribe.mock.calls.at(0)?.[1];
         expect(copyShortcutHandler).toBeDefined();
         copyShortcutHandler?.();
     };

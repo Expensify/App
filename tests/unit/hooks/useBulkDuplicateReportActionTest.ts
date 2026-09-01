@@ -13,8 +13,10 @@ import type {Policy, Report} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import createMock from '../../utils/createMock';
+
 jest.mock('@libs/actions/IOU/Duplicate', () => ({
-    bulkDuplicateReports: jest.fn(),
+    bulkDuplicateReports: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
@@ -99,7 +101,7 @@ describe('useBulkDuplicateReportAction', () => {
 
     it('should call bulkDuplicateReports with correct selectedReports', async () => {
         const policyID = 'policy1';
-        mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
+        mockDefaultExpensePolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'});
 
         const allReports: Record<string, Report> = {};
         for (const reportID of ['rpt1', 'rpt2']) {
@@ -132,7 +134,7 @@ describe('useBulkDuplicateReportAction', () => {
 
     it('should pass defaultExpensePolicy to bulkDuplicateReports', async () => {
         const policyID = 'policy1';
-        const teamPolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
+        const teamPolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'});
         mockDefaultExpensePolicy = teamPolicy;
 
         const allReports = {
@@ -164,7 +166,7 @@ describe('useBulkDuplicateReportAction', () => {
 
     it('should clear selected transactions after invocation', async () => {
         const policyID = 'policy1';
-        mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
+        mockDefaultExpensePolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'});
 
         const allReports = {
             [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: {
@@ -191,7 +193,7 @@ describe('useBulkDuplicateReportAction', () => {
 
     it('should pass all selectedReports including those with undefined reportID', async () => {
         const policyID = 'policy1';
-        mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
+        mockDefaultExpensePolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'});
 
         const allReports = {
             [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: {
@@ -222,7 +224,7 @@ describe('useBulkDuplicateReportAction', () => {
 
     it('should pass Onyx policy data (policies, categories, tags)', async () => {
         const policyID = 'policy1';
-        mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
+        mockDefaultExpensePolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'});
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {
@@ -273,7 +275,7 @@ describe('useBulkDuplicateReportAction', () => {
 
     it('should pass allReports to bulkDuplicateReports', async () => {
         const policyID = 'policy1';
-        mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
+        mockDefaultExpensePolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'});
 
         const allReports = {
             [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: {
@@ -304,7 +306,7 @@ describe('useBulkDuplicateReportAction', () => {
 
     it('should pass current user details as ownerPersonalDetails and currentUserLogin', async () => {
         const policyID = 'policy1';
-        mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
+        mockDefaultExpensePolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'});
 
         const allReports = {
             [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: {
@@ -339,7 +341,7 @@ describe('useBulkDuplicateReportAction', () => {
 
     it('should pass empty allReports when allReports is undefined', async () => {
         const policyID = 'policy1';
-        mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
+        mockDefaultExpensePolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'});
 
         const selectedReports = [makeSelectedReport({reportID: 'rpt1', policyID})];
 

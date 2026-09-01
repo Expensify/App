@@ -6,10 +6,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
-import {isInvoiceReport, isIOUReport} from './ReportUtils';
-import StringUtils from './StringUtils';
+import replaceAllDigits from './replaceAllDigits';
+import {isExpenseReport, isExpenseRequest, isPolicyExpenseChat} from './ReportUtils';
 import {doesMoneyRequestDraftHaveUserInput, haveWaypointAddressesChanged, isExpenseUnreported} from './TransactionUtils';
-import {isInvalidMerchantValue} from './ValidationUtils';
+import {getMerchantError} from './ValidationUtils';
 
 /**
  * Strip comma from the amount
@@ -94,23 +94,6 @@ function validatePercentage(amount: string, allowExceedingHundred = false, allow
 }
 
 /**
- * Replaces each character by calling `convertFn`. If `convertFn` throws an error, then
- * the original character will be preserved.
- */
-function replaceAllDigits(text: string, convertFn: (char: string) => string): string {
-    return text
-        .split('')
-        .map((char) => {
-            try {
-                return convertFn(char);
-            } catch {
-                return char;
-            }
-        })
-        .join('');
-}
-
-/**
  * Handles negative amount flipping by toggling the negative state and removing the '-' prefix
  * @param amount - The amount string to process
  * @param allowFlippingAmount - Whether flipping amount is allowed
@@ -176,6 +159,18 @@ function isTaxAmountInvalid(currentAmount: string, maxTaxAmount: number, decimal
 }
 
 /**
+ * Determines whether a merchant value is required for the given report/transaction — i.e. whether leaving the
+ * merchant empty is disallowed. Workspace expenses require a merchant; unreported expenses, IOU requests,
+ * and invoices allow an empty merchant.
+ */
+function isMerchantRequired(report: OnyxEntry<Report>, transaction: OnyxEntry<Transaction>): boolean {
+    if (transaction && isExpenseUnreported(transaction)) {
+        return false;
+    }
+    return isExpenseReport(report) || isPolicyExpenseChat(report) || isExpenseRequest(report) || !!transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
+}
+
+/**
  * Validates a merchant value according to business rules.
  *
  * @param merchant - The merchant name to validate
@@ -184,29 +179,7 @@ function isTaxAmountInvalid(currentAmount: string, maxTaxAmount: number, decimal
  * @returns Whether the merchant value is valid
  */
 function isValidMerchant(merchant: string | undefined, transaction?: OnyxEntry<Transaction>, report?: OnyxEntry<Report>): boolean {
-    const trimmedMerchant = merchant?.trim() ?? '';
-    const isEmpty = !trimmedMerchant;
-
-    // Unreported expenses, IOU requests, and invoices can have empty merchants (allows clearing)
-    const isUnreported = transaction ? isExpenseUnreported(transaction) : false;
-    const isIOU = !!report && isIOUReport(report);
-    const isInvoice = !!report && isInvoiceReport(report);
-    if (isEmpty && (isUnreported || isIOU || isInvoice)) {
-        return true;
-    }
-
-    // Reported transactions or non-empty merchants must pass validation
-    if (isEmpty) {
-        return false;
-    }
-
-    // Check if it's an invalid merchant value (PARTIAL or DEFAULT constants)
-    if (isInvalidMerchantValue(trimmedMerchant)) {
-        return false;
-    }
-
-    const valueByteLength = StringUtils.getUTF8ByteLength(trimmedMerchant);
-    return valueByteLength <= CONST.MERCHANT_NAME_MAX_BYTES;
+    return !getMerchantError(merchant, isMerchantRequired(report, transaction));
 }
 
 type AmountHasUnsavedChangesParams = {
@@ -278,6 +251,7 @@ export {
     handleNegativeAmountFlipping,
     isValidMoneyRequestAmount,
     isTaxAmountInvalid,
+    isMerchantRequired,
     isValidMerchant,
     getAmountHasUnsavedChanges,
     getStringFieldHasUnsavedChanges,

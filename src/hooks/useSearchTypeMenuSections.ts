@@ -27,7 +27,6 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         owner: policy.owner,
         connections: policy.connections,
         outputCurrency: policy.outputCurrency,
-        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         isJoinRequestPending: policy.isJoinRequestPending,
         pendingAction: policy.pendingAction,
         errors: policy.errors,
@@ -143,21 +142,22 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         ],
     );
 
-    const activeItemIndex = useMemo(() => {
-        const isSavedSearchActive =
-            hash !== undefined &&
-            !!savedSearches &&
-            Object.entries(savedSearches).some(([key, item]) => {
-                if (Number(key) !== hash) {
-                    return false;
-                }
-                if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isOffline) {
-                    return false;
-                }
-                return true;
-            });
+    // The saved search the current query maps to (keyed by `hash`), derived from the existing `savedSearches`
+    // subscription. Undefined when there is no match or when the match is pending deletion (unless offline).
+    const activeSavedSearch = (() => {
+        if (hash === undefined || !savedSearches) {
+            return undefined;
+        }
+        const item = savedSearches[hash];
+        if (!item || (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isOffline)) {
+            return undefined;
+        }
+        return item;
+    })();
 
-        if (isSavedSearchActive) {
+    const activeItemIndex = (() => {
+        // A saved search is not part of `typeMenuSections`, so keep suggested-search focus off it.
+        if (activeSavedSearch) {
             return -1;
         }
 
@@ -193,7 +193,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         }
 
         return -1;
-    }, [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type, isOffline]);
+    })();
 
     const activeKey = activeItemIndex < 0 ? undefined : typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex)?.key;
 
@@ -201,6 +201,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         typeMenuSections,
         activeItemIndex,
         activeKey,
+        activeSavedSearch,
     };
 };
 
