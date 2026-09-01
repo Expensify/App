@@ -6,7 +6,6 @@ import CompactMenuContext from '@components/CompactMenuContext';
 import DisplayNames from '@components/DisplayNames';
 import type {DisplayNameWithTooltip} from '@components/DisplayNames/types';
 import MenuItem from '@components/MenuItem';
-import {MENU_ITEM_DESCRIPTION_VARIANT} from '@components/MenuItem/leaves/text/MenuItemDescription';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
@@ -347,7 +346,7 @@ function Comparison() {
                             <MenuItem.Root onPress={noop}>
                                 <MenuItem.Row>
                                     <MenuItem.Content>
-                                        <MenuItem.Description variant={MENU_ITEM_DESCRIPTION_VARIANT.PLACEHOLDER}>Vacation delegate</MenuItem.Description>
+                                        <MenuItem.DescriptionPlaceholder>Vacation delegate</MenuItem.DescriptionPlaceholder>
                                     </MenuItem.Content>
                                     <MenuItem.Trailing>
                                         <MenuItem.Chevron />

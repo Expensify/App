@@ -2,7 +2,7 @@ import MenuItemContent from '@components/MenuItem/layout/MenuItemContent';
 import MenuItemRoot from '@components/MenuItem/layout/MenuItemRoot';
 import MenuItemRow from '@components/MenuItem/layout/MenuItemRow';
 import MenuItemTrailing from '@components/MenuItem/layout/MenuItemTrailing';
-import MenuItemDescription, {MENU_ITEM_DESCRIPTION_VARIANT} from '@components/MenuItem/leaves/text/MenuItemDescription';
+import MenuItemDescriptionPlaceholder from '@components/MenuItem/leaves/text/description/MenuItemDescriptionPlaceholder';
 import MenuItemChevron from '@components/MenuItem/leaves/trailing/MenuItemChevron';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
@@ -40,7 +40,7 @@ function MenuItemEmptyField({description, onPress, children, isDisabled = false,
         >
             <MenuItemRow>
                 <MenuItemContent>
-                    <MenuItemDescription variant={MENU_ITEM_DESCRIPTION_VARIANT.PLACEHOLDER}>{description}</MenuItemDescription>
+                    <MenuItemDescriptionPlaceholder>{description}</MenuItemDescriptionPlaceholder>
                 </MenuItemContent>
                 <MenuItemTrailing>
                     {children}
