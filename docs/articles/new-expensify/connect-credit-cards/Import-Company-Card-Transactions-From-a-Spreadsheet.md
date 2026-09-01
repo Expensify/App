@@ -23,23 +23,30 @@ Only **Workspace Admins** can import transactions for company cards.
 
 ## How to import company card transactions from a spreadsheet
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to the **Workspaces** and select your workspace.
-2. Click **Company Cards**.
-3. Click on **Add cards**.
- - If you already have a company card feed set up, click the feed name to see **Add cards**.
-4. Choose **Import transactions from file**.
-5. Select **Company card layout name**.
-6. Enter a name for the card feed on the page that opens.
-7. Click **Save**.
-8. Click **Next**.
-9. Choose the CSV, TXT, XLS, or XLSX file you want to upload.
-10. Set your field mappings, mapping either a **Card number** or a **Card name**, along with **Date**, **Merchant**, **Amount**, and **Currency**.
-11. Assign cards to Workspace members based on the transactions in the file.
-12. Click **Import**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**. 
+2. Select **Company Cards**.
+3. Select **Add cards**.
+ - If you already have a company card feed set up, select the feed name, then select **Add cards**.
+4. Choose the country where your bank is located, then select **Next**.
+5. Select **Import transactions from file**.
+5. Select an existing **Company card layout name**, or enter a name for a new layout.
+8. Select **Next**.
+9. Select **Choose file** and choose the CSV, TXT, XLS, or XLSX file containing the transactions you want to import.
+ - **Note**: Select **Download our template** to download an example CSV with the recommended columns and formatting for company card transaction imports.
+10. Map the transaction fields. You must map:
+ - Either **Card number** or **Card name**
+ - **Date**
+ - **Merchant**
+ - **Amount**
+ - **Currency**
+11. Assign each card to a Workspace member based on the transactions in the file.
+12. Select **Import**.
 
 You must map at least one card-identity column — a **Card number** or a **Card name** — so each transaction can be grouped under a card.
 
-**Note:** On the **Import transactions from file** step, click **Download our template** to download an example CSV showing the recommended column structure and formatting for company card transaction imports.
+![Company cards page with Add Card highlighted]({{site.url}}/assets/images/Companycards_add_cards.png){:width="100%"}
+
+![Company cards import options with file import highlighted]({{site.url}}/assets/images/Companycards_file_import.png){:width="100%"}
 
 ---
 
