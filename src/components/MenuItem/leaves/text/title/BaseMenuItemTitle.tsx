@@ -8,15 +8,19 @@ import convertToLTR from '@libs/convertToLTR';
 
 import CONST from '@src/CONST';
 
+import type {StyleProp, TextStyle} from 'react-native';
+
 import React from 'react';
 
-type MenuItemTitleProps = {
-    /** Text to render as the title */
-    children: string | number;
+import type MenuItemTitleProps from './types';
+
+type BaseMenuItemTitleProps = MenuItemTitleProps & {
+    /** Typography layered on top of the shared title base — each leaf brings its own weight and colour */
+    style?: StyleProp<TextStyle>;
 };
 
-/** The title block of a `MenuItem.Content`. Bold, single line */
-function MenuItemTitle({children}: MenuItemTitleProps) {
+/** Everything the title leaves have in common — the shared type face, LTR handling and label registration */
+function BaseMenuItemTitle({children, style}: BaseMenuItemTitleProps) {
     const styles = useThemeStyles();
     const {isDisabled, isInteractive} = useMenuItemConfig();
 
@@ -24,7 +28,7 @@ function MenuItemTitle({children}: MenuItemTitleProps) {
 
     return (
         <Text
-            style={[styles.flexShrink1, styles.popoverMenuText, styles.textStrong, styles.pre, isInteractive && isDisabled && styles.userSelectNone, styles.ltr, styles.mw100]}
+            style={[styles.flexShrink1, styles.popoverMenuText, styles.pre, isInteractive && isDisabled && styles.userSelectNone, styles.ltr, styles.mw100, style]}
             numberOfLines={1}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: isInteractive && isDisabled}}
         >
@@ -33,4 +37,4 @@ function MenuItemTitle({children}: MenuItemTitleProps) {
     );
 }
 
-export default MenuItemTitle;
+export default BaseMenuItemTitle;

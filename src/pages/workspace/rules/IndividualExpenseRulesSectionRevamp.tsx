@@ -1,4 +1,7 @@
+import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
+import {useMenuItemConfig, useMenuItemInteraction} from '@components/MenuItem/MenuItemContext';
+import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 
@@ -7,10 +10,12 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getBillableExpensesPendingAction, getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
+import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTagListLabel, getTagLists, hasPerTagListRequired, isAttendeeTrackingEnabled, isCollectPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 
@@ -56,6 +61,35 @@ type BasicRuleMenuItem = {
 };
 
 const COLLECT_ALLOWED_RULE_KEYS = new Set<string>([RULE_MENU_ITEM_KEYS.REQUIRE_FIELDS, RULE_MENU_ITEM_KEYS.BILLABLE_EXPENSES]);
+
+/**
+ * The leading icon cell of a rule row. Hugs its icon instead of reserving the avatar-width column
+ * `MenuItem.Icon` does, and carries the margin that lines the text up with the `ToggleSettingOptionRow`
+ * rows below it (a 20px icon plus `mr5`). The margin belongs on this cell rather than a wrapping view:
+ * outside the box `wAuto` shrinks, it would knock the icon off column.
+ */
+function MenuItemCompactIcon({src}: {src: IconAsset}) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {isDisabled, isInteractive} = useMenuItemConfig();
+    const {isHovered, isPressed} = useMenuItemInteraction();
+
+    const isComplete = false;
+    const isMenuIcon = true;
+    const isPane = true;
+
+    return (
+        <View style={[styles.popoverMenuIcon, styles.wAuto, styles.mr2]}>
+            <Icon
+                contentFit="cover"
+                hovered={isHovered}
+                pressed={isPressed}
+                src={src}
+                fill={StyleUtils.getIconFillColor(getButtonState(isHovered, isPressed, isComplete, isDisabled, isInteractive), isMenuIcon, isPane)}
+            />
+        </View>
+    );
+}
 
 function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: IndividualExpenseRulesSectionRevampProps) {
     const {convertToDisplayString} = useCurrencyListActions();
@@ -244,6 +278,27 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.INDIVIDUAL_EXPENSES_MENU_ITEM}
                     numberOfLinesDescription={1}
                 />
+                {/* TODO: remove before merging — temporary side-by-side of the best the compound API can do today.
+                    Remaining gaps vs the legacy row above: `Title` is always bold and never muted (legacy
+                    `shouldShowBasicTitle` + `colorMuted`), and `Description` always wraps to 2 lines
+                    (legacy `numberOfLinesDescription={1}`). */}
+                <MenuItemSectionRow
+                    onPress={canWriteRules ? () => handleMenuItemPress(item) : undefined}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.INDIVIDUAL_EXPENSES_MENU_ITEM}
+                >
+                    <MenuItem.Row>
+                        <MenuItemCompactIcon src={item.icon} />
+                        <MenuItem.Content>
+                            {item.description ? <MenuItem.TitleBasic>{item.title}</MenuItem.TitleBasic> : <MenuItem.TitlePlaceholder>{item.title}</MenuItem.TitlePlaceholder>}
+                            {!!item.description && <MenuItem.Description>{item.description}</MenuItem.Description>}
+                        </MenuItem.Content>
+                        {canWriteRules && (
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        )}
+                    </MenuItem.Row>
+                </MenuItemSectionRow>
             </OfflineWithFeedback>
         ));
 
@@ -255,7 +310,6 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             titleStyles={styles.accountSettingsSectionTitle}
             subtitleMuted
             subtitleStyles={styles.mt0}
-            containerStyles={styles.mh5}
         >
             <View style={styles.mt3}>
                 {renderMenuItems(policyControlItems)}
