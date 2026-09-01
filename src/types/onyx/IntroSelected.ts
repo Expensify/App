@@ -3,7 +3,16 @@ import type {OnboardingInvite} from '@src/CONST';
 import type {OnboardingPurpose} from './index';
 
 /** The tasks of IntroSelected model */
-type IntroSelectedTask = 'viewTour' | 'createWorkspace' | 'setupCategories' | 'setupTags' | 'setupCategoriesAndTags' | 'addWorkEmail' | 'validateEmail' | 'joinWorkspace';
+type IntroSelectedTask =
+    | 'viewTour'
+    | 'createWorkspace'
+    | 'setupCategories'
+    | 'setupTags'
+    | 'setupCategoriesAndTags'
+    | 'reviewWorkspaceSettings'
+    | 'addWorkEmail'
+    | 'validateEmail'
+    | 'joinWorkspace';
 
 /** Model of onboarding */
 type IntroSelected = {
@@ -36,6 +45,9 @@ type IntroSelected = {
 
     /** Task reportID for 'setupCategoriesAndTags' type */
     setupCategoriesAndTags?: string;
+
+    /** Task reportID for 'reviewWorkspaceSettings' type */
+    reviewWorkspaceSettings?: string;
 
     /** Task reportID for 'addWorkEmail' type */
     addWorkEmail?: string;

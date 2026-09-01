@@ -7,6 +7,7 @@ import PopoverMenu from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -26,6 +27,7 @@ import {isSafari} from '@libs/Browser';
 import getButtonState from '@libs/getButtonState';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
+import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
 import {isGroupPolicyByType} from '@libs/PolicyUtils';
 import {
     canCreateTaskInReport,
@@ -177,6 +179,11 @@ function AttachmentPickerWithMenuItems({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const distanceExpenseType = getDistanceExpenseTypeForPolicy(policy, lastDistanceExpenseType);
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        policyID: policy?.id,
+        isDistanceRequest: true,
+    });
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -267,10 +274,12 @@ function AttachmentPickerWithMenuItems({
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_TRACK_DISTANCE,
                     onSelected: () =>
-                        selectOption(
-                            () => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs, lastDistanceExpenseType),
-                            true,
-                        ),
+                        selectOption(() => {
+                            if (blockDistanceRequestIfNeeded()) {
+                                return;
+                            }
+                            startDistanceRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs, distanceExpenseType);
+                        }, true),
                 },
             ],
             [CONST.IOU.TYPE.PAY]: [
@@ -304,10 +313,12 @@ function AttachmentPickerWithMenuItems({
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_TRACK_DISTANCE,
                     onSelected: () =>
-                        selectOption(
-                            () => startDistanceRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs, lastDistanceExpenseType),
-                            true,
-                        ),
+                        selectOption(() => {
+                            if (blockDistanceRequestIfNeeded()) {
+                                return;
+                            }
+                            startDistanceRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs, distanceExpenseType);
+                        }, true),
                 },
             ],
             [CONST.IOU.TYPE.INVOICE]: [
@@ -328,10 +339,11 @@ function AttachmentPickerWithMenuItems({
         return moneyRequestOptionsList.flat().filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
     }, [
         accountID,
+        blockDistanceRequestIfNeeded,
         isDelegateAccessRestricted,
         isReportArchived,
         isRestrictedToPreferredPolicy,
-        lastDistanceExpenseType,
+        distanceExpenseType,
         policy,
         report,
         reportParticipantIDs,
@@ -483,7 +495,7 @@ function AttachmentPickerWithMenuItems({
                                             }}
                                             style={({hovered, pressed}) => [
                                                 styles.composerSizeButton,
-                                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered && !disabled, pressed && !disabled)),
+                                                StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: hovered && !disabled, isPressed: pressed && !disabled})),
                                             ]}
                                             disabled={disabled}
                                             role={CONST.ROLE.BUTTON}
@@ -492,7 +504,7 @@ function AttachmentPickerWithMenuItems({
                                         >
                                             {({hovered, pressed}) => (
                                                 <Icon
-                                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered && !disabled, pressed && !disabled))}
+                                                    fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: hovered && !disabled, isPressed: pressed && !disabled})})}
                                                     src={icons.Plus}
                                                 />
                                             )}
@@ -537,6 +549,7 @@ function AttachmentPickerWithMenuItems({
                             }}
                             menuItems={menuItems}
                             anchorRef={actionButtonRef}
+                            enableEdgeToEdgeBottomSafeAreaPadding
                         />
                     </>
                 );

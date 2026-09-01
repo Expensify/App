@@ -1,5 +1,6 @@
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
+import ExportDownloadStatusManager from '@components/ExportDownloadStatusManager';
 import GPSInProgressModal from '@components/GPSInProgressModal';
 import GPSTripStateChecker from '@components/GPSTripStateChecker';
 import {KeyboardDismissibleFlatListContextProvider} from '@components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
@@ -72,6 +73,7 @@ import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import SubmitPlanWelcomeModalNavigator from './Navigators/SubmitPlanWelcomeModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import {loadRightModalNavigator, loadSearchRouterPage} from './searchRouterLazyLoaders';
+import SubmitIntentDeeplinkHandler from './SubmitIntentDeeplinkHandler';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
 import ThreeDSAuthHandler from './ThreeDSAuthHandler';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
@@ -164,9 +166,11 @@ function AuthScreens() {
         <>
             <AuthScreensInitHandler />
             <SearchRouterWarmup />
+            <SubmitIntentDeeplinkHandler />
             <ThreeDSAuthHandler />
             <UserStatusHandler />
             <SupportalPermissionDeniedModal />
+            <ExportDownloadStatusManager />
             <DelegatorConnectGuard>
                 <ComposeProviders
                     components={[
