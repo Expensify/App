@@ -7,8 +7,13 @@ import CONST from '@src/CONST';
 import type {StyleProp, TextStyle} from 'react-native';
 
 type HeaderTitleTextProps = {
+    /** The title text to display */
     children: string;
+
+    /** Additional text styles */
     style?: StyleProp<TextStyle>;
+
+    /** Maximum number of lines before the title truncates */
     numberOfLines?: number;
 };
 

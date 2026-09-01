@@ -3,6 +3,7 @@ import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type HeaderTitleSubtitleProps = {
+    /** The subtitle text to display */
     children: string;
 };
 

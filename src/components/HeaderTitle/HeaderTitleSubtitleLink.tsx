@@ -5,6 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {Linking} from 'react-native';
 
 type HeaderTitleSubtitleLinkProps = {
+    /** The URL to open on press, also used as the displayed link text */
     children: string;
 };
 
