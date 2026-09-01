@@ -123,7 +123,7 @@ function ContextMenuItem({
                 <Icon
                     size={CONST.ICON_SIZE.SMALL}
                     src={itemIcon}
-                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isThrottledButtonActive))}
+                    fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: hovered, isPressed: pressed, isComplete: !isThrottledButtonActive})})}
                 />
             )}
         </BaseMiniContextMenuItem>

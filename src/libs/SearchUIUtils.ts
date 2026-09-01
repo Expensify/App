@@ -58,6 +58,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 
 import type {ThemeColors} from '@styles/theme/types';
+import type {ButtonVariant} from '@styles/utils/types';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -126,6 +127,7 @@ import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getSubmitToAccountID,
     getTagGLCode,
+    isArchivedOrPendingDeletePolicy,
     isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyAdmin,
@@ -335,6 +337,7 @@ const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: 'approved' as const,
     [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER]: 'formattedFirstApprover' as const,
     [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED]: 'firstApproved' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.PAID_BY]: 'formattedPaidBy' as const,
     [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: 'exported' as const,
     [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'formattedStatus' as const,
     [CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS]: 'formattedPaidStatus' as const,
@@ -596,7 +599,7 @@ type SearchTypeMenuItem = {
         buttons?: Array<{
             buttonText: TranslationPaths;
             buttonAction: () => void;
-            success?: boolean;
+            buttonVariant?: ButtonVariant;
             icon?: IconAsset;
             isDisabled?: boolean;
         }>;
@@ -1800,6 +1803,7 @@ type PreprocessingContext = {
     lastExportedActionByReportID: Map<string, OnyxTypes.ReportAction>;
     exportedToNamesByReportID: Map<string, Set<string>>;
     firstApprovedActionByReportID: Map<string, OnyxTypes.ReportAction>;
+    lastReimbursedActionByReportID: Map<string, OnyxTypes.ReportAction>;
     moneyRequestReportActionsByTransactionID: Map<string, OnyxTypes.ReportAction>;
     holdReportActionsByTransactionID: Map<string, OnyxTypes.ReportAction>;
     allHoldReportActions: Map<string, OnyxTypes.ReportAction>;
@@ -1827,6 +1831,7 @@ function createPreprocessingContext(): PreprocessingContext {
         lastExportedActionByReportID: new Map(),
         exportedToNamesByReportID: new Map(),
         firstApprovedActionByReportID: new Map(),
+        lastReimbursedActionByReportID: new Map(),
         moneyRequestReportActionsByTransactionID: new Map(),
         holdReportActionsByTransactionID: new Map(),
         allHoldReportActions: new Map(),
@@ -1850,8 +1855,11 @@ function createPreprocessingContext(): PreprocessingContext {
  * Indexes report actions by building the latest-export map, money-request lookup,
  * hold-action lookup, and year-created flag from action dates.
  */
-function processReportActionEntry(ctx: PreprocessingContext, key: string, actions: Record<string, OnyxTypes.ReportAction>): void {
+function processReportActionEntry(ctx: PreprocessingContext, key: string, actions: Record<string, OnyxTypes.ReportAction>, data: OnyxTypes.SearchResults['data']): void {
     const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
+    const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
+    const isReportPaid = report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
     let latestExportTime = -Infinity;
     let latestExportAction: OnyxTypes.ReportAction | undefined;
@@ -1859,6 +1867,10 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
     // The first approver is the actor on the earliest APPROVED/FORWARDED action.
     let firstApprovalTime = Infinity;
     let firstApprovalAction: OnyxTypes.ReportAction | undefined;
+
+    // The paid-by user is the actor on the latest payment action.
+    let lastReimbursedTime = -Infinity;
+    let lastReimbursedAction: OnyxTypes.ReportAction | undefined;
 
     for (const action of Object.values(actions)) {
         if (action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV || action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
@@ -1884,6 +1896,19 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
             }
         }
 
+        if (
+            isReportPaid &&
+            (action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSED ||
+                action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED ||
+                action.actionName === CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION)
+        ) {
+            const currentTime = new Date(action.created).getTime();
+            if (currentTime > lastReimbursedTime) {
+                lastReimbursedTime = currentTime;
+                lastReimbursedAction = action;
+            }
+        }
+
         if (isMoneyRequestAction(action)) {
             const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action);
             const transactionID = originalMessage?.IOUTransactionID;
@@ -1905,6 +1930,10 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
 
     if (firstApprovalAction) {
         ctx.firstApprovedActionByReportID.set(reportID, firstApprovalAction);
+    }
+
+    if (lastReimbursedAction) {
+        ctx.lastReimbursedActionByReportID.set(reportID, lastReimbursedAction);
     }
 }
 
@@ -2044,7 +2073,7 @@ function classifyAndPreprocess(data: OnyxTypes.SearchResults['data']): Omit<Prep
 
     for (const key of Object.keys(data)) {
         if (isReportActionEntry(key)) {
-            processReportActionEntry(ctx, key, data[key]);
+            processReportActionEntry(ctx, key, data[key], data);
         } else if (isReportEntry(key)) {
             ctx.reportKeys.push(key);
             processReportEntry(ctx, data[key]);
@@ -2105,7 +2134,7 @@ function hasVisibleViolations(
                 }
             }
 
-            if (!hasUserVisible && shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction)) {
+            if (!hasUserVisible && shouldShowViolation(report, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction)) {
                 hasUserVisible = true;
             }
 
@@ -2540,10 +2569,8 @@ function getActions(
     }
 
     const reportNVP = getReportNameValuePairsFromKey(data, report);
-    const isIOUReportArchived = isArchivedReport(reportNVP);
 
     const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
-    const isChatReportArchived = isArchivedReport(chatReportRNVP);
 
     // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
     // If this condition is not met, return early for performance reasons
@@ -2598,7 +2625,7 @@ function getActions(
     // We check submit eligibility separately from approve: on Submit workspaces the popover picks
     // the manager, so don't block Submit when the default submit-to route is the owner.
     if (
-        canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived, currentUserLogin, currentUserAccountID) &&
+        canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isArchivedOrPendingDeletePolicy(policy), currentUserLogin, currentUserAccountID) &&
         isSubmitActionAllowedForSearch(report, policy, submitToAccountID, currentUserAccountID)
     ) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
@@ -2791,6 +2818,9 @@ type CreateAndOpenSearchTransactionThreadParams = {
     /** Beta features list */
     betas: OnyxEntry<OnyxTypes.Beta[]>;
 
+    /** The Concierge chat report */
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
+
     /** The personal details of the participants */
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
@@ -2828,6 +2858,7 @@ function createAndOpenSearchTransactionThread({
     transactionPreviewData,
     shouldNavigate = true,
     getCurrencyDecimals,
+    conciergeChat,
 }: CreateAndOpenSearchTransactionThreadParams): string | undefined {
     const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
@@ -2857,6 +2888,7 @@ function createAndOpenSearchTransactionThread({
         const reportActionToPass = iouReportAction ?? item.reportAction ?? ({reportActionID} as OnyxTypes.ReportAction);
         transactionThreadReport = createTransactionThreadReport({
             introSelected,
+            conciergeChat,
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
             betas,
@@ -3052,6 +3084,7 @@ function getReportSections({
         lastExportedActionByReportID,
         exportedToNamesByReportID,
         firstApprovedActionByReportID,
+        lastReimbursedActionByReportID,
         moneyRequestReportActionsByTransactionID,
         holdReportActionsByTransactionID,
         transactionsByReportID,
@@ -3112,6 +3145,12 @@ function getReportSections({
                 const formattedTo = !shouldShowBlankTo ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: toDetails, translate, formatPhoneNumber}) : '';
                 const formattedFirstApprover = firstApproverAccountID ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: firstApproverDetails, translate, formatPhoneNumber}) : '';
 
+                // The paid-by user is the actor on the latest payment action. It stays blank until the report is paid.
+                const lastReimbursedAction = lastReimbursedActionByReportID.get(reportItem.reportID);
+                const paidByAccountID = lastReimbursedAction?.actorAccountID;
+                const paidByDetails = paidByAccountID ? mergedPersonalDetails?.[paidByAccountID] : undefined;
+                const formattedPaidBy = paidByAccountID ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: paidByDetails, translate, formatPhoneNumber}) : '';
+
                 const formattedStatus = getReportStatusTranslation({stateNum: reportItem.stateNum, statusNum: reportItem.statusNum, translate});
                 const formattedPaidStatus = getReportStatusTooltipTranslation({stateNum: reportItem.stateNum, statusNum: reportItem.statusNum, translate});
                 const policy = getPolicyFromKey(data, reportItem);
@@ -3159,6 +3198,9 @@ function getReportSections({
                     firstApproverAvatar: firstApproverDetails?.avatar,
                     firstApproverAccountID,
                     formattedFirstApprover,
+                    paidByAvatar: paidByDetails?.avatar,
+                    paidByAccountID,
+                    formattedPaidBy,
                     formattedFrom,
                     formattedTo,
                     formattedStatus,
@@ -3298,7 +3340,7 @@ function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key:
 function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: SearchFilterKey, filterValue: string | number): SearchQueryJSON | undefined {
     const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== filterKey);
     newFlatFilters.push({key: filterKey, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: filterValue}]});
-    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, flatFilters: newFlatFilters};
     const specificGroupQueryJSON = buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
     if (!specificGroupQueryJSON || filterKey !== CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
         return specificGroupQueryJSON;
@@ -3426,7 +3468,7 @@ function buildDateRangeGroupQuery(queryJSON: SearchQueryJSON, dateRange: {start:
             {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: end},
         ],
     });
-    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, flatFilters: newFlatFilters};
     const transactionsQueryJSON = buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
     return {transactionsQueryJSON, start, end};
 }
@@ -3743,16 +3785,14 @@ function getMonthSections(
                 queryJSON && monthGroup.year && monthGroup.month ? buildDateRangeGroupQuery(queryJSON, DateUtils.getMonthDateRange(monthGroup.year, monthGroup.month)) : undefined;
             const transactionsQueryJSON = dateResult?.transactionsQueryJSON;
 
-            const monthDate = new Date(monthGroup.year, monthGroup.month - 1, 1);
-            const formattedMonth = format(monthDate, 'MMMM yyyy', {locale: dateFnsLocale});
-
             monthSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
                 transactions: [],
                 transactionsQueryJSON,
                 keyForList: key,
                 ...monthGroup,
-                formattedMonth,
+                formattedMonth: DateUtils.getFormattedMonthForSearch(monthGroup.year, monthGroup.month, dateFnsLocale),
+                shortFormattedMonth: DateUtils.getShortFormattedMonthForSearch(monthGroup.year, monthGroup.month, dateFnsLocale),
                 sortKey: monthGroup.year * 100 + monthGroup.month,
             };
         }
@@ -3781,7 +3821,10 @@ function getWeekSections(
             const rawRange = DateUtils.getWeekDateRange(weekGroup.week);
             const dateResult = queryJSON && weekGroup.week ? buildDateRangeGroupQuery(queryJSON, rawRange) : undefined;
             const transactionsQueryJSON = dateResult?.transactionsQueryJSON;
-            const formattedWeek = DateUtils.getFormattedDateRangeForSearch(dateResult?.start ?? rawRange.start, dateResult?.end ?? rawRange.end, dateFnsLocale);
+            const weekStart = dateResult?.start ?? rawRange.start;
+            const weekEnd = dateResult?.end ?? rawRange.end;
+            const formattedWeek = DateUtils.getFormattedDateRangeForSearch(weekStart, weekEnd, dateFnsLocale);
+            const shortFormattedWeek = DateUtils.getShortFormattedDateRangeForSearch(weekStart, weekEnd, dateFnsLocale);
 
             weekSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
@@ -3789,6 +3832,7 @@ function getWeekSections(
                 transactionsQueryJSON,
                 ...weekGroup,
                 formattedWeek,
+                shortFormattedWeek,
                 keyForList: key,
             };
         }
@@ -3847,6 +3891,7 @@ function getQuarterSections(
                     ? buildDateRangeGroupQuery(queryJSON, DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter))?.transactionsQueryJSON
                     : undefined;
             const formattedQuarter = DateUtils.getFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, dateFnsLocale);
+            const shortFormattedQuarter = DateUtils.getShortFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter);
 
             quarterSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
@@ -3854,6 +3899,7 @@ function getQuarterSections(
                 transactionsQueryJSON,
                 ...quarterGroup,
                 formattedQuarter,
+                shortFormattedQuarter,
                 sortKey: quarterGroup.year * 10 + quarterGroup.quarter, // Sort by year*10 + quarter (e.g., 20241, 20242, etc.)
                 keyForList: key,
             };
@@ -4596,6 +4642,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
             return 'search.filters.firstApprover';
         case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED:
             return 'search.filters.firstApproved';
+        case CONST.SEARCH.TABLE_COLUMNS.PAID_BY:
+            return 'search.filters.paidBy';
         case CONST.SEARCH.TABLE_COLUMNS.POSTED:
             return 'search.filters.posted';
         case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
@@ -4891,7 +4939,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
                         buttons: hasEligibleGroupPolicies
                             ? [
                                   {
-                                      success: true,
+                                      buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                       buttonText: 'report.newReport.createExpense',
                                       buttonAction: () => {
                                           interceptAnonymousUser(() => {
@@ -5521,6 +5569,10 @@ const FILTER_VIEW_MAP = {
         labelKey: 'common.merchant',
         icon: 'Basket',
     },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY]: {
+        labelKey: 'search.filters.paidBy',
+        icon: 'MoneyBag',
+    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID]: {
         labelKey: 'workspace.common.workspace',
         icon: 'Building',
@@ -5837,6 +5889,8 @@ function getDisplayValue(
         key === FILTER_KEYS.TO_NOT ||
         key === FILTER_KEYS.ATTENDEE ||
         key === FILTER_KEYS.ASSIGNEE ||
+        key === FILTER_KEYS.PAID_BY ||
+        key === FILTER_KEYS.PAID_BY_NOT ||
         key === FILTER_KEYS.TAX_RATE ||
         key === FILTER_KEYS.IN ||
         key === FILTER_KEYS.BANK_ACCOUNT ||
@@ -6957,6 +7011,7 @@ export {
     getSections,
     getSuggestedSearchesVisibility,
     getSortedSections,
+    getSortedTransactionData,
     getViolationsFromSearchData,
     getTransactionsByReportID,
     isTransactionMatchWithGroupItem,

@@ -10,7 +10,12 @@ import {
 } from '@components/Search/SearchRouter/SearchRouterHelpers';
 import type {NavigationSuggestionSourceItem} from '@components/Search/SearchRouter/SearchRouterHelpers';
 import * as CreateNavigationSuggestions from '@components/Search/SearchRouter/useCreateNavigationSuggestions';
-import useNavigationSuggestions, {buildAccountNavigationItems, buildSpendNavigationItems, buildTopLevelNavigationItems} from '@components/Search/SearchRouter/useNavigationSuggestions';
+import useNavigationSuggestions, {
+    buildAccountNavigationItems,
+    buildDomainNavigationItems,
+    buildSpendNavigationItems,
+    buildTopLevelNavigationItems,
+} from '@components/Search/SearchRouter/useNavigationSuggestions';
 
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,8 +27,10 @@ import type {MenuData, MenuSection} from '@pages/settings/useSettingsNavigationM
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Domain} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import {isValidElement} from 'react';
@@ -39,6 +46,8 @@ const mockUseMemoizedLazyExpensifyIcons = jest.fn<Record<string, IconAsset>, []>
 const mockUseCreateNavigationSuggestions = jest.fn<NavigationSuggestionSourceItem[], []>(() => []);
 const mockUseSettingsNavigationMenuData = jest.fn<{accountMenuItemsData: MenuSection; generalMenuItemsData: MenuSection}, []>();
 const mockClearSelectedTransactions = jest.fn();
+const mockUseOnyx = jest.fn<[unknown], [key: string]>(() => [undefined]);
+const currentUserAccountID = 1;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
@@ -52,6 +61,11 @@ jest.mock('@components/Search/SearchRouter/useCreateNavigationSuggestions', () =
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => mockUseMemoizedLazyExpensifyIcons(),
+}));
+
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
+    __esModule: true,
+    default: () => ({accountID: 1}),
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
@@ -68,8 +82,13 @@ jest.mock('@hooks/useLocalize', () => ({
                 ['common.inbox', 'Inbox'],
                 ['common.spend', 'Spend'],
                 ['common.workspacesTabTitle', 'Workspaces'],
-                ['common.profile', 'Profile'],
+                ['common.domains', 'Domains'],
                 ['initialSettingsPage.account', 'Account'],
+                ['domain.domainMembers', 'Domain members'],
+                ['domain.domainAdmins', 'Domain admins'],
+                ['domain.groups.title', 'Groups'],
+                ['domain.saml', 'SAML'],
+                ['common.profile', 'Profile'],
                 ['initialSettingsPage.security', 'Security'],
                 ['initialSettingsPage.help', 'Help'],
                 ['search.tabs.reports', 'Reports'],
@@ -82,7 +101,7 @@ jest.mock('@hooks/useLocalize', () => ({
 
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
-    default: () => [undefined],
+    default: (key: string) => mockUseOnyx(key),
 }));
 
 jest.mock('@hooks/useSearchTypeMenuSections', () => ({
@@ -110,6 +129,13 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 const localeCompare = (firstValue: string, secondValue: string) => firstValue.localeCompare(secondValue);
 const mockIcon: IconAsset = () => null;
+const domainIcons = {
+    Globe: mockIcon,
+    UserLock: mockIcon,
+    UserShield: mockIcon,
+    User: mockIcon,
+    Users: mockIcon,
+};
 const spendIcons = {
     Basket: mockIcon,
     CalendarSolid: mockIcon,
@@ -269,13 +295,14 @@ describe('top-level Search Router navigation source', () => {
         jest.clearAllMocks();
     });
 
-    it('builds only the five original top-level destinations with Go to labels', () => {
+    it('builds the top-level destinations with Go to labels', () => {
         const items = buildTopLevelNavigationItems({
             labels: {
                 home: 'Home',
                 inbox: 'Inbox',
                 spend: 'Spend',
                 workspaces: 'Workspaces',
+                domains: 'Domains',
                 account: 'Account',
             },
             icons: {
@@ -283,14 +310,15 @@ describe('top-level Search Router navigation source', () => {
                 Inbox: mockIcon,
                 ReceiptMultiple: mockIcon,
                 Building: mockIcon,
+                Globe: mockIcon,
                 Gear: mockIcon,
             },
             getSpendRoute: () => ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}),
             getDestinationText: (destination) => `Go to ${destination}`,
         });
 
-        expect(items.map((item) => item.text)).toEqual(['Go to Home', 'Go to Inbox', 'Go to Spend', 'Go to Workspaces', 'Go to Account']);
-        expect(items.map((item) => item.keyForList)).toEqual(['topLevelHome', 'topLevelInbox', 'topLevelSpend', 'topLevelWorkspaces', 'topLevelAccount']);
+        expect(items.map((item) => item.text)).toEqual(['Go to Home', 'Go to Inbox', 'Go to Spend', 'Go to Workspaces', 'Go to Domains', 'Go to Account']);
+        expect(items.map((item) => item.keyForList)).toEqual(['topLevelHome', 'topLevelInbox', 'topLevelSpend', 'topLevelWorkspaces', 'topLevelDomains', 'topLevelAccount']);
     });
 
     it('navigates each top-level row to its intended route', () => {
@@ -302,6 +330,7 @@ describe('top-level Search Router navigation source', () => {
                 inbox: 'Inbox',
                 spend: 'Spend',
                 workspaces: 'Workspaces',
+                domains: 'Domains',
                 account: 'Account',
             },
             icons: {
@@ -309,6 +338,7 @@ describe('top-level Search Router navigation source', () => {
                 Inbox: mockIcon,
                 ReceiptMultiple: mockIcon,
                 Building: mockIcon,
+                Globe: mockIcon,
                 Gear: mockIcon,
             },
             getSpendRoute,
@@ -324,7 +354,132 @@ describe('top-level Search Router navigation source', () => {
         expect(Navigation.navigate).toHaveBeenNthCalledWith(3, spendRoute);
         expect(getSpendRoute).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).toHaveBeenNthCalledWith(4, ROUTES.WORKSPACES_LIST.route);
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(5, ROUTES.SETTINGS);
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(5, ROUTES.DOMAINS_LIST.route);
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(6, ROUTES.SETTINGS);
+    });
+});
+
+describe('Domain Search Router navigation source', () => {
+    const adminAccessKey = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${currentUserAccountID}` as const;
+    const defaultSecurityGroupIDKey = 'domain_defaultSecurityGroupID' as const;
+    const labels = new Map([
+        ['domain.domainMembers', 'Domain members'],
+        ['domain.domainAdmins', 'Domain admins'],
+        ['domain.groups.title', 'Groups'],
+        ['domain.saml', 'SAML'],
+    ]);
+
+    function createDomain(accountID: number, email: string, adminAccountID: number, pendingAction?: Domain['pendingAction']): Domain {
+        return {
+            accountID,
+            email,
+            validated: true,
+            [defaultSecurityGroupIDKey]: '1',
+            pendingAction,
+            [adminAccessKey]: adminAccountID,
+        };
+    }
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockUseOnyx.mockReturnValue([undefined]);
+        mockUseCreateNavigationSuggestions.mockReturnValue([]);
+    });
+
+    it('reuses the shared Domain menu and includes only domains the current user can administer', () => {
+        const accessibleDomain = createDomain(123, 'admin@example.com', currentUserAccountID);
+        const inaccessibleDomain = createDomain(456, 'admin@inaccessible.com', 2);
+        const deletingDomain = createDomain(789, 'admin@deleting.com', currentUserAccountID, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const domainWithoutAccountID = createDomain(0, 'admin@noid.com', currentUserAccountID);
+        const onSelect = jest.fn();
+
+        const items = buildDomainNavigationItems({
+            domains: [null, undefined, domainWithoutAccountID, accessibleDomain, inaccessibleDomain, deletingDomain],
+            currentUserAccountID,
+            icons: domainIcons,
+            getItemText: (translationKey) => labels.get(translationKey) ?? translationKey,
+            getDestinationText: (destination) => `Go to ${destination}`,
+            getDomainContext: (domainName) => domainName,
+            onSelect,
+        });
+
+        expect(items.map((item) => item.text)).toEqual(['Go to Domain members', 'Go to Domain admins', 'Go to Groups', 'Go to SAML']);
+        expect(items.map((item) => item.singleIcon)).toEqual([domainIcons.User, domainIcons.UserShield, domainIcons.Users, domainIcons.UserLock]);
+        expect(items.map((item) => item.rightElement)).toEqual(['example.com', 'example.com', 'example.com', 'example.com']);
+        expect(items.map((item) => item.matchTerms)).toEqual([
+            ['Domain members', 'example.com'],
+            ['Domain admins', 'example.com'],
+            ['Groups', 'example.com'],
+            ['SAML', 'example.com'],
+        ]);
+        expect(items.every((item) => item.keyForList?.startsWith('domain_123_'))).toBe(true);
+
+        for (const item of items) {
+            item.action?.();
+        }
+        expect(onSelect).toHaveBeenNthCalledWith(1, ROUTES.DOMAIN_MEMBERS.getRoute(123));
+        expect(onSelect).toHaveBeenNthCalledWith(2, ROUTES.DOMAIN_ADMINS.getRoute(123));
+        expect(onSelect).toHaveBeenNthCalledWith(3, ROUTES.DOMAIN_GROUPS.getRoute(123));
+        expect(onSelect).toHaveBeenNthCalledWith(4, ROUTES.DOMAIN_SAML.getRoute(123));
+    });
+
+    it('matches Domain rows by subpage label or domain name', () => {
+        const items = buildDomainNavigationItems({
+            domains: [createDomain(123, 'admin@example.com', currentUserAccountID)],
+            currentUserAccountID,
+            icons: domainIcons,
+            getItemText: (translationKey) => labels.get(translationKey) ?? translationKey,
+            getDestinationText: (destination) => `Go to ${destination}`,
+            getDomainContext: (domainName) => domainName,
+            onSelect: jest.fn(),
+        });
+
+        expect(buildNavigationSuggestions('members', [items], localeCompare).map((item) => item.text)).toEqual(['Go to Domain members']);
+        expect(buildNavigationSuggestions('example', [items], localeCompare)).toHaveLength(4);
+    });
+
+    it('builds rows for every administrable Domain with Domain-scoped keys and context', () => {
+        const items = buildDomainNavigationItems({
+            domains: [createDomain(123, 'admin@example.com', currentUserAccountID), createDomain(456, 'admin@other.com', currentUserAccountID)],
+            currentUserAccountID,
+            icons: domainIcons,
+            getItemText: (translationKey) => labels.get(translationKey) ?? translationKey,
+            getDestinationText: (destination) => `Go to ${destination}`,
+            getDomainContext: (domainName) => domainName,
+            onSelect: jest.fn(),
+        });
+
+        expect(items).toHaveLength(8);
+        expect(items.filter((item) => item.keyForList?.startsWith('domain_123_'))).toHaveLength(4);
+        expect(items.filter((item) => item.keyForList?.startsWith('domain_456_'))).toHaveLength(4);
+        expect(items.map((item) => item.rightElement)).toEqual(['example.com', 'example.com', 'example.com', 'example.com', 'other.com', 'other.com', 'other.com', 'other.com']);
+    });
+
+    it('composes Domain rows in the Search Router with their localized context', () => {
+        const accessibleDomain = createDomain(123, 'admin@example.com', currentUserAccountID);
+        const domainCollectionKey = `${ONYXKEYS.COLLECTION.DOMAIN}${accessibleDomain.accountID}`;
+        mockUseOnyx.mockImplementation((key) => (key === ONYXKEYS.COLLECTION.DOMAIN ? [{[domainCollectionKey]: accessibleDomain}] : [undefined]));
+        mockUseMemoizedLazyExpensifyIcons.mockReturnValue({
+            ...spendIcons,
+            ...domainIcons,
+            Home: mockIcon,
+            Inbox: mockIcon,
+            ReceiptMultiple: mockIcon,
+            Building: mockIcon,
+            Gear: mockIcon,
+        });
+        mockUseSearchTypeMenuSections.mockReturnValue({typeMenuSections: [], activeItemIndex: -1, activeKey: undefined});
+
+        const {result} = renderHook(() => useNavigationSuggestions('members'));
+
+        expect(result.current).toHaveLength(1);
+        expect(result.current.at(0)).toMatchObject({text: 'Go to Domain members', singleIcon: domainIcons.User});
+        const rightElement = result.current.at(0)?.rightElement;
+        expect(isValidElement<{text: string; icon: IconAsset}>(rightElement)).toBe(true);
+        if (!isValidElement<{text: string; icon: IconAsset}>(rightElement)) {
+            throw new Error('Expected Domain navigation context to be a React element');
+        }
+        expect(rightElement.props).toMatchObject({text: 'example.com', icon: domainIcons.Globe});
     });
 });
 
@@ -336,6 +491,7 @@ describe('Create Search Router navigation source', () => {
         {visible: true, text: 'Track distance', icon: mockIcon, action: createAction, keyForList: 'create_trackDistance'},
         {visible: true, text: 'Start chat', icon: mockIcon, action: createAction, keyForList: 'create_chat', matchTerms: ['Start chat', 'New chat screen']},
         {visible: false, text: 'Create invoice', icon: mockIcon, action: createAction, keyForList: 'create_invoice'},
+        {visible: true, text: 'Book travel', icon: mockIcon, action: createAction, keyForList: 'create_travel'},
         {visible: false, text: 'New workspace', icon: mockIcon, action: createAction, keyForList: 'create_workspace', matchTerms: ['New workspace', 'Create workspace']},
     ];
 
@@ -346,13 +502,13 @@ describe('Create Search Router navigation source', () => {
     it('builds visible Create rows with direct action labels and excludes unavailable items', () => {
         const items = CreateNavigationSuggestions.buildCreateNavigationItems(createItems);
 
-        expect(items.map((item) => item.text)).toEqual(['Create expense', 'Create report', 'Track distance', 'Start chat']);
-        expect(items.map((item) => item.keyForList)).toEqual(['create_expense', 'create_report', 'create_trackDistance', 'create_chat']);
-        expect(items.map((item) => item.singleIcon)).toEqual([mockIcon, mockIcon, mockIcon, mockIcon]);
-        expect(items.map((item) => item.matchTerms)).toEqual([['Create expense', 'Add expense'], ['Create report'], ['Track distance'], ['Start chat', 'New chat screen']]);
+        expect(items.map((item) => item.text)).toEqual(['Create expense', 'Create report', 'Track distance', 'Start chat', 'Book travel']);
+        expect(items.map((item) => item.keyForList)).toEqual(['create_expense', 'create_report', 'create_trackDistance', 'create_chat', 'create_travel']);
+        expect(items.map((item) => item.singleIcon)).toEqual([mockIcon, mockIcon, mockIcon, mockIcon, mockIcon]);
+        expect(items.map((item) => item.matchTerms)).toEqual([['Create expense', 'Add expense'], ['Create report'], ['Track distance'], ['Start chat', 'New chat screen'], ['Book travel']]);
         expect(items.some((item) => item.text?.startsWith('Go to'))).toBe(false);
         expect(items.some((item) => item.keyForList === 'create_invoice' || item.keyForList === 'create_workspace')).toBe(false);
-        expect(items.some((item) => item.keyForList === 'create_travel' || item.keyForList === 'create_quickAction')).toBe(false);
+        expect(items.some((item) => item.keyForList === 'create_quickAction')).toBe(false);
     });
 
     it('matches Create rows through the existing navigation suggestion pipeline', () => {
@@ -362,6 +518,9 @@ describe('Create Search Router navigation source', () => {
         expect(buildNavigationSuggestions('add expense', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_expense']);
         expect(buildNavigationSuggestions('new chat', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_chat']);
         expect(buildNavigationSuggestions('go to track distance', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_trackDistance']);
+        expect(buildNavigationSuggestions('book travel', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_travel']);
+        expect(buildNavigationSuggestions('BOOK TRAVEL', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_travel']);
+        expect(buildNavigationSuggestions('go to book     travel', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_travel']);
     });
 
     it('matches hidden Create aliases without changing row text', () => {
