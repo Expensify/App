@@ -188,8 +188,7 @@ function resolveSplitItemRate({
         return {rate: fallbackMileageRate.rate, unit};
     }
 
-    const selectedRate =
-        DistanceRequestUtils.getRateByCustomUnitRateID({policy, customUnitRateID}) ?? DistanceRequestUtils.getEnabledRateByCustomUnitRateIDFromAnyPolicy(customUnitRateID, policies);
+    const selectedRate = DistanceRequestUtils.getRateByCustomUnitRateIDAcrossPolicies({policy, customUnitRateID, policies});
     if (!selectedRate?.rate || selectedRate.rate <= 0 || selectedRate.enabled === false) {
         return {rate: fallbackMileageRate.rate, unit};
     }
