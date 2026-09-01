@@ -3,6 +3,7 @@ import {render, screen} from '@testing-library/react-native';
 import Navigation from '@libs/Navigation/Navigation';
 
 import MyTripsPage from '@pages/Travel/MyTripsPage';
+import type {MyTripsPageProps} from '@pages/Travel/MyTripsPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -112,14 +113,14 @@ const otherTravelEnabledPolicy: Policy = {
     travelSettings,
 };
 
-function renderMyTripsPage(policyID?: string) {
+function renderMyTripsPage(policyID?: string): ReturnType<typeof render> {
     return render(
         <MyTripsPage
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             {...({
                 route: {key: ROUTE_KEY, name: 'Travel_MyTrips', params: policyID ? {policyID} : {}},
                 navigation: {},
-            } as unknown as React.ComponentProps<typeof MyTripsPage>)}
+            } as unknown as MyTripsPageProps)}
         />,
     );
 }
@@ -196,6 +197,7 @@ describe('MyTripsPage', () => {
         renderMyTripsPage('unknownPolicyID');
         await waitForBatchedUpdatesWithAct();
 
+        expect(screen.getByTestId('manage-trips-policyID')).toHaveTextContent('unknownPolicyID');
         expect(screen.getByTestId('wrapper-policyID')).toHaveTextContent('unknownPolicyID');
         expect(Navigation.setParams).not.toHaveBeenCalled();
     });

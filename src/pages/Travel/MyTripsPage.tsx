@@ -66,3 +66,4 @@ function MyTripsPage({route}: MyTripsPageProps) {
 }
 
 export default MyTripsPage;
+export type {MyTripsPageProps};
