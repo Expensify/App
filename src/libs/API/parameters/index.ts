@@ -307,6 +307,8 @@ export type {default as UpdateGustoFinalApproverParams} from './UpdateGustoFinal
 export type {default as UpdateMergeApprovalModeParams} from './UpdateMergeApprovalModeParams';
 export type {default as UpdateMergeFinalApproverParams} from './UpdateMergeFinalApproverParams';
 export type {default as UpdateMergeGroupsParams} from './UpdateMergeGroupsParams';
+export type {default as UpdateMergeATSFiltersParams} from './UpdateMergeATSFiltersParams';
+export type {default as UpdateMergeATSApproverFieldParams} from './UpdateMergeATSApproverFieldParams';
 export type {default as UpdateZenefitsApprovalModeParams} from './UpdateZenefitsApprovalModeParams';
 export type {default as UpdateZenefitsFinalApproverParams} from './UpdateZenefitsFinalApproverParams';
 export type {default as AcceptJoinRequestParams} from './AcceptJoinRequest';
@@ -565,6 +567,7 @@ export type {default as SendReminderForCorpaySignerInformationParams} from './Se
 export type {default as SendScheduleCallNudgeParams} from './SendScheduleCallNudge';
 export type {default as DomainParams} from './DomainParams';
 export type {default as OpenDomainPageParams} from './OpenDomainPageParams';
+export type {default as RequestDomainAdminshipParams} from './RequestDomainAdminshipParams';
 export type {default as GetScimTokenParams} from './GetScimTokenParams';
 export type {default as SetSamlIdentityParams} from './SetSamlIdentityParams';
 export type {default as UpdateSamlEnabledParams} from './UpdateSamlEnabledParams';

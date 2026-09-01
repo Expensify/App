@@ -424,6 +424,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseReport: 'Spesenabrechnung',
         rateOutOfPolicy: 'Satz außerhalb der Richtlinie',
         leaveWorkspace: 'Arbeitsbereich verlassen',
+        leaveWorkspaceTitle: (workspaceName: string) => `${workspaceName} verlassen?`,
         leaveWorkspaceConfirmation: 'Wenn du diesen Workspace verlässt, kannst du keine Ausgaben mehr dafür einreichen.',
         leaveWorkspaceConfirmationAuditor: 'Wenn du diesen Workspace verlässt, kannst du seine Berichte und Einstellungen nicht mehr anzeigen.',
         leaveWorkspaceConfirmationAdmin: 'Wenn du diesen Workspace verlässt, kannst du seine Einstellungen nicht mehr verwalten.',
@@ -4593,6 +4594,10 @@ ${amount} für ${merchant} – ${date}`,
                 'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Sparen Sie sich das nächste Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Und dass Belege dabei automatisch für Sie hochgeladen werden? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            hotelBlockManual:
+                'Wussten Sie, dass Sie Gruppenreisen wie diese direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand und probieren Sie unser Tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reise-Events</a> aus.',
+            hotelBlockCard:
+                'Wussten Sie, dass Sie Gruppenreisen wie diese direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand und probieren Sie unser Tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reise-Events</a> aus.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Reisen ist nicht aktiviert',
@@ -4652,6 +4657,7 @@ ${amount} für ${merchant} – ${date}`,
             settlementFrequency: 'Auszahlungsfrequenz',
             setAsDefault: 'Als Standard-Arbeitsbereich festlegen',
             defaultNote: `Belege, die an ${CONST.EMAIL.RECEIPTS} gesendet werden, erscheinen in diesem Workspace.`,
+            deleteWorkspaceTitle: (workspaceName: string) => `${workspaceName} löschen?`,
             deleteConfirmation: 'Möchten Sie diesen Workspace wirklich löschen?',
             deleteWithCardsConfirmation: 'Möchtest du diesen Workspace wirklich löschen? Dadurch werden alle Kartenfeeds und zugewiesenen Karten entfernt.',
             deleteOpenExpensifyCardsError: 'Ihre Firma hat noch Expensify Karten. Bitte <concierge-link>wenden Sie sich an Concierge</concierge-link>, um sie zu entfernen.',
@@ -6076,6 +6082,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     comment: 'Beschreibung',
                     category: 'Kategorie',
                     tag: 'Tag',
+                    uniqueID: 'Eindeutige ID',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Bitte weisen Sie jeder der folgenden Eigenschaften eine Spalte zu: ${missingColumns}.`,
@@ -6553,7 +6560,12 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 defaultHourlyRate: 'Standardstundensatz',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Um HR zu deaktivieren, trennen Sie bitte zuerst ${integration} von diesem Workspace.`},
-            vendors: {title: 'Lieferanten', subtitle: 'Ordnen Sie Kartenausgaben den aus Ihrer Buchhaltungssoftware importierten Lieferanten zu.'},
+            vendors: {
+                title: 'Lieferanten',
+                subtitle: 'Ordnen Sie Kartenausgaben den aus Ihrer Buchhaltungssoftware importierten Lieferanten zu.',
+                disabledTitle: 'Nicht so schnell...',
+                disabledMessage: 'Um diese Funktion zu aktivieren oder zu deaktivieren, müssen Sie Ihre Buchhaltungsimporteinstellungen ändern.',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Beispiele:',
@@ -8345,6 +8357,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus.',
                 confirmErrorAmount: 'Bitte geben Sie einen Betrag ein.',
                 thenFlagForReview: 'Dann zur Überprüfung kennzeichnen, wenn:',
+                thenDoTheFollowing: 'Führen Sie dann Folgendes aus:',
+                flagType: 'Markierungstyp',
+                flagTypeWarning: 'Warnung',
+                flagTypeWarningDescription: 'Die einreichende Person wird gewarnt, kann die Ausgabe aber trotzdem einreichen',
             },
             agentRulesEmptyState: {
                 title: 'Keine Agentenregeln hinzugefügt',
@@ -8456,13 +8472,15 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Verbunden. ${setupLink ? `<a href="${setupLink}">Einrichtung abschließen</a>` : 'Einrichtung abschließen'} zum Importieren von Mitarbeitenden.</muted-text-label>`,
                 groups: {title: 'Gruppen', description: 'Wählen Sie die Mitarbeitergruppen aus, die Sie mit diesem Workspace synchronisieren möchten'},
-                syncLimitReached: {title: 'Versuchen Sie es morgen noch einmal', prompt: 'Sie haben Ihr Synchronisierungslimit für heute erreicht.'},
             },
             notSync: 'Nicht synchronisiert',
             authenticationError: (providerName: string) => `Verbindung mit ${providerName} aufgrund einer abgelaufenen Verknüpfung nicht möglich.`,
             reconnect: 'Erneut verbinden',
             reconnectLink: 'Erneut verbinden.',
             findIntegration: 'Integration finden',
+        },
+        merge: {
+            syncLimitReached: {title: 'Versuchen Sie es morgen noch einmal', prompt: 'Sie haben Ihr Synchronisierungslimit für heute erreicht.'},
         },
         emptyDomain: {
             title: 'Stärken Sie Ihre Sicherheit mit Domains',
@@ -9341,6 +9359,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             approved: 'Genehmigt',
             firstApprover: 'Erste:r Genehmiger:in',
             firstApproved: 'Zuerst genehmigt',
+            paidBy: 'Bezahlt von',
             paid: 'Bezahlt',
             exported: 'Exportiert',
             posted: 'Gebucht',
@@ -10769,6 +10788,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
     domain: {
         notVerified: 'Nicht verifiziert',
         retry: 'Wiederholen',
+        requestSent: 'Anfrage gesendet',
         verifyDomain: {
             title: 'Domain bestätigen',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -10842,6 +10862,14 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             subtitle: 'Gib den Namen der privaten Domain ein, auf die du zugreifen möchtest (z. B. expensify.com).',
             domainName: 'Domainname',
             newDomain: 'Neue Domain',
+            alreadyHaveAccessError: 'Diese Domain existiert bereits in deinem Konto.',
+        },
+        domainAlreadyExists: {
+            headerTitle: 'Domain existiert',
+            title: 'Domain bereits eingerichtet. Zugriff anfragen?',
+            description: 'Jemand hat diese Domain bereits in Expensify eingerichtet. Möchtest du Administratorzugriff anfragen?',
+            requestAccess: 'Admin-Zugriff anfragen',
+            requestAccessError: 'Wir konnten deine Anfrage nicht senden. Bitte versuche es erneut.',
         },
         domainAdded: {
             title: 'Domain hinzugefügt',
@@ -10936,6 +10964,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             forceTwoFactorAuthError: 'Die Erzwingung der Zwei-Faktor-Authentifizierung konnte nicht geändert werden. Bitte versuche es später erneut.',
             resetTwoFactorAuth: 'Zwei-Faktor-Authentifizierung zurücksetzen',
             error: 'Diese Änderung konnte nicht gespeichert werden. Bitte versuche es erneut.',
+            neverMind: 'Vergiss es',
         },
         groups: {
             title: 'Gruppen',
@@ -10944,7 +10973,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             defaultGroupPrompt: (currentName: string, newName: string) =>
                 `Möchtest du ${newName} wirklich zur Standardgruppe machen? Neue Mitglieder werden zu dieser Gruppe anstelle der bisherigen Standardgruppe (${currentName}) eingeladen. `,
             makeDefault: 'Als Standard festlegen',
-            neverMind: 'Vergiss es',
             createGroupError: 'Diese Gruppe konnte nicht erstellt werden. Bitte versuche es erneut.',
             permissions: 'Gruppenberechtigungen',
             createNewGroupButton: 'Neue Gruppe',

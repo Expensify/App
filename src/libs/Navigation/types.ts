@@ -131,8 +131,11 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]:
         | {
-              /** Whether the bank account purpose screen should be skipped after the account is validated */
-              shouldSkipPurposeSelection?: boolean;
+              /** Whether the bank account purpose screen should be skipped after the account is validated. */
+              shouldSkipPurposeSelection?: 'true';
+
+              /** Whether the US bank account flow should open after the account is validated. */
+              shouldSetUpUSBankAccount?: 'true';
           }
         | undefined;
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_REASON]: undefined;
@@ -247,7 +250,6 @@ type SettingsNavigatorParamList = {
         subPage?: string;
     };
     [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: undefined;
-    [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.AGENTS.NEW]: {
         policyID?: string;
     };
@@ -1513,12 +1515,6 @@ type SettingsNavigatorParamList = {
         policyID: string;
         feed: CompanyCardFeedWithDomainID;
     };
-    [SCREENS.WORKSPACE.COMPANY_CARDS_VERIFY_ACCOUNT]: {
-        policyID: string;
-
-        /** Present when verifying before a feed refresh; absent when verifying before adding a new feed */
-        feed?: CompanyCardFeedWithDomainID;
-    };
     [SCREENS.WORKSPACE.COMPANY_CARD_ADD_WORK_EMAIL]: {
         policyID: string;
         feed: CompanyCardFeedWithDomainID;
@@ -1619,6 +1615,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES_REIMBURSABLE_DEFAULT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_HR_SYNC_RESULTS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.HR_GUSTO_APPROVAL_MODE]: {
@@ -2706,6 +2705,9 @@ type WorkspacesDomainModalNavigatorParamList = {
     [SCREENS.WORKSPACES_DOMAIN_ACCESS_RESTRICTED]: {
         domainAccountID: number;
     };
+    [SCREENS.WORKSPACES_DOMAIN_ALREADY_EXISTS]: {
+        domainAccountID: number;
+    };
 };
 
 type AvatarCropNavigatorParamList = {
@@ -2770,6 +2772,8 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.EXPENSE_REPORT]: {
         reportID: string;
+        /** When 'true', the report opens scrolled to its latest message instead of the top (used by the "X Replies" link). */
+        shouldScrollToLatest?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
@@ -2778,6 +2782,8 @@ type RightModalNavigatorParamList = {
     };
     [SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT]: {
         reportID: string;
+        /** When 'true', the report opens scrolled to its latest message instead of the top (used by the "X Replies" link). */
+        shouldScrollToLatest?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
@@ -2836,6 +2842,8 @@ type ReportsSplitNavigatorParamList = {
         referrer?: string;
         /** Submit-via-PDF secure access link key. When present, the viewer is validated and joined to the report. */
         secureKey?: string;
+        /** When 'true', a money-request report opens scrolled to its latest message instead of the top (used by the "X Replies" link). */
+        shouldScrollToLatest?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
