@@ -307,7 +307,7 @@ function computeWithMetadata(formula?: string, context?: FormulaContext): {value
         switch (part.type) {
             case FORMULA_PART_TYPES.REPORT:
                 value = computeReportPart(part, context);
-                // Empty is a real value for submit and reimbursement-amount tokens; keep it.
+                // Empty is a real value for submit and reimbursement-amount tokens. Keep it instead of falling back to the raw definition.
                 if (value === '' && !isSubmissionInfoPart(part) && !isReimbursementAmountPart(part)) {
                     value = part.definition;
                 }
@@ -369,6 +369,17 @@ function computeAutoReportingInfo(part: FormulaPart, context: FormulaContext, su
 }
 
 /**
+ * Format a cross-border reimbursement amount (debited or credited), or empty if it hasn't happened yet.
+ */
+function formatReimbursementAmount(amount: number | undefined, currency: string | undefined, format: string | undefined, part: FormulaPart, context: FormulaContext): string {
+    if (!amount || !currency) {
+        return '';
+    }
+    const formattedAmount = formatAmount(amount, currency, format, context.getCurrencyDecimals);
+    return formattedAmount ?? part.definition;
+}
+
+/**
  * Compute the value of a report formula part
  */
 function computeReportPart(part: FormulaPart, context: FormulaContext): string {
@@ -404,20 +415,10 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
             const formattedAmount = formatAmount(getMoneyRequestSpendBreakdown(report).reimbursableSpend, report.currency, format, context.getCurrencyDecimals);
             return formattedAmount ?? '';
         }
-        case 'debitedamount': {
-            if (!report.debitedAmount || !report.debitedCurrency) {
-                return '';
-            }
-            const formattedAmount = formatAmount(report.debitedAmount, report.debitedCurrency, format, context.getCurrencyDecimals);
-            return formattedAmount ?? part.definition;
-        }
-        case 'creditedamount': {
-            if (!report.creditedAmount || !report.creditedCurrency) {
-                return '';
-            }
-            const formattedAmount = formatAmount(report.creditedAmount, report.creditedCurrency, format, context.getCurrencyDecimals);
-            return formattedAmount ?? part.definition;
-        }
+        case 'debitedamount':
+            return formatReimbursementAmount(report.debitedAmount, report.debitedCurrency, format, part, context);
+        case 'creditedamount':
+            return formatReimbursementAmount(report.creditedAmount, report.creditedCurrency, format, part, context);
         case 'currency':
             return report.currency ?? '';
         case 'policyname':
