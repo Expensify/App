@@ -19,12 +19,12 @@ import type Response from '@src/types/onyx/Response';
 import type {OnyxKey} from 'react-native-onyx';
 
 import type {ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
-import type {WriteReadyBarrier} from './writeWhenReady';
+import type {WriteReadyBarrier, WriteWhenReadyOptions} from './writeWhenReady';
 
 import {buildLogParams, prepareRequest, processRequest} from './makeRequest';
 import {READ_COMMANDS, WRITE_COMMANDS} from './types';
 import baseWrite from './write';
-import {createTransitionBarrier, writeWhenReady} from './writeWhenReady';
+import {armTransitionBarrier, createTransitionBarrier, writeWhenReady as baseWriteWhenReady} from './writeWhenReady';
 
 /**
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData (or finallyData, if included in place of the former two values).
@@ -50,6 +50,27 @@ function write<TCommand extends WriteCommand, TKey extends OnyxKey>(
     conflictResolver: RequestConflictResolver<TKey> = {},
 ): Promise<void | Response<TKey>> {
     return baseWrite(command, apiCommandParameters, onyxData, conflictResolver);
+}
+
+/** `API.writeWhenReady()` - like `write()` but deferred until a readiness barrier settles; re-declared here for the same spyOn reason as `write` above. */
+function writeWhenReady<TCommand extends WriteCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand]): Promise<void | Response<never>>;
+
+function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
+    command: TCommand,
+    apiCommandParameters: ApiRequestCommandParameters[TCommand],
+    onyxData?: OnyxData<TKey>,
+    barrier?: WriteReadyBarrier,
+    options?: number | WriteWhenReadyOptions,
+): Promise<void | Response<TKey>>;
+
+function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
+    command: TCommand,
+    apiCommandParameters: ApiRequestCommandParameters[TCommand],
+    onyxData?: OnyxData<TKey>,
+    barrier?: WriteReadyBarrier,
+    options?: number | WriteWhenReadyOptions,
+): Promise<void | Response<TKey>> {
+    return baseWriteWhenReady(command, apiCommandParameters, onyxData, barrier, options);
 }
 
 /**
@@ -79,7 +100,10 @@ function writeWithNoDuplicatesReconnectConflictAction<TCommand extends WriteComm
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData<TKey> = {},
 ): Promise<void | Response<TKey>> {
-    const incomingRequest: AnyRequest = {command, data: {updateIDFrom: readUpdateIDFrom(apiCommandParameters)}};
+    const incomingRequest: AnyRequest = {
+        command,
+        data: {updateIDFrom: readUpdateIDFrom(apiCommandParameters)},
+    };
     const conflictResolver = {
         checkAndFixConflictingRequest: (persistedRequests: AnyRequest[]) => resolveReconnectDuplicationConflictAction(persistedRequests, getOngoingRequest(), incomingRequest),
     };
@@ -227,6 +251,7 @@ export {
     write,
     writeWhenReady,
     createTransitionBarrier,
+    armTransitionBarrier,
     makeRequestWithSideEffects,
     read,
     paginate,
@@ -236,4 +261,4 @@ export {
     writeWithNoDuplicatesEnableFeatureConflicts,
     waitForWrites,
 };
-export type {WriteReadyBarrier};
+export type {WriteReadyBarrier, WriteWhenReadyOptions};

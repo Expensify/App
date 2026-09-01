@@ -33,6 +33,8 @@ import type NetSuiteCustomListPicker from '@pages/workspace/accounting/netsuite/
 import type NetSuiteMenuWithTopDescriptionForm from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteMenuWithTopDescriptionForm';
 import type TaxValuePicker from '@pages/workspace/taxes/TaxValuePicker';
 
+import type {ButtonVariant} from '@styles/utils/types';
+
 import type {Country} from '@src/CONST';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
@@ -124,6 +126,7 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
     ref?: Ref<unknown>;
     multiline?: boolean;
     autoGrowHeight?: boolean;
+    autoGrowSingleLine?: boolean;
     submitBehavior?: SubmitBehavior;
     shouldSubmitForm?: boolean;
     uncontrolled?: boolean;
@@ -155,8 +158,8 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProp
         /** Should the button be enabled when offline */
         enabledWhenOffline?: boolean;
 
-        /** Whether the form submit action is dangerous */
-        isSubmitActionDangerous?: boolean;
+        /** The visual variant of the submit button, which controls its color scheme */
+        buttonVariant?: ButtonVariant;
 
         /** Should fix the errors alert be displayed when there is an error in the form */
         shouldHideFixErrorsAlert?: boolean;
