@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
-
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import {
@@ -37,7 +35,7 @@ import type Rule from '@src/types/onyx/Rule';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
-import {buildPersonalDetails, convertToDisplayString, localeCompare, translateLocal} from '../utils/TestHelper';
+import {buildPersonalDetails, convertToDisplayString, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const personalDetails: PersonalDetailsList = {};
