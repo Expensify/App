@@ -40,19 +40,24 @@ function WorkspaceCompanyCardsBalanceLabels({selectedFeed, feedName, currency}: 
         return null;
     }
 
+    // On narrow layouts the two stats share the row evenly, so each label takes half the width.
+    const labelContainerStyle = shouldUseNarrowLayout ? styles.flex1 : undefined;
+
     return (
-        <View style={[shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow, styles.ph5, styles.mt2, styles.mb6, styles.gap96]}>
+        <View style={[styles.flexRow, styles.ph5, styles.mt2, styles.mb6, shouldUseNarrowLayout ? styles.gap4 : styles.gap96]}>
             <WorkspaceCompanyCardsBalanceLabel
                 type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
                 value={currentBalance}
                 lastUpdated={lastUpdated}
                 currency={currency}
+                containerStyle={labelContainerStyle}
             />
             <WorkspaceCompanyCardsBalanceLabel
                 type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
                 value={remainingLimit}
                 lastUpdated={lastUpdated}
                 currency={currency}
+                containerStyle={labelContainerStyle}
             />
         </View>
     );

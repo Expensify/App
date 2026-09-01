@@ -5,6 +5,8 @@ import useLocalize from '@hooks/useLocalize';
 
 import CONST from '@src/CONST';
 
+import type {StyleProp, ViewStyle} from 'react-native';
+
 import {format} from 'date-fns';
 import React from 'react';
 
@@ -20,9 +22,12 @@ type WorkspaceCompanyCardsBalanceLabelProps = {
 
     /** Currency the value is denominated in */
     currency: string;
+
+    /** Style applied to the outer container, set by the parent when the labels share a row */
+    containerStyle?: StyleProp<ViewStyle>;
 };
 
-function WorkspaceCompanyCardsBalanceLabel({type, value, lastUpdated, currency}: WorkspaceCompanyCardsBalanceLabelProps) {
+function WorkspaceCompanyCardsBalanceLabel({type, value, lastUpdated, currency, containerStyle}: WorkspaceCompanyCardsBalanceLabelProps) {
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
@@ -37,6 +42,7 @@ function WorkspaceCompanyCardsBalanceLabel({type, value, lastUpdated, currency}:
             title={translate(`workspace.companyCards.balance.${type}`)}
             description={description}
             displayValue={displayValue}
+            containerStyle={containerStyle}
         />
     );
 }
