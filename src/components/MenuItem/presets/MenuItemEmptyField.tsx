@@ -1,27 +1,25 @@
 import MenuItemContent from '@components/MenuItem/layout/MenuItemContent';
-import MenuItemLeading from '@components/MenuItem/layout/MenuItemLeading';
 import MenuItemRoot from '@components/MenuItem/layout/MenuItemRoot';
 import MenuItemRow from '@components/MenuItem/layout/MenuItemRow';
-import MenuItemIcon from '@components/MenuItem/leaves/leading/MenuItemIcon';
-import MenuItemTitle from '@components/MenuItem/leaves/text/MenuItemTitle';
+import MenuItemTrailing from '@components/MenuItem/layout/MenuItemTrailing';
+import MenuItemDescriptionPlaceholder from '@components/MenuItem/leaves/text/description/MenuItemDescriptionPlaceholder';
+import MenuItemChevron from '@components/MenuItem/leaves/trailing/MenuItemChevron';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
-import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type WithTestID from '@src/types/utils/TestID';
 
+import type {PropsWithChildren} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 
 import React from 'react';
 
-type MenuItemActionProps = WithSentryLabel &
+type MenuItemEmptyFieldProps = PropsWithChildren &
+    WithSentryLabel &
     WithTestID & {
-        /** The title text of the row */
-        title: string;
-
-        /** Leading icon to display */
-        icon: IconAsset;
+        /** Name of the field, standing in for the value the field does not have yet */
+        description: string;
 
         /** Function to fire when the row is pressed */
         onPress: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
@@ -30,29 +28,27 @@ type MenuItemActionProps = WithSentryLabel &
         isDisabled?: boolean;
     };
 
-/**
- * The action MenuItem preset — a tappable row with a leading icon and a title that performs an
- * action in place (delete, select, add, etc.)
- */
-function MenuItemAction({title, icon, onPress, isDisabled = false, sentryLabel, testID}: MenuItemActionProps) {
+/** The empty-field MenuItem preset — a form field the user has not filled in yet */
+function MenuItemEmptyField({description, onPress, children, isDisabled = false, sentryLabel, testID}: MenuItemEmptyFieldProps) {
     return (
         <MenuItemRoot
             onPress={callFunctionIfActionIsAllowed(onPress)}
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             testID={testID}
-            accessibilityLabel={title}
+            accessibilityLabel={description}
         >
             <MenuItemRow>
-                <MenuItemLeading>
-                    <MenuItemIcon src={icon} />
-                </MenuItemLeading>
                 <MenuItemContent>
-                    <MenuItemTitle>{title}</MenuItemTitle>
+                    <MenuItemDescriptionPlaceholder>{description}</MenuItemDescriptionPlaceholder>
                 </MenuItemContent>
+                <MenuItemTrailing>
+                    {children}
+                    <MenuItemChevron />
+                </MenuItemTrailing>
             </MenuItemRow>
         </MenuItemRoot>
     );
 }
 
-export default MenuItemAction;
+export default MenuItemEmptyField;
