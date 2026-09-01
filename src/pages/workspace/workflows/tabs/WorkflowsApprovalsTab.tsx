@@ -26,7 +26,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearPolicyErrorField, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {clearApprovalWorkflow, selectApprovalWorkflowForEdit, setApprovalWorkflow} from '@libs/actions/Workflow';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import {getConnectedHRProvider, getHRFinalApprover, isAnyHRConnected, isAnyHRReadOnlyWorkflowMode, isHRAdvancedMode} from '@libs/HRUtils';
+import {getConnectedHRProvider, getHRFinalApprover, isAnyHRConnected, isAnyHRReadOnlyWorkflowMode, isHRAdvancedMode} from '@libs/merge/HRUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
@@ -343,7 +343,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                         prompt: translate('workflowsPage.disableApprovalPromptDescription'),
                         confirmText: translate('common.disable'),
                         cancelText: translate('common.cancel'),
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     }).then((result) => {
                         if (result.action !== ModalActions.CONFIRM) {
                             return;
