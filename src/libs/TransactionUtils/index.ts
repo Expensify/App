@@ -10,7 +10,7 @@ import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {convertAttendeesToArray, normalizeAttendees} from '@libs/AttendeeUtils';
 import {isTravelCardTransaction} from '@libs/CardUtils';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
-import {convertToBackendAmount, getCurrencySymbol as getCurrencySymbolFromCurrencyUtils} from '@libs/CurrencyUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import type {MachineDateFormat} from '@libs/DateUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -212,12 +212,14 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
     policy,
     policies,
     translate,
+    getCurrencySymbol,
 }: {
     transaction: OnyxEntry<Transaction>;
     isPolicyExpenseChat: boolean;
     policy?: OnyxEntry<Policy>;
     policies?: OnyxCollection<Policy>;
     translate: LocaleContextProps['translate'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 }): OnyxEntry<Transaction> {
     const hasCommuterExclusion = hasAppliedCommuterExclusion(transaction);
     if (!transaction || (hasCommuterExclusion && isPolicyExpenseChat)) {
@@ -249,7 +251,7 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
         rate,
         currency,
         translate,
-        getCurrencySymbol: getCurrencySymbolFromCurrencyUtils,
+        getCurrencySymbol,
     });
 
     return {

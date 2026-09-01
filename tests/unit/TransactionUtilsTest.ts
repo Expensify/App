@@ -1344,6 +1344,7 @@ describe('TransactionUtils', () => {
                 isPolicyExpenseChat: false,
                 policy: policyWithDistanceRate,
                 translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(displayTransaction).toBeDefined();
@@ -1371,6 +1372,7 @@ describe('TransactionUtils', () => {
                     transaction,
                     isPolicyExpenseChat: false,
                     translate,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 }),
             ).toBe(transaction);
         });
@@ -1397,6 +1399,7 @@ describe('TransactionUtils', () => {
                 isPolicyExpenseChat: false,
                 policy: policyWithDistanceRate,
                 translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(displayTransaction?.amount).toBe(-491);
@@ -1423,6 +1426,7 @@ describe('TransactionUtils', () => {
                     isPolicyExpenseChat: false,
                     policy: policyWithDistanceRate,
                     translate,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 }),
             ).toBe(transaction);
         });
@@ -1448,6 +1452,7 @@ describe('TransactionUtils', () => {
                     isPolicyExpenseChat: false,
                     policy: policyWithDistanceRate,
                     translate,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 }),
             ).toBe(transaction);
         });
@@ -1472,6 +1477,7 @@ describe('TransactionUtils', () => {
                 isPolicyExpenseChat: false,
                 policy: policyWithDistanceRate,
                 translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(displayTransaction?.amount).toBe(491);
@@ -1499,6 +1505,7 @@ describe('TransactionUtils', () => {
                     isPolicyExpenseChat: false,
                     policy: policyWithDistanceRate,
                     translate,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 }),
             ).toBe(transaction);
         });
@@ -1542,6 +1549,7 @@ describe('TransactionUtils', () => {
                 isPolicyExpenseChat: false,
                 policy: policyWithoutRateCurrency,
                 translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(displayTransaction?.currency).toBe(CONST.CURRENCY.EUR);
@@ -1571,6 +1579,7 @@ describe('TransactionUtils', () => {
                     isPolicyExpenseChat: true,
                     policy: policyWithDistanceRate,
                     translate,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 }),
             ).toBe(transaction);
         });
@@ -1597,6 +1606,7 @@ describe('TransactionUtils', () => {
                     isPolicyExpenseChat: false,
                     policy: policyWithDistanceRate,
                     translate,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 }),
             ).toBe(transaction);
         });
