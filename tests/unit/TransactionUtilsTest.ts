@@ -20,6 +20,7 @@ import type {TransactionViolation} from '../../src/types/onyx/TransactionViolati
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import {getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -2325,6 +2326,39 @@ describe('TransactionUtils', () => {
             };
 
             expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, CURRENT_USER_EMAIL, CURRENT_USER_ID)).toBe(true);
+        });
+
+        describe('futureDate', () => {
+            // The violation is not cached by the backend, so it is re-evaluated here against the NOW +14 hours rule.
+            // The clock is pinned on each case, otherwise these pass or fail by time of day.
+            afterEach(() => {
+                jest.useRealTimers();
+            });
+
+            function shouldShowFutureDate(transaction?: Transaction) {
+                const iouReport: Report = {...createRandomReport(0, undefined), type: CONST.REPORT.TYPE.EXPENSE};
+                const policy: Policy = {...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.ADMIN};
+
+                return TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.FUTURE_DATE, CURRENT_USER_EMAIL, CURRENT_USER_ID, true, transaction);
+            }
+
+            it('should show the violation when there is no transaction to re-evaluate it against', () => {
+                expect(shouldShowFutureDate(undefined)).toBe(true);
+            });
+
+            it('should show the violation when the date is still beyond the +14 hour window', () => {
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-08-29T02:00:00Z'));
+
+                expect(shouldShowFutureDate({...createRandomTransaction(0), created: '2026-08-30'})).toBe(true);
+            });
+
+            it('should hide a stale violation once the date is within the +14 hour window', () => {
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-08-29T20:00:00Z'));
+
+                expect(shouldShowFutureDate({...createRandomTransaction(0), created: '2026-08-30'})).toBe(false);
+            });
         });
     });
 

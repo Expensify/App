@@ -757,6 +757,23 @@ const isFutureDay = (inputDate: Date): boolean => {
 };
 
 /**
+ * Whether a transaction's date is further ahead than the backend tolerates.
+ *
+ * Mirrors the backend rule `DATETIME(COALESCE(modifiedCreated, created)) <= DATETIME('NOW', '+14 hours')`. A
+ * transaction date is a plain calendar date with no time or offset, so the backend cannot know the sender's local
+ * date and allows up to the furthest timezone (UTC+14) before flagging it.
+ */
+const isTransactionDateFuture = (transactionDate: string): boolean => {
+    if (!transactionDate) {
+        return false;
+    }
+
+    const thresholdDate = formatMachineDateWithUTCTimeZone(addHours(new Date(), 14).toISOString());
+
+    return formatMachineDateWithUTCTimeZone(transactionDate) > thresholdDate;
+};
+
+/**
  * Checks if the input time is at least one minute in the future compared to the reference time.
  * param {Date} inputTime - The time to validate.
  * param {Date} referenceTime - The time to compare against.
@@ -1343,6 +1360,7 @@ const DateUtils = {
     getFormattedDuration,
     formatCountdownTimer,
     isFutureDay,
+    isTransactionDateFuture,
     getFormattedDateRangeForPerDiem,
     getFormattedSplitDateRange,
     formatInTimeZoneWithFallback,
