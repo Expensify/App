@@ -59,27 +59,33 @@ function VacationDelegateMissingWorkspacesPage() {
         vacationDelegateRef.current = vacationDelegate;
     }, [vacationDelegate]);
 
-    // Leaving without submitting rolls the delegate back. Doing it here rather than in the back handler keeps every exit
-    // (back button, swipe, dismissing the RHP) on one path, and keeps the flow state intact while this screen is still mounted.
-    const isSubmittingRef = useRef(false);
-    useEffect(
-        () => () => {
-            if (isSubmittingRef.current) {
-                return;
-            }
-            clearVacationDelegateError(vacationDelegateRef.current?.previousDelegate);
-        },
-        [],
-    );
-
-    // Submitting nulls the flow state in Onyx while Navigation is still waiting on the transition to pop this screen, so render from
-    // what was submitted for the rest of its life. Otherwise NotFoundPage takes over and the copy flips to the previous delegate's email.
     const [submittedInput, setSubmittedInput] = useState<ScreenInput>();
 
     const creator = currentUserPersonalDetails.login ?? '';
     const delegate = submittedInput?.delegate ?? vacationDelegate?.delegate ?? '';
     const previousDelegate = vacationDelegate?.previousDelegate;
     const policyDiff = submittedInput?.policyDiff ?? vacationDelegate?.policyDiff;
+
+    const hasActiveFlowRef = useRef(false);
+    useEffect(() => {
+        if (!policyDiff) {
+            return;
+        }
+        hasActiveFlowRef.current = true;
+    }, [policyDiff]);
+
+    // Leaving without submitting rolls the delegate back. Doing it here rather than in the back handler keeps every exit
+    // (back button, swipe, dismissing the RHP) on one path, and keeps the flow state intact while this screen is still mounted.
+    const isSubmittingRef = useRef(false);
+    useEffect(
+        () => () => {
+            if (isSubmittingRef.current || !hasActiveFlowRef.current) {
+                return;
+            }
+            clearVacationDelegateError(vacationDelegateRef.current?.previousDelegate);
+        },
+        [],
+    );
     const adminPolicies = policyDiff?.adminPolicies ?? [];
     const nonAdminPolicies = policyDiff?.nonAdminPolicies ?? [];
     const canInvite = adminPolicies.length > 0;
@@ -91,7 +97,7 @@ function VacationDelegateMissingWorkspacesPage() {
     const getMenuItemsForPolicies = (policyIDs: string[]) =>
         policyIDs.map((policyID, index) => ({
             key: policyID,
-            title: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name,
+            title: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? translate('workspace.common.unavailable'),
             avatarID: policyID,
             icon: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.avatarURL,
             iconType: CONST.ICON_TYPE_WORKSPACE,

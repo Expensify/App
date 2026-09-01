@@ -27,6 +27,8 @@ function VacationDelegatePage() {
         vacationDelegateRef.current = vacationDelegate;
     }, [vacationDelegate]);
 
+    const isSelectingRef = useRef(false);
+
     const showErrorModal = async (message?: string) => {
         await showConfirmModal({
             title: translate('statusPage.addVacationDelegate'),
@@ -40,26 +42,36 @@ function VacationDelegatePage() {
 
     const onSelectRow = useCallback(
         (option: Participant) => {
+            if (isSelectingRef.current) {
+                return;
+            }
+
             if (option?.login === vacationDelegate?.delegate) {
+                isSelectingRef.current = true;
                 deleteVacationDelegate(vacationDelegate);
                 Navigation.goBack(ROUTES.SETTINGS_STATUS);
                 return;
             }
 
-            setVacationDelegate({creator: currentUserLogin, delegate: option?.login ?? '', currentDelegate: vacationDelegate?.delegate}).then((response) => {
-                if (response?.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING) {
-                    Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE_MISSING_WORKSPACES);
-                    return;
-                }
+            isSelectingRef.current = true;
+            setVacationDelegate({creator: currentUserLogin, delegate: option?.login ?? '', currentDelegate: vacationDelegate?.delegate})
+                .then((response) => {
+                    if (response?.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING) {
+                        Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE_MISSING_WORKSPACES);
+                        return;
+                    }
 
-                // The request writes no error of its own, so this modal is the only feedback for a failure. Dismissing it restores the previous delegate.
-                if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    showErrorModal(response?.jsonCode === CONST.JSON_CODE.EXP_ERROR ? response.message : undefined);
-                    return;
-                }
+                    // The request writes no error of its own, so this modal is the only feedback for a failure. Dismissing it restores the previous delegate.
+                    if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                        showErrorModal(response?.jsonCode === CONST.JSON_CODE.EXP_ERROR ? response.message : undefined);
+                        return;
+                    }
 
-                Navigation.goBack(ROUTES.SETTINGS_STATUS);
-            });
+                    Navigation.goBack(ROUTES.SETTINGS_STATUS);
+                })
+                .finally(() => {
+                    isSelectingRef.current = false;
+                });
         },
         [currentUserLogin, vacationDelegate, showErrorModal],
     );
