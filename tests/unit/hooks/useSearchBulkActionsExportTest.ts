@@ -390,27 +390,22 @@ function makeSearchResults(reports: Report[], reportActionsByReportID: Record<st
     };
 }
 
-/**
- * The export options take one of two shapes: normally they sit inside the Export entry's `subMenuItems`, but when
- * Export is the only bulk action available the dropdown opens straight onto them, so they sit at the top level of
- * `headerButtonsOptions` with the EXPORT value on each one.
- */
-function getExportMenuItems(headerButtonsOptions: ReturnType<typeof useSearchBulkActions>['headerButtonsOptions']) {
-    const exportOptions = headerButtonsOptions.filter((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-    return exportOptions.at(0)?.subMenuItems ?? exportOptions;
+function getExportSubMenuItems(headerButtonsOptions: ReturnType<typeof useSearchBulkActions>['headerButtonsOptions']) {
+    return headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)?.subMenuItems;
 }
 
 function getExportOptionTexts(headerButtonsOptions: ReturnType<typeof useSearchBulkActions>['headerButtonsOptions']) {
-    return getExportMenuItems(headerButtonsOptions).map((item) => item.text);
+    const exportOption = headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+    return exportOption?.subMenuItems?.map((item) => item.text) ?? (exportOption ? [exportOption.text] : []);
 }
 
+/** Export options live inside the Export submenu, but tolerate a flat top-level shape too so callers stay robust. */
 function getExportOptionByText(headerButtonsOptions: ReturnType<typeof useSearchBulkActions>['headerButtonsOptions'], text: string) {
-    return getExportMenuItems(headerButtonsOptions).find((item) => item.text === text);
-}
-
-/** The Export entry's nested submenu items. Only valid for selections where Export is not the only bulk action. */
-function getExportSubMenuItems(headerButtonsOptions: ReturnType<typeof useSearchBulkActions>['headerButtonsOptions']) {
-    return headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)?.subMenuItems;
+    const exportOption = headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+    if (!exportOption) {
+        return undefined;
+    }
+    return exportOption.subMenuItems?.find((item) => item.text === text) ?? (exportOption.text === text ? exportOption : undefined);
 }
 
 /** The parameters the last plain-CSV export sent to the backend, with the serialized query parsed back. */
@@ -520,9 +515,10 @@ describe('useSearchBulkActions - export options', () => {
             expect(result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)).toBeDefined();
         });
 
-        const exportMenuItems = getExportMenuItems(result.current.headerButtonsOptions);
-        expect(exportMenuItems.some((item) => item.text === NETSUITE_FRIENDLY_NAME)).toBe(false);
-        expect(exportMenuItems.some((item) => item.text === 'workspace.common.markAsExported')).toBe(false);
+        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+        const subMenuItems = exportOption?.subMenuItems ?? [];
+        expect(subMenuItems.some((item) => item.text === NETSUITE_FRIENDLY_NAME)).toBe(false);
+        expect(subMenuItems.some((item) => item.text === 'workspace.common.markAsExported')).toBe(false);
     });
 
     it('offers per-integration export options when reports span workspaces connected to different integrations', async () => {
@@ -1151,14 +1147,12 @@ describe('useSearchBulkActions - export options', () => {
 
     it('keeps the Export entry as a submenu even when only one export option is available', async () => {
         // Regression test for https://github.com/Expensify/App/issues/98779: a full group selection offers a single
-        // export option ('export.currentView'). While other bulk actions sit alongside it (Hold here), the Export
-        // entry must still open the Export submenu (keeping its generic label and subMenuItems) rather than
-        // collapsing straight into that single option.
+        // export option ('export.currentView'). The Export entry must still open the Export submenu (keeping its
+        // generic label and subMenuItems) rather than collapsing straight into that single option.
         mockSelectedTransactions = {
             tx1: makeSelectedTransaction({
                 groupKey: `${CONST.SEARCH.GROUP_PREFIX}category`,
                 isSelectedViaGroup: true,
-                canHold: true,
             }),
         };
 
@@ -1171,46 +1165,6 @@ describe('useSearchBulkActions - export options', () => {
         const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
         expect(exportOption?.subMenuItems).toHaveLength(1);
         expect(exportOption?.text).toBe('common.export');
-    });
-
-    it('opens directly onto the single export option when Export is the only bulk action', async () => {
-        // Export is the only bulk action offered under select all, so there is no main menu to go back to. The one
-        // export option is surfaced directly instead of behind an "Export" row whose submenu would render a back
-        // arrow leading nowhere.
-        mockAreAllMatchingItemsSelected = true;
-        mockSelectedTransactions = {
-            tx1: makeSelectedTransaction({
-                groupKey: `${CONST.SEARCH.GROUP_PREFIX}category`,
-                isSelectedViaGroup: true,
-            }),
-        };
-
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
-
-        await waitFor(() => {
-            expect(result.current.headerButtonsOptions.map((option) => option.text)).toEqual(['export.currentView']);
-        });
-
-        const soleOption = result.current.headerButtonsOptions.at(0);
-        expect(soleOption?.value).toBe(CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        expect(soleOption?.subMenuItems).toBeUndefined();
-        expect(soleOption?.backButtonText).toBeUndefined();
-    });
-
-    it('opens directly onto every export option when Export is the only bulk action', async () => {
-        mockAreAllMatchingItemsSelected = true;
-        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
-
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
-
-        await waitFor(() => {
-            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(1);
-        });
-
-        // Every entry is an export option itself — there is no "Export" row wrapping them and so no back arrow.
-        expect(result.current.headerButtonsOptions.every((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)).toBe(true);
-        expect(result.current.headerButtonsOptions.some((option) => option.text === 'common.export')).toBe(false);
-        expect(result.current.headerButtonsOptions.some((option) => !!option.subMenuItems)).toBe(false);
     });
 
     it('exports the current view of a grouped search with the default expense columns', async () => {

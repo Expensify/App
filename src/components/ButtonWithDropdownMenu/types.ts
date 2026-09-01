@@ -130,6 +130,12 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** Whether the dropdown menu should be shown even if it has only one option */
     shouldAlwaysShowDropdownMenu?: boolean;
 
+    /**
+     * When the dropdown collapses to a single option that only leads to a submenu (no choice of its own),
+     * open directly into that submenu instead of making the user select the single option first.
+     */
+    shouldAutoExpandSingleSubMenu?: boolean;
+
     /** Additional style to add to the wrapper */
     wrapperStyle?: StyleProp<ViewStyle>;
 

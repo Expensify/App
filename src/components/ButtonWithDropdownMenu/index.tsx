@@ -62,6 +62,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         isDisabled = false,
         pressOnEnter = false,
         shouldAlwaysShowDropdownMenu = false,
+        shouldAutoExpandSingleSubMenu = false,
         menuHeaderText = '',
         customText,
         style,
@@ -325,6 +326,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
             {(shouldAlwaysShowDropdownMenu || options.length > 1) && !!popoverAnchorPosition && (
                 <PopoverMenu
                     isVisible={isMenuVisible}
+                    shouldAutoExpandSingleSubMenu={shouldAutoExpandSingleSubMenu}
                     onClose={() => {
                         setIsMenuVisible(false);
                         onOptionsMenuHide?.();

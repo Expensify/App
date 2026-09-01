@@ -420,13 +420,6 @@ function getChatReportForBulkPay(
     return getReportFromSearchSnapshot(resolvedChatReportID, searchData, allReports) ?? getReportOrDraftReport(resolvedChatReportID);
 }
 
-/**
- * A single export option. It is typed as a dropdown option rather than a plain menu item because it is rendered at
- * either level of the bulk-action dropdown: nested inside the Export submenu, or directly at the top level when
- * Export is the only bulk action available.
- */
-type ExportMenuItem = DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'accessibilityLabel' | 'shouldCallAfterModalHide'>;
-
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -1794,7 +1787,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 ? defaultTemplates.filter((template) => template.templateName === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV)
                 : defaultTemplates;
 
-            const exportOptions: ExportMenuItem[] = [];
+            const exportOptions: PopoverMenuItem[] = [];
 
             const isReportsTab = isExpenseReportType;
             const includesGroupExport = isGroupedSearch && Object.entries(selectedTransactions).some(([key, selectedTransaction]) => isGroupSelection(key, selectedTransaction));
@@ -2005,7 +1998,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     const handleExportAction = buildIntegrationHandleExportAction(exportableReportIDs, integration, integrationGroupSize, true, connectionNameFriendly);
                     exportOptions.push({
                         text: connectionNameFriendly,
-                        value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
                         icon: integrationIcon,
                         onSelected: () => handleExportAction(() => exportToIntegrationOnSearch(hash, exportableReportIDs, integration, integrationPolicy, currentSearchKey)),
                         shouldCloseModalOnSelect: true,
@@ -2023,7 +2015,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     const handleMarkAction = buildIntegrationHandleExportAction(reportIDsToMark, integration, integrationGroupSize, false, connectionNameFriendly);
                     exportOptions.push({
                         text: translate('workspace.common.markAsExported'),
-                        value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
                         // Every integration's "Mark as exported" option shares the same visible text and differs only by icon,
                         // which screen readers can't announce. Append the integration name so assistive tech can distinguish them.
                         accessibilityLabel: `${translate('workspace.common.markAsExported')}, ${connectionNameFriendly}`,
@@ -2040,7 +2031,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             // "Current view" is pinned directly under the accounting actions.
             exportOptions.push({
                 text: translate('export.currentView'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
                 icon: expensifyIcons.Table,
                 onSelected: () => {
                     handleExportCurrentView();
@@ -2053,12 +2043,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             if (!allSelectedAreDeleted && !includesGroupExport) {
                 // Builds a single export sub-menu item for a template. `isDefaultTemplate` picks the icon and `addSeparatorBefore` draws the divider at the top of each group.
-                const buildExportOption = (template: ExportTemplate, isDefaultTemplate: boolean, addSeparatorBefore: boolean): ExportMenuItem => {
+                const buildExportOption = (template: ExportTemplate, isDefaultTemplate: boolean, addSeparatorBefore: boolean): PopoverMenuItem => {
                     // The basic export is a plain CSV download, so it uses its own handler rather than the template export flow
                     const isBasicExport = template.templateName === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV;
                     return {
                         text: template.name,
-                        value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
                         icon: isDefaultTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                         description: template.description,
                         onSelected: () => {
@@ -2085,7 +2074,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 // The templates aren't available for this selection, but the basic export (a plain CSV download) still is
                 exportOptions.push({
                     text: translate('export.basicExport'),
-                    value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
                     icon: expensifyIcons.Table,
                     onSelected: () => {
                         handleBasicExport();
@@ -2114,18 +2102,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             subMenuItems,
         };
 
-        /**
-         * Export is sometimes the only bulk action available (most commonly under "select all"). There is no main menu
-         * to go back to then, so the dropdown opens directly onto the export options rather than nesting them behind
-         * an "Export" row whose submenu would render a back arrow leading nowhere.
-         */
-        const openExportOptionsDirectlyIfSoleAction = (builtOptions: Array<DropdownOption<SearchHeaderOptionValue>>): Array<DropdownOption<SearchHeaderOptionValue>> => {
-            const isExportTheOnlyAction = builtOptions.length === 1 && builtOptions.at(0)?.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT;
-            return isExportTheOnlyAction && subMenuItems.length > 0 ? subMenuItems : builtOptions;
-        };
-
         if (areAllMatchingItemsSelected) {
-            return openExportOptionsDirectlyIfSoleAction([exportButtonOption]);
+            return [exportButtonOption];
         }
 
         if (allSelectedAreDeleted) {
@@ -2735,7 +2713,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
-        return openExportOptionsDirectlyIfSoleAction(options);
+        return options;
     }, [
         selectedTransactionsKeys,
         hash,

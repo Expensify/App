@@ -358,6 +358,115 @@ describe('PopoverMenu integration — submenu open/close behaviors', () => {
     });
 });
 
+describe('PopoverMenu integration — shouldAutoExpandSingleSubMenu', () => {
+    const soleItemMenu: PopoverMenuItem[] = [
+        {
+            text: 'Export',
+            key: 'Export',
+            backButtonText: 'Export',
+            subMenuItems: [{text: 'Current view', key: 'CurrentView'}],
+        },
+    ];
+
+    const multiItemMenu: PopoverMenuItem[] = [
+        {
+            text: 'Export',
+            key: 'Export',
+            subMenuItems: [{text: 'Current view', key: 'CurrentView'}],
+        },
+        {text: 'Delete', key: 'Delete'},
+    ];
+
+    const nestedSoleItemMenu: PopoverMenuItem[] = [
+        {
+            text: 'Export',
+            key: 'Export',
+            backButtonText: 'Export',
+            subMenuItems: [
+                {
+                    text: 'Templates',
+                    key: 'Templates',
+                    backButtonText: 'Templates',
+                    subMenuItems: [{text: 'Template A', key: 'TemplateA'}],
+                },
+            ],
+        },
+    ];
+
+    const anchorRef = React.createRef<View>();
+    const anchorPosition = {horizontal: 0, vertical: 0};
+
+    const renderPopover = (menuItems: PopoverMenuItem[], shouldAutoExpandSingleSubMenu?: boolean) =>
+        render(
+            <PopoverMenu
+                isVisible
+                menuItems={menuItems}
+                shouldAutoExpandSingleSubMenu={shouldAutoExpandSingleSubMenu}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+
+    it('opens directly onto the submenu when the top level is a single item with subMenuItems', async () => {
+        renderPopover(soleItemMenu, true);
+
+        // The submenu item is already visible, no click on "Export" needed
+        await waitFor(() => {
+            expect(screen.getByTestId('PopoverMenuItem-Current view')).toBeTruthy();
+        });
+        expect(screen.queryByTestId('PopoverMenuItem-Export')).toBeNull();
+    });
+
+    it('does not render a back button on the auto-expanded submenu', async () => {
+        renderPopover(soleItemMenu, true);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('PopoverMenuItem-Current view')).toBeTruthy();
+        });
+
+        // The auto-expanded submenu IS the top level, so there is no main menu to go back to. The back button would
+        // be titled with the sole item's backButtonText, so no "Export" text may appear anywhere.
+        expect(screen.queryByText('Export')).toBeNull();
+    });
+
+    it('renders a back button once the user navigates deeper than the auto-expanded level', async () => {
+        renderPopover(nestedSoleItemMenu, true);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('PopoverMenuItem-Templates')).toBeTruthy();
+        });
+
+        fireEvent.press(screen.getByTestId('PopoverMenuItem-Templates'));
+
+        await waitFor(() => {
+            expect(screen.getByTestId('PopoverMenuItem-Template A')).toBeTruthy();
+        });
+
+        // "Templates" is no longer a menu row here, so this text can only come from the back button
+        expect(screen.getByText('Templates')).toBeTruthy();
+    });
+
+    it('does not auto-expand when the prop is not set', async () => {
+        renderPopover(soleItemMenu);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('PopoverMenuItem-Export')).toBeTruthy();
+        });
+        expect(screen.queryByTestId('PopoverMenuItem-Current view')).toBeNull();
+    });
+
+    it('does not auto-expand when there is more than one top-level item', async () => {
+        renderPopover(multiItemMenu, true);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('PopoverMenuItem-Export')).toBeTruthy();
+            expect(screen.getByTestId('PopoverMenuItem-Delete')).toBeTruthy();
+        });
+        expect(screen.queryByTestId('PopoverMenuItem-Current view')).toBeNull();
+    });
+});
+
 describe('PopoverMenu integration — focus policy and close lifecycle', () => {
     const anchorRef = React.createRef<View>();
     const anchorPosition = {horizontal: 0, vertical: 0};

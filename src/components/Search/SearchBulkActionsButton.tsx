@@ -226,6 +226,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                 customText={selectionButtonText}
                                 isLoading={isAllMatchingItemsCountLoading}
                                 shouldAlwaysShowDropdownMenu
+                                shouldAutoExpandSingleSubMenu
                                 isDisabled={headerButtonsOptions.length === 0}
                                 onPress={() => null}
                                 shouldPopoverUseScrollView={popoverUseScrollView}
@@ -247,6 +248,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 onPress={() => null}
                                 shouldAlwaysShowDropdownMenu
+                                shouldAutoExpandSingleSubMenu
                                 customText={selectionButtonText}
                                 isLoading={isAllMatchingItemsCountLoading}
                                 options={headerButtonsOptions}
