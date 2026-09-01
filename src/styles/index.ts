@@ -4423,6 +4423,16 @@ const staticStyles = (theme: ThemeColors) =>
             zIndex: 100,
         },
 
+        // Floats the callout directly above the composer without giving it height there, so the conversation does not
+        // jump when it appears.
+        merchantRuleCalloutComposerOverlay: {
+            position: 'absolute',
+            bottom: '100%',
+            left: 0,
+            right: 0,
+            zIndex: 100,
+        },
+
         merchantRuleCalloutText: {
             fontSize: variables.fontSizeLabel,
             color: theme.textReversed,

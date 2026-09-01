@@ -68,7 +68,7 @@ function ReportFooter() {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
     // A wide RHP reports a narrow layout but lays the expense out like a wide screen: the receipt moves to its own
-    // panel and the composer sits beside it, so the "Create a rule" tooltip anchors here rather than on the receipt.
+    // panel and the composer sits beside it, so the "Create a rule" callout belongs here rather than above the list.
     const {wideRHPRouteKeys} = useWideRHPState();
     const isInWideRHP = wideRHPRouteKeys.includes(route.key);
 
@@ -118,7 +118,8 @@ function ReportFooter() {
             <MerchantRuleSuggestionBanner
                 reportID={reportIDFromRoute}
                 policyID={report.policyID}
-                containerStyles={styles.mb3}
+                containerStyles={[styles.mh4, styles.mb3]}
+                overlayStyles={styles.merchantRuleCalloutComposerOverlay}
             />
         );
         return (

@@ -38,11 +38,11 @@ type MerchantRuleSuggestionBannerProps = {
     /** Styles for the banner container */
     containerStyles?: StyleProp<ViewStyle>;
 
-    /** Pins the callout over the top of the scroll area instead of laying it out inline */
-    shouldOverlayScrollArea?: boolean;
+    /** When set, floats the callout in a wrapper carrying these styles instead of laying it out inline */
+    overlayStyles?: StyleProp<ViewStyle>;
 };
 
-function MerchantRuleSuggestionBannerContent({reportID, policyID, transactionID, containerStyles, shouldOverlayScrollArea}: MerchantRuleSuggestionBannerProps) {
+function MerchantRuleSuggestionBannerContent({reportID, policyID, transactionID, containerStyles, overlayStyles}: MerchantRuleSuggestionBannerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -114,11 +114,11 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, transactionID,
         />
     );
 
-    if (!shouldOverlayScrollArea) {
+    if (!overlayStyles) {
         return banner;
     }
 
-    return <View style={styles.merchantRuleCalloutOverlay}>{banner}</View>;
+    return <View style={overlayStyles}>{banner}</View>;
 }
 
 MerchantRuleSuggestionBannerContent.displayName = 'MerchantRuleSuggestionBannerContent';
@@ -127,7 +127,7 @@ MerchantRuleSuggestionBannerContent.displayName = 'MerchantRuleSuggestionBannerC
  * Offers a workspace admin the chance to turn an expense edit into a merchant rule, right on the expense they just
  * edited. Renders nothing unless there is a qualifying edit to act on.
  */
-function MerchantRuleSuggestionBanner({reportID, policyID, transactionID, containerStyles, shouldOverlayScrollArea}: MerchantRuleSuggestionBannerProps) {
+function MerchantRuleSuggestionBanner({reportID, policyID, transactionID, containerStyles, overlayStyles}: MerchantRuleSuggestionBannerProps) {
     const [storedSuggestion] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION);
 
     // Nothing is stored for most of a session, so skip the inner component (and its heavy hooks, which subscribe to the
@@ -142,7 +142,7 @@ function MerchantRuleSuggestionBanner({reportID, policyID, transactionID, contai
             policyID={policyID}
             transactionID={transactionID}
             containerStyles={containerStyles}
-            shouldOverlayScrollArea={shouldOverlayScrollArea}
+            overlayStyles={overlayStyles}
         />
     );
 }

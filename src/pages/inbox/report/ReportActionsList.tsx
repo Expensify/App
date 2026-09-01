@@ -456,7 +456,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
                         reportID={reportID}
                         policyID={report?.policyID}
                         containerStyles={[styles.mh4, styles.mt2]}
-                        shouldOverlayScrollArea
+                        overlayStyles={styles.merchantRuleCalloutOverlay}
                     />
                 )}
             <FloatingMessageCounter
