@@ -5327,11 +5327,10 @@ describe('ReportUtils', () => {
         });
 
         describe('moved system messages', () => {
-            it.each([CONST.REPORT.ACTIONS.TYPE.MOVED, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION])('should be disabled for a %s action with no child visible action count', (actionName) => {
-                // Given a moved system message that has never been threaded
-                // The message is required: without it isDeletedAction treats the action as a legacy deleted
-                // comment, which would disable the thread on its own and make this test pass vacuously.
-                const reportAction = createMock<ReportAction>({
+            // The message is required: without it isDeletedAction treats the action as a legacy deleted
+            // comment, which would disable the thread on its own and make these tests pass vacuously.
+            const buildMovedAction = (actionName: ReportAction['actionName'], childVisibleActionCount: number) =>
+                createMock<ReportAction>({
                     actionName,
                     message: [
                         {
@@ -5341,33 +5340,50 @@ describe('ReportUtils', () => {
                             text: 'moved this expense',
                         },
                     ],
-                    childVisibleActionCount: 0,
+                    childVisibleActionCount,
                 });
+            const draftReport = createMock<Report>({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+            const submittedReport = createMock<Report>({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+
+            it('should be disabled for a MOVEDTRANSACTION action moved into a draft report', () => {
+                // Given an expense moved into a draft report, which the backend never adopts as a threadable action
+                const reportAction = buildMovedAction(CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION, 0);
 
                 // When it's checked to see if the thread should be disabled
-                const isThreadDisabled = shouldDisableThread(reportAction, false);
+                const isThreadDisabled = shouldDisableThread(reportAction, false, false, draftReport);
 
                 // Then the thread should be disabled so the doomed thread-creation call is never made
                 expect(isThreadDisabled).toBeTruthy();
             });
 
-            it.each([CONST.REPORT.ACTIONS.TYPE.MOVED, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION])('should be enabled for a %s action that has already been threaded', (actionName) => {
-                // Given a moved system message that already has a legitimately threaded child
-                const reportAction = createMock<ReportAction>({
-                    actionName,
-                    message: [
-                        {
-                            translationKey: '',
-                            type: 'COMMENT',
-                            html: 'moved this expense',
-                            text: 'moved this expense',
-                        },
-                    ],
-                    childVisibleActionCount: 1,
-                });
+            it('should be enabled for a MOVEDTRANSACTION action moved into a submitted report', () => {
+                // Given an expense moved into a submitted report, which the backend does thread
+                const reportAction = buildMovedAction(CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION, 0);
+
+                // When it's checked to see if the thread should be disabled
+                const isThreadDisabled = shouldDisableThread(reportAction, false, false, submittedReport);
+
+                // Then the thread should stay enabled so the App matches the backend
+                expect(isThreadDisabled).toBeFalsy();
+            });
+
+            it('should be disabled for a MOVED action with no child visible action count', () => {
+                // Given a report moved between workspaces that has never been threaded
+                const reportAction = buildMovedAction(CONST.REPORT.ACTIONS.TYPE.MOVED, 0);
 
                 // When it's checked to see if the thread should be disabled
                 const isThreadDisabled = shouldDisableThread(reportAction, false);
+
+                // Then the thread should be disabled regardless of any destination report
+                expect(isThreadDisabled).toBeTruthy();
+            });
+
+            it.each([CONST.REPORT.ACTIONS.TYPE.MOVED, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION])('should be enabled for a %s action that has already been threaded', (actionName) => {
+                // Given a moved system message that already has a legitimately threaded child
+                const reportAction = buildMovedAction(actionName, 1);
+
+                // When it's checked to see if the thread should be disabled
+                const isThreadDisabled = shouldDisableThread(reportAction, false, false, draftReport);
 
                 // Then the thread should stay enabled so the existing thread remains reachable
                 expect(isThreadDisabled).toBeFalsy();
