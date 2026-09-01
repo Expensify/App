@@ -264,21 +264,6 @@ type PersonalAndWorkspaceCardListDerivedValue = CardList;
  */
 type LoginToAccountIDMapDerivedValue = Record<string, number>;
 
-/** One combined entry in OptimisticAgentAccountIDMappingEntriesDerivedValue. */
-type OptimisticAgentAccountIDMappingEntry = {
-    /** The real accountID CreateAgent assigned for this optimistic accountID. */
-    realAccountID: number;
-
-    /** When this entry was noticed locally, in ms since epoch. Undefined until the local stamp/backfill lands. */
-    createdAt: number | undefined;
-};
-
-/**
- * Combines OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING and OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT into one
- * key per optimistic accountID, so consumers read a single always-in-sync source instead of two parallel keys.
- */
-type OptimisticAgentAccountIDMappingEntriesDerivedValue = Record<string, OptimisticAgentAccountIDMappingEntry>;
-
 export type {
     ReportAttributes,
     ReportAttributesDerivedValue,
@@ -291,7 +276,6 @@ export type {
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     LoginToAccountIDMapDerivedValue,
-    OptimisticAgentAccountIDMappingEntriesDerivedValue,
     CardFeedErrorsObject,
     CardFeedErrorState,
     CardFeedErrors,

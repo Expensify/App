@@ -7,7 +7,6 @@ import type {OnyxDerivedValueConfig} from './types';
 import cardFeedErrorsConfig from './configs/cardFeedErrors';
 import loginToAccountIDMapConfig from './configs/loginToAccountIDMap';
 import nonPersonalAndWorkspaceCardListConfig from './configs/nonPersonalAndWorkspaceCardList';
-import optimisticAgentAccountIDMappingEntriesConfig from './configs/optimisticAgentAccountIDMappingEntries';
 import outstandingReportsByPolicyIDConfig from './configs/outstandingReportsByPolicyID';
 import personalAndWorkspaceCardListConfig from './configs/personalAndWorkspaceCardList';
 import reportAttributesConfig from './configs/reportAttributes';
@@ -29,7 +28,6 @@ const ONYX_DERIVED_VALUES = {
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: cardFeedErrorsConfig,
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: sortedReportActionsConfig,
     [ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP]: loginToAccountIDMapConfig,
-    [ONYXKEYS.DERIVED.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_ENTRIES]: optimisticAgentAccountIDMappingEntriesConfig,
 } as const satisfies {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [Key in ValueOf<typeof ONYXKEYS.DERIVED>]: OnyxDerivedValueConfig<Key, any>;
