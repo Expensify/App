@@ -1,9 +1,7 @@
-import FormHelpMessage from '@components/FormHelpMessage';
 import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFooter/ConfirmationFieldList';
-import TransactionDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/TransactionDetailsFields';
-import InvoiceSenderSection from '@components/MoneyRequestConfirmationListFooter/sections/InvoiceSenderSection';
+import ManualDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/TransactionDetailsFields/ManualDetailsFields';
 import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/sections/ReceiptSection';
-import type {MoneyRequestConfirmationListFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
+import type {ScanFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -11,43 +9,32 @@ import React from 'react';
 import {View} from 'react-native';
 
 /**
- * Fallback footer for expense types that have not been extracted yet. Deleted once the last one has a variant.
+ * Footer for scanned expenses. The only variant that reaches compact mode, where the receipt fills the
+ * screen and the optional fields collapse behind a show-more button.
  */
-function DefaultFooter({
-    receiptStitchError,
+function ScanFooter({
     isCompactMode,
     policy,
     policyTags,
     selectedParticipants,
-    distanceData,
     amountDisplay,
     requiredFlags,
     visibilityFlags,
     errorState,
-    toggleHandlers,
+    toggleHandlers = {},
     receiptOptions,
     compactControls,
-}: MoneyRequestConfirmationListFooterProps) {
+}: ScanFooterProps) {
     const styles = useThemeStyles();
     const {showMoreFields, setShowMoreFields} = compactControls;
 
     return (
         <View style={isCompactMode ? styles.flex1 : undefined}>
-            <View>
-                <InvoiceSenderSection selectedParticipants={selectedParticipants} />
-            </View>
-
             <ReceiptSection
                 policy={policy}
                 showMoreFields={showMoreFields}
                 {...receiptOptions}
             />
-
-            {!!receiptStitchError && (
-                <View style={styles.mh5}>
-                    <FormHelpMessage message={receiptStitchError} />
-                </View>
-            )}
 
             <ConfirmationFieldList
                 policy={policy}
@@ -57,13 +44,12 @@ function DefaultFooter({
                 requiredFlags={requiredFlags}
                 visibilityFlags={visibilityFlags}
                 errorState={errorState}
-                toggleHandlers={toggleHandlers ?? {}}
+                toggleHandlers={toggleHandlers}
                 compactState={{isCompactMode, setShowMoreFields}}
             >
-                <TransactionDetailsFields
+                <ManualDetailsFields
                     policy={policy}
                     amountDisplay={amountDisplay}
-                    distanceData={distanceData}
                     requiredFlags={requiredFlags}
                     errorState={errorState}
                     isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
@@ -73,4 +59,4 @@ function DefaultFooter({
     );
 }
 
-export default DefaultFooter;
+export default ScanFooter;
