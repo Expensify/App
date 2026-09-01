@@ -2199,6 +2199,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 178,
         },
 
+        domainAlreadyExistsIllustrationStyle: {
+            width: 180,
+            height: 164,
+        },
+
         appContent: {
             backgroundColor: theme.appBG,
             overflow: 'hidden',
@@ -5880,6 +5885,11 @@ const staticStyles = (theme: ThemeColors) =>
         sortingMachineRulesEmptyStateIllustration: {
             width: variables.sortingMachineRulesEmptyStateIllustrationWidth,
             height: variables.sortingMachineRulesEmptyStateIllustrationHeight,
+        },
+
+        spyPigeonRulesEmptyStateIllustration: {
+            width: variables.spyPigeonRulesEmptyStateIllustrationWidth,
+            height: variables.spyPigeonRulesEmptyStateIllustrationHeight,
         },
 
         agentsRulesEmptyStateIllustration: {
