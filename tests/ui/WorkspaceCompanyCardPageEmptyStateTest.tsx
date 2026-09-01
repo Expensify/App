@@ -14,6 +14,7 @@ const POLICY_ID = 'policy123';
 
 let mockIsUserValidated = false;
 let mockIsActingAsDelegate = false;
+let mockIsDelegateAccessRestricted = false;
 let mockOtherFeeds: Array<{value: string}> = [];
 let mockCapturedOnResume: ((payload?: () => void) => void) | undefined;
 const mockVerifyAccountAndResume = jest.fn<void, [payload?: () => void]>();
@@ -28,7 +29,7 @@ jest.mock('@hooks/useVerifyAccountAndResume', () => ({
 }));
 
 jest.mock('@components/DelegateNoAccessModalProvider', () => ({
-    useDelegateNoAccessState: () => ({isDelegateAccessRestricted: mockIsActingAsDelegate}),
+    useDelegateNoAccessState: () => ({isActingAsDelegate: mockIsActingAsDelegate, isDelegateAccessRestricted: mockIsDelegateAccessRestricted}),
     useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: mockShowDelegateNoAccessModal}),
 }));
 
@@ -109,6 +110,7 @@ describe('WorkspaceCompanyCardPageEmptyState', () => {
         jest.clearAllMocks();
         mockIsUserValidated = false;
         mockIsActingAsDelegate = false;
+        mockIsDelegateAccessRestricted = false;
         mockOtherFeeds = [];
         mockCapturedOnResume = undefined;
     });
@@ -155,8 +157,9 @@ describe('WorkspaceCompanyCardPageEmptyState', () => {
         expect(mockNavigate).toHaveBeenCalledWith(expectedRoute());
     });
 
-    it('shows the delegate no access modal instead of any navigation for a delegate', () => {
+    it('shows the delegate no access modal instead of any navigation for a submitter delegate', () => {
         mockIsActingAsDelegate = true;
+        mockIsDelegateAccessRestricted = true;
         renderEmptyState();
 
         pressAddCards();
@@ -164,5 +167,17 @@ describe('WorkspaceCompanyCardPageEmptyState', () => {
         expect(mockShowDelegateNoAccessModal).toHaveBeenCalledTimes(1);
         expect(mockVerifyAccountAndResume).not.toHaveBeenCalled();
         expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('lets a full access delegate continue into the add new card flow', () => {
+        mockIsActingAsDelegate = true;
+        mockIsUserValidated = true;
+        renderEmptyState();
+
+        pressAddCards();
+
+        expect(mockShowDelegateNoAccessModal).not.toHaveBeenCalled();
+        expect(mockClearAddNewCardFlow).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).toHaveBeenCalledWith(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path);
     });
 });
