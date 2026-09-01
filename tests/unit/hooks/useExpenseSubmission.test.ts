@@ -8,6 +8,7 @@ import useExpenseSubmission from '@pages/iou/request/step/confirmation/useExpens
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Receipt} from '@src/types/onyx/Transaction';
 
 import Onyx from 'react-native-onyx';
 
@@ -29,6 +30,7 @@ const mockResolveChatTargetForSubmitCleanup = jest.fn();
 const mockSendInvoiceAction = jest.fn();
 const mockSplitBillAction = jest.fn();
 const mockSplitBillAndOpenReportAction = jest.fn();
+const mockStartSplitBillAction = jest.fn();
 const mockResolveOptimisticSplitChatReportID = jest.fn();
 const mockDismissModalAndOpenReportInInboxTab = jest.fn();
 const mockReserveDeferredWriteChannel = jest.fn();
@@ -51,7 +53,7 @@ jest.mock('@userActions/IOU/Split', () => ({
     splitBill: (...args: unknown[]) => mockSplitBillAction(...args),
     splitBillAndOpenReport: (...args: unknown[]) => mockSplitBillAndOpenReportAction(...args),
     resolveOptimisticSplitChatReportID: (...args: unknown[]) => mockResolveOptimisticSplitChatReportID(...args),
-    startSplitBill: jest.fn(),
+    startSplitBill: (...args: unknown[]) => mockStartSplitBillAction(...args),
 }));
 
 jest.mock('@userActions/IOU/SendInvoice', () => ({
@@ -740,6 +742,93 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
 
             expect(mockReserveDeferredWriteChannel).not.toHaveBeenCalled();
             expect(mockSplitBillAction).not.toHaveBeenCalled();
+        });
+
+        it('threads the optimistic chat ID into the scan split and dismisses to that chat once after the loop', async () => {
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
+            const splitTransaction = buildTransaction();
+            const receiptFiles: Record<string, Receipt> = {[TRANSACTION_ID]: {source: 'file://receipt.jpg'}};
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: splitTransaction,
+                        transactions: [splitTransaction],
+                        receiptFiles,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockStartSplitBillAction).toHaveBeenCalledTimes(1);
+            expect(mockStartSplitBillAction).toHaveBeenCalledWith(expect.objectContaining({optimisticSplitChatReportID: 'optimistic-scan-chat'}));
+            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith('optimistic-scan-chat', undefined, false);
+        });
+
+        it('starts the scan split without dismissing when shouldHandleNavigation=false (orchestrator pre-navigated)', async () => {
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
+            const splitTransaction = buildTransaction();
+            const receiptFiles: Record<string, Receipt> = {[TRANSACTION_ID]: {source: 'file://receipt.jpg'}};
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: splitTransaction,
+                        transactions: [splitTransaction],
+                        receiptFiles,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, false);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockStartSplitBillAction).toHaveBeenCalledTimes(1);
+            expect(mockDismissModalAndOpenReportInInboxTab).not.toHaveBeenCalled();
+        });
+
+        it('resolves the chat once and dismisses once when multiple receipts split into one group chat', async () => {
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
+            const firstSplit = buildTransaction({transactionID: 'transaction-1'});
+            const secondSplit = buildTransaction({transactionID: 'transaction-2'});
+            const receiptFiles: Record<string, Receipt> = {
+                [firstSplit.transactionID]: {source: 'file://receipt-1.jpg'},
+                [secondSplit.transactionID]: {source: 'file://receipt-2.jpg'},
+            };
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: firstSplit,
+                        transactions: [firstSplit, secondSplit],
+                        receiptFiles,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockResolveOptimisticSplitChatReportID).toHaveBeenCalledTimes(1);
+            expect(mockStartSplitBillAction).toHaveBeenCalledTimes(2);
+            expect(mockStartSplitBillAction).toHaveBeenNthCalledWith(1, expect.objectContaining({optimisticSplitChatReportID: 'optimistic-scan-chat'}));
+            expect(mockStartSplitBillAction).toHaveBeenNthCalledWith(2, expect.objectContaining({optimisticSplitChatReportID: 'optimistic-scan-chat'}));
+            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledTimes(1);
+            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith('optimistic-scan-chat', undefined, false);
         });
     });
 });

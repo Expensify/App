@@ -983,10 +983,16 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (iouType === CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).filter((receipt) => !!receipt).length) {
             const currentUserLogin = currentUserPersonalDetails.login;
             if (currentUserLogin) {
+                // Re-resolving inside the loop would mint a different chat per scan, so resolve once up front.
+                const {optimisticSplitChatReportID, chatReportID} = resolveOptimisticSplitChatReportID(report?.reportID, selectedParticipants, currentUserPersonalDetails.accountID);
                 for (const [index, item] of transactions.entries()) {
                     const transactionReceiptFile = receiptFiles[item.transactionID];
                     if (!transactionReceiptFile) {
                         continue;
+                    }
+                    // The action hardcodes shouldDeferForSearch:false, so reserve here when a scan actually writes and lands back on Search.
+                    if (shouldDeferSplitForSearch) {
+                        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
                     }
                     const itemTrimmedComment = item?.comment?.comment?.trim() ?? '';
 
@@ -1008,16 +1014,18 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         taxAmount: transactionTaxAmount,
                         taxValue: transactionTaxValue,
                         shouldPlaySound: index === transactions.length - 1,
+                        optimisticSplitChatReportID,
                         policyRecentlyUsedCategories,
                         policyRecentlyUsedTags,
                         quickAction,
                         policyRecentlyUsedCurrencies,
                         participantsPolicyTags,
-                        shouldHandleNavigation,
-                        shouldDeferForSearch: shouldDeferSplitForSearch,
                         delegateAccountID,
                         formatPhoneNumber,
                     });
+                }
+                if (shouldHandleNavigation) {
+                    dismissModalAndOpenReportInInboxTab(chatReportID, undefined, false);
                 }
             }
             markSubmitExpenseEnd();

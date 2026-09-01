@@ -12,7 +12,6 @@ import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {calculateAmount as calculateIOUAmount, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import * as Localize from '@libs/Localize';
-import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
@@ -46,7 +45,7 @@ import {
 } from '@libs/ReportUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {addOptimization, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+import {addOptimization} from '@libs/telemetry/submitFollowUpAction';
 import {
     buildOptimisticTransaction,
     getUpdatedTransaction,
@@ -200,8 +199,7 @@ type StartSplitBilActionParams = {
     taxAmount: number;
     taxValue?: string;
     shouldPlaySound?: boolean;
-    shouldHandleNavigation?: boolean;
-    shouldDeferForSearch?: boolean;
+    optimisticSplitChatReportID?: string;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
@@ -510,20 +508,25 @@ function startSplitBill({
     taxAmount = 0,
     taxValue,
     shouldPlaySound = true,
+    optimisticSplitChatReportID,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
     quickAction,
     policyRecentlyUsedCurrencies,
     participantsPolicyTags,
-    shouldHandleNavigation = true,
-    shouldDeferForSearch = false,
     delegateAccountID,
     formatPhoneNumber,
     getCurrencyDecimals,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
-    const {splitChatReport, existingSplitChatReport} = getOrCreateOptimisticSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, currentUserAccountID);
+    const {splitChatReport, existingSplitChatReport} = getOrCreateOptimisticSplitChatReport(
+        existingSplitChatReportID,
+        participants,
+        participantAccountIDs,
+        currentUserAccountID,
+        optimisticSplitChatReportID,
+    );
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
     const parsedComment = getParsedComment(comment);
 
@@ -877,20 +880,13 @@ function startSplitBill({
             API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
         },
         {
-            shouldDeferForSearch,
+            shouldDeferForSearch: false,
             optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
             onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
         },
     );
 
-    if (shouldHandleNavigation) {
-        setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, splitChatReport.reportID);
-        Navigation.dismissModalWithReport({reportID: splitChatReport.reportID});
-    }
     notifyNewAction(splitChatReport.reportID, undefined, true);
-
-    // Return the split transactionID for testing purpose
-    return {splitTransactionID: splitTransaction.transactionID};
 }
 
 /** Used for editing a split expense while it's still scanning or when SmartScan fails, it completes a split expense started by startSplitBill above.
