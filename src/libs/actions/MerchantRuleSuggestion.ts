@@ -1,6 +1,10 @@
+import {arePolicyRulesEnabled} from '@libs/PolicyUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MerchantRuleSuggestion} from '@src/types/onyx';
+import type {MerchantRuleSuggestion, Policy, PolicyCategories} from '@src/types/onyx';
 import type {MerchantRuleSuggestionField} from '@src/types/onyx/MerchantRuleSuggestion';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -12,11 +16,21 @@ import Onyx from 'react-native-onyx';
  * dismissed one expense at a time and should appear again on that expense in a later session, which an account-wide
  * NVP could not express.
  *
- * Written for every user. `useMerchantRuleSuggestion` decides whether the callout renders, which needs write access
- * to the workspace's Rules feature.
+ * Written for every member of a workspace that could carry a merchant rule. `useMerchantRuleSuggestion` decides
+ * whether the callout renders, which additionally needs write access to the Rules feature.
  */
-function trackMerchantRuleSuggestion(transactionID: string | undefined, field: MerchantRuleSuggestionField, reportIDs: Array<string | undefined>) {
-    if (!transactionID) {
+function trackMerchantRuleSuggestion(
+    transactionID: string | undefined,
+    field: MerchantRuleSuggestionField,
+    reportIDs: Array<string | undefined>,
+    policy: OnyxEntry<Policy>,
+    policyCategories: OnyxEntry<PolicyCategories>,
+) {
+    // An offer only makes sense if the workspace could hold a merchant rule when the edit was made. Recording one
+    // regardless would leave an edit made with Rules switched off sitting here, ready to surface the moment somebody
+    // switched Rules on. The beta is assumed enabled because it cannot be read outside a component, which only makes
+    // this more permissive than the callout itself: `useMerchantRuleSuggestion` checks it for real before rendering.
+    if (!transactionID || !arePolicyRulesEnabled(policy, policyCategories, true)) {
         return;
     }
 
