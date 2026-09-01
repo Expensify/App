@@ -243,10 +243,6 @@ const ONYXKEYS = {
      */
     NVP_DISMISSED_ASAP_SUBMIT_EXPLANATION: 'nvp_dismissedASAPSubmitExplanation',
 
-    /** Expenses whose "Create a rule" callout the user dismissed, keyed by transactionID. Dismissal is per expense
-     *  and permanent, so the callout stays gone on that expense across sessions and devices. */
-    NVP_DISMISSED_MERCHANT_RULE_SUGGESTIONS: 'nvp_dismissedMerchantRuleSuggestions',
-
     /** Whether the user dismissed the empty report confirmation dialog */
     NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED: 'nvp_emptyReportsConfirmationDismissed',
 
@@ -1648,7 +1644,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
     [ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION]: boolean;
     [ONYXKEYS.NVP_DISMISSED_ASAP_SUBMIT_EXPLANATION]: boolean;
-    [ONYXKEYS.NVP_DISMISSED_MERCHANT_RULE_SUGGESTIONS]: Record<string, boolean>;
     [ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED]: boolean;
     [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: OnyxTypes.LastPaymentMethod;
     [ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT]: string;

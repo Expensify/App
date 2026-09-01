@@ -22,11 +22,10 @@ type MerchantRuleSuggestion = {
     field: MerchantRuleSuggestionField;
 
     /**
-     * Whether this offer has already been shown and left behind. Distinct from dismissing the callout, which is
-     * permanent and lives in the `nvp_dismissedMerchantRuleSuggestions` NVP: this only retires the current offer for
-     * the session, so navigating away doesn't silence the expense for good.
+     * Expenses whose callout the user dismissed this session. Kept alongside the current offer rather than replaced
+     * with it, so dismissing one expense survives a later edit on any expense, including that same one.
      */
-    isRetired?: boolean;
+    dismissedTransactionIDs?: string[];
 
     /**
      * Whether the user took the offer and is now in the rule creation flow. The rule page reads this to return to the
