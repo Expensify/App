@@ -382,7 +382,6 @@ function handleActionButtonPress({
                 currentSearchKey,
                 currentUserAccountID,
                 currentUserLogin,
-                betas,
                 isASAPSubmitBetaEnabled,
                 userBillingGracePeriodEnds,
                 ownerBillingGracePeriodEnd,
@@ -692,7 +691,6 @@ type GetApproveActionCallbackParams = {
     currentSearchKey: SearchKey | undefined;
     currentUserAccountID: number;
     currentUserLogin?: string;
-    betas?: OnyxEntry<Beta[]>;
     isASAPSubmitBetaEnabled: boolean;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
