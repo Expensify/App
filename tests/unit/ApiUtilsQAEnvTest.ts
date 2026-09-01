@@ -50,6 +50,7 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
+    mockConfig.EXPENSIFY.QA_API_ROOT = 'https://qa.exops.io/';
     await Onyx.clear();
     await waitForBatchedUpdates();
 });
@@ -61,5 +62,13 @@ describe('a QA build', () => {
         expect(ApiUtils.getActiveServer()).toBe(CONST.SERVER.QA);
         expect(ApiUtils.isQAServerActive()).toBe(true);
         expect(ApiUtils.getApiRoot()).toBe('https://qa.exops.io/');
+    });
+
+    it('falls back to the environment default when QA_EXPENSIFY_URL is unset, rather than routing to an empty root', async () => {
+        mockConfig.EXPENSIFY.QA_API_ROOT = '';
+        await setActiveServer(CONST.SERVER.STAGING);
+
+        expect(ApiUtils.isQAServerActive()).toBe(false);
+        expect(ApiUtils.getApiRoot()).toBe('https://staging.expensify.com/');
     });
 });

@@ -22,9 +22,13 @@ let activeServer: ValueOf<typeof CONST.SERVER> = CONST.SERVER.PRODUCTION;
 const {promise: activeServerHydrationPromise, resolve: resolveActiveServerHydration} = Promise.withResolvers<void>();
 
 function resolveActiveServer(value: ValueOf<typeof CONST.SERVER> | undefined, envName: ValueOf<typeof CONST.ENVIRONMENT>): ValueOf<typeof CONST.SERVER> {
+    // Selecting QA with no QA root leaves getApiRoot returning an empty string, and getCommandURL turns
+    // that into a relative `api/Command?` the browser resolves against the app's own origin
+    const isQAConfigured = !!CONFIG.EXPENSIFY.QA_API_ROOT;
+
     // The environment is baked into the bundle, and there is no meaningful way
     // to point qa.new.exops.io at production
-    if (envName === CONST.ENVIRONMENT.QA) {
+    if (envName === CONST.ENVIRONMENT.QA && isQAConfigured) {
         return CONST.SERVER.QA;
     }
 
@@ -34,7 +38,7 @@ function resolveActiveServer(value: ValueOf<typeof CONST.SERVER> | undefined, en
 
     // A stored 'qa' outlives the config that produced it: clearing QA_EXPENSIFY_URL hides the switch and
     // turns the QA gate off, but leaves the old Onyx value behind
-    const storedServer = value === CONST.SERVER.QA && !CONFIG.EXPENSIFY.QA_API_ROOT ? undefined : value;
+    const storedServer = value === CONST.SERVER.QA && !isQAConfigured ? undefined : value;
 
     if (CONFIG.IS_USING_LOCAL_WEB && storedServer !== CONST.SERVER.QA) {
         return CONST.SERVER.PRODUCTION;
@@ -70,9 +74,6 @@ function getApiRoot<TKey extends OnyxKey = never>(request?: Partial<Pick<Request
             return CONFIG.EXPENSIFY.QA_API_ROOT;
         }
 
-        // Returning the empty root would leave getCommandURL building a relative `api/Command?`, which the
-        // browser resolves against the app's own origin, quietly sending the request to the dev server with
-        // no bearer on it
         if (!CONFIG.EXPENSIFY.QA_SECURE_API_ROOT) {
             throw new Error(`The QA server has no secure host, so it cannot serve ${request?.command ?? 'a secure command'}. Set QA_SECURE_EXPENSIFY_URL to reach one.`);
         }
