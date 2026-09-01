@@ -1,13 +1,13 @@
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {SearchQueryJSON} from '@components/Search/types';
 
+import type {ButtonVariant} from '@styles/utils/types';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
-
-import type {ButtonVariant} from '@styles/utils/types';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -522,5 +522,5 @@ function isEligibleForStatus(currentQueryJSON: SearchQueryJSON | undefined, repo
     });
 }
 
-export {SEARCH_TYPE_MENU_ICON_NAMES, createTopSearchMenuItem, expenseStatusActionMapping, getSuggestedSearches, isEligibleForStatus, isValidExpenseStatus};
-export type {ExpenseStatusPredicate, SearchKey, SearchTypeMenuItem};
+export {SEARCH_TYPE_MENU_ICON_NAMES, expenseStatusActionMapping, getSuggestedSearches, isEligibleForStatus};
+export type {SearchKey, SearchTypeMenuItem};
