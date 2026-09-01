@@ -216,7 +216,6 @@ import {
     isIntegrationMessageAction,
     isMoneyRequestAction,
     isMovedAction,
-    isMovedTransactionAction,
     isOlderReportAction,
     isPendingRemove,
     isReopenedAction,
@@ -11687,39 +11686,22 @@ function getNonHeldAndFullAmount(
  * - The action is a split expense action
  * - The action is deleted and is not threaded
  * - The report is archived and the action is not threaded
- * - The action is a moved system message the backend won't thread, and is not threaded
  * - The action is a whisper action and it's neither a report preview nor IOU action
  * - The action is the thread's first chat
- *
- * `movedTransactionDestinationReport` is the report an expense was moved into, i.e. the parent of the transaction
- * thread the MOVED_TRANSACTION action lives on. It is only read for moved-expense messages and may be omitted elsewhere.
  */
-function shouldDisableThread(
-    reportAction: OnyxInputOrEntry<ReportAction>,
-    isThreadReportParentAction: boolean,
-    isReportArchived = false,
-    movedTransactionDestinationReport?: OnyxEntry<Report>,
-): boolean {
+function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, isThreadReportParentAction: boolean, isReportArchived = false): boolean {
     const isSplitBillAction = isSplitBillReportAction(reportAction);
     const isDeletedActionLocal = isDeletedAction(reportAction);
     const isReportPreviewActionLocal = isReportPreviewAction(reportAction);
     const isIOUAction = isMoneyRequestAction(reportAction);
     const isWhisperActionLocal = isWhisperAction(reportAction) || isActionableTrackExpense(reportAction);
     const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
-    // The backend only adopts a moved-expense system message when the expense lands in a submitted report, so that
-    // is the only case it will thread. When the expense is moved into a draft report the action is never adopted and
-    // creating a thread on it fails with "Unexpected error creating this chat", so don't offer it in the first place.
-    const isTransactionMovedIntoDraftReport = isMovedTransactionAction(reportAction) && isOpenReport(movedTransactionDestinationReport);
-    // MOVED (a report moved between workspaces) stays fully gated, because the destination rule above was only
-    // confirmed for moved expenses.
-    const isMovedSystemMessageWithoutThreadSupport = isMovedAction(reportAction) || isTransactionMovedIntoDraftReport;
     const isActionDisabled = CONST.REPORT.ACTIONS.THREAD_DISABLED.some((action: string) => action === reportAction?.actionName);
     return (
         isActionDisabled ||
         isSplitBillAction ||
         (isDeletedActionLocal && !reportAction?.childVisibleActionCount) ||
         (isReportArchived && !reportAction?.childVisibleActionCount) ||
-        (isMovedSystemMessageWithoutThreadSupport && !reportAction?.childVisibleActionCount) ||
         (isWhisperActionLocal && !isReportPreviewActionLocal && !isIOUAction) ||
         isThreadReportParentAction ||
         isDynamicWorkflowRoutedAction

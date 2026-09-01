@@ -207,10 +207,6 @@ function BaseReportActionContextMenu({
     const [harvestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${harvestReportOriginalID}`, {});
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
-    // A MOVED_TRANSACTION action lives on the moved expense's transaction thread, so the thread's parent is the report
-    // the expense was moved into. This holds both when the thread is viewed on its own and when its actions are merged
-    // into a one-transaction expense report, because originalReportID resolves to the transaction thread in both cases.
-    const [movedTransactionDestinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(originalReport?.parentReportID)}`);
     const policyID = report?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
@@ -312,7 +308,6 @@ function BaseReportActionContextMenu({
                 transactions,
                 isHarvestReport,
                 currentUserAccountID: currentUserPersonalDetails?.accountID,
-                movedTransactionDestinationReport,
             }),
     );
 

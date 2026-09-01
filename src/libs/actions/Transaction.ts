@@ -1654,7 +1654,10 @@ function getChangeTransactionsReportOnyxData({
         let movedAction;
         if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             movedAction = buildOptimisticUnreportedTransactionAction(transactionThreadReportID, oldReportID);
-        } else if (!isOpenReport(oldReport)) {
+        } else if (!isOpenReport(newReport)) {
+            // The backend only creates the moved-expense system message when the expense lands in a report that has
+            // already been submitted. Building it optimistically for a draft destination leaves a phantom action the
+            // server never adopts, so acting on it (e.g. replying in thread) fails with an unexpected error.
             movedAction = buildOptimisticMovedTransactionAction(transactionThreadReportID, oldReportID);
         }
 

@@ -548,7 +548,7 @@ describe('actions/Transaction', () => {
              * Seeds an expense sitting in a source report (whose state/status decide whether it is a draft),
              * along with its IOU action and transaction thread, and moves it to `newReport`.
              */
-            async function moveExpenseOutOf(sourceReportStatus: Pick<Report, 'stateNum' | 'statusNum'>, newReport: Report | undefined) {
+            async function moveExpenseFromTo(sourceReportStatus: Pick<Report, 'stateNum' | 'statusNum'>, newReport: Report | undefined) {
                 const policyID = generatePolicyID();
                 const policy: Policy = {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM, 'Moved Message Workspace'), id: policyID};
 
@@ -630,33 +630,42 @@ describe('actions/Transaction', () => {
             const draftReportStatus = {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
             const submittedReportStatus = {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED};
 
-            const destinationReport = {
-                reportID: DESTINATION_REPORT_ID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: RORY_ACCOUNT_ID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            } as Report;
+            const buildDestinationReport = (destinationReportStatus: Pick<Report, 'stateNum' | 'statusNum'>) =>
+                ({
+                    reportID: DESTINATION_REPORT_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    ownerAccountID: RORY_ACCOUNT_ID,
+                    ...destinationReportStatus,
+                }) as Report;
 
-            it('should not create a MOVED_TRANSACTION action when the expense is moved out of a draft report', async () => {
-                // Given an expense in a draft (open) report, when it is moved to another report
-                const actions = await moveExpenseOutOf(draftReportStatus, destinationReport);
+            const countMovedActions = (actions: Array<ReportAction | undefined>) =>
+                actions.filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION).length;
 
-                // Then no moved system message is created, because moves between drafts aren't part of the audit trail
-                expect(actions.filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)).toHaveLength(0);
+            it.each([
+                ['draft', draftReportStatus],
+                ['submitted', submittedReportStatus],
+            ])('should not create a MOVED_TRANSACTION action when the expense is moved from a %s report into a draft report', async (_sourceLabel, sourceReportStatus) => {
+                // Given an expense being moved into a draft (open) report, which the backend never adopts the message on
+                const actions = await moveExpenseFromTo(sourceReportStatus, buildDestinationReport(draftReportStatus));
+
+                // Then no moved system message is created, so the App doesn't hold an action the server will never return
+                expect(countMovedActions(actions)).toBe(0);
             });
 
-            it('should create a MOVED_TRANSACTION action when the expense is moved out of a submitted report', async () => {
-                // Given an expense in a submitted report, when it is moved to another report
-                const actions = await moveExpenseOutOf(submittedReportStatus, destinationReport);
+            it.each([
+                ['draft', draftReportStatus],
+                ['submitted', submittedReportStatus],
+            ])('should create a MOVED_TRANSACTION action when the expense is moved from a %s report into a submitted report', async (_sourceLabel, sourceReportStatus) => {
+                // Given an expense being moved into a submitted report, which the backend does create the message on
+                const actions = await moveExpenseFromTo(sourceReportStatus, buildDestinationReport(submittedReportStatus));
 
-                // Then the moved system message is still created, since the audit trail starts once a report is submitted
-                expect(actions.filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)).toHaveLength(1);
+                // Then the moved system message is created optimistically to match the backend
+                expect(countMovedActions(actions)).toBe(1);
             });
 
             it('should create an UNREPORTED_TRANSACTION action when the expense is moved to personal space from a draft report', async () => {
                 // Given an expense in a draft report, when it is moved to personal space (no destination report)
-                const actions = await moveExpenseOutOf(draftReportStatus, undefined);
+                const actions = await moveExpenseFromTo(draftReportStatus, undefined);
 
                 // Then the moved message is still created, because the expense leaves the report entirely
                 expect(actions.filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)).toHaveLength(1);
