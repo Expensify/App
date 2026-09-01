@@ -133,7 +133,7 @@ function TransactionItemRowWide({
     totalPerAttendee,
     transactionThreadReportID,
     createdAt,
-    isMarkAsDone,
+    shouldShowMarkAsDoneCopy,
 }: TransactionItemRowWideProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -349,7 +349,7 @@ function TransactionItemRowWide({
                                 amount={getReimbursableTotal(report)}
                                 chatReport={chatReport}
                                 shouldDisablePointerEvents={isDisabled || shouldDisableActionPointerEvents}
-                                isMarkAsDone={isMarkAsDone}
+                                shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
                             />
                         )}
                     </View>

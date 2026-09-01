@@ -169,7 +169,7 @@ type TransactionItemRowWideComputedData = Omit<TransactionItemRowNarrowComputedD
     transactionAttendees: Attendee[];
     shouldShowAttendees: boolean;
     totalPerAttendee: number | undefined;
-    isMarkAsDone: boolean;
+    shouldShowMarkAsDoneCopy: boolean;
 };
 
 export type {

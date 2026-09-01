@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -42,6 +43,8 @@ import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, Vie
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
+
+import usePopoverMenuFocusManagement from './usePopoverMenuFocusManagement';
 
 type PopoverMenuItem = MenuItemProps & {
     /** Text label */
@@ -90,6 +93,9 @@ type PopoverMenuItem = MenuItemProps & {
 
     /** Whether to close the modal on select */
     shouldCloseModalOnSelect?: boolean;
+
+    /** Whether selecting this item should avoid restoring focus to the popover before a follow-up modal opens on iOS */
+    shouldSkipFocusRestore?: boolean;
 
     /** Whether to render a divider before this menu item */
     addSeparatorBefore?: boolean;
@@ -154,6 +160,13 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
      * */
     shouldEnableNewFocusManagement?: boolean;
 
+    /**
+     * Whether to return focus to the trigger when the menu is dismissed without navigating.
+     * Defaults to the inverse of `shouldEnableNewFocusManagement`, because that manager owns the restore when it is on.
+     * Set it explicitly for a trigger the manager cannot restore — it only tracks text inputs, so a button is left with nothing to return to.
+     */
+    shouldReturnFocus?: boolean;
+
     /** How to re-focus after the modal is dismissed */
     restoreFocusType?: BaseModalProps['restoreFocusType'];
 
@@ -215,13 +228,17 @@ type PopoverMenuContentProps = {
 };
 
 function PopoverMenuContent({shouldUseScrollView, contentContainerStyle, children, addBottomSafeAreaPadding}: PopoverMenuContentProps): React.JSX.Element {
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, style: contentContainerStyle});
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match Popover's own dock decision (bottom-docked only when isSmallScreenWidth)
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isKeyboardActive} = useKeyboardState();
+    const shouldAddBottomSafeAreaPadding = addBottomSafeAreaPadding && isSmallScreenWidth && !isKeyboardActive;
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: shouldAddBottomSafeAreaPadding, style: contentContainerStyle});
 
     if (shouldUseScrollView) {
         return (
             <ScrollView
                 contentContainerStyle={contentContainerStyle}
-                addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                addBottomSafeAreaPadding={shouldAddBottomSafeAreaPadding}
             >
                 {children}
             </ScrollView>
@@ -326,6 +343,7 @@ function BasePopoverMenu({
     withoutOverlay = false,
     shouldSetModalVisibility = true,
     shouldEnableNewFocusManagement,
+    shouldReturnFocus,
     restoreFocusType,
     shouldShowRadioButton = false,
     containerStyles,
@@ -353,8 +371,7 @@ function BasePopoverMenu({
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = getSelectedItemIndex(currentMenuItems);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
-    const platform = getPlatform();
-    const isWeb = platform === CONST.PLATFORM.WEB;
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: currentMenuItemsFocusedIndex,
         maxIndex: currentMenuItems.length - 1,
@@ -363,6 +380,13 @@ function BasePopoverMenu({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
     const [hasKeyBeenPressed, setHasKeyBeenPressed] = useState(false);
+    const {
+        effectiveRestoreFocusType,
+        handleModalHide: handleFocusManagementModalHide,
+        prepareForSelection,
+        requestCloseAfterFocusPolicyCommit,
+        shouldUseNewFocusManagement,
+    } = usePopoverMenuFocusManagement({isVisible, menuItems, restoreFocusType, shouldEnableNewFocusManagement});
 
     const getPreviousSubMenu = () => {
         let currentItems = menuItems;
@@ -418,18 +442,19 @@ function BasePopoverMenu({
             onItemSelected?.(selectedItem, index, event);
             selectedItem.onSelected?.();
             setFocusedIndex(-1);
-        } else if (selectedItem.shouldCallAfterModalHide && (!isSafari() || shouldAvoidSafariException)) {
-            onItemSelected?.(selectedItem, index, event);
-            close(
-                () => {
-                    selectedItem.onSelected?.();
-                },
-                undefined,
-                selectedItem.shouldCloseAllModals,
-            );
         } else {
+            const shouldSuppressFocusRestore = prepareForSelection(selectedItem);
             onItemSelected?.(selectedItem, index, event);
-            selectedItem.onSelected?.();
+            if (selectedItem.shouldCallAfterModalHide && (!isSafari() || shouldAvoidSafariException)) {
+                const onModalClose = () => selectedItem.onSelected?.();
+                if (shouldSuppressFocusRestore) {
+                    requestCloseAfterFocusPolicyCommit(onModalClose, selectedItem.shouldCloseAllModals);
+                } else {
+                    close(onModalClose, undefined, selectedItem.shouldCloseAllModals);
+                }
+            } else {
+                selectedItem.onSelected?.();
+            }
         }
     };
 
@@ -470,6 +495,7 @@ function BasePopoverMenu({
             onSelected,
             subMenuItems,
             shouldCallAfterModalHide,
+            shouldSkipFocusRestore,
             key,
             shouldIgnoreKeyForRendering,
             testID: menuItemTestID,
@@ -575,6 +601,7 @@ function BasePopoverMenu({
     const handleModalHide = () => {
         onModalHide?.();
         setHasKeyBeenPressed(false);
+        handleFocusManagementModalHide();
         const keyPath = buildKeyPathFromIndexPath(menuItems, enteredSubMenuIndexes);
         const resolved = resolveIndexPathByKeyPath(menuItems, keyPath);
 
@@ -698,8 +725,9 @@ function BasePopoverMenu({
             fromSidebarMediumScreen={fromSidebarMediumScreen}
             withoutOverlay={withoutOverlay}
             shouldSetModalVisibility={shouldSetModalVisibility}
-            shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
-            restoreFocusType={restoreFocusType}
+            shouldEnableNewFocusManagement={shouldUseNewFocusManagement}
+            shouldReturnFocus={shouldReturnFocus}
+            restoreFocusType={effectiveRestoreFocusType}
             innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             shouldHandleNavigationBack={shouldHandleNavigationBack}
@@ -709,7 +737,7 @@ function BasePopoverMenu({
         >
             <FocusTrapForModal
                 active={isVisible}
-                shouldReturnFocus={!shouldEnableNewFocusManagement}
+                shouldReturnFocus={shouldReturnFocus ?? !shouldUseNewFocusManagement}
                 launcherRef={anchorRef}
             >
                 <CompactMenuContext.Provider value>
@@ -751,6 +779,9 @@ export default React.memo(
         prevProps.animationInTiming === nextProps.animationInTiming &&
         prevProps.disableAnimation === nextProps.disableAnimation &&
         prevProps.withoutOverlay === nextProps.withoutOverlay &&
+        prevProps.shouldEnableNewFocusManagement === nextProps.shouldEnableNewFocusManagement &&
+        prevProps.shouldReturnFocus === nextProps.shouldReturnFocus &&
+        prevProps.restoreFocusType === nextProps.restoreFocusType &&
         prevProps.shouldSetModalVisibility === nextProps.shouldSetModalVisibility,
 );
 export type {PopoverMenuItem, PopoverMenuProps};

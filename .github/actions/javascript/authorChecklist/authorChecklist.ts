@@ -158,7 +158,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
     }
 }
 
-if (require.main === module) {
+if (import.meta.main) {
     generateDynamicChecksAndCheckForCompletion();
 }
 

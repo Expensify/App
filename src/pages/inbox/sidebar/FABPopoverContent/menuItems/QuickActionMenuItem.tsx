@@ -27,6 +27,7 @@ import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocu
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
@@ -84,6 +85,10 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const [quickActionReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReportPolicyID ?? CONST.POLICY.ID_FAKE}`);
     const [policyChatForActivePolicyPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyChatForActivePolicyPolicyID ?? CONST.POLICY.ID_FAKE}`);
 
+    const [quickActionReportPendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(quickActionReport?.reportID)}`, {
+        selector: pendingDeleteMemberAccountIDsSelector,
+    });
+
     const isVisible =
         (quickAction?.action && quickActionReport
             ? isQuickActionAllowed(quickAction, quickActionReport, quickActionPolicy, isReportArchived, allBetas, isRestrictedToPreferredPolicy)
@@ -92,7 +97,19 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
 
     let quickActionAvatars: ReturnType<typeof getIcons> = [];
     if (isValidReport) {
-        const avatars = getIcons(quickActionReport, formatPhoneNumber, translate, personalDetails, null, undefined, undefined, undefined, undefined, isReportArchived);
+        const avatars = getIcons(
+            quickActionReport,
+            formatPhoneNumber,
+            translate,
+            personalDetails,
+            null,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            isReportArchived,
+            quickActionReportPendingDeleteMemberAccountIDs,
+        );
         quickActionAvatars = avatars.length <= 1 || isPolicyExpenseChat(quickActionReport) ? avatars : avatars.filter((avatar) => avatar.id !== currentUserPersonalDetails.accountID);
     } else if (!isEmptyObject(policyChatForActivePolicy)) {
         quickActionAvatars = getIcons(policyChatForActivePolicy, formatPhoneNumber, translate, personalDetails, null, undefined, undefined, undefined, undefined, isReportArchived);

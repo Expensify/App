@@ -415,7 +415,7 @@ describe('WorkspaceTravelBillingSection', () => {
             expect(payButton).toBeNull();
         });
 
-        it('should show confirmation modal and call payTravelInvoicingSpend on confirm', async () => {
+        it('should show confirmation modal and call payTravelBillingSpend on confirm', async () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
                 await Onyx.merge(cardSettingsKey, {
@@ -453,7 +453,7 @@ describe('WorkspaceTravelBillingSection', () => {
             }
             await waitForBatchedUpdatesWithAct();
 
-            expect(payTravelBillingSpend).toHaveBeenCalledWith(WORKSPACE_ACCOUNT_ID, 5000);
+            expect(payTravelBillingSpend).toHaveBeenCalledWith(POLICY_ID, WORKSPACE_ACCOUNT_ID, 5000);
         });
 
         it('should hide Pay Balance button and show queued message when settlement is pending', async () => {
@@ -554,6 +554,29 @@ describe('WorkspaceTravelBillingSection', () => {
             renderWorkspaceTravelBillingSection();
             await waitForBatchedUpdatesWithAct();
 
+            expect(screen.queryByTestId(CONST.SWITCH_LOCK_ICON_TEST_ID, {includeHiddenElements: true})).toBeNull();
+        });
+
+        it('does not show the toggle lock icon while card settings are loading', async () => {
+            // Given a configured, enabled workspace with no balance while a card-settings request is in flight
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.merge(cardSettingsKey, {
+                    isLoading: true,
+                    TRAVEL_US: {
+                        isEnabled: true,
+                        paymentBankAccountID: 12345,
+                        currentBalance: 0,
+                        pendingSettlementAmount: 0,
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderWorkspaceTravelBillingSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // openPolicyTravelPage pulses isLoading on every page focus. That pulse must not flash the lock icon.
             expect(screen.queryByTestId(CONST.SWITCH_LOCK_ICON_TEST_ID, {includeHiddenElements: true})).toBeNull();
         });
     });

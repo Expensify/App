@@ -20,6 +20,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
@@ -72,6 +73,7 @@ function WorkspaceReportFieldsPage({
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {translate, localeCompare} = useLocalize();
     const policy = usePolicy(policyID);
     const {showConfirmModal} = useConfirmModal();
@@ -234,7 +236,10 @@ function WorkspaceReportFieldsPage({
                     />
                 )}
                 {!isLoading && (
-                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <ScrollView
+                        addBottomSafeAreaPadding
+                        contentContainerStyle={[styles.flexGrow1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}
+                    >
                         <Section
                             isCentralPane
                             renderTitle={renderReportTitle}
@@ -277,7 +282,12 @@ function WorkspaceReportFieldsPage({
                                         return;
                                     }
 
-                                    setPolicyPreventMemberCreatedTitle(policyID, isEnabled, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]);
+                                    setPolicyPreventMemberCreatedTitle(
+                                        policyID,
+                                        isEnabled,
+                                        policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE],
+                                        getReviewWorkspaceSettingsTaskCompletion(),
+                                    );
                                 }}
                                 disabled={!canWriteReportFields}
                                 disabledAction={withReadOnlyFallback()}
@@ -299,7 +309,7 @@ function WorkspaceReportFieldsPage({
                                 onToggle={(isEnabled) => {
                                     if (!isEnabled) {
                                         showConfirmModal({
-                                            danger: true,
+                                            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                                             title: translate('workspace.reportFields.disableReportFields'),
                                             prompt: translate('workspace.reportFields.disableReportFieldsConfirmation'),
                                             confirmText: translate('common.disable'),

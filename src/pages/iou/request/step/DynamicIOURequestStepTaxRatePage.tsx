@@ -10,6 +10,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
+import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -63,9 +64,16 @@ function DynamicIOURequestStepTaxRatePage({
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.path);
 
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
+
     const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.participants?.at(0)?.reportID)}`);
     const reportPolicyID = getSelectedWorkspacePolicyID(transaction, action) ?? getIOURequestPolicyID(transaction, pickReportForPolicy(report, participantReport));
-    const {policy} = usePolicyForTransaction({transaction, reportPolicyID, action, iouType});
+    const {policy: transactionPolicy} = usePolicyForTransaction({transaction, reportPolicyID, action, iouType});
+    const splitEffectivePolicy = useSplitEffectivePolicy(report, splitDraftTransaction, transaction);
+    const policy = isEditingSplitBill ? splitEffectivePolicy : transactionPolicy;
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
@@ -73,12 +81,9 @@ function DynamicIOURequestStepTaxRatePage({
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
 
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const taxRates = policy?.taxRates;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -123,6 +128,15 @@ function DynamicIOURequestStepTaxRatePage({
             getCurrencySymbol,
         };
 
+        // Clearing the tax on a split must update the split draft, not the optimistic transaction, otherwise the
+        // stale tax is retained on save (especially offline). Handle it before the generic editing clear below.
+        if (shouldClearTax && isEditingSplitBill) {
+            if (currentTransaction) {
+                setDraftSplitTransaction(currentTransaction.transactionID, splitDraftTransaction, {taxAmount: 0, taxCode: '', taxValue: ''}, getCurrencyDecimals, getCurrencySymbol);
+            }
+            saveAndNavigateBack();
+            return;
+        }
         if (shouldClearTax && isEditing) {
             updateMoneyRequestTaxRate(updateTaxRateParams);
             saveAndNavigateBack();

@@ -101,7 +101,7 @@ describe('ImportTransactions', () => {
             const importFinalModal = {
                 titleKey: 'spreadsheet.importSuccessfulTitle' as const,
                 promptKey: 'spreadsheet.importTransactionsSuccessfulDescription' as const,
-                promptKeyParams: {transactions: 3},
+                promptKeyParams: {count: 3},
             };
 
             expect(getImportFinalModalOnyxData('import-result-1', importFinalModal)).toEqual({
@@ -934,6 +934,17 @@ describe('ImportTransactions', () => {
             expect(params.cardID).toBe(existingCardID);
             const optimisticData = getRequiredOnyxUpdates(onyxData, 'optimisticData');
             expect(optimisticData).not.toEqual(expect.arrayContaining([expect.objectContaining({key: ONYXKEYS.CARD_LIST})]));
+        });
+
+        it('uses the hard defaults when importing a new card that has no saved layout', async () => {
+            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID);
+
+            const [, params] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            expect(params.cardName).toBe('Imported Card');
+            expect(params.currency).toBe(CONST.CURRENCY.USD);
+            expect(params.reimbursable).toBe(true);
+            expect(JSON.parse(String(params.columnMappings))).toEqual(expect.objectContaining({flipAmountSign: false}));
+            expect(JSON.parse(String(params.transactionList))).toEqual([expect.objectContaining({amount: 550}), expect.objectContaining({amount: 2500})]);
         });
 
         it('sends the existing card settings instead of the defaults when re-uploading to a card', async () => {
