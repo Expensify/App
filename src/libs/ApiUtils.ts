@@ -15,12 +15,6 @@ import getEnvironment from './Environment/getEnvironment';
 // We use the async environment check because it works on all platforms
 let activeServer: ValueOf<typeof CONST.SERVER> = CONST.SERVER.PRODUCTION;
 
-/**
- * `activeServer` above is only real once getEnvironment() has resolved AND the first Onyx callback below has
- * run. A one-shot decision must await this or it reads 'production' on every build, QA included.
- */
-const {promise: activeServerHydrationPromise, resolve: resolveActiveServerHydration} = Promise.withResolvers<void>();
-
 function resolveActiveServer(value: ValueOf<typeof CONST.SERVER> | undefined, envName: ValueOf<typeof CONST.ENVIRONMENT>): ValueOf<typeof CONST.SERVER> {
     // Selecting QA with no QA root leaves getApiRoot returning an empty string, and getCommandURL turns
     // that into a relative `api/Command?` the browser resolves against the app's own origin
@@ -54,7 +48,6 @@ getEnvironment().then((envName) => {
         key: ONYXKEYS.ACTIVE_SERVER,
         callback: (value) => {
             activeServer = resolveActiveServer(value, envName);
-            resolveActiveServerHydration();
         },
     });
 });
@@ -109,8 +102,4 @@ function getActiveServer(): ValueOf<typeof CONST.SERVER> {
     return activeServer;
 }
 
-function waitForActiveServerHydration(): Promise<void> {
-    return activeServerHydrationPromise;
-}
-
-export {getActiveServer, getApiRoot, getCommandURL, isQAServerActive, waitForActiveServerHydration};
+export {getActiveServer, getApiRoot, getCommandURL, isQAServerActive};
