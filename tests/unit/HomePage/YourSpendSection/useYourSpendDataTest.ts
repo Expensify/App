@@ -65,12 +65,7 @@ const CARD_QUERY_2 = `type:expense from:${ACCOUNT_ID} cardID:${CARD_ID_2}`;
 const THIRD_PARTY_QUERY_1 = `type:expense from:${ACCOUNT_ID} cardID:${THIRD_PARTY_CARD_ID_1}`;
 const THIRD_PARTY_QUERY_2 = `type:expense from:${ACCOUNT_ID} cardID:${THIRD_PARTY_CARD_ID_2}`;
 
-function cardGroupQueryFor(cardIDs: number[]): string {
-    return buildCardGroupQuery(
-        ACCOUNT_ID,
-        [...cardIDs].sort((a, b) => a - b),
-    );
-}
+const CARD_GROUP_QUERY = buildCardGroupQuery(ACCOUNT_ID);
 
 // Module mocks
 
@@ -191,8 +186,13 @@ function setupPaymentSnapshot(results: SearchResults | undefined) {
 
 type CardGroupFixture = {cardID: number; count: number; total?: number; currency?: string};
 
+/**
+ * Seeds the single grouped snapshot the hook subscribes to, one `group_<cardID>` entry per card.
+ * A fixture with `count: 0` is omitted, mirroring a backend that returns no group for a card with
+ * no matching expenses.
+ */
 function setupCardGroups(groups: CardGroupFixture[], searchOverrides: Partial<SearchResults['search']> = {}) {
-    const hash = buildSearchQueryJSON(cardGroupQueryFor(groups.map((group) => group.cardID)))?.hash;
+    const hash = buildSearchQueryJSON(CARD_GROUP_QUERY)?.hash;
     const data: SearchResults['data'] = {};
     for (const {cardID, count, total, currency} of groups) {
         if (!count) {
@@ -409,7 +409,7 @@ describe('useYourSpendData — cardRows', () => {
         expect(result.current.cardRows).toHaveLength(0);
     });
 
-    it('excludes a card whose snapshot has count === 0 (no transactions in last 30 days)', () => {
+    it('excludes a card the grouped snapshot returns no group for (no transactions in last 30 days)', () => {
         mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1}]));
         setupCardGroups([{cardID: CARD_ID_1, count: 0}]);
         const {result} = renderHook(() => useYourSpendData());
@@ -459,6 +459,29 @@ describe('useYourSpendData — cardRows', () => {
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.cardRows).toHaveLength(1);
         expect(result.current.cardRows.at(0)).toMatchObject({cardID: CARD_ID_2, lastFour: CARD_LAST_FOUR_2});
+    });
+
+    it('resolves each card row total from its own group in the one grouped snapshot', () => {
+        // Given a grouped snapshot carrying a group per card
+        mockedGetDisplayableExpensifyCards.mockReturnValue(
+            makeDisplayableCards([
+                {cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1},
+                {cardID: CARD_ID_2, lastFourPAN: CARD_LAST_FOUR_2},
+            ]),
+        );
+        setupCardGroups([
+            {cardID: CARD_ID_1, count: 5, total: 1500, currency: 'USD'},
+            {cardID: CARD_ID_2, count: 2, total: 700, currency: 'USD'},
+        ]);
+
+        // When the hook renders
+        const {result} = renderHook(() => useYourSpendData());
+
+        // Then each row carries its own card's total and its own tap-through query
+        expect(result.current.cardRows).toEqual([
+            expect.objectContaining({cardID: CARD_ID_1, total: 1500, currency: 'USD', query: CARD_QUERY_1}),
+            expect.objectContaining({cardID: CARD_ID_2, total: 700, currency: 'USD', query: CARD_QUERY_2}),
+        ]);
     });
 });
 
@@ -550,7 +573,7 @@ describe('useYourSpendData — search dispatch', () => {
         expect(search).toHaveBeenCalledTimes(1);
         expect(search).toHaveBeenCalledWith(
             expect.objectContaining({
-                queryJSON: expect.objectContaining({hash: buildSearchQueryJSON(cardGroupQueryFor([CARD_ID_1, CARD_ID_2]))?.hash}),
+                queryJSON: expect.objectContaining({hash: buildSearchQueryJSON(CARD_GROUP_QUERY)?.hash}),
             }),
         );
     });
@@ -564,12 +587,14 @@ describe('useYourSpendData — search dispatch', () => {
         // When Home renders focused and online
         renderHook(() => useYourSpendData());
 
-        // Then nothing is sent — an unfiltered grouped query would return every card the user has
+        // Then nothing is sent. An unfiltered grouped query would return every card the user has.
         expect(search).not.toHaveBeenCalled();
     });
 
-    it('resolves each card row total from its own group in the one grouped snapshot', () => {
-        // Given a grouped snapshot carrying a group per card
+    it('keeps the surviving rows when a card is deleted, without refetching', () => {
+        // Given Home has totals for two cards
+        mockedIsPaidGroupPolicy.mockReturnValue(false);
+        onyxData[ONYXKEYS.CARD_LIST] = {[CARD_ID_1]: {cardID: CARD_ID_1}, [CARD_ID_2]: {cardID: CARD_ID_2}};
         mockedGetDisplayableExpensifyCards.mockReturnValue(
             makeDisplayableCards([
                 {cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1},
@@ -580,44 +605,20 @@ describe('useYourSpendData — search dispatch', () => {
             {cardID: CARD_ID_1, count: 5, total: 1500, currency: 'USD'},
             {cardID: CARD_ID_2, count: 2, total: 700, currency: 'USD'},
         ]);
-
-        // When the hook renders
-        const {result} = renderHook(() => useYourSpendData());
-
-        // Then each row carries its own card's total and its own tap-through query
-        expect(result.current.cardRows).toEqual([
-            expect.objectContaining({cardID: CARD_ID_1, total: 1500, currency: 'USD', query: CARD_QUERY_1}),
-            expect.objectContaining({cardID: CARD_ID_2, total: 700, currency: 'USD', query: CARD_QUERY_2}),
-        ]);
-    });
-
-    it('refires the grouped search when the displayable card set changes', () => {
-        // Given Home already fetched totals for a single card
-        mockedIsPaidGroupPolicy.mockReturnValue(false);
-        onyxData[ONYXKEYS.CARD_LIST] = {[CARD_ID_1]: {cardID: CARD_ID_1}};
-        mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1}]));
-        const {rerender} = renderHook(() => useYourSpendData());
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.cardRows).toHaveLength(2);
         expect(search).toHaveBeenCalledTimes(1);
 
-        // When a second card becomes displayable
+        // When one card is optimistically deleted, as `deletePersonalCard` does even while offline
         act(() => {
-            onyxData[ONYXKEYS.CARD_LIST] = {[CARD_ID_1]: {cardID: CARD_ID_1}, [CARD_ID_2]: {cardID: CARD_ID_2}};
+            onyxData[ONYXKEYS.CARD_LIST] = {[CARD_ID_1]: {cardID: CARD_ID_1}};
         });
-        mockedGetDisplayableExpensifyCards.mockReturnValue(
-            makeDisplayableCards([
-                {cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1},
-                {cardID: CARD_ID_2, lastFourPAN: CARD_LAST_FOUR_2},
-            ]),
-        );
+        mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1}]));
         rerender(undefined);
 
-        // Then the new card set is fetched rather than read off the previous set's snapshot
-        expect(search).toHaveBeenCalledTimes(2);
-        expect(search).toHaveBeenLastCalledWith(
-            expect.objectContaining({
-                queryJSON: expect.objectContaining({hash: buildSearchQueryJSON(cardGroupQueryFor([CARD_ID_1, CARD_ID_2]))?.hash}),
-            }),
-        );
+        // Then the remaining row keeps its total off the same snapshot and nothing is refetched
+        expect(result.current.cardRows).toEqual([expect.objectContaining({cardID: CARD_ID_1, total: 1500, currency: 'USD'})]);
+        expect(search).toHaveBeenCalledTimes(1);
     });
 
     it('dispatches search() with the approval queryJSON hash', () => {
@@ -654,7 +655,7 @@ describe('useYourSpendData — third-party cardRows', () => {
         expect(result.current.cardRows.at(0)).toMatchObject({cardID: THIRD_PARTY_CARD_ID_1, lastFour: THIRD_PARTY_LAST_FOUR_1, query: THIRD_PARTY_QUERY_1});
     });
 
-    it('produces no row for a third-party card with snapshot count === 0', () => {
+    it('produces no row for a third-party card the grouped snapshot returns no group for', () => {
         mockedGetDisplayableThirdPartyCards.mockReturnValue(makeThirdPartyCards([{cardID: THIRD_PARTY_CARD_ID_1, lastFourPAN: THIRD_PARTY_LAST_FOUR_1}]));
         setupCardGroups([{cardID: THIRD_PARTY_CARD_ID_1, count: 0}]);
         const {result} = renderHook(() => useYourSpendData());
@@ -689,7 +690,6 @@ describe('useYourSpendData — third-party cardRows', () => {
         // The selector receives `cardFeedErrors` and is unit-tested separately. Here we just verify
         // the hook respects whatever set the selector returns: when the selector returns [], no row.
         mockedGetDisplayableThirdPartyCards.mockReturnValue([]);
-        setupCardGroups([{cardID: THIRD_PARTY_CARD_ID_1, count: 5}]);
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.cardRows).toHaveLength(0);
     });

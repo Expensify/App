@@ -435,9 +435,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
         [expensifyCards, thirdPartyCards],
     );
 
-    const displayableCardIDs = displayableCards.map(({card}) => card.cardID).sort((a, b) => a - b);
-
-    const cardGroupQueryJSON = displayableCardIDs.length > 0 ? buildSearchQueryJSON(buildCardGroupQuery(accountID, displayableCardIDs)) : undefined;
+    const cardGroupQueryJSON = displayableCards.length > 0 ? buildSearchQueryJSON(buildCardGroupQuery(accountID)) : undefined;
     const [cardTotalsByCardID] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${cardGroupQueryJSON?.hash}`, {selector: getCardTotalsByCardID});
 
     const cardRows: YourSpendCardRow[] = useMemo(

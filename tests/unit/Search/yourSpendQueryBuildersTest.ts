@@ -216,11 +216,9 @@ describe('buildRecentCardTransactionsQuery', () => {
 });
 
 describe('buildCardGroupQuery', () => {
-    const OTHER_CARD_ID = 54321;
-
     it('groups by card, so one response carries a per-card total', () => {
-        // Given the two cards Home would display
-        const queryString = buildCardGroupQuery(ACCOUNT_ID, [CARD_ID, OTHER_CARD_ID]);
+        // Given the grouped query
+        const queryString = buildCardGroupQuery(ACCOUNT_ID);
 
         // When the query is parsed
         const queryJSON = buildSearchQueryJSON(queryString);
@@ -230,21 +228,20 @@ describe('buildCardGroupQuery', () => {
         expect(queryJSON?.groupBy).toBe(CONST.SEARCH.GROUP_BY.CARD);
     });
 
-    it('scopes the query to exactly the cards it was given', () => {
-        // Given the two cards Home would display
-        const queryString = buildCardGroupQuery(ACCOUNT_ID, [CARD_ID, OTHER_CARD_ID]);
+    it('carries no cardID filter, so the hash survives a card being added or deleted', () => {
+        // Given the grouped query
+        const queryString = buildCardGroupQuery(ACCOUNT_ID);
 
         // When the cardID filter is read back
-        const values = getRawFiltersForKey(queryString, CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID).flatMap((f) => (Array.isArray(f.value) ? f.value : [f.value]));
+        const values = getRawFiltersForKey(queryString, CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
 
-        // Then both card IDs are present, so the backend never returns groups for cards Home does not display
-        expect(values).toEqual(expect.arrayContaining([String(CARD_ID), String(OTHER_CARD_ID)]));
-        expect(values).toHaveLength(2);
+        // Then there is none, so an optimistic card delete keeps reading the snapshot already loaded
+        expect(values).toHaveLength(0);
     });
 
     it('resolves from to the numeric accountID (not literal [me])', () => {
-        // Given a grouped query for one card
-        const queryString = buildCardGroupQuery(ACCOUNT_ID, [CARD_ID]);
+        // Given the grouped query
+        const queryString = buildCardGroupQuery(ACCOUNT_ID);
 
         // When the from filter is read back
         const values = getRawFiltersForKey(queryString, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM).flatMap((f) => (Array.isArray(f.value) ? f.value : [f.value]));
@@ -255,8 +252,8 @@ describe('buildCardGroupQuery', () => {
     });
 
     it('windows the query to the same 30 days as the per-card tap-through query', () => {
-        // Given a grouped query for one card
-        const queryString = buildCardGroupQuery(ACCOUNT_ID, [CARD_ID]);
+        // Given the grouped query
+        const queryString = buildCardGroupQuery(ACCOUNT_ID);
 
         // When its date bound is compared against 30 days before today
         const dateStr = queryString.match(/date>([0-9]{4}-[0-9]{2}-[0-9]{2})/)?.[1];
@@ -267,18 +264,5 @@ describe('buildCardGroupQuery', () => {
         // Then the row total covers the same window the tap-through will show
         expect(diffDays).toBeGreaterThanOrEqual(29);
         expect(diffDays).toBeLessThanOrEqual(31);
-    });
-
-    it('produces a different hash for a different card set, so a card change refires the search', () => {
-        // Given grouped queries for two different card sets
-        const twoCardQuery = buildCardGroupQuery(ACCOUNT_ID, [CARD_ID, OTHER_CARD_ID]);
-        const singleCardQuery = buildCardGroupQuery(ACCOUNT_ID, [CARD_ID]);
-
-        // When their snapshot hashes are compared
-        const twoCardHash = buildSearchQueryJSON(twoCardQuery)?.hash;
-        const singleCardHash = buildSearchQueryJSON(singleCardQuery)?.hash;
-
-        // Then they differ, so adding or losing a card refires rather than reading a stale snapshot
-        expect(singleCardHash).not.toBe(twoCardHash);
     });
 });
