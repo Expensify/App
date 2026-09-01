@@ -128,12 +128,6 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** Menu items to be rendered on the list */
     menuItems: PopoverMenuItem[];
 
-    /**
-     * When the top level collapses to a single entry that only leads to a submenu (no choice of its own),
-     * open directly into that submenu instead of making the user select the single entry first.
-     */
-    shouldAutoExpandSingleSubMenu?: boolean;
-
     /** Optional non-interactive text to display as a header for any create menu */
     headerText?: string;
 
@@ -314,23 +308,6 @@ function resolveIndexPathByKeyPath(root: PopoverMenuItem[], keyPath: string[]) {
     return {found: true as const, indexes, itemsAtLeaf: level};
 }
 
-/**
- * When the top level of the menu collapses to a single entry that itself just leads to a submenu (e.g. an "Export"
- * button that is the only bulk action available), that entry point carries no choice of its own — forcing the user
- * to open it before they can see any real options. In that case, land directly on the submenu (as if the user had
- * already selected that single entry) so opening the menu goes one level deeper instead of two.
- *
- * The returned `indexes` length doubles as the depth of the menu's effective root: everything the user sees at that
- * depth is the top level, so no back button and no header belong there.
- */
-function getInitialMenuState(menuItems: PopoverMenuItem[], shouldAutoExpandSingleSubMenu?: boolean): {items: PopoverMenuItem[]; indexes: readonly number[]} {
-    const soleItem = menuItems.length === 1 ? menuItems.at(0) : undefined;
-    if (shouldAutoExpandSingleSubMenu && soleItem?.subMenuItems?.length) {
-        return {items: soleItem.subMenuItems, indexes: [0]};
-    }
-    return {items: menuItems, indexes: CONST.EMPTY_ARRAY};
-}
-
 function PopoverMenu(props: PopoverMenuProps) {
     const wasVisible = usePrevious(props.isVisible);
     // Do not render the PopoverMenu before it gets opened. Until then both values are false
@@ -342,7 +319,6 @@ function PopoverMenu(props: PopoverMenuProps) {
 
 function BasePopoverMenu({
     menuItems,
-    shouldAutoExpandSingleSubMenu,
     onItemSelected,
     isVisible,
     anchorPosition,
@@ -392,12 +368,9 @@ function BasePopoverMenu({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
-    const [currentMenuItems, setCurrentMenuItems] = useState(() => getInitialMenuState(menuItems, shouldAutoExpandSingleSubMenu).items);
+    const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = getSelectedItemIndex(currentMenuItems);
-    const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(() => getInitialMenuState(menuItems, shouldAutoExpandSingleSubMenu).indexes);
-    // Depth of the menu's effective root. It is 0 normally, and 1 once a single-entry top level has been auto-expanded
-    // into its submenu — at that depth the user is looking at the top level, so there is nothing to go back to.
-    const rootDepth = getInitialMenuState(menuItems, shouldAutoExpandSingleSubMenu).indexes.length;
+    const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: currentMenuItemsFocusedIndex,
@@ -427,7 +400,7 @@ function BasePopoverMenu({
         return currentItems;
     };
 
-    const isRadioButtonMode = enteredSubMenuIndexes.length === rootDepth ? shouldShowRadioButton : !!getPreviousSubMenu().at(enteredSubMenuIndexes.at(-1) ?? -1)?.shouldShowRadioButton;
+    const isRadioButtonMode = enteredSubMenuIndexes.length === 0 ? shouldShowRadioButton : !!getPreviousSubMenu().at(enteredSubMenuIndexes.at(-1) ?? -1)?.shouldShowRadioButton;
 
     // In radio-button mode, suppress the visual highlight until the user starts navigating,
     // even though the selected item is already focused (for immediate Enter/arrow support).
@@ -585,7 +558,7 @@ function BasePopoverMenu({
     });
 
     const renderHeaderText = () => {
-        if (!headerText || enteredSubMenuIndexes.length !== rootDepth) {
+        if (!headerText || enteredSubMenuIndexes.length !== 0) {
             return;
         }
         return (
@@ -653,11 +626,10 @@ function BasePopoverMenu({
         const keyPath = buildKeyPathFromIndexPath(prevMenuItems ?? menuItems, enteredSubMenuIndexes);
 
         if (keyPath.length === 0) {
-            const initialMenuState = getInitialMenuState(menuItems, shouldAutoExpandSingleSubMenu);
-            setEnteredSubMenuIndexes(initialMenuState.indexes);
-            setCurrentMenuItems(initialMenuState.items);
+            setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
+            setCurrentMenuItems(menuItems);
             if (!isVisible) {
-                setFocusedIndex(getSelectedItemIndex(initialMenuState.items));
+                setFocusedIndex(getSelectedItemIndex(menuItems));
             }
             return;
         }
@@ -673,11 +645,10 @@ function BasePopoverMenu({
             return;
         }
 
-        const initialMenuState = getInitialMenuState(menuItems, shouldAutoExpandSingleSubMenu);
-        setEnteredSubMenuIndexes(initialMenuState.indexes);
-        setCurrentMenuItems(initialMenuState.items);
+        setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
+        setCurrentMenuItems(menuItems);
         if (!isVisible) {
-            setFocusedIndex(getSelectedItemIndex(initialMenuState.items));
+            setFocusedIndex(getSelectedItemIndex(menuItems));
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -738,9 +709,8 @@ function BasePopoverMenu({
             anchorRef={anchorRef}
             anchorAlignment={anchorAlignment}
             onClose={() => {
-                const initialMenuState = getInitialMenuState(menuItems, shouldAutoExpandSingleSubMenu);
-                setCurrentMenuItems(initialMenuState.items);
-                setEnteredSubMenuIndexes(initialMenuState.indexes);
+                setCurrentMenuItems(menuItems);
+                setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
                 onClose();
             }}
             isVisible={isVisible}
@@ -781,7 +751,7 @@ function BasePopoverMenu({
                             addBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
                         >
                             {renderHeaderText()}
-                            {enteredSubMenuIndexes.length > rootDepth && renderBackButtonItem()}
+                            {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                             {renderedMenuItems}
                         </PopoverMenuContent>
                     </View>
@@ -812,8 +782,7 @@ export default React.memo(
         prevProps.shouldEnableNewFocusManagement === nextProps.shouldEnableNewFocusManagement &&
         prevProps.shouldReturnFocus === nextProps.shouldReturnFocus &&
         prevProps.restoreFocusType === nextProps.restoreFocusType &&
-        prevProps.shouldSetModalVisibility === nextProps.shouldSetModalVisibility &&
-        prevProps.shouldAutoExpandSingleSubMenu === nextProps.shouldAutoExpandSingleSubMenu,
+        prevProps.shouldSetModalVisibility === nextProps.shouldSetModalVisibility,
 );
 export type {PopoverMenuItem, PopoverMenuProps};
 export {getItemKey, buildKeyPathFromIndexPath, resolveIndexPathByKeyPath};
