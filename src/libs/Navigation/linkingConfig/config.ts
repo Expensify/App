@@ -2133,6 +2133,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.WORKSPACES_DOMAIN_ACCESS_RESTRICTED.route,
                             exact: true,
                         },
+                        [SCREENS.WORKSPACES_DOMAIN_ALREADY_EXISTS]: {
+                            path: ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.route,
+                            exact: true,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.MULTIFACTOR_AUTHENTICATION]: {
