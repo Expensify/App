@@ -92,4 +92,37 @@ describe('pruneStaleOptimisticAccountIDMappingEntries (reactive)', () => {
         expect(timestamps?.[STALE_OPTIMISTIC_ACCOUNT_ID]).toBeUndefined();
         expect(timestamps?.[FRESH_OPTIMISTIC_ACCOUNT_ID]).toBe(freshWriteTime);
     });
+
+    it('backfills a createdAt for a mapping entry that arrived with none, without disturbing one that already has a createdAt', async () => {
+        const existingCreatedAt = Date.now() - 24 * 60 * 60 * 1000;
+
+        // Simulates an entry synced in from another device (mapping written, no createdAt of its own) landing
+        // alongside one that already has its own createdAt — the mapping-key write alone must not trigger
+        // anything reactively, so nothing should be backfilled or pruned until becameActiveCallback() runs.
+        await Onyx.multiSet({
+            [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: {[STALE_OPTIMISTIC_ACCOUNT_ID]: 555, [FRESH_OPTIMISTIC_ACCOUNT_ID]: 666},
+            [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT]: {[FRESH_OPTIMISTIC_ACCOUNT_ID]: existingCreatedAt},
+        });
+        await waitForBatchedUpdates();
+
+        let timestamps = await OnyxUtils.get(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT);
+        expect(timestamps?.[STALE_OPTIMISTIC_ACCOUNT_ID]).toBeUndefined();
+
+        const before = Date.now();
+        becameActiveCallback();
+        await waitForBatchedUpdates();
+        const after = Date.now();
+
+        const mapping = await OnyxUtils.get(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
+        timestamps = await OnyxUtils.get(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT);
+
+        // The entry with no createdAt gets one stamped now, so it's eligible for pruning next time.
+        expect(mapping?.[STALE_OPTIMISTIC_ACCOUNT_ID]).toBe(555);
+        expect(timestamps?.[STALE_OPTIMISTIC_ACCOUNT_ID]).toBeGreaterThanOrEqual(before);
+        expect(timestamps?.[STALE_OPTIMISTIC_ACCOUNT_ID]).toBeLessThanOrEqual(after);
+
+        // The entry that already had a createdAt keeps it untouched.
+        expect(mapping?.[FRESH_OPTIMISTIC_ACCOUNT_ID]).toBe(666);
+        expect(timestamps?.[FRESH_OPTIMISTIC_ACCOUNT_ID]).toBe(existingCreatedAt);
+    });
 });
