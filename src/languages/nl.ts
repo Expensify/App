@@ -8209,6 +8209,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 requireAboveAmount: 'Bovenstaand bedrag verplicht stellen',
                 saveRule: 'Regel opslaan',
                 emptyAmountError: 'Voer een geldig bedrag in voordat je opslaat',
+                receiptAmountGreaterThanItemizedError: 'Het bedrag voor de vereiste bon mag niet hoger zijn dan het bedrag voor de vereiste gespecificeerde bon.',
             },
             requireFields: {title: 'Velden vereisen voor alle uitgaven', category: 'Categorie', tag: 'Label', save: 'Regel opslaan'},
             newRule: {

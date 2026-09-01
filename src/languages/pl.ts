@@ -8231,6 +8231,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 requireAboveAmount: 'Wymagaj kwoty powyżej tej',
                 saveRule: 'Zapisz regułę',
                 emptyAmountError: 'Wpisz prawidłową kwotę przed zapisaniem',
+                receiptAmountGreaterThanItemizedError: 'Kwota wymaganego paragonu nie może być większa niż kwota wymaganego wyszczególnionego paragonu.',
             },
             requireFields: {title: 'Wymagaj pól dla wszystkich wydatków', category: 'Kategoria', tag: 'Tag', save: 'Zapisz regułę'},
             newRule: {

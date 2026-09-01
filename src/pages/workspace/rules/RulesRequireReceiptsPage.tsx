@@ -2,6 +2,7 @@ import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -46,7 +47,7 @@ function RulesRequireReceiptsPage({
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const decimals = getCurrencyDecimals(policyCurrency);
     const formRef = useRef<FormRef>(null);
@@ -67,6 +68,12 @@ function RulesRequireReceiptsPage({
     const [itemizedEnabled, setItemizedEnabled] = useState(initialItemizedEnabled);
     const syncedPolicyIDRef = useRef<string | undefined>(undefined);
 
+    // The two amounts share one constraint, so neither field is individually wrong when it breaks. Following the
+    // two-fields-one-constraint pattern in IOURequestStepDistanceOdometer, the violation is shown as a single message
+    // below the pair rather than as an error on either input, raised on a save attempt and cleared on the next edit.
+    const [amountConflictError, setAmountConflictError] = useState('');
+    const isSaveAttemptRef = useRef(false);
+
     useEffect(() => {
         syncedPolicyIDRef.current = undefined;
     }, [policyID]);
@@ -85,6 +92,11 @@ function RulesRequireReceiptsPage({
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM> = {};
 
+            // This callback also runs on every change and blur, so the shared message is only raised when the user
+            // actually tried to save. Editing either amount clears it from the inputs' own onValueChange.
+            const isSaveAttempt = isSaveAttemptRef.current;
+            isSaveAttemptRef.current = false;
+
             if (!receiptEnabled && !itemizedEnabled) {
                 return errors;
             }
@@ -100,36 +112,39 @@ function RulesRequireReceiptsPage({
             }
 
             if (!isEmptyObject(errors)) {
+                if (isSaveAttempt) {
+                    setAmountConflictError('');
+                }
                 return errors;
             }
 
-            if (receiptEnabled && itemizedEnabled && values.maxExpenseAmountNoReceipt && values.maxExpenseAmountNoItemizedReceipt) {
-                const receiptCents = convertToBackendAmount(Number(values.maxExpenseAmountNoReceipt) || 0);
-                const itemizedCents = convertToBackendAmount(Number(values.maxExpenseAmountNoItemizedReceipt) || 0);
+            const hasAmountConflict =
+                receiptEnabled &&
+                itemizedEnabled &&
+                !!values.maxExpenseAmountNoReceipt &&
+                !!values.maxExpenseAmountNoItemizedReceipt &&
+                convertToBackendAmount(Number(values.maxExpenseAmountNoReceipt) || 0) > convertToBackendAmount(Number(values.maxExpenseAmountNoItemizedReceipt) || 0);
 
-                if (receiptCents > itemizedCents) {
-                    // Both amounts break the same constraint, so flagging both fields leaves the user with two errors
-                    // that each point at the other value and no indication of which one to change. Flag only the amount
-                    // the user just edited, falling back to the require-receipt amount when they edited both or neither.
-                    const receiptAmountEdited = values.maxExpenseAmountNoReceipt !== initialReceiptAmount;
-                    const itemizedAmountEdited = values.maxExpenseAmountNoItemizedReceipt !== initialItemizedAmount;
+            if (isSaveAttempt) {
+                setAmountConflictError(hasAmountConflict ? translate('workspace.rules.requireReceipts.receiptAmountGreaterThanItemizedError') : '');
 
-                    if (itemizedAmountEdited && !receiptAmountEdited) {
-                        errors.maxExpenseAmountNoItemizedReceipt = translate('workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmountError', {
-                            amount: convertToDisplayString(receiptCents, policyCurrency),
-                        });
-                    } else {
-                        errors.maxExpenseAmountNoReceipt = translate('workspace.rules.individualExpenseRules.receiptRequiredAmountError', {
-                            amount: convertToDisplayString(itemizedCents, policyCurrency),
-                        });
-                    }
+                if (hasAmountConflict) {
+                    // A valueless entry on a registered input keeps FormProvider from submitting while resolving to an
+                    // empty errorText, so the save is blocked without either field turning red.
+                    errors.maxExpenseAmountNoReceipt = undefined;
                 }
             }
 
             return errors;
         },
-        [receiptEnabled, itemizedEnabled, initialReceiptAmount, initialItemizedAmount, convertToDisplayString, policyCurrency, translate],
+        [receiptEnabled, itemizedEnabled, translate],
     );
+
+    const handleBeforeSubmit = useCallback(() => {
+        isSaveAttemptRef.current = true;
+    }, []);
+
+    const clearAmountConflictError = useCallback(() => setAmountConflictError(''), []);
 
     const handleSubmit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM>) => {
@@ -208,7 +223,10 @@ function RulesRequireReceiptsPage({
                     formID={ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM}
                     onSubmit={handleSubmit}
                     validate={validate}
+                    onBeforeSubmit={handleBeforeSubmit}
                     submitButtonText={translate('workspace.rules.requireReceipts.saveRule')}
+                    // The shared amount message below the pair already says what to fix, so the generic alert would only repeat it.
+                    shouldHideFixErrorsAlert
                     enabledWhenOffline
                     addBottomSafeAreaPadding
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_RECEIPTS_SAVE}
@@ -226,6 +244,7 @@ function RulesRequireReceiptsPage({
                         onCloseError={() => clearPolicyErrorField(policyID, 'maxExpenseAmountNoReceipt')}
                         onToggle={(newValue) => {
                             setReceiptEnabled(newValue);
+                            clearAmountConflictError();
                             if (!newValue) {
                                 formRef.current?.resetFormFieldError(INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_RECEIPT);
                             }
@@ -241,6 +260,7 @@ function RulesRequireReceiptsPage({
                                 isCurrencyPressable={false}
                                 displayAsTextInput
                                 label={translate('workspace.rules.requireReceipts.requireAboveAmount')}
+                                onValueChange={clearAmountConflictError}
                             />
                         </View>
                     )}
@@ -258,6 +278,7 @@ function RulesRequireReceiptsPage({
                         onCloseError={() => clearPolicyErrorField(policyID, 'maxExpenseAmountNoItemizedReceipt')}
                         onToggle={(newValue) => {
                             setItemizedEnabled(newValue);
+                            clearAmountConflictError();
                             if (!newValue) {
                                 formRef.current?.resetFormFieldError(INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT);
                             }
@@ -273,8 +294,16 @@ function RulesRequireReceiptsPage({
                                 isCurrencyPressable={false}
                                 displayAsTextInput
                                 label={translate('workspace.rules.requireReceipts.requireAboveAmount')}
+                                onValueChange={clearAmountConflictError}
                             />
                         </View>
+                    )}
+
+                    {!!amountConflictError && (
+                        <FormHelpMessage
+                            style={styles.mt2}
+                            message={amountConflictError}
+                        />
                     )}
                 </FormProvider>
             </ScreenWrapper>

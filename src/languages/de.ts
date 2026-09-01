@@ -8275,6 +8275,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 requireAboveAmount: 'Obigen Betrag anfordern',
                 saveRule: 'Regel speichern',
                 emptyAmountError: 'Geben Sie vor dem Speichern einen gültigen Betrag ein',
+                receiptAmountGreaterThanItemizedError: 'Der Betrag für erforderliche Belege darf nicht höher sein als der Betrag für erforderliche detaillierte Belege.',
             },
             requireFields: {title: 'Felder für alle Ausgaben erforderlich machen', category: 'Kategorie', tag: 'Tag', save: 'Regel speichern'},
             newRule: {

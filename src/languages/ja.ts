@@ -8124,6 +8124,7 @@ ${reportName}`,
                 requireAboveAmount: '上記の金額を必須にする',
                 saveRule: 'ルールを保存',
                 emptyAmountError: '保存する前に有効な金額を入力してください',
+                receiptAmountGreaterThanItemizedError: '領収書を必須にする金額は、項目別のレシートを必須にする金額を超えることはできません。',
             },
             requireFields: {title: 'すべての経費に必須項目を設定する', category: 'カテゴリ', tag: 'タグ', save: 'ルールを保存'},
             newRule: {

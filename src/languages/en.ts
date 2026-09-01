@@ -8087,6 +8087,7 @@ const translations = {
                 requireItemizedReceipt: 'Require itemized receipt',
                 requireAboveAmount: 'Require above amount',
                 emptyAmountError: 'Enter a valid amount before saving',
+                receiptAmountGreaterThanItemizedError: "The require receipt amount can't be greater than the require itemized receipt amount.",
                 saveRule: 'Save rule',
             },
             requireFields: {
