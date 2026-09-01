@@ -1,13 +1,17 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import Text from '@components/Text';
 
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import type {ExpensifyCardFeedEntry} from '@libs/ExpensifyCardFeedSelectorUtils';
@@ -18,6 +22,8 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import Navigation from '@navigation/Navigation';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
+import variables from '@styles/variables';
 
 import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
 
@@ -40,6 +46,8 @@ function WorkspaceTravelBillingFeedSelectorPage({route}: WorkspaceTravelBillingF
     const {policyID} = route.params;
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
     const {allFeeds} = useExpensifyCardFeedsForFeedSelector(policyID, [CONST.TRAVEL.PROGRAM_TRAVEL_US]);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
@@ -57,6 +65,14 @@ function WorkspaceTravelBillingFeedSelectorPage({route}: WorkspaceTravelBillingF
         keyForList: entry.fundID.toString(),
         isDisabled: isOffline || linkingFundID !== undefined,
         errors: feedWithError?.fundID === entry.fundID ? feedWithError.error : undefined,
+        leftElement: (
+            <Icon
+                src={illustrations.ExpensifyCardImage}
+                height={variables.cardIconHeight}
+                width={variables.cardIconWidth}
+                additionalStyles={[styles.mr3, styles.cardIcon]}
+            />
+        ),
     });
 
     const selectFeed = (feed: TravelBillingFeedListItem) => {
@@ -93,6 +109,7 @@ function WorkspaceTravelBillingFeedSelectorPage({route}: WorkspaceTravelBillingF
                     ListItem={SingleSelectListItem}
                     onSelectRow={selectFeed}
                     data={allFeeds.map(toListItem)}
+                    customListHeaderContent={<Text style={[styles.ph5, styles.mv2, styles.textLabelSupporting]}>{translate('workspace.companyCards.fromOtherWorkspaces')}</Text>}
                     onDismissError={onDismissError}
                     addBottomSafeAreaPadding
                 />
