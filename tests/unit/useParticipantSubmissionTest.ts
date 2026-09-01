@@ -18,7 +18,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
-import createRandomTransaction from '../utils/collections/transaction';
+import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
 
 // The confirmation page reaches the RHP by replacing the recipient picker, so goToNextStep must pass an explicit
 // backTo for it to be able to navigate back to the picker. For the SUBMIT "Send to someone"/"Submit to a friend" flows
@@ -230,7 +230,7 @@ function buildDestinationPolicy(): Policy {
 
 function buildTrackedDistanceDraft(customUnitRateID: string | undefined): Transaction {
     return {
-        ...createRandomTransaction(2),
+        ...createRandomDistanceRequestTransaction(2),
         transactionID: 'T1',
         amount: 210917,
         currency: CONST.CURRENCY.USD,
@@ -274,6 +274,24 @@ describe('useParticipantSubmission addParticipant distance rate', () => {
 
         expect(setCustomUnitRateID).toHaveBeenCalledTimes(1);
         expect(jest.mocked(setCustomUnitRateID).mock.calls.at(0)?.at(1)).toBe(WORKSPACE_RATE_ID);
+    });
+
+    // A per diem rate ID lives in the per-diem custom unit, so it will never appear among the destination's mileage
+    // rates. Replacing it would leave the expense pointing at a rate its own custom unit cannot resolve.
+    it('leaves a tracked per diem rate alone', () => {
+        mockDraftTransactions = [
+            {
+                ...buildTrackedDistanceDraft('PER_DIEM_RATE'),
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+            },
+        ];
+        const {result} = renderSubmission();
+
+        act(() => {
+            result.current.addParticipant([DESTINATION_CHAT]);
+        });
+
+        expect(setCustomUnitRateID).not.toHaveBeenCalled();
     });
 
     it('keeps the p2p rate so the confirmation step can ask the user to pick a workspace rate', () => {

@@ -267,6 +267,11 @@ function useParticipantSubmission({
         const isMovingToPolicyExpenseChat = isMovingTransactionFromTrackExpense && isPolicyExpenseChat;
         const destinationRates = isMovingToPolicyExpenseChat ? DistanceRequestUtils.getMileageRates(policy) : undefined;
         const shouldKeepTrackExpenseRate = (transaction: OnyxEntry<Transaction>) => {
+            // A tracked per diem carries a per-diem rate ID, which will never be among the destination's mileage
+            // rates, so swapping it for one would leave the expense with a rate its custom unit cannot resolve.
+            if (!isDistanceRequest(transaction)) {
+                return true;
+            }
             const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
             return currentRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID || isEmptyObject(destinationRates) || (!!currentRateID && !!destinationRates?.[currentRateID]);
         };
