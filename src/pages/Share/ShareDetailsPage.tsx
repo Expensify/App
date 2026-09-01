@@ -66,6 +66,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [isDraftReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportOrAccountID}`, {selector: isDraftReportSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const delegateAccountID = useDelegateAccountID();
 
     const reportAttributesDerived = useReportAttributes();
@@ -175,6 +176,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         personalDetails,
                         newReportObject: report,
                         betas,
+                        conciergeChat,
                         hasReportActions: false,
                         currentUserAccountID: personalDetail.accountID,
                     });
