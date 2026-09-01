@@ -22,7 +22,7 @@ type MenuItemEmptyFieldProps = PropsWithChildren &
         description: string;
 
         /** Function to fire when the row is pressed */
-        onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
+        onPress: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
         /** Whether the menu item is disabled */
         isDisabled?: boolean;
@@ -32,7 +32,7 @@ type MenuItemEmptyFieldProps = PropsWithChildren &
 function MenuItemEmptyField({description, onPress, children, isDisabled = false, sentryLabel, testID}: MenuItemEmptyFieldProps) {
     return (
         <MenuItemRoot
-            onPress={onPress ? callFunctionIfActionIsAllowed(onPress) : undefined}
+            onPress={callFunctionIfActionIsAllowed(onPress)}
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             testID={testID}
@@ -44,7 +44,7 @@ function MenuItemEmptyField({description, onPress, children, isDisabled = false,
                 </MenuItemContent>
                 <MenuItemTrailing>
                     {children}
-                    {!!onPress && <MenuItemChevron />}
+                    <MenuItemChevron />
                 </MenuItemTrailing>
             </MenuItemRow>
         </MenuItemRoot>
