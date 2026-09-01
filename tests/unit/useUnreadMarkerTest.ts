@@ -2,6 +2,7 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import useUnreadMarker from '@hooks/useUnreadMarker';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -121,6 +122,71 @@ describe('useUnreadMarker', () => {
 
         expect(result.current.unreadMarkerReportActionID).toBeNull();
         expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
+    });
+
+    it('keeps the unread marker when Concierge hidden history is revealed at once (side panel "Show history")', () => {
+        // Welcome mode: the visible list is only [synthetic greeting, CREATED]; the unread message is filtered out.
+        const greeting = makeAction(CONST.CONCIERGE_GREETING_ACTION_ID, {created: LAST_READ_TIME});
+        const createdAction = makeAction('created', {created: '2023-01-01 08:00:00.000', actionName: CONST.REPORT.ACTIONS.TYPE.CREATED});
+        const welcomeActions = [greeting, createdAction];
+
+        const {result, rerender} = renderHook(
+            (sortedVisibleReportActions: OnyxTypes.ReportAction[]) =>
+                useUnreadMarker({
+                    reportID: REPORT_ID,
+                    sortedVisibleReportActions,
+                    sortedReportActions: sortedVisibleReportActions,
+                    oldestUnreadReportActionID: undefined,
+                    isScrolledOverThreshold: false,
+                    hasOnceLoadedReportActions: true,
+                }),
+            {initialProps: welcomeActions},
+        );
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+
+        // Opening the panel marks the report read, which bumps report.lastReadTime and re-stamps the
+        // greeting's `created` to "now". The synthetic greeting must not drive the watermark forward.
+        const bumpedGreeting = makeAction(CONST.CONCIERGE_GREETING_ACTION_ID, {created: '2023-01-01 12:00:00.000'});
+        rerender([bumpedGreeting, createdAction]);
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+
+        // "Show history" reveals the real history in one render. All of it is new to the list, so the
+        // scan is suppressed this render — but the watermark must not be pushed past the unread message.
+        const unreadMessage = makeAction('unread', {created: '2023-01-01 11:00:00.000'});
+        const readMessage = makeAction('read', {created: '2023-01-01 09:00:00.000'});
+        const fullHistory = [unreadMessage, readMessage, createdAction];
+        rerender(fullHistory);
+
+        // On the next render the actions are no longer "new" and the marker lands on the unread message.
+        rerender(fullHistory);
+        expect(result.current.unreadMarkerReportActionID).toBe('unread');
+        expect(result.current.unreadMarkerReportActionIndex).toBe(0);
+    });
+
+    it('still pushes the watermark past a new message received while caught up', () => {
+        const oldMessage = makeAction('old', {created: '2023-01-01 09:00:00.000'});
+
+        const {result, rerender} = renderHook(
+            (sortedVisibleReportActions: OnyxTypes.ReportAction[]) =>
+                useUnreadMarker({
+                    reportID: REPORT_ID,
+                    sortedVisibleReportActions,
+                    sortedReportActions: sortedVisibleReportActions,
+                    oldestUnreadReportActionID: undefined,
+                    isScrolledOverThreshold: false,
+                    hasOnceLoadedReportActions: true,
+                }),
+            {initialProps: [oldMessage]},
+        );
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+
+        // A new message arrives while the user is at the bottom with the window focused: the marker is
+        // suppressed and the watermark advances past it, so it stays suppressed on later renders too.
+        const incoming = makeAction('incoming', {created: '2023-01-01 11:00:00.000'});
+        rerender([incoming, oldMessage]);
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+        rerender([incoming, oldMessage]);
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
     });
 
     it('seeds the marker from the switched-to report lastReadTime (one mount per report)', () => {
