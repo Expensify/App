@@ -6782,10 +6782,10 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
 const SEARCH_TABLE_COLUMN_GAP = 12;
 
 /**
- * Width of the arrow ending each row, plus the gap before it. The arrow is a row child rather than a column, so it is
- * counted separately: leave it out and it gets pushed past the edge instead of the table scrolling to reach it.
+ * Width of the arrow ending each row. The arrow is a row child rather than a column, so it is counted separately: leave
+ * it out and it gets pushed past the edge instead of the table scrolling to reach it.
  */
-const SEARCH_TABLE_ROW_ARROW_WIDTH = variables.iconSizeNormal + SEARCH_TABLE_COLUMN_GAP;
+const SEARCH_TABLE_ROW_ARROW_WIDTH = variables.iconSizeNormal;
 
 /** The margin and padding each row sits inside on both sides (`mh5` on its wrapper, `ph3` on the row). */
 const SEARCH_TABLE_ROW_CHROME_WIDTH = (20 + 12) * 2;
@@ -6794,9 +6794,10 @@ function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes, i
     // Starts at 24px to account for the checkbox width
     let minWidth = 24;
 
-    // The gaps between columns, the arrow, and the row's own margin and padding are all width the table needs on top of
-    // the columns themselves.
-    minWidth += Math.max(columns.length - 1, 0) * SEARCH_TABLE_COLUMN_GAP + SEARCH_TABLE_ROW_ARROW_WIDTH + SEARCH_TABLE_ROW_CHROME_WIDTH;
+    // The row lays out the checkbox, then every column, then the trailing arrow, as flex children of one gapped row, so
+    // it spends a gap between each adjacent pair: one more than there are columns. Those gaps, the arrow, and the row's
+    // own margin and padding are all width the table needs on top of the columns themselves.
+    minWidth += (columns.length + 1) * SEARCH_TABLE_COLUMN_GAP + SEARCH_TABLE_ROW_ARROW_WIDTH + SEARCH_TABLE_ROW_CHROME_WIDTH;
 
     for (const column of columns) {
         // A caller that knows a column's real minimum passes it in, so use that over the estimate below. The estimates

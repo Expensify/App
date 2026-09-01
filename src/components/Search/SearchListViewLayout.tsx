@@ -1,6 +1,10 @@
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isTransactionListItemType} from '@libs/SearchUIUtils';
+
+import type {GetReportTableColumnStylesParams} from '@styles/utils';
+
 import type {CardList, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
@@ -103,13 +107,28 @@ function SearchListViewLayout({
     const isSizingColumns = Object.keys(columnWidths).length > 0;
     const columnMinWidths: Partial<Record<SearchColumnType, number>> = {};
 
+    // Each row decides for itself whether these columns take their wide variant, from the value it renders: an amount
+    // long enough to need the room, or a date carrying a year. The table has to fit the widest row it holds, so one
+    // wide row widens the column for the whole table.
+    const transactionItems = (data ?? []).filter(isTransactionListItemType);
+    const columnSizeOptions: GetReportTableColumnStylesParams = {
+        isActionColumnWide,
+        isAmountColumnWide: transactionItems.some((item) => item.isAmountColumnWide),
+        isTaxAmountColumnWide: transactionItems.some((item) => item.isTaxAmountColumnWide),
+        isDateColumnWide: transactionItems.some((item) => item.shouldShowYear),
+        isSubmittedColumnWide: transactionItems.some((item) => item.shouldShowYearSubmitted),
+        isApprovedColumnWide: transactionItems.some((item) => item.shouldShowYearApproved),
+        isPostedColumnWide: transactionItems.some((item) => item.shouldShowYearPosted),
+        isExportedColumnWide: transactionItems.some((item) => item.shouldShowYearExported),
+    };
+
     for (const column of columns) {
         const measuredMinWidth = columnWidths[column]?.minWidth;
 
         if (measuredMinWidth !== undefined) {
             columnMinWidths[column] = measuredMinWidth;
         } else if (isSizingColumns) {
-            const declaredWidth = StyleUtils.getReportTableColumnStyles(column, {isActionColumnWide}).width;
+            const declaredWidth = StyleUtils.getReportTableColumnStyles(column, columnSizeOptions).width;
 
             // A column styled with flex alone declares no width, so the scroller keeps estimating that one.
             if (typeof declaredWidth === 'number') {
