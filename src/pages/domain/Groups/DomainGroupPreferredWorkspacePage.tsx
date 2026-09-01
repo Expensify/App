@@ -5,12 +5,9 @@ import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -20,7 +17,6 @@ import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 
 import {updateDomainSecurityGroup} from '@userActions/Domain';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -41,7 +37,6 @@ function DomainGroupPreferredWorkspacePage({route}: DomainGroupPreferredWorkspac
 
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
 
     const [group] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: selectGroupByID(groupID),
@@ -67,15 +62,6 @@ function DomainGroupPreferredWorkspacePage({route}: DomainGroupPreferredWorkspac
             created: policy.created,
             keyForList: policy.id,
             isSelected: currentPolicyID === policy.id,
-            icons: [
-                {
-                    source: policy.avatarURL ?? getDefaultWorkspaceAvatar(policy.name),
-                    fallbackIcon: icons.FallbackWorkspaceAvatar,
-                    name: policy.name,
-                    type: CONST.ICON_TYPE_WORKSPACE,
-                    id: policy.id,
-                },
-            ],
         });
     }
 

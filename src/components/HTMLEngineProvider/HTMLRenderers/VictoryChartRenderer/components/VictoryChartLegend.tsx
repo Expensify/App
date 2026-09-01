@@ -36,7 +36,7 @@ function VictoryChartLegend({x, y, entries, gutter, symbolSpacer, chartWidth}: V
     const theme = useTheme();
     const processedEntries = entries.reduce(
         (acc, {text, color, fontSize, fontWeight, fontFamily, fontStyle, symbolColor, symbolSize}) => {
-            const typeface = getChartSkiaTypeface(typefaces, {fontFamily, fontStyle, fontWeight});
+            const typeface = getChartSkiaTypeface(typefaces, {fontFamily, fontStyle, fontWeight}, text);
             const font = typeface && fontSize ? Skia.Font(typeface, fontSize) : null;
             const {ascent, descent, lineHeight} = getSkiaLineMetrics(font);
             const rowCenterY = y + lineHeight / 2;

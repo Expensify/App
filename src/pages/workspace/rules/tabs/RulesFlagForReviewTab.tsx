@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -27,9 +28,10 @@ type RulesFlagForReviewTabProps = {
     selectedKeys: string[];
     onSelectionChange: (selectedRowKeys: string[]) => void;
     showReadOnlyModal: () => void;
+    headerComponent?: React.ReactElement;
 };
 
-function RulesFlagForReviewTab({policyID, canWriteRules, selectedKeys, onSelectionChange, showReadOnlyModal}: RulesFlagForReviewTabProps) {
+function RulesFlagForReviewTab({policyID, canWriteRules, selectedKeys, onSelectionChange, showReadOnlyModal, headerComponent}: RulesFlagForReviewTabProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -69,7 +71,7 @@ function RulesFlagForReviewTab({policyID, canWriteRules, selectedKeys, onSelecti
         containerStyles: [styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)],
         buttons: [
             {
-                success: true,
+                buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                 isDisabled: !canWriteRules,
                 buttonText: translate('workspace.rules.flagForReviewEmptyState.cta'),
                 buttonAction: handleNewFlagForReviewRule,
@@ -83,6 +85,7 @@ function RulesFlagForReviewTab({policyID, canWriteRules, selectedKeys, onSelecti
             selectionEnabled={canWriteRules}
             selectedKeys={selectedKeys}
             onRowSelectionChange={onSelectionChange}
+            headerComponent={headerComponent}
             emptyState={flagForReviewEmptyState}
         />
     );

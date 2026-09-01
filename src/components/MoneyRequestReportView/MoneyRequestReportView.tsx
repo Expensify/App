@@ -56,6 +56,9 @@ type MoneyRequestReportViewProps = {
     /** The report */
     report: OnyxEntry<OnyxTypes.Report>;
 
+    /** Report ID from the route, known before the report itself loads */
+    reportIDFromRoute: string | undefined;
+
     /** Loading state for report */
     reportLoadingState: OnyxEntry<OnyxTypes.ReportLoadingState>;
 
@@ -110,7 +113,7 @@ function InitialLoadingSkeleton({styles, onLayout}: {styles: ThemeStyles; onLayo
     );
 }
 
-function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReportFooter, backToRoute, onLayout}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, shouldDisplayReportFooter, backToRoute, onLayout}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -121,6 +124,8 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     const isAppLoadPending = useIsAppLoadPending();
     const {reportPendingAction, reportErrors: allReportErrors} = getReportOfflinePendingActionAndErrors(report);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportID);
 
@@ -205,13 +210,16 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
         };
     }, [reportID]);
 
-    useMarkOpenReportEndOnSkeleton(report, shouldShowOpenReportLoadingSkeleton);
+    const shouldShowEmptyActionsSkeleton = reportActions.length === 0;
+    const shouldShowAppLoadSkeleton = !!report && isAppLoadPending;
+    // These skeletons render before the report lands in Onyx, so the mark uses the route id.
+    useMarkOpenReportEndOnSkeleton(reportIDFromRoute, shouldShowOpenReportLoadingSkeleton || shouldShowEmptyActionsSkeleton || shouldShowAppLoadSkeleton);
 
     if (shouldShowOpenReportLoadingSkeleton) {
         return <InitialLoadingSkeleton styles={styles} />;
     }
 
-    if (reportActions.length === 0) {
+    if (shouldShowEmptyActionsSkeleton) {
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
@@ -219,7 +227,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
         return;
     }
 
-    if (isAppLoadPending) {
+    if (shouldShowAppLoadSkeleton) {
         return (
             <View style={styles.flex1}>
                 <ReportHeaderSkeletonView />
@@ -271,6 +279,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
                                 <>
                                     <ReportActionsList
                                         reportID={report.reportID}
+                                        conciergeChat={conciergeChat}
                                         onLayout={onLayout}
                                     />
                                     <UserTypingEventListener report={report} />

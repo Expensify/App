@@ -16,6 +16,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import createMock from '../../utils/createMock';
 import {getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
@@ -32,7 +33,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
 
-const mockReportItemWithHold = {
+const mockReportItemWithHold = createMock<TransactionReportGroupListItemType>({
     groupedBy: 'expense-report',
     shouldAnimateInHighlight: false,
     accountID: 1206,
@@ -46,17 +47,14 @@ const mockReportItemWithHold = {
     created: '2024-12-04 23:18:33',
     submitted: '2024-12-04',
     approved: undefined,
-    posted: undefined,
     exported: undefined,
     currency: 'USD',
     isOneTransactionReport: false,
-    isPolicyExpenseChat: false,
     isWaitingOnBankAccount: false,
     managerID: 1206,
     nonReimbursableTotal: 0,
     ownerAccountID: 1206,
     policyID: '48D7178DE42EE9F9',
-    private_isArchived: '',
     reportID: '1350959062018695',
     reportName: 'Expense Report #1350959062018695',
     stateNum: 1,
@@ -98,7 +96,6 @@ const mockReportItemWithHold = {
     shouldShowYear: false,
     shouldShowYearSubmitted: false,
     shouldShowYearApproved: false,
-    shouldShowYearPosted: false,
     shouldShowYearExported: false,
     transactions: [
         {
@@ -112,7 +109,6 @@ const mockReportItemWithHold = {
                 owner: 'apb@apb.com',
                 name: 'Policy',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             },
             reportAction: {
                 reportActionID: '3042630993757922770',
@@ -140,7 +136,6 @@ const mockReportItemWithHold = {
             created: '2024-12-04',
             currency: 'USD',
             hasEReceipt: false,
-            managerID: 1206,
             merchant: 'Qatar',
             modifiedAmount: '',
             modifiedCreated: '',
@@ -153,7 +148,6 @@ const mockReportItemWithHold = {
             exported: undefined,
             policyID: '48D7178DE42EE9F9',
             reportID: '1350959062018695',
-            reportType: 'expense',
             tag: '',
             transactionID: '1049531721038862176',
             transactionThreadReportID: '2957345659269055',
@@ -216,7 +210,6 @@ const mockReportItemWithHold = {
                 owner: 'apb@apb.com',
                 name: 'Policy',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             },
             reportAction: {
                 reportActionID: '3042630993757922770',
@@ -284,7 +277,7 @@ const mockReportItemWithHold = {
         },
     ],
     isSelected: false,
-} as TransactionReportGroupListItemType;
+});
 
 const updatedMockReportItem = {
     ...mockReportItemWithHold,
@@ -301,24 +294,33 @@ const updatedMockReportItem = {
     }),
 };
 
-const mockSnapshotForItem: OnyxEntry<SearchResults> = {
-    // @ts-expect-error: Allow partial record in snapshot update for testing
-    data: {
-        [`${ONYXKEYS.COLLECTION.POLICY}${mockReportItemWithHold?.policyID}`]: {
-            ...(mockReportItemWithHold.policyID
-                ? {
-                      [String(mockReportItemWithHold.policyID)]: {
-                          type: 'policy',
-                          id: String(mockReportItemWithHold.policyID),
-                          role: 'admin',
-                          owner: 'apb@apb.com',
-                          ...mockReportItemWithHold,
-                      },
-                  }
-                : {}),
-        },
-    },
-};
+const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${mockReportItemWithHold.policyID}` satisfies keyof SearchResults['data'];
+const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${mockReportItemWithHold.reportID}` satisfies keyof SearchResults['data'];
+
+const mockSnapshotData: SearchResults['data'] = {};
+mockSnapshotData[policyKey] = createMock<Policy>({
+    id: String(mockReportItemWithHold.policyID),
+    name: 'Policy',
+    type: CONST.POLICY.TYPE.TEAM,
+    role: CONST.POLICY.ROLE.ADMIN,
+    owner: 'apb@apb.com',
+    ownerAccountID: mockReportItemWithHold.ownerAccountID,
+    outputCurrency: 'USD',
+});
+mockSnapshotData[reportKey] = createMock<Report>({
+    reportID: mockReportItemWithHold.reportID,
+    reportName: mockReportItemWithHold.reportName,
+    policyID: mockReportItemWithHold.policyID,
+    ownerAccountID: mockReportItemWithHold.ownerAccountID,
+    managerID: mockReportItemWithHold.managerID,
+    stateNum: mockReportItemWithHold.stateNum,
+    statusNum: mockReportItemWithHold.statusNum,
+});
+
+const mockSnapshotForItem = {
+    search: createMock<SearchResults['search']>({}),
+    data: mockSnapshotData,
+} satisfies SearchResults;
 
 const mockLastPaymentMethod: OnyxEntry<LastPaymentMethod> = {
     expense: 'Elsewhere',
@@ -328,16 +330,12 @@ const mockLastPaymentMethod: OnyxEntry<LastPaymentMethod> = {
 describe('handleActionButtonPress', () => {
     const searchHash = 1;
     beforeAll(() => {
-        Onyx.merge(
-            `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
-            // @ts-expect-error: Allow partial record in snapshot update for testing
-            mockSnapshotForItem,
-        );
+        Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`, mockSnapshotForItem);
         Onyx.merge(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, mockLastPaymentMethod);
     });
 
-    const snapshotReport = (mockSnapshotForItem?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${mockReportItemWithHold.reportID}`] ?? {}) as Report;
-    const snapshotPolicy = (mockSnapshotForItem?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${mockReportItemWithHold.policyID}`] ?? {}) as Policy;
+    const snapshotReport = mockSnapshotForItem.data[reportKey];
+    const snapshotPolicy = mockSnapshotForItem.data[policyKey];
 
     test('Should not navigate to item when report has one transaction on hold and action is approve', () => {
         const goToItem = jest.fn(() => {});
@@ -497,12 +495,12 @@ describe('handleBulkPayItemSelected', () => {
 
     it('should navigate to restricted action page when amountOwed > 0 and billing is past due', async () => {
         const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
-        const policy = {
+        const policy: Policy = {
             ...createRandomPolicy(Number(policyID)),
             id: policyID,
             ownerAccountID,
             role: CONST.POLICY.ROLE.ADMIN,
-        } as Policy;
+        };
 
         await Onyx.multiSet({
             [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: policy,
@@ -522,12 +520,12 @@ describe('handleBulkPayItemSelected', () => {
     });
 
     it('should not navigate to restricted action page when amountOwed is 0', async () => {
-        const policy = {
+        const policy: Policy = {
             ...createRandomPolicy(Number(policyID)),
             id: policyID,
             ownerAccountID,
             role: CONST.POLICY.ROLE.ADMIN,
-        } as Policy;
+        };
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
@@ -542,10 +540,10 @@ describe('handleBulkPayItemSelected', () => {
     });
 
     it('should call showDelegateNoAccessModal when delegate access is restricted', () => {
-        const policy = {
+        const policy: Policy = {
             ...createRandomPolicy(Number(policyID)),
             id: policyID,
-        } as Policy;
+        };
 
         handleBulkPayItemSelected({
             ...baseParams,
@@ -559,10 +557,10 @@ describe('handleBulkPayItemSelected', () => {
     });
 
     it('should call showLockedAccountModal when account is locked', () => {
-        const policy = {
+        const policy: Policy = {
             ...createRandomPolicy(Number(policyID)),
             id: policyID,
-        } as Policy;
+        };
 
         handleBulkPayItemSelected({
             ...baseParams,
@@ -576,11 +574,11 @@ describe('handleBulkPayItemSelected', () => {
     });
 
     it('should call confirmPayment when no restrictions apply and amountOwed is 0', async () => {
-        const policy = {
+        const policy: Policy = {
             ...createRandomPolicy(Number(policyID)),
             id: policyID,
             ownerAccountID,
-        } as Policy;
+        };
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
@@ -594,11 +592,11 @@ describe('handleBulkPayItemSelected', () => {
     });
 
     it('should not trigger account verification and should call confirmPayment when user is unvalidated and item is Mark as paid (ELSEWHERE)', async () => {
-        const policy = {
+        const policy: Policy = {
             ...createRandomPolicy(Number(policyID)),
             id: policyID,
             ownerAccountID,
-        } as Policy;
+        };
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
@@ -615,11 +613,11 @@ describe('handleBulkPayItemSelected', () => {
     });
 
     it('should defer to verifyAccountAndResume when user is unvalidated and item is a bank-funded payment type (VBBA), then resume the payment after validation', async () => {
-        const policy = {
+        const policy: Policy = {
             ...createRandomPolicy(Number(policyID)),
             id: policyID,
             ownerAccountID,
-        } as Policy;
+        };
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
@@ -637,7 +635,10 @@ describe('handleBulkPayItemSelected', () => {
 
         // Invoke the stored retry closure, which is what the hook runs once the user validates.
         const retry = baseParams.verifyAccountAndResume.mock.calls.at(0)?.at(0);
-        retry?.();
+        if (!retry) {
+            throw new Error('Expected verifyAccountAndResume to receive a retry callback');
+        }
+        retry();
 
         expect(baseParams.verifyAccountAndResume).toHaveBeenCalledTimes(1);
         expect(baseParams.confirmPayment).toHaveBeenCalled();
@@ -645,11 +646,11 @@ describe('handleBulkPayItemSelected', () => {
 
     it('should call confirmPayment directly when an open business bank account is selected, even if it is not linked to the policy', async () => {
         const bankAccountID = 2409153;
-        const policy = {
+        const policy: Policy = {
             ...createRandomPolicy(Number(policyID)),
             id: policyID,
             ownerAccountID,
-        } as Policy;
+        };
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
@@ -678,11 +679,11 @@ describe('handleBulkPayItemSelected', () => {
 
     it('should trigger the KYC flow when the selected business bank account is not open', async () => {
         const bankAccountID = 2409153;
-        const policy = {
+        const policy: Policy = {
             ...createRandomPolicy(Number(policyID)),
             id: policyID,
             ownerAccountID,
-        } as Policy;
+        };
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
@@ -710,11 +711,11 @@ describe('handleBulkPayItemSelected', () => {
     });
 
     it('should defer to confirmPayment (offline modal) and never navigate to KYC/verify-account when offline, even for a bank-funded payment type', async () => {
-        const policy = {
+        const policy: Policy = {
             ...createRandomPolicy(Number(policyID)),
             id: policyID,
             ownerAccountID,
-        } as Policy;
+        };
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
