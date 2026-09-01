@@ -270,6 +270,7 @@ export type {default as SetWorkspaceCategoriesEnabledParams} from './SetWorkspac
 export type {default as CreateWorkspaceCategoriesParams} from './CreateWorkspaceCategoriesParams';
 export type {default as RenameWorkspaceCategoriesParams} from './RenameWorkspaceCategoriesParams';
 export type {default as SetWorkspaceRequiresCategoryParams} from './SetWorkspaceRequiresCategoryParams';
+export type {default as SetPolicyAutoCategorizeNewExpensesParams} from './SetPolicyAutoCategorizeNewExpensesParams';
 export type {default as SetPolicyShowCategoryGLCodesParams} from './SetPolicyShowCategoryGLCodesParams';
 export type {default as DeleteWorkspaceCategoriesParams} from './DeleteWorkspaceCategoriesParams';
 export type {default as UpdatePolicyCategoryPayrollCodeParams} from './UpdatePolicyCategoryPayrollCodeParams';
