@@ -67,10 +67,7 @@ function Header({
                 >
                     {title}
                 </Text>
-                <>
-                    {/* If there's no subtitle then display a fragment to avoid an empty space which moves the main title */}
-                    {!!subtitle && <HeaderTitleSubtitle>{subtitle}</HeaderTitleSubtitle>}
-                </>
+                {!!subtitle && <HeaderTitleSubtitle>{subtitle}</HeaderTitleSubtitle>}
                 {!!subTitleLink && <HeaderTitleSubtitleLink>{subTitleLink}</HeaderTitleSubtitleLink>}
             </View>
         </View>
