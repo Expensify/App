@@ -252,6 +252,7 @@ import {
     getConvertedAmount,
     getCurrency,
     getDescription,
+    getDisplayTransactionWithoutInvalidCommuterExclusion,
     getDistanceInMeters,
     getExchangeRate,
     getFormattedCreated,
@@ -5851,13 +5852,22 @@ function getTransactionReportName({
         return translate('violations.noRoute');
     }
 
+    const isFromExpenseReport = !isEmptyObject(report) && isExpenseReport(report);
+
     if (isSentMoneyReportAction(reportAction)) {
         return getIOUReportActionDisplayMessage(translate, reportAction as ReportAction, convertToDisplayString, undefined, linkedTransaction);
     }
 
-    const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
-    const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
-    const comment = getMerchantOrDescription(linkedTransaction);
+    const displayTransaction = getDisplayTransactionWithoutInvalidCommuterExclusion({
+        transaction: linkedTransaction,
+        isPolicyExpenseChat: isFromExpenseReport,
+        policies: allPolicies,
+        translate,
+    });
+
+    const amount = getTransactionAmount(displayTransaction, isFromExpenseReport, displayTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
+    const formattedAmount = convertToDisplayString(amount, getCurrency(displayTransaction)) ?? '';
+    const comment = getMerchantOrDescription(displayTransaction);
     return translate('iou.threadExpenseReportName', formattedAmount, Parser.htmlToText(comment));
 }
 
