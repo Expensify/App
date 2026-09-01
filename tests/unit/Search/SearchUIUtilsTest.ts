@@ -5751,6 +5751,109 @@ describe('SearchUIUtils', () => {
             expect(result.at(0)?.reportName).toBe('Task without concierge');
         });
 
+        describe('task status filter uses the live report instead of the stale snapshot', () => {
+            const staleTaskReportID = 'task_report_700';
+            const staleCreatorID = 121212;
+            const staleAssigneeID = 131313;
+
+            // The snapshot still says the task is open — this is exactly what `completeTask` leaves behind,
+            // because it only writes to `report_<taskID>` and never patches `snapshot_<hash>`.
+            const snapshotTask = createMock<SearchTask>({
+                type: CONST.REPORT.TYPE.TASK,
+                accountID: staleCreatorID,
+                reportID: staleTaskReportID,
+                reportName: 'Stale outstanding task',
+                description: 'Completed but still in the snapshot as open',
+                managerID: staleAssigneeID,
+                parentReportID: 'parent_stale',
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                created: '2025-02-05 10:00:00',
+            });
+
+            const staleTaskData = createMock<OnyxTypes.SearchResults['data']>({
+                personalDetailsList: {
+                    [staleCreatorID]: {
+                        accountID: staleCreatorID,
+                        avatar: '',
+                        displayName: 'Stale Creator',
+                        login: 'creator@test.com',
+                    },
+                    [staleAssigneeID]: {
+                        accountID: staleAssigneeID,
+                        avatar: '',
+                        displayName: 'Stale Assignee',
+                        login: 'assignee@test.com',
+                    },
+                },
+                [`report_${staleTaskReportID}`]: snapshotTask,
+            });
+
+            const getStaleTaskSections = (query: string) =>
+                getSectionsByType(
+                    SearchUIUtils.getSections({
+                        dateFnsLocale: undefined,
+                        type: CONST.SEARCH.DATA_TYPES.TASK,
+                        data: staleTaskData,
+                        currentAccountID: staleCreatorID,
+                        currentUserEmail: 'creator@test.com',
+                        translate: translateLocal,
+                        formatPhoneNumber,
+                        bankAccountList: {},
+                        conciergeReportID: '999',
+                        convertToDisplayString,
+                        reportAttributesDerivedValue: {},
+                        queryJSON: buildSearchQueryJSON(query),
+                    }),
+                    SearchUIUtils.isTaskListItemType,
+                );
+
+            beforeEach(async () => {
+                // The live report has been completed, mirroring what `completeTask` merges into Onyx.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${staleTaskReportID}`, {
+                    ...snapshotTask,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                });
+                await waitForBatchedUpdates();
+            });
+
+            afterEach(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${staleTaskReportID}`, null);
+                await waitForBatchedUpdates();
+            });
+
+            it('drops a completed task from the outstanding filter', () => {
+                const [result, count] = getStaleTaskSections('type:task status:outstanding');
+
+                expect(result).toHaveLength(0);
+                expect(count).toBe(0);
+            });
+
+            it('keeps a completed task in the completed filter and reports its live status', () => {
+                const [result, count] = getStaleTaskSections('type:task status:completed');
+
+                expect(result).toHaveLength(1);
+                expect(count).toBe(1);
+                expect(result.at(0)?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+                expect(result.at(0)?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+            });
+
+            it('keeps a still-open task in the outstanding filter', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${staleTaskReportID}`, {
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                });
+                await waitForBatchedUpdates();
+
+                const [result, count] = getStaleTaskSections('type:task status:outstanding');
+
+                expect(result).toHaveLength(1);
+                expect(count).toBe(1);
+                expect(result.at(0)?.reportName).toBe('Stale outstanding task');
+            });
+        });
+
         describe('getReportSections computed fields (totalDisplaySpend, nonReimbursableSpend, reimbursableSpend, isAllScanning)', () => {
             const testReportID = 'spend-test-report';
             const testTxID1 = 'spend-tx-1';

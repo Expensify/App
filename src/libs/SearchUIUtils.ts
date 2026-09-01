@@ -438,6 +438,13 @@ const expenseStatusActionMapping: Record<string, ExpenseStatusPredicate> = {
     [CONST.SEARCH.STATUS.EXPENSE.DELETED]: (_expenseReport, transactionReportID) => transactionReportID === CONST.REPORT.TRASH_REPORT_ID,
 };
 
+type TaskStatusPredicate = (taskReport?: OnyxTypes.Report | SearchTask) => boolean;
+
+const taskStatusActionMapping: Record<string, TaskStatusPredicate> = {
+    [CONST.SEARCH.STATUS.TASK.OUTSTANDING]: (taskReport) => taskReport?.stateNum === CONST.REPORT.STATE_NUM.OPEN && taskReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN,
+    [CONST.SEARCH.STATUS.TASK.COMPLETED]: (taskReport) => taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED,
+};
+
 const nonSortableColumns = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
     CONST.SEARCH.TABLE_COLUMNS.TYPE,
@@ -448,6 +455,10 @@ const nonSortableColumns = new Set<SearchColumnType>([
 
 function isValidExpenseStatus(status: unknown): status is ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE> {
     return typeof status === 'string' && status in expenseStatusActionMapping;
+}
+
+function isValidTaskStatus(status: unknown): status is ValueOf<typeof CONST.SEARCH.STATUS.TASK> {
+    return typeof status === 'string' && status in taskStatusActionMapping;
 }
 
 // Statuses a freshly created expense can never be in. The tracked optimistic item is kept visible
@@ -2166,6 +2177,32 @@ function isEligibleForStatus(currentQueryJSON: SearchQueryJSON | undefined, repo
 }
 
 /**
+ * Whether a task still belongs under the active `status:` filter, judged against the live report rather than the
+ * search snapshot. Completing or reopening a task does not patch the snapshot, so without this a completed task
+ * lingers under `status:outstanding` (and vice versa) until the next server fetch. Mirrors `isEligibleForStatus`.
+ */
+function isEligibleForTaskStatus(currentQueryJSON: SearchQueryJSON | undefined, report: OnyxEntry<OnyxTypes.Report> | SearchTask) {
+    const status = getFilterFromQuery(currentQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
+    if (!status.value) {
+        return true;
+    }
+
+    if (status.isNegated) {
+        return Object.keys(taskStatusActionMapping).some((taskStatus) => {
+            const isExcluded = status.value?.includes(taskStatus);
+            return !isExcluded && taskStatusActionMapping[taskStatus](report);
+        });
+    }
+
+    // A status we don't model (e.g. a hand-typed `status:all`) must not silently empty the list, so leave the row visible.
+    if (!status.value.every(isValidTaskStatus)) {
+        return true;
+    }
+
+    return status.value.some((taskStatus) => taskStatusActionMapping[taskStatus](report));
+}
+
+/**
  * Whether the tracked optimistic (just-created) expense may be kept visible under the active status
  * filter. A newly created expense can plausibly belong to "all", "unreported", "draft" or
  * "outstanding", but never to a terminal status (deleted/approved/paid/done), so it must not be
@@ -2729,8 +2766,10 @@ function getTaskSections(
     conciergeReportID: string | undefined,
     reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>,
     reportAttributesDerivedValue?: OnyxTypes.ReportAttributesDerivedValue['reports'],
+    queryJSON?: SearchQueryJSON,
 ): [TaskListItemType[], number] {
     const {shouldShowYearCreated} = shouldShowYear(data);
+    const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
     const tasks = Object.keys(data)
         .filter(isReportEntry)
         // Ensure that the reports that were passed are tasks, and not some other
@@ -2761,6 +2800,10 @@ function getTaskSections(
                 formattedCreatedBy,
                 keyForList: taskItem.reportID,
                 shouldShowYear: shouldShowYearCreated,
+                // The snapshot is not patched when a task is completed or reopened, so prefer the live report's status.
+                // Otherwise the row keeps rendering the Complete button instead of the Completed badge until a refetch.
+                statusNum: report.statusNum ?? taskItem.statusNum,
+                stateNum: report.stateNum ?? taskItem.stateNum,
             };
 
             if (parentReport && personalDetails) {
@@ -2795,7 +2838,10 @@ function getTaskSections(
             }
 
             return result;
-        });
+        })
+        // Drop tasks whose live status no longer matches the active `status:` filter — the snapshot still lists a
+        // just-completed task under `status:outstanding` because `completeTask` never writes to it.
+        .filter((task) => isEligibleForTaskStatus(currentQueryJSON, task));
     return [tasks, tasks.length];
 }
 
@@ -3997,7 +4043,7 @@ function getSections({
         return [...getReportActionsSections(data, reportAttributesDerivedValue, visibleReportActionsData), false];
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return [...getTaskSections(data, formatPhoneNumber, translate, conciergeReportID, reportNameValuePairs, reportAttributesDerivedValue), false];
+        return [...getTaskSections(data, formatPhoneNumber, translate, conciergeReportID, reportNameValuePairs, reportAttributesDerivedValue, queryJSON), false];
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
