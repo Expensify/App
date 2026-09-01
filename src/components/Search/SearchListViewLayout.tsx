@@ -1,3 +1,4 @@
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {CardList, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
@@ -77,6 +78,7 @@ function SearchListViewLayout({
     children,
 }: SearchListViewLayoutProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     const [tableWidth, setTableWidth] = useState(0);
 
@@ -92,9 +94,29 @@ function SearchListViewLayout({
         measurementContext: {nonPersonalAndWorkspaceCards, policyCategories, policyTags},
     });
 
-    // The scroller sizes the table from what its columns refuse to shrink below, so it needs the minimums these columns
-    // measured for themselves rather than the estimates it assumes otherwise.
-    const measuredColumnMinWidths = Object.fromEntries(Object.entries(columnWidths).map(([column, sizing]) => [column, sizing.minWidth]));
+    // The scroller decides whether to scroll by summing what each column refuses to shrink below, which it otherwise has
+    // to estimate. Every minimum it can be told exactly is resolved here instead.
+    //
+    // While sizing is active a dynamic column knows its own minimum, and every other column is pinned to the width it
+    // declares, so that declared width is its minimum. When sizing is off the columns keep their flex behavior and the
+    // scroller's own estimates still apply, which is why nothing is resolved for them here.
+    const isSizingColumns = Object.keys(columnWidths).length > 0;
+    const columnMinWidths: Partial<Record<SearchColumnType, number>> = {};
+
+    for (const column of columns) {
+        const measuredMinWidth = columnWidths[column]?.minWidth;
+
+        if (measuredMinWidth !== undefined) {
+            columnMinWidths[column] = measuredMinWidth;
+        } else if (isSizingColumns) {
+            const declaredWidth = StyleUtils.getReportTableColumnStyles(column, {isActionColumnWide}).width;
+
+            // A column styled with flex alone declares no width, so the scroller keeps estimating that one.
+            if (typeof declaredWidth === 'number') {
+                columnMinWidths[column] = declaredWidth;
+            }
+        }
+    }
 
     return (
         // Measured outside the scroller, so this reports the width the table has to fit into rather than the width its
@@ -110,7 +132,7 @@ function SearchListViewLayout({
                     isActionColumnWide={isActionColumnWide}
                     isHeaderVisible={isHeaderVisible}
                     dataKey={dataKey}
-                    measuredColumnMinWidths={measuredColumnMinWidths}
+                    columnMinWidths={columnMinWidths}
                     availableWidth={tableWidth}
                 >
                     <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>{children}</View>

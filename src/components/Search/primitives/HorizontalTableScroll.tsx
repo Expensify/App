@@ -35,8 +35,8 @@ type HorizontalTableScrollProps = {
     /** Re-restores the saved horizontal offset whenever this value changes (typically the list data). */
     dataKey: unknown;
 
-    /** Measured minimums for the dynamically sized columns, replacing the estimates `getTableMinWidth` uses for them. */
-    measuredColumnMinWidths?: Partial<Record<SearchColumnType, number>>;
+    /** Known minimums for the columns that have one, replacing the estimates `getTableMinWidth` assumes for them. */
+    columnMinWidths?: Partial<Record<SearchColumnType, number>>;
 
     /**
      * Measured width of the area the table lays out into. The page is inset from the window, so the window is wider and
@@ -51,10 +51,10 @@ type HorizontalTableScrollProps = {
  * the saved horizontal offset across query changes (before paint, to avoid a visible shift). Extracted
  * from SearchList so ExpenseFlatSearchView can reuse it.
  */
-function HorizontalTableScroll({children, columns, type, isActionColumnWide, isHeaderVisible, dataKey, measuredColumnMinWidths, availableWidth}: HorizontalTableScrollProps) {
+function HorizontalTableScroll({children, columns, type, isActionColumnWide, isHeaderVisible, dataKey, columnMinWidths, availableWidth}: HorizontalTableScrollProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
-    const minTableWidth = getTableMinWidth(columns, type, isActionColumnWide, measuredColumnMinWidths);
+    const minTableWidth = getTableMinWidth(columns, type, isActionColumnWide, columnMinWidths);
     const tableWidth = availableWidth && availableWidth > 0 ? availableWidth : windowWidth;
     const shouldScrollHorizontally = isHeaderVisible && minTableWidth > tableWidth;
 
