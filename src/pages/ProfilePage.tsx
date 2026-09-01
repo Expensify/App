@@ -24,7 +24,6 @@ import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Permissions from '@libs/Permissions';
@@ -347,13 +346,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                         type: CONST.SEARCH.DATA_TYPES.CHAT,
                                         from: [String(accountID)],
                                     });
-                                    // ProfilePage is rendered inside the RHP. Dismiss the modal first so the following navigate is an
-                                    // in-place tab switch that keeps the tab history, instead of rebuilding a fresh tab strip from the URL
-                                    // (which drops the back-history and lands on the Home tab when swiping back).
-                                    Navigation.dismissModal();
-                                    setNavigationActionToMicrotaskQueue(() => {
-                                        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
-                                    });
+                                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
                                 }}
                             />
                         )}

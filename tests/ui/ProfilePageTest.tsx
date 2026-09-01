@@ -46,9 +46,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
 
-// Run the deferred navigation action synchronously so the test can assert on it without waiting for the microtask/rAF.
-jest.mock('@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue', () => (navigationAction: () => void) => navigationAction());
-
 jest.mock('@components/RenderHTML', () => {
     const ReactMock = jest.requireActual<typeof React>('react');
     const {Text} = jest.requireActual<{Text: typeof ReactNativeText}>('react-native');
@@ -587,8 +584,8 @@ describe('ProfilePage - View user history', () => {
         fireEvent.press(screen.getByText('View user history'), {nativeEvent: {}});
         await waitForBatchedUpdatesWithAct();
 
-        // The RHP must be dismissed before navigating so the navigate is an in-place tab switch that preserves tab history.
-        expect(Navigation.dismissModal).toHaveBeenCalled();
+        // The RHP must stay in the stack so swiping back from Search returns to this profile and then to the screen it was opened from.
+        expect(Navigation.dismissModal).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalledWith(
             ROUTES.SEARCH_ROOT.getRoute({
                 query: `type:${CONST.SEARCH.DATA_TYPES.CHAT} from:${PUBLIC_PROFILE_ACCOUNT_ID}`,

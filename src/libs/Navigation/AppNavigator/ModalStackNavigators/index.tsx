@@ -58,8 +58,10 @@ import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
+import type {RouteProp} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 
+import {useRoute} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 
@@ -121,6 +123,15 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     },
 };
 
+/** Name of a screen registered in a modal stack, as the navigator's own param list spells it. */
+type ModalStackScreenName<ParamList extends ParamListBase> = Extract<keyof ParamList, string>;
+
+/** The nested navigation hint React Navigation puts on a route that opens a navigator at a specific screen. */
+type ModalStackRouteParams<ParamList extends ParamListBase> = {
+    screen?: ModalStackScreenName<ParamList>;
+    params?: ParamList[ModalStackScreenName<ParamList>];
+};
+
 /**
  * Create a modal stack navigator with an array of sub-screens.
  *
@@ -136,6 +147,10 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
         // We have to use the isSmallScreenWidth instead of shouldUseNarrow layout, because we want to have information about screen width without the context of side modal.
         // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
         const {isSmallScreenWidth} = useResponsiveLayout();
+
+        const {params} = useRoute<RouteProp<Record<string, ModalStackRouteParams<ParamList> | undefined>>>();
+        const openedScreen = params?.screen && params.screen in screens ? params.screen : undefined;
+        const openedScreenParams = params?.params;
 
         const getScreenOptions = useCallback<typeof screenOptions>(
             ({route: optionRoute}) => {
@@ -156,12 +171,13 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                 aria-modal={isSmallScreenWidth || undefined}
                 role={isSmallScreenWidth ? 'dialog' : undefined}
             >
-                <ModalStackNavigator.Navigator>
+                <ModalStackNavigator.Navigator initialRouteName={openedScreen}>
                     {Object.keys(screens as Required<Screens>).map((name) => (
                         <ModalStackNavigator.Screen
                             key={name}
                             name={name}
                             getComponent={(screens as Required<Screens>)[name as Screen]}
+                            initialParams={name === openedScreen ? openedScreenParams : undefined}
                             // For some reason, screenOptions is not working with function as options so we have to pass it to every screen.
                             options={getScreenOptions}
                         />
