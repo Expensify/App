@@ -30,7 +30,6 @@ import {
 } from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
 import {isReportFieldImportedFromIntegration} from '@libs/WorkspaceReportFieldUtils';
 
@@ -71,7 +70,7 @@ function ReportFieldsListValuesPage({
     // Block value management only for a field imported from the accounting connection, not for every field on a
     // connected workspace — manual fields stay editable while connected (and there is no field yet during creation).
     const reportField = reportFieldID ? policy?.fieldList?.[getReportFieldKey(reportFieldID)] : undefined;
-    const isImportedReportField = isReportFieldImportedFromIntegration(reportField, hasAccountingConnectionsPolicyUtils(policy));
+    const isImportedReportField = isReportFieldImportedFromIntegration(reportField);
 
     const [listValues, disabledListValues] = useMemo(() => {
         let reportFieldValues: string[];
