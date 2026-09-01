@@ -138,7 +138,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionIDFromRoute = route?.params?.reportActionID;
     // A wide RHP reports a narrow layout but lays out like a wide screen, so the report footer owns the callout there
-    const isInWideRHP = wideRHPRouteKeys.includes(route.key);
+    const isInWideRHP = !!route?.key && wideRHPRouteKeys.includes(route.key);
     const {sessionStartTime} = useConciergeSessionState();
 
     const didLayout = useRef(false);
