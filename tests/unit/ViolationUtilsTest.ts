@@ -3155,6 +3155,57 @@ describe('getViolationsOnyxData', () => {
             });
         });
     });
+
+    // These go through the real Permissions.isBetaEnabled instead of spying on it, because the point
+    // is that the local beta override reaches this file at all. Xero is used because it is still gated
+    // behind the beta, unlike QBO which is generally available.
+    describe('vendorMatching beta overrides', () => {
+        const policyWithXeroVendorFeature = () =>
+            createMock<Policy>({
+                requiresTag: false,
+                requiresCategory: false,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                        config: {isConfigured: true},
+                        data: {contacts: {xcActive: {id: 'xcActive', name: 'Acme Xero', email: 'acme@example.com'}}},
+                    },
+                },
+            });
+
+        const getViolationsForMissingSupplier = () =>
+            ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
+                updatedTransaction: {...transaction, comment: {...transaction.comment, vendor: {externalID: 'xcMissing', wasManuallySet: true}}},
+                transactionViolations,
+                policy: policyWithXeroVendorFeature(),
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+        afterEach(async () => {
+            await Onyx.set(ONYXKEYS.BETA_OVERRIDES, null);
+            await waitForBatchedUpdates();
+        });
+
+        it('applies the violation when the beta is off on the account but pinned on locally', async () => {
+            await Onyx.set(ONYXKEYS.BETAS, []);
+            await Onyx.set(ONYXKEYS.BETA_OVERRIDES, {[CONST.BETAS.VENDOR_MATCHING]: true});
+            await waitForBatchedUpdates();
+
+            expect(getViolationsForMissingSupplier().value).toEqual(expect.arrayContaining([inactiveSupplierViolation]));
+        });
+
+        it('skips the violation when the beta is on for the account but pinned off locally', async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
+            await Onyx.set(ONYXKEYS.BETA_OVERRIDES, {[CONST.BETAS.VENDOR_MATCHING]: false});
+            await waitForBatchedUpdates();
+
+            expect(getViolationsForMissingSupplier().value).not.toEqual(expect.arrayContaining([inactiveSupplierViolation]));
+        });
+    });
+
     describe('shouldRemoveRejectedExpenseViolation (move transaction / explicit removal)', () => {
         const autoRejectedViolation: TransactionViolation = {
             name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
