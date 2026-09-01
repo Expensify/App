@@ -59,6 +59,7 @@ import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCard
 
 import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
+import type {ButtonVariant} from '@styles/utils/types';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -127,6 +128,7 @@ import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getSubmitToAccountID,
     getTagGLCode,
+    isArchivedOrPendingDeletePolicy,
     isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyAdmin,
@@ -336,6 +338,7 @@ const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: 'approved' as const,
     [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER]: 'formattedFirstApprover' as const,
     [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED]: 'firstApproved' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.PAID_BY]: 'formattedPaidBy' as const,
     [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: 'exported' as const,
     [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'formattedStatus' as const,
     [CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS]: 'formattedPaidStatus' as const,
@@ -597,7 +600,7 @@ type SearchTypeMenuItem = {
         buttons?: Array<{
             buttonText: TranslationPaths;
             buttonAction: () => void;
-            success?: boolean;
+            buttonVariant?: ButtonVariant;
             icon?: IconAsset;
             isDisabled?: boolean;
         }>;
@@ -1801,6 +1804,7 @@ type PreprocessingContext = {
     lastExportedActionByReportID: Map<string, OnyxTypes.ReportAction>;
     exportedToNamesByReportID: Map<string, Set<string>>;
     firstApprovedActionByReportID: Map<string, OnyxTypes.ReportAction>;
+    lastReimbursedActionByReportID: Map<string, OnyxTypes.ReportAction>;
     moneyRequestReportActionsByTransactionID: Map<string, OnyxTypes.ReportAction>;
     holdReportActionsByTransactionID: Map<string, OnyxTypes.ReportAction>;
     allHoldReportActions: Map<string, OnyxTypes.ReportAction>;
@@ -1828,6 +1832,7 @@ function createPreprocessingContext(): PreprocessingContext {
         lastExportedActionByReportID: new Map(),
         exportedToNamesByReportID: new Map(),
         firstApprovedActionByReportID: new Map(),
+        lastReimbursedActionByReportID: new Map(),
         moneyRequestReportActionsByTransactionID: new Map(),
         holdReportActionsByTransactionID: new Map(),
         allHoldReportActions: new Map(),
@@ -1851,8 +1856,11 @@ function createPreprocessingContext(): PreprocessingContext {
  * Indexes report actions by building the latest-export map, money-request lookup,
  * hold-action lookup, and year-created flag from action dates.
  */
-function processReportActionEntry(ctx: PreprocessingContext, key: string, actions: Record<string, OnyxTypes.ReportAction>): void {
+function processReportActionEntry(ctx: PreprocessingContext, key: string, actions: Record<string, OnyxTypes.ReportAction>, data: OnyxTypes.SearchResults['data']): void {
     const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
+    const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
+    const isReportPaid = report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
     let latestExportTime = -Infinity;
     let latestExportAction: OnyxTypes.ReportAction | undefined;
@@ -1860,6 +1868,10 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
     // The first approver is the actor on the earliest APPROVED/FORWARDED action.
     let firstApprovalTime = Infinity;
     let firstApprovalAction: OnyxTypes.ReportAction | undefined;
+
+    // The paid-by user is the actor on the latest payment action.
+    let lastReimbursedTime = -Infinity;
+    let lastReimbursedAction: OnyxTypes.ReportAction | undefined;
 
     for (const action of Object.values(actions)) {
         if (action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV || action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
@@ -1885,6 +1897,19 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
             }
         }
 
+        if (
+            isReportPaid &&
+            (action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSED ||
+                action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED ||
+                action.actionName === CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION)
+        ) {
+            const currentTime = new Date(action.created).getTime();
+            if (currentTime > lastReimbursedTime) {
+                lastReimbursedTime = currentTime;
+                lastReimbursedAction = action;
+            }
+        }
+
         if (isMoneyRequestAction(action)) {
             const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action);
             const transactionID = originalMessage?.IOUTransactionID;
@@ -1906,6 +1931,10 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
 
     if (firstApprovalAction) {
         ctx.firstApprovedActionByReportID.set(reportID, firstApprovalAction);
+    }
+
+    if (lastReimbursedAction) {
+        ctx.lastReimbursedActionByReportID.set(reportID, lastReimbursedAction);
     }
 }
 
@@ -2045,7 +2074,7 @@ function classifyAndPreprocess(data: OnyxTypes.SearchResults['data']): Omit<Prep
 
     for (const key of Object.keys(data)) {
         if (isReportActionEntry(key)) {
-            processReportActionEntry(ctx, key, data[key]);
+            processReportActionEntry(ctx, key, data[key], data);
         } else if (isReportEntry(key)) {
             ctx.reportKeys.push(key);
             processReportEntry(ctx, data[key]);
@@ -2541,10 +2570,8 @@ function getActions(
     }
 
     const reportNVP = getReportNameValuePairsFromKey(data, report);
-    const isIOUReportArchived = isArchivedReport(reportNVP);
 
     const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
-    const isChatReportArchived = isArchivedReport(chatReportRNVP);
 
     // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
     // If this condition is not met, return early for performance reasons
@@ -2599,7 +2626,7 @@ function getActions(
     // We check submit eligibility separately from approve: on Submit workspaces the popover picks
     // the manager, so don't block Submit when the default submit-to route is the owner.
     if (
-        canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived, currentUserLogin, currentUserAccountID) &&
+        canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isArchivedOrPendingDeletePolicy(policy), currentUserLogin, currentUserAccountID) &&
         isSubmitActionAllowedForSearch(report, policy, submitToAccountID, currentUserAccountID)
     ) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
@@ -3058,6 +3085,7 @@ function getReportSections({
         lastExportedActionByReportID,
         exportedToNamesByReportID,
         firstApprovedActionByReportID,
+        lastReimbursedActionByReportID,
         moneyRequestReportActionsByTransactionID,
         holdReportActionsByTransactionID,
         transactionsByReportID,
@@ -3118,6 +3146,12 @@ function getReportSections({
                 const formattedTo = !shouldShowBlankTo ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: toDetails, translate, formatPhoneNumber}) : '';
                 const formattedFirstApprover = firstApproverAccountID ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: firstApproverDetails, translate, formatPhoneNumber}) : '';
 
+                // The paid-by user is the actor on the latest payment action. It stays blank until the report is paid.
+                const lastReimbursedAction = lastReimbursedActionByReportID.get(reportItem.reportID);
+                const paidByAccountID = lastReimbursedAction?.actorAccountID;
+                const paidByDetails = paidByAccountID ? mergedPersonalDetails?.[paidByAccountID] : undefined;
+                const formattedPaidBy = paidByAccountID ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: paidByDetails, translate, formatPhoneNumber}) : '';
+
                 const formattedStatus = getReportStatusTranslation({stateNum: reportItem.stateNum, statusNum: reportItem.statusNum, translate});
                 const formattedPaidStatus = getReportStatusTooltipTranslation({stateNum: reportItem.stateNum, statusNum: reportItem.statusNum, translate});
                 const policy = getPolicyFromKey(data, reportItem);
@@ -3165,6 +3199,9 @@ function getReportSections({
                     firstApproverAvatar: firstApproverDetails?.avatar,
                     firstApproverAccountID,
                     formattedFirstApprover,
+                    paidByAvatar: paidByDetails?.avatar,
+                    paidByAccountID,
+                    formattedPaidBy,
                     formattedFrom,
                     formattedTo,
                     formattedStatus,
@@ -4606,6 +4643,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
             return 'search.filters.firstApprover';
         case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED:
             return 'search.filters.firstApproved';
+        case CONST.SEARCH.TABLE_COLUMNS.PAID_BY:
+            return 'search.filters.paidBy';
         case CONST.SEARCH.TABLE_COLUMNS.POSTED:
             return 'search.filters.posted';
         case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
@@ -4901,7 +4940,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
                         buttons: hasEligibleGroupPolicies
                             ? [
                                   {
-                                      success: true,
+                                      buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                       buttonText: 'report.newReport.createExpense',
                                       buttonAction: () => {
                                           interceptAnonymousUser(() => {
@@ -5531,6 +5570,10 @@ const FILTER_VIEW_MAP = {
         labelKey: 'common.merchant',
         icon: 'Basket',
     },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY]: {
+        labelKey: 'search.filters.paidBy',
+        icon: 'MoneyBag',
+    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID]: {
         labelKey: 'workspace.common.workspace',
         icon: 'Building',
@@ -5847,6 +5890,8 @@ function getDisplayValue(
         key === FILTER_KEYS.TO_NOT ||
         key === FILTER_KEYS.ATTENDEE ||
         key === FILTER_KEYS.ASSIGNEE ||
+        key === FILTER_KEYS.PAID_BY ||
+        key === FILTER_KEYS.PAID_BY_NOT ||
         key === FILTER_KEYS.TAX_RATE ||
         key === FILTER_KEYS.IN ||
         key === FILTER_KEYS.BANK_ACCOUNT ||

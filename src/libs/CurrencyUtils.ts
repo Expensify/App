@@ -295,7 +295,6 @@ export {
     resetInvalidCurrencyWarningsForTesting,
     getCurrencyDecimals,
     getLocalizedCurrencySymbol,
-    getCurrencySymbol,
     convertToBackendAmount,
     convertToFrontendAmountAsInteger,
     convertToFrontendAmountAsString,
