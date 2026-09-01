@@ -410,6 +410,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseReport: 'Informe de Gastos',
         rateOutOfPolicy: 'Tasa fuera de póliza',
         leaveWorkspace: 'Salir del espacio de trabajo',
+        leaveWorkspaceTitle: (workspaceName: string) => `¿Salir de ${workspaceName}?`,
         leaveWorkspaceConfirmation: 'Si sales de este espacio de trabajo, no podrás enviar gastos en él.',
         leaveWorkspaceConfirmationAuditor: 'Si sales de este espacio de trabajo, no podrás ver sus informes y configuraciones.',
         leaveWorkspaceConfirmationAdmin: 'Si sales de este espacio de trabajo, no podrás gestionar su configuración.',
@@ -4585,6 +4586,7 @@ ${amount} para ${merchant} - ${date}`,
             settlementFrequency: 'Frecuencia de liquidación',
             setAsDefault: 'Establecer como espacio de trabajo predeterminado',
             defaultNote: `Los recibos enviados a ${CONST.EMAIL.RECEIPTS} aparecerán en este espacio de trabajo.`,
+            deleteWorkspaceTitle: (workspaceName: string) => `¿Eliminar ${workspaceName}?`,
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             deleteWithCardsConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo? Se eliminarán todos los datos de las tarjetas y las tarjetas asignadas.',
             deleteOpenExpensifyCardsError: 'Tu empresa todavía tiene Tarjetas Expensify. Por favor, <concierge-link>contacta con Concierge</concierge-link> para eliminarlas.',
@@ -5815,9 +5817,34 @@ ${amount} para ${merchant} - ${date}`,
                 label: 'Cuenta de tarjeta de empresa',
                 description: 'Elige dónde exportar las transacciones de las tarjetas de la empresa.',
             },
-            expensifyCardAccount: {
-                label: 'Cuenta de la Tarjeta Expensify',
-                description: 'Elige dónde exportar las transacciones de la Tarjeta Expensify.',
+            exportToMultipleAccounts: 'Configura la exportación a varias cuentas',
+            cardProgramAccount: {
+                label: 'Cuenta del programa de tarjetas',
+                description: 'Reemplaza la cuenta del espacio de trabajo para estos programas de tarjetas.',
+                descriptionLevel2: 'Sobrescribe la cuenta del espacio de trabajo para este programa de tarjetas.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todos los programas usan la cuenta predeterminada';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programa con cuenta personalizada`;
+                    }
+                    return `${customAccountsCount} programas con cuentas personalizadas`;
+                },
+            },
+            cardAccount: {
+                label: 'Cuenta por tarjeta',
+                description: 'Sobrescribe la cuenta del programa para tarjetas individuales.',
+                descriptionLevel2: 'Reemplaza la cuenta del programa para estas tarjetas.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todas las tarjetas usan cuentas de programa';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} tarjeta con cuenta personalizada`;
+                    }
+                    return `${customAccountsCount} tarjetas con cuentas personalizadas`;
+                },
             },
             autoSyncDescription: 'Sincroniza DualEntry y Expensify automáticamente cada día. Los informes se sincronizan en tiempo real.',
             accountingMethods: {
@@ -6125,6 +6152,7 @@ ${amount} para ${merchant} - ${date}`,
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
             categoryName: 'Nombre de la categoría',
             requiresCategory: 'Los miembros deben clasificar todos los gastos',
+            autoCategorizeNewExpenses: 'Categorizar automáticamente los gastos nuevos',
             showCategoryGLCodes: 'Mostrar códigos GL al categorizar gastos',
             needCategoryForExportToIntegration: (connectionName) => `Todos los gastos deben estar categorizados para poder exportar a ${connectionName}.`,
             subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
@@ -7243,13 +7271,15 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Completa la configuración</a>` : 'Completar configuración'} para importar empleados.</muted-text-label>`,
                 groups: {title: 'Grupos', description: 'Elige los grupos de empleados que te gustaría sincronizar con este espacio de trabajo'},
-                syncLimitReached: {title: 'Inténtalo de nuevo mañana', prompt: 'Has alcanzado tu límite de sincronización de hoy.'},
             },
             notSync: 'No sincronizado',
             authenticationError: (providerName: string) => `No se puede conectar a ${providerName} porque la conexión ha caducado.`,
             reconnect: 'Volver a conectar',
             reconnectLink: 'Volver a conectar.',
             findIntegration: 'Buscar integración',
+        },
+        merge: {
+            syncLimitReached: {title: 'Inténtalo de nuevo mañana', prompt: 'Has alcanzado tu límite de sincronización de hoy.'},
         },
         export: {
             notReadyHeading: 'No está listo para exportar',
@@ -8511,10 +8541,10 @@ ${reportName}`,
             return `añadió la tasa de impuesto "${newValue} (${newTaxPercentage})" a la tasa de distancia "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName, newValue, oldValue) => {
-            if (oldValue) {
-                return `cambió la parte recuperable de impuestos en la tasa por distancia "${customUnitRateName}" a "${newValue}" (previamente "${oldValue}")`;
+            if (oldValue !== undefined) {
+                return `cambió la parte recuperable de impuestos en la tasa por distancia "${customUnitRateName}" a "${newValue}%" (previamente "${oldValue}%")`;
             }
-            return `añadió una parte recuperable de impuestos de "${newValue}" a la tasa por distancia "${customUnitRateName}`;
+            return `añadió una parte recuperable de impuestos de "${newValue}%" a la tasa por distancia "${customUnitRateName}"`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `cambió el nombre de la tasa de ${customUnitName} de "${oldValue}" a "${newValue}"`,
         updatedCustomUnitRateEnabled: (customUnitName, customUnitRateName, newValue) => {
@@ -9219,6 +9249,7 @@ ${reportName}`,
             approved: 'Aprobación',
             firstApprover: 'Primer aprobador',
             firstApproved: 'Primera aprobación',
+            paidBy: 'Pagado por',
             paid: 'Pago',
             exported: 'Exportación',
             posted: 'Contabilización',
@@ -10985,6 +11016,7 @@ ${reportName}`,
     domain: {
         notVerified: 'No verificado',
         retry: 'Reintentar',
+        requestSent: 'Solicitud enviada',
         verifyDomain: {
             title: 'Verificar dominio',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -11058,6 +11090,14 @@ ${reportName}`,
             subtitle: 'Introduce el nombre del dominio privado al que deseas acceder (por ejemplo, expensify.com).',
             domainName: 'Nombre de dominio',
             newDomain: 'Nuevo dominio',
+            alreadyHaveAccessError: 'Este dominio ya existe en tu cuenta.',
+        },
+        domainAlreadyExists: {
+            headerTitle: 'El dominio ya existe',
+            title: 'Dominio ya configurado. ¿Solicitar acceso?',
+            description: 'Alguien ya configuró este dominio en Expensify. ¿Quieres solicitar acceso de administrador?',
+            requestAccess: 'Solicitar acceso de administrador',
+            requestAccessError: 'No pudimos enviar tu solicitud. Por favor, inténtalo de nuevo.',
         },
         domainAdded: {
             title: 'Dominio añadido',
@@ -11160,6 +11200,7 @@ ${reportName}`,
             forceTwoFactorAuthError: 'No se pudo cambiar la autenticación de dos factores forzada. Por favor, inténtalo de nuevo más tarde.',
             resetTwoFactorAuth: 'Restablecer la autenticación de dos factores',
             error: 'No se pudo guardar este cambio. Por favor, inténtalo de nuevo.',
+            neverMind: 'No importa',
         },
         groups: {
             title: 'Grupos',
@@ -11173,7 +11214,6 @@ ${reportName}`,
             defaultGroupPrompt: (currentName, newName) =>
                 `¿Estás seguro de que quieres establecer ${newName} como el grupo predeterminado? Los nuevos miembros serán invitados a este grupo en lugar del grupo predeterminado anterior (${currentName}). `,
             makeDefault: 'Establecer como predeterminado',
-            neverMind: 'No importa',
             createGroupError: 'No se pudo crear este grupo. Inténtalo de nuevo.',
             permissions: 'Permisos de grupo',
             createNewGroupButton: 'Nuevo grupo',

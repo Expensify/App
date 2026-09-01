@@ -424,6 +424,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseReport: 'Note de frais',
         rateOutOfPolicy: 'Taux hors politique',
         leaveWorkspace: 'Quitter l’espace de travail',
+        leaveWorkspaceTitle: (workspaceName: string) => `Quitter ${workspaceName} ?`,
         leaveWorkspaceConfirmation: 'Si vous quittez cet espace de travail, vous ne pourrez plus lui soumettre de dépenses.',
         leaveWorkspaceConfirmationAuditor: 'Si vous quittez cet espace de travail, vous ne pourrez plus voir ses notes de frais ni ses paramètres.',
         leaveWorkspaceConfirmationAdmin: 'Si vous quittez cet espace de travail, vous ne pourrez plus gérer ses paramètres.',
@@ -4665,6 +4666,7 @@ ${amount} pour ${merchant} - ${date}`,
             settlementFrequency: 'Fréquence de règlement',
             setAsDefault: 'Définir comme espace de travail par défaut',
             defaultNote: `Les reçus envoyés à ${CONST.EMAIL.RECEIPTS} apparaîtront dans cet espace de travail.`,
+            deleteWorkspaceTitle: (workspaceName: string) => `Supprimer ${workspaceName} ?`,
             deleteConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ?',
             deleteWithCardsConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ? Cela supprimera tous les flux de cartes et les cartes assignées.',
             deleteOpenExpensifyCardsError: 'Votre entreprise a encore des Cartes Expensify. Veuillez <concierge-link>contacter Concierge</concierge-link> pour les supprimer.',
@@ -5931,9 +5933,34 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 label: 'Compte de carte d’entreprise',
                 description: 'Choisissez où exporter les transactions de carte d’entreprise.',
             },
-            expensifyCardAccount: {
-                label: 'Compte Expensify Card',
-                description: 'Choisissez où exporter les transactions Expensify Card.',
+            exportToMultipleAccounts: 'Configurer l’export vers plusieurs comptes',
+            cardProgramAccount: {
+                label: 'Compte de programme de carte',
+                description: 'Remplacer le compte d’espace de travail pour ces programmes de cartes.',
+                descriptionLevel2: 'Remplacer le compte d’espace de travail pour ce programme de carte.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Tous les programmes utilisent le compte par défaut';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programme avec compte personnalisé`;
+                    }
+                    return `${customAccountsCount} programmes avec comptes personnalisés`;
+                },
+            },
+            cardAccount: {
+                label: 'Compte par carte',
+                description: 'Remplacez le compte de programme pour des cartes individuelles.',
+                descriptionLevel2: 'Remplacer le compte de programme pour ces cartes.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Toutes les cartes utilisent des comptes de programme';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} carte avec compte personnalisé`;
+                    }
+                    return `${customAccountsCount} cartes avec comptes personnalisés`;
+                },
             },
             autoSyncDescription: 'Synchronisez DualEntry et Expensify automatiquement, tous les jours. Les notes de frais se synchronisent en temps réel.',
             accountingMethods: {
@@ -6261,6 +6288,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             deleteFailureMessage: "Une erreur s'est produite lors de la suppression de la catégorie, veuillez réessayer",
             categoryName: 'Nom de la catégorie',
             requiresCategory: 'Les membres doivent catégoriser toutes les dépenses',
+            autoCategorizeNewExpenses: 'Catégoriser automatiquement les nouvelles dépenses',
             showCategoryGLCodes: 'Afficher les codes de grand livre lors de la catégorisation des dépenses',
             needCategoryForExportToIntegration: (connectionName: string) => `Toutes les dépenses doivent être catégorisées afin de pouvoir être exportées vers ${connectionName}.`,
             subtitle: 'Obtenez une meilleure vue d’ensemble de l’endroit où l’argent est dépensé. Utilisez nos catégories par défaut ou ajoutez les vôtres.',
@@ -8499,13 +8527,15 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Connecté. ${setupLink ? `<a href="${setupLink}">Terminer la configuration</a>` : 'Terminer la configuration'} pour importer les employés.</muted-text-label>`,
                 groups: {title: 'Groupes', description: 'Choisissez les groupes d’employés que vous souhaitez synchroniser avec cet espace de travail'},
-                syncLimitReached: {title: 'Réessayez demain', prompt: "Vous avez atteint votre limite de synchronisation pour aujourd'hui."},
             },
             notSync: 'Non synchronisé',
             authenticationError: (providerName: string) => `Connexion à ${providerName} impossible en raison d'une connexion expirée.`,
             reconnect: 'Reconnect',
             reconnectLink: 'Reconnectez-vous.',
             findIntegration: 'Rechercher une intégration',
+        },
+        merge: {
+            syncLimitReached: {title: 'Réessayez demain', prompt: "Vous avez atteint votre limite de synchronisation pour aujourd'hui."},
         },
         emptyDomain: {
             title: 'Renforcez votre sécurité avec des domaines',
@@ -8690,10 +8720,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             return `a ajouté le taux de taxe « ${newValue} (${newTaxPercentage}) » au taux de distance « ${customUnitRateName} »`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
-                return `a modifié la part de taxe récupérable sur le taux de distance « ${customUnitRateName} » à « ${newValue} » (auparavant « ${oldValue} »)`;
+            if (oldValue !== undefined) {
+                return `a modifié la part de taxe récupérable sur le taux de distance « ${customUnitRateName} » à « ${newValue}% » (auparavant « ${oldValue}% »)`;
             }
-            return `a ajouté une partie de taxe récupérable de « ${newValue} » au taux de distance « ${customUnitRateName} »`;
+            return `a ajouté une partie de taxe récupérable de « ${newValue}% » au taux de distance « ${customUnitRateName} »`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `a renommé le taux ${customUnitName} de « ${oldValue} » en « ${newValue} »`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
@@ -9385,6 +9415,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             approved: 'Approuvé',
             firstApprover: 'Premier approbateur',
             firstApproved: 'Approuvé en premier',
+            paidBy: 'Payé par',
             paid: 'Payé',
             exported: 'Exporté',
             posted: 'Publié',
@@ -10815,6 +10846,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
     domain: {
         notVerified: 'Non vérifié',
         retry: 'Réessayer',
+        requestSent: 'Demande envoyée',
         verifyDomain: {
             title: 'Vérifier le domaine',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -10888,6 +10920,14 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             subtitle: 'Saisissez le nom du domaine privé auquel vous souhaitez accéder (par ex. expensify.com).',
             domainName: 'Nom de domaine',
             newDomain: 'Nouveau domaine',
+            alreadyHaveAccessError: 'Ce domaine existe déjà dans votre compte.',
+        },
+        domainAlreadyExists: {
+            headerTitle: 'Le domaine existe déjà',
+            title: "Domaine déjà configuré. Demander l'accès ?",
+            description: "Quelqu'un a déjà configuré ce domaine dans Expensify. Voulez-vous demander l'accès administrateur ?",
+            requestAccess: "Demander l'accès administrateur",
+            requestAccessError: "Nous n'avons pas pu envoyer votre demande. Veuillez réessayer.",
         },
         domainAdded: {
             title: 'Domaine ajouté',
@@ -10984,6 +11024,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             forceTwoFactorAuthError: 'L’activation forcée de l’authentification à deux facteurs n’a pas pu être modifiée. Veuillez réessayer plus tard.',
             resetTwoFactorAuth: 'Réinitialiser l’authentification à deux facteurs',
             error: 'Impossible d\’enregistrer cette modification. Veuillez réessayer.',
+            neverMind: 'Peu importe',
         },
         groups: {
             title: 'Groupes',
@@ -10992,7 +11033,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             defaultGroupPrompt: (currentName: string, newName: string) =>
                 `Êtes-vous sûr de vouloir faire de ${newName} le groupe par défaut ? Les nouveaux membres seront invités à ce groupe au lieu du groupe par défaut précédent (${currentName}). `,
             makeDefault: 'Définir par défaut',
-            neverMind: 'Peu importe',
             createGroupError: 'Impossible de créer ce groupe. Veuillez réessayer.',
             permissions: 'Autorisations du groupe',
             createNewGroupButton: 'Nouveau groupe',

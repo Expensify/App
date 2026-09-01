@@ -82,6 +82,7 @@ import {
     getUpdatedCardFeedStatementPeriodMessage,
     getUpdateRoomDescriptionMessage,
     getWorkspaceCategoryUpdateMessage,
+    getWorkspaceCustomUnitRateUpdatedMessage,
     getWorkspaceFeatureEnabledMessage,
     getWorkspaceTaxUpdateMessage,
     hasPendingDEWApprove,
@@ -165,6 +166,7 @@ import {
     isOneOnOneChat as reportUtilsIsOneOnOneChat,
     isPolicyExpenseChat as reportUtilsIsPolicyExpenseChat,
     isSelfDM as reportUtilsIsSelfDM,
+    isSystemChat as reportUtilsIsSystemChat,
     isTaskReport as reportUtilsIsTaskReport,
     shouldReportBeInOptionList,
     shouldShowMarkAsDone,
@@ -922,6 +924,9 @@ function getLastMessageTextForReport({
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY)) {
         lastMessageTextFromReport = getMccGroupCategoryMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE)) {
+        lastMessageTextFromReport = getWorkspaceCustomUnitRateUpdatedMessage(translate, dateFnsLocale, lastReportAction);
     }
     if (lastReportAction?.actionName && isCategoryModificationAction(lastReportAction.actionName)) {
         lastMessageTextFromReport = getWorkspaceCategoryUpdateMessage(translate, lastReportAction, policy);
@@ -2346,6 +2351,7 @@ function getUserToInviteOption({
         [optimisticAccountID]: {
             accountID: optimisticAccountID,
             login: searchValue,
+            displayName: displayValue,
         },
     };
     const userToInvite = createOption({
@@ -3642,6 +3648,23 @@ function shouldUseBoldText(report: SearchOptionData): boolean {
 }
 
 /**
+ * Whether the LHN option title is rendered as-is instead of the participant display names.
+ */
+function shouldUseFullTitleForOption(option: OptionData): boolean {
+    return (
+        !!option.isChatRoom ||
+        !!option.isPolicyExpenseChat ||
+        !!option.isTaskReport ||
+        !!option.isThread ||
+        !!option.isMoneyRequestReport ||
+        !!option.isInvoiceReport ||
+        !!option.private_isArchived ||
+        reportUtilsIsGroupChat(option) ||
+        reportUtilsIsSystemChat(option)
+    );
+}
+
+/**
  * Process a search string into normalized search terms
  * @param searchString - The raw search string to process
  * @returns Array of normalized search terms
@@ -3695,6 +3718,7 @@ export {
     orderWorkspaceOptions,
     recentReportComparator,
     shouldUseBoldText,
+    shouldUseFullTitleForOption,
     sortAlphabetically,
     personalDetailsComparator,
     processSearchString,

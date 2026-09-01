@@ -8,29 +8,23 @@ TOP="$(realpath "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 readonly TOP
 source "${TOP}/scripts/shellUtils.sh"
 
-# Fetch the commit history to include the merge-base commit
 info "Fetching origin/main"
-git fetch origin main --no-tags
-
-MERGE_BASE_SHA_HASH="$(git merge-base origin/main HEAD)"
+MERGE_BASE_SHA_HASH="$(get_merge_base_with_main)"
 readonly MERGE_BASE_SHA_HASH
 
-# Check if output is empty or malformed
-if [[ -z "$MERGE_BASE_SHA_HASH" ]] || ! [[ "$MERGE_BASE_SHA_HASH" =~ ^[a-fA-F0-9]{40}$ ]]; then
-    error "git merge-base returned unexpected output: $MERGE_BASE_SHA_HASH"
-    exit 1
-fi
-
-# Get the diff output and check status
-if ! GIT_DIFF_OUTPUT="$(git diff --diff-filter=AMR --name-only "$MERGE_BASE_SHA_HASH" HEAD -- '*.js' '*.jsx' '*.ts' '*.tsx' '*.mjs' '*.cjs')"; then
-    error "git diff failed - output: $GIT_DIFF_OUTPUT"
-    exit 1
+# Diffs against the working tree (not HEAD) and includes untracked files, so
+# committed, staged, unstaged and untracked changes are all linted
+CHANGED_FILES_OUTPUT="$(get_changed_files "$MERGE_BASE_SHA_HASH" '*.js' '*.jsx' '*.ts' '*.tsx' '*.mjs' '*.cjs')"
+declare -a ALL_CHANGED_FILES=()
+if [[ -n "$CHANGED_FILES_OUTPUT" ]]; then
+    while IFS= read -r file; do
+        ALL_CHANGED_FILES+=("$file")
+    done <<< "$CHANGED_FILES_OUTPUT"
 fi
 
 # Run eslint on the changed files, forwarding any user-provided flags
-if [[ -n "$GIT_DIFF_OUTPUT" ]] ; then
-    # shellcheck disable=SC2086 # For multiple files in variable
-    exec bun "${TOP}/scripts/lint.ts" "$@" $GIT_DIFF_OUTPUT
+if [[ "${#ALL_CHANGED_FILES[@]}" -gt 0 ]]; then
+    exec bun "${TOP}/scripts/lint.ts" "$@" "${ALL_CHANGED_FILES[@]}"
 else
     info "No lintable files changed"
 fi
