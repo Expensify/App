@@ -1,3 +1,4 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
 
@@ -104,7 +105,7 @@ const getErrorMessage = (error: unknown, fallback: string): string => (error ins
  * OS terminates the app for exceeding its memory limit. Processing one image at a time keeps the peak
  * at a single bitmap regardless of how many files were picked.
  */
-const processPickedAssetsSequentially = async (assets: Asset[], showGeneralAlert: (message?: string) => void, translate: (key: TranslationPaths) => string): Promise<Asset[] | undefined> => {
+const processPickedAssetsSequentially = async (assets: Asset[], showGeneralAlert: (message?: string) => void, translate: LocaleContextProps['translate']): Promise<Asset[] | undefined> => {
     const processedAssets: Asset[] = [];
     // Collected instead of alerted inline so the whole selection produces a single alert: alerting per
     // asset would leave the user dismissing one native modal after another.
