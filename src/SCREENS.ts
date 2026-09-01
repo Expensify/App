@@ -1098,6 +1098,7 @@ const SCREENS = {
     WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT: 'Workspaces_Add_Domain_VerifyAccount',
     WORKSPACES_DOMAIN_ADDED: 'Workspaces_Domain_Added',
     WORKSPACES_DOMAIN_ACCESS_RESTRICTED: 'Workspaces_Domain_Access_Restricted',
+    WORKSPACES_DOMAIN_ALREADY_EXISTS: 'Workspaces_Domain_Already_Exists',
     DOMAIN: {
         SAML_VERIFY: 'Domain_SAML_Verify',
         SAML_VERIFIED: 'Domain_SAML_Verified',
