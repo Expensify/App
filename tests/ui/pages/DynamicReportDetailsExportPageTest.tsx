@@ -1,13 +1,20 @@
 import {render} from '@testing-library/react-native';
 
 import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 
 import DynamicReportDetailsExportPage from '@pages/inbox/report/DynamicReportDetailsExportPage';
 import type {ExportType} from '@pages/inbox/report/DynamicReportDetailsExportPage';
 
 import CONST from '@src/CONST';
+import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
+
+import createMock from '../../utils/createMock';
+
+type ExportPageProps = PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_EXPORT>;
 
 const REPORT_ID = '1001';
 
@@ -50,7 +57,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 // The report is already exported, which is the state that used to trigger the "export again" confirmation for
 // BOTH export options on this page.
 jest.mock('@libs/ReportUtils', () => ({
-    ...jest.requireActual('@libs/ReportUtils'),
+    ...jest.requireActual<typeof import('@libs/ReportUtils')>('@libs/ReportUtils'),
     canBeExported: () => true,
     isExported: () => true,
     getIntegrationIcon: () => undefined,
@@ -63,11 +70,13 @@ describe('DynamicReportDetailsExportPage', () => {
         mockShowConfirmModal.mockResolvedValue({action: 'CONFIRM'});
     });
 
-    const renderPage = () => {
-        const route = {params: {reportID: REPORT_ID, connectionName: CONST.POLICY.CONNECTIONS.NAME.QBO}};
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-        return render(<DynamicReportDetailsExportPage route={route as any} />);
-    };
+    const renderPage = () =>
+        render(
+            <DynamicReportDetailsExportPage
+                route={createMock<ExportPageProps['route']>({params: {reportID: REPORT_ID, connectionName: CONST.POLICY.CONNECTIONS.NAME.QBO}})}
+                navigation={createMock<ExportPageProps['navigation']>({})}
+            />,
+        );
 
     it('marks an already-exported report as manually exported without showing the export-again modal', () => {
         /**
