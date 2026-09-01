@@ -5832,12 +5832,14 @@ function shouldShowRBRForMissingSmartscanFields(
 function getTransactionReportName({
     translate,
     convertToDisplayString,
+    getCurrencySymbol,
     reportAction,
     linkedTransaction,
     report,
 }: {
     translate: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>;
     linkedTransaction: OnyxEntry<Transaction>;
     report: OnyxEntry<Report>;
@@ -5882,6 +5884,7 @@ function getTransactionReportName({
         isPolicyExpenseChat: isFromExpenseReport,
         policies: allPolicies,
         translate,
+        getCurrencySymbol,
     });
 
     const amount = getTransactionAmount(displayTransaction, isFromExpenseReport, displayTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;

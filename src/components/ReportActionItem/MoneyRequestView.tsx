@@ -321,6 +321,7 @@ function MoneyRequestView({
         isPolicyExpenseChat,
         policy: distanceOriginalPolicy ?? policy,
         translate,
+        getCurrencySymbol,
     });
 
     const {

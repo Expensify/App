@@ -8856,10 +8856,10 @@ ${reportName}`,
             return `πρόσθεσε τον φορολογικό συντελεστή «${newValue} (${newTaxPercentage})» στον συντελεστή απόστασης «${customUnitRateName}»`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
-                return `άλλαξε το ανακτήσιμο φόρου τμήμα στο τιμολόγιο απόστασης «${customUnitRateName}» σε «${newValue}» (προηγουμένως «${oldValue}»)`;
+            if (oldValue !== undefined) {
+                return `άλλαξε το ανακτήσιμο φόρου τμήμα στο τιμολόγιο απόστασης «${customUnitRateName}» σε «${newValue}%» (προηγουμένως «${oldValue}%»)`;
             }
-            return `προστέθηκε φορολογικά επιστρεπτέο μέρος «${newValue}» στο χιλιομετρικό κόστος «${customUnitRateName}»`;
+            return `προστέθηκε φορολογικά επιστρεπτέο μέρος «${newValue}%» στο χιλιομετρικό κόστος «${customUnitRateName}»`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `μετονόμασε την τιμή ${customUnitName} από «${oldValue}» σε «${newValue}»`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
