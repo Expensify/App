@@ -1,6 +1,8 @@
+import CONST from '@src/CONST';
+
 import type {PermissionResponse} from 'expo-location';
 
-import {getCurrentPositionAsync, PermissionStatus, requestForegroundPermissionsAsync} from 'expo-location';
+import {getCurrentPositionAsync, getLastKnownPositionAsync, PermissionStatus, requestForegroundPermissionsAsync} from 'expo-location';
 
 import type {GetCurrentPosition} from './getCurrentPosition.types';
 
@@ -16,7 +18,9 @@ const getCurrentPosition: GetCurrentPosition = async (success, error, options) =
     }
 
     try {
-        const currentPosition = await getCurrentPositionAsync(options);
+        const lastKnownPosition = await getLastKnownPositionAsync({maxAge: CONST.GPS.MAX_AGE});
+        const currentPosition = lastKnownPosition ?? (await getCurrentPositionAsync({timeout: CONST.GPS.TIMEOUT, ...options}));
+
         success(currentPosition);
     } catch (caughtError) {
         const geolocationError = getGeolocationError(caughtError);

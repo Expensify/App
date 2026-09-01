@@ -453,10 +453,10 @@ const CONST = {
     },
 
     GPS: {
-        // It's OK to get a cached location that is up to an hour old because the only accuracy needed is the country the user is in
-
         // 15 seconds, don't wait too long because the server can always fall back to using the IP address
         TIMEOUT: 15000,
+
+        MAX_AGE: 60000,
     },
 
     LEGAL_NAME: {

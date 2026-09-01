@@ -1,0 +1,62 @@
+diff --git a/node_modules/expo-location/build/Location.types.d.ts b/node_modules/expo-location/build/Location.types.d.ts
+--- a/node_modules/expo-location/build/Location.types.d.ts
++++ b/node_modules/expo-location/build/Location.types.d.ts
+@@ -118,6 +118,15 @@
+      * Default value may depend on `accuracy` option.
+      */
+     distanceInterval?: number;
++    /**
++     * Maximum time to wait for a location fix, in milliseconds. When it elapses the request is
++     * abandoned by the platform rather than left running. Without it the wait is unbounded on
++     * Android (30s Play Services default) and on web (`PositionOptions.timeout` defaults to
++     * `Infinity`). iOS is already bounded by `CLLocationManager.requestLocation()`.
++     * @platform android
++     * @platform web
++     */
++    timeout?: number;
+ };
+ /**
+  * Type representing options object that can be passed to `getLastKnownPositionAsync`.
+diff --git a/node_modules/expo-location/android/src/main/java/expo/modules/location/LocationHelpers.kt b/node_modules/expo-location/android/src/main/java/expo/modules/location/LocationHelpers.kt
+--- a/node_modules/expo-location/android/src/main/java/expo/modules/location/LocationHelpers.kt
++++ b/node_modules/expo-location/android/src/main/java/expo/modules/location/LocationHelpers.kt
+@@ -61,6 +61,7 @@
+         setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
+         setPriority(mapAccuracyToPriority(options.accuracy))
+         setMaxUpdateAgeMillis(locationParams.interval)
++        options.timeout?.let { setDurationMillis(it) }
+       }.build()
+     }
+ 
+diff --git a/node_modules/expo-location/android/src/main/java/expo/modules/location/records/LocationArguments.kt b/node_modules/expo-location/android/src/main/java/expo/modules/location/records/LocationArguments.kt
+--- a/node_modules/expo-location/android/src/main/java/expo/modules/location/records/LocationArguments.kt
++++ b/node_modules/expo-location/android/src/main/java/expo/modules/location/records/LocationArguments.kt
+@@ -40,13 +40,15 @@
+   @Field var accuracy: Int = ACCURACY_BALANCED,
+   @Field var distanceInterval: Int? = null,
+   @Field var mayShowUserSettingsDialog: Boolean = true,
+-  @Field var timeInterval: Long? = null
++  @Field var timeInterval: Long? = null,
++  @Field var timeout: Long? = null
+ ) : Record, Serializable {
+   constructor(map: Map<String, Any?>) : this(
+     accuracy = map["accuracy"] as? Int ?: ACCURACY_BALANCED,
+     distanceInterval = map["distanceInterval"] as? Int?,
+     mayShowUserSettingsDialog = map["mayShowUserSettingsDialog"] as? Boolean? ?: true,
+-    timeInterval = map["timeInterval"] as? Long
++    timeInterval = map["timeInterval"] as? Long,
++    timeout = map["timeout"] as? Long
+   )
+ }
+ 
+diff --git a/node_modules/expo-location/ios/LocationOptions.swift b/node_modules/expo-location/ios/LocationOptions.swift
+--- a/node_modules/expo-location/ios/LocationOptions.swift
++++ b/node_modules/expo-location/ios/LocationOptions.swift
+@@ -5,4 +5,7 @@
+ internal struct LocationOptions: Record {
+   @Field var accuracy: LocationAccuracy = .balanced
+   @Field var distanceInterval: Double = 0.0
++  // Accepted but unused: CLLocationManager.requestLocation() already bounds the wait on iOS. Declared
++  // so the shared JS call site can pass `timeout` without the Record decoder tripping over it.
++  @Field var timeout: Double?
+ }

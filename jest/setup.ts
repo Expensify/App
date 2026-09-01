@@ -59,6 +59,7 @@ jest.mock('expo-location', () => ({
     getForegroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 0})),
     getBackgroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 0})),
     getCurrentPositionAsync: jest.fn(() => Promise.resolve({coords: {latitude: 0, longitude: 0, altitude: 0, accuracy: 0, altitudeAccuracy: 0, heading: 0, speed: 0}, timestamp: 0})),
+    getLastKnownPositionAsync: jest.fn(() => Promise.resolve(null)),
     hasStartedLocationUpdatesAsync: jest.fn(() => Promise.resolve(false)),
     startLocationUpdatesAsync: jest.fn(() => Promise.resolve()),
     stopLocationUpdatesAsync: jest.fn(() => Promise.resolve()),
