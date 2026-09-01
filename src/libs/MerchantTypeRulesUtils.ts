@@ -6,13 +6,13 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MerchantTypeRuleForm';
 import type {MerchantTypeRuleForm} from '@src/types/form/MerchantTypeRuleForm';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, PolicyCategories} from '@src/types/onyx';
 import type {CodingRule} from '@src/types/onyx/Policy';
 
 import {DEFAULT_MCC_GROUP, isDefaultMccGroupID} from './actions/Policy/Category';
 import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
 import {clearPolicyCodingRuleErrors} from './actions/Policy/Rules';
-import {getCategoryTaxRulesTableData, getTaxRateDisplayName} from './CategoryTaxRulesUtils';
+import {getCategoryTaxRulesTableData, getRuleDeletionPendingAction, getTaxRateDisplayName} from './CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import Parser from './Parser';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
@@ -100,12 +100,14 @@ function getMerchantTypeRulesTableData({
 function getMerchantCodingRulesTableData({
     policy,
     policyID,
+    policyCategories,
     translate,
     isOffline,
     onNavigate,
 }: {
     policy: Policy | undefined;
     policyID: string;
+    policyCategories: PolicyCategories | undefined;
     translate: LocaleContextProps['translate'];
     isOffline: boolean;
     onNavigate: (route: Route) => void;
@@ -175,6 +177,9 @@ function getMerchantCodingRulesTableData({
                 actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleBillable', rule.billable));
             }
             const ruleDescription = actions.map((action, index) => (index === 0 ? action : action.charAt(0).toLowerCase() + action.slice(1))).join(', ');
+            // The whole rule goes when a category it sets is deleted. A deleted tax rate isn't borrowed here: the rule
+            // has other defaults to fall back on, so it isn't known to be removed with the rate.
+            const pendingAction = rule.pendingAction ?? getRuleDeletionPendingAction(policy, policyCategories, rule.category, undefined);
 
             return {
                 keyForList: ruleID,
@@ -185,10 +190,10 @@ function getMerchantCodingRulesTableData({
                 conditionText: translate('workspace.rules.expenseDefaultsTable.merchantIs', merchantName),
                 ruleDescription,
                 searchTokens: [merchantName, ruleDescription],
-                pendingAction: rule.pendingAction,
+                pendingAction,
                 errors: rule.errors,
                 onCloseError: () => clearPolicyCodingRuleErrors(policyID, ruleID, rule),
-                disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                disabled: pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 action: () => onNavigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID)),
             };
         });
@@ -197,18 +202,21 @@ function getMerchantCodingRulesTableData({
 function getExpenseDefaultsTableData({
     policy,
     policyID,
+    policyCategories,
     translate,
     isOffline,
     onNavigate,
 }: {
     policy: Policy | undefined;
     policyID: string;
+    /** Read for the pending state of a category a rule depends on, so the rule shows as deleting alongside it. */
+    policyCategories: PolicyCategories | undefined;
     translate: LocaleContextProps['translate'];
     isOffline: boolean;
     onNavigate: (route: Route) => void;
 }): ExpenseDefaultTableItem[] {
-    const categoryTaxRules = getCategoryTaxRulesTableData({policy, translate, onNavigate});
-    const merchantRules = getMerchantCodingRulesTableData({policy, policyID, translate, isOffline, onNavigate});
+    const categoryTaxRules = getCategoryTaxRulesTableData({policy, policyCategories, translate, onNavigate});
+    const merchantRules = getMerchantCodingRulesTableData({policy, policyID, policyCategories, translate, isOffline, onNavigate});
     const merchantTypeRules = getMerchantTypeRulesTableData({policy, translate, onNavigate});
 
     return [...categoryTaxRules, ...merchantRules, ...merchantTypeRules];

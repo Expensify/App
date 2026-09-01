@@ -7,7 +7,8 @@ import type {ExpenseDefaultTableItem} from '@components/Tables/WorkspaceExpenseD
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, PolicyCategories} from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ExpenseRule} from '@src/types/onyx/Policy';
 
 import {getDecodedCategoryName} from './CategoryUtils';
@@ -61,12 +62,32 @@ function getTaxRateDisplayName(policy: Policy | undefined, taxID: string | undef
     return taxID;
 }
 
+/**
+ * Marks a rule row as deleting while the category or tax rate it depends on is itself being deleted.
+ *
+ * The backend drops the rule along with them, so this only borrows their pending state instead of writing one of its
+ * own — nothing to roll back, and the row clears when the delete lands. Only deletion is borrowed: a disabled category
+ * or tax keeps its rule, which fires again once it is re-enabled.
+ */
+function getRuleDeletionPendingAction(
+    policy: Policy | undefined,
+    policyCategories: PolicyCategories | undefined,
+    categoryName: string | undefined,
+    taxID: string | undefined,
+): PendingAction | undefined {
+    const isCategoryDeleting = !!categoryName && policyCategories?.[categoryName]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isTaxDeleting = !!taxID && policy?.taxRates?.taxes?.[taxID]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    return isCategoryDeleting || isTaxDeleting ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : undefined;
+}
+
 function getCategoryTaxRulesTableData({
     policy,
+    policyCategories,
     translate,
     onNavigate,
 }: {
     policy: Policy | undefined;
+    policyCategories: PolicyCategories | undefined;
     translate: LocaleContextProps['translate'];
     onNavigate: (route: Route) => void;
 }): ExpenseDefaultTableItem[] {
@@ -82,9 +103,12 @@ function getCategoryTaxRulesTableData({
         // `getCategoryTaxRules` already dropped the rules without a category, so this is always set.
         const categoryName = getRuleCategoryName(rule) ?? '';
         const decodedCategoryName = getDecodedCategoryName(categoryName);
-        const taxDisplayName = getTaxRateDisplayName(policy, rule.tax?.field_id_TAX?.externalID);
+        const taxID = rule.tax?.field_id_TAX?.externalID;
+        const taxDisplayName = getTaxRateDisplayName(policy, taxID);
         const conditionText = translate('workspace.rules.expenseDefaultsTable.categoryIs', decodedCategoryName);
         const ruleDescription = translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabel, taxDisplayName);
+        // The rule is both its category and its tax rate, so deleting either one takes it down.
+        const pendingAction = getRuleDeletionPendingAction(policy, policyCategories, categoryName, taxID);
 
         return {
             keyForList: getCategoryTaxRuleKey(categoryName),
@@ -95,6 +119,8 @@ function getCategoryTaxRulesTableData({
             conditionText,
             ruleDescription,
             searchTokens: [decodedCategoryName, conditionText, ruleDescription, taxDisplayName],
+            pendingAction,
+            disabled: pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             action: () => onNavigate(ROUTES.RULES_CATEGORY_TAX_EDIT.getRoute(policyID, categoryName)),
         };
     });
@@ -105,4 +131,13 @@ function getCategoryNameFromTaxRuleKey(key: string): string {
     return key.slice(CATEGORY_TAX_RULE_KEY_PREFIX.length);
 }
 
-export {categoryHasTaxRule, getCategoryNameFromTaxRuleKey, getCategoryTaxRulesTableData, getCategoryTaxRuleTaxID, getRuleCategoryName, getTaxRateDisplayName, isCategoryTaxRuleKey};
+export {
+    categoryHasTaxRule,
+    getCategoryNameFromTaxRuleKey,
+    getCategoryTaxRulesTableData,
+    getCategoryTaxRuleTaxID,
+    getRuleCategoryName,
+    getRuleDeletionPendingAction,
+    getTaxRateDisplayName,
+    isCategoryTaxRuleKey,
+};

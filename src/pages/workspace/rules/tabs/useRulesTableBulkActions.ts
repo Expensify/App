@@ -152,6 +152,8 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
     const expenseDefaultsTableData: ExpenseDefaultTableItem[] = getExpenseDefaultsTableData({
         policy,
         policyID,
+        // Unlike the tables below, the raw value: a category pending deletion is exactly what marks its rule deleting.
+        policyCategories: policyCategoriesOnyx,
         translate,
         isOffline,
         onNavigate: Navigation.navigate,
