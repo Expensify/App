@@ -1,5 +1,3 @@
-import ScrollView from '@components/ScrollView';
-
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
@@ -74,9 +72,8 @@ import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, View} from 'react-native';
 
+import MoneyRequestReportEmptyStateView from './MoneyRequestReportEmptyStateView';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
-import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
-import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 import SelectionToolbar from './SelectionToolbar';
 
 /**
@@ -784,17 +781,11 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                     1. showEmptyState — genuinely empty report
                     2. !isReportEmpty — report has data, render the FlashList */}
                 {showEmptyState && (
-                    <ScrollView contentContainerStyle={styles.flexGrow1}>
-                        <MoneyRequestViewReportFields
-                            report={report}
-                            policy={policy}
-                        />
-                        <SearchMoneyRequestReportEmptyState
-                            report={report}
-                            onLayout={onLayout}
-                            policy={policy}
-                        />
-                    </ScrollView>
+                    <MoneyRequestReportEmptyStateView
+                        report={report}
+                        policy={policy}
+                        onLayout={onLayout}
+                    />
                 )}
                 {!isReportEmpty && !!reportStable && (
                     <MoneyRequestReportTransactionList
