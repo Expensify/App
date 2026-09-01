@@ -8,7 +8,6 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
-import useIsFinishedJoinWorkspaceTask from '@hooks/useIsFinishedJoinWorkspaceTask';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -95,8 +94,6 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
 
-    const isFinishedJoinWorkspaceTask = useIsFinishedJoinWorkspaceTask(taskReportID, isTaskCompletedFromOnyx);
-
     const taskTitleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitle), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
 
     const taskTitlePlainText = Parser.htmlToText(taskTitle);
@@ -154,12 +151,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
         <View style={[styles.chatItemMessage, !hasAssignee && styles.mv1]}>
             <PressableWithoutFeedback
                 accessible={shouldSplitTaskAccessibilityTargets ? false : undefined}
-                onPress={() => {
-                    if (isFinishedJoinWorkspaceTask) {
-                        return;
-                    }
-                    Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}));
-                }}
+                onPress={() => Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}))}
                 onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={(event) =>
@@ -181,7 +173,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                         <Checkbox
                             style={[styles.mr2]}
                             isChecked={isTaskCompleted}
-                            disabled={!isTaskActionable || isFinishedJoinWorkspaceTask}
+                            disabled={!isTaskActionable}
                             shouldSelectOnPressEnter
                             onPress={callFunctionIfActionIsAllowed(() => {
                                 updateTaskCheckboxStateForAccessibility(isTaskCompleted);
@@ -202,12 +194,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={taskAccessibilityLabel}
                             accessibilityHint={titlePressableAccessibilityHint}
-                            onPress={() => {
-                                if (isFinishedJoinWorkspaceTask) {
-                                    return;
-                                }
-                                Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}));
-                            }}
+                            onPress={() => Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}))}
                             onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                             onPressOut={() => ControlSelection.unblock()}
                             onLongPress={(event) =>
@@ -236,13 +223,11 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                         />
                     </View>
                 )}
-                {!isFinishedJoinWorkspaceTask && (
-                    <Icon
-                        src={icons.ArrowRight}
-                        fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
-                        additionalStyles={iconWrapperStyle}
-                    />
-                )}
+                <Icon
+                    src={icons.ArrowRight}
+                    fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
+                    additionalStyles={iconWrapperStyle}
+                />
             </PressableWithoutFeedback>
         </View>
     );

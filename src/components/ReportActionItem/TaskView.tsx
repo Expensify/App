@@ -14,7 +14,6 @@ import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
-import useIsFinishedJoinWorkspaceTask from '@hooks/useIsFinishedJoinWorkspaceTask';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -82,7 +81,6 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const taskTitlePlainText = Parser.htmlToText(taskTitleWithoutPre);
     const isCompletedFromOnyx = isCompletedTaskReport(report);
 
-    const isFinishedJoinWorkspaceTask = useIsFinishedJoinWorkspaceTask(report?.reportID, isCompletedFromOnyx);
     const {
         isCompleted,
         shouldSplitTaskAccessibilityTargets,
@@ -229,7 +227,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                         caretSize={16}
                                                         accessibilityLabel={taskCheckboxAccessibilityLabel}
                                                         accessibilityHint={taskCheckboxAccessibilityHint}
-                                                        disabled={!isTaskActionable || isFinishedJoinWorkspaceTask}
+                                                        disabled={!isTaskActionable}
                                                         sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
                                                     />
                                                     {shouldSplitTaskAccessibilityTargets ? (
