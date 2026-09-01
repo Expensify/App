@@ -14,7 +14,12 @@ jest.mock('@hooks/useLocalize', () =>
         translate: (key: string, params?: {timeRemaining?: string}) => params?.timeRemaining ?? key,
     })),
 );
-jest.mock('@hooks/useAccessibilityAnnouncement', () => jest.fn());
+const mockAnnounce = jest.fn<void, [string, boolean]>();
+
+jest.mock('@hooks/useAccessibilityAnnouncement', () => ({
+    __esModule: true,
+    default: (message: string, shouldAnnounceMessage: boolean) => mockAnnounce(message, shouldAnnounceMessage),
+}));
 jest.mock('@components/RenderHTML', () => {
     const ReactMock = jest.requireActual<typeof React>('react');
     const {Text} = jest.requireActual<typeof ReactNative>('react-native');
@@ -24,7 +29,11 @@ jest.mock('@components/RenderHTML', () => {
 
 const BASE_TIME = new Date('2026-08-21T10:00:00.000Z').valueOf();
 
-// One act per tick so React commits the effect that schedules the next one.
+function announcedMessages() {
+    return mockAnnounce.mock.calls.filter(([, shouldAnnounceMessage]) => shouldAnnounceMessage).map(([message]) => message);
+}
+
+// One act per tick so React commits each second; batching them skips the intermediate values.
 function tickSeconds(seconds: number) {
     for (let i = 0; i < seconds; i++) {
         act(() => jest.advanceTimersByTime(CONST.MILLISECONDS_PER_SECOND));
@@ -55,6 +64,7 @@ describe('ValidateCodeCountdown', () => {
     beforeEach(() => {
         jest.useFakeTimers();
         jest.setSystemTime(BASE_TIME);
+        mockAnnounce.mockClear();
     });
 
     afterEach(() => {
@@ -97,6 +107,21 @@ describe('ValidateCodeCountdown', () => {
 
         tickSeconds(45);
         expect(onCountdownFinish).toHaveBeenCalled();
+    });
+
+    it('announces the milestones a ticking countdown passes through', () => {
+        renderCountdown();
+
+        tickSeconds(CONST.REQUEST_CODE_DELAY);
+        expect(announcedMessages()).toEqual(['validateCodeForm.timeRemainingAnnouncement', 'validateCodeForm.timeRemainingAnnouncement', 'validateCodeForm.timeExpiredAnnouncement']);
+    });
+
+    // Recomputing skips values, so an exact-match gate would ask for nothing at all about a window that expired.
+    it('asks for the expiry announcement when the countdown skips straight to zero', () => {
+        renderCountdown();
+
+        suspendFor(CONST.REQUEST_CODE_DELAY * CONST.MILLISECONDS_PER_SECOND);
+        expect(announcedMessages()).toContain('validateCodeForm.timeExpiredAnnouncement');
     });
 
     it('measures from the resend time after the countdown is reset', () => {

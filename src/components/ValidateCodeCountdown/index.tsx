@@ -2,6 +2,7 @@ import RenderHTML from '@components/RenderHTML';
 
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 
 import DateUtils from '@libs/DateUtils';
 
@@ -10,6 +11,8 @@ import CONST from '@src/CONST';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 
 import type {ValidateCodeCountdownProps} from './types';
+
+const ANNOUNCEMENT_INTERVAL_SECONDS = 10;
 
 function ValidateCodeCountdown({onCountdownFinish, requestedAt, ref}: ValidateCodeCountdownProps) {
     const {translate} = useLocalize();
@@ -63,12 +66,14 @@ function ValidateCodeCountdown({onCountdownFinish, requestedAt, ref}: ValidateCo
         onCountdownFinish();
     }, [timeRemaining, onCountdownFinish]);
 
-    // Announce countdown start/reset/expiration for screen readers.
-    // We check timeRemaining === 1 (not 0) because the component unmounts immediately at 0s, so the expired announcement wouldn't be spoken.
-    // We use timeRemaining % 10 === 1 to announce every 10 seconds (at 21s, 11s, 1s) to avoid overwhelming screen reader users.
+    // Announce every 10 seconds rather than every second, to avoid overwhelming screen reader users. Counting blocks
+    // rather than matching 21s/11s/1s exactly keeps the announcement when a recomputed countdown skips a mark.
+    const remainingAnnouncementBlocks = Math.ceil((timeRemaining - 1) / ANNOUNCEMENT_INTERVAL_SECONDS);
+    const previousAnnouncementBlocks = usePrevious(remainingAnnouncementBlocks);
+
     useAccessibilityAnnouncement(
-        timeRemaining === 1 ? translate('validateCodeForm.timeExpiredAnnouncement') : translate('validateCodeForm.timeRemainingAnnouncement', {count: timeRemaining - 1}),
-        timeRemaining % 10 === 1,
+        timeRemaining <= 1 ? translate('validateCodeForm.timeExpiredAnnouncement') : translate('validateCodeForm.timeRemainingAnnouncement', {count: timeRemaining - 1}),
+        remainingAnnouncementBlocks !== previousAnnouncementBlocks,
         {
             shouldAnnounceOnNative: true,
             shouldAnnounceOnWeb: true,
