@@ -92,7 +92,7 @@ const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction
         isPolicyExpenseChat: true,
     };
     const defaultProps = {
-        isScanRequest: false,
+        isCompactMode: false,
         policy: createRandomPolicy(Number(FAKE_POLICY_ID), CONST.POLICY.TYPE.TEAM),
         policyTags: {},
         selectedParticipants: [

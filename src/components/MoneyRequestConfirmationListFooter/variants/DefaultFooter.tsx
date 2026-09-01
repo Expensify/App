@@ -6,13 +6,10 @@ import InvoiceSenderSection from '@components/MoneyRequestConfirmationListFooter
 import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/sections/ReceiptSection';
 import type {MoneyRequestConfirmationListFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
 
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
 import {View} from 'react-native';
-
-const noopSetShowMoreFields = () => {};
 
 /**
  * Fallback footer that renders every section for every expense type, exactly as the single footer
@@ -21,7 +18,7 @@ const noopSetShowMoreFields = () => {};
  */
 function DefaultFooter({
     receiptStitchError,
-    isScanRequest,
+    isCompactMode,
     policy,
     policyTags,
     selectedParticipants,
@@ -35,11 +32,7 @@ function DefaultFooter({
     compactControls,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
-    const isInLandscapeMode = useIsInLandscapeMode();
-
-    const showMoreFields = compactControls?.showMoreFields ?? false;
-    const setShowMoreFields = compactControls?.setShowMoreFields ?? noopSetShowMoreFields;
-    const isCompactMode = !showMoreFields && isScanRequest && !isInLandscapeMode;
+    const {showMoreFields, setShowMoreFields} = compactControls;
 
     return (
         <View style={isCompactMode ? styles.flex1 : undefined}>

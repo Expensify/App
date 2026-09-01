@@ -577,7 +577,7 @@ function MoneyRequestConfirmationList({
             <View style={isCompactMode ? styles.flex1 : undefined}>
                 <MoneyRequestConfirmationListFooter
                     receiptStitchError={receiptStitchError}
-                    isScanRequest={isScanRequest}
+                    isCompactMode={isCompactMode}
                     policy={policy}
                     policyTags={policyTags}
                     selectedParticipants={selectedParticipantsProp}

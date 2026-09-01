@@ -9,8 +9,8 @@ type MoneyRequestConfirmationListFooterProps = {
     /** Error message from the odometer receipt stitcher, rendered below the receipt */
     receiptStitchError?: string | null;
 
-    /** Whether the active transaction is a scan request (drives compact mode) */
-    isScanRequest: boolean;
+    /** Whether the compact scan layout is active */
+    isCompactMode: boolean;
 
     /** Active policy read by sections. It may differ from the context `policyID` in track-expense flows where the user moves the expense to a different workspace. */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -42,12 +42,12 @@ type MoneyRequestConfirmationListFooterProps = {
     /** Receipt-related options */
     receiptOptions: ReceiptOptions;
 
-    /** Compact-mode controls (the footer derives `isCompactMode` itself) */
-    compactControls?: CompactControls;
+    /** Show-more state for the compact layout */
+    compactControls: CompactControls;
 };
 
-type TimeFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'isScanRequest' | 'compactControls' | 'distanceData'>;
+type TimeFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'isCompactMode' | 'compactControls' | 'distanceData'>;
 
-type PerDiemFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'receiptOptions' | 'isScanRequest' | 'compactControls' | 'distanceData'>;
+type PerDiemFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'receiptOptions' | 'isCompactMode' | 'compactControls' | 'distanceData'>;
 
 export type {MoneyRequestConfirmationListFooterProps, TimeFooterProps, PerDiemFooterProps};

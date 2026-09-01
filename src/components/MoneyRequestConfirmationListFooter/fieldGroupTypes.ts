@@ -66,8 +66,8 @@ type CompactState = {
 
 /** External-facing compact-mode controls (the footer derives `isCompactMode` itself) */
 type CompactControls = {
-    showMoreFields?: boolean;
-    setShowMoreFields?: (showMoreFields: boolean) => void;
+    showMoreFields: boolean;
+    setShowMoreFields: (showMoreFields: boolean) => void;
 };
 
 /** Receipt-related inputs threaded into the receipt section */
