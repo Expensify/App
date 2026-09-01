@@ -21,7 +21,6 @@ import useTodoCounts from '@hooks/useTodoCounts';
 
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
-import HapticFeedback from '@libs/HapticFeedback';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getItemBadgeText, getOverflowMenu, SAVED_SEARCH_FALLBACK_ICON_NAME, SAVED_SEARCH_ICON_NAMES, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 
@@ -222,7 +221,6 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         if (!searchData) {
             return;
         }
-        HapticFeedback.press();
         onTabPress?.();
         setSearchContext(false);
         navigation.dispatch({
