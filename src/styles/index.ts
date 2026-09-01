@@ -4443,6 +4443,8 @@ const staticStyles = (theme: ThemeColors) =>
         merchantRuleCalloutAction: {
             color: theme.tooltipLinkText,
             fontWeight: FontUtils.fontWeight.bold,
+            fontSize: variables.fontSizeLabel,
+            lineHeight: variables.lineHeightLarge,
         },
 
         quickReactionsContainer: {

@@ -56,12 +56,14 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, transactionID,
     // The offer ends once the user has seen it and navigated away. Retiring leaves the expense itself untouched, so
     // editing it again offers afresh. Only the close button silences an expense for the session.
     const hasBeenShownRef = useRef(false);
+
     useEffect(() => {
         if (!suggestion) {
             return;
         }
         hasBeenShownRef.current = true;
     }, [suggestion]);
+
     useEffect(
         () => () => {
             if (!hasBeenShownRef.current) {
@@ -135,8 +137,8 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, transactionID,
 MerchantRuleSuggestionBannerContent.displayName = 'MerchantRuleSuggestionBannerContent';
 
 /**
- * Offers a workspace admin the chance to turn an expense edit into a merchant rule, right on the expense they just
- * edited. Renders nothing unless there is a qualifying edit to act on.
+ * Offers the chance to turn an expense edit into a merchant rule, right on the expense that was just edited. Renders
+ * nothing unless there is a qualifying edit to act on.
  */
 function MerchantRuleSuggestionBanner({reportID, policyID, transactionID, containerStyles, overlayStyles, isAnchoredToBottom}: MerchantRuleSuggestionBannerProps) {
     const [storedSuggestion] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION);

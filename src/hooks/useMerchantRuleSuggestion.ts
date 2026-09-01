@@ -1,12 +1,11 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {arePolicyRulesEnabled, isPolicyAdmin} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled} from '@libs/PolicyUtils';
 import {isMerchantMissing} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleSuggestion, Policy, Transaction} from '@src/types/onyx';
 
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import usePolicyFeatureWriteAccess from './usePolicyFeatureWriteAccess';
@@ -24,15 +23,14 @@ type MerchantRuleSuggestionResult = {
 };
 
 /**
- * Resolves the "Create a rule" callout for an expense detail view: an admin just edited a field merchant rules can
- * govern, and hasn't dismissed the offer for that expense.
+ * Resolves the "Create a rule" callout for an expense detail view: someone who can write workspace rules just edited
+ * a field merchant rules can govern, and hasn't dismissed the offer for that expense.
  *
  * @param reportID - the report hosting the expense detail view, either a transaction thread, its expense report, or the chat the expense lives in
  * @param transactionID - the expense being displayed, when the caller already knows it
  */
 function useMerchantRuleSuggestion(reportID: string | undefined, policyID: string | undefined, transactionID?: string): MerchantRuleSuggestionResult {
     const {isBetaEnabled} = usePermissions();
-    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     const [storedSuggestion] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -50,8 +48,9 @@ function useMerchantRuleSuggestion(reportID: string | undefined, policyID: strin
     const isDismissed = !!storedSuggestion?.transactionID && !!storedSuggestion.dismissedTransactionIDs?.includes(storedSuggestion.transactionID);
     const isForThisExpenseView =
         !!storedSuggestion && !isDismissed && !storedSuggestion.isRetired && ((!!transactionID && transactionID === storedSuggestion.transactionID) || isHostingReport);
-    // Only workspace admins can create merchant rules, so nobody else should be offered one
-    const canCreateMerchantRule = isPolicyAdmin(policy, currentUserLogin) && canWriteRules && arePolicyRulesEnabled(policy, policyCategories, isBetaEnabled(CONST.BETAS.RULES_REVAMP));
+    // Offer the callout to exactly the people the rule page it opens will let in, which is write access to the Rules
+    // feature. That is admins today, and also editors, who can already create the same rule from workspace settings.
+    const canCreateMerchantRule = canWriteRules && arePolicyRulesEnabled(policy, policyCategories, isBetaEnabled(CONST.BETAS.RULES_REVAMP));
     const suggestion = isForThisExpenseView && canCreateMerchantRule ? storedSuggestion : undefined;
 
     // A merchant rule matches on merchant, so an expense without one, like a receipt still scanning, can't seed a rule

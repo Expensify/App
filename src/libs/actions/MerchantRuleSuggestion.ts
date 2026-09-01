@@ -12,7 +12,8 @@ import Onyx from 'react-native-onyx';
  * dismissed one expense at a time and should appear again on that expense in a later session, which an account-wide
  * NVP could not express.
  *
- * Written for every user. `useMerchantRuleSuggestion` decides whether the callout renders, which needs admin rights.
+ * Written for every user. `useMerchantRuleSuggestion` decides whether the callout renders, which needs write access
+ * to the workspace's Rules feature.
  */
 function trackMerchantRuleSuggestion(transactionID: string | undefined, field: MerchantRuleSuggestionField, reportIDs: Array<string | undefined>) {
     if (!transactionID) {
