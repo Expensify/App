@@ -123,7 +123,14 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
         let targetTransactionThreadParentReportForMerge = targetTransactionThreadParentReport;
 
         if (!targetTransactionThreadReportIDForMerge) {
-            const targetIOUAction = getIOUActionForReportID(getReportIDForExpense(targetTransaction), targetTransaction.transactionID);
+            // Merges started from Search can have the target's report actions only in the snapshot, so fall back to it.
+            // Without the existing IOU action, createTransactionThreadReport takes openReport's legacy path and builds a
+            // second optimistic action for an expense that already has one.
+            const targetExpenseReportID = getReportIDForExpense(targetTransaction);
+            const targetSnapshotReportActions = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(targetExpenseReportID)}`];
+            const targetIOUAction =
+                getIOUActionForReportID(targetExpenseReportID, targetTransaction.transactionID) ??
+                getIOUActionForTransactionID(Object.values(targetSnapshotReportActions ?? {}), targetTransaction.transactionID);
             const createdTransactionThreadReport = createTransactionThreadReport({
                 introSelected,
                 currentUserLogin: currentUserEmailParam,
