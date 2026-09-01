@@ -47,6 +47,7 @@ jest.mock('@libs/SearchAutocompleteUtils', () => ({
         {taxRateName: 'VAT 20%', taxRateIds: ['vat20']},
         {taxRateName: 'GST 10%', taxRateIds: ['gst10']},
     ]),
+    CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: jest.requireActual<typeof import('@libs/SearchAutocompleteUtils')>('@libs/SearchAutocompleteUtils').CONTINUATION_DETECTION_SEARCH_FILTER_KEYS,
 }));
 
 jest.mock('@libs/OptionsListUtils', () => ({
