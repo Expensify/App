@@ -184,7 +184,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                         onError={handleFailureToLoadPDF}
                         password={password}
                         onLoadComplete={finishPDFLoad}
-                        onPageSingleTap={onPress}
+                        onPageSingleTap={() => onPress?.()}
                         onScaleChanged={onScaleChanged}
                         onPressLink={handlePressLink}
                     />

@@ -39,8 +39,6 @@ type PDFViewProps = {
     rotation?: RotationDegrees;
 };
 
-type PDFViewNativeProps = PDFViewProps & {
-    onPress?: (page: number, x: number, y: number) => void;
-};
+type PDFViewNativeProps = PDFViewProps;
 
 export type {PDFViewNativeProps, PDFViewProps};

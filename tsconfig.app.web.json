@@ -9,7 +9,7 @@
         "lib": ["DOM", "ESNext"],
         "moduleSuffixes": [".web", ""]
     },
-    "include": ["src", "assets", "prompts", ".storybook/**/*"],
+    "include": ["src", "assets", "prompts", ".storybook/**/*", "types/env.d.ts"],
     "exclude": [
         "**/node_modules/*",
         "**/dist/*",

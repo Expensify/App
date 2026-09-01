@@ -72,7 +72,7 @@ function BaseAttachmentViewPdf({
 
     return (
         <PDFView
-            onPress={onPress as never}
+            onPress={onPress}
             isFocused={isFocused}
             sourceURL={encryptedSourceUrl}
             fileName={file?.name}

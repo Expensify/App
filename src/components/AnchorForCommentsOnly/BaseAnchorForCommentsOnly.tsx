@@ -3,7 +3,6 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Accessibility from '@libs/Accessibility';
@@ -41,7 +40,6 @@ function BaseAnchorForCommentsOnly({
     ...rest
 }: BaseAnchorForCommentsOnlyProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const linkRef = useRef<RNText>(null);
     const flattenStyle = StyleSheet.flatten(style);
     const isScreenReaderActive = Accessibility.useScreenReaderStatus();
@@ -70,7 +68,7 @@ function BaseAnchorForCommentsOnly({
         <PressableWithSecondaryInteraction
             inline
             suppressHighlighting
-            style={[styles.cursorDefault, !!flattenStyle.fontSize && StyleUtils.getFontSizeStyle(flattenStyle.fontSize)] as never}
+            style={[styles.cursorDefault, !!flattenStyle.fontSize && {fontSize: flattenStyle.fontSize}]}
             onSecondaryInteraction={(event) => {
                 showContextMenu({
                     type: isEmail ? CONST.CONTEXT_MENU_TYPES.EMAIL : CONST.CONTEXT_MENU_TYPES.LINK,

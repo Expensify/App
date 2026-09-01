@@ -118,7 +118,7 @@ function ReportActionItemImages({images, size, total, isHovered = false, onPress
                     <Svg
                         height={triangleWidth}
                         width={triangleWidth}
-                        style={styles.reportActionItemImagesMoreCornerTriangle as never}
+                        style={[styles.reportActionItemImagesMoreCornerTriangle]}
                     >
                         <Polygon
                             points={`${triangleWidth},0 ${triangleWidth},${triangleWidth} 0,${triangleWidth}`}

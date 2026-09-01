@@ -725,17 +725,20 @@ const config = defineConfig([
     },
 
     {
-        files: ['src/**/*.native.ts', 'src/**/*.native.tsx', 'src/**/*.ios.ts', 'src/**/*.ios.tsx', 'src/**/*.android.ts', 'src/**/*.android.tsx'],
+        files: ['src/**/*.native.ts', 'src/**/*.native.tsx', 'src/**/*.ios.ts', 'src/**/*.ios.tsx', 'src/**/*.android.ts', 'src/**/*.android.tsx', 'src/types/native/**/*.d.ts'],
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'tsconfig.app.native.json'),
                 projectService: false,
             },
         },
+        rules: {
+            '@typescript-eslint/no-unused-vars': ['error', {vars: 'all', args: 'after-used', argsIgnorePattern: '^_', caughtErrors: 'none', ignoreRestSiblings: true}],
+        },
     },
 
     {
-        files: ['tests/**/*.{ts,tsx}', 'jest/**/*.{ts,tsx}', '__mocks__/**/*.{ts,tsx}'],
+        files: ['tests/**/*.{ts,tsx}', 'jest/**/*.{ts,tsx}', '__mocks__/**/*.{ts,tsx}', 'src/**/__mocks__/**/*.{ts,tsx}', 'src/types/modules/jest.d.ts'],
         ignores: ['tests/tooling/**'],
         languageOptions: {
             parserOptions: {
