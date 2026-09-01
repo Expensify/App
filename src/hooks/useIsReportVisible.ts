@@ -1,8 +1,8 @@
 import NAVIGATORS from '@src/NAVIGATORS';
 
-import {useIsFocused} from '@react-navigation/native';
 import {useState} from 'react';
 
+import useIsScreenFocused from './useIsScreenFocused';
 import useRootNavigationState from './useRootNavigationState';
 
 /**
@@ -12,7 +12,7 @@ import useRootNavigationState from './useRootNavigationState';
  * That flag already carries per-route RHP membership, being false only while this route is the displayed one, so an RHP screen covered by a stacked wide route arrives here narrow.
  */
 function useIsReportVisible(shouldUseNarrowLayout: boolean): boolean {
-    const isFocused = useIsFocused();
+    const isFocused = useIsScreenFocused();
     const isRHPTopmost = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
     const activeTabRouteKey = useRootNavigationState((state) => {
         // Derived from the subscribed state rather than the navigation ref, which errors before the container is ready.

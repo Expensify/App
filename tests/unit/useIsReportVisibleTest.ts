@@ -13,9 +13,9 @@ jest.mock('@hooks/useRootNavigationState', () => ({
     default: (selector: (state: {routes: RootRoute[]} | undefined) => unknown) => selector({routes: mockRootRoutes}),
 }));
 
-jest.mock('@react-navigation/native', () => ({
-    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
-    useIsFocused: () => mockIsFocused,
+jest.mock('@hooks/useIsScreenFocused', () => ({
+    __esModule: true,
+    default: () => mockIsFocused,
 }));
 
 const REPORTS_TAB: RootRoute = {name: 'ReportsSplitNavigator', key: 'reports-tab-1'};
