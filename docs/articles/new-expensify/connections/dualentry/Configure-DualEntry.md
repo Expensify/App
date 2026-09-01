@@ -2,7 +2,8 @@
 title: Configure DualEntry
 description: Learn how to configure DualEntry import, export, and advanced sync settings in Expensify.
 keywords: [New Expensify, DualEntry configuration, DualEntry import, DualEntry export, DualEntry advanced sync, DualEntry vendor bills]
-internalScope: Audience is Workspace Admins configuring an existing DualEntry connection. Covers import, export, advanced sync and settlement, and multiple card account export settings. Does not cover the initial connection or API-key setup.
+internalScope: Audience is Workspace Admins configuring an existing DualEntry connection. Covers import, export, advanced settings and auto-sync. Does not cover the initial connection or API-key setup.
+order: 2
 ---
 
 # Configure DualEntry
