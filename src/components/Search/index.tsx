@@ -161,6 +161,8 @@ function Search({
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
@@ -406,6 +408,10 @@ function Search({
 
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
 
+    // `isLoading` has to stay out of the effect deps below, or every completed search would start another,
+    // so a page requested while one was in flight is remembered here and fired once it resolves.
+    const pendingSearchOffsetRef = useRef<number | undefined>(undefined);
+
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT;
@@ -430,6 +436,9 @@ function Search({
         if (searchResults?.search?.isLoading) {
             if (validGroupBy || (shouldCalculateTotals && searchResults?.search?.count === undefined)) {
                 shouldRetrySearchWithTotalsOrGroupedRef.current = true;
+            }
+            if (offset > 0) {
+                pendingSearchOffsetRef.current = offset;
             }
             return;
         }
@@ -456,6 +465,7 @@ function Search({
             return;
         }
 
+        pendingSearchOffsetRef.current = undefined;
         handleSearch({
             queryJSON,
             searchKey: currentSearchKey,
@@ -482,6 +492,7 @@ function Search({
         }
 
         shouldRetrySearchWithTotalsOrGroupedRef.current = false;
+        pendingSearchOffsetRef.current = undefined;
         handleSearch({
             queryJSON,
             searchKey: currentSearchKey,
@@ -499,6 +510,35 @@ function Search({
         searchResults?.search?.isLoading,
         shouldCalculateTotals,
         validGroupBy,
+        searchRequestOffset,
+    ]);
+
+    useEffect(() => {
+        if (pendingSearchOffsetRef.current !== offset || searchResults?.search?.isLoading || !searchResults?.search?.hasMoreResults || !isFocused || isOffline || hasErrors) {
+            return;
+        }
+
+        pendingSearchOffsetRef.current = undefined;
+        handleSearch({
+            queryJSON,
+            searchKey: currentSearchKey,
+            offset: searchRequestOffset,
+            shouldCalculateTotals,
+            prevReportsLength: filteredDataLength,
+            isLoading: false,
+        });
+    }, [
+        filteredDataLength,
+        handleSearch,
+        hasErrors,
+        isFocused,
+        isOffline,
+        offset,
+        queryJSON,
+        currentSearchKey,
+        searchResults?.search?.isLoading,
+        searchResults?.search?.hasMoreResults,
+        shouldCalculateTotals,
         searchRequestOffset,
     ]);
 
@@ -585,6 +625,7 @@ function Search({
                 const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
                 const shouldOpenTransactionThreadInNewTab = shouldOpenTransactionThread && isModifiedMousePress(event);
                 const targetReportID = createAndOpenSearchTransactionThread({
+                    conciergeChat,
                     getCurrencyDecimals,
                     item,
                     introSelected,
@@ -648,6 +689,7 @@ function Search({
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
                     if (!firstTransaction?.reportAction?.childReportID) {
                         createAndOpenSearchTransactionThread({
+                            conciergeChat,
                             getCurrencyDecimals,
                             item: firstTransaction,
                             introSelected,
@@ -750,6 +792,7 @@ function Search({
             searchResults?.search?.hasMoreResults,
             currentSearchKey,
             getCurrencyDecimals,
+            conciergeChat,
         ],
     );
 

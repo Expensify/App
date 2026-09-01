@@ -9,6 +9,7 @@ import deburr from 'lodash/deburr';
 
 import decodeUnicode from './decodeUnicode';
 import hash from './hash';
+import startsWithVowel from './startsWithVowel';
 
 /**
  * Removes diacritical marks and non-alphabetic and non-latin characters from a string.
@@ -200,15 +201,6 @@ function getUTF8ByteLength(str: string) {
  */
 function countWhiteSpaces(str: string): number {
     return (str.match(/\s/g) ?? []).length;
-}
-
-/**
- * Check if the string starts with a vowel
- * @param str - The input string
- * @returns True if the string starts with a vowel, false otherwise
- */
-function startsWithVowel(str: string): boolean {
-    return /^[aeiouAEIOU]/.test(str);
 }
 
 function camelToHyphenCase(str: string) {

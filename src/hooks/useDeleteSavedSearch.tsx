@@ -6,6 +6,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchUIUtils';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import {useCallback} from 'react';
@@ -25,7 +26,7 @@ export default function useDeleteSavedSearch() {
                 prompt: translate('search.deleteSavedSearchConfirm'),
                 confirmText: translate('common.delete'),
                 cancelText: translate('common.cancel'),
-                danger: true,
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             }).then((result) => {
                 if (result.action !== ModalActions.CONFIRM) {
                     return;

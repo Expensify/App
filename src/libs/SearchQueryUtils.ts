@@ -497,6 +497,7 @@ function getUpdatedFilterValue(filterName: SyntaxFilterKey, filterValue: string 
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
     ) {
@@ -623,7 +624,13 @@ function getQueryHashes(query: SearchQueryJSON) {
 
     // Certain filters shouldn't affect whether two searchers are similar or not, since they dont
     // actually filter out results
-    const similarSearchIgnoredFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+    const similarSearchIgnoredFilters = new Set<SearchFilterKey>([
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
+    ]);
 
     // Certain filters' values are significant in deciding which search we are on, so we want to include
     // their value when computing the similarSearchHash
@@ -1084,6 +1091,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.PURCHASE_CURRENCY ||
                     filterKey === FILTER_KEYS.FROM ||
                     filterKey === FILTER_KEYS.TO ||
+                    filterKey === FILTER_KEYS.PAID_BY ||
                     filterKey === FILTER_KEYS.FEED ||
                     filterKey === FILTER_KEYS.IN ||
                     filterKey === FILTER_KEYS.ASSIGNEE ||
@@ -1473,7 +1481,8 @@ function buildFilterFormValuesFromQuery(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY
         ) {
             const resolvedValues = filterValues.map((id) => (id === CONST.SEARCH.ME && currentUserAccountID ? currentUserAccountID.toString() : id));
             filtersForm[addNegation(filterKey, isNegated)] = resolvedValues.filter((id) => personalDetails?.[id]);
@@ -1770,6 +1779,7 @@ function getFilterDisplayValue({
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
     ) {
