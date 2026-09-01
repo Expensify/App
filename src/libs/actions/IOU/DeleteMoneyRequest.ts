@@ -45,8 +45,6 @@ import Onyx from 'react-native-onyx';
 import {getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
 import {getReportPreviewReportAction, maybeUpdateReportNameForFormulaTitle} from './MoneyRequestBuilder';
 
-type ReportEntry = OnyxEntry<OnyxTypes.Report>;
-
 type PrepareToCleanUpMoneyRequestResult = {
     shouldDeleteTransactionThread: boolean;
     shouldDeleteIOUReport: boolean;
@@ -633,9 +631,9 @@ function getCleanUpTransactionThreadReportOnyxData({
     updatedReportPreviewAction?: ReportAction;
     shouldAddUpdatedReportPreviewActionToOnyxData?: boolean;
     currentUserAccountID: number;
-    transactionThread?: ReportEntry;
-    iouReport?: ReportEntry;
-    chatReport?: ReportEntry;
+    transactionThread?: OnyxEntry<OnyxTypes.Report>;
+    iouReport?: OnyxEntry<OnyxTypes.Report>;
+    chatReport?: OnyxEntry<OnyxTypes.Report>;
     transactionThreadReportActionsParam?: OnyxEntry<OnyxTypes.ReportActions>;
 }) {
     const allReports = getAllReports();
