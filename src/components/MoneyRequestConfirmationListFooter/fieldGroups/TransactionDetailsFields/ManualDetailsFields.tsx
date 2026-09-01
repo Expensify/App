@@ -27,13 +27,6 @@ type ManualDetailsFieldsProps = {
     isParticipantPickerVisible: boolean;
 };
 
-/**
- * The expense-type-driven fields for a manual or scanned expense: Amount, Merchant and Description.
- *
- * Shared by `ManualFooter` and `ScanFooter`, which render the same fields and differ only in compact mode.
- * `isCompactMode` is always false outside scan, so the guards below are inert for the manual variant.
- * Distance, Rate and the Time fields belong to other expense types, so no data for them is threaded here.
- */
 function ManualDetailsFields({policy, amountDisplay, requiredFlags, errorState, isParticipantPickerVisible}: ManualDetailsFieldsProps) {
     const {fieldVisibility, isCompactMode, iouCurrencyCode} = useDetailsFields();
 
