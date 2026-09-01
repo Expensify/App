@@ -46,7 +46,7 @@ function RulesRequireReceiptsPage({
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const decimals = getCurrencyDecimals(policyCurrency);
     const formRef = useRef<FormRef>(null);
@@ -108,18 +108,27 @@ function RulesRequireReceiptsPage({
                 const itemizedCents = convertToBackendAmount(Number(values.maxExpenseAmountNoItemizedReceipt) || 0);
 
                 if (receiptCents > itemizedCents) {
-                    errors.maxExpenseAmountNoReceipt = translate('workspace.rules.individualExpenseRules.receiptRequiredAmountError', {
-                        amount: convertToFrontendAmountAsString(itemizedCents, decimals),
-                    });
-                    errors.maxExpenseAmountNoItemizedReceipt = translate('workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmountError', {
-                        amount: convertToFrontendAmountAsString(receiptCents, decimals),
-                    });
+                    // Both amounts break the same constraint, so flagging both fields leaves the user with two errors
+                    // that each point at the other value and no indication of which one to change. Flag only the amount
+                    // the user just edited, falling back to the require-receipt amount when they edited both or neither.
+                    const receiptAmountEdited = values.maxExpenseAmountNoReceipt !== initialReceiptAmount;
+                    const itemizedAmountEdited = values.maxExpenseAmountNoItemizedReceipt !== initialItemizedAmount;
+
+                    if (itemizedAmountEdited && !receiptAmountEdited) {
+                        errors.maxExpenseAmountNoItemizedReceipt = translate('workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmountError', {
+                            amount: convertToDisplayString(receiptCents, policyCurrency),
+                        });
+                    } else {
+                        errors.maxExpenseAmountNoReceipt = translate('workspace.rules.individualExpenseRules.receiptRequiredAmountError', {
+                            amount: convertToDisplayString(itemizedCents, policyCurrency),
+                        });
+                    }
                 }
             }
 
             return errors;
         },
-        [receiptEnabled, itemizedEnabled, decimals, translate],
+        [receiptEnabled, itemizedEnabled, initialReceiptAmount, initialItemizedAmount, convertToDisplayString, policyCurrency, translate],
     );
 
     const handleSubmit = useCallback(

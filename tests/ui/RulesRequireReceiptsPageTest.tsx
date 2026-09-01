@@ -8,6 +8,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -72,6 +73,14 @@ const getReceiptToggleLabel = () => TestHelper.translateLocal('workspace.rules.r
 const getItemizedToggleLabel = () => TestHelper.translateLocal('workspace.rules.requireReceipts.requireItemizedReceipt');
 const getAmountLabel = () => TestHelper.translateLocal('workspace.rules.requireReceipts.requireAboveAmount');
 const getSaveLabel = () => TestHelper.translateLocal('workspace.rules.requireReceipts.saveRule');
+
+/** The error shown on the receipt amount, naming the itemized amount it may not exceed. */
+const getReceiptTooHighError = (itemizedAmountInCents: number) =>
+    TestHelper.translateLocal('workspace.rules.individualExpenseRules.receiptRequiredAmountError', {amount: convertToDisplayString(itemizedAmountInCents, 'USD')});
+
+/** The error shown on the itemized amount, naming the receipt amount it may not fall below. */
+const getItemizedTooLowError = (receiptAmountInCents: number) =>
+    TestHelper.translateLocal('workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmountError', {amount: convertToDisplayString(receiptAmountInCents, 'USD')});
 
 /** The page is gated behind the rulesRevamp beta, and its wrapper needs an admin on a Control workspace with Rules on. */
 const setupPolicy = async (policyOverrides: Partial<Policy>) => {
@@ -304,6 +313,72 @@ describe('RulesRequireReceiptsPage save order', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then neither amount is sent
+        expect(mockSetReceipt).not.toHaveBeenCalled();
+        expect(mockSetItemized).not.toHaveBeenCalled();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+});
+
+describe('RulesRequireReceiptsPage validation errors', () => {
+    it('flags only the receipt amount when it is the only one edited', async () => {
+        // Given a receipt amount of 30.00 and an itemized amount of 31.00
+        const policy = await setupPolicy({maxExpenseAmountNoReceipt: 3000, maxExpenseAmountNoItemizedReceipt: 3100});
+        const {unmount} = renderPage(policy.id);
+        await waitForForm();
+
+        // When the receipt amount alone is raised above the itemized amount
+        setAmount(0, '45.00');
+        save();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the receipt field is flagged, and the amount it names carries the currency symbol
+        expect(screen.getByText(getReceiptTooHighError(3100))).toBeOnTheScreen();
+        expect(screen.queryByText(getItemizedTooLowError(4500))).not.toBeOnTheScreen();
+        expect(mockSetReceipt).not.toHaveBeenCalled();
+        expect(mockSetItemized).not.toHaveBeenCalled();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('flags only the itemized amount when it is the only one edited', async () => {
+        // Given a receipt amount of 45.00 and an itemized amount of 50.00
+        const policy = await setupPolicy({maxExpenseAmountNoReceipt: 4500, maxExpenseAmountNoItemizedReceipt: 5000});
+        const {unmount} = renderPage(policy.id);
+        await waitForForm();
+
+        // When the itemized amount alone is lowered below the receipt amount
+        setAmount(1, '31.00');
+        save();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the itemized field is flagged
+        expect(screen.getByText(getItemizedTooLowError(4500))).toBeOnTheScreen();
+        expect(screen.queryByText(getReceiptTooHighError(3100))).not.toBeOnTheScreen();
+        expect(mockSetReceipt).not.toHaveBeenCalled();
+        expect(mockSetItemized).not.toHaveBeenCalled();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('falls back to flagging the receipt amount when both are edited', async () => {
+        // Given a receipt amount of 30.00 and an itemized amount of 31.00
+        const policy = await setupPolicy({maxExpenseAmountNoReceipt: 3000, maxExpenseAmountNoItemizedReceipt: 3100});
+        const {unmount} = renderPage(policy.id);
+        await waitForForm();
+
+        // When both amounts are edited into a state where the receipt amount is the higher one
+        setAmount(0, '45.00');
+        setAmount(1, '40.00');
+        save();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the receipt field is flagged
+        expect(screen.getByText(getReceiptTooHighError(4000))).toBeOnTheScreen();
+        expect(screen.queryByText(getItemizedTooLowError(4500))).not.toBeOnTheScreen();
         expect(mockSetReceipt).not.toHaveBeenCalled();
         expect(mockSetItemized).not.toHaveBeenCalled();
 

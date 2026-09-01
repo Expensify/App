@@ -42,7 +42,7 @@ function RulesItemizedReceiptRequiredAmountPage({
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
 
     const defaultValue = isMaxExpenseAmountSet(policy?.maxExpenseAmountNoItemizedReceipt)
         ? convertToFrontendAmountAsString(policy?.maxExpenseAmountNoItemizedReceipt, getCurrencyDecimals(policy?.outputCurrency))
@@ -61,7 +61,7 @@ function RulesItemizedReceiptRequiredAmountPage({
             // Check if itemized receipt amount is lower than regular receipt amount
             if (isMaxExpenseAmountSet(maxExpenseAmountNoReceipt) && maxExpenseAmountNoItemizedReceiptInCents < maxExpenseAmountNoReceipt) {
                 errors.maxExpenseAmountNoItemizedReceipt = translate('workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmountError', {
-                    amount: convertToFrontendAmountAsString(maxExpenseAmountNoReceipt, getCurrencyDecimals(policy?.outputCurrency)),
+                    amount: convertToDisplayString(maxExpenseAmountNoReceipt, policy?.outputCurrency),
                 });
             }
         }
