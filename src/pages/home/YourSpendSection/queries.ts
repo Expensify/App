@@ -42,9 +42,6 @@ function buildRecentCardTransactionsQuery(accountID: number, cardID: number): st
     });
 }
 
-// Deliberately unscoped by `cardID`: the hash then stays put as cards come and go, so a card
-// added or deleted (optimistically, possibly offline) reads the snapshot already loaded instead
-// of blanking every row until a fresh request lands. Rows are filtered by card in the hook.
 function buildCardGroupQuery(accountID: number): string {
     return buildQueryStringFromFilterFormValues({
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,

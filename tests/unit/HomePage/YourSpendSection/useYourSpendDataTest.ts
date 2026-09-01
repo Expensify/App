@@ -186,11 +186,6 @@ function setupPaymentSnapshot(results: SearchResults | undefined) {
 
 type CardGroupFixture = {cardID: number; count: number; total?: number; currency?: string};
 
-/**
- * Seeds the single grouped snapshot the hook subscribes to, one `group_<cardID>` entry per card.
- * A fixture with `count: 0` is omitted, mirroring a backend that returns no group for a card with
- * no matching expenses.
- */
 function setupCardGroups(groups: CardGroupFixture[], searchOverrides: Partial<SearchResults['search']> = {}) {
     const hash = buildSearchQueryJSON(CARD_GROUP_QUERY)?.hash;
     const data: SearchResults['data'] = {};
