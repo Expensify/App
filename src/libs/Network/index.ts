@@ -12,13 +12,15 @@ import {flush as flushSequentialQueue} from './SequentialQueue';
 // React Native uses a number for the timer id, but Web/NodeJS uses a Timeout object
 let processQueueInterval: NodeJS.Timeout | number;
 
-// We must wait until the ActiveClientManager is ready so that we ensure only the "leader" tab processes any persisted requests
-ActiveClientManager.isReady().then(() => {
-    flushSequentialQueue();
+function startMainQueue() {
+    // We must wait until the ActiveClientManager is ready so that we ensure only the "leader" tab processes any persisted requests
+    ActiveClientManager.isReady().then(() => {
+        flushSequentialQueue();
 
-    // Start main queue and process once every n ms delay
-    processQueueInterval = setInterval(processMainQueue, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
-});
+        // Start main queue and process once every n ms delay
+        processQueueInterval = setInterval(processMainQueue, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
+    });
+}
 
 /**
  * Clear any existing intervals during test runs
@@ -49,4 +51,4 @@ function post<TKey extends OnyxKey>(command: string, data: Record<string, unknow
     return promise;
 }
 
-export {post, clearProcessQueueInterval};
+export {post, startMainQueue, clearProcessQueueInterval};
