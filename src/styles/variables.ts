@@ -282,6 +282,7 @@ export default {
     reportActionImagesDoubleImageHeight: 138,
     reportActionImagesMultipleImageHeight: 110,
     reportActionItemImagesMoreCornerTriangleWidth: 40,
+    growlNotificationZIndex: 10001,
     popoverZIndex: 10000,
     modalBaseZIndex: 9999,
     sidePanelZIndex: 9998,
