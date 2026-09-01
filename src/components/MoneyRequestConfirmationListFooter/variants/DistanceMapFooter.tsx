@@ -1,5 +1,5 @@
 import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFooter/ConfirmationFieldList';
-import DistanceDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/TransactionDetailsFields/DistanceDetailsFields';
+import DistanceDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/detailsFields/DistanceDetailsFields';
 import DistanceMapSection from '@components/MoneyRequestConfirmationListFooter/sections/DistanceMapSection';
 import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/sections/ReceiptSection';
 import type {DistanceFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
@@ -7,6 +7,7 @@ import type {DistanceFooterProps} from '@components/MoneyRequestConfirmationList
 import React from 'react';
 import {View} from 'react-native';
 
+/** Footer for distance expenses that can show a route map */
 function DistanceMapFooter({
     policy,
     policyTags,

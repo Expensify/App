@@ -27,6 +27,9 @@ type ManualDetailsFieldsProps = {
     isParticipantPickerVisible: boolean;
 };
 
+/**
+ * The expense-type-driven fields for a manual, scanned or invoice confirmation: Amount, Merchant and Description.
+ */
 function ManualDetailsFields({policy, amountDisplay, requiredFlags, errorState, isParticipantPickerVisible}: ManualDetailsFieldsProps) {
     const {fieldVisibility, isCompactMode, iouCurrencyCode} = useDetailsFields();
 

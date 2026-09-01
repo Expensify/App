@@ -1,11 +1,12 @@
 import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFooter/ConfirmationFieldList';
-import DistanceDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/TransactionDetailsFields/DistanceDetailsFields';
+import DistanceDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/detailsFields/DistanceDetailsFields';
 import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/sections/ReceiptSection';
 import type {DistanceFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
 
 import React from 'react';
 import {View} from 'react-native';
 
+/** Footer for manually entered distance expenses. */
 function DistanceManualFooter({
     policy,
     policyTags,

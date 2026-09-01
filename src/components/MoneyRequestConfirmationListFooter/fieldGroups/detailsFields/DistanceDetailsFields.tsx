@@ -28,6 +28,7 @@ type DistanceDetailsFieldsProps = {
     errorState: ErrorState;
 };
 
+/** The expense-type-driven fields for a distance confirmation, shared by the map, manual and odometer variants. */
 function DistanceDetailsFields({policy, amountDisplay, distanceData, isDescriptionRequired, errorState}: DistanceDetailsFieldsProps) {
     const {fieldVisibility, iouCurrencyCode, shouldNavigateToUpgradePath, shouldSelectPolicy} = useDetailsFields();
 

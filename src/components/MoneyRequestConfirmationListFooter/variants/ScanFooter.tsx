@@ -1,5 +1,5 @@
 import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFooter/ConfirmationFieldList';
-import ManualDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/TransactionDetailsFields/ManualDetailsFields';
+import ManualDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/detailsFields/ManualDetailsFields';
 import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/sections/ReceiptSection';
 import type {ScanFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
 
@@ -8,6 +8,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import React from 'react';
 import {View} from 'react-native';
 
+/**
+ * Footer for scanned expenses. The only variant that reaches compact mode, where the receipt fills the screen
+ * and the optional fields collapse behind a show-more button.
+ */
 function ScanFooter({
     isCompactMode,
     policy,
