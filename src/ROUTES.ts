@@ -4861,6 +4861,10 @@ const ROUTES = {
         route: 'workspaces/domain-access-restricted/:domainAccountID',
         getRoute: (domainAccountID: number) => `workspaces/domain-access-restricted/${domainAccountID}` as const,
     },
+    WORKSPACES_DOMAIN_ALREADY_EXISTS: {
+        route: 'workspaces/domain-already-exists/:domainAccountID',
+        getRoute: (domainAccountID: number) => `workspaces/domain-already-exists/${domainAccountID}` as const,
+    },
     DOMAIN_INITIAL: {
         route: 'domain/:domainAccountID',
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}` as const,

@@ -247,7 +247,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                                 }}
                                 pressableStyle={[styles.flexRow]}
                                 shouldSyncFocus={false}
-                                keyForList={displayReport.keyForList}
                             />
                         </View>
                     )}
