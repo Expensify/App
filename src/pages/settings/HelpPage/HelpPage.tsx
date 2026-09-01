@@ -58,6 +58,8 @@ function HelpPage() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
 
@@ -83,6 +85,7 @@ function HelpPage() {
                           guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                           betas,
                           personalDetails,
+                          conciergeChat,
                       ),
                   shouldShowRightIcon: !partnerManagerCalendarLink,
                   shouldShowRightComponent: !!partnerManagerCalendarLink,
@@ -116,6 +119,7 @@ function HelpPage() {
                           guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                           betas,
                           personalDetails,
+                          conciergeChat,
                       ),
                   shouldShowRightIcon: !guideCalendarLink,
                   shouldShowRightComponent: !!guideCalendarLink,
@@ -149,6 +153,7 @@ function HelpPage() {
                           guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                           betas,
                           personalDetails,
+                          conciergeChat,
                       ),
                   shouldShowRightIcon: !accountManagerCalendarLink,
                   shouldShowRightComponent: !!accountManagerCalendarLink,

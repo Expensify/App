@@ -361,7 +361,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                                         startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, undefined, false, backToReport);
                                     });
                                 },
-                                success: true,
+                                buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                             },
                         ]}
                     />

@@ -423,6 +423,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseReport: 'Relatório de despesas',
         rateOutOfPolicy: 'Tarifa fora da política',
         leaveWorkspace: 'Sair do espaço de trabalho',
+        leaveWorkspaceTitle: (workspaceName: string) => `Sair de ${workspaceName}?`,
         leaveWorkspaceConfirmation: 'Se você sair deste workspace, não poderá enviar despesas para ele.',
         leaveWorkspaceConfirmationAuditor: 'Se você sair deste espaço de trabalho, não poderá visualizar seus relatórios e configurações.',
         leaveWorkspaceConfirmationAdmin: 'Se você sair deste workspace, não poderá mais gerenciar as configurações dele.',
@@ -2286,6 +2287,14 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Nomes de trechos destacados',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navegação, ui.carregar',
             showBranchNameInTitle: 'Mostrar nome da branch no título do navegador',
+            qaAuth: 'Autenticação de QA (Cloudflare)',
+            qaAuthRunProbe: 'Executar sondagem',
+            qaAuthSession: 'Sessão de autenticação de QA',
+            qaAuthClearSession: 'Limpar sessão',
+            qaAuthStatusSuccess: 'Sonda concluída com sucesso',
+            qaAuthStatusReauthRequired: 'Sessão expirada — execute novamente para entrar',
+            qaAuthStatusSignInFailed: 'O login não foi concluído — execute novamente para tentar de novo',
+            qaAuthStatusError: 'Sondagem falhou',
         },
         security: 'Segurança',
         signOut: 'Sair',
@@ -2998,7 +3007,6 @@ ${amount} para ${merchant} - ${date}`,
         cardLastFour: 'Cartão com final',
         addFirstPaymentMethod: 'Adicione uma forma de pagamento para enviar e receber pagamentos diretamente no app.',
         defaultPaymentMethod: 'Padrão',
-        bankAccountLastFour: (lastFour: string) => `Conta bancária • ${lastFour}`,
     },
     agentsPage: {
         title: 'Agentes',
@@ -4552,6 +4560,10 @@ ${amount} para ${merchant} - ${date}`,
                 'Você sabia que pode reservar e gerenciar viagens de trem direto no Expensify? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pela <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Você sabia que dá para reservar e gerenciar viagens de trem direto no Expensify? E que os recibos são enviados automaticamente para você? Da próxima vez, é só reservar pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            hotelBlockManual:
+                'Você sabia que pode reservar e gerenciar viagens em grupo como esta direto no Expensify? Poupe-se do transtorno da próxima vez e experimente nossa ferramenta de <a href="https://help.expensify.com/travel/hubs/event-management/">Eventos de Viagem</a>.',
+            hotelBlockCard:
+                'Você sabia que pode reservar e gerenciar viagens em grupo como esta direto no Expensify? Poupe-se do transtorno da próxima vez e experimente nossa ferramenta de <a href="https://help.expensify.com/travel/hubs/event-management/">Eventos de Viagem</a>.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Viagem não está ativada',
@@ -4611,6 +4623,7 @@ ${amount} para ${merchant} - ${date}`,
             settlementFrequency: 'Frequência de liquidação',
             setAsDefault: 'Definir como espaço de trabalho padrão',
             defaultNote: `Recibos enviados para ${CONST.EMAIL.RECEIPTS} aparecerão neste workspace.`,
+            deleteWorkspaceTitle: (workspaceName: string) => `Excluir ${workspaceName}?`,
             deleteConfirmation: 'Tem certeza de que deseja excluir este workspace?',
             deleteWithCardsConfirmation: 'Tem certeza de que deseja excluir este workspace? Isso removerá todos os feeds de cartão e cartões atribuídos.',
             deleteOpenExpensifyCardsError: 'Sua empresa ainda tem Cartões Expensify. Por favor, <concierge-link>fale com o Concierge</concierge-link> para removê-los.',
@@ -5870,9 +5883,34 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 label: 'Conta de cartão corporativo',
                 description: 'Escolha para onde exportar as transações do cartão corporativo.',
             },
-            expensifyCardAccount: {
-                label: 'Conta do Expensify Card',
-                description: 'Escolha para onde exportar as transações do Expensify Card.',
+            exportToMultipleAccounts: 'Configurar exportação para várias contas',
+            cardProgramAccount: {
+                label: 'Conta do programa de cartão',
+                description: 'Substitua a conta do espaço de trabalho para esses programas de cartão.',
+                descriptionLevel2: 'Substituir a conta do workspace para este programa de cartão.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todos os programas usam a conta padrão';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programa com conta personalizada`;
+                    }
+                    return `${customAccountsCount} programas com contas personalizadas`;
+                },
+            },
+            cardAccount: {
+                label: 'Conta por cartão',
+                description: 'Substitua a conta do programa para cartões individuais.',
+                descriptionLevel2: 'Substituir a conta do programa para estes cartões.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todos os cartões usam contas de programa';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} cartão com conta personalizada`;
+                    }
+                    return `${customAccountsCount} cartões com contas personalizadas`;
+                },
             },
             autoSyncDescription: 'Sincronize DualEntry e Expensify automaticamente, todos os dias. Os relatórios são sincronizados em tempo real.',
             accountingMethods: {
@@ -6022,6 +6060,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     comment: 'Descrição',
                     category: 'Categoria',
                     tag: 'Etiqueta',
+                    uniqueID: 'ID exclusivo',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Atribua uma coluna a cada um dos atributos: ${missingColumns}.`,
@@ -6192,6 +6231,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             deleteFailureMessage: 'Ocorreu um erro ao excluir a categoria, tente novamente',
             categoryName: 'Nome da categoria',
             requiresCategory: 'Os membros devem categorizar todas as despesas',
+            autoCategorizeNewExpenses: 'Categorizar automaticamente novas despesas',
             showCategoryGLCodes: 'Mostrar códigos GL ao categorizar despesas',
             needCategoryForExportToIntegration: (connectionName: string) => `Todas as despesas devem ser categorizadas para serem exportadas para ${connectionName}.`,
             subtitle: 'Tenha uma visão melhor de onde o dinheiro está sendo gasto. Use nossas categorias padrão ou adicione as suas.',
@@ -6500,7 +6540,12 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 defaultHourlyRate: 'Taxa horária padrão',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Para desativar RH, desconecte primeiro a integração ${integration} deste workspace.`},
-            vendors: {title: 'Fornecedores', subtitle: 'Combine as despesas do cartão com fornecedores importados do seu software de contabilidade.'},
+            vendors: {
+                title: 'Fornecedores',
+                subtitle: 'Combine as despesas do cartão com fornecedores importados do seu software de contabilidade.',
+                disabledTitle: 'Calma lá...',
+                disabledMessage: 'Para ativar ou desativar este recurso, você precisará alterar suas configurações de importação contábil.',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Exemplos:',
@@ -8280,6 +8325,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 confirmErrorCategory: 'Selecione uma categoria.',
                 confirmErrorAmount: 'Insira um valor.',
                 thenFlagForReview: 'Então sinalizar para revisão quando:',
+                thenDoTheFollowing: 'Em seguida, faça o seguinte:',
+                flagType: 'Tipo de sinalização',
+                flagTypeWarning: 'Aviso',
+                flagTypeWarningDescription: 'A pessoa que envia será avisada, mas ainda poderá enviar a despesa',
             },
             agentRulesEmptyState: {title: 'Nenhuma regra de agente adicionada', subtitle: 'Crie uma regra para automatizar as políticas do seu workspace.', cta: 'Adicionar regra de IA'},
             categoriesDisabledEmptyState: {title: 'Categorias não estão ativadas', subtitle: 'Ative categorias para ter mais controle sobre seus gastos.'},
@@ -8387,13 +8436,15 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Concluir configuração</a>` : 'Concluir configuração'} para importar funcionários.</muted-text-label>`,
                 groups: {title: 'Grupos', description: 'Escolha os grupos de funcionários que você gostaria de sincronizar com este workspace'},
-                syncLimitReached: {title: 'Tente novamente amanhã', prompt: 'Você atingiu o limite de sincronizações de hoje.'},
             },
             notSync: 'Não sincronizado',
             authenticationError: (providerName: string) => `Não é possível conectar a ${providerName} devido a uma conexão expirada.`,
             reconnect: 'Reconectar',
             reconnectLink: 'Reconectar.',
             findIntegration: 'Encontrar integração',
+        },
+        merge: {
+            syncLimitReached: {title: 'Tente novamente amanhã', prompt: 'Você atingiu o limite de sincronizações de hoje.'},
         },
         emptyDomain: {
             title: 'Aumente sua segurança com domínios',
@@ -8576,10 +8627,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             return `adicionou a alíquota de imposto "${newValue} (${newTaxPercentage})" à tarifa de distância "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
-                return `alterou a parte recuperável de impostos na taxa de distância "${customUnitRateName}" para "${newValue}" (antes "${oldValue}")`;
+            if (oldValue !== undefined) {
+                return `alterou a parte recuperável de impostos na taxa de distância "${customUnitRateName}" para "${newValue}%" (antes "${oldValue}%")`;
             }
-            return `adicionou uma parte recuperável de impostos de "${newValue}" à taxa de distância "${customUnitRateName}"`;
+            return `adicionou uma parte recuperável de impostos de "${newValue}%" à taxa de distância "${customUnitRateName}"`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `renomeou a taxa de ${customUnitName} de "${oldValue}" para "${newValue}"`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
@@ -9265,6 +9316,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             approved: 'Aprovado',
             firstApprover: 'Primeira pessoa aprovadora',
             firstApproved: 'Primeira aprovada',
+            paidBy: 'Pago por',
             paid: 'Pago',
             exported: 'Exportado',
             posted: 'Publicado',
@@ -10683,6 +10735,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
     domain: {
         notVerified: 'Não verificado',
         retry: 'Tentar novamente',
+        requestSent: 'Solicitação enviada',
         verifyDomain: {
             title: 'Verificar domínio',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -10755,6 +10808,14 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             subtitle: 'Insira o nome do domínio privado que você quer acessar (por exemplo, expensify.com).',
             domainName: 'Nome de domínio',
             newDomain: 'Novo domínio',
+            alreadyHaveAccessError: 'Este domínio já existe na sua conta.',
+        },
+        domainAlreadyExists: {
+            headerTitle: 'O domínio já existe',
+            title: 'Domínio já configurado. Solicitar acesso?',
+            description: 'Alguém já configurou este domínio no Expensify. Quer solicitar acesso de administrador?',
+            requestAccess: 'Solicitar acesso de administrador',
+            requestAccessError: 'Não foi possível enviar sua solicitação. Tente novamente.',
         },
         domainAdded: {
             title: 'Domínio adicionado',
@@ -10849,6 +10910,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             forceTwoFactorAuthError: 'Não foi possível alterar a exigência de autenticação em duas etapas. Tente novamente mais tarde.',
             resetTwoFactorAuth: 'Redefinir autenticação de dois fatores',
             error: 'Não foi possível salvar esta alteração. Tente novamente.',
+            neverMind: 'Deixa pra lá',
         },
         groups: {
             title: 'Grupos',
@@ -10857,7 +10919,6 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             defaultGroupPrompt: (currentName: string, newName: string) =>
                 `Tem certeza de que deseja tornar ${newName} o grupo padrão? Novos membros serão convidados para este grupo em vez do grupo padrão anterior (${currentName}). `,
             makeDefault: 'Tornar padrão',
-            neverMind: 'Deixa pra lá',
             createGroupError: 'Não foi possível criar este grupo. Tente novamente.',
             permissions: 'Permissões do grupo',
             createNewGroupButton: 'Novo grupo',

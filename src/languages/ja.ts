@@ -423,6 +423,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseReport: '経費精算書',
         rateOutOfPolicy: 'ポリシー外の料率',
         leaveWorkspace: 'ワークスペースから退出',
+        leaveWorkspaceTitle: (workspaceName: string) => `${workspaceName} を退出しますか？`,
         leaveWorkspaceConfirmation: 'このワークスペースを退出すると、そこへ経費を提出できなくなります。',
         leaveWorkspaceConfirmationAuditor: 'このワークスペースを退出すると、そのレポートや設定を表示できなくなります。',
         leaveWorkspaceConfirmationAdmin: 'このワークスペースを退出すると、その設定を管理できなくなります。',
@@ -2274,6 +2275,14 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: '強調表示されたスパン名',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click、ナビゲーション、ui.load',
             showBranchNameInTitle: 'ブラウザのタイトルにブランチ名を表示',
+            qaAuth: 'QA 認証（Cloudflare）',
+            qaAuthRunProbe: 'プローブを実行',
+            qaAuthSession: 'QA 認証セッション',
+            qaAuthClearSession: 'セッションをクリア',
+            qaAuthStatusSuccess: 'プローブが成功しました',
+            qaAuthStatusReauthRequired: 'セッションの有効期限が切れました — もう一度実行してサインインしてください',
+            qaAuthStatusSignInFailed: 'サインインが完了しませんでした — もう一度実行して再試行してください',
+            qaAuthStatusError: 'プローブに失敗しました',
         },
         security: 'セキュリティ',
         signOut: 'サインアウト',
@@ -2977,7 +2986,6 @@ ${date} の ${merchant} への ${amount}`,
         cardLastFour: '末尾番号が',
         addFirstPaymentMethod: 'アプリ内で直接支払いの送受信を行うには、支払方法を追加してください。',
         defaultPaymentMethod: 'デフォルト',
-        bankAccountLastFour: (lastFour: string) => `銀行口座・${lastFour}`,
     },
     agentsPage: {
         title: '担当者',
@@ -4516,6 +4524,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 'Expensify で列車の予約や管理ができることをご存じでしたか？次回からは、経費を手動で作成する手間を省いて、<a href="https://travel.expensify.com">Expensify Travel</a> から簡単に予約しましょう。',
             railCard:
                 'Expensify で電車の予約や管理ができることをご存じでしたか？しかも領収書も自動でアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🚂',
+            hotelBlockManual:
+                'Expensify では、このようなグループ旅行の予約と管理を直接行えることをご存じでしたか？次回は面倒を省くために、ぜひ <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ツールをお試しください。',
+            hotelBlockCard:
+                'Expensify では、このようなグループ旅行の予約と管理を直接行えることをご存じでしたか？次回は面倒を省くために、ぜひ <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ツールをお試しください。',
         },
         defaultWorkspaceTravelDisabled: {
             title: '出張機能は有効になっていません',
@@ -4575,6 +4587,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             settlementFrequency: '清算頻度',
             setAsDefault: 'デフォルトのワークスペースに設定',
             defaultNote: `${CONST.EMAIL.RECEIPTS} に送信されたレシートは、このワークスペースに表示されます。`,
+            deleteWorkspaceTitle: (workspaceName: string) => `${workspaceName} を削除しますか？`,
             deleteConfirmation: 'このワークスペースを削除してもよろしいですか？',
             deleteWithCardsConfirmation: 'このワークスペースを削除してもよろしいですか？ すべてのカードフィードと割り当て済みカードが削除されます。',
             deleteOpenExpensifyCardsError: '御社にはまだ Expensify カードが残っています。削除するには、<concierge-link>Concierge までお問い合わせください</concierge-link>。',
@@ -5808,9 +5821,34 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 label: '会社カード口座',
                 description: '会社カード取引のエクスポート先を選択してください。',
             },
-            expensifyCardAccount: {
-                label: 'Expensify カード口座',
-                description: 'Expensify カード取引のエクスポート先を選択してください。',
+            exportToMultipleAccounts: '複数アカウントへのエクスポートを設定',
+            cardProgramAccount: {
+                label: 'カードプログラム口座',
+                description: 'これらのカードプログラムのワークスペース口座を上書きします。',
+                descriptionLevel2: 'このカードプログラムのワークスペース口座を上書きします。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'すべてのプログラムがデフォルトアカウントを使用します';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `カスタム勘定科目付きプログラム：${customAccountsCount}`;
+                    }
+                    return `${customAccountsCount} 件のカスタムアカウントを含むプログラム`;
+                },
+            },
+            cardAccount: {
+                label: 'カード単位のアカウント',
+                description: '個々のカードに対してプログラム口座を上書きします。',
+                descriptionLevel2: 'これらのカードのプログラム口座を上書きします。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'すべてのカードはプログラムアカウントを使用します';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `カスタム口座のカードが ${customAccountsCount} 枚`;
+                    }
+                    return `${customAccountsCount} 枚のカスタムアカウント付きカード`;
+                },
             },
             autoSyncDescription: 'DualEntry と Expensify を毎日自動で同期します。レポートはリアルタイムで同期されます。',
             accountingMethods: {
@@ -5956,6 +5994,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     comment: '説明',
                     category: 'カテゴリ',
                     tag: 'タグ',
+                    uniqueID: '一意の ID',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `各属性に列を割り当ててください：${missingColumns}`,
@@ -6125,6 +6164,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             deleteFailureMessage: 'カテゴリの削除中にエラーが発生しました。もう一度お試しください',
             categoryName: 'カテゴリ名',
             requiresCategory: 'メンバーはすべての経費を分類する必要があります',
+            autoCategorizeNewExpenses: '新しい経費を自動分類する',
             showCategoryGLCodes: '経費を分類するときに GL コードを表示する',
             needCategoryForExportToIntegration: (connectionName: string) => `${connectionName} にエクスポートするには、すべての経費にカテゴリを指定する必要があります。`,
             subtitle: 'お金がどこで使われているかを、より分かりやすく把握しましょう。デフォルトのカテゴリを使うか、自分用のカテゴリを追加できます。',
@@ -6422,7 +6462,12 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 defaultHourlyRate: 'デフォルトの時給率',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `HR を無効にするには、まずこのワークスペースから ${integration} を切断してください。`},
-            vendors: {title: 'ベンダー', subtitle: '会計ソフトからインポートした取引先にカード経費を照合します。'},
+            vendors: {
+                title: 'ベンダー',
+                subtitle: '会計ソフトからインポートした取引先にカード経費を照合します。',
+                disabledTitle: 'ちょっと待ってください...',
+                disabledMessage: 'この機能を有効または無効にするには、会計インポート設定を変更する必要があります。',
+            },
         },
         reports: {
             reportsCustomTitleExamples: '例:',
@@ -8187,6 +8232,10 @@ ${reportName}`,
                 confirmErrorCategory: 'カテゴリを選択してください。',
                 confirmErrorAmount: '金額を入力してください。',
                 thenFlagForReview: '次の条件で確認フラグを付けます：',
+                thenDoTheFollowing: '次に、次の操作を行ってください。',
+                flagType: 'フラグの種類',
+                flagTypeWarning: '警告',
+                flagTypeWarningDescription: '申請者には警告されますが、経費を提出することは可能です',
             },
             agentRulesEmptyState: {title: 'エージェントルールが追加されていません', subtitle: 'ワークスペースのポリシーを自動化するルールを作成します。', cta: 'AIルールを追加'},
             categoriesDisabledEmptyState: {title: 'カテゴリが有効になっていません', subtitle: 'カテゴリを有効にして、支出をより細かく管理しましょう。'},
@@ -8293,13 +8342,15 @@ ${reportName}`,
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>接続されました。従業員をインポートするには ${setupLink ? `<a href="${setupLink}">セットアップを完了</a>` : '設定を完了'} に接続してください。</muted-text-label>`,
                 groups: {title: 'グループ', description: 'このワークスペースと同期したい従業員グループを選択してください'},
-                syncLimitReached: {title: '明日もう一度お試しください', prompt: '本日の同期上限に達しました。'},
             },
             notSync: '未同期',
             authenticationError: (providerName: string) => `有効期限が切れた接続のため、${providerName} に接続できません。`,
             reconnect: '再接続',
             reconnectLink: '再接続する',
             findIntegration: '連携を検索',
+        },
+        merge: {
+            syncLimitReached: {title: '明日もう一度お試しください', prompt: '本日の同期上限に達しました。'},
         },
         emptyDomain: {
             title: 'ドメインでセキュリティを強化しましょう',
@@ -8483,10 +8534,10 @@ ${reportName}`,
             return `距離レート「${customUnitRateName}」に税率「${newValue}（${newTaxPercentage}）」を追加しました`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
-                return `距離レート「${customUnitRateName}」の税還付可能部分を「${newValue}」（以前は「${oldValue}」）に変更しました`;
+            if (oldValue !== undefined) {
+                return `距離レート「${customUnitRateName}」の税還付可能部分を「${newValue}%」（以前は「${oldValue}%」）に変更しました`;
             }
-            return `距離単価「${customUnitRateName}」に対して、税金還付対象額「${newValue}」を追加しました`;
+            return `距離単価「${customUnitRateName}」に対して、税金還付対象額「${newValue}%」を追加しました`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `${customUnitName}のレート名を「${oldValue}」から「${newValue}」に変更しました`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
@@ -9169,6 +9220,7 @@ ${reportName}`,
             approved: '承認済み',
             firstApprover: '最初の承認者',
             firstApproved: '最初に承認済み',
+            paidBy: '支払者',
             paid: '支払い済み',
             exported: 'エクスポート済み',
             posted: '投稿日',
@@ -10572,6 +10624,7 @@ ${reportName}`,
     domain: {
         notVerified: '未確認',
         retry: '再試行',
+        requestSent: 'リクエストを送信しました',
         verifyDomain: {
             title: 'ドメインを確認',
             beforeProceeding: ({domainName}: {domainName: string}) => `続行する前に、DNS 設定を更新して、<strong>${domainName}</strong> の所有者であることを確認してください。`,
@@ -10643,6 +10696,14 @@ ${reportName}`,
             subtitle: 'アクセスしたいプライベートドメイン名を入力してください（例: expensify.com）。',
             domainName: 'ドメイン名',
             newDomain: '新しいドメイン',
+            alreadyHaveAccessError: 'このドメインはすでにアカウントに存在します。',
+        },
+        domainAlreadyExists: {
+            headerTitle: 'ドメインはすでに存在します',
+            title: 'このドメインはすでに設定されています。アクセスをリクエストしますか？',
+            description: '誰かがこのドメインをExpensifyにすでに設定しています。管理者アクセスをリクエストしますか？',
+            requestAccess: '管理者アクセスをリクエスト',
+            requestAccessError: 'リクエストを送信できませんでした。もう一度お試しください。',
         },
         domainAdded: {
             title: 'ドメインを追加しました',
@@ -10737,6 +10798,7 @@ ${reportName}`,
             forceTwoFactorAuthError: '2要素認証の強制設定を変更できませんでした。後でもう一度お試しください。',
             resetTwoFactorAuth: '2 要素認証をリセット',
             error: 'この変更を保存できませんでした。もう一度お試しください。',
+            neverMind: 'やめておく',
         },
         groups: {
             title: 'グループ',
@@ -10745,7 +10807,6 @@ ${reportName}`,
             defaultGroupPrompt: (currentName: string, newName: string) =>
                 `本当に ${newName} をデフォルトグループに設定しますか？新しいメンバーは、以前のデフォルトグループ (${currentName}) ではなく、このグループに招待されます。`,
             makeDefault: 'デフォルトに設定',
-            neverMind: 'やめておく',
             createGroupError: 'このグループを作成できませんでした。もう一度お試しください。',
             permissions: 'グループの権限',
             createNewGroupButton: '新しいグループ',

@@ -174,10 +174,9 @@ function isSplitAction(
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = (report.managerID ?? CONST.DEFAULT_NUMBER_ID) === currentUserAccountID;
     const isOpenReport = isOpenReportUtils(report);
-    const isPolicyExpenseChat = !!policy?.isPolicyExpenseChatEnabled;
     const userIsPolicyMember = isPolicyMember(policy, currentUserLogin);
 
-    if (!(userIsPolicyMember && isPolicyExpenseChat)) {
+    if (!(userIsPolicyMember && isGroupPolicy(policy))) {
         return false;
     }
 
