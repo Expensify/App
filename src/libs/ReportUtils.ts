@@ -11692,7 +11692,7 @@ function getNonHeldAndFullAmount(
  * - The action is the thread's first chat
  *
  * `movedTransactionDestinationReport` is the report an expense was moved into, i.e. the parent of the transaction
- * thread the MOVEDTRANSACTION action lives on. It is only read for moved-expense messages and may be omitted elsewhere.
+ * thread the MOVED_TRANSACTION action lives on. It is only read for moved-expense messages and may be omitted elsewhere.
  */
 function shouldDisableThread(
     reportAction: OnyxInputOrEntry<ReportAction>,
@@ -11712,14 +11712,14 @@ function shouldDisableThread(
     const isTransactionMovedIntoDraftReport = isMovedTransactionAction(reportAction) && isOpenReport(movedTransactionDestinationReport);
     // MOVED (a report moved between workspaces) stays fully gated, because the destination rule above was only
     // confirmed for moved expenses.
-    const isUnthreadableMovedSystemMessage = isMovedAction(reportAction) || isTransactionMovedIntoDraftReport;
+    const isMovedSystemMessageWithoutThreadSupport = isMovedAction(reportAction) || isTransactionMovedIntoDraftReport;
     const isActionDisabled = CONST.REPORT.ACTIONS.THREAD_DISABLED.some((action: string) => action === reportAction?.actionName);
     return (
         isActionDisabled ||
         isSplitBillAction ||
         (isDeletedActionLocal && !reportAction?.childVisibleActionCount) ||
         (isReportArchived && !reportAction?.childVisibleActionCount) ||
-        (isUnthreadableMovedSystemMessage && !reportAction?.childVisibleActionCount) ||
+        (isMovedSystemMessageWithoutThreadSupport && !reportAction?.childVisibleActionCount) ||
         (isWhisperActionLocal && !isReportPreviewActionLocal && !isIOUAction) ||
         isThreadReportParentAction ||
         isDynamicWorkflowRoutedAction

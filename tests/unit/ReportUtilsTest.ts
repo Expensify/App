@@ -5345,8 +5345,8 @@ describe('ReportUtils', () => {
             const draftReport = createMock<Report>({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
             const submittedReport = createMock<Report>({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
 
-            it('should be disabled for a MOVEDTRANSACTION action moved into a draft report', () => {
-                // Given an expense moved into a draft report, which the backend never adopts as a threadable action
+            it('should be disabled for a MOVED_TRANSACTION action moved into a draft report', () => {
+                // Given an expense moved into a draft report, which the backend never adopts as a thread parent
                 const reportAction = buildMovedAction(CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION, 0);
 
                 // When it's checked to see if the thread should be disabled
@@ -5356,7 +5356,7 @@ describe('ReportUtils', () => {
                 expect(isThreadDisabled).toBeTruthy();
             });
 
-            it('should be enabled for a MOVEDTRANSACTION action moved into a submitted report', () => {
+            it('should be enabled for a MOVED_TRANSACTION action moved into a submitted report', () => {
                 // Given an expense moved into a submitted report, which the backend does thread
                 const reportAction = buildMovedAction(CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION, 0);
 
