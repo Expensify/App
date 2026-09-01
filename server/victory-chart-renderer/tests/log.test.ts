@@ -1,5 +1,6 @@
-import Log from '@server/libs/log';
 import {afterEach, beforeEach, describe, expect, test} from 'bun:test';
+
+import Log from '@server/libs/log';
 
 import vcrLog from '../src/log';
 

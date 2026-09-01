@@ -11,6 +11,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -34,6 +35,7 @@ import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransaction
 import {resolveTransactionCardFields} from '@libs/CardUtils';
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
+import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
 import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
@@ -308,6 +310,7 @@ function MoneyRequestReportTransactionList({
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
+    const distanceExpenseType = getDistanceExpenseTypeForPolicy(policy, lastDistanceExpenseType);
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY);
     const [reportLayoutOption] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_OPTION);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -318,6 +321,10 @@ function MoneyRequestReportTransactionList({
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        policyID: policy?.id,
+        isDistanceRequest: true,
+    });
 
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
@@ -332,8 +339,9 @@ function MoneyRequestReportTransactionList({
                 draftTransactionIDs,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
-                lastDistanceExpenseType,
+                lastDistanceExpenseType: distanceExpenseType,
                 currentUserAccountID: currentUserDetails?.accountID,
+                blockDistanceRequestIfNeeded,
             }),
         [
             translate,
@@ -342,10 +350,11 @@ function MoneyRequestReportTransactionList({
             policy,
             userBillingGracePeriodEnds,
             amountOwed,
-            lastDistanceExpenseType,
+            distanceExpenseType,
             ownerBillingGracePeriodEnd,
             draftTransactionIDs,
             currentUserDetails?.accountID,
+            blockDistanceRequestIfNeeded,
         ],
     );
 
@@ -577,22 +586,16 @@ function MoneyRequestReportTransactionList({
         return groupedTransactions.flatMap((group) => group.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID));
     }, [groupedTransactions, sortedTransactions, shouldGroupTransactions]);
 
-    // Order-sensitive proxy for visualOrderTransactionIDs used as the effect dependency below. It must stay
-    // order-sensitive: changing the report's sorting/grouping (without changing which transactions are present)
-    // reorders the list, and the carousel needs to be re-seeded so its counter and prev/next buttons match the
-    // new visual order. The active-list checks in the effect still prevent unrelated carousels from being overwritten.
+    // Primitive proxy for visualOrderTransactionIDs used as the effect dependency below.
+    // Other callers (e.g. TransactionDuplicateReview.onPreviewPressed) can write to the same
+    // Onyx key with a different ordering. Using the raw array reference would cause the effect
+    // to re-fire on every referential change and overwrite those IDs. The joined string ensures
+    // the effect only re-fires when the actual content changes.
     const visualOrderTransactionIDsKey = useMemo(() => visualOrderTransactionIDs.join(','), [visualOrderTransactionIDs]);
-
-    const [latestActiveTransactionIDs] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
 
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
-            return;
-        }
-
-        const anchorTransactionID = (focusedRoute?.params as {anchorTransactionID?: string} | undefined)?.anchorTransactionID;
-        if (anchorTransactionID && latestActiveTransactionIDs?.includes(anchorTransactionID)) {
             return;
         }
         // Don't take over a snapshot-backed carousel (identified by its sibling descriptors, e.g. the Home
@@ -602,23 +605,11 @@ function MoneyRequestReportTransactionList({
         if (getActiveTransactionIDs().descriptors) {
             return;
         }
-
-        if (visualOrderTransactionIDs.length < 2) {
-            return;
-        }
-
-        if (
-            latestActiveTransactionIDs &&
-            latestActiveTransactionIDs.length >= visualOrderTransactionIDs.length &&
-            visualOrderTransactionIDs.every((id) => latestActiveTransactionIDs.includes(id))
-        ) {
-            return;
-        }
         setActiveTransactionIDs(visualOrderTransactionIDs);
         return () => {
             clearActiveTransactionIDs();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is an order-sensitive proxy for the array, and we intentionally don't depend on latestActiveTransactionIDs to avoid re-firing when the carousel changes elsewhere
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is a primitive proxy for the array to avoid re-firing on referential-only changes
     }, [visualOrderTransactionIDsKey]);
 
     const groupSelectionState = useMemo(() => {

@@ -2,14 +2,15 @@ import {buildSigningData, decodeLibraryError, getKeyAlias, mapAuthTypeNumber, ma
 import NATIVE_BIOMETRICS_HSM_VALUES from '@libs/MultifactorAuthentication/NativeBiometricsHSM/VALUES';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 
+import {sha256} from '@sbaiahmed1/react-native-biometrics';
 import {Buffer} from 'buffer';
-
-const mockSha256 = jest.fn();
 
 jest.mock('@sbaiahmed1/react-native-biometrics', () => ({
     isSensorAvailable: jest.fn().mockResolvedValue({available: true, biometryType: 'FaceID', isDeviceSecure: true}),
-    sha256: (...args: unknown[]): Promise<{hash: string}> => mockSha256(...args) as Promise<{hash: string}>,
+    sha256: jest.fn(),
 }));
+
+const mockSha256 = jest.mocked(sha256);
 
 describe('NativeBiometricsHSM helpers', () => {
     describe('getKeyAlias', () => {

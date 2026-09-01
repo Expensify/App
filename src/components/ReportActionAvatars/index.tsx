@@ -54,7 +54,7 @@ type ReportActionAvatarsProps = {
     policy?: OnyxEntry<Policy>;
 
     /** Single avatar container styles */
-    singleAvatarContainerStyle?: ViewStyle[];
+    singleAvatarContainerStyle?: StyleProp<ViewStyle>;
 
     /** Account IDs to display avatars for, it overrides the reportID and action props */
     accountIDs?: number[];
@@ -67,9 +67,6 @@ type ReportActionAvatarsProps = {
 
     /** Whether avatars are displayed within a reportAction */
     isInReportAction?: boolean;
-
-    /** Whether to show the tooltip text */
-    shouldShowTooltip?: boolean;
 
     /** Whether to show the subscript avatar without margin */
     noRightMarginOnSubscriptContainer?: boolean;
@@ -113,7 +110,6 @@ function ReportActionAvatars({
     policyID,
     policy: policyProp,
     size = CONST.AVATAR_SIZE.DEFAULT,
-    shouldShowTooltip = true,
     horizontalStacking,
     sort: sortAvatars,
     singleAvatarContainerStyle,
@@ -221,7 +217,6 @@ function ReportActionAvatars({
                 cardFeed={subscriptCardFeed}
                 cardFeedIconSize={subscriptCardFeedIconSize}
                 size={size}
-                shouldShowTooltip={shouldShowTooltip}
                 containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : {}}
                 subscriptAvatarBorderColor={subscriptAvatarBorderColor}
                 fallbackDisplayName={fallbackDisplayName}
@@ -235,7 +230,6 @@ function ReportActionAvatars({
                 primaryAvatar={primaryAvatar}
                 secondaryAvatar={secondaryAvatar}
                 size={size}
-                shouldShowTooltip={shouldShowTooltip}
                 containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : {}}
                 subscriptAvatarBorderColor={subscriptAvatarBorderColor}
                 fallbackDisplayName={fallbackDisplayName}
@@ -251,7 +245,6 @@ function ReportActionAvatars({
                 size={size}
                 icons={icons}
                 isInReportAction={isInReportAction}
-                shouldShowTooltip={shouldShowTooltip}
                 fallbackDisplayName={fallbackDisplayName}
             />
         );
@@ -260,7 +253,6 @@ function ReportActionAvatars({
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL) {
         return (
             <DiagonalAvatars
-                shouldShowTooltip={shouldShowTooltip}
                 size={size}
                 icons={icons}
                 isInReportAction={isInReportAction}
@@ -276,7 +268,6 @@ function ReportActionAvatars({
             avatar={singleAvatar}
             size={size}
             containerStyles={shouldStackHorizontally ? [] : (singleAvatarContainerStyle ?? StyleUtils.getContainerStyles(size, isInReportAction))}
-            shouldShowTooltip={shouldShowTooltip}
             fallbackDisplayName={fallbackDisplayName}
         />
     );

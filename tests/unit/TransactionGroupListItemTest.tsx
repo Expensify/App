@@ -1,3 +1,4 @@
+import '@libs/Middleware/register';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
@@ -39,7 +40,6 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getTableMinWidth: jest.fn(() => 0),
     getSuggestedSearches: jest.fn(() => ({})),
     getSuggestedSearchesVisibility: jest.fn(() => ({topSpendersPolicyIDs: []})),
-    getSubmittedViolationsForTransaction: jest.fn(() => ''),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -138,7 +138,6 @@ const mockTransaction: TransactionListItemType = {
         owner: 'test@test.com',
         name: 'Policy',
         outputCurrency: 'USD',
-        isPolicyExpenseChatEnabled: true,
     },
     reportAction: {
         reportActionID: '2454187434077044186',

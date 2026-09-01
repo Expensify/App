@@ -26,7 +26,7 @@ import type {StyleProp, TextStyle} from 'react-native';
 
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
-import {useEffect, useLayoutEffect} from 'react';
+import {useLayoutEffect} from 'react';
 import {View} from 'react-native';
 
 import RenderCommentHTML from './RenderCommentHTML';
@@ -77,14 +77,6 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
             return;
         }
         markSendMessageCommitted(reportActionID);
-    }, [reportActionID]);
-
-    // Original effect anchor, kept while the visible variant is validated against it in Sentry.
-    useEffect(() => {
-        if (!reportActionID) {
-            return;
-        }
-        endSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${reportActionID}`);
     }, [reportActionID]);
 
     const endSendMessageVisibleSpanOnLayout = () => {

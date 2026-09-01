@@ -89,7 +89,7 @@ function DynamicIOURequestStepDestination({
 }: DynamicIOURequestStepDestinationProps) {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const isEditPage = name === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT;
-    const backPath = useDynamicBackPath(isEditPage ? DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.path : DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path);
+    const editBackPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.path);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -124,7 +124,11 @@ function DynamicIOURequestStepDestination({
     const shouldShowOfflineView = isEmptyObject(customUnit?.rates) && isOffline;
 
     const navigateBack = () => {
-        Navigation.goBack(backPath);
+        if (isEditPage) {
+            Navigation.goBack(editBackPath);
+            return;
+        }
+        Navigation.goBack();
     };
 
     const updateDestination = (destination: ListItem & {currency: string}) => {
@@ -162,7 +166,16 @@ function DynamicIOURequestStepDestination({
         if (isEditPage) {
             navigateBack();
         } else {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID, backToReport));
+            // Time is a dynamic route: build it on the start base when the destination is shown inline on the start page
+            // (single per-diem policy) and on the destination base otherwise, so Time's back returns to the right step.
+            // Only the shape of this base reaches the stack - the base route already exists and keeps its own params.
+            const timeBase = openedFromStartPage
+                ? ROUTES.MONEY_REQUEST_CREATE.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID, backToReport)
+                : createDynamicRoute(
+                      DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path,
+                      ROUTES.MONEY_REQUEST_CREATE.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID, backToReport),
+                  );
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME.path, timeBase));
         }
     };
 

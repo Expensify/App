@@ -19,4 +19,13 @@ class HybridAppStartTimeModule : HybridAppStartTimeModuleSpec() {
             val sharedPreferences = context.getSharedPreferences("AppStartTime", Context.MODE_PRIVATE)
             return sharedPreferences.getLong("AppStartTime", 0L).toDouble()
         }
+
+    override val appStartupMarkers: Map<String, Double>
+        get() {
+            val context = NitroModules.applicationContext ?: return emptyMap()
+            val sharedPreferences = context.getSharedPreferences("AppStartupMarkers", Context.MODE_PRIVATE)
+            return sharedPreferences.all.entries
+                .mapNotNull { (name, timestamp) -> (timestamp as? Long)?.let { name to it.toDouble() } }
+                .toMap()
+        }
 }

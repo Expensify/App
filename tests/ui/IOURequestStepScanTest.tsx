@@ -7,10 +7,10 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 
 import IOURequestStepScan from '@pages/iou/request/step/IOURequestStepScan';
+import type {ScanRoute} from '@pages/iou/request/step/IOURequestStepScan/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -22,6 +22,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -43,10 +44,7 @@ jest.mock('react-native-permissions', () => ({
 }));
 
 jest.mock('@hooks/useFilesValidation', () => {
-    const ReactLib = require('react') as {
-        createElement: (type: unknown, props?: unknown, ...children: unknown[]) => unknown;
-        Fragment: unknown;
-    };
+    const ReactLib = jest.requireActual<typeof React>('react');
     return (callback: (files: FileObject[]) => void) => {
         triggerFileSelection = callback;
         return {
@@ -138,21 +136,17 @@ describe('IOURequestStepScan', () => {
                 <LocaleContextProvider>
                     <NavigationContainer>
                         <IOURequestStepScan
-                            route={
-                                {
-                                    key: 'StepScan',
-                                    name: SCREENS.MONEY_REQUEST.STEP_SCAN,
-                                    params: {
-                                        action: CONST.IOU.ACTION.CREATE,
-                                        iouType: CONST.IOU.TYPE.SUBMIT,
-                                        reportID: REPORT_ID,
-                                        transactionID: TRANSACTION_ID_1,
-                                        backTo: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.route,
-                                        pageIndex: 0,
-                                    },
-                                } as unknown as PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>['route']
-                            }
-                            navigation={{} as never}
+                            route={createMock<ScanRoute>({
+                                key: 'StepScan',
+                                name: SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SCAN,
+                                params: {
+                                    action: CONST.IOU.ACTION.CREATE,
+                                    iouType: CONST.IOU.TYPE.SUBMIT,
+                                    reportID: REPORT_ID,
+                                    transactionID: TRANSACTION_ID_1,
+                                },
+                            })}
+                            navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SCAN>['navigation']>({})}
                         />
                     </NavigationContainer>
                 </LocaleContextProvider>
@@ -188,20 +182,17 @@ describe('IOURequestStepScan', () => {
                 <LocaleContextProvider>
                     <NavigationContainer>
                         <IOURequestStepScan
-                            route={
-                                {
-                                    key: 'StepScan2',
-                                    name: SCREENS.MONEY_REQUEST.CREATE,
-                                    params: {
-                                        action: CONST.IOU.ACTION.CREATE,
-                                        iouType: CONST.IOU.TYPE.SUBMIT,
-                                        reportID: REPORT_ID,
-                                        transactionID: TRANSACTION_ID_1,
-                                        pageIndex: 0,
-                                    },
-                                } as unknown as PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>['route']
-                            }
-                            navigation={{} as never}
+                            route={createMock<ScanRoute>({
+                                key: 'StepScan2',
+                                name: SCREENS.MONEY_REQUEST.CREATE,
+                                params: {
+                                    action: CONST.IOU.ACTION.CREATE,
+                                    iouType: CONST.IOU.TYPE.SUBMIT,
+                                    reportID: REPORT_ID,
+                                    transactionID: TRANSACTION_ID_1,
+                                },
+                            })}
+                            navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>['navigation']>({})}
                         />
                     </NavigationContainer>
                 </LocaleContextProvider>

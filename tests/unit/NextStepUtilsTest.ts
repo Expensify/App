@@ -16,11 +16,13 @@ import type {Policy, Report, ReportAction, Transaction, TransactionViolations} f
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 
+import {execFileSync} from 'child_process';
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import {formatPhoneNumber, getCurrencyDecimalsLocal, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -47,7 +49,6 @@ describe('libs/NextStepUtils', () => {
             role: 'admin',
             type: 'team',
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
         };
         const report = buildOptimisticExpenseReport({
@@ -104,6 +105,7 @@ describe('libs/NextStepUtils', () => {
                     policy,
                     '2025-03-31 13:23:11',
                     [CONST.BETAS.ALL],
+                    getCurrencyDecimalsLocal,
                 );
 
                 const expectedResult: ReportNextStep = {
@@ -894,12 +896,12 @@ describe('libs/NextStepUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             } as Report;
 
-            const transaction: Transaction = {
+            const transaction = createMock<Transaction>({
                 transactionID: 'txn-1',
                 reportID: report.reportID,
                 amount: -500,
                 currency: CONST.CURRENCY.USD,
-            } as Transaction;
+            });
 
             const transactionViolations: OnyxCollection<TransactionViolations> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
@@ -913,7 +915,7 @@ describe('libs/NextStepUtils', () => {
             const result = getReportNextStep({
                 moneyRequestReport: report,
                 moneyRequestReportOwnerLogin: currentUserEmail,
-                transactions: [transaction] as Array<OnyxEntry<Transaction>>,
+                transactions: [transaction],
                 policy: undefined,
                 transactionViolations,
                 currentUserEmail,
@@ -935,7 +937,6 @@ describe('libs/NextStepUtils', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 owner: currentUserEmail,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 approver: currentUserEmail,
@@ -989,7 +990,6 @@ describe('libs/NextStepUtils', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 owner: currentUserEmail,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 approver: currentUserEmail,
@@ -1020,12 +1020,12 @@ describe('libs/NextStepUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             } as Report;
 
-            const transaction: Transaction = {
+            const transaction = createMock<Transaction>({
                 transactionID: 'txn-2',
                 reportID: report.reportID,
                 amount: -500,
                 currency: CONST.CURRENCY.USD,
-            } as Transaction;
+            });
 
             const transactionViolations: OnyxCollection<TransactionViolations> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
@@ -1042,7 +1042,7 @@ describe('libs/NextStepUtils', () => {
             const result = getReportNextStep({
                 moneyRequestReport: report,
                 moneyRequestReportOwnerLogin: currentUserEmail,
-                transactions: [transaction] as Array<OnyxEntry<Transaction>>,
+                transactions: [transaction],
                 policy,
                 transactionViolations,
                 currentUserEmail,
@@ -1084,6 +1084,31 @@ describe('libs/NextStepUtils', () => {
             expect(message).toBe('<next-step>Waiting for HiddenMarker to submit expenses.</next-step>');
         });
 
+        it.each([
+            {requiredDepositCurrency: CONST.CURRENCY.USD, expectedAccount: 'USD bank account'},
+            {requiredDepositCurrency: '<strong>USD</strong>', expectedAccount: '&lt;strong&gt;USD&lt;/strong&gt; bank account'},
+            {requiredDepositCurrency: undefined, expectedAccount: 'bank account'},
+        ])('renders the required deposit currency when it is available', ({requiredDepositCurrency, expectedAccount}) => {
+            const currentUserAccountID = 780071;
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+                requiredDepositCurrency,
+            };
+            const translateWithDepositCurrency: LocalizedTranslate = (path, ...parameters) => {
+                if (path === 'nextStep.message.waitingForSubmitterAccount') {
+                    const currency = parameters.at(4);
+                    const account = typeof currency === 'string' ? `${currency} bank account` : 'bank account';
+                    return `Waiting for <strong>you</strong> to add a ${account}.`;
+                }
+                return translateLocal(path, ...parameters);
+            };
+
+            const message = buildNextStepMessage(nextStep, translateWithDepositCurrency, undefined, currentUserAccountID, formatPhoneNumber);
+            expect(message).toBe(`<next-step>Waiting for <strong>you</strong> to add a ${expectedAccount}.</next-step>`);
+        });
+
         it('uses the provided phone number formatter when resolving an SMS actor login', async () => {
             const phoneActorAccountID = 780071;
             const phoneActorLogin = '18332403628@expensify.sms';
@@ -1107,6 +1132,68 @@ describe('libs/NextStepUtils', () => {
             expect(formatPhoneNumberMock).toHaveBeenCalledWith(phoneActorLogin);
             expect(message).toBe(`<next-step>Waiting for formatted:${phoneActorLogin} to submit expenses.</next-step>`);
         });
+
+        it('renders a monthly automatic-submit eta using the day-of-month it encodes, not one shifted by UTC parsing', () => {
+            // A date-only `eta.dateTime` must render as the same day it encodes regardless of the browser timezone.
+            // Native `new Date('2026-08-15')` parses as UTC midnight and shows the 14th in UTC-negative timezones;
+            // `parseISO` keeps it at local midnight so the ordinal day matches the workspace setting.
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: 999999,
+                eta: {dateTime: '2026-08-15'},
+            };
+            // Echo the rendered eta (parameter index 2) so we can assert the ordinal day the user actually sees.
+            const translateEta: LocalizedTranslate = (path, ...parameters) => {
+                if (path === 'nextStep.message.waitingForAutomaticSubmit') {
+                    return String(parameters.at(2));
+                }
+                return translateLocal(path, ...parameters);
+            };
+
+            const message = buildNextStepMessage(nextStep, translateEta, undefined, 999999, formatPhoneNumber);
+            expect(message).toBe('<next-step>15th</next-step>');
+        });
+
+        describe('renders a monthly automatic-submit eta on the encoded day of month in every timezone', () => {
+            // `buildNextStepMessage` renders a date-only `eta.dateTime` with date-fns, which uses the ambient system
+            // timezone. Jest is pinned to UTC (`TZ=utc`) and V8 caches that at process start, so we cannot change the
+            // timezone from inside this process. UTC is also the one zone where the bug is invisible, because UTC
+            // midnight and local midnight coincide. To exercise real UTC-negative/positive offsets we run the same
+            // parse+format expression used by buildNextStepMessage (see src/libs/NextStepUtils.ts:86) in a child
+            // `node` process with a real `TZ`. `fixed` mirrors the shipped `parseISO` parsing; `legacy` mirrors the
+            // old `new Date` parsing that caused the regression.
+            const renderEtaDayInTimezone = (timezone: string): {fixed: string; legacy: string} => {
+                const dateOnly = '2026-08-15';
+                // Print the fixed (`parseISO`) and legacy (`new Date`) ordinals space-separated so the parent can read
+                // them back as plain strings without an unsafe cast.
+                const script = `const {format,parseISO}=require('date-fns');process.stdout.write([format(parseISO('${dateOnly}'),'do'),format(new Date('${dateOnly}'),'do')].join(' '));`;
+                const out = execFileSync(process.execPath, ['-e', script], {env: {...process.env, TZ: timezone}, encoding: 'utf8'});
+                const [fixed, legacy] = out.split(' ');
+                return {fixed, legacy};
+            };
+
+            it.each([
+                ['Asia/Tokyo', 'positive'],
+                ['Europe/Paris', 'positive'],
+                ['UTC', 'zero'],
+                ['America/New_York', 'negative'],
+                ['America/Los_Angeles', 'negative'],
+                ['Pacific/Honolulu', 'negative'],
+            ])('renders the encoded day (15th) in %s (%s UTC offset)', (timezone, offsetSign) => {
+                const {fixed, legacy} = renderEtaDayInTimezone(timezone);
+
+                // The shipped fix renders the encoded day in every timezone.
+                expect(fixed).toBe('15th');
+
+                // In UTC-negative zones the old `new Date` parsing shifts the day back by one. Asserting it here both
+                // documents the regression and guarantees the child really ran in a UTC-negative zone. Otherwise this
+                // would read '15th' and fail loudly instead of the test silently degrading into a UTC-only no-op.
+                if (offsetSign === 'negative') {
+                    expect(legacy).toBe('14th');
+                }
+            });
+        });
     });
 
     describe('buildOptimisticNextStep', () => {
@@ -1121,7 +1208,6 @@ describe('libs/NextStepUtils', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: currentUserEmail,
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
             approver: currentUserEmail,

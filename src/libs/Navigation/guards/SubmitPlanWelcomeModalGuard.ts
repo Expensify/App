@@ -1,9 +1,9 @@
+import getUserSecurityGroup from '@libs/getUserSecurityGroup';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import {getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
@@ -12,7 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Beta, BetaConfiguration, IntroSelected, Policy, SecurityGroup, Session} from '@src/types/onyx';
+import type {DomainSecurityGroupMembership, IntroSelected, Policy, SecurityGroup, Session} from '@src/types/onyx';
 
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -20,26 +20,39 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {findFocusedRoute} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {isSupportalSessionSelector} from '@selectors/Session';
-import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import type {GuardContext, GuardResult, NavigationGuard} from './types';
 
 let session: OnyxEntry<Session>;
 let isLoadingApp = true;
-let betas: OnyxEntry<Beta[]>;
-let betaConfiguration: OnyxEntry<BetaConfiguration>;
 let introSelected: OnyxEntry<IntroSelected>;
 let policies: OnyxCollection<Policy>;
 let hasCompletedGuidedSetupFlow: boolean | undefined;
 let hasShownSubmitMigrationModal: OnyxEntry<boolean>;
-let myDomainSecurityGroups: OnyxEntry<Record<string, string>>;
+let myDomainSecurityGroups: OnyxEntry<Record<string, DomainSecurityGroupMembership>>;
 let securityGroups: OnyxCollection<SecurityGroup>;
+let legacySecurityGroups: OnyxCollection<SecurityGroup>;
 let isSubmitMigrationModalShownLoaded = false;
 let hasLoadedApp = false;
 
 let hasRedirectedToSubmitPlanModal = false;
 let isEvaluationScheduled = false;
+
+// An `intent=submit` deeplink delivers the same outcome as this modal without asking, so the modal must not open on
+// top of it. Recorded outside Onyx because the deeplink can only mark the modal shown from a React effect, which runs
+// after the microtask that schedules the proactive redirect below.
+let hasPendingSubmitDeeplink = false;
+
+function suppressWelcomeModalForSubmitDeeplink() {
+    hasPendingSubmitDeeplink = true;
+}
+
+// Called when the deeplink decides not to create anything, so a later account in this process isn't left with the
+// modal suppressed by an intent that never acted.
+function releaseWelcomeModalForSubmitDeeplink() {
+    hasPendingSubmitDeeplink = false;
+}
 
 const SUBMIT_PLAN_WELCOME_ENTRY_SCREENS = new Set<string>(DYNAMIC_ROUTES.SUBMIT_PLAN_WELCOME.entryScreens);
 
@@ -76,12 +89,13 @@ function getSubmitPlanWelcomeModalRoute(basePath?: string): Route {
 
 function resetSessionFlag() {
     hasRedirectedToSubmitPlanModal = false;
+    hasPendingSubmitDeeplink = false;
 }
 
 /**
  * Returns true when the current user matches the "existing Get paid back intent" audience:
- * the SUBMIT_2026 beta is enabled, they picked the EMPLOYER onboarding intent, completed onboarding,
- * haven't seen the modal yet, and don't already belong to any workspace where they can submit reports.
+ * they picked the EMPLOYER onboarding intent, completed onboarding, haven't seen the modal yet,
+ * and don't already belong to any workspace where they can submit reports.
  *
  * The last check uses `getGroupPoliciesWhereReportCanBeCreated` (paid Team/Corporate AND free Submit
  * workspaces) rather than only paid policies. This intentionally excludes users who just created a
@@ -89,11 +103,10 @@ function resetSessionFlag() {
  * that flow.
  */
 function shouldShowSubmitPlanWelcomeModal(): boolean {
-    const isSubmit2026BetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.SUBMIT_2026, betas, betaConfiguration);
     const hasEmployerIntent = introSelected?.choice === CONST.ONBOARDING_CHOICES.EMPLOYER;
-    const groupPolicies = getGroupPoliciesWhereReportCanBeCreated(policies, isSubmit2026BetaEnabled, session?.email);
+    const groupPolicies = getGroupPoliciesWhereReportCanBeCreated(policies, session?.email);
 
-    return isSubmit2026BetaEnabled && hasEmployerIntent && !!hasCompletedGuidedSetupFlow && groupPolicies.length === 0 && !isPolicyCreationRestricted() && !hasShownSubmitMigrationModal;
+    return hasEmployerIntent && !!hasCompletedGuidedSetupFlow && groupPolicies.length === 0 && !isPolicyCreationRestricted() && !hasShownSubmitMigrationModal;
 }
 
 /**
@@ -102,12 +115,7 @@ function shouldShowSubmitPlanWelcomeModal(): boolean {
  * "Get the free plan" would dismiss it (marking it shown) without creating anything or navigating.
  */
 function isPolicyCreationRestricted(): boolean {
-    const userDomain = session?.email ? Str.extractEmailDomain(session.email) : undefined;
-    const securityGroupID = userDomain ? myDomainSecurityGroups?.[userDomain] : undefined;
-    if (!securityGroupID) {
-        return false;
-    }
-    return securityGroups?.[`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${securityGroupID}`]?.enableRestrictedPolicyCreation === true;
+    return getUserSecurityGroup(session?.email, myDomainSecurityGroups, securityGroups, legacySecurityGroups)?.enableRestrictedPolicyCreation === true;
 }
 
 /**
@@ -118,6 +126,7 @@ function isPolicyCreationRestricted(): boolean {
  */
 function navigateToSubmitPlanWelcomeModalIfReady() {
     if (
+        hasPendingSubmitDeeplink ||
         isSupportalSessionSelector(session) ||
         !session?.authToken ||
         isLoadingApp ||
@@ -176,20 +185,6 @@ Onyx.connectWithoutView({
 // (especially the high-churn POLICY collection) would recompute eligibility on every unrelated mutation for
 // the whole session.
 Onyx.connectWithoutView({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => {
-        betas = value;
-    },
-});
-
-Onyx.connectWithoutView({
-    key: ONYXKEYS.BETA_CONFIGURATION,
-    callback: (value) => {
-        betaConfiguration = value;
-    },
-});
-
-Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_INTRO_SELECTED,
     callback: (value) => {
         introSelected = value;
@@ -242,10 +237,20 @@ Onyx.connectWithoutView({
     },
 });
 
+// Only isPolicyCreationRestricted reads this cached collection, during the guard's `evaluate` and the proactive check, and both run outside any React render.
+// useOnyx() works only during render, so this subscription uses connectWithoutView() instead.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP,
+    callback: (value) => {
+        securityGroups = value;
+    },
+});
+
+// The backend also writes the security group to this legacy collection, which isPolicyCreationRestricted reads as a fallback. That read happens outside any React render too, where useOnyx() does not work, so this subscription also uses connectWithoutView().
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.SECURITY_GROUP,
     callback: (value) => {
-        securityGroups = value;
+        legacySecurityGroups = value;
     },
 });
 
@@ -276,7 +281,7 @@ function isNavigatingToSubmitPlanModal(state: NavigationState, action: Navigatio
 /**
  * SubmitPlanWelcomeModalGuard handles the in-product Submit plan welcome modal flow.
  * This modal appears for users who previously selected the "Get paid back" (EMPLOYER) intent,
- * are not on any paid workspace, and haven't seen it yet (behind the SUBMIT_2026 beta).
+ * are not on any paid workspace, and haven't seen it yet.
  */
 const SubmitPlanWelcomeModalGuard: NavigationGuard = {
     name: 'SubmitPlanWelcomeModalGuard',
@@ -303,7 +308,7 @@ const SubmitPlanWelcomeModalGuard: NavigationGuard = {
             return {type: 'ALLOW'};
         }
 
-        if (context.isSupportalSession || !shouldShowSubmitPlanWelcomeModal()) {
+        if (hasPendingSubmitDeeplink || context.isSupportalSession || !shouldShowSubmitPlanWelcomeModal()) {
             return {type: 'ALLOW'};
         }
 
@@ -317,4 +322,4 @@ const SubmitPlanWelcomeModalGuard: NavigationGuard = {
 };
 
 export default SubmitPlanWelcomeModalGuard;
-export {resetSessionFlag};
+export {resetSessionFlag, suppressWelcomeModalForSubmitDeeplink, releaseWelcomeModalForSubmitDeeplink};

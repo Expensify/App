@@ -4,7 +4,7 @@ import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@comp
 
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 
-import {queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
+import {getExportTemplates, queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -13,6 +13,7 @@ import Onyx from 'react-native-onyx';
 
 const mockQueueExportSearchItemsToCSV = jest.mocked(queueExportSearchItemsToCSV);
 const mockQueueExportSearchWithTemplate = jest.mocked(queueExportSearchWithTemplate);
+const mockGetExportTemplates = jest.mocked(getExportTemplates);
 
 jest.mock('@libs/actions/Export', () => ({
     clearExportDownload: jest.fn(),
@@ -153,17 +154,20 @@ jest.mock('@hooks/usePaymentContext', () => ({
 const mockClearSelectedTransactions = jest.fn();
 const mockSelectAllMatchingItems = jest.fn();
 let mockSelectedTransactions: SelectedTransactions = {};
+let mockExcludedTransactions: SelectedTransactions = {};
 let mockSelectedReports: SelectedReports[] = [];
 let mockAreAllMatchingItemsSelected = false;
+let mockCurrentSearchResults: {search: {type: string}; data: Record<string, unknown>} | undefined;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
         selectedTransactions: mockSelectedTransactions,
+        excludedTransactions: mockExcludedTransactions,
         selectedReports: mockSelectedReports,
         areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected,
     }),
     useSearchResultsContext: () => ({
-        currentSearchResults: undefined,
+        currentSearchResults: mockCurrentSearchResults,
     }),
     useSearchQueryContext: () => ({
         currentSearchKey: undefined,
@@ -198,6 +202,21 @@ const baseQueryJSON: SearchQueryJSON = {
     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense'},
 };
 
+const expenseReportQueryJSON: SearchQueryJSON = {
+    ...baseQueryJSON,
+    inputQuery: 'type:expense-report status:all',
+    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+    filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense-report'},
+};
+
+const groupedExpenseQueryJSON: SearchQueryJSON = {
+    ...baseQueryJSON,
+    inputQuery: 'type:expense sortBy:groupMerchant sortOrder:asc groupBy:merchant',
+    groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+    sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT,
+    sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+};
+
 function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]> = {}): SelectedTransactions[string] {
     return {
         isSelected: true,
@@ -218,6 +237,10 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
     };
 }
 
+function hasSearchFlatFilters(value: unknown): value is {flatFilters: SearchQueryJSON['flatFilters']} {
+    return typeof value === 'object' && value !== null && 'flatFilters' in value && Array.isArray(value.flatFilters);
+}
+
 describe('useSearchBulkActions - CSV export flow', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -229,7 +252,10 @@ describe('useSearchBulkActions - CSV export flow', () => {
         mockAreAllMatchingItemsSelected = false;
         await Onyx.clear();
         mockSelectedTransactions = {};
+        mockExcludedTransactions = {};
         mockSelectedReports = [];
+        mockCurrentSearchResults = undefined;
+        mockGetExportTemplates.mockReturnValue({customTemplates: [], defaultTemplates: []});
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
     });
@@ -241,6 +267,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
     it('handleBasicExport with select-all tracks the export', async () => {
         mockAreAllMatchingItemsSelected = true;
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockExcludedTransactions = {tx2: makeSelectedTransaction()};
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
 
@@ -258,7 +285,173 @@ describe('useSearchBulkActions - CSV export flow', () => {
         });
 
         expect(mockQueueExportSearchItemsToCSV).toHaveBeenCalled();
-        expect(result.current.exportDownloadStatusModal).not.toBeNull();
+        expect(mockQueueExportSearchItemsToCSV).toHaveBeenCalledWith(expect.objectContaining({excludedTransactionIDList: ['tx2']}));
+    });
+
+    it('exports an excluded unloaded group as a query filter instead of a transaction ID', async () => {
+        const excludedGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123` as const;
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockExcludedTransactions = {[excludedGroupKey]: makeSelectedTransaction(), tx2: makeSelectedTransaction()};
+        mockCurrentSearchResults = {
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE},
+            data: {
+                [excludedGroupKey]: {merchant: 'Excluded merchant', count: 3, total: 300, currency: 'USD'},
+            },
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}));
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.currentView')?.onSelected ?? exportOption?.onSelected;
+
+        await act(async () => {
+            onSelected?.();
+        });
+
+        const exportPayload = mockQueueExportSearchItemsToCSV.mock.calls.at(-1)?.at(0);
+        expect(exportPayload?.excludedTransactionIDList).toEqual(['tx2']);
+        expect(exportPayload?.jsonQuery).toContain('Excluded merchant');
+        expect(exportPayload?.jsonQuery).toContain(`"operator":"${CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO}"`);
+        expect(exportPayload?.jsonQuery).not.toContain('group_123');
+    });
+
+    it('preserves excluded group negations when the query already filters the grouped field', async () => {
+        const firstExcludedGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123` as const;
+        const secondExcludedGroupKey = `${CONST.SEARCH.GROUP_PREFIX}456` as const;
+        const filteredGroupedExpenseQueryJSON: SearchQueryJSON = {
+            ...groupedExpenseQueryJSON,
+            inputQuery: 'type:expense sortBy:groupCategory sortOrder:asc groupBy:category category:Meals,Travel,Lodging',
+            groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
+            flatFilters: [
+                {
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
+                    filters: [
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'Meals'},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'Travel'},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'Lodging'},
+                    ],
+                },
+            ],
+        };
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockExcludedTransactions = {
+            [firstExcludedGroupKey]: makeSelectedTransaction(),
+            [secondExcludedGroupKey]: makeSelectedTransaction(),
+        };
+        mockCurrentSearchResults = {
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE},
+            data: {
+                [firstExcludedGroupKey]: {category: 'Meals', count: 3, total: 300, currency: 'USD'},
+                [secondExcludedGroupKey]: {category: 'Travel', count: 2, total: 200, currency: 'USD'},
+            },
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: filteredGroupedExpenseQueryJSON}));
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.currentView')?.onSelected ?? exportOption?.onSelected;
+
+        await act(async () => {
+            onSelected?.();
+        });
+
+        const exportPayload = mockQueueExportSearchItemsToCSV.mock.calls.at(-1)?.at(0);
+        const exportQueryJSON: unknown = JSON.parse(exportPayload?.jsonQuery ?? '{}');
+        if (!hasSearchFlatFilters(exportQueryJSON)) {
+            throw new Error('Expected the exported query to contain flat filters');
+        }
+        const categoryFilters = exportQueryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY).flatMap((filter) => filter.filters);
+        const includedCategoryFilters = categoryFilters.filter((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+        const excludedCategoryFilters = categoryFilters.filter((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
+        expect(includedCategoryFilters).toEqual(
+            expect.arrayContaining([
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'Meals'},
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'Travel'},
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'Lodging'},
+            ]),
+        );
+        expect(excludedCategoryFilters).toEqual([
+            {operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: 'Meals'},
+            {operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: 'Travel'},
+        ]);
+    });
+
+    it('does not export when an excluded group cannot be resolved', async () => {
+        const excludedGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123` as const;
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockExcludedTransactions = {[excludedGroupKey]: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}));
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.currentView')?.onSelected ?? exportOption?.onSelected;
+
+        await act(async () => {
+            onSelected?.();
+        });
+
+        expect(mockQueueExportSearchItemsToCSV).not.toHaveBeenCalled();
+    });
+
+    it('keeps export available when every loaded transaction is excluded from an all-matching selection', async () => {
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedTransactions = {};
+        mockExcludedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)).toBe(true);
+        });
+    });
+
+    it('keeps the original expense-report export guard when no loaded transaction is selected', async () => {
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedTransactions = {};
+        mockExcludedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        expect(result.current.headerButtonsOptions).toEqual([]);
+    });
+
+    it('does not send exclusions for an expense-report export', async () => {
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockExcludedTransactions = {tx2: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.basicExport')?.onSelected ?? exportOption?.onSelected;
+
+        await act(async () => {
+            onSelected?.();
+        });
+
+        const exportPayload = mockQueueExportSearchItemsToCSV.mock.calls.at(-1)?.at(0);
+        expect(exportPayload).toBeDefined();
+        expect(exportPayload).not.toHaveProperty('excludedTransactionIDList');
     });
 
     it('handleBasicExport with manual selection does not track any export', async () => {
@@ -272,12 +465,15 @@ describe('useSearchBulkActions - CSV export flow', () => {
         });
 
         expect(mockQueueExportSearchItemsToCSV).not.toHaveBeenCalled();
-        expect(result.current.exportDownloadStatusModal).toBeNull();
     });
 
     it('beginExportWithTemplate tracks the export', async () => {
         mockAreAllMatchingItemsSelected = true;
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockGetExportTemplates.mockReturnValue({
+            customTemplates: [{name: 'Custom template', templateName: 'custom-template', type: 'csv', policyID: undefined, description: ''}],
+            defaultTemplates: [],
+        });
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
 
@@ -288,13 +484,44 @@ describe('useSearchBulkActions - CSV export flow', () => {
         const exportOption = result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
         const templateSubItem = exportOption?.subMenuItems?.find((item) => item.text !== 'export.basicExport' && item.text !== 'export.currentView');
 
-        if (templateSubItem?.onSelected) {
-            act(() => {
-                templateSubItem.onSelected?.();
-            });
+        expect(templateSubItem).toBeDefined();
+        act(() => {
+            templateSubItem?.onSelected?.();
+        });
 
-            expect(mockQueueExportSearchWithTemplate).toHaveBeenCalled();
-            expect(result.current.exportDownloadStatusModal).not.toBeNull();
-        }
+        expect(mockQueueExportSearchWithTemplate).toHaveBeenCalled();
+    });
+
+    it('hides template exports when an all-matching expense selection has exclusions', async () => {
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockExcludedTransactions = {tx2: makeSelectedTransaction()};
+        mockGetExportTemplates.mockReturnValue({
+            customTemplates: [{name: 'Custom template', templateName: 'custom-template', type: 'csv', policyID: undefined, description: ''}],
+            defaultTemplates: [
+                {name: 'Default template', templateName: 'default-template', type: 'csv', policyID: undefined, description: ''},
+                {
+                    name: 'export.basicExport',
+                    templateName: CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV,
+                    type: 'csv',
+                    policyID: undefined,
+                    description: '',
+                },
+            ],
+        });
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+        const exportItems = exportOption?.subMenuItems ?? [];
+
+        expect(exportItems.some((item) => item.text === 'Custom template')).toBe(false);
+        expect(exportItems.some((item) => item.text === 'Default template')).toBe(false);
+        expect(exportItems.some((item) => item.text === 'export.currentView')).toBe(true);
+        expect(exportItems.some((item) => item.text === 'export.basicExport')).toBe(true);
     });
 });

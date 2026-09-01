@@ -71,7 +71,6 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                             size={avatarSize}
                             accountID={item.accountID}
                             fallbackDisplayName={item.displayName}
-                            shouldShowTooltip
                         />
                         <View style={[shouldUseNarrowTableLayout && styles.gap1, styles.flex1]}>
                             <TextWithTooltip
