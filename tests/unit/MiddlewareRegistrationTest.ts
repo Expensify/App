@@ -13,6 +13,7 @@ import {
     SentryServerTiming,
     SupportalPermission,
 } from '@libs/Middleware';
+import registerMiddlewares from '@libs/Middleware/register';
 import type * as RequestModule from '@libs/Request';
 import {addMiddleware} from '@libs/Request';
 
@@ -41,9 +42,7 @@ describe('Middleware registration', () => {
     let registered: RequestModule.Middleware[] = [];
 
     beforeAll(() => {
-        // jest.isolateModules would give register.ts its own module registry, so the middlewares it resolves
-        // would be distinct function objects from the ones imported above and every identity check would fail.
-        require('@libs/Middleware/register');
+        registerMiddlewares();
         registered = jest.mocked(addMiddleware).mock.calls.map(([middleware]) => middleware);
     });
 
