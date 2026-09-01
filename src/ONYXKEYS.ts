@@ -910,6 +910,8 @@ const ONYXKEYS = {
         REPORT: 'report_',
         REPORT_NAME_VALUE_PAIRS: 'reportNameValuePairs_',
         REPORT_DRAFT: 'reportDraft_',
+        // Must persist (not RAM-only): if the app is killed before submit, the marker is how the next launch
+        // finds and deletes the promoted report_<id> row.
         REPORT_PRE_MOUNT_PROMOTION: 'reportPreMountPromotion_',
         // REPORT_METADATA holds report-level business state that is NOT the report itself
         // (optimistic flag, pending chat members, report-level errors, DEW pendingExpenseAction).

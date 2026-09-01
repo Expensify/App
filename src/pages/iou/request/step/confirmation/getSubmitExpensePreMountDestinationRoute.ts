@@ -86,13 +86,16 @@ function getSubmitExpensePreMountDestinationRoute({
     // screen opens, so the destination is a report the user has never been on. Skipping it costs only the pre-mount.
     const isReplacingVisibleReport =
         !hasPreInsertedFullscreen && isMovingTransactionFromTrackExpense && isReportTopmostSplitNavigator() && Navigation.getTopmostReportId() !== destinationReportID;
-    // Passing {} as the draft argument forces getReportOrDraftReport to ignore REPORT_DRAFT entirely,
-    // so a destination that only exists as a draft never counts as loaded here, whatever flow created it.
-    const isLoadedNonDraftReport = !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, {}, destinationReport)?.reportID;
-    // Only pre-insert a report that's actually loaded - a draft can show an infinite skeleton after backing out.
+    // Passing {} as the draft argument only blocks the REPORT_DRAFT collection fallback. A draft the caller
+    // passes in via destinationReport still resolves here, because getReportOrDraftReport checks its `report`
+    // slot before falling back to the draft slot - and that is intentional: the caller promotes that draft into
+    // COLLECTION.REPORT before reveal, so it is safe to treat as renderable.
+    const isDestinationReportRenderable = !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, {}, destinationReport)?.reportID;
+    // Only pre-insert a report that's actually renderable - a report that resolves to neither a loaded report
+    // nor a promoted draft can show an infinite skeleton after backing out.
     // An optimistic new chat is the one exception: it has no report row yet, but that's fine since submit
     // will create it under this same ID.
-    const isDestinationReportLoaded = isOptimisticNewChatDestination || isLoadedNonDraftReport;
+    const isDestinationReportLoaded = isOptimisticNewChatDestination || isDestinationReportRenderable;
     const shouldPreInsertReport = canUseReportPreInsert && isOutsideRHP && hasValidDestination && isDestinationReportLoaded && !isReplacingVisibleReport;
 
     if (!shouldPreInsertSearch && !shouldPreInsertReport) {
