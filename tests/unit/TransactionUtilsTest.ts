@@ -1344,6 +1344,7 @@ describe('TransactionUtils', () => {
                 isPolicyExpenseChat: false,
                 policy: policyWithDistanceRate,
                 translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(displayTransaction).toBeDefined();
@@ -1371,6 +1372,7 @@ describe('TransactionUtils', () => {
                     transaction,
                     isPolicyExpenseChat: false,
                     translate,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 }),
             ).toBe(transaction);
         });
@@ -1397,6 +1399,7 @@ describe('TransactionUtils', () => {
                 isPolicyExpenseChat: false,
                 policy: policyWithDistanceRate,
                 translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(displayTransaction?.amount).toBe(-491);
@@ -1423,6 +1426,7 @@ describe('TransactionUtils', () => {
                     isPolicyExpenseChat: false,
                     policy: policyWithDistanceRate,
                     translate,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 }),
             ).toBe(transaction);
         });
@@ -1448,6 +1452,7 @@ describe('TransactionUtils', () => {
                     isPolicyExpenseChat: false,
                     policy: policyWithDistanceRate,
                     translate,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 }),
             ).toBe(transaction);
         });
@@ -1472,6 +1477,7 @@ describe('TransactionUtils', () => {
                 isPolicyExpenseChat: false,
                 policy: policyWithDistanceRate,
                 translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(displayTransaction?.amount).toBe(491);
@@ -1499,6 +1505,7 @@ describe('TransactionUtils', () => {
                     isPolicyExpenseChat: false,
                     policy: policyWithDistanceRate,
                     translate,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 }),
             ).toBe(transaction);
         });
@@ -1542,6 +1549,7 @@ describe('TransactionUtils', () => {
                 isPolicyExpenseChat: false,
                 policy: policyWithoutRateCurrency,
                 translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(displayTransaction?.currency).toBe(CONST.CURRENCY.EUR);
@@ -1571,6 +1579,7 @@ describe('TransactionUtils', () => {
                     isPolicyExpenseChat: true,
                     policy: policyWithDistanceRate,
                     translate,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 }),
             ).toBe(transaction);
         });
@@ -1597,6 +1606,7 @@ describe('TransactionUtils', () => {
                     isPolicyExpenseChat: false,
                     policy: policyWithDistanceRate,
                     translate,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 }),
             ).toBe(transaction);
         });
@@ -2801,6 +2811,30 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(true);
         });
 
+        it('should return false when auto-categorize new expenses is disabled on the policy', () => {
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+            const policy = {...createRandomPolicy(0), autoCategorizeNewExpenses: false};
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, policy)).toBe(false);
+        });
+
+        it('should return true when auto-categorize new expenses is enabled on the policy', () => {
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+            const policy = {...createRandomPolicy(0), autoCategorizeNewExpenses: true};
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, policy)).toBe(true);
+        });
+
         it('should return true when within auto-categorization grace period', () => {
             // Set pendingAutoCategorizationTime to 30 seconds ago (within 1 minute grace period)
             const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
@@ -2816,6 +2850,22 @@ describe('TransactionUtils', () => {
             });
 
             expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(true);
+        });
+
+        it('should return false during the grace period when auto-categorize new expenses is disabled', () => {
+            const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
+            const pendingAutoCategorizationTime = thirtySecondsAgo.toISOString().replace('T', ' ').replace('Z', '');
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                comment: {
+                    pendingAutoCategorizationTime,
+                },
+            });
+            const policy = {...createRandomPolicy(0), autoCategorizeNewExpenses: false};
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, policy)).toBe(false);
         });
 
         it('should return false when auto-categorization grace period has passed', () => {

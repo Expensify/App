@@ -6369,6 +6369,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             deleteFailureMessage: 'Παρουσιάστηκε σφάλμα κατά τη διαγραφή της κατηγορίας, δοκιμάστε ξανά',
             categoryName: 'Όνομα κατηγορίας',
             requiresCategory: 'Τα μέλη πρέπει να κατηγοριοποιούν όλες τις δαπάνες',
+            autoCategorizeNewExpenses: 'Αυτόματη κατηγοριοποίηση νέων δαπανών',
             showCategoryGLCodes: 'Εμφάνιση κωδικών GL κατά την κατηγοριοποίηση δαπανών',
             needCategoryForExportToIntegration: (connectionName: string) => `Όλες οι δαπάνες πρέπει να κατηγοριοποιηθούν για να γίνει η εξαγωγή στο ${connectionName}.`,
             subtitle: 'Αποκτήστε μια καλύτερη εικόνα για το πού ξοδεύονται τα χρήματα. Χρησιμοποιήστε τις προεπιλεγμένες κατηγορίες μας ή προσθέστε τις δικές σας.',
@@ -8856,10 +8857,10 @@ ${reportName}`,
             return `πρόσθεσε τον φορολογικό συντελεστή «${newValue} (${newTaxPercentage})» στον συντελεστή απόστασης «${customUnitRateName}»`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
-                return `άλλαξε το ανακτήσιμο φόρου τμήμα στο τιμολόγιο απόστασης «${customUnitRateName}» σε «${newValue}» (προηγουμένως «${oldValue}»)`;
+            if (oldValue !== undefined) {
+                return `άλλαξε το ανακτήσιμο φόρου τμήμα στο τιμολόγιο απόστασης «${customUnitRateName}» σε «${newValue}%» (προηγουμένως «${oldValue}%»)`;
             }
-            return `προστέθηκε φορολογικά επιστρεπτέο μέρος «${newValue}» στο χιλιομετρικό κόστος «${customUnitRateName}»`;
+            return `προστέθηκε φορολογικά επιστρεπτέο μέρος «${newValue}%» στο χιλιομετρικό κόστος «${customUnitRateName}»`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `μετονόμασε την τιμή ${customUnitName} από «${oldValue}» σε «${newValue}»`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
