@@ -10,7 +10,7 @@ import type {StyleProp, TextStyle} from 'react-native';
 
 type HeaderTitleProps = {
     /** Title of the header. */
-    children: string;
+    title: string;
 
     /** Subtitle of the header. */
     subtitle?: string;
@@ -34,7 +34,7 @@ type HeaderTitleProps = {
     shouldUseHeadlineHeader: boolean;
 };
 
-function HeaderTitle({children, subtitle = '', titleColor, titleStyles, stepCounter, subTitleLink = '', shouldSkipFocusAfterTransition = false, shouldUseHeadlineHeader}: HeaderTitleProps) {
+function HeaderTitle({title, subtitle = '', titleColor, titleStyles, stepCounter, subTitleLink = '', shouldSkipFocusAfterTransition = false, shouldUseHeadlineHeader}: HeaderTitleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -43,7 +43,7 @@ function HeaderTitle({children, subtitle = '', titleColor, titleStyles, stepCoun
 
     return (
         <HeaderTitleComponent
-            title={children}
+            title={title}
             dialogTitle={''}
             textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2, titleStyles]}
             numberOfTitleLines={1}
