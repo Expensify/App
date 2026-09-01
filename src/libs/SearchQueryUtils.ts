@@ -462,8 +462,14 @@ function getFilterFromQuery(queryJSON: SearchQueryJSON | undefined, filterKey: S
  * Grouped CSV export uses this so Violations is included even when the query has no saved `columns`.
  */
 function queryHasSubmittedViolationFilter(queryJSON: SearchQueryJSON | undefined): boolean {
-    const hasFilter = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS);
-    return !hasFilter.isNegated && !!hasFilter.value?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
+    const hasFilterGroups = queryJSON?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) ?? [];
+    if (hasFilterGroups.length === 0) {
+        return false;
+    }
+
+    return hasFilterGroups.some((group) =>
+        group.filters.some((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && filter.value.toString() === CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION),
+    );
 }
 
 /**

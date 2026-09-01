@@ -3849,6 +3849,18 @@ describe('SearchQueryUtils', () => {
             expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(false);
         });
 
+        test('returns false when submitted-violation is negated alongside other positive has filters', () => {
+            const queryJSON = buildSearchQueryJSON(`type:expense groupBy:from has:${CONST.SEARCH.HAS_VALUES.RECEIPT} -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(false);
+        });
+
+        test('returns true when submitted-violation is positive alongside other has filters', () => {
+            const queryJSON = buildSearchQueryJSON(`type:expense groupBy:from has:${CONST.SEARCH.HAS_VALUES.RECEIPT} has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(true);
+        });
+
         test('returns false when the query has no submitted-violation filter', () => {
             const queryJSON = buildSearchQueryJSON('type:expense groupBy:from');
 
