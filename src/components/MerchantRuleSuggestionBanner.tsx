@@ -82,6 +82,9 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, transactionID,
         setDraftMerchantRule(draft);
         // Tells that flow it was entered from an expense, so saving returns here rather than to the Rules page
         setIsCreatingMerchantRule(true);
+        // The offer has been taken, so it is over: coming back from the rule flow — saved or abandoned — must not find
+        // the callout still asking. Editing the expense again is what starts a fresh offer.
+        retireMerchantRuleSuggestion();
         Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
     };
 
@@ -100,7 +103,7 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, transactionID,
                             height={variables.iconSizeNormal}
                         />
                     </View>
-                    <Text style={[styles.flex1, styles.flexWrap, styles.merchantRuleCalloutText, styles.mr3]}>
+                    <Text style={[styles.flex1, styles.merchantRuleCalloutText, styles.mr3]}>
                         <TextLink
                             style={styles.merchantRuleCalloutAction}
                             onPress={createRule}
