@@ -472,8 +472,7 @@ type BuildReturnToDefaultWorkflowDiffParams = {
  * List a deleted workflow's members in the default workflow's rules, so they land back in the default workflow.
  *
  * Without this they end up covered by no rule at all and resolve through the legacy `employeeList.submitsTo`,
- * which still names whoever approved for them before the default workflow was last edited — so they render as a
- * workflow of their own around a stale approver.
+ * which still names whoever approved for them before the default workflow was last edited
  */
 function buildReturnToDefaultWorkflowDiff({approvalWorkflow, defaultApprovalWorkflow, existingRules}: BuildReturnToDefaultWorkflowDiffParams): ApprovalWorkflowRulesDiff {
     const memberEmails = getWorkflowMemberEmails(approvalWorkflow.members);

@@ -1433,7 +1433,7 @@ function getSubmitterRuleIDs(submitter: string, rules: Record<string, ApprovalWo
  * True when any rule carries the default-workflow marker.
  *
  * The marker is only written when the default workflow is saved through the rules backend, so policies that
- * predate it — or have never had their default workflow edited — have none. Callers use this to decide
+ * predate it or have never had their default workflow edited have none. Callers use this to decide
  * whether the marker can be trusted as the answer, or whether to fall back to matching the default approver.
  */
 function hasMarkedDefaultWorkflow(rules: Record<string, ApprovalWorkflowRule>): boolean {
@@ -1511,8 +1511,7 @@ function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflow
  * Same as `getRulesSubmitterToFirstApprover`, minus the submitters routed to `defaultApprover`.
  *
  * The default workflow is the baseline every member of the workspace submits through, so its members are not
- * "already in a workflow" for the purpose of warning about cross-workflow moves — only members routed to some
- * other approver are.
+ * "already in a workflow" for the purpose of warning about cross-workflow moves.
  */
 function getRulesSubmitterToNonDefaultFirstApprover(rules: Record<string, ApprovalWorkflowRule>, employees: PolicyEmployeeList, defaultApprover: string): Record<string, string> {
     const submitterToFirstApprover = getRulesSubmitterToFirstApprover(rules, employees);
@@ -1677,9 +1676,6 @@ function convertApprovalWorkflowRulesToWorkflows({
 
     const workflowGroups = Array.from(groupedByFingerprint.values());
 
-    // Rules saved before the default-workflow marker existed carry none, which would leave the policy with no
-    // default workflow at all. Fall back to the chain starting at the default approver; the next save of that
-    // workflow writes the marker and settles it for good.
     if (!workflowGroups.some((group) => group.isDefault)) {
         const groupStartingAtDefaultApprover = workflowGroups.find((group) => group.chain.at(0)?.email === defaultApprover);
         if (groupStartingAtDefaultApprover) {
