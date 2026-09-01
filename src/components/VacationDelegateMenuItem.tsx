@@ -1,7 +1,9 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVacationDelegatePersonalDetails from '@hooks/useVacationDelegatePersonalDetails';
+
+import getVacationDelegateDisplayName from '@libs/getVacationDelegateDisplayName';
 
 import CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -41,13 +43,13 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
-    const personalDetailsByLogin = usePersonalDetailsByLogin();
 
-    const vacationDelegatePersonalDetails = personalDetailsByLogin[vacationDelegate?.delegate?.toLowerCase() ?? ''];
-    const formattedDelegateLogin = formatPhoneNumber(vacationDelegatePersonalDetails?.login ?? '');
-    const fallbackVacationDelegateLogin = formattedDelegateLogin === '' ? vacationDelegate?.delegate : formattedDelegateLogin;
+    const hasVacationDelegate = !!vacationDelegate?.delegate;
+    const vacationDelegatePersonalDetails = useVacationDelegatePersonalDetails(vacationDelegate?.delegate);
 
-    const vacationDelegateName = vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin;
+    const rawDelegateLogin = vacationDelegatePersonalDetails?.login ?? vacationDelegate?.delegate ?? '';
+    const delegateDisplayName = getVacationDelegateDisplayName(rawDelegateLogin, vacationDelegatePersonalDetails?.displayName, formatPhoneNumber);
+    const delegateDescription = formatPhoneNumber(rawDelegateLogin);
 
     return (
         <OfflineWithFeedback
@@ -55,9 +57,9 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
             errors={errors}
             errorRowStyles={styles.mh5}
             onClose={onCloseError}
-            style={!!vacationDelegateName && styles.mt4}
+            style={hasVacationDelegate && styles.mt4}
         >
-            {vacationDelegateName ? (
+            {hasVacationDelegate ? (
                 <MenuItemWithLabel
                     label={translate('common.vacationDelegate')}
                     onPress={onPress}
@@ -70,8 +72,8 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
                             />
                         </MenuItem.Leading>
                         <MenuItem.Content>
-                            <MenuItem.Title>{vacationDelegateName}</MenuItem.Title>
-                            {!!fallbackVacationDelegateLogin && <MenuItem.Description numberOfLines={1}>{fallbackVacationDelegateLogin}</MenuItem.Description>}
+                            <MenuItem.Title>{delegateDisplayName}</MenuItem.Title>
+                            {!!delegateDescription && <MenuItem.Description numberOfLines={1}>{delegateDescription}</MenuItem.Description>}
                         </MenuItem.Content>
                         <MenuItem.Trailing>
                             <MenuItem.Chevron />
