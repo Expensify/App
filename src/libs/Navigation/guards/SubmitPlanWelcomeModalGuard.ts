@@ -39,6 +39,21 @@ let hasLoadedApp = false;
 let hasRedirectedToSubmitPlanModal = false;
 let isEvaluationScheduled = false;
 
+// An `intent=submit` deeplink delivers the same outcome as this modal without asking, so the modal must not open on
+// top of it. Recorded outside Onyx because the deeplink can only mark the modal shown from a React effect, which runs
+// after the microtask that schedules the proactive redirect below.
+let hasPendingSubmitDeeplink = false;
+
+function suppressWelcomeModalForSubmitDeeplink() {
+    hasPendingSubmitDeeplink = true;
+}
+
+// Called when the deeplink decides not to create anything, so a later account in this process isn't left with the
+// modal suppressed by an intent that never acted.
+function releaseWelcomeModalForSubmitDeeplink() {
+    hasPendingSubmitDeeplink = false;
+}
+
 const SUBMIT_PLAN_WELCOME_ENTRY_SCREENS = new Set<string>(DYNAMIC_ROUTES.SUBMIT_PLAN_WELCOME.entryScreens);
 
 /**
@@ -74,6 +89,7 @@ function getSubmitPlanWelcomeModalRoute(basePath?: string): Route {
 
 function resetSessionFlag() {
     hasRedirectedToSubmitPlanModal = false;
+    hasPendingSubmitDeeplink = false;
 }
 
 /**
@@ -110,6 +126,7 @@ function isPolicyCreationRestricted(): boolean {
  */
 function navigateToSubmitPlanWelcomeModalIfReady() {
     if (
+        hasPendingSubmitDeeplink ||
         isSupportalSessionSelector(session) ||
         !session?.authToken ||
         isLoadingApp ||
@@ -291,7 +308,7 @@ const SubmitPlanWelcomeModalGuard: NavigationGuard = {
             return {type: 'ALLOW'};
         }
 
-        if (context.isSupportalSession || !shouldShowSubmitPlanWelcomeModal()) {
+        if (hasPendingSubmitDeeplink || context.isSupportalSession || !shouldShowSubmitPlanWelcomeModal()) {
             return {type: 'ALLOW'};
         }
 
@@ -305,4 +322,4 @@ const SubmitPlanWelcomeModalGuard: NavigationGuard = {
 };
 
 export default SubmitPlanWelcomeModalGuard;
-export {resetSessionFlag};
+export {resetSessionFlag, suppressWelcomeModalForSubmitDeeplink, releaseWelcomeModalForSubmitDeeplink};
