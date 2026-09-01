@@ -33,6 +33,18 @@ const processAssetWithFallbacks = (asset: Asset): Asset => {
 const getErrorMessage = (error: unknown, fallback: string): string => (error instanceof Error && error.message ? error.message : fallback);
 
 /**
+ * Frees a native image resource. Releasing is best-effort cleanup, so a failure here must never change
+ * whether the converted asset is kept.
+ */
+const releaseQuietly = (releasable: {release: () => void}) => {
+    try {
+        releasable.release();
+    } catch (error) {
+        Log.warn('Failed to release native image resource', {error: getErrorMessage(error, 'An unknown error occurred')});
+    }
+};
+
+/**
  * Convert the picked assets one at a time, transcoding any HEIC images to JPEG.
  *
  * The conversion is deliberately sequential: `ImageManipulator` decodes each image into a full-size
@@ -70,6 +82,9 @@ const processPickedAssetsSequentially = async (assets: Asset[], showGeneralAlert
 
             // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
             const imageManipulatorContext = ImageManipulator.manipulate(asset.uri);
+            // Decided on the conversion result rather than inside the try, so cleanup can never determine
+            // whether the asset is kept.
+            let convertedAsset: Asset | undefined;
             try {
                 // eslint-disable-next-line no-await-in-loop -- converting one image at a time is the point, see the doc comment above
                 const manipulatedImage = await imageManipulatorContext.renderAsync();
@@ -82,22 +97,26 @@ const processPickedAssetsSequentially = async (assets: Asset[], showGeneralAlert
                             .substring(uri.lastIndexOf('/') + 1)
                             .split('?')
                             .at(0) ?? '';
-                    const convertedAsset: Asset = {
+                    convertedAsset = {
                         uri,
                         fileName,
                         type: 'image/jpeg',
                         width: manipulationResult.width,
                         height: manipulationResult.height,
                     };
-                    processedAssets.push(convertedAsset);
                 } finally {
-                    manipulatedImage.release();
+                    releaseQuietly(manipulatedImage);
                 }
             } catch (error) {
                 Log.warn('Failed to convert HEIC image, skipping asset', {error: getErrorMessage(error, 'An unknown error occurred')});
-                failureMessages.add(translate('attachmentPicker.errorWhileConvertingHeic'));
             } finally {
-                imageManipulatorContext.release();
+                releaseQuietly(imageManipulatorContext);
+            }
+
+            if (convertedAsset) {
+                processedAssets.push(convertedAsset);
+            } else {
+                failureMessages.add(translate('attachmentPicker.errorWhileConvertingHeic'));
             }
         } catch (error) {
             failureMessages.add(getErrorMessage(error, translate('attachmentPicker.errorWhileSelectingAttachment')));

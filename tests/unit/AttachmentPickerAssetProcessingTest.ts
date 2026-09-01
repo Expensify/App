@@ -180,4 +180,17 @@ describe('processPickedAssetsSequentially', () => {
         expect(showGeneralAlert).toHaveBeenCalledTimes(1);
         expect(showGeneralAlert).toHaveBeenCalledWith('format check failed\nattachmentPicker.errorWhileConvertingHeic');
     });
+    it.each([
+        ['the rendered image', () => mockImageRelease],
+        ['the manipulator context', () => mockRelease],
+    ])('keeps a converted asset even if releasing %s throws', async (name, getMock) => {
+        getMock().mockImplementation(() => {
+            throw new Error('release blew up');
+        });
+
+        const result = await processPickedAssetsSequentially(buildHeicAssets(1), showGeneralAlert, translate);
+
+        expect(result).toHaveLength(1);
+        expect(showGeneralAlert).not.toHaveBeenCalled();
+    });
 });
