@@ -8,6 +8,8 @@ on:
       - ios/**
       - 'package.json'
       - 'package-lock.json'
+      - '.github/scripts/verifyPodfile.sh'
+      - '.github/scripts/verifyPodfileMode.sh'
 
 jobs:
   verify:

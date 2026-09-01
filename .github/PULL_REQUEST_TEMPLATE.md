@@ -23,9 +23,12 @@ PROPOSAL:
 
 
 <!--- 
-If you want to trigger adhoc build of hybrid app from specific Mobile-Expensify PR please link it like this:
+Link a Mobile-Expensify PR like this to trigger an adhoc build of the hybrid app from it:
 
 MOBILE-EXPENSIFY: https://github.com/Expensify/Mobile-Expensify/pull/<PR-number>
+
+This link is required when your PR changes the pods in ios/Podfile.lock: HybridApp keeps its own
+lockfile at Mobile-Expensify/iOS/Podfile.lock and it does not update itself. CI enforces this.
 
 --->
 

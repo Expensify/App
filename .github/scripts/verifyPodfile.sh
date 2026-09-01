@@ -39,6 +39,11 @@ else
   cleanupAndExit 1
 fi
 
+info "Verifying that react-native was resolved from source..."
+if ! ./.github/scripts/verifyPodfileMode.sh ios/Podfile.lock source; then
+  cleanupAndExit 1
+fi
+
 info "Ensuring correct version of cocoapods is used..."
 
 POD_VERSION_REGEX='([[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+)?';

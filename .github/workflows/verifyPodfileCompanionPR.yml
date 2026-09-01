@@ -1,0 +1,40 @@
+name: Verify Podfile.lock companion PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, edited]
+    branches-ignore: [staging, production]
+    paths:
+      - 'ios/Podfile.lock'
+      - '.github/scripts/verifyPodfileCompanionPR.sh'
+      - '.github/workflows/verifyPodfileCompanionPR.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: 'Verify Podfile.lock companion PR'
+    # Bot PRs never carry a companion Mobile-Expensify PR. Keyed on the PR author rather than
+    # github.actor, which on an `edited` event is whoever edited the description.
+    if: github.event.pull_request.user.login != 'OSBotify' && !endsWith(github.event.pull_request.user.login, '[bot]')
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      # v1
+      - name: Checkout
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f
+
+      # `git diff A...B` needs both commits and their merge base, not the whole history.
+      - name: Fetch both ends of the PR
+        run: git fetch --no-tags origin "$BASE_SHA" "$HEAD_SHA"
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+
+      - name: Verify a companion Mobile-Expensify PR is linked
+        run: ./.github/scripts/verifyPodfileCompanionPR.sh "$BASE_SHA" "$HEAD_SHA"
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BODY: ${{ github.event.pull_request.body }}
