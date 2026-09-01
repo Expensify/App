@@ -51,14 +51,14 @@ function useNumericEditingController({value: externalValueProp, onInputChange, a
 
     const formattedNumber = replaceAllDigits(currentValue, toLocaleDigit);
 
-    const selectionControls = useNumericSelection({displayText: formattedNumber});
+    const {selection, collapse, reset, moveToEnd, syncAfterEdit, handleKeyPress, rejectEdit, handleNativeSelectionChange} = useNumericSelection({displayText: formattedNumber});
 
     // Reset when the external value is cleared; ignore other external changes while editing.
     if (previousExternalValue !== externalValue) {
         setPreviousExternalValue(externalValue);
         if (externalValue === '') {
             setCurrentValue('');
-            selectionControls.reset();
+            reset();
         }
     }
 
@@ -80,19 +80,19 @@ function useNumericEditingController({value: externalValueProp, onInputChange, a
         const numberWithLeadingZero = normalizeNumericInput(inputValue, {fromLocaleDigit, allowNegative});
 
         if (!validateAmount(numberWithLeadingZero, decimals, maxLength, allowNegative)) {
-            selectionControls.rejectEdit();
+            rejectEdit();
             return;
         }
 
         const previousValue = applyValue(numberWithLeadingZero);
 
-        selectionControls.syncAfterEdit({previousText: previousValue, nextText: numberWithLeadingZero});
+        syncAfterEdit({previousText: previousValue, nextText: numberWithLeadingZero});
     };
 
     // Replaces the canonical value without validation or notification and moves the caret to the end.
     const updateNumber = (newNumber: string) => {
         applyValue(newNumber, {notify: false});
-        selectionControls.moveToEnd(newNumber);
+        moveToEnd(newNumber);
     };
 
     const getNumber = () => committedValueRef.current;
@@ -114,13 +114,13 @@ function useNumericEditingController({value: externalValueProp, onInputChange, a
     return {
         value: currentValue,
         formattedNumber,
-        selection: selectionControls.selection,
+        selection,
         setNumber,
         updateNumber,
         getNumber,
-        clearSelection: selectionControls.collapse,
-        handleSelectionChange: selectionControls.handleNativeSelectionChange,
-        handleKeyPress: selectionControls.handleKeyPress,
+        clearSelection: collapse,
+        handleSelectionChange: handleNativeSelectionChange,
+        handleKeyPress,
     };
 }
 
