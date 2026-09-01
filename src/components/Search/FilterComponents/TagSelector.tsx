@@ -49,6 +49,16 @@ function TagSelector({value = [], policyID, selectionListTextInputStyle, selecti
         return {text: getCleanedTagName(tag), value: tag};
     });
 
+    // Selected tags that are not in the current result page stay visible once the search is cleared, so the selection doesn't disappear from the list
+    if (!searchQuery) {
+        const itemValues = new Set(tagItems.map((item) => item.value));
+        for (const selectedItem of selectedTagsItems) {
+            if (!itemValues.has(selectedItem.value)) {
+                tagItems.push(selectedItem);
+            }
+        }
+    }
+
     return (
         <MultiSelect
             value={selectedTagsItems}
