@@ -2,7 +2,7 @@
 /* eslint-disable max-classes-per-file */
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Beta, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
 
@@ -1475,7 +1475,7 @@ function getReasonForShowingRowInLHN({
     hasRBR = false,
     isReportArchived,
     isInFocusMode = false,
-    betas = undefined,
+    isDefaultRoomsBetaEnabled = false,
     draftComment,
     currentUserLogin,
     currentUserAccountID,
@@ -1487,7 +1487,7 @@ function getReasonForShowingRowInLHN({
     hasRBR?: boolean;
     isReportArchived: boolean | undefined;
     isInFocusMode?: boolean;
-    betas?: OnyxEntry<Beta[]>;
+    isDefaultRoomsBetaEnabled?: boolean;
     draftComment: string | undefined;
     currentUserLogin?: string;
     currentUserAccountID?: number;
@@ -1503,7 +1503,7 @@ function getReasonForShowingRowInLHN({
         // We can't pass report.reportID because it will cause reason to always be isFocused
         currentReportId: '-1',
         isInFocusMode,
-        betas,
+        isDefaultRoomsBetaEnabled,
         excludeEmptyChats: true,
         doesReportHaveViolations,
         includeSelfDM: true,

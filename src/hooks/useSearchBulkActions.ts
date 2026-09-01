@@ -436,8 +436,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const delegateAccountID = useDelegateAccountID();
     const {
         introSelected,
-        betas,
         isSelfTourViewed,
+        betas,
         activePolicyID,
         activePolicy,
         conciergeChat,
@@ -1080,7 +1080,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 currentUserEmailParam: email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
@@ -1124,7 +1123,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         allReports,
         allTransactionViolations,
         isBetaEnabled,
-        betas,
         delegateEmail,
         currentSearchKey,
         isTrackIntentUser,
@@ -1480,6 +1478,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     const payChatReportID = shouldUseB2BInvoiceReport ? existingB2BInvoiceReport.reportID : chatReport.reportID;
 
                     payInvoice({
+                        isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+                        betas,
                         getCurrencyDecimals,
                         paymentMethodType: paymentItem.paymentType as PaymentMethodType,
                         chatReport,
@@ -1494,7 +1494,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         paymentMethod: paymentItem.fundID ? CONST.PAYMENT_METHODS.DEBIT_CARD : CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                         activePolicy,
                         conciergeChat,
-                        betas,
                         isSelfTourViewed,
                         defaultWorkspaceName,
                         additionalOnyxData,
@@ -1508,6 +1507,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 payMoneyRequest({
+                    isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+                    betas,
                     getCurrencyDecimals,
                     paymentType: paymentItem.paymentType as PaymentMethodType,
                     chatReport,
@@ -1518,7 +1519,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     activePolicy,
                     policy: reportPolicy,
                     chatReportPolicy,
-                    betas,
                     isSelfTourViewed,
                     userBillingGracePeriodEnds,
                     amountOwed,
@@ -1549,6 +1549,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         [
             hash,
             isOffline,
+            betas,
+            isBetaEnabled,
             isDelegateAccessRestricted,
             selectedReports,
             selectedTransactions,
@@ -1571,7 +1573,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             defaultWorkspaceName,
             personalDetails,
             introSelected,
-            betas,
             isSelfTourViewed,
             activePolicy,
             activePolicyID,

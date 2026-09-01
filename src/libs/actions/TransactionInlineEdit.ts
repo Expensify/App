@@ -34,6 +34,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
+    BetaConfiguration,
     BetaOverrides,
     IntroSelected,
     PersonalDetailsList,
@@ -136,6 +137,15 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.BETA_OVERRIDES,
     callback: (value) => {
         betaOverrides = value ?? undefined;
+    },
+});
+
+// Without this the 'all' beta would enable a beta here that usePermissions reports as disabled
+let betaConfiguration: BetaConfiguration | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.BETA_CONFIGURATION,
+    callback: (value) => {
+        betaConfiguration = value ?? undefined;
     },
 });
 
@@ -306,7 +316,7 @@ function getIouParamsForTransaction({
         policyCategories,
         currentUserAccountIDParam: currentUserAccountID,
         currentUserEmailParam: currentUserEmail,
-        isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas, undefined, betaOverrides),
+        isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas, betaConfiguration, betaOverrides),
         delegateAccountID,
         isTrackIntentUser,
         getCurrencyDecimals,

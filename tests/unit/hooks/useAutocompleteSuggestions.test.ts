@@ -119,7 +119,7 @@ const defaultParams: Params = {
     allFeeds: {},
     options: {reports: [], personalDetails: []},
     draftComments: {},
-    betas: [],
+    isDefaultRoomsBetaEnabled: false,
     countryCode: 1,
     loginList: {},
     policies: {},

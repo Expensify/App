@@ -31,7 +31,22 @@ import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from 
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type {
+    Beta,
+    BetaConfiguration,
+    BetaOverrides,
+    Card,
+    CardList,
+    Policy,
+    PolicyCategories,
+    PolicyTagLists,
+    PolicyTags,
+    Report,
+    ReportAction,
+    Transaction,
+    TransactionViolation,
+    ViolationName,
+} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -52,6 +67,24 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.BETAS,
     callback: (value) => {
         allBetas = value;
+    },
+});
+
+// Read here for the same reason as the betas above: getViolationsOnyxData only runs from optimistic data builders, never during render
+let betaOverrides: OnyxEntry<BetaOverrides>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.BETA_OVERRIDES,
+    callback: (value) => {
+        betaOverrides = value;
+    },
+});
+
+// Without this the 'all' beta would enable a beta here that usePermissions reports as disabled, since only usePermissions applied the configuration before
+let betaConfiguration: OnyxEntry<BetaConfiguration>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.BETA_CONFIGURATION,
+    callback: (value) => {
+        betaConfiguration = value;
     },
 });
 
@@ -575,8 +608,8 @@ const ViolationsUtils = {
 
         // Inactive vendor violation, gated behind the `vendorMatching` beta. The transaction's
         // vendor is never cleared here — admins need to see what was set so they can re-pick.
-        if (allBetas !== undefined) {
-            const isVendorMatchingBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.VENDOR_MATCHING, allBetas);
+        if (allBetas !== undefined || betaOverrides?.[CONST.BETAS.VENDOR_MATCHING] !== undefined) {
+            const isVendorMatchingBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.VENDOR_MATCHING, allBetas, betaConfiguration, betaOverrides);
             const hasInactiveVendorViolation = newTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR);
             const isVendorFeatureActive = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
             const transactionVendorID = updatedTransaction.comment?.vendor?.externalID;

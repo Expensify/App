@@ -16,6 +16,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
@@ -91,6 +92,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     ownerBillingGracePeriodEnd,
     onUndelete,
 }: TransactionListItemProps<TItem>) {
+    const {isBetaEnabled} = usePermissions();
     const transactionItem = item as unknown as TransactionListItemType;
     const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
 
@@ -214,6 +216,7 @@ function TransactionListItemInner<TItem extends ListItem>({
 
     const handleActionButtonPress = (event?: Parameters<typeof onSelectRow>[2]) => {
         handleActionButtonPressUtil({
+            isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
             getCurrencyDecimals,
             hash: currentSearchHash,
             item: liveTransactionItem,

@@ -8,6 +8,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -77,6 +78,8 @@ function DebugReportPage({
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {isBetaEnabled} = usePermissions();
+    const isDefaultRoomsBetaEnabled = isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -114,7 +117,7 @@ function DebugReportPage({
         const reasonLHN = DebugUtils.getReasonForShowingRowInLHN({
             report,
             chatReport,
-            betas,
+            isDefaultRoomsBetaEnabled,
             doesReportHaveViolations: shouldDisplayViolations,
             hasRBR,
             isReportArchived,
@@ -179,7 +182,7 @@ function DebugReportPage({
         transactions,
         reportAttributes?.reportErrors,
         isOffline,
-        betas,
+        isDefaultRoomsBetaEnabled,
         priorityMode,
         draftComment,
         translate,

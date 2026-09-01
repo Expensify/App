@@ -183,7 +183,6 @@ describe('ReportUtils', () => {
         const report = {...createRandomReport(1, undefined), participantAccountIDs, type: CONST.REPORT.TYPE.CHAT};
         const currentReportId = '2';
         const isInFocusMode = true;
-        const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
@@ -192,7 +191,7 @@ describe('ReportUtils', () => {
                 chatReport,
                 currentReportId,
                 isInFocusMode,
-                betas,
+                isDefaultRoomsBetaEnabled: true,
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
                 draftComment: undefined,

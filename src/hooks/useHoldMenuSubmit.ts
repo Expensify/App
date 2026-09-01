@@ -91,7 +91,6 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 currentUserEmailParam: currentUserDetails.email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
@@ -105,6 +104,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
             });
         } else if (currentChatReport && paymentType) {
             payMoneyRequest({
+                isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
                 paymentType,
                 chatReport: currentChatReport,

@@ -167,7 +167,7 @@ describe('actions/IOU/TrackExpense', () => {
             const hiddenReportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId: undefined,
                 reports: {[selfDMReportKey]: selfDMReport},
-                betas: [],
+                isDefaultRoomsBetaEnabled: false,
                 priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                 draftComments: {},
                 transactionViolations: {},
@@ -225,7 +225,7 @@ describe('actions/IOU/TrackExpense', () => {
             const optimisticReportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId: 'different-report-id',
                 reports: {[selfDMReportKey]: optimisticSelfDMReport},
-                betas: [],
+                isDefaultRoomsBetaEnabled: false,
                 priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                 draftComments: {},
                 transactionViolations: {},

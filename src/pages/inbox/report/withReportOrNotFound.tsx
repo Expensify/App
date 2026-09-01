@@ -2,6 +2,7 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import {openReport} from '@libs/actions/Report';
@@ -22,6 +23,7 @@ import type {
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -86,6 +88,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             // with a `reportID` inherited from the surrounding report chain in the URL.
             const reportID = 'notificationReportID' in params ? params.notificationReportID : params.reportID;
             const [betas] = useOnyx(ONYXKEYS.BETAS);
+            const {isBetaEnabled} = usePermissions();
             const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
             const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
             const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -129,7 +132,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
 
             if (shouldRequireReportID || isReportIdInRoute) {
                 const shouldShowFullScreenLoadingIndicator = !isReportLoaded && (isLoadingReportData !== false || shouldFetchReport);
-                const shouldShowNotFoundPage = !isReportLoaded || !canAccessReport(report, betas, isReportArchived);
+                const shouldShowNotFoundPage = !isReportLoaded || !canAccessReport(report, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), isReportArchived);
 
                 // If the content was shown, but it's not anymore, that means the report was deleted, and we are probably navigating out of this screen.
                 // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.

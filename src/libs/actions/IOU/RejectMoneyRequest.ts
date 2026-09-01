@@ -119,7 +119,7 @@ type PrepareRejectMoneyRequestDataParams = {
     policy: OnyxEntry<OnyxTypes.Policy>;
     currentUserAccountIDParam: number;
     currentUserLogin: string;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     options?: RejectMoneyRequestOptions;
@@ -133,7 +133,7 @@ function prepareRejectMoneyRequestData({
     policy,
     currentUserAccountIDParam,
     currentUserLogin,
-    betas,
+    isASAPSubmitBetaEnabled,
     delegateAccountID,
     getCurrencyDecimals,
     options,
@@ -494,7 +494,7 @@ function prepareRejectMoneyRequestData({
                 nonReimbursableTotal: transactionAmount,
                 optimisticIOUReportID: rejectedToReportID,
                 reportTransactions,
-                betas,
+                isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
             });
             const [, createdActionForExpenseReport, iouAction] = buildOptimisticMoneyRequestEntities({
@@ -933,7 +933,7 @@ function rejectMoneyRequest(
     policy: OnyxEntry<OnyxTypes.Policy>,
     currentUserAccountIDParam: number,
     currentUserLogin: string,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
+    isASAPSubmitBetaEnabled: boolean,
     delegateAccountID: number | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     options?: RejectMoneyRequestOptions,
@@ -945,7 +945,7 @@ function rejectMoneyRequest(
         policy,
         currentUserAccountIDParam,
         currentUserLogin,
-        betas,
+        isASAPSubmitBetaEnabled,
         delegateAccountID,
         getCurrencyDecimals,
         options,

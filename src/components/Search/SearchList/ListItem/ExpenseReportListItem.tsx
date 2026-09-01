@@ -21,6 +21,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -96,6 +97,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
 }: ExpenseReportListItemProps<TItem>) {
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -242,6 +245,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
+            isASAPSubmitBetaEnabled,
             getCurrencyDecimals,
             hash: currentSearchHash,
             item: liveReportItem,
@@ -310,6 +314,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     }, [
         currentSearchHash,
         reportItem,
+        isASAPSubmitBetaEnabled,
         liveReportItem,
         onSelectRow,
         searchData,

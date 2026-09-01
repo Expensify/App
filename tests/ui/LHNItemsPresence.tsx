@@ -620,7 +620,7 @@ describe('SidebarLinksData', () => {
                 payeeAccountID: 100,
                 total: 122,
                 currency: 'USD',
-                betas: [CONST.BETAS.ALL],
+                isASAPSubmitBetaEnabled: true,
             });
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {

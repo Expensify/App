@@ -121,7 +121,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   dateFnsLocale,
                   options,
                   draftComments,
-                  betas: undefined,
+                  isDefaultRoomsBetaEnabled: false,
                   isUsedInChatFinder: false,
                   countryCode,
                   loginList,
