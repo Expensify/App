@@ -3138,6 +3138,35 @@ describe('actions/Policy', () => {
             expect(policy?.maxExpenseAmountNoItemizedReceipt).toBe(CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT);
             expect(policy?.type).toBe(CONST.POLICY.TYPE.CORPORATE);
         });
+
+        it('upgradeToCorporate should keep an explicit zero receipt threshold instead of replacing it with the default', async () => {
+            // Given a Collect policy that always requires receipts, saved as an explicit 0
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                maxExpenseAmountNoReceipt: 0,
+                maxExpenseAmountNoItemizedReceipt: 0,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When upgrading to corporate
+            Policy.upgradeToCorporate(fakePolicy);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Then the configured 0 survives — the upgrade must not silently loosen the rule to the Control default
+            expect(policy?.maxExpenseAmountNoReceipt).toBe(0);
+            expect(policy?.maxExpenseAmountNoItemizedReceipt).toBe(0);
+            expect(policy?.type).toBe(CONST.POLICY.TYPE.CORPORATE);
+        });
     });
 
     describe('upgradeSubmit', () => {

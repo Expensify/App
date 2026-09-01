@@ -7943,7 +7943,7 @@ ${reportName}`,
                 requireAboveAmount: '要求高于此金额',
                 saveRule: '保存规则',
                 emptyAmountError: '在保存之前请输入有效金额',
-                receiptAmountGreaterThanItemizedError: '要求收据的金额不能大于要求提供明细收据的金额。',
+                receiptAmountGreaterThanItemizedError: '所需收据金额不能大于所需分项收据金额。',
             },
             requireFields: {title: '对所有报销设置必填字段', category: '类别', tag: '标签', save: '保存规则'},
             newRule: {

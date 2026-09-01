@@ -8324,7 +8324,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 requireAboveAmount: 'Exiger un montant supérieur',
                 saveRule: 'Enregistrer la règle',
                 emptyAmountError: 'Saisissez un montant valide avant d’enregistrer',
-                receiptAmountGreaterThanItemizedError: 'Le montant du reçu obligatoire ne peut pas être supérieur au montant du reçu détaillé obligatoire.',
+                receiptAmountGreaterThanItemizedError: 'Le montant du reçu requis ne peut pas être supérieur au montant du reçu détaillé requis.',
             },
             requireFields: {title: 'Rendre les champs obligatoires pour toutes les dépenses', category: 'Catégorie', tag: 'Tag', save: 'Enregistrer la règle'},
             newRule: {

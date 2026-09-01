@@ -8181,7 +8181,7 @@ ${reportName}`,
                 requireItemizedReceipt: 'Απαιτείται αναλυτική απόδειξη',
                 requireAboveAmount: 'Να απαιτείται το παραπάνω ποσό',
                 emptyAmountError: 'Εισαγάγετε ένα έγκυρο ποσό πριν αποθηκεύσετε',
-                receiptAmountGreaterThanItemizedError: 'Το ποσό της απαιτούμενης απόδειξης δεν μπορεί να είναι μεγαλύτερο από το ποσό της απαιτούμενης αναλυτικής απόδειξης.',
+                receiptAmountGreaterThanItemizedError: 'Το απαιτούμενο ποσό απόδειξης δεν μπορεί να είναι μεγαλύτερο από το απαιτούμενο ποσό αναλυτικής απόδειξης.',
                 saveRule: 'Αποθήκευση κανόνα',
             },
             requireFields: {

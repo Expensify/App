@@ -29,7 +29,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesRequireReceiptsForm';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -72,7 +71,6 @@ function RulesRequireReceiptsPage({
     // two-fields-one-constraint pattern in IOURequestStepDistanceOdometer, the violation is shown as a single message
     // below the pair rather than as an error on either input, raised on a save attempt and cleared on the next edit.
     const [amountConflictError, setAmountConflictError] = useState('');
-    const isSaveAttemptRef = useRef(false);
 
     useEffect(() => {
         syncedPolicyIDRef.current = undefined;
@@ -92,11 +90,6 @@ function RulesRequireReceiptsPage({
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM> = {};
 
-            // This callback also runs on every change and blur, so the shared message is only raised when the user
-            // actually tried to save. Editing either amount clears it from the inputs' own onValueChange.
-            const isSaveAttempt = isSaveAttemptRef.current;
-            isSaveAttemptRef.current = false;
-
             if (!receiptEnabled && !itemizedEnabled) {
                 return errors;
             }
@@ -111,43 +104,26 @@ function RulesRequireReceiptsPage({
                 errors.maxExpenseAmountNoItemizedReceipt = emptyAmountError;
             }
 
-            if (!isEmptyObject(errors)) {
-                if (isSaveAttempt) {
-                    setAmountConflictError('');
-                }
-                return errors;
-            }
-
-            const hasAmountConflict =
-                receiptEnabled &&
-                itemizedEnabled &&
-                !!values.maxExpenseAmountNoReceipt &&
-                !!values.maxExpenseAmountNoItemizedReceipt &&
-                convertToBackendAmount(Number(values.maxExpenseAmountNoReceipt) || 0) > convertToBackendAmount(Number(values.maxExpenseAmountNoItemizedReceipt) || 0);
-
-            if (isSaveAttempt) {
-                setAmountConflictError(hasAmountConflict ? translate('workspace.rules.requireReceipts.receiptAmountGreaterThanItemizedError') : '');
-
-                if (hasAmountConflict) {
-                    // A valueless entry on a registered input keeps FormProvider from submitting while resolving to an
-                    // empty errorText, so the save is blocked without either field turning red.
-                    errors.maxExpenseAmountNoReceipt = undefined;
-                }
-            }
-
             return errors;
         },
         [receiptEnabled, itemizedEnabled, translate],
     );
 
-    const handleBeforeSubmit = useCallback(() => {
-        isSaveAttemptRef.current = true;
-    }, []);
-
     const clearAmountConflictError = useCallback(() => setAmountConflictError(''), []);
 
     const handleSubmit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM>) => {
+            // Checked here rather than in `validate` because this runs only on a real save. The message is shown once
+            // below the pair instead of on either field, and the inputs clear it again on the next edit.
+            if (
+                receiptEnabled &&
+                itemizedEnabled &&
+                convertToBackendAmount(Number(values.maxExpenseAmountNoReceipt) || 0) > convertToBackendAmount(Number(values.maxExpenseAmountNoItemizedReceipt) || 0)
+            ) {
+                setAmountConflictError(translate('workspace.rules.requireReceipts.receiptAmountGreaterThanItemizedError'));
+                return;
+            }
+
             const receiptChanged = receiptEnabled !== initialReceiptEnabled || (receiptEnabled && values.maxExpenseAmountNoReceipt !== initialReceiptAmount);
             const itemizedChanged = itemizedEnabled !== initialItemizedEnabled || (itemizedEnabled && values.maxExpenseAmountNoItemizedReceipt !== initialItemizedAmount);
 
@@ -196,6 +172,7 @@ function RulesRequireReceiptsPage({
             policy?.maxExpenseAmountNoReceipt,
             policy?.maxExpenseAmountNoItemizedReceipt,
             getReviewWorkspaceSettingsTaskCompletion,
+            translate,
         ],
     );
 
@@ -223,10 +200,11 @@ function RulesRequireReceiptsPage({
                     formID={ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM}
                     onSubmit={handleSubmit}
                     validate={validate}
-                    onBeforeSubmit={handleBeforeSubmit}
                     submitButtonText={translate('workspace.rules.requireReceipts.saveRule')}
-                    // The shared amount message below the pair already says what to fix, so the generic alert would only repeat it.
-                    shouldHideFixErrorsAlert
+                    // onSubmit returns early when the two amounts conflict, and nothing external ever flips the loading
+                    // flag back off on this screen, so the default press-loading spinner would stick and swallow every
+                    // later press. Opt out so the button stays live after a blocked save (same reason as PIN.tsx).
+                    shouldShowLoadingImmediatelyOnPress={false}
                     enabledWhenOffline
                     addBottomSafeAreaPadding
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_RECEIPTS_SAVE}
