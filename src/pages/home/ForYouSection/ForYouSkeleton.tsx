@@ -1,6 +1,5 @@
 import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
-import SkeletonTextLine from '@components/Skeletons/SkeletonTextLine';
 
 import useContainerWidth from '@hooks/useContainerWidth';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -15,7 +14,7 @@ const ICON_SIZE = variables.componentSizeNormal;
 const ICON_BORDER_RADIUS = variables.componentBorderRadiusNormal;
 
 const BAR_HEIGHT = 12;
-// The CTA button BaseWidgetItem renders at `BUTTON_SIZE.SMALL` with `widgetItemButton`'s minimum width.
+// BaseWidgetItem renders its CTA button at `BUTTON_SIZE.SMALL`.
 const BUTTON_WIDTH = variables.widgetItemButtonMinWidth;
 const BUTTON_HEIGHT = variables.componentSizeSmall;
 // The real button's `buttonBorderRadius` is 100, which CSS clamps proportionally down to a stadium.
@@ -26,16 +25,11 @@ const BUTTON_BORDER_RADIUS = BUTTON_HEIGHT / 2;
 const ROW_COUNT = 3;
 const TITLE_BAR_WIDTH = 140;
 
-// The section heading the real card paints above its rows ("Time sensitive" or "For you").
-const HEADING_LINE_HEIGHT = variables.widgetHeaderTitleLineHeight;
-const HEADING_BAR_WIDTH = 100;
-
 function ForYouSkeleton() {
     const {onLayout, containerWidth: pageWidth} = useContainerWidth();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    // Row geometry read off the styles the real rows use (see BaseWidgetItem).
     const iconTextGap = styles.gap3.gap;
     const rowHeight = ICON_SIZE + styles.pv3.paddingVertical * 2;
     const horizontalPadding = shouldUseNarrowLayout ? styles.ph5.paddingHorizontal : styles.ph8.paddingHorizontal;
@@ -67,25 +61,17 @@ function ForYouSkeleton() {
     };
 
     return (
-        <>
-            <View style={styles.getForYouSectionHeadingStyle(shouldUseNarrowLayout)}>
-                <SkeletonTextLine
-                    lineHeight={HEADING_LINE_HEIGHT}
-                    barWidth={HEADING_BAR_WIDTH}
-                />
-            </View>
-            <View
-                style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}
-                onLayout={onLayout}
-            >
-                <ItemListSkeletonView
-                    itemViewHeight={rowHeight}
-                    shouldAnimate
-                    fixedNumItems={ROW_COUNT}
-                    renderSkeletonItem={renderSkeletonItem}
-                />
-            </View>
-        </>
+        <View
+            style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}
+            onLayout={onLayout}
+        >
+            <ItemListSkeletonView
+                itemViewHeight={rowHeight}
+                shouldAnimate
+                fixedNumItems={ROW_COUNT}
+                renderSkeletonItem={renderSkeletonItem}
+            />
+        </View>
     );
 }
 

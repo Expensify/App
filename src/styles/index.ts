@@ -47,6 +47,7 @@ import pointerEventsAuto from './utils/pointerEventsAuto';
 import pointerEventsBoxNone from './utils/pointerEventsBoxNone';
 import pointerEventsNone from './utils/pointerEventsNone';
 import positioning from './utils/positioning';
+import scrollbarGutterStable from './utils/scrollbarGutterStable';
 import sizing from './utils/sizing';
 import spacing from './utils/spacing';
 import textDecorationLine from './utils/textDecorationLine';
@@ -4216,6 +4217,11 @@ const staticStyles = (theme: ThemeColors) =>
         quickCreationActionsBarButtonText: {
             fontSize: variables.fontSizeSmall,
             lineHeight: 14,
+        },
+
+        // Reserved so the centered home layout does not slide sideways when the scrollbar appears.
+        homePageScrollView: {
+            ...scrollbarGutterStable,
         },
 
         homePageContentContainer: {

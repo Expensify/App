@@ -32,6 +32,7 @@ import SubmitDraftButton from '@pages/inbox/report/ReportActionCompose/SubmitDra
 import useDebouncedCommentMaxLengthValidation from '@pages/inbox/report/ReportActionCompose/useDebouncedCommentMaxLengthValidation';
 import useDebouncedSaveDraft from '@pages/inbox/report/useDebouncedSaveDraft';
 
+import {lineHeightScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import {close} from '@userActions/Modal';
@@ -51,19 +52,16 @@ import {scheduleOnUI} from 'react-native-worklets';
 
 import useConciergeAttachmentPicker from './useConciergeAttachmentPicker';
 
-// Max number of lines before the input starts scrolling internally.
 const MAX_INPUT_LINES = 5;
 
 // A single line of placeholder text is one lineHeightXLarge tall. Anything meaningfully taller has wrapped.
 const SINGLE_LINE_PLACEHOLDER_MAX_HEIGHT = variables.lineHeightXLarge * 1.5;
 
-// `textLabelSupporting` sets no lineHeight, so `lineHeightNormal` stands in for the date's line box.
-const DATE_LINE_HEIGHT = variables.lineHeightNormal;
-const GREETING_LINE_HEIGHT = variables.lineHeightSizeH1;
+const DATE_LINE_HEIGHT = lineHeightScale.label;
+const GREETING_LINE_HEIGHT = lineHeightScale.h1;
 const PLACEHOLDER_LINE_HEIGHT = variables.lineHeightXLarge;
 
-// Bar widths approximating the copy each one replaces: the weekday-and-day date, the greeting with a first name,
-// and the placeholder question.
+// Bar widths approximating the copy each one stands in for.
 const DATE_BAR_WIDTH = 120;
 const GREETING_BAR_WIDTH = 220;
 const PLACEHOLDER_BAR_WIDTH = 200;
@@ -230,7 +228,12 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
                     </>
                 ) : (
                     <>
-                        <Text style={styles.textLabelSupporting}>{dateLabel}</Text>
+                        <Text
+                            variant="label"
+                            style={styles.textLabelSupporting}
+                        >
+                            {dateLabel}
+                        </Text>
                         <Text style={styles.textHeadlineH1}>{greeting}</Text>
                     </>
                 )}
