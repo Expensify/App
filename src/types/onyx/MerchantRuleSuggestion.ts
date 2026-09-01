@@ -6,20 +6,23 @@ import type {ValueOf} from 'type-fest';
 type MerchantRuleSuggestionField = ValueOf<typeof CONST.MERCHANT_RULE_SUGGESTION_FIELDS>;
 
 /**
- * Session-scoped record of the merchant-rule-governed field the user most recently edited on an expense.
+ * The expense edits that can be turned into a merchant rule, which drive the "Create a rule" callout.
  *
- * Drives the "Create a rule" callout on the expense detail view. Kept RAM-only so the callout can surface again on
- * the same expense in a future session, per the product spec.
+ * Kept RAM-only so the callout can appear again on the same expense in a future session.
  */
 type MerchantRuleSuggestion = {
-    /** The expense that was edited */
+    /** The expense most recently edited, which is the one currently offering a rule */
     transactionID: string;
 
-    /** Reports whose expense detail view can surface the callout: the transaction thread and its parent expense report */
+    /** The transaction thread and its parent expense report, whose expense detail views can show the callout */
     reportIDs: string[];
 
-    /** The edited field, used to pre-seed the rule */
-    field: MerchantRuleSuggestionField;
+    /**
+     * Every field edited so far, keyed by expense. The callout offers all of an expense's fields at once, because the
+     * user is recorded from their first edit until they take the offer. Keying by expense is what lets `Onyx.merge`
+     * accumulate them without reading the record back, and keeps one expense's edits out of another's rule.
+     */
+    editedFields: Record<string, Partial<Record<MerchantRuleSuggestionField, boolean>>>;
 
     /**
      * Expenses the user dismissed this session. Kept alongside the current offer rather than replaced by it, so a

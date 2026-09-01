@@ -5,7 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {dismissMerchantRuleSuggestion, retireMerchantRuleSuggestion} from '@libs/actions/MerchantRuleSuggestion';
+import {clearMerchantRuleSuggestionFields, dismissMerchantRuleSuggestion, retireMerchantRuleSuggestion} from '@libs/actions/MerchantRuleSuggestion';
 import {setDraftMerchantRule} from '@libs/actions/User';
 import {getMerchantRuleDraftFromTransaction} from '@libs/MerchantRuleSuggestionUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -52,7 +52,7 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, transactionID,
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
-    const {suggestion, transaction, policy} = useMerchantRuleSuggestion(reportID, policyID, transactionID);
+    const {suggestion, fields, transaction, policy} = useMerchantRuleSuggestion(reportID, policyID, transactionID);
 
     // The offer ends once the user has seen it and navigated away. Retiring leaves the expense itself untouched, so
     // editing it again offers afresh. Only the close button silences an expense for the session.
@@ -82,7 +82,7 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, transactionID,
     const dismiss = () => dismissMerchantRuleSuggestion(suggestion);
 
     const createRule = () => {
-        const draft = getMerchantRuleDraftFromTransaction(transaction, suggestion.field, policy);
+        const draft = getMerchantRuleDraftFromTransaction(transaction, fields, policy);
         if (!draft) {
             return;
         }
@@ -91,7 +91,9 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, transactionID,
         // than to the workspace Rules page.
         setDraftMerchantRule(draft);
         // The offer has been taken, so coming back from the rule flow, saved or abandoned, must not find it still
-        // asking. Editing the expense again starts a fresh offer.
+        // asking, and the recording that fed it ends here. Editing the expense again starts a fresh offer, gathering
+        // only what changes from now on rather than repeating fields already carried into this rule.
+        clearMerchantRuleSuggestionFields(suggestion.transactionID);
         retireMerchantRuleSuggestion();
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.RULES_MERCHANT_NEW_FROM_EXPENSE.getRoute(policyID)));
     };

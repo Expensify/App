@@ -5,6 +5,7 @@ import {isMerchantMissing} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleSuggestion, Policy, Transaction} from '@src/types/onyx';
+import type {MerchantRuleSuggestionField} from '@src/types/onyx/MerchantRuleSuggestion';
 
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -12,8 +13,11 @@ import usePolicyFeatureWriteAccess from './usePolicyFeatureWriteAccess';
 import useReportTransactions from './useReportTransactions';
 
 type MerchantRuleSuggestionResult = {
-    /** The edit that can be turned into a merchant rule, or undefined when no callout should render */
+    /** The edits that can be turned into a merchant rule, or undefined when no callout should render */
     suggestion: MerchantRuleSuggestion | undefined;
+
+    /** Every field edited on that expense so far, which the rule is pre-seeded from */
+    fields: MerchantRuleSuggestionField[];
 
     /** The edited expense, needed to pre-seed the rule */
     transaction: Transaction | undefined;
@@ -53,12 +57,18 @@ function useMerchantRuleSuggestion(reportID: string | undefined, policyID: strin
     const canCreateMerchantRule = canWriteRules && arePolicyRulesEnabled(policy, policyCategories, isBetaEnabled(CONST.BETAS.RULES_REVAMP));
     const suggestion = isForThisExpenseView && canCreateMerchantRule ? storedSuggestion : undefined;
 
-    // A merchant rule matches on merchant, so an expense without one, like a receipt still scanning, can't seed a rule
-    if (!suggestion || !transaction || isMerchantMissing(transaction)) {
-        return {suggestion: undefined, transaction: undefined, policy: undefined};
+    // Filtered from the canonical list rather than read off the record's own keys, so the fields arrive in a fixed
+    // order and nothing but a known field can reach the draft.
+    const editedFields = suggestion ? suggestion.editedFields?.[suggestion.transactionID] : undefined;
+    const fields = Object.values(CONST.MERCHANT_RULE_SUGGESTION_FIELDS).filter((field) => !!editedFields?.[field]);
+
+    // A merchant rule matches on merchant, so an expense without one, like a receipt still scanning, can't seed a rule.
+    // An offer with nothing recorded cannot seed one either, which is how an expense reads once its fields are cleared.
+    if (!suggestion || !transaction || isMerchantMissing(transaction) || fields.length === 0) {
+        return {suggestion: undefined, fields: [], transaction: undefined, policy: undefined};
     }
 
-    return {suggestion, transaction, policy};
+    return {suggestion, fields, transaction, policy};
 }
 
 export default useMerchantRuleSuggestion;
