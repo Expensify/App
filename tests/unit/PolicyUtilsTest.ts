@@ -25,7 +25,7 @@ import {
     getDefaultChatEnabledPolicySelection,
     getDefaultTimeTrackingRate,
     getDefaultWorkspacePlanType,
-    getEligibleBankAccountShareRecipients,
+    getEligibleBankAccountShareRecipientEmails,
     getExcludedUsers,
     getExpensifyTeamExclusions,
     getManagerAccountID,
@@ -1085,6 +1085,80 @@ describe('PolicyUtils', () => {
             });
         });
     });
+    describe('getSubmitReportManagerAccountID', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+        it('should return undefined for an advanced policy where the submitter is missing from the employee list, even if the report has a valid managerID', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                approver: 'owner@test.com',
+                owner: 'owner@test.com',
+                // The submitter isn't in the employee list, which is the case for reports migrated from Expensify Classic.
+                employeeList: {},
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                ownerAccountID: employeeAccountID,
+                // The stale Classic-era manager stamped on the migrated report.
+                managerID: categoryApprover1AccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail)).toBeUndefined();
+        });
+        it('should return the known approver accountID when the policy route is reliable', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                approver: 'owner@test.com',
+                owner: 'owner@test.com',
+                employeeList,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                ownerAccountID: employeeAccountID,
+                managerID: categoryApprover1AccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail)).toBe(adminAccountID);
+        });
+        it('should return undefined instead of a generated accountID when the approver is missing from personal details', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                approver: 'owner@test.com',
+                owner: 'owner@test.com',
+                employeeList: {
+                    [employeeEmail]: {
+                        email: employeeEmail,
+                        role: 'user',
+                        submitsTo: 'unknown@test.com',
+                    },
+                    // The approver is still a policy member, so the submit-to route stays put instead of falling back to the default approver.
+                    'unknown@test.com': {
+                        email: 'unknown@test.com',
+                        role: 'user',
+                    },
+                },
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                ownerAccountID: employeeAccountID,
+                managerID: categoryApprover1AccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail)).toBeUndefined();
+        });
+    });
     describe('shouldShowPolicy', () => {
         beforeEach(() => {
             global.fetch = TestHelper.getGlobalFetchMock();
@@ -2048,7 +2122,7 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('getEligibleBankAccountShareRecipients', () => {
+    describe('getEligibleBankAccountShareRecipientEmails', () => {
         beforeEach(() => {
             wrapOnyxWithWaitForBatchedUpdates(Onyx);
             Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
@@ -2071,7 +2145,7 @@ describe('PolicyUtils', () => {
                 '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
                 '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
             };
-            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, bankAccountID);
+            const result = getEligibleBankAccountShareRecipientEmails(policies, approverEmail, bankAccountID);
             expect(result).toHaveLength(0);
         });
         it('should return array with admins from the bank account workspace', async () => {
@@ -2097,7 +2171,7 @@ describe('PolicyUtils', () => {
                 },
                 '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
             };
-            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, bankAccountID);
+            const result = getEligibleBankAccountShareRecipientEmails(policies, approverEmail, bankAccountID);
             expect(result).toHaveLength(1);
         });
         it('should not return user with already shared bank account', async () => {
@@ -2124,7 +2198,7 @@ describe('PolicyUtils', () => {
                 },
                 '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
             };
-            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, bankAccountID);
+            const result = getEligibleBankAccountShareRecipientEmails(policies, approverEmail, bankAccountID);
             expect(result).toHaveLength(0);
         });
         it('should not return current user for sharing account', async () => {
@@ -2149,7 +2223,7 @@ describe('PolicyUtils', () => {
                     },
                 },
             };
-            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, bankAccountID);
+            const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, bankAccountID);
             expect(result).toHaveLength(1);
         });
         it('should allow Payments Admins to share with and receive from members who can manage payments', () => {
@@ -2165,10 +2239,10 @@ describe('PolicyUtils', () => {
                 },
             };
 
-            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, '1');
+            const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
 
             expect(result).toHaveLength(1);
-            expect(result.at(0)?.login).toBe(approverEmail);
+            expect(result.at(0)).toBe(approverEmail);
         });
         it('should not return members who cannot manage payments', () => {
             const policies = {
@@ -2183,7 +2257,7 @@ describe('PolicyUtils', () => {
                 },
             };
 
-            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, '1');
+            const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
 
             expect(result).toHaveLength(0);
         });
@@ -2200,7 +2274,7 @@ describe('PolicyUtils', () => {
                 },
             };
 
-            const recipients = getEligibleBankAccountShareRecipients(policies, adminEmail, '1');
+            const recipients = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
             const hasEligibleRecipient = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
 
             expect(recipients).toHaveLength(0);
@@ -2218,7 +2292,7 @@ describe('PolicyUtils', () => {
                     },
                 },
             };
-            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, '1');
+            const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
             expect(result).toHaveLength(0);
         });
         it('should return Expensify guide when policy owner is Expensify team', () => {
@@ -2233,7 +2307,7 @@ describe('PolicyUtils', () => {
                     },
                 },
             };
-            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, '1');
+            const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
             expect(result).toHaveLength(1);
         });
         it('should return Expensify guide when current user is Expensify team', () => {
@@ -2248,7 +2322,7 @@ describe('PolicyUtils', () => {
                     },
                 },
             };
-            const result = getEligibleBankAccountShareRecipients(policies, 'someone@expensify.com', '1');
+            const result = getEligibleBankAccountShareRecipientEmails(policies, 'someone@expensify.com', '1');
             expect(result).toHaveLength(1);
         });
     });
@@ -2917,7 +2991,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     arePerDiemRatesEnabled: true,
                     customUnits: {
                         ABCDEF: perDiemCustomUnit,
@@ -2927,7 +3000,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     arePerDiemRatesEnabled: true,
                     customUnits: {
                         ABCDEF: perDiemCustomUnit,
@@ -2946,7 +3018,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     arePerDiemRatesEnabled: true,
                     customUnits: {
                         ABCDEF: perDiemCustomUnit,
@@ -2956,7 +3027,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     arePerDiemRatesEnabled: true,
                     customUnits: {
                         ABCDEF: {
@@ -2969,7 +3039,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     arePerDiemRatesEnabled: true,
                     customUnits: {
                         ABCDEF: perDiemCustomUnit,
@@ -2987,7 +3056,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     // Migrated member: flag never arrived, but the configured custom unit is present
                     arePerDiemRatesEnabled: undefined,
                     customUnits: {
@@ -3005,7 +3073,6 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                     role: CONST.POLICY.ROLE.USER,
                     pendingAction: null,
-                    isPolicyExpenseChatEnabled: true,
                     // Explicit off must be respected, so the lingering custom unit cannot re-enable it
                     arePerDiemRatesEnabled: false,
                     customUnits: {
@@ -4275,7 +4342,7 @@ describe('PolicyUtils', () => {
         };
         const buildMergeHRPolicy = (seed: number, mergeHR: MergeHRTestConnection): Policy => Object.assign(createRandomPolicy(seed), {connections: {merge_hris: mergeHR}});
         const mergeHRBase = {
-            lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
+            lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.DONE},
             data: {groups: [{id: 'g1', name: 'Engineering'}]},
         };
 
@@ -4289,7 +4356,7 @@ describe('PolicyUtils', () => {
         });
 
         it('returns false when sync is not done', () => {
-            const policy = buildMergeHRPolicy(2, {...mergeHRBase, lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.SYNCING}});
+            const policy = buildMergeHRPolicy(2, {...mergeHRBase, lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.SYNCING}});
             expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
         });
 
