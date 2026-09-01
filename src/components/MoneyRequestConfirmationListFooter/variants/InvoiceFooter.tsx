@@ -7,10 +7,6 @@ import type {InvoiceFooterProps} from '@components/MoneyRequestConfirmationListF
 import React from 'react';
 import {View} from 'react-native';
 
-/**
- * Footer for invoices. An invoice is always a manual expense (the request-type tabs are not offered for it),
- * so it renders the same fields as `ManualFooter` and adds the sender row on top.
- */
 function InvoiceFooter({policy, policyTags, selectedParticipants, amountDisplay, requiredFlags, visibilityFlags, errorState, toggleHandlers = {}, receiptOptions}: InvoiceFooterProps) {
     return (
         <View>

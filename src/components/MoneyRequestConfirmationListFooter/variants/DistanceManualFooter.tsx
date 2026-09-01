@@ -24,6 +24,7 @@ function DistanceManualFooter({
                 policy={policy}
                 {...receiptOptions}
             />
+
             <ConfirmationFieldList
                 policy={policy}
                 policyTags={policyTags}

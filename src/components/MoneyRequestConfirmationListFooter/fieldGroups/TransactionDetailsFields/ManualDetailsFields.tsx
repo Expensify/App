@@ -11,7 +11,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 
 type ManualDetailsFieldsProps = {
-    /** Active policy (read by Amount/Description) */
+    /** Active policy */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Pre-formatted amount values */
@@ -20,7 +20,7 @@ type ManualDetailsFieldsProps = {
     /** Per-field "required" flags driven by policy/workflow */
     requiredFlags: RequiredFlags;
 
-    /** Error state surfaced into Amount/Merchant */
+    /** Error state */
     errorState: ErrorState;
 
     /** Whether the parent-owned participant picker modal is currently open (new manual expense flow) */

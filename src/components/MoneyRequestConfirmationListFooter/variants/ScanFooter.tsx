@@ -8,10 +8,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import React from 'react';
 import {View} from 'react-native';
 
-/**
- * Footer for scanned expenses. The only variant that reaches compact mode, where the receipt fills the
- * screen and the optional fields collapse behind a show-more button.
- */
 function ScanFooter({
     isCompactMode,
     policy,

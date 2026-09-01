@@ -54,12 +54,10 @@ type DistanceFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receip
 
 type DistanceOdometerFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'isCompactMode' | 'compactControls'>;
 
-/** Scan is the only variant that reaches compact mode, so it is the only one that keeps the compact props. */
 type ScanFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'distanceData'>;
 
 type ManualFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'isCompactMode' | 'compactControls' | 'distanceData'>;
 
-/** An invoice is always a manual expense, so it needs exactly what the manual variant needs. */
 type InvoiceFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'isCompactMode' | 'compactControls' | 'distanceData'>;
 
 export type {

@@ -12,7 +12,6 @@ type InvoiceSenderSectionProps = {
     selectedParticipants: Participant[];
 };
 
-/** Only `InvoiceFooter` renders this, so the `iouType === INVOICE` check the section used to make is redundant. */
 function InvoiceSenderSection({selectedParticipants}: InvoiceSenderSectionProps) {
     const {transactionID, isReadOnly, didConfirm} = useConfirmationFields();
     const transaction = useTransactionSelector(transactionID, invoiceSenderSliceSelector);

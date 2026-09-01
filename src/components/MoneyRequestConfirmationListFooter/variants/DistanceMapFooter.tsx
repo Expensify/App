@@ -22,10 +22,12 @@ function DistanceMapFooter({
     return (
         <View>
             <DistanceMapSection />
+
             <ReceiptSection
                 policy={policy}
                 {...receiptOptions}
             />
+
             <ConfirmationFieldList
                 policy={policy}
                 policyTags={policyTags}
