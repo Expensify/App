@@ -556,9 +556,8 @@ function ParticipantSearchResults({
             confirmButtonOptions={{
                 onConfirm: handleConfirmSelection,
                 isFooterConfirmEnabled: selectedOptions.length > 0 || isCategorizeOrShareAction,
-                // Surface the footer Next button's real disabled state so the list keeps its Enter shortcut when the
-                // split-bill error disables Next — otherwise Enter would be neither consumed by the list nor by the
-                // disabled button, and the user couldn't press Enter to toggle off the conflicting row.
+                // Pass the footer Next button's disabled state so Enter falls back to the list when split-bill disables Next;
+                // otherwise Enter can't toggle off the conflicting row.
                 isDisabled: shouldShowSplitBillErrorMessage,
             }}
             sections={sections}
