@@ -1,5 +1,5 @@
 import HeaderTitle from '@components/HeaderTitle';
-import type {HeaderProps} from '@components/HeaderTitle/HeaderTitle';
+import type {HeaderTitleProps} from '@components/HeaderTitle/HeaderTitle';
 
 import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 
@@ -17,7 +17,7 @@ const story: Meta<typeof HeaderTitle> = {
     component: HeaderTitle,
 };
 
-function Template(props: HeaderProps) {
+function Template(props: HeaderTitleProps) {
     return (
         <HeaderTitle {...props}>
             <HeaderTitle.Text>Chats</HeaderTitle.Text>
