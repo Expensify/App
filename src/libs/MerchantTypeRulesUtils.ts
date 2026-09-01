@@ -12,7 +12,7 @@ import type {CodingRule} from '@src/types/onyx/Policy';
 import {DEFAULT_MCC_GROUP, isDefaultMccGroupID} from './actions/Policy/Category';
 import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
 import {clearPolicyCodingRuleErrors} from './actions/Policy/Rules';
-import {getCategoryTaxRulesTableData, getRuleDeletionPendingAction, getTaxRateDisplayName} from './CategoryTaxRulesUtils';
+import {getCategoryTaxRulesTableData, getTaxRateDisplayName} from './CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import Parser from './Parser';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
@@ -100,16 +100,12 @@ function getMerchantTypeRulesTableData({
 function getMerchantCodingRulesTableData({
     policy,
     policyID,
-    policyCategories,
     translate,
-    isOffline,
     onNavigate,
 }: {
     policy: Policy | undefined;
     policyID: string;
-    policyCategories: PolicyCategories | undefined;
     translate: LocaleContextProps['translate'];
-    isOffline: boolean;
     onNavigate: (route: Route) => void;
 }): ExpenseDefaultTableItem[] {
     const codingRules = policy?.rules?.codingRules;
@@ -127,12 +123,10 @@ function getMerchantCodingRulesTableData({
         vendor: translate(isOnXero ? 'common.supplier' : 'common.vendor').toLowerCase(),
     };
 
-    // The whole rule goes when a category it sets is deleted. A deleted tax rate isn't borrowed here: the rule has
-    // other defaults to fall back on, so it isn't known to be removed with the rate.
-    const getPendingAction = (rule: CodingRule) => rule.pendingAction ?? getRuleDeletionPendingAction(policy, policyCategories, rule.category, undefined);
-
+    // A merchant rule outlives the category or tax rate it sets — the backend keeps the rule and only drops that one
+    // default — so no pending state is borrowed here. Only the rule's own delete greys it out.
     return Object.entries(codingRules)
-        .filter(([, rule]) => !!rule && (isOffline || getPendingAction(rule) !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
+        .filter(([, rule]) => !!rule)
         .map(([ruleID, rule]: [string, CodingRule]) => {
             const merchantName = rule.filters?.right ?? '';
             const hasOnlyMerchantRename =
@@ -181,7 +175,7 @@ function getMerchantCodingRulesTableData({
                 actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleBillable', rule.billable));
             }
             const ruleDescription = actions.map((action, index) => (index === 0 ? action : action.charAt(0).toLowerCase() + action.slice(1))).join(', ');
-            const pendingAction = getPendingAction(rule);
+            const pendingAction = rule.pendingAction;
 
             return {
                 keyForList: ruleID,
@@ -218,7 +212,7 @@ function getExpenseDefaultsTableData({
     onNavigate: (route: Route) => void;
 }): ExpenseDefaultTableItem[] {
     const categoryTaxRules = getCategoryTaxRulesTableData({policy, policyCategories, translate, isOffline, onNavigate});
-    const merchantRules = getMerchantCodingRulesTableData({policy, policyID, policyCategories, translate, isOffline, onNavigate});
+    const merchantRules = getMerchantCodingRulesTableData({policy, policyID, translate, onNavigate});
     const merchantTypeRules = getMerchantTypeRulesTableData({policy, translate, onNavigate});
 
     return [...categoryTaxRules, ...merchantRules, ...merchantTypeRules];

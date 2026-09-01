@@ -144,7 +144,9 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
-    const [isDeleting, setIsDeleting] = useState(false);
+    // The page is on its way out, so the rule it was editing no longer being there is expected. A category rule is
+    // keyed by its category, so moving it to another category makes the one this page opened with disappear.
+    const [isClosing, setIsClosing] = useState(false);
     const {isLoading, startWithLoading} = usePressLoading();
     const isEditing = !!ruleID;
     const isEditingCategoryTaxRule = !!editCategoryTaxRuleFor;
@@ -375,6 +377,7 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
             // Editing is single-select, so a move has exactly one destination. It clears the old category and sets the
             // new one as a pair, sharing one rollback so a failed move can't drop both rules.
             const movedToCategory = editCategoryTaxRuleFor && !categoriesToMatch.includes(editCategoryTaxRuleFor) ? categoriesToMatch.at(0) : undefined;
+            setIsClosing(true);
             if (editCategoryTaxRuleFor && movedToCategory) {
                 movePolicyCategoryTax(policy, editCategoryTaxRuleFor, movedToCategory, categoryTaxID);
             } else {
@@ -457,7 +460,7 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
-            setIsDeleting(true);
+            setIsClosing(true);
             if (editCategoryTaxRuleFor) {
                 deletePolicyCategoryTax(policy, editCategoryTaxRuleFor);
             } else if (ruleID) {
@@ -585,11 +588,11 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
         Navigation.navigate(ROUTES.RULES_MERCHANT_PREVIEW_MATCHES.getRoute(policyID, ruleID));
     };
 
-    if (ruleID && !existingRule && !isDeleting) {
+    if (ruleID && !existingRule && !isClosing) {
         return <NotFoundPage />;
     }
 
-    if (isEditingCategoryTaxRule && !existingCategoryTaxID && !isDeleting) {
+    if (isEditingCategoryTaxRule && !existingCategoryTaxID && !isClosing) {
         return <NotFoundPage />;
     }
 

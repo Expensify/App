@@ -68,6 +68,10 @@ function AddTaxPage({route}: AddTaxPageProps) {
                     items={taxItems}
                     onSave={onSave}
                     backToRoute={backToRoute}
+                    // A category rule exists to set a rate, so it has no "leave the tax alone" state to offer. Reading
+                    // "None" as the current value is wrong too: without a rule the category falls back to the
+                    // workspace default rate, which this list deliberately leaves out.
+                    allowNoneOption={!isCategoryRule}
                 />
             ) : (
                 <RuleTaxesDisabledEmptyState policyID={policyID} />
