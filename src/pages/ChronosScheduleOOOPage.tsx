@@ -300,6 +300,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                     value={selectedLeaveType}
                     items={leaveTypeItems}
                     containerStyles={styles.mb4}
+                    shouldShowFocusedState={false}
                     onValueChange={(value) => setSelectedLeaveType(value as string)}
                 />
                 {shouldShowReason && (
