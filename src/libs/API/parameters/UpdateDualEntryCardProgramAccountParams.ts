@@ -4,7 +4,7 @@ import type {DualEntryAccount} from '@src/types/onyx/Policy';
 type UpdateDualEntryCardProgramAccountParams = {
     policyID: string;
     feedKey: CardFeedWithNumber;
-    accountID: DualEntryAccount['id'];
+    cardProgramAccountID: DualEntryAccount['id'];
 };
 
 export default UpdateDualEntryCardProgramAccountParams;

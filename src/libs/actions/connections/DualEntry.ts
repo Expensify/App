@@ -790,14 +790,14 @@ function updateDualEntryExportToMultipleAccounts(policyID: string, enabled: Dual
 function updateDualEntryCardProgramAccount(
     policyID: string,
     feedKey: keyof DualEntryExport['cardProgramAccounts'],
-    accountID: ValueOf<DualEntryExport['cardProgramAccounts']>,
-    oldAccountCode?: ValueOf<DualEntryExport['cardProgramAccounts']>,
+    cardProgramAccountID: ValueOf<DualEntryExport['cardProgramAccounts']>,
+    oldCardProgramAccountID?: ValueOf<DualEntryExport['cardProgramAccounts']>,
 ) {
-    const onyxData = prepareDualEntryCardProgramAccountOnyxData(policyID, feedKey, accountID, oldAccountCode ?? null);
+    const onyxData = prepareDualEntryCardProgramAccountOnyxData(policyID, feedKey, cardProgramAccountID, oldCardProgramAccountID ?? null);
     const parameters: UpdateDualEntryCardProgramAccountParams = {
         policyID,
         feedKey,
-        accountID,
+        cardProgramAccountID,
     };
     write(WRITE_COMMANDS.UPDATE_DUALENTRY_CARD_PROGRAM_ACCOUNT, parameters, onyxData);
 }
