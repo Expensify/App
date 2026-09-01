@@ -115,7 +115,7 @@ Workspace business bank accounts can be connected in:
 
 Members can receive funds in 190+ countries after adding a supported personal bank account.
 
-**Note:** Foreign exchange (FX) fees or receiving bank fees may affect the final deposited amount.
+**Note:** Foreign exchange (FX) fees or receiving bank fees may affect the final deposited amount. Whether the company or the employee absorbs FX conversion fees depends on the workspace's **Currency conversion fees** setting. Learn how to [choose who pays currency conversion fees](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Workflows#how-to-choose-who-pays-currency-conversion-fees).
 
 ---
 
