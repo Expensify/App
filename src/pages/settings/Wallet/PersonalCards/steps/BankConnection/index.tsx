@@ -13,6 +13,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import PersonalCardsErrorConfirmation from '@pages/settings/Wallet/PersonalCards/PersonalCardsErrorConfirmation';
 import useGetNewPersonalCard from '@pages/settings/Wallet/PersonalCards/useGetNewPersonalCard';
 
@@ -82,8 +84,7 @@ function BankConnection() {
     const onImportPlaidAccounts = useImportPersonalPlaidAccounts();
     const newCard = useGetNewPersonalCard();
     const hasImportError = !isEmptyObject(addNewCard?.errors);
-    const latestError = Object.values(addNewCard?.errors ?? {}).at(-1);
-    const errorMessage = typeof latestError === 'string' ? latestError : undefined;
+    const errorMessage = getLatestErrorMessage(addNewCard) || undefined;
 
     const onOpenBankConnectionFlow = () => {
         if (!url) {

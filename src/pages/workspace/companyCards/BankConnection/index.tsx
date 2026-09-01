@@ -20,6 +20,7 @@ import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection'
 
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed, isSelectedFeedExpired} from '@libs/CardUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
@@ -74,8 +75,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.[feed]) : false;
     const headerTitleAddCards = translate('workspace.companyCards.addCards');
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
-    const latestError = Object.values(addNewCard?.errors ?? (newFeed ? cardFeeds?.[newFeed]?.errors : undefined) ?? {}).at(-1);
-    const errorMessage = typeof latestError === 'string' ? latestError : undefined;
+    const errorMessage = getLatestErrorMessage({errors: addNewCard?.errors ?? (newFeed ? cardFeeds?.[newFeed]?.errors : undefined)}) || undefined;
     const isNewFeedHasError = !!errorMessage;
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);

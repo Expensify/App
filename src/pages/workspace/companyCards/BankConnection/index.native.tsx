@@ -16,6 +16,7 @@ import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection'
 import {updateSelectedFeed} from '@libs/actions/Card';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed, isSelectedFeedExpired} from '@libs/CardUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getUAForWebView from '@libs/getUAForWebView';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -71,8 +72,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
-    const latestError = Object.values(addNewCard?.errors ?? (newFeed ? cardFeeds?.[newFeed]?.errors : undefined) ?? {}).at(-1);
-    const errorMessage = typeof latestError === 'string' ? latestError : undefined;
+    const errorMessage = getLatestErrorMessage({errors: addNewCard?.errors ?? (newFeed ? cardFeeds?.[newFeed]?.errors : undefined)}) || undefined;
     const isNewFeedHasError = !!errorMessage;
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const {checkForDuplicateFeed} = useDuplicateFeedDetection({policyID, isPlaid});

@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getUAForWebView from '@libs/getUAForWebView';
 
 import PersonalCardsErrorConfirmation from '@pages/settings/Wallet/PersonalCards/PersonalCardsErrorConfirmation';
@@ -44,8 +45,7 @@ function BankConnection() {
     const onImportPlaidAccounts = useImportPersonalPlaidAccounts();
     const newCard = useGetNewPersonalCard();
     const isNewCardError = !isEmptyObject(addNewCard?.errors);
-    const latestError = Object.values(addNewCard?.errors ?? {}).at(-1);
-    const errorMessage = typeof latestError === 'string' ? latestError : undefined;
+    const errorMessage = getLatestErrorMessage(addNewCard) || undefined;
 
     const renderLoading = () => <LoadingIndicator />;
 
