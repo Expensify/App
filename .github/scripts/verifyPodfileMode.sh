@@ -83,6 +83,20 @@ if [[ ${#MISSING[@]} -eq 0 && ${#UNEXPECTED[@]} -eq 0 && "$HERMES_PREBUILT_MISSI
 fi
 
 echo ""
+
+# Hermes is resolved independently of our artifacts, so a lockfile can carry the right react-native
+# mode and still have compiled Hermes. Reporting that as a mode failure would send the reader to
+# remediation that has nothing to do with it.
+if [[ ${#MISSING[@]} -eq 0 && ${#UNEXPECTED[@]} -eq 0 ]]; then
+  echo "❌ $LOCKFILE resolved react-native in $EXPECTED_MODE mode, but Hermes was compiled from source."
+  echo ""
+  echo "   'hermes-engine/Pre-built' is missing. Check for a local Hermes override"
+  echo "   (REACT_NATIVE_OVERRIDE_HERMES_DIR, HERMES_COMMIT, a .hermesversion file), or a failed"
+  echo "   Maven Central lookup during pod install, then reinstall the pods."
+  echo ""
+  exit 1
+fi
+
 echo "❌ $LOCKFILE was not resolved in the expected '$EXPECTED_MODE' mode."
 echo ""
 
