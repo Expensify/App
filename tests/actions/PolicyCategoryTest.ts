@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/no-unsafe-onyx-read -- this suite asserts on Search snapshot keys directly */
 import {act, renderHook} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -22,7 +23,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategory} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import type {MockFetch} from '../utils/TestHelper';
 
@@ -436,7 +436,7 @@ describe('actions/PolicyCategory', () => {
             await waitForBatchedUpdates();
 
             // Then the approval rule should be created with the tag name
-            const updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            const updatedPolicy = await Onyx.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
 
             expect(updatedPolicy?.rules?.expenseRules).toHaveLength(1);
             expect(updatedPolicy?.rules?.expenseRules?.[0]?.applyWhen?.[0]?.value).toBe(categoryName);
@@ -496,7 +496,7 @@ describe('actions/PolicyCategory', () => {
             await waitForBatchedUpdates();
 
             // Then the approval rule should be created with the tag name
-            const updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            const updatedPolicy = await Onyx.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
 
             expect(updatedPolicy?.rules?.expenseRules).toHaveLength(1);
             expect(updatedPolicy?.rules?.expenseRules?.[0]?.applyWhen?.[0]?.value).toBe(categoryName);
@@ -551,7 +551,7 @@ describe('actions/PolicyCategory', () => {
             await waitForBatchedUpdates();
 
             // Verify the category was created
-            const policyCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`);
+            const policyCategories = await Onyx.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`);
             const newCategory = policyCategories?.[newCategoryName];
             expect(newCategory?.name).toBe(newCategoryName);
 
@@ -598,7 +598,7 @@ describe('actions/PolicyCategory', () => {
             await waitForBatchedUpdates();
 
             // Verify the category was created
-            const policyCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`);
+            const policyCategories = await Onyx.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`);
             const newCategory = policyCategories?.[newCategoryName];
             expect(newCategory?.name).toBe(newCategoryName);
 

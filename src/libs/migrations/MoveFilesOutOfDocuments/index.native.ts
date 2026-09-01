@@ -9,7 +9,6 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import RNFS from 'react-native-fs';
 import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 const OLD_ATTACHMENT_DIR = `${RNFS.DocumentDirectoryPath}/attachments`;
 const NEW_ATTACHMENT_DIR = `${RNFS.CachesDirectoryPath}/attachments`;
@@ -62,7 +61,7 @@ function moveAttachmentCache(): Promise<void> {
  * later launches skip it entirely.
  */
 function updateAttachmentRecordPaths(): Promise<void> {
-    return OnyxUtils.get(ONYXKEYS.ATTACHMENT_RECORD_PATHS_MIGRATED).then((hasMigrated) => {
+    return Onyx.get(ONYXKEYS.ATTACHMENT_RECORD_PATHS_MIGRATED).then((hasMigrated) => {
         if (hasMigrated) {
             return;
         }

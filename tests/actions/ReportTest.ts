@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/no-unsafe-onyx-read -- this suite asserts on Search snapshot keys directly */
 /* eslint-disable @typescript-eslint/naming-convention */
 import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 import {renderHook} from '@testing-library/react-native';
@@ -47,7 +48,6 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {addSeconds, format, subMinutes} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import type {MockFetch} from '../utils/TestHelper';
 
@@ -2409,7 +2409,7 @@ describe('actions/Report', () => {
 
         await waitForBatchedUpdates();
 
-        const persistedRequests = await OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS);
+        const persistedRequests = await Onyx.get(ONYXKEYS.PERSISTED_REQUESTS);
         expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
         expect(persistedRequests?.at(1)?.command).toBe(WRITE_COMMANDS.OPEN_REPORT);
         expect(persistedRequests?.at(2)?.command).toBe(WRITE_COMMANDS.DELETE_COMMENT);
@@ -2455,7 +2455,7 @@ describe('actions/Report', () => {
 
         await waitForBatchedUpdates();
 
-        const persistedRequests = await OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS);
+        const persistedRequests = await Onyx.get(ONYXKEYS.PERSISTED_REQUESTS);
 
         expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
 
@@ -2640,7 +2640,7 @@ describe('actions/Report', () => {
             [mentionActionID2]: mentionAction2,
         });
 
-        let report = {
+        const report = {
             ...createRandomReport(Number(reportID), undefined),
             lastMentionedTime: mentionAction2.created,
         };
@@ -2655,9 +2655,9 @@ describe('actions/Report', () => {
 
         await waitForBatchedUpdates();
 
-        report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+        const updatedReport = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
-        expect(report?.lastMentionedTime).toBeUndefined();
+        expect(updatedReport?.lastMentionedTime).toBeUndefined();
     });
 
     describe('deleteReportComment SEARCH_REPORT navigation', () => {
@@ -2724,7 +2724,7 @@ describe('actions/Report', () => {
             Report.saveReportActionDraft(reportID, reportAction, {[reportAction.reportActionID]: reportAction}, 'edited message');
             await waitForBatchedUpdates();
 
-            const drafts = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`);
+            const drafts = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`);
             expect(drafts?.['draft-local-action']?.message).toBe('edited message');
         });
 
@@ -2740,9 +2740,9 @@ describe('actions/Report', () => {
             Report.saveReportActionDraft(threadReportID, parentReportAction, {}, 'edited thread parent');
             await waitForBatchedUpdates();
 
-            const parentDrafts = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${parentReportID}`);
+            const parentDrafts = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${parentReportID}`);
             expect(parentDrafts?.['draft-thread-parent-action']?.message).toBe('edited thread parent');
-            const threadDrafts = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${threadReportID}`);
+            const threadDrafts = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${threadReportID}`);
             expect(threadDrafts?.['draft-thread-parent-action']).toBeUndefined();
         });
 
@@ -2752,7 +2752,7 @@ describe('actions/Report', () => {
             Report.saveReportActionDraft(reportID, null, undefined, 'should not be saved');
             await waitForBatchedUpdates();
 
-            const drafts = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`);
+            const drafts = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`);
             expect(drafts).toBeFalsy();
         });
     });
@@ -2776,7 +2776,7 @@ describe('actions/Report', () => {
             toggleEmojiReaction(threadReportID, parentReportAction, {name: 'smile', code: '😄', hexcode: '1F604'}, {}, CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID, {});
             await waitForBatchedUpdates();
 
-            const reactions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${parentReportAction.reportActionID}`);
+            const reactions = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${parentReportAction.reportActionID}`);
             expect(reactions?.smile?.users?.[TEST_USER_ACCOUNT_ID]).toBeDefined();
         });
     });
