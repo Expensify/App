@@ -400,6 +400,7 @@ type OptimisticExpenseReport = Pick<
     | 'parentReportActionID'
     | 'participants'
     | 'fieldList'
+    | 'transactionCount'
 >;
 
 type OptimisticNewReport = Pick<
