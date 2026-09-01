@@ -62,6 +62,7 @@ describe('expenseReportAvatarSelector', () => {
             policyAvatar: 'https://example.com/policy-avatar.png',
             policyName: 'Policy Name',
             oldPolicyName: 'Old Policy Name',
+            chatReportID: 'chatReport123',
             parentReportID: PARENT_REPORT_ID,
             // A field the avatar does not read, to prove it is stripped
             lastMessageText: 'Hello',
@@ -73,6 +74,7 @@ describe('expenseReportAvatarSelector', () => {
             policyAvatar: 'https://example.com/policy-avatar.png',
             policyName: 'Policy Name',
             oldPolicyName: 'Old Policy Name',
+            chatReportID: 'chatReport123',
             parentReportID: PARENT_REPORT_ID,
         });
     });

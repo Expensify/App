@@ -125,6 +125,12 @@ describe('ExpenseReportAvatar (connected)', () => {
         // The report-carried `policyAvatar` only applies while the policy row is entirely absent.
         ["the report's policyAvatar when the policy row is missing", {reportPolicyAvatar: REPORT_POLICY_AVATAR_URL}, REPORT_POLICY_AVATAR_URL],
         ["the parent chat's policyAvatar when the report carries none either", {parentChatPolicyAvatar: PARENT_POLICY_AVATAR_URL}, PARENT_POLICY_AVATAR_URL],
+        // A report-carried '' means "no uploaded avatar" and must fall through to the parent chat's avatar, not shadow it.
+        [
+            "the parent chat's policyAvatar when the report's policyAvatar is an empty string",
+            {reportPolicyAvatar: '', parentChatPolicyAvatar: PARENT_POLICY_AVATAR_URL},
+            PARENT_POLICY_AVATAR_URL,
+        ],
     ])(
         'should resolve %s as the subscript source',
         async (
@@ -201,6 +207,22 @@ describe('ExpenseReportAvatar (connected)', () => {
             expect(mockCapturedSubscriptAvatarProps.secondaryAvatar).toEqual(expect.objectContaining({name: expectedName}));
         },
     );
+
+    it('should resolve the workspace chat through chatReportID when parentReportID is absent', async () => {
+        const chatReportID = 'workspaceChat789';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createExpenseReport({parentReportID: undefined, chatReportID}));
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {reportID: chatReportID, type: CONST.REPORT.TYPE.CHAT, policyName: 'Chat Policy Name'});
+        await waitForBatchedUpdatesWithAct();
+
+        render(
+            <ExpenseReportAvatar
+                reportID={REPORT_ID}
+                size={CONST.AVATAR_SIZE.DEFAULT}
+            />,
+        );
+
+        expect(mockCapturedSubscriptAvatarProps.secondaryAvatar).toEqual(expect.objectContaining({name: 'Chat Policy Name'}));
+    });
 
     it('should render the fallback avatar as the primary when the report has no owner', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createExpenseReport({ownerAccountID: undefined}));
