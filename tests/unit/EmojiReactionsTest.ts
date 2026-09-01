@@ -26,6 +26,13 @@ jest.mock('@libs/API', () => ({
     write: jest.fn(),
 }));
 
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {
+        isHybridApp: jest.fn(() => false),
+    },
+}));
+
 const THUMBSUP = {name: '+1', code: '👍', hexcode: '1F44D'};
 const REPORT_ID = 'report1';
 const ACTION = createMock<ReportAction>({reportActionID: 'action1'});
@@ -160,7 +167,7 @@ describe('toggleEmojiReaction — mixed-format Onyx state', () => {
         Reflect.deleteProperty(existingReactions[THUMBSUP_NAME], 'users');
 
         expect(() => {
-            toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, existingReactions, SKIN_TONE, USER_A, true);
+            toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, existingReactions, SKIN_TONE, USER_A, undefined, true);
         }).not.toThrow();
 
         expect(writeMock).toHaveBeenCalledTimes(1);
@@ -173,7 +180,7 @@ describe('addEmojiReaction — finallyData', () => {
         const THUMBSUP_HEX = '1F44D';
         const THUMBSUP_NAME = '+1';
 
-        toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, {}, SKIN_TONE, USER_A);
+        toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, {}, SKIN_TONE, USER_A, undefined);
 
         expect(writeMock).toHaveBeenCalledTimes(1);
         expect(writeMock).toHaveBeenCalledWith(

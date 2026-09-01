@@ -68,6 +68,13 @@ jest.mock('@libs/NextStepUtils', () => ({
     buildOptimisticNextStep: jest.fn(),
 }));
 
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {
+        isHybridApp: jest.fn(() => false),
+    },
+}));
+
 // Only the layout-specific tests below override this, so it keeps the real implementation as its default and every
 // other test in this file keeps behaving exactly as it did before.
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn(jest.requireActual<{default: () => boolean}>('@libs/getIsNarrowLayout').default));
@@ -984,7 +991,9 @@ describe('actions/Report', () => {
     });
 
     it('should properly toggle reactions on a message', () => {
-        global.fetch = TestHelper.createGlobalFetchMock();
+        const mockFetch = TestHelper.createGlobalFetchMock();
+        mockFetch.pause();
+        global.fetch = mockFetch;
 
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
@@ -1120,12 +1129,15 @@ describe('actions/Report', () => {
                         expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
                         const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
                         expect(reportActionReaction?.[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
+                        return mockFetch.resume();
                     });
             });
     });
 
     it("shouldn't add the same reaction twice when changing preferred skin color and reaction doesn't support skin colors", () => {
-        global.fetch = TestHelper.createGlobalFetchMock();
+        const mockFetch = TestHelper.createGlobalFetchMock();
+        mockFetch.pause();
+        global.fetch = mockFetch;
 
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
@@ -1202,6 +1214,7 @@ describe('actions/Report', () => {
                 expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction?.reportActionID}`);
                 const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction?.reportActionID}`];
                 expect(reportActionReaction?.[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
+                return mockFetch.resume();
             });
     });
 
@@ -2761,7 +2774,9 @@ describe('actions/Report', () => {
         const TEST_USER_ACCOUNT_ID = 1;
 
         it('adds the reaction to a thread parent message using the parent report actions', async () => {
-            global.fetch = TestHelper.createGlobalFetchMock();
+            const mockFetch = TestHelper.createGlobalFetchMock();
+            mockFetch.pause();
+            global.fetch = mockFetch;
             const parentReportID = '9105';
             const threadReportID = '9106';
             const created = format(addSeconds(subMinutes(new Date(), 10), 10), CONST.DATE.FNS_DB_FORMAT_STRING);
@@ -2778,6 +2793,7 @@ describe('actions/Report', () => {
 
             const reactions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${parentReportAction.reportActionID}`);
             expect(reactions?.smile?.users?.[TEST_USER_ACCOUNT_ID]).toBeDefined();
+            await mockFetch.resume();
         });
     });
 
