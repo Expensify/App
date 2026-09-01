@@ -1,4 +1,3 @@
-import {dismissMerchantRuleSuggestion} from '@libs/actions/MerchantRuleSuggestion';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 
 import CONST from '@src/CONST';
@@ -6,7 +5,7 @@ import type {TranslationPaths} from '@src/languages/types';
 
 import type {ValueOf} from 'type-fest';
 
-const {CONCIERGE_LHN_GBR, OUTSTANDING_FILTER, ACCOUNT_SWITCHER, SCAN_TEST_DRIVE_CONFIRMATION, GPS_TOOLTIP, HAS_FILTER_NEGATION, MILEAGE_RATE_AUTO_UPDATED, MERCHANT_RULE_SUGGESTION} =
+const {CONCIERGE_LHN_GBR, OUTSTANDING_FILTER, ACCOUNT_SWITCHER, SCAN_TEST_DRIVE_CONFIRMATION, GPS_TOOLTIP, HAS_FILTER_NEGATION, MILEAGE_RATE_AUTO_UPDATED} =
     CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 type ProductTrainingTooltipName = Exclude<
@@ -83,15 +82,6 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: MILEAGE_RATE_AUTO_UPDATED,
         priority: 800,
         shouldShow: () => true,
-    },
-    [MERCHANT_RULE_SUGGESTION]: {
-        content: 'productTrainingTooltip.merchantRuleSuggestion',
-        // Unlike the other tooltips this one is dismissed per expense for the session instead of account-wide, so
-        // that a later edit on another expense (or on the same one in a new session) can offer the rule again.
-        onHideTooltip: () => dismissMerchantRuleSuggestion(),
-        name: MERCHANT_RULE_SUGGESTION,
-        priority: 900,
-        shouldShow: ({isUserPolicyAdmin}) => isUserPolicyAdmin,
     },
 };
 

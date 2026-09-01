@@ -682,7 +682,7 @@ const ONYXKEYS = {
     RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER: 'hasDismissedConciergeNotificationBanner',
 
     /** Session-scoped record of the merchant-rule-governed field most recently edited on an expense.
-     *  Drives the "Create a rule" product training tooltip. Registered as RAM-only in `setup/index.ts`. */
+     *  Drives the "Create a rule" callout. Registered as RAM-only in `setup/index.ts`. */
     RAM_ONLY_MERCHANT_RULE_SUGGESTION: 'merchantRuleSuggestion',
 
     NVP_PRIVATE_CANCELLATION_DETAILS: 'nvp_private_cancellationDetails',

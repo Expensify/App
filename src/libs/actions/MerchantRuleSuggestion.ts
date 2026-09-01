@@ -4,9 +4,9 @@ import type {MerchantRuleSuggestionField} from '@src/types/onyx/MerchantRuleSugg
 
 import Onyx from 'react-native-onyx';
 
-// The product training registry calls `onHideTooltip` with no arguments, so the dismissal below has to resolve the
-// expense being offered on its own. This is action-only state, never read during render, so `Onyx.connectWithoutView`
-// is appropriate. Components read the same key with `useOnyx`.
+// Dismissing appends to the expenses already dismissed, so it needs the current record. Reading it here rather than
+// passing it in keeps callers from having to thread the whole record through just to dismiss. This is action-only
+// state, never read during render, so `Onyx.connectWithoutView` is appropriate; components use `useOnyx`.
 let merchantRuleSuggestion: MerchantRuleSuggestion | undefined;
 Onyx.connectWithoutView({
     key: ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION,
@@ -17,16 +17,15 @@ Onyx.connectWithoutView({
 
 /**
  * Records that a merchant-rule-governed field was edited on an expense, so the expense detail view can offer to turn
- * the edit into a merchant rule. Only the most recent edit is kept: the product training context shows one tooltip at
- * a time, and the offer is always about the edit the user just made.
+ * the edit into a merchant rule. Only the most recent edit is kept: one callout shows at a time, and the offer is
+ * always about the edit the user just made.
  *
- * The record is RAM-only, so it never outlives the session. This deliberately does not use `dismissProductTraining`
- * like the other product training elements: that NVP dismisses an element account-wide and permanently, while this
- * callout is dismissed per expense and is meant to surface again on another expense, or on the same one in a later
- * session.
+ * The record is RAM-only, so it never outlives the session, dismissals included. That is deliberate: the callout is
+ * dismissed one expense at a time and is meant to surface again on another expense, or on the same one in a later
+ * session, which an account-wide NVP dismissal could not express.
  *
- * Written for every user; whether the tooltip renders is decided by `useMerchantRuleSuggestion` and the tooltip's
- * `shouldShow`, which require workspace admin rights.
+ * Written for every user; whether the callout renders is decided by `useMerchantRuleSuggestion`, which requires
+ * workspace admin rights.
  */
 function trackMerchantRuleSuggestion(transactionID: string | undefined, field: MerchantRuleSuggestionField, reportIDs: Array<string | undefined>) {
     if (!transactionID) {

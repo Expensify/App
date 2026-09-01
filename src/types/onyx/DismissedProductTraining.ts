@@ -11,7 +11,6 @@ const {
     MILEAGE_RATE_AUTO_UPDATED,
     REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP,
     REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP,
-    MERCHANT_RULE_SUGGESTION,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 /**
@@ -101,12 +100,6 @@ type DismissedProductTraining = {
      * while Receipt is waived, we store the timestamp here.
      */
     [REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP]: DismissedProductTrainingElement;
-
-    /**
-     * The "Create a rule" callout on an expense is dismissed per expense for the session rather than account-wide,
-     * so nothing is stored here. The key exists only because the product training registry is typed by this object.
-     */
-    [MERCHANT_RULE_SUGGESTION]?: never;
 };
 
 export default DismissedProductTraining;

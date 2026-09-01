@@ -13,7 +13,7 @@ import usePolicyFeatureWriteAccess from './usePolicyFeatureWriteAccess';
 import useReportTransactions from './useReportTransactions';
 
 type MerchantRuleSuggestionResult = {
-    /** The edit that can be turned into a merchant rule, or undefined when no tooltip should render */
+    /** The edit that can be turned into a merchant rule, or undefined when no callout should render */
     suggestion: MerchantRuleSuggestion | undefined;
 
     /** The edited expense, needed to pre-seed the rule */
@@ -24,11 +24,8 @@ type MerchantRuleSuggestionResult = {
 };
 
 /**
- * Resolves the "Create a rule" tooltip for an expense detail view: an admin just edited a field that merchant rules
+ * Resolves the "Create a rule" callout for an expense detail view: an admin just edited a field that merchant rules
  * can govern, and hasn't dismissed the offer for that expense.
- *
- * Admin rights are also checked by the tooltip's own `shouldShow` in TOOLTIPS.ts, but that check is workspace-agnostic
- * (it asks whether the user administers any workspace), so the policy-specific checks live here.
  *
  * @param reportID - the report hosting the expense detail view (a transaction thread, its expense report, or the chat the expense lives in)
  * @param policyID - the workspace the expense belongs to

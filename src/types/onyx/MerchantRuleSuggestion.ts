@@ -8,14 +8,14 @@ type MerchantRuleSuggestionField = ValueOf<typeof CONST.MERCHANT_RULE_SUGGESTION
 /**
  * Session-scoped record of the merchant-rule-governed field the user most recently edited on an expense.
  *
- * Drives the "Create a rule" product training tooltip on the expense detail view. Kept RAM-only so the tooltip can
- * surface again on the same expense in a future session, per the product spec.
+ * Drives the "Create a rule" callout on the expense detail view. Kept RAM-only so the callout can surface again on
+ * the same expense in a future session, per the product spec.
  */
 type MerchantRuleSuggestion = {
     /** The expense that was edited */
     transactionID: string;
 
-    /** Reports whose expense detail view can surface the tooltip: the transaction thread and its parent expense report */
+    /** Reports whose expense detail view can surface the callout: the transaction thread and its parent expense report */
     reportIDs: string[];
 
     /** The edited field, used to pre-seed the rule */

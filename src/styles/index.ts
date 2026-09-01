@@ -4408,7 +4408,28 @@ const staticStyles = (theme: ThemeColors) =>
             flexShrink: 1,
         },
 
-        productTrainingTooltipHighlightText: {
+        merchantRuleCalloutContainer: {
+            backgroundColor: theme.tooltipHighlightBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+
+        // Pins the callout to the top of the scroll area, the way floatingMessageCounterWrapper does, so scrolling the
+        // expense detail view does not carry it out of sight.
+        merchantRuleCalloutOverlay: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 100,
+        },
+
+        merchantRuleCalloutText: {
+            fontSize: variables.fontSizeLabel,
+            color: theme.textReversed,
+            lineHeight: variables.lineHeightLarge,
+        },
+
+        merchantRuleCalloutAction: {
             color: theme.tooltipLinkText,
             fontWeight: FontUtils.fontWeight.bold,
         },

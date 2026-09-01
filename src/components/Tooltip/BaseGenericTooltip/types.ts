@@ -50,7 +50,6 @@ type BaseGenericTooltipProps = {
     | 'wrapperStyle'
     | 'anchorAlignment'
     | 'shouldUseOverlay'
-    | 'shouldHidePointer'
     | 'onTooltipPress'
     | 'computeHorizontalShiftForNative'
 >;
