@@ -28,6 +28,12 @@ type MerchantRuleSuggestion = {
     dismissedTransactionIDs?: string[];
 
     /**
+     * Whether this offer has been shown and left behind. Distinct from dismissing the expense: it ends only the
+     * current offer, so returning to the expense shows nothing, while editing it again offers afresh.
+     */
+    isRetired?: boolean;
+
+    /**
      * Whether the user took the offer and is now in the rule creation flow. The rule page reads this to return to the
      * expense after saving instead of to the workspace Rules page, which is where creating a rule from settings ends.
      */

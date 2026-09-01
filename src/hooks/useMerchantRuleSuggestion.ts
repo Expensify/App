@@ -50,7 +50,8 @@ function useMerchantRuleSuggestion(reportID: string | undefined, policyID: strin
     const isOneExpenseReportForSuggestion = reportTransactions.length === 1 && reportTransactions.at(0)?.transactionID === storedSuggestion?.transactionID;
     const isHostingReport = !!reportID && (reportID === storedSuggestion?.reportIDs.at(0) || isOneExpenseReportForSuggestion);
     const isDismissed = !!storedSuggestion?.transactionID && !!storedSuggestion.dismissedTransactionIDs?.includes(storedSuggestion.transactionID);
-    const isForThisExpenseView = !!storedSuggestion && !isDismissed && ((!!transactionID && transactionID === storedSuggestion.transactionID) || isHostingReport);
+    const isForThisExpenseView =
+        !!storedSuggestion && !isDismissed && !storedSuggestion.isRetired && ((!!transactionID && transactionID === storedSuggestion.transactionID) || isHostingReport);
     // Only workspace admins can create merchant rules, so nobody else should be offered one
     const canCreateMerchantRule = isPolicyAdmin(policy, currentUserLogin) && canWriteRules && arePolicyRulesEnabled(policy, policyCategories, isBetaEnabled(CONST.BETAS.RULES_REVAMP));
     const suggestion = isForThisExpenseView && canCreateMerchantRule ? storedSuggestion : undefined;

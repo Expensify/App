@@ -33,12 +33,14 @@ function trackMerchantRuleSuggestion(transactionID: string | undefined, field: M
     }
 
     // Merged rather than set so the session's dismissals survive: an expense the user has already dismissed must stay
-    // dismissed even after they edit it again. `isCreatingRule` belongs to the offer being replaced, so it is cleared.
+    // dismissed even after they edit it again. `isCreatingRule` and `isRetired` describe the offer being replaced, so
+    // they are cleared with it — a fresh edit is a fresh offer, even on an expense the user has already walked away from.
     Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {
         transactionID,
         reportIDs: reportIDs.filter((reportID): reportID is string => !!reportID),
         field,
         isCreatingRule: null,
+        isRetired: null,
     });
 }
 
@@ -58,6 +60,14 @@ function dismissMerchantRuleSuggestion() {
 }
 
 /**
+ * Ends the current offer once the user has seen it and navigated away, without dismissing the expense. Coming back
+ * shows nothing, but editing the expense again offers afresh — only the close button silences an expense outright.
+ */
+function retireMerchantRuleSuggestion() {
+    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {isRetired: true});
+}
+
+/**
  * Records that the user took the offer, so the rule page knows to return to the expense once the rule is saved.
  *
  * The `backTo` URL param is deprecated (see the `How to remove backTo from URL` section in NAVIGATION.md), so the
@@ -68,4 +78,4 @@ function setIsCreatingMerchantRule(isCreatingRule: boolean) {
     Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {isCreatingRule});
 }
 
-export {trackMerchantRuleSuggestion, dismissMerchantRuleSuggestion, setIsCreatingMerchantRule};
+export {trackMerchantRuleSuggestion, dismissMerchantRuleSuggestion, retireMerchantRuleSuggestion, setIsCreatingMerchantRule};

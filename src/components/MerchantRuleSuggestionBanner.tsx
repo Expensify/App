@@ -5,7 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {dismissMerchantRuleSuggestion, setIsCreatingMerchantRule} from '@libs/actions/MerchantRuleSuggestion';
+import {dismissMerchantRuleSuggestion, retireMerchantRuleSuggestion, setIsCreatingMerchantRule} from '@libs/actions/MerchantRuleSuggestion';
 import {setDraftMerchantRule} from '@libs/actions/User';
 import {getMerchantRuleDraftFromTransaction} from '@libs/MerchantRuleSuggestionUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -49,8 +49,9 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, transactionID,
     const icons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
     const {suggestion, transaction, policy} = useMerchantRuleSuggestion(reportID, policyID, transactionID);
 
-    // The offer is about the edit the user just made, so it ends once they have seen it and moved on. Without this it
-    // would sit in the RAM-only record until dismissed, and re-appear on every return to the expense.
+    // The offer is about the edit the user just made, so it ends once they have seen it and navigated away. Retiring
+    // rather than dismissing leaves the expense itself untouched: returning to it shows nothing, but editing it again
+    // offers afresh. Only the close button silences an expense for the session.
     const hasBeenShownRef = useRef(false);
     useEffect(() => {
         if (!suggestion) {
@@ -63,7 +64,7 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, transactionID,
             if (!hasBeenShownRef.current) {
                 return;
             }
-            dismissMerchantRuleSuggestion();
+            retireMerchantRuleSuggestion();
         },
         [],
     );
@@ -131,7 +132,7 @@ function MerchantRuleSuggestionBanner({reportID, policyID, transactionID, contai
 
     // Nothing is stored for most of a session, so skip the inner component (and its heavy hooks, which subscribe to the
     // policy, its categories, the transaction and the report's transactions) until an edit is waiting to be offered.
-    if (!storedSuggestion?.transactionID || storedSuggestion.dismissedTransactionIDs?.includes(storedSuggestion.transactionID)) {
+    if (!storedSuggestion?.transactionID || storedSuggestion.isRetired || storedSuggestion.dismissedTransactionIDs?.includes(storedSuggestion.transactionID)) {
         return null;
     }
 
