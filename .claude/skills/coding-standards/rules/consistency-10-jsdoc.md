@@ -54,7 +54,7 @@ Flag ONLY when ANY of these is true:
 - A JSDoc block uses `@return` instead of `@returns`, or uses `@private`/`@memberof`/`@implements`/`@enum`/`@override`
 - A `@param` line has a name but no description (it should be omitted)
 - A component prop in a `Props` type, or a property in `src/types/onyx/**`, is documented with a `//` comment instead of `/** ... */`. The fix depends on the comment's content (see CONSISTENCY-19): convert it to `/** ... */` if it adds a real fact (a unit, default, boundary condition, null/undefined semantics, ownership, invariant, or distinction from a sibling); delete it instead if it adds nothing
-- Such a prop/property is left undocumented while sibling members use `/** */` blocks, AND it has a non-obvious fact to add (a unit, default, boundary condition, null/undefined semantics, ownership, invariant, or distinction from a sibling - see CONSISTENCY-13)
+- Such a prop/property is left undocumented while sibling members use `/** */` blocks, AND it has a non-obvious fact to add (a unit, default, boundary condition, null/undefined semantics, ownership, invariant, or distinction from a sibling - see CONSISTENCY-13). "Sibling" means a member at the same nesting level, including within a nested/anonymous object literal type (see CONSISTENCY-13)
 
 **DO NOT flag if:**
 
