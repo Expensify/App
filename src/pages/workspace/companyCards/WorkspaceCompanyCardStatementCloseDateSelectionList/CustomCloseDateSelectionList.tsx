@@ -91,6 +91,7 @@ function CustomCloseDateSelectionList({initiallySelectedDay, onConfirmSelectedDa
             ListItem={SingleSelectListItem}
             onSelectRow={selectDayAndClearError}
             initiallyFocusedItemKey={initialSelectedDay?.toString()}
+            shouldScrollToFocusedIndexOnMount={false}
             confirmButtonOptions={confirmButtonOptions}
             textInputOptions={textInputOptions}
             shouldShowListEmptyContent={false}

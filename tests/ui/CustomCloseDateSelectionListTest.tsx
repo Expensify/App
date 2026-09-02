@@ -36,6 +36,7 @@ type MockListItem = {value: number; keyForList?: string; isSelected?: boolean; t
 type MockSelectionListProps = {
     data: MockListItem[];
     initiallyFocusedItemKey?: string;
+    shouldScrollToFocusedIndexOnMount?: boolean;
     shouldUpdateFocusedIndex?: boolean;
     onSelectRow?: (item: MockListItem) => void;
     textInputOptions?: {onChangeText?: (value: string) => void};
@@ -69,6 +70,8 @@ describe('CustomCloseDateSelectionList', () => {
         // Day 1 would be first if nothing were pinned.
         expect(props?.data.at(0)?.value).not.toBe(1);
         expect(props?.initiallyFocusedItemKey).toBe('15');
+        // Anti-jump props: don't scroll to the pinned row on mount, and keep the focused index in sync on select.
+        expect(props?.shouldScrollToFocusedIndexOnMount).toBe(false);
         expect(props?.shouldUpdateFocusedIndex).toBe(true);
     });
 
