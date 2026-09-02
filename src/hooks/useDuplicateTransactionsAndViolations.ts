@@ -7,7 +7,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {useMemo} from 'react';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
-import {useOnyx as originalUseOnyx} from 'react-native-onyx';
+import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import useOnyx from './useOnyx';
 
@@ -158,7 +158,7 @@ function useLiveDuplicateTransactionsAndViolations(transactionIDs: string[]): Du
         return (allTransactionsViolations: OnyxCollection<TransactionViolations>) => selectViolationsWithDuplicates(transactionIDs, allTransactionsViolations);
     }, [transactionIDs]);
 
-    const [duplicateTransactionViolations] = originalUseOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+    const [duplicateTransactionViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
         selector: violationsSelectorMemo,
     });
 
@@ -166,7 +166,7 @@ function useLiveDuplicateTransactionsAndViolations(transactionIDs: string[]): Du
         return (allTransactions: OnyxCollection<Transaction>) => selectTransactionsWithDuplicates(transactionIDs, allTransactions, duplicateTransactionViolations);
     }, [transactionIDs, duplicateTransactionViolations]);
 
-    const [duplicateTransactions] = originalUseOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+    const [duplicateTransactions] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: transactionSelector,
     });
 
