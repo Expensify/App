@@ -309,20 +309,26 @@ function IOURequestEditReportCommon({
 
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions.length, translate]);
 
+    const policyForMovingExpensesName = policyForMovingExpenses?.name;
     const createReportOption = useMemo(() => {
         if (!createReport || (isEditing && !isOwner && !isAdmin)) {
             return undefined;
         }
 
         return (
-            <MenuItem
-                onPress={handleCreateReport}
-                title={translate('report.newReport.createReport')}
-                description={policyForMovingExpenses?.name}
-                icon={icons.Document}
-            />
+            <MenuItem.Root onPress={handleCreateReport}>
+                <MenuItem.Row>
+                    <MenuItem.Leading>
+                        <MenuItem.Icon src={icons.Document} />
+                    </MenuItem.Leading>
+                    <MenuItem.Content>
+                        <MenuItem.Title>{translate('report.newReport.createReport')}</MenuItem.Title>
+                        {!!policyForMovingExpensesName && <MenuItem.Description>{policyForMovingExpensesName}</MenuItem.Description>}
+                    </MenuItem.Content>
+                </MenuItem.Row>
+            </MenuItem.Root>
         );
-    }, [icons.Document, createReport, translate, policyForMovingExpenses?.name, handleCreateReport, isEditing, isOwner, isAdmin]);
+    }, [icons.Document, createReport, translate, policyForMovingExpensesName, handleCreateReport, isEditing, isOwner, isAdmin]);
 
     const shouldShowNotFoundPage = useMemo(() => {
         if (createReportOption) {
@@ -374,12 +380,17 @@ function IOURequestEditReportCommon({
                 customListHeaderContent={createReportOption}
                 listFooterContent={
                     shouldShowRemoveFromReport ? (
-                        <MenuItem
-                            onPress={removeFromReport}
-                            title={translate('iou.removeFromReport')}
-                            description={translate('iou.moveToPersonalSpace')}
-                            icon={icons.Close}
-                        />
+                        <MenuItem.Root onPress={removeFromReport}>
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    <MenuItem.Icon src={icons.Close} />
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{translate('iou.removeFromReport')}</MenuItem.Title>
+                                    <MenuItem.Description>{translate('iou.moveToPersonalSpace')}</MenuItem.Description>
+                                </MenuItem.Content>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
                     ) : undefined
                 }
                 listEmptyContent={createReportOption}
