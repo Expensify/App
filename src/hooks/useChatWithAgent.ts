@@ -5,6 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useIsSupportalSession from './useIsSupportalSession';
 import useOnyx from './useOnyx';
 
 /**
@@ -19,18 +20,20 @@ function useChatWithAgent() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const isSupportalSession = useIsSupportalSession();
 
     const chatWithAgent = (accountID: number) => {
-        navigateToAndOpenReportWithAccountIDs(
-            [accountID],
-            currentUserPersonalDetails.accountID,
+        navigateToAndOpenReportWithAccountIDs({
+            participantAccountIDs: [accountID],
+            currentUserAccountID: currentUserPersonalDetails.accountID,
             introSelected,
-            guidedSetupAndTourStatus?.isSelfTourViewed,
-            guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
             betas,
             personalDetails,
             conciergeChat,
-        );
+            isSupportalSession,
+        });
     };
 
     return chatWithAgent;
