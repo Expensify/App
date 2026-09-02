@@ -26,7 +26,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
-import useFindLastAccessedReport from '@hooks/useFindLastAccessedReport';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
@@ -66,6 +65,7 @@ import {
     canLeaveChat,
     canWriteInReport,
     createDraftTransactionAndNavigateToParticipantSelector,
+    findLastAccessedReport,
     getAvailableReportFields,
     getChatRoomSubtitle,
     getIcons,
@@ -216,11 +216,9 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
-    const {lastAccessedReport} = useFindLastAccessedReport({
-        excludeReportID: report.reportID,
-        openOnAdminRoom: false,
-    });
-    const lastAccessedReportID = lastAccessedReport?.reportID;
+    // Last-accessed lookup runs on leave/delete, not on every report or NVP write.
+    const [lastAccessedReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingDeleteMemberAccountIDsSelector});
 
@@ -398,6 +396,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
     const leaveChat = useCallback(() => {
+        const lastAccessedReportID = findLastAccessedReport(false, false, report.reportID, lastAccessedReportNameValuePairs, reports)?.reportID;
         if (isRootGroupChat) {
             leaveGroupChat(
                 report,
@@ -425,7 +424,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         introSelected,
         isSelfTourViewed,
         betas,
-        lastAccessedReportID,
+        lastAccessedReportNameValuePairs,
+        reports,
     ]);
 
     const showLastMemberLeavingModal = useCallback(async () => {
@@ -1037,7 +1037,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 {
                     ancestors,
                     shouldNavigateBack: !taskDeleteBackTo,
-                    lastAccessedReportID,
+                    lastAccessedReportID: findLastAccessedReport(false, false, report.reportID, lastAccessedReportNameValuePairs, reports)?.reportID,
                 },
             );
             return;
@@ -1094,7 +1094,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         conciergeReportID,
         delegateEmail,
         ancestors,
-        lastAccessedReportID,
+        lastAccessedReportNameValuePairs,
+        reports,
         reportActionsForOriginalReportID,
         moneyRequestReport,
         moneyRequestReportActions,
