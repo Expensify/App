@@ -1176,8 +1176,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             // Each transaction keeps its OWN Indication/Phase. Only the shared parent level changed.
@@ -1188,7 +1188,7 @@ describe('actions/IOU/BulkEdit', () => {
             canEditFieldSpy.mockRestore();
         });
 
-        it('preserves parent levels but clears dependent child levels below the edited one when bulk-editing a middle level (dependent tags)', () => {
+        it('preserves parent levels and re-resolves dependent child levels below the edited one when bulk-editing a middle level (dependent tags)', () => {
             const transactionID = 'transaction-dep-1';
             const iouReportID = 'iou-dep-1';
             const policy = {
@@ -1219,7 +1219,8 @@ describe('actions/IOU/BulkEdit', () => {
             };
 
             // Dependent multi-level tags: child tags declare a parentTagsFilter. Phase has 2 enabled
-            // tags so no single-tag auto-select fires after clearing.
+            // tags overall, but only PhaseR is valid under IndicationZ, so the shared helper
+            // auto-selects it once the stale PhaseP is cleared.
             const policyTagList = {
                 CostCenter: {name: 'CostCenter', orderWeight: 0, required: false, tags: {CostCenterA: {name: 'CostCenterA', enabled: true}}},
                 Indication: {
@@ -1262,12 +1263,13 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
-            // Parent (CostCenter) is preserved. The edited Indication level is updated. The dependent Phase level is cleared.
-            expect(getBulkEditUpdates(writeSpy, 0).tag).toBe('CostCenterA:IndicationZ');
+            // Parent (CostCenter) is preserved. The edited Indication level is updated. The stale PhaseP is
+            // dropped and re-resolved to PhaseR, the only Phase valid under IndicationZ.
+            expect(getBulkEditUpdates(writeSpy, 0).tag).toBe('CostCenterA:IndicationZ:PhaseR');
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
