@@ -113,7 +113,7 @@ type DeleteTaskOptions = {
     ancestors?: ReportUtils.Ancestor[];
     shouldNavigateBack?: boolean;
     /** Fallback report ID when the deleted task has no parent report. */
-    lastAccessedReportID: string;
+    lastAccessedReportID?: string;
 };
 
 /**
@@ -1336,7 +1336,7 @@ function getNavigationUrlOnTaskDelete(
     report: OnyxEntry<OnyxTypes.Report>,
     conciergeReportID: string | undefined,
     reportActions: OnyxEntry<OnyxTypes.ReportActions>,
-    lastAccessedReportID = '',
+    lastAccessedReportID?: string,
 ): string | undefined {
     if (!report) {
         return undefined;
@@ -1373,7 +1373,7 @@ function deleteTask(
     conciergeReportID: string | undefined,
     delegateEmail: string | undefined,
     reportActions: OnyxEntry<OnyxTypes.ReportActions>,
-    {ancestors = [], shouldNavigateBack = true, lastAccessedReportID}: DeleteTaskOptions = {lastAccessedReportID: ''},
+    {ancestors = [], shouldNavigateBack = true, lastAccessedReportID}: DeleteTaskOptions = {},
 ) {
     if (!report) {
         return;

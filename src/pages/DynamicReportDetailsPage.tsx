@@ -397,7 +397,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
     const leaveChat = useCallback(() => {
-        const lastAccessedReportID = findLastAccessedReport(false, guideAccountIDs, false, report.reportID, lastAccessedReportNameValuePairs, reports)?.reportID ?? '';
+        const lastAccessedReportID = findLastAccessedReport(false, guideAccountIDs, false, report.reportID, lastAccessedReportNameValuePairs, reports)?.reportID;
         if (isRootGroupChat) {
             leaveGroupChat(
                 report,
@@ -1039,7 +1039,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 {
                     ancestors,
                     shouldNavigateBack: !taskDeleteBackTo,
-                    lastAccessedReportID: findLastAccessedReport(false, guideAccountIDs, false, report.reportID, lastAccessedReportNameValuePairs, reports)?.reportID ?? '',
+                    lastAccessedReportID: findLastAccessedReport(false, guideAccountIDs, false, report.reportID, lastAccessedReportNameValuePairs, reports)?.reportID,
                 },
             );
             return;
