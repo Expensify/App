@@ -8,18 +8,5 @@ import Reauthentication from './Reauthentication';
 import RecordFullReconnectTime from './RecordFullReconnectTime';
 import SaveResponseInOnyx from './SaveResponseInOnyx';
 import SupportalPermission from './SupportalPermission';
-import SurfaceCommandError from './SurfaceCommandError';
 
-export {
-    HandleUnusedOptimisticID,
-    LoadTest,
-    Logging,
-    Reauthentication,
-    RecordFullReconnectTime,
-    FailureTracking,
-    SaveResponseInOnyx,
-    Pagination,
-    handleDeletedAccount,
-    SupportalPermission,
-    SurfaceCommandError,
-};
+export {HandleUnusedOptimisticID, LoadTest, Logging, Reauthentication, RecordFullReconnectTime, FailureTracking, SaveResponseInOnyx, Pagination, handleDeletedAccount, SupportalPermission};
