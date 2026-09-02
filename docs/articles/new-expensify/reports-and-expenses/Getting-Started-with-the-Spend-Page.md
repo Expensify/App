@@ -25,6 +25,7 @@ Report previews are summaries shown directly in your workspace chat in the **Inb
   - Receipt thumbnail  
 - Carousel navigation  
 - **+X more** link if there are over 10 expenses  
+- The message **This report was rejected.** if an approver rejected the report back to the submitter  
 - Action button: Submit, Approve, Pay, etc., depending on the role
 
 ## Preview Behavior and Updates
