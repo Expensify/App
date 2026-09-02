@@ -69,6 +69,8 @@ import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 
 import EmptySearchView from '@pages/Search/EmptySearchView';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1063,13 +1065,21 @@ function Search({
                     shouldShow
                     containerStyle={styles.searchBlockingErrorViewContainer}
                     subtitleStyle={styles.textSupporting}
-                    title={translate('errorPage.title', {
-                        isBreakLine: shouldUseNarrowLayout,
-                    })}
-                    subtitle={translate(isInvalidQuery ? 'errorPage.wrongTypeSubtitle' : 'errorPage.subtitle')}
-                    // Retrying an invalid query won't help, so the retry button is only offered for other errors.
+                    title={
+                        isInvalidQuery
+                            ? translate('errorPage.title', {
+                                  isBreakLine: shouldUseNarrowLayout,
+                              })
+                            : translate('search.searchResults.staleResults.title')
+                    }
+                    subtitle={translate(isInvalidQuery ? 'errorPage.wrongTypeSubtitle' : 'search.searchResults.staleResults.subtitle')}
+                    // A failed request leaves results that are out of date rather than broken, so that case gets the
+                    // refresh copy and illustration. An invalid query keeps the error copy, since it really did fail.
                     {...(!isInvalidQuery && {
-                        buttonTranslationKey: 'common.tryAgain',
+                        illustration: 'FolderSync',
+                        illustrationWidth: variables.iconSizeUltraLarge,
+                        illustrationHeight: variables.iconSizeUltraLarge,
+                        buttonTranslationKey: 'search.searchResults.staleResults.buttonText',
                         onButtonPress: () => {
                             // A response replaces the snapshot's results rather than appending to them, so retrying at
                             // the paginated offset would leave only that later page behind. Retry from the first page.
