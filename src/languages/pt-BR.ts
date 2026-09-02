@@ -8244,6 +8244,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 requireAboveAmount: 'Exigir valor acima',
                 saveRule: 'Salvar regra',
                 emptyAmountError: 'Informe um valor válido antes de salvar',
+                receiptAmountGreaterThanItemizedError: 'O valor exigido de recibo não pode ser maior que o valor exigido de recibo itemizado.',
             },
             requireFields: {title: 'Exigir campos para todas as despesas', category: 'Categoria', tag: 'Etiqueta', save: 'Salvar regra'},
             newRule: {
