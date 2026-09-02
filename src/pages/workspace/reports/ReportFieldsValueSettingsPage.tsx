@@ -67,7 +67,7 @@ function ReportFieldsValueSettingsPage({
     }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID, valueIndex]);
 
     // Block deleting a value only for a field imported from the accounting connection, not for every field on a
-    // connected workspace — manual field values stay deletable while connected (and there is no field during creation).
+    // connected workspace. Manual field values stay deletable while connected, and there is no field during creation.
     const reportField = reportFieldID ? policy?.fieldList?.[getReportFieldKey(reportFieldID)] : undefined;
     const isImportedReportField = isReportFieldImportedFromIntegration(reportField);
     const oldValueName = usePrevious(currentValueName);

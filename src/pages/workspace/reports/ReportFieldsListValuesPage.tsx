@@ -68,7 +68,7 @@ function ReportFieldsListValuesPage({
     const {canWrite: canWriteReportFields, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS);
 
     // Block value management only for a field imported from the accounting connection, not for every field on a
-    // connected workspace — manual fields stay editable while connected (and there is no field yet during creation).
+    // connected workspace. Manual fields stay editable while connected, and there is no field yet during creation.
     const reportField = reportFieldID ? policy?.fieldList?.[getReportFieldKey(reportFieldID)] : undefined;
     const isImportedReportField = isReportFieldImportedFromIntegration(reportField);
 

@@ -88,7 +88,7 @@ function WorkspaceReportFieldsPage({
 
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
-    const onDisabledReportFieldsSwitchPress = () => {
+    const showImportedReportFieldsLockedModal = () => {
         if (!hasImportedReportField) {
             return;
         }
@@ -316,7 +316,7 @@ function WorkspaceReportFieldsPage({
                                     enablePolicyReportFields(policyID, isEnabled);
                                 }}
                                 disabled={!canWriteReportFields || (!!policy?.areReportFieldsEnabled && hasImportedReportField)}
-                                disabledAction={withReadOnlyFallback(onDisabledReportFieldsSwitchPress)}
+                                disabledAction={withReadOnlyFallback(showImportedReportFieldsLockedModal)}
                                 showLockIcon={!canWriteReportFields}
                                 subMenuItems={
                                     !!policy?.areReportFieldsEnabled && (
