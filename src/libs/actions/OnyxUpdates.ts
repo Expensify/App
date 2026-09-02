@@ -30,7 +30,7 @@ function getEffectiveLastUpdateID(): number {
     return Math.max(lastUpdateIDAppliedToClient ?? 0, lastUpdateIDPendingFlush);
 }
 
-function getLastUpdateIDForGapCheck(clientLastUpdateID?: number): number {
+function getLastUpdateIDIncludingInFlightApplies(clientLastUpdateID?: number): number {
     return Math.max(clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0, lastUpdateIDPendingFlush, lastUpdateIDPendingApply);
 }
 
@@ -216,6 +216,8 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
                 return result;
             })
             .catch((error) => {
+                // Cleared for any failed apply, not just Pusher: the marker is a flat max, so keeping it after an
+                // unrelated lower-ID failure would mask that gap. Errs toward a redundant refetch.
                 lastUpdateIDPendingApply = 0;
 
                 if (shouldAdvanceLastUpdateID) {
@@ -295,7 +297,7 @@ function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID}: DoesC
         return false;
     }
 
-    const lastUpdateIDFromClient = getLastUpdateIDForGapCheck(clientLastUpdateID);
+    const lastUpdateIDFromClient = getLastUpdateIDIncludingInFlightApplies(clientLastUpdateID);
 
     // If we don't have any value in lastUpdateIDFromClient, this is the first time we're receiving anything, so we need to do a last reconnectApp
     if (!lastUpdateIDFromClient) {
