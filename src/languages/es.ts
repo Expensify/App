@@ -296,6 +296,7 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: 'Facturable',
         nonBillable: 'No facturable',
         tag: 'Etiqueta',
+        violations: 'Infracciones',
         receipt: 'Recibo',
         verified: 'Verificado',
         replace: 'Sustituir',
@@ -459,7 +460,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copiar al portapapeles',
         thisIsTakingLongerThanExpected: 'Está tardando más de lo esperado...',
         domains: 'Dominios',
-        actionRequired: 'Acción requerida',
         duplicate: 'Duplicar',
         duplicated: 'Duplicado',
         duplicateExpense: 'Duplicar gasto',
@@ -3696,11 +3696,6 @@ ${amount} para ${merchant} - ${date}`,
         thisBankAccount: 'Esta cuenta bancaria se utilizará para pagos comerciales en tu espacio de trabajo',
         accountNumber: 'Número de cuenta',
         routingNumber: 'Número de ruta',
-        internationalBankAccountDetails: 'Datos de la cuenta bancaria internacional',
-        internationalBankAccountDetailsTitle: '¿Cuáles son los datos de tu cuenta internacional?',
-        internationalBankAccountDetailsSubtitle: 'Uno de tus espacios de trabajo necesita datos de cuenta internacional para procesar reembolsos',
-        iban: 'IBAN',
-        swiftBicCode: 'Código SWIFT/BIC',
         chooseAnAccountBelow: 'Elige una cuenta a continuación',
         addBankAccount: 'Añadir cuenta bancaria',
         chooseAnAccount: 'Elige una cuenta',
@@ -3750,8 +3745,6 @@ ${amount} para ${merchant} - ${date}`,
             restrictedBusiness: 'Por favor, confirma que la empresa no está en la lista de negocios restringidos',
             routingNumber: 'Por favor, introduce un número de ruta válido',
             accountNumber: 'Por favor, introduce un número de cuenta válido',
-            iban: 'Por favor, introduce un IBAN válido',
-            swiftCode: 'Por favor, introduce un código SWIFT/BIC válido',
             routingAndAccountNumberCannotBeSame: 'Los números de ruta y de cuenta no pueden ser iguales',
             companyType: 'Por favor, selecciona un tipo de compañía válido',
             tooManyAttempts:
@@ -5816,9 +5809,34 @@ ${amount} para ${merchant} - ${date}`,
                 label: 'Cuenta de tarjeta de empresa',
                 description: 'Elige dónde exportar las transacciones de las tarjetas de la empresa.',
             },
-            expensifyCardAccount: {
-                label: 'Cuenta de la Tarjeta Expensify',
-                description: 'Elige dónde exportar las transacciones de la Tarjeta Expensify.',
+            exportToMultipleAccounts: 'Configura la exportación a varias cuentas',
+            cardProgramAccount: {
+                label: 'Cuenta del programa de tarjetas',
+                description: 'Reemplaza la cuenta del espacio de trabajo para estos programas de tarjetas.',
+                descriptionLevel2: 'Sobrescribe la cuenta del espacio de trabajo para este programa de tarjetas.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todos los programas usan la cuenta predeterminada';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programa con cuenta personalizada`;
+                    }
+                    return `${customAccountsCount} programas con cuentas personalizadas`;
+                },
+            },
+            cardAccount: {
+                label: 'Cuenta por tarjeta',
+                description: 'Sobrescribe la cuenta del programa para tarjetas individuales.',
+                descriptionLevel2: 'Reemplaza la cuenta del programa para estas tarjetas.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todas las tarjetas usan cuentas de programa';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} tarjeta con cuenta personalizada`;
+                    }
+                    return `${customAccountsCount} tarjetas con cuentas personalizadas`;
+                },
             },
             autoSyncDescription: 'Sincroniza DualEntry y Expensify automáticamente cada día. Los informes se sincronizan en tiempo real.',
             accountingMethods: {
@@ -6059,6 +6077,7 @@ ${amount} para ${merchant} - ${date}`,
             finishSetup: 'Terminar configuración',
             chooseBankAccount: 'Elegir cuenta bancaria',
             chooseExistingBank: 'Elige una cuenta bancaria comercial existente para pagar el saldo de su Tarjeta Expensify o añade una nueva cuenta bancaria.',
+            chooseExistingBankForTravelBilling: 'Elige una cuenta bancaria empresarial existente para pagar tu saldo de Facturación de Viajes Consolidada o añade una nueva cuenta bancaria',
             accountEndingIn: 'Cuenta terminada en',
             addNewBankAccount: 'Añadir nueva cuenta bancaria',
             settlementAccount: 'Cuenta de liquidación',
@@ -7244,13 +7263,15 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Completa la configuración</a>` : 'Completar configuración'} para importar empleados.</muted-text-label>`,
                 groups: {title: 'Grupos', description: 'Elige los grupos de empleados que te gustaría sincronizar con este espacio de trabajo'},
-                syncLimitReached: {title: 'Inténtalo de nuevo mañana', prompt: 'Has alcanzado tu límite de sincronización de hoy.'},
             },
             notSync: 'No sincronizado',
             authenticationError: (providerName: string) => `No se puede conectar a ${providerName} porque la conexión ha caducado.`,
             reconnect: 'Volver a conectar',
             reconnectLink: 'Volver a conectar.',
             findIntegration: 'Buscar integración',
+        },
+        merge: {
+            syncLimitReached: {title: 'Inténtalo de nuevo mañana', prompt: 'Has alcanzado tu límite de sincronización de hoy.'},
         },
         export: {
             notReadyHeading: 'No está listo para exportar',
@@ -8223,6 +8244,7 @@ ${reportName}`,
                 requireAboveAmount: 'Requerir importe superior',
                 saveRule: 'Guardar regla',
                 emptyAmountError: 'Introduce una cantidad válida antes de guardar',
+                receiptAmountGreaterThanItemizedError: 'El importe para solicitar recibo no puede ser mayor que el importe para solicitar recibo desglosado.',
             },
             requireFields: {title: 'Exigir campos para todos los gastos', category: 'Categoría', tag: 'Etiqueta', save: 'Guardar regla'},
             newRule: {
@@ -8512,10 +8534,10 @@ ${reportName}`,
             return `añadió la tasa de impuesto "${newValue} (${newTaxPercentage})" a la tasa de distancia "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName, newValue, oldValue) => {
-            if (oldValue) {
-                return `cambió la parte recuperable de impuestos en la tasa por distancia "${customUnitRateName}" a "${newValue}" (previamente "${oldValue}")`;
+            if (oldValue !== undefined) {
+                return `cambió la parte recuperable de impuestos en la tasa por distancia "${customUnitRateName}" a "${newValue}%" (previamente "${oldValue}%")`;
             }
-            return `añadió una parte recuperable de impuestos de "${newValue}" a la tasa por distancia "${customUnitRateName}`;
+            return `añadió una parte recuperable de impuestos de "${newValue}%" a la tasa por distancia "${customUnitRateName}"`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `cambió el nombre de la tasa de ${customUnitName} de "${oldValue}" a "${newValue}"`,
         updatedCustomUnitRateEnabled: (customUnitName, customUnitRateName, newValue) => {
@@ -9062,6 +9084,7 @@ ${reportName}`,
             topSpenders: 'Mayores gastadores',
             topCategories: 'Categorías principales',
             topMerchants: 'Principales comerciantes',
+            violationsBySubmitter: 'Infracciones por remitente',
         },
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
         viewResults: 'Ver resultados',
@@ -9492,6 +9515,8 @@ ${reportName}`,
         time: 'Hora (formato de 24 horas)',
         durationAmount: 'Duración',
         durationUnit: 'Unidad',
+        leaveType: 'Tipo de ausencia',
+        normalOOO: 'OOO normal',
         reason: 'Motivo',
         workingPercentage: 'Porcentaje de trabajo',
         dateRequired: 'La fecha de inicio es obligatoria.',
@@ -10395,6 +10420,53 @@ ${reportName}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `La tasa solo es válida desde ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `La tasa solo es válida hasta ${endDate}`,
         cannotMergeDuplicates: 'Solo puedes combinar gastos en informes en borrador o pendientes. Retíralo e inténtalo de nuevo.',
+        shortName: {
+            allTagLevelsRequired: 'Todas las etiquetas obligatorias',
+            autoReportedRejectedExpense: 'Gasto rechazado',
+            billableExpense: 'Refacturable ya no válido',
+            cashExpenseWithNoReceipt: 'Recibo obligatorio',
+            categoryOutOfPolicy: 'La categoría ya no es válida',
+            companyCardRequired: 'Tarjeta de empresa obligatoria',
+            conversionSurcharge: 'Suplemento por conversión aplicado',
+            customUnitOutOfPolicy: 'La tasa no es válida para el espacio de trabajo',
+            customUnitRateOutOfDateRange: 'Tasa fuera de las fechas válidas',
+            duplicatedTransaction: 'Posible duplicado',
+            fieldRequired: 'Campo de informe obligatorio',
+            futureDate: 'No se permite una fecha futura',
+            hold: 'Gasto retenido',
+            inactiveVendor: 'El proveedor ya no es válido',
+            increasedDistance: 'La distancia supera la ruta',
+            invoiceMarkup: 'Factura con recargo',
+            itemizedReceiptRequired: 'Se requiere recibo desglosado',
+            maxAge: 'Fecha anterior a la antigüedad máxima del gasto',
+            missingAttendees: 'Asistentes obligatorios',
+            missingCategory: 'Categoría faltante',
+            missingComment: 'Descripción obligatoria',
+            missingTag: 'Etiqueta faltante',
+            modifiedAmount: 'Importe modificado',
+            modifiedDate: 'Fecha de modificación',
+            noRoute: 'Ruta no válida',
+            nonExpensiworksExpense: 'Gasto ajeno a Expensiworks',
+            overAutoApprovalLimit: 'Límite de aprobación automática superado',
+            overCategoryLimit: 'Límite de categoría superado',
+            overLimit: 'Límite excedido',
+            overTripLimit: 'Límite de viaje superado',
+            perDayLimit: 'Límite diario superado',
+            prohibitedExpense: 'Gasto prohibido',
+            receiptGeneratedWithAI: 'Posible recibo generado por IA',
+            receiptNotSmartScanned: 'Recibo añadido manualmente',
+            receiptRequired: 'Recibo obligatorio',
+            rter: 'En espera de conciliación de tarjeta',
+            smartscanFailed: 'Error al escanear el recibo',
+            someTagLevelsRequired: 'Etiqueta obligatoria',
+            tagOutOfPolicy: 'Etiqueta ya no válida',
+            overLimitAttendee: 'Límite de personas superado',
+            customRules: 'Incumplimiento de regla personalizada',
+            taxAmountChanged: 'Importe de impuesto modificado',
+            taxOutOfPolicy: 'La tasa de impuestos ya no es válida',
+            taxRateChanged: 'Tasa de impuesto modificada',
+            taxRequired: 'Falta la tasa de impuesto',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName) => `${fieldName} es obligatorio`,
@@ -10987,6 +11059,7 @@ ${reportName}`,
     domain: {
         notVerified: 'No verificado',
         retry: 'Reintentar',
+        requestSent: 'Solicitud enviada',
         verifyDomain: {
             title: 'Verificar dominio',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -11060,6 +11133,14 @@ ${reportName}`,
             subtitle: 'Introduce el nombre del dominio privado al que deseas acceder (por ejemplo, expensify.com).',
             domainName: 'Nombre de dominio',
             newDomain: 'Nuevo dominio',
+            alreadyHaveAccessError: 'Este dominio ya existe en tu cuenta.',
+        },
+        domainAlreadyExists: {
+            headerTitle: 'El dominio ya existe',
+            title: 'Dominio ya configurado. ¿Solicitar acceso?',
+            description: 'Alguien ya configuró este dominio en Expensify. ¿Quieres solicitar acceso de administrador?',
+            requestAccess: 'Solicitar acceso de administrador',
+            requestAccessError: 'No pudimos enviar tu solicitud. Por favor, inténtalo de nuevo.',
         },
         domainAdded: {
             title: 'Dominio añadido',
@@ -11162,6 +11243,7 @@ ${reportName}`,
             forceTwoFactorAuthError: 'No se pudo cambiar la autenticación de dos factores forzada. Por favor, inténtalo de nuevo más tarde.',
             resetTwoFactorAuth: 'Restablecer la autenticación de dos factores',
             error: 'No se pudo guardar este cambio. Por favor, inténtalo de nuevo.',
+            neverMind: 'No importa',
         },
         groups: {
             title: 'Grupos',
@@ -11175,7 +11257,6 @@ ${reportName}`,
             defaultGroupPrompt: (currentName, newName) =>
                 `¿Estás seguro de que quieres establecer ${newName} como el grupo predeterminado? Los nuevos miembros serán invitados a este grupo en lugar del grupo predeterminado anterior (${currentName}). `,
             makeDefault: 'Establecer como predeterminado',
-            neverMind: 'No importa',
             createGroupError: 'No se pudo crear este grupo. Inténtalo de nuevo.',
             permissions: 'Permisos de grupo',
             createNewGroupButton: 'Nuevo grupo',

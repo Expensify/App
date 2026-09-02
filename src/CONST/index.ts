@@ -354,6 +354,17 @@ const CONST = {
             WEEK: 'weeks',
             MONTH: 'months',
         },
+        OOO_LEAVE_TYPES: {
+            NORMAL: 'normalOOO',
+            PARENTAL: 'parental leave',
+            MATERNITY: 'maternity leave',
+            PATERNITY: 'paternity leave',
+            MEDICAL: 'medical leave',
+            CAREGIVER: 'caregiver leave',
+            QUALIFIED: 'qualified leave',
+            BEREAVEMENT: 'bereavement leave',
+            JURY_DUTY: 'jury duty',
+        },
     },
 
     RECEIPT_CAMERA: {
@@ -786,7 +797,6 @@ const CONST = {
             // The back-end is always returning account number with 4 last digits and mask the rest with X
             MASKED_US_ACCOUNT_NUMBER: /^[X]{0,13}[0-9]{4}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
-            IBAN: /^[a-zA-Z]{2}[0-9]{2}[a-zA-Z0-9]{4}[0-9]{7}([a-zA-Z0-9]?){0,16}$/,
         },
         STATE: {
             VERIFYING: 'VERIFYING',
@@ -1044,10 +1054,10 @@ const CONST = {
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
-        WALLET_CONNECTION_STATUS: 'walletConnectionStatus',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
         DUALENTRY: 'dualEntry',
+        BUSINESS_CENTRAL: 'businessCentral',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         MULTIPLE_APPROVERS: 'multipleApprovers',
@@ -1058,6 +1068,7 @@ const CONST = {
         TRAVEL_CODING_SYNC: 'travelCodingSync',
         CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
         ARCHIVE_POLICIES: 'archivePolicies',
+        MERGE_ATS: 'mergeATSConnections',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1442,7 +1453,7 @@ const CONST = {
         TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
         EMPLOYEE_TOUR: 'https://expensify.storylane.io/share/ohsppww6qi71',
         EMPLOYEE_TOUR_MOBILE: 'https://expensify.storylane.io/share/v8uwkznocw0g',
-        EMPLOYEE_MIGRATED: 'https://app.storylane.io/share/v9dr1rjqsd9y',
+        EMPLOYEE_MIGRATED: 'https://app.storylane.io/share/qlgnexxbsdtp',
         EMPLOYEE_MIGRATED_MOBILE: 'https://app.storylane.io/share/qbbob6zvapqo',
         IFRAME_SANDBOX: 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox',
     },
@@ -1687,6 +1698,7 @@ const CONST = {
                 INTEGRATIONS_MESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
                 MANAGER_ATTACH_RECEIPT: 'MANAGERATTACHRECEIPT', // OldDot Action
                 MANAGER_DETACH_RECEIPT: 'MANAGERDETACHRECEIPT', // OldDot Action
+                MARKED_REDEEMED: 'MARKEDREDEEMED', // OldDot Action
                 MARKED_REIMBURSED: 'MARKEDREIMBURSED', // OldDot Action
                 MARK_REIMBURSED_FROM_INTEGRATION: 'ACTIONMARKEDREIMBURSEDFROMINTEGRATION', // OldDot Action
                 MERGED_WITH_CASH_TRANSACTION: 'MERGEDWITHCASHTRANSACTION',
@@ -3251,7 +3263,7 @@ const CONST = {
         },
     },
 
-    MERGE_HR: {
+    MERGE: {
         APPROVAL_MODE: {
             BASIC: 'basic',
             MANAGER: 'manager',
@@ -3681,7 +3693,6 @@ const CONST = {
         REIMBURSABLE: 'reimbursable',
         NON_REIMBURSABLE: 'nonReimbursable',
         CREDIT_CARD_ACCOUNT_ID: 'creditCardAccountID',
-        EXPENSIFY_CARD_ACCOUNT_ID: 'expensifyCardAccountID',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
         DEFAULT_VENDORID: 'defaultVendorID',
         TRAVEL_BILLING_PAYABLE_ACCOUNT_ID: 'travelInvoicingPayableAccountID',
@@ -3741,7 +3752,6 @@ const CONST = {
         SUB_PAGE_NAMES: {
             PLAID_BANK_ACCOUNT: 'plaid',
             MANUAL_BANK_ACCOUNT_DETAILS: 'manual',
-            INTERNATIONAL_BANK_ACCOUNT_DETAILS: 'international-bank-account-details',
             LEGAL_NAME: 'legal-name',
             ADDRESS: 'address',
             PHONE_NUMBER: 'phone-number',
@@ -4474,6 +4484,7 @@ const CONST = {
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
+                MERGE_ATS: 'merge_ats',
             },
             SUPPORTED_ONLY_ON_OLDDOT: {},
             UNSUPPORTED_NAMES: {
@@ -4491,6 +4502,7 @@ const CONST = {
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge-hr',
+                MERGE_ATS: 'merge-ats',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
@@ -4505,6 +4517,7 @@ const CONST = {
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
                 merge_hris: 'Merge HR',
+                merge_ats: 'Merge ATS',
                 sap: 'SAP',
                 oracle: 'Oracle',
                 microsoftDynamics: 'Microsoft Dynamics',
@@ -4515,6 +4528,9 @@ const CONST = {
             },
             get HR_CONNECTION_NAMES() {
                 return [this.NAME.GUSTO, this.NAME.ZENEFITS, this.NAME.MERGE_HR] as const;
+            },
+            get RECRUITING_CONNECTION_NAMES() {
+                return [this.NAME.MERGE_ATS] as const;
             },
             get EXPORTED_TO_INTEGRATION_DISPLAY_NAMES(): string[] {
                 return this.ACCOUNTING_CONNECTION_NAMES.map((name) => this.NAME_USER_FRIENDLY[name as keyof typeof this.NAME_USER_FRIENDLY]);
@@ -7144,6 +7160,11 @@ const CONST = {
                     reportView: true,
                 },
                 TAG: {column: this.TABLE_COLUMNS.TAG, search: true, reportView: true},
+                VIOLATIONS: {
+                    column: this.TABLE_COLUMNS.VIOLATIONS,
+                    search: true,
+                    reportView: false,
+                },
                 TAG_GL_CODE: {
                     column: this.TABLE_COLUMNS.TAG_GL_CODE,
                     search: true,
@@ -7463,6 +7484,7 @@ const CONST = {
             TO: 'to',
             CATEGORY: 'category',
             TAG: 'tag',
+            VIOLATIONS: 'violations',
             ORIGINAL_AMOUNT: 'originalamount',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
@@ -7704,6 +7726,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.TO]: 'to',
                 [this.TABLE_COLUMNS.CATEGORY]: 'category',
                 [this.TABLE_COLUMNS.TAG]: 'tag',
+                [this.TABLE_COLUMNS.VIOLATIONS]: 'violations',
                 [this.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'purchase-amount',
                 [this.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable',
                 [this.TABLE_COLUMNS.BILLABLE]: 'billable',
@@ -7798,6 +7821,7 @@ const CONST = {
             TOP_CATEGORIES: 'topCategories',
             TOP_MERCHANTS: 'topMerchants',
             SPEND_OVER_TIME: 'spendOverTime',
+            VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
         },
         SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
@@ -8416,8 +8440,6 @@ const CONST = {
         EXCLUDED_CURRENCIES: ['IRR', 'CUP', 'SYP', 'UAH', 'KPW', 'RUB'] as string[],
         ACCOUNT_TYPE_KEY: 'BeneficiaryAccountType',
         ACCOUNT_HOLDER_COUNTRY_KEY: 'accountHolderCountry',
-        IBAN_LABEL_KEYWORD: 'iban',
-        SWIFT_LABEL_KEYWORD: 'swift',
         BANK_INFORMATION_FIELDS: ['bankName', 'bankAddressLine1', 'bankAddressLine2', 'bankCity', 'bankRegion', 'bankPostal', 'BeneficiaryBankBranchName'] as string[],
         ACCOUNT_HOLDER_FIELDS: [
             'accountHolderName',
@@ -8440,7 +8462,6 @@ const CONST = {
         PAGE_NAME: {
             COUNTRY: 'country',
             ACCOUNT_DETAILS: 'account-details',
-            INTERNATIONAL_BANK_ACCOUNT_DETAILS: 'international-bank-account-details',
             ACCOUNT_TYPE: 'account-type',
             BANK_INFORMATION: 'bank-information',
             ACCOUNT_HOLDER_DETAILS: 'account-holder-details',
@@ -8451,12 +8472,11 @@ const CONST = {
             MAPPING: {
                 COUNTRY_SELECTOR: 0,
                 BANK_ACCOUNT_DETAILS: 1,
-                INTERNATIONAL_BANK_ACCOUNT_DETAILS: 2,
-                ACCOUNT_TYPE: 3,
-                BANK_INFORMATION: 4,
-                ACCOUNT_HOLDER_INFORMATION: 5,
-                CONFIRMATION: 6,
-                SUCCESS: 7,
+                ACCOUNT_TYPE: 2,
+                BANK_INFORMATION: 3,
+                ACCOUNT_HOLDER_INFORMATION: 4,
+                CONFIRMATION: 5,
+                SUCCESS: 6,
             },
         },
     },
