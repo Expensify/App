@@ -1,13 +1,11 @@
 /**
  * Returns the latest error from adding a company card or its newly connected feed.
  */
-import useCardFeeds from '@hooks/useCardFeeds';
-import useOnyx from '@hooks/useOnyx';
-
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import useCardFeeds from './useCardFeeds';
+import useOnyx from './useOnyx';
 
 function useCompanyCardConnectionError({policyID, newFeed}: {policyID?: string; newFeed?: CompanyCardFeedWithDomainID}) {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
