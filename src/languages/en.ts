@@ -7501,7 +7501,6 @@ const translations = {
             },
             importSettings: 'Import settings',
             defaultApprover: 'Default approver',
-            approverField: 'Approver field',
             approverFields: {
                 recruiter: 'Recruiter',
                 recruitingCoordinator: 'Recruiting coordinator',
