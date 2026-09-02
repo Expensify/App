@@ -32,6 +32,7 @@ import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
 import {buildSearchQueryJSON, getDateRangeForPreset, getQueryHashes, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
+import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -266,7 +267,6 @@ const policy: OnyxTypes.Policy = {
     id: 'Admin',
     name: 'Policy',
     outputCurrency: 'USD',
-    isPolicyExpenseChatEnabled: true,
     approvalMode: 'ADVANCED',
     autoReimbursement: {
         limit: 0,
@@ -1193,6 +1193,9 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         firstApproverAvatar: undefined,
         firstApproverAccountID: undefined,
         formattedFirstApprover: '',
+        paidByAvatar: undefined,
+        paidByAccountID: undefined,
+        formattedPaidBy: '',
         stateNum: 0,
         statusNum: 0,
         to: emptyPersonalDetails,
@@ -1322,6 +1325,9 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         firstApproverAvatar: undefined,
         firstApproverAccountID: undefined,
         formattedFirstApprover: '',
+        paidByAvatar: undefined,
+        paidByAccountID: undefined,
+        formattedPaidBy: '',
         stateNum: 1,
         statusNum: 1,
         to: {
@@ -1457,6 +1463,9 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         firstApproverAvatar: undefined,
         firstApproverAccountID: undefined,
         formattedFirstApprover: '',
+        paidByAvatar: undefined,
+        paidByAccountID: undefined,
+        formattedPaidBy: '',
         stateNum: 1,
         statusNum: 1,
         total: 4400,
@@ -1678,6 +1687,9 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         firstApproverAvatar: undefined,
         firstApproverAccountID: undefined,
         formattedFirstApprover: '',
+        paidByAvatar: undefined,
+        paidByAccountID: undefined,
+        formattedPaidBy: '',
         stateNum: 0,
         statusNum: 0,
         to: emptyPersonalDetails,
@@ -3601,6 +3613,7 @@ describe('SearchUIUtils', () => {
                     total: 250,
                     groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
                     formattedMonth: 'January 2026',
+                    shortFormattedMonth: 'Jan ’26',
                     sortKey: 202601,
                     transactions: [],
                     transactionsQueryJSON: undefined,
@@ -3614,6 +3627,7 @@ describe('SearchUIUtils', () => {
                     total: 75,
                     groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
                     formattedMonth: 'December 2025',
+                    shortFormattedMonth: 'Dec ’25',
                     sortKey: 202512,
                     transactions: [],
                     transactionsQueryJSON: undefined,
@@ -3714,6 +3728,7 @@ describe('SearchUIUtils', () => {
                 total: 250,
                 groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
                 formattedMonth: 'January 2026',
+                shortFormattedMonth: 'Jan ’26',
                 sortKey: 202601,
                 transactions: [],
                 transactionsQueryJSON: undefined,
@@ -3731,6 +3746,7 @@ describe('SearchUIUtils', () => {
                 total: 250,
                 groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
                 formattedWeek: 'Jan 25 - Jan 31, 2026',
+                shortFormattedWeek: 'Jan 25 - 31, ’26',
                 transactions: [],
                 transactionsQueryJSON: undefined,
                 keyForList: '2026-01-25-01-25',
@@ -4191,6 +4207,7 @@ describe('SearchUIUtils', () => {
                     total: 250,
                     groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
                     formattedQuarter: 'Q1 2026 (Jan 1 - Mar 31)',
+                    shortFormattedQuarter: 'Q1 ’26',
                     sortKey: 20261,
                     transactions: [],
                     transactionsQueryJSON: undefined,
@@ -4204,6 +4221,7 @@ describe('SearchUIUtils', () => {
                     total: 75,
                     groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
                     formattedQuarter: 'Q4 2025 (Oct 1 - Dec 31)',
+                    shortFormattedQuarter: 'Q4 ’25',
                     sortKey: 20254,
                     transactions: [],
                     transactionsQueryJSON: undefined,
@@ -4304,6 +4322,7 @@ describe('SearchUIUtils', () => {
                 total: 250,
                 groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
                 formattedQuarter: 'Q1 2026 (Jan 1 - Mar 31)',
+                shortFormattedQuarter: 'Q1 ’26',
                 sortKey: 20261,
                 transactions: [],
                 transactionsQueryJSON: undefined,
@@ -4321,6 +4340,7 @@ describe('SearchUIUtils', () => {
                     total: 250,
                     groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
                     formattedWeek: 'Jan 25 - Jan 31, 2026',
+                    shortFormattedWeek: 'Jan 25 - 31, ’26',
                     transactions: [],
                     transactionsQueryJSON: undefined,
                     keyForList: 'group_2026-01-25',
@@ -4332,6 +4352,7 @@ describe('SearchUIUtils', () => {
                     total: 75,
                     groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
                     formattedWeek: 'Dec 21 - Dec 27, 2025',
+                    shortFormattedWeek: 'Dec 21 - 27, ’25',
                     transactions: [],
                     transactionsQueryJSON: undefined,
                     keyForList: 'group_2025-12-21',
@@ -6912,6 +6933,106 @@ describe('SearchUIUtils', () => {
                 expect(item?.firstApproverAccountID).toBeUndefined();
             });
 
+            it('should populate paidBy from a snapshot payment action on a paid report', () => {
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            'reimbursed-1': {
+                                reportActionID: 'reimbursed-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                                actorAccountID: approverAccountID,
+                                created: '2024-12-22 09:30:00',
+                            },
+                        },
+                    },
+                );
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.paidByAccountID).toBe(approverAccountID);
+            });
+
+            it('should populate paidBy from a live pay action missing from the snapshot (pay from Search)', () => {
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED});
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'optimistic-pay-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY},
+                                actorAccountID: approverAccountID,
+                                created: '2024-12-22 09:30:00',
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.paidByAccountID).toBe(approverAccountID);
+            });
+
+            it('should leave paidBy blank when the submitter marked the payment as received', () => {
+                const [sections] = callGetReportSections(
+                    makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED}),
+                    {
+                        reportActions: {
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                                {
+                                    reportActionID: 'received-pay-1',
+                                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                                    originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, isSubmitterMarkedPaymentReceived: true},
+                                    actorAccountID: adminAccountID,
+                                    created: '2024-12-22 09:30:00',
+                                },
+                                {
+                                    reportActionID: 'received-reimbursed-1',
+                                    actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                                    actorAccountID: adminAccountID,
+                                    created: '2024-12-22 09:30:00',
+                                },
+                                {
+                                    reportActionID: 'received-redeemed-1',
+                                    actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REDEEMED,
+                                    actorAccountID: adminAccountID,
+                                    created: '2024-12-22 09:30:01',
+                                },
+                            ],
+                        },
+                    },
+                );
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.paidByAccountID).toBeUndefined();
+                expect(item?.formattedPaidBy).toBe('');
+            });
+
+            it('should ignore payment actions at or before the latest reimbursement cancellation', () => {
+                const [sections] = callGetReportSections(
+                    makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED}),
+                    {
+                        reportActions: {
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                                {
+                                    reportActionID: 'reimbursed-1',
+                                    actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                                    actorAccountID: approverAccountID,
+                                    created: '2024-12-20 08:00:00',
+                                },
+                                {
+                                    reportActionID: 'dequeued-1',
+                                    actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED,
+                                    actorAccountID: approverAccountID,
+                                    created: '2024-12-21 10:00:00',
+                                },
+                            ],
+                        },
+                    },
+                );
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.paidByAccountID).toBeUndefined();
+            });
+
             it('should use the first approval after the latest UNAPPROVED action when the report was re-approved', () => {
                 const reApprovedAt = '2024-12-22 09:30:00';
                 const data = makeReportFilterTestData(
@@ -8102,7 +8223,6 @@ describe('SearchUIUtils', () => {
                     name: 'Test Policy',
                     owner: adminEmail,
                     outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
                     role: CONST.POLICY.ROLE.ADMIN,
                     type: CONST.POLICY.TYPE.TEAM,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -8206,7 +8326,6 @@ describe('SearchUIUtils', () => {
                     name: 'Test Policy',
                     owner: adminEmail,
                     outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
                     role: CONST.POLICY.ROLE.ADMIN,
                     type: CONST.POLICY.TYPE.TEAM,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -8278,7 +8397,6 @@ describe('SearchUIUtils', () => {
                     name: 'Test Policy',
                     owner: adminEmail,
                     outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
                     role: CONST.POLICY.ROLE.ADMIN,
                     type: CONST.POLICY.TYPE.TEAM,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -8348,7 +8466,6 @@ describe('SearchUIUtils', () => {
                     name: 'Test Policy',
                     owner: adminEmail,
                     outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
                     role: CONST.POLICY.ROLE.ADMIN,
                     type: CONST.POLICY.TYPE.TEAM,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -8521,7 +8638,6 @@ describe('SearchUIUtils', () => {
                     name: 'Personal Policy',
                     owner: adminEmail,
                     outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: false,
                     role: CONST.POLICY.ROLE.USER,
                     type: CONST.POLICY.TYPE.PERSONAL, // personal policy, not team
                     approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
@@ -8552,7 +8668,6 @@ describe('SearchUIUtils', () => {
                     name: 'Submit Workspace',
                     owner: adminEmail,
                     outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
                     role: CONST.POLICY.ROLE.USER,
                     type: CONST.POLICY.TYPE.SUBMIT,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -8616,7 +8731,6 @@ describe('SearchUIUtils', () => {
                     name: 'Submit Workspace',
                     owner: adminEmail,
                     outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
                     role: CONST.POLICY.ROLE.USER,
                     type: CONST.POLICY.TYPE.SUBMIT,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -8659,7 +8773,6 @@ describe('SearchUIUtils', () => {
                     name: 'Team Policy',
                     owner: adminEmail,
                     outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
                     role: CONST.POLICY.ROLE.USER, // not admin
                     type: CONST.POLICY.TYPE.TEAM,
                     areCompanyCardsEnabled: false,
@@ -8692,7 +8805,6 @@ describe('SearchUIUtils', () => {
                     name: 'ACH Only Policy',
                     owner: adminEmail,
                     outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
                     role: CONST.POLICY.ROLE.ADMIN,
                     type: CONST.POLICY.TYPE.TEAM,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -8736,7 +8848,6 @@ describe('SearchUIUtils', () => {
                     name: 'Card Only Policy',
                     owner: adminEmail,
                     outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
                     role: CONST.POLICY.ROLE.ADMIN,
                     type: CONST.POLICY.TYPE.TEAM,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -8772,7 +8883,6 @@ describe('SearchUIUtils', () => {
                     name: 'Full Policy',
                     owner: adminEmail,
                     outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
                     role: CONST.POLICY.ROLE.ADMIN,
                     type: CONST.POLICY.TYPE.TEAM,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -8827,7 +8937,6 @@ describe('SearchUIUtils', () => {
                     name: 'ACH Only Policy',
                     owner: adminEmail,
                     outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
                     role: CONST.POLICY.ROLE.ADMIN,
                     type: CONST.POLICY.TYPE.TEAM,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -8870,7 +8979,6 @@ describe('SearchUIUtils', () => {
                     name: 'Test Policy',
                     owner: adminEmail,
                     outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
                     role: CONST.POLICY.ROLE.ADMIN,
                     type: CONST.POLICY.TYPE.TEAM,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -8943,7 +9051,6 @@ describe('SearchUIUtils', () => {
                     name: 'Test Policy',
                     owner: adminEmail,
                     outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
                     role: CONST.POLICY.ROLE.ADMIN,
                     type: CONST.POLICY.TYPE.TEAM,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -9017,7 +9124,6 @@ describe('SearchUIUtils', () => {
                     name: 'Test Policy',
                     owner: adminEmail,
                     outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
                     role: CONST.POLICY.ROLE.ADMIN,
                     type: CONST.POLICY.TYPE.TEAM,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -9114,7 +9220,6 @@ describe('SearchUIUtils', () => {
                     name: 'Test Policy',
                     owner: adminEmail,
                     outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
                     role: CONST.POLICY.ROLE.ADMIN,
                     type: CONST.POLICY.TYPE.TEAM,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -9516,7 +9621,6 @@ describe('SearchUIUtils', () => {
                     },
                     type: 'corporate',
                     outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
                 },
 
                 report_6523565988285061: {
@@ -9832,6 +9936,178 @@ describe('SearchUIUtils', () => {
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
             expect(response.visibility.topCategories).toBe(false);
+        });
+
+        test('Should show Violations by submitter for Admin on a Control policy with rules and 2+ members', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areRulesEnabled: true,
+                    employeeList: {
+                        'employee1@policy.com': {email: 'employee1@policy.com'},
+                        'employee2@policy.com': {email: 'employee2@policy.com'},
+                    },
+                }),
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.visibility[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]).toBe(true);
+        });
+
+        test('Should show Violations by submitter for Auditor on a Control policy with rules and 2+ members', () => {
+            const auditorEmail = 'auditor@policy.com';
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    role: CONST.POLICY.ROLE.AUDITOR,
+                    areRulesEnabled: true,
+                    employeeList: {
+                        'employee1@policy.com': {email: 'employee1@policy.com'},
+                        'employee2@policy.com': {email: 'employee2@policy.com'},
+                    },
+                }),
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(auditorEmail, {}, policies, undefined);
+            expect(response.visibility[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]).toBe(true);
+        });
+
+        test('Should hide Violations by submitter for User role even on a Control policy with rules', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    role: CONST.POLICY.ROLE.USER,
+                    areRulesEnabled: true,
+                    employeeList: {
+                        'employee1@policy.com': {email: 'employee1@policy.com'},
+                        'employee2@policy.com': {email: 'employee2@policy.com'},
+                    },
+                }),
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility('user@policy.com', {}, policies, undefined);
+            expect(response.visibility[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]).toBe(false);
+        });
+
+        test('Should hide Violations by submitter when rules are disabled', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areRulesEnabled: false,
+                    employeeList: {
+                        'employee1@policy.com': {email: 'employee1@policy.com'},
+                        'employee2@policy.com': {email: 'employee2@policy.com'},
+                    },
+                }),
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.visibility[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]).toBe(false);
+        });
+
+        test('Should hide Violations by submitter for Collect/Team policies even when areRulesEnabled is true', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areRulesEnabled: true,
+                    employeeList: {
+                        'employee1@policy.com': {email: 'employee1@policy.com'},
+                        'employee2@policy.com': {email: 'employee2@policy.com'},
+                    },
+                }),
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.visibility[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]).toBe(false);
+        });
+
+        test('Should hide Violations by submitter for migrated Control workspaces when category data is not supplied', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areRulesEnabled: undefined,
+                    employeeList: {
+                        'employee1@policy.com': {email: 'employee1@policy.com'},
+                        'employee2@policy.com': {email: 'employee2@policy.com'},
+                    },
+                }),
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.visibility[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]).toBe(false);
+        });
+
+        test('Should show Violations by submitter for migrated Control workspaces with Classic category rules', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areRulesEnabled: undefined,
+                    employeeList: {
+                        'employee1@policy.com': {email: 'employee1@policy.com'},
+                        'employee2@policy.com': {email: 'employee2@policy.com'},
+                    },
+                }),
+            };
+            const policyCategories: OnyxCollection<OnyxTypes.PolicyCategories> = {
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]: {
+                    Travel: {name: 'Travel', enabled: true, maxExpenseAmount: 50000},
+                },
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, false, false, policyCategories);
+            expect(response.visibility[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]).toBe(true);
+        });
+
+        test('Should hide Violations by submitter for migrated Control workspaces with no category rules', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areRulesEnabled: undefined,
+                    employeeList: {
+                        'employee1@policy.com': {email: 'employee1@policy.com'},
+                        'employee2@policy.com': {email: 'employee2@policy.com'},
+                    },
+                }),
+            };
+            const policyCategories: OnyxCollection<OnyxTypes.PolicyCategories> = {
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]: {
+                    Travel: {name: 'Travel', enabled: true},
+                },
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, false, false, policyCategories);
+            expect(response.visibility[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]).toBe(false);
+        });
+
+        test('Should hide Violations by submitter when the workspace has fewer than 2 members', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areRulesEnabled: true,
+                    employeeList: {
+                        'employee1@policy.com': {email: 'employee1@policy.com'},
+                    },
+                }),
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.visibility[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]).toBe(false);
         });
 
         test('Should show Spend Over Time for Admin role in paid policy', () => {
@@ -10352,6 +10628,72 @@ describe('SearchUIUtils', () => {
             expect(topMerchants.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL);
             expect(topMerchants.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
         });
+
+        test('Should default Violations by submitter to sortBy groupExpenses and sortOrder desc', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID);
+            const violationsBySubmitter = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER];
+            expect(violationsBySubmitter.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES);
+            expect(violationsBySubmitter.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
+        });
+    });
+
+    describe('Test getSuggestedSearches', () => {
+        test('Should return Violations by submitter search with correct properties', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
+            const violationsBySubmitterSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER];
+
+            expect(violationsBySubmitterSearch).toBeDefined();
+            expect(violationsBySubmitterSearch.key).toBe(CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER);
+            expect(violationsBySubmitterSearch.translationPath).toBe('search.tabs.violationsBySubmitter');
+            expect(violationsBySubmitterSearch.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+            expect(violationsBySubmitterSearch.icon).toBe('UserEye');
+        });
+
+        test('Should return Violations by submitter search query with correct parameters', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
+            const violationsBySubmitterSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER];
+            const searchQueryJSON = violationsBySubmitterSearch.searchQueryJSON;
+
+            expect(searchQueryJSON).toBeDefined();
+            expect(searchQueryJSON?.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+            expect(searchQueryJSON?.groupBy).toBe(CONST.SEARCH.GROUP_BY.FROM);
+            expect(searchQueryJSON?.view).toBe(CONST.SEARCH.VIEW.TABLE);
+            expect(searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES);
+            expect(searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
+
+            const submittedFilter = searchQueryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED);
+            expect(submittedFilter).toBeDefined();
+            expect(submittedFilter?.filters?.some((filter) => filter.value === CONST.SEARCH.DATE_PRESETS.LAST_MONTH)).toBe(true);
+
+            const hasFilter = searchQueryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS);
+            expect(hasFilter).toBeDefined();
+            expect(hasFilter?.filters?.some((filter) => filter.value === CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION)).toBe(true);
+
+            expect(searchQueryJSON?.limit).toBe(CONST.SEARCH.TOP_SEARCH_LIMIT);
+        });
+
+        test('Should return Violations by submitter search query string with correct format', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
+            const violationsBySubmitterSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER];
+            const searchQuery = violationsBySubmitterSearch.searchQuery;
+
+            expect(searchQuery).toContain(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE}`);
+            expect(searchQuery).toContain(`groupBy:${CONST.SEARCH.GROUP_BY.FROM}`);
+            expect(searchQuery).toContain(`submitted:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`);
+            expect(searchQuery).toContain(`has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+            expect(searchQuery).toContain(`view:${CONST.SEARCH.VIEW.TABLE}`);
+            expect(searchQuery).toContain(`limit:${CONST.SEARCH.TOP_SEARCH_LIMIT}`);
+            expect(searchQuery).toContain(`sortBy:${CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES}`);
+            expect(searchQuery).toContain(`sortOrder:${CONST.SEARCH.SORT_ORDER.DESC}`);
+        });
+
+        test('Should return Violations by submitter search with valid hash', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
+            const violationsBySubmitterSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER];
+
+            expect(violationsBySubmitterSearch.hash).toBeGreaterThan(0);
+            expect(violationsBySubmitterSearch.similarSearchHash).toBeGreaterThan(0);
+        });
     });
 
     describe('Test getColumnsToShow', () => {
@@ -10574,6 +10916,160 @@ describe('SearchUIUtils', () => {
             expect(strictColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TO);
         });
 
+        test('Should not show Violations on expense search when no submitted-violation data is present', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const tx = {
+                ...baseTransaction,
+                transactionID: 'no-submitted-violations',
+                merchant: 'Test Merchant',
+                modifiedMerchant: '',
+                reportID,
+            };
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const data: OnyxTypes.SearchResults['data'] = {
+                [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
+                [`transactions_${tx.transactionID}`]: tx,
+                [`reportActions_${reportID}`]: {
+                    '1': {
+                        reportActionID: '1',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                        created: '2025-01-01 00:00:00',
+                        originalMessage: {
+                            amount: 1000,
+                            currency: CONST.CURRENCY.USD,
+                        },
+                    },
+                },
+                personalDetailsList: searchResults.data.personalDetailsList,
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: []});
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        });
+
+        test('Should show Violations only when submitted-violation data is present', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const tx = {
+                ...baseTransaction,
+                transactionID: 'with-submitted-violations',
+                merchant: 'Test Merchant',
+                modifiedMerchant: '',
+                reportID,
+            };
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const data: OnyxTypes.SearchResults['data'] = {
+                [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
+                [`transactions_${tx.transactionID}`]: tx,
+                [`reportActions_${reportID}`]: {
+                    '1': {
+                        reportActionID: '1',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                        created: '2025-01-01 00:00:00',
+                        originalMessage: {
+                            amount: 1000,
+                            currency: CONST.CURRENCY.USD,
+                            violations: {
+                                transactions: {
+                                    [tx.transactionID]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+                                },
+                            },
+                        },
+                    },
+                },
+                personalDetailsList: searchResults.data.personalDetailsList,
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: []});
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        });
+
+        test('Should inject Violations into custom column layouts when submitted-violation data is present', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const tx = {
+                ...baseTransaction,
+                transactionID: 'custom-columns-submitted-violations',
+                merchant: 'Test Merchant',
+                modifiedMerchant: '',
+                category: 'Advertising',
+                reportID,
+            };
+            const customVisibleColumns = [
+                CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
+                CONST.SEARCH.TABLE_COLUMNS.DATE,
+                CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
+                CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+            ];
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const data: OnyxTypes.SearchResults['data'] = {
+                [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
+                [`transactions_${tx.transactionID}`]: tx,
+                [`reportActions_${reportID}`]: {
+                    '1': {
+                        reportActionID: '1',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                        created: '2025-01-01 00:00:00',
+                        originalMessage: {
+                            amount: 1000,
+                            currency: CONST.CURRENCY.USD,
+                            violations: {
+                                transactions: {
+                                    [tx.transactionID]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+                                },
+                            },
+                        },
+                    },
+                },
+                personalDetailsList: searchResults.data.personalDetailsList,
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: customVisibleColumns});
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)).toBeLessThan(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT));
+        });
+
+        test('Should keep Violations in custom column layouts when the user selected it', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const tx = {
+                ...baseTransaction,
+                transactionID: 'custom-columns-selected-violations',
+                merchant: 'Test Merchant',
+                modifiedMerchant: '',
+                reportID,
+            };
+            const customVisibleColumns = [
+                CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
+                CONST.SEARCH.TABLE_COLUMNS.DATE,
+                CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
+                CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+            ];
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const data: OnyxTypes.SearchResults['data'] = {
+                [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
+                [`transactions_${tx.transactionID}`]: tx,
+                [`reportActions_${reportID}`]: {
+                    '1': {
+                        reportActionID: '1',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                        created: '2025-01-01 00:00:00',
+                        originalMessage: {
+                            amount: 1000,
+                            currency: CONST.CURRENCY.USD,
+                        },
+                    },
+                },
+                personalDetailsList: searchResults.data.personalDetailsList,
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: customVisibleColumns});
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        });
+
         test('Should only show Category GL Code when that column is selected', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const transactionWithCategoryGLCode = {
@@ -10668,6 +11164,12 @@ describe('SearchUIUtils', () => {
 
             const tagGLCodeHeader = getExpenseHeaders().find(({columnName}) => columnName === CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE);
             expect(tagGLCodeHeader?.sortColumnName).toBe(CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE);
+        });
+
+        test('Should exclude Violations from sort options', () => {
+            expect(SearchUIUtils.getSortByOptions([CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS, CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE], translateLocal)).toEqual([
+                {text: translateLocal('common.categoryGLCode'), value: CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE},
+            ]);
         });
 
         test('Should show MCC whenever that column is selected, even with no displayable MCC', () => {
@@ -11561,6 +12063,7 @@ describe('SearchUIUtils', () => {
         const currentUserAccountID = 1;
         const personalDetails: OnyxTypes.PersonalDetailsList = {[currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserLogin}};
         const baseParams = {
+            conciergeChat: undefined,
             item: transactionListItem,
             introSelected: introSelectedData,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -12366,6 +12869,174 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('getSubmittedViolationsForTransaction', () => {
+        const transactionIDForViolations = 'tx-violations-1';
+        const otherTransactionID = 'tx-violations-2';
+
+        const createSubmittedAction = (
+            actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED | typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+            violations?: {transactions: Record<string, Array<{name: string}>>},
+            reportActionID = 'submit-action-1',
+        ): OnyxTypes.ReportAction =>
+            ({
+                reportActionID,
+                actionName,
+                created: '2025-01-01 00:00:00',
+                originalMessage: {
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                    ...(violations ? {violations} : {}),
+                },
+            }) as OnyxTypes.ReportAction;
+
+        test('returns undefined when reportActions or transactionID is missing', () => {
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction(undefined, transactionIDForViolations, translateLocal)).toBeUndefined();
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([], transactionIDForViolations, translateLocal)).toBeUndefined();
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED)], undefined, translateLocal)).toBeUndefined();
+        });
+
+        test('ignores non-submit report actions', () => {
+            const iouAction: OnyxTypes.ReportAction = {
+                reportActionID: 'iou-1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2025-01-01 00:00:00',
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    IOUTransactionID: transactionIDForViolations,
+                },
+            };
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([iouAction], transactionIDForViolations, translateLocal)).toBeUndefined();
+        });
+
+        test('returns comma-separated translated violation labels from a SUBMITTED action', () => {
+            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.MISSING_COMMENT}],
+                },
+            });
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(
+                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingComment')}`,
+            );
+        });
+
+        test('includes translated labels from SUBMITTED_AND_CLOSED actions', () => {
+            const submitAndCloseAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}],
+                },
+            });
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAndCloseAction], transactionIDForViolations, translateLocal)).toBe(
+                translateLocal('violations.shortName.receiptRequired'),
+            );
+        });
+
+        test('aggregates across multiple submit actions and dedupes by name', () => {
+            const firstSubmit = createSubmittedAction(
+                CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.MISSING_TAG}],
+                    },
+                },
+                'submit-1',
+            );
+            const secondSubmit = createSubmittedAction(
+                CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.RECEIPT_REQUIRED}],
+                    },
+                },
+                'submit-2',
+            );
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([firstSubmit, secondSubmit], transactionIDForViolations, translateLocal)).toBe(
+                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingTag')}, ${translateLocal('violations.shortName.receiptRequired')}`,
+            );
+        });
+
+        test('omits receiptRequired when itemizedReceiptRequired is also present', () => {
+            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}, {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED}],
+                },
+            });
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(
+                translateLocal('violations.shortName.itemizedReceiptRequired'),
+            );
+        });
+
+        test('keeps receiptRequired when itemizedReceiptRequired is not present', () => {
+            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}, {name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+                },
+            });
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(
+                `${translateLocal('violations.shortName.receiptRequired')}, ${translateLocal('violations.shortName.missingCategory')}`,
+            );
+        });
+
+        test('translates maxAge via violations.shortName', () => {
+            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MAX_AGE}],
+                },
+            });
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(translateLocal('violations.shortName.maxAge'));
+            expect(translateLocal('violations.shortName.maxAge')).toBe('Date older than max expense age');
+        });
+
+        test('translates fieldRequired via violations.shortName', () => {
+            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.FIELD_REQUIRED}],
+                },
+            });
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(translateLocal('violations.shortName.fieldRequired'));
+        });
+
+        test('falls back to the raw identifier when no short-name translation exists', () => {
+            const unknownViolationName = 'unknownSubmittedViolation';
+            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: unknownViolationName}],
+                },
+            });
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(unknownViolationName);
+        });
+
+        test('ignores violations for other transaction IDs', () => {
+            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
+                transactions: {
+                    [otherTransactionID]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+                },
+            });
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBeUndefined();
+        });
+
+        test('returns undefined when submit actions have no violations for the transaction', () => {
+            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
+                transactions: {
+                    [transactionIDForViolations]: [],
+                },
+            });
+            const submitActionWithoutViolations = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED);
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBeUndefined();
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitActionWithoutViolations], transactionIDForViolations, translateLocal)).toBeUndefined();
+        });
+    });
+
     describe('getDisplayValue', () => {
         test('returns translated has option labels from getHasOptions', () => {
             const result = SearchUIUtils.getDisplayValue('has', {has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
@@ -12474,7 +13145,6 @@ describe('SearchUIUtils', () => {
             role: CONST.POLICY.ROLE.USER,
             owner: 'owner@example.com',
             outputCurrency: 'USD',
-            isPolicyExpenseChatEnabled: true,
             employeeList: {},
             ...overrides,
         });
@@ -12780,5 +13450,41 @@ describe('splitGroupsIntoPairs', () => {
         const {splitData, stickyHeaderIndices} = SearchUIUtils.splitGroupsIntoPairs([leaf]);
         expect(splitData).toEqual([leaf]);
         expect(stickyHeaderIndices).toEqual([]);
+    });
+});
+
+describe('getSavedSearchIconName', () => {
+    it.each([
+        [CONST.SEARCH.DATA_TYPES.EXPENSE, 'type:expense', 'ReceiptBookmark'],
+        [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 'type:expense-report', 'DocumentBookmark'],
+        [CONST.SEARCH.DATA_TYPES.CHAT, 'type:chat', 'CommentBubbleBookmark'],
+        [CONST.SEARCH.DATA_TYPES.INVOICE, 'type:invoice', 'InvoiceBookmark'],
+        [CONST.SEARCH.DATA_TYPES.TRIP, 'type:trip', 'LuggageBookmark'],
+        [CONST.SEARCH.DATA_TYPES.TASK, 'type:task', 'TaskBookmark'],
+    ])('returns the type-specific icon for %s saved searches', (_type, query, expectedIcon) => {
+        expect(SearchUIUtils.getSavedSearchIconName(query)).toBe(expectedIcon);
+    });
+
+    it('falls back to the bookmark icon when the query cannot be parsed into a type', () => {
+        const spy = jest.spyOn(SearchQueryUtils, 'buildSearchQueryJSON').mockReturnValue(undefined);
+        expect(SearchUIUtils.getSavedSearchIconName('an-unparseable-query')).toBe('Bookmark');
+        spy.mockRestore();
+    });
+
+    it('falls back to the bookmark icon when the query has a type outside the supported set (e.g. a hand-edited type:test URL)', () => {
+        // `buildSearchQueryJSON` passes an unrecognized `type` value straight through, so the map lookup
+        // misses and the icon must still resolve to the fallback rather than to `undefined`.
+        expect(SearchUIUtils.getSavedSearchIconName('type:test')).toBe('Bookmark');
+    });
+
+    it.each([[''], [undefined]])('falls back to the bookmark icon for a missing/empty query (%p) so every render path stays consistent', (query) => {
+        // A missing query must resolve to the fallback everywhere. Without the guard, '' would parse to the
+        // grammar default (type:expense -> ReceiptBookmark) while an undefined query would throw and log a
+        // console error, so the static twin and the interactive menus would disagree for the same search.
+        const spy = jest.spyOn(SearchQueryUtils, 'buildSearchQueryJSON');
+        expect(SearchUIUtils.getSavedSearchIconName(query)).toBe('Bookmark');
+        // The guard short-circuits before buildSearchQueryJSON, so no parse (and no console error) happens.
+        expect(spy).not.toHaveBeenCalled();
+        spy.mockRestore();
     });
 });

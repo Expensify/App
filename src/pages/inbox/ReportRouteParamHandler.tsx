@@ -24,9 +24,15 @@ function ReportRouteParamHandler() {
     const route = useRoute<ReportScreenRoute>();
     const navigation = useNavigation();
     const shouldResolveReportID = !route.params.reportID;
+    const shouldOpenOnAdminRoom = 'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom;
 
+    // Subscribing to the reports collection (instead of relying on the module-scoped copy inside ReportUtils)
+    // makes this handler re-run once the reports finish loading, so a route that was created without a reportID
+    // recovers instead of staying stuck on the loading skeleton. Resolving inside the selector keeps that cheap:
+    // the route only re-renders when the resolved ID changes, and once one is set nothing is computed at all.
     const {lastAccessedReport, reportsMetadata, reportNameValuePairsMetadata} = useFindLastAccessedReport({
         enabled: shouldResolveReportID,
+        openOnAdminRoom: shouldOpenOnAdminRoom,
     });
 
     useFocusEffect(() => {

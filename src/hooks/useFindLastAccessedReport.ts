@@ -21,9 +21,10 @@ function useFindLastAccessedReport({openOnAdminRoom, excludeReportID, enabled = 
     const {isBetaEnabled} = usePermissions();
     const ignoreDomainRooms = !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
     const shouldPreferAdminRoom = openOnAdminRoom ?? shouldOpenOnAdminRoom();
+    const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
     const [reportNameValuePairs, reportNameValuePairsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [lastAccessedReport, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (reports) => (enabled ? findLastAccessedReport(ignoreDomainRooms, shouldPreferAdminRoom, excludeReportID, reportNameValuePairs, reports) : undefined),
+        selector: (reports) => (enabled ? findLastAccessedReport(ignoreDomainRooms, guideAccountIDs, shouldPreferAdminRoom, excludeReportID, reportNameValuePairs, reports) : undefined),
     });
     return {lastAccessedReport, reportsMetadata, reportNameValuePairsMetadata};
 }

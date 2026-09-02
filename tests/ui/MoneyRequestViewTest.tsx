@@ -113,7 +113,6 @@ const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.get
                     name: 'Test Policy',
                     owner: currentUserEmail,
                     outputCurrency: CONST.CURRENCY.USD,
-                    isPolicyExpenseChatEnabled: true,
                     ...policy,
                 })}
                 shouldShowAnimatedBackground={false}
@@ -173,7 +172,6 @@ describe('MoneyRequestView edit fields', () => {
                 name: 'Test Policy',
                 owner: currentUserEmail,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {
                 reportID: expenseReportID,
@@ -608,7 +606,7 @@ describe('MoneyRequestView edit fields', () => {
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
                 reimbursable: false,
-                comment: {vendor: {externalID: 'v-1', isManuallySet: false}},
+                comment: {vendor: {externalID: 'v-1', wasManuallySet: false}},
             });
         });
         await waitForBatchedUpdatesWithAct();
@@ -639,7 +637,7 @@ describe('MoneyRequestView edit fields', () => {
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
                 reimbursable: false,
-                comment: {vendor: {externalID: 'xc1', isManuallySet: false}},
+                comment: {vendor: {externalID: 'xc1', wasManuallySet: false}},
             });
         });
         await waitForBatchedUpdatesWithAct();
@@ -672,7 +670,7 @@ describe('MoneyRequestView edit fields', () => {
             await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
                 reimbursable: false,
-                comment: {vendor: {externalID: 'stale-vendor-id', isManuallySet: false}},
+                comment: {vendor: {externalID: 'stale-vendor-id', wasManuallySet: false}},
             });
         });
         await waitForBatchedUpdatesWithAct();
@@ -709,7 +707,7 @@ describe('MoneyRequestView edit fields', () => {
                 // The vendor is gone from every synced list (e.g. it went inactive in Intacct), but its
                 // display name was persisted on the transaction at match/assign time, so the title must
                 // render the name — not the raw externalID.
-                comment: {vendor: {externalID: 'stale-vendor-id', name: 'Amazon', isManuallySet: false}},
+                comment: {vendor: {externalID: 'stale-vendor-id', name: 'Amazon', wasManuallySet: false}},
             });
         });
         await waitForBatchedUpdatesWithAct();
@@ -743,7 +741,7 @@ describe('MoneyRequestView edit fields', () => {
             await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
                 reimbursable: false,
-                comment: {vendor: {externalID: 'still-valid-vendor-id', isManuallySet: false}},
+                comment: {vendor: {externalID: 'still-valid-vendor-id', wasManuallySet: false}},
             });
         });
         await waitForBatchedUpdatesWithAct();
@@ -776,7 +774,7 @@ describe('MoneyRequestView edit fields', () => {
             await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
                 reimbursable: false,
-                comment: {vendor: {externalID: 'stale-vendor-id', isManuallySet: false}},
+                comment: {vendor: {externalID: 'stale-vendor-id', wasManuallySet: false}},
             });
         });
         await waitForBatchedUpdatesWithAct();
@@ -843,6 +841,7 @@ describe('MoneyRequestView edit fields', () => {
         });
 
         it('does not show the commuter exclusion on a self-DM expense that carries the fields', async () => {
+            const customUnitRateID = 'self-dm-distance-rate';
             const threadReport = {
                 ...LHNTestUtils.getFakeReport(),
                 parentReportID: selfDMReportID,
@@ -873,7 +872,34 @@ describe('MoneyRequestView edit fields', () => {
                         },
                     },
                 });
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {...distanceTransactionUpdate, reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    customUnits: {
+                        distance: {
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            customUnitID: 'distance',
+                            attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                            rates: {
+                                [customUnitRateID]: {
+                                    customUnitRateID,
+                                    currency: CONST.CURRENCY.USD,
+                                    rate: 67,
+                                },
+                            },
+                        },
+                    },
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                    ...distanceTransactionUpdate,
+                    amount: 201,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    comment: {
+                        ...distanceTransactionUpdate.comment,
+                        customUnit: {
+                            ...distanceTransactionUpdate.comment.customUnit,
+                            customUnitRateID,
+                        },
+                    },
+                });
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -891,6 +917,7 @@ describe('MoneyRequestView edit fields', () => {
 
             await waitFor(() => {
                 expect(screen.getByTestId('menu-item-common.distance')).toBeOnTheScreen();
+                expect(screen.getByTestId(/^menu-item-title-iou\.amount/)).toHaveTextContent('USD-268');
             });
             expect(screen.queryByTestId(`menu-item-${commuterDistanceDescription}`)).not.toBeOnTheScreen();
         });
