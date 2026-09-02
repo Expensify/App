@@ -1,4 +1,5 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isMerchantRuleSuggestionLive} from '@libs/MerchantRuleSuggestionUtils';
 import {arePolicyRulesEnabled} from '@libs/PolicyUtils';
 import {isMerchantMissing} from '@libs/TransactionUtils';
 
@@ -30,10 +31,9 @@ type MerchantRuleSuggestionResult = {
  * Resolves the "Create a rule" callout for an expense detail view: someone who can write workspace rules just edited
  * a field merchant rules can govern, and hasn't dismissed the offer for that expense.
  *
- * @param reportID - the report hosting the expense detail view, either a transaction thread, its expense report, or the chat the expense lives in
- * @param transactionID - the expense being displayed, when the caller already knows it
+ * @param reportID - the report hosting the expense detail view, either the expense's transaction thread or a report holding only that expense
  */
-function useMerchantRuleSuggestion(reportID: string | undefined, policyID: string | undefined, transactionID?: string): MerchantRuleSuggestionResult {
+function useMerchantRuleSuggestion(reportID: string | undefined, policyID: string | undefined): MerchantRuleSuggestionResult {
     const {isBetaEnabled} = usePermissions();
 
     const [storedSuggestion] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION);
@@ -42,16 +42,14 @@ function useMerchantRuleSuggestion(reportID: string | undefined, policyID: strin
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(storedSuggestion?.transactionID)}`);
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
 
-    // A screen hosts the callout when it shows the expense itself: the caller passed the transaction, or it is the
-    // expense's own transaction thread, or it is a report holding only that expense. A report listing several
-    // expenses shows no expense detail. Asking the report what it holds beats trusting the reports that happened to
-    // be in scope during the edit.
+    // A screen hosts the callout when it shows the expense itself: either the expense's own transaction thread, or a
+    // report holding only that expense, which renders the expense detail view rather than a list. A report listing
+    // several expenses shows no expense detail. Asking the report what it holds beats trusting the report that
+    // happened to be in scope during the edit.
     const reportTransactions = useReportTransactions(reportID);
     const isOneExpenseReportForSuggestion = reportTransactions.length === 1 && reportTransactions.at(0)?.transactionID === storedSuggestion?.transactionID;
-    const isHostingReport = !!reportID && (reportID === storedSuggestion?.reportIDs.at(0) || isOneExpenseReportForSuggestion);
-    const isDismissed = !!storedSuggestion?.transactionID && !!storedSuggestion.dismissedTransactionIDs?.includes(storedSuggestion.transactionID);
-    const isForThisExpenseView =
-        !!storedSuggestion && !isDismissed && !storedSuggestion.isRetired && ((!!transactionID && transactionID === storedSuggestion.transactionID) || isHostingReport);
+    const isHostingReport = !!reportID && (reportID === storedSuggestion?.reportID || isOneExpenseReportForSuggestion);
+    const isForThisExpenseView = isMerchantRuleSuggestionLive(storedSuggestion) && isHostingReport;
     // Offer the callout to exactly the people the rule page it opens will let in, which is write access to the Rules
     // feature. That is admins today, and also editors, who can already create the same rule from workspace settings.
     const canCreateMerchantRule = canWriteRules && arePolicyRulesEnabled(policy, policyCategories, isBetaEnabled(CONST.BETAS.RULES_REVAMP));

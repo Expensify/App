@@ -1,13 +1,25 @@
 import CONST from '@src/CONST';
 import type {MerchantRuleForm} from '@src/types/form';
-import type {Policy, Transaction} from '@src/types/onyx';
+import type {MerchantRuleSuggestion, Policy, Transaction} from '@src/types/onyx';
 import type {MerchantRuleSuggestionField} from '@src/types/onyx/MerchantRuleSuggestion';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import Parser from './Parser';
 import {resolveCurrentTaxCode} from './PolicyUtils';
-import {getCategory, getDescription, getMerchant, getTag, isMerchantMissing} from './TransactionUtils';
+import {getBillable, getCategory, getDescription, getMerchant, getReimbursable, getTag, getTaxCode, isMerchantMissing} from './TransactionUtils';
+
+/**
+ * Whether a stored offer is still live: it names an expense, has not been left behind, and that expense has not been
+ * dismissed this session. Both the callout's cheap outer gate and `useMerchantRuleSuggestion` ask this, so the answer
+ * is defined once here rather than spelled out in each.
+ */
+function isMerchantRuleSuggestionLive(suggestion: OnyxEntry<MerchantRuleSuggestion>): boolean {
+    if (!suggestion?.transactionID || suggestion.isRetired) {
+        return false;
+    }
+    return !suggestion.dismissedTransactionIDs?.includes(suggestion.transactionID);
+}
 
 /** The rule draft for one edited field, in the shape the rule form expects. */
 function getDraftForField(field: MerchantRuleSuggestionField, transaction: Transaction, policy: OnyxEntry<Policy>): Partial<MerchantRuleForm> {
@@ -24,7 +36,8 @@ function getDraftForField(field: MerchantRuleSuggestionField, transaction: Trans
         case CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAX: {
             // The rule form stores the key of the tax in `policy.taxRates.taxes`, which is what a transaction stores
             // as its taxCode. A transaction can still carry a code that has since been renamed, so resolve it first.
-            const taxCode = transaction.taxCode ? resolveCurrentTaxCode(policy, transaction.taxCode) : undefined;
+            const storedTaxCode = getTaxCode(transaction);
+            const taxCode = storedTaxCode ? resolveCurrentTaxCode(policy, storedTaxCode) : undefined;
             return taxCode && policy?.taxRates?.taxes?.[taxCode] ? {tax: taxCode} : {};
         }
         case CONST.MERCHANT_RULE_SUGGESTION_FIELDS.DESCRIPTION: {
@@ -32,10 +45,12 @@ function getDraftForField(field: MerchantRuleSuggestionField, transaction: Trans
             const description = getDescription(transaction);
             return description ? {comment: Parser.htmlToMarkdown(description)} : {};
         }
+        // Read through the helpers rather than the raw fields, so an unset value seeds the rule with what the expense
+        // view actually displays. An unset `reimbursable` shows as reimbursable, and would otherwise seed "Don't change".
         case CONST.MERCHANT_RULE_SUGGESTION_FIELDS.BILLABLE:
-            return transaction.billable !== undefined ? {billable: transaction.billable} : {};
+            return {billable: getBillable(transaction)};
         case CONST.MERCHANT_RULE_SUGGESTION_FIELDS.REIMBURSABLE:
-            return transaction.reimbursable !== undefined ? {reimbursable: transaction.reimbursable} : {};
+            return {reimbursable: getReimbursable(transaction)};
         default:
             return {};
     }
@@ -62,7 +77,4 @@ function getMerchantRuleDraftFromTransaction(transaction: OnyxEntry<Transaction>
     return draft;
 }
 
-export {
-    // eslint-disable-next-line import/prefer-default-export -- Utils modules export their helpers by name
-    getMerchantRuleDraftFromTransaction,
-};
+export {getMerchantRuleDraftFromTransaction, isMerchantRuleSuggestionLive};

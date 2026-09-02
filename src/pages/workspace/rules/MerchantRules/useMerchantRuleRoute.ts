@@ -1,29 +1,13 @@
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import isDynamicRouteScreen from '@libs/Navigation/helpers/dynamicRoutesUtils/isDynamicRouteScreen';
 
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type {Screen} from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
-
-// The merchant rule screens that hang off an expense. Membership is checked directly rather than through
-// `isDynamicRouteScreen` so this stays a plain string lookup, and so only this flow's screens can match.
-const SCREENS_FROM_EXPENSE = new Set<string>([
-    SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW,
-    SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_MERCHANT_TO_MATCH,
-    SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_MATCH_TYPE,
-    SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_MERCHANT,
-    SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_CATEGORY,
-    SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_TAG,
-    SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_TAX,
-    SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_VENDOR,
-    SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_DESCRIPTION,
-    SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_REIMBURSABLE,
-    SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_BILLABLE,
-    SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_PREVIEW_MATCHES,
-]);
 
 type MerchantRuleRoute = {
     /** Whether these pages were entered from the "Create a rule" callout on an expense rather than workspace settings */
@@ -55,22 +39,26 @@ type MerchantRuleRoute = {
  * @param dynamicSuffix - this page's own dynamic route path, dropped from the URL to go back
  * @param policyID - the workspace the rule belongs to
  * @param ruleID - the rule being edited, absent when creating one
+ * @param staticBackToRoute - where to return in the workspace settings flow, for the pages that sit deeper than the rule page itself
  */
-function useMerchantRuleRoute(dynamicSuffix: DynamicRouteSuffix, policyID: string, ruleID?: string): MerchantRuleRoute {
+function useMerchantRuleRoute(dynamicSuffix: DynamicRouteSuffix, policyID: string, ruleID?: string, staticBackToRoute?: Route): MerchantRuleRoute {
     const route = useRoute();
-    const isCreatedFromExpense = SCREENS_FROM_EXPENSE.has(route.name);
+    // Asking the linking config keeps this from drifting: a screen added to the flow is dynamic or it is not, with no
+    // list here to forget to update.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- useRoute is untyped here because this hook is shared by every page of the flow, and the repo's other isDynamicRouteScreen callers narrow the same way
+    const isCreatedFromExpense = isDynamicRouteScreen(route.name as Screen);
     // Only a rule reached through workspace settings can be an edit. `ruleID` is absent on the dynamic routes, and
     // `undefined !== 'new'` would otherwise read as editing.
     const isEditing = !isCreatedFromExpense && !!ruleID && ruleID !== ROUTES.NEW;
     const dynamicBackToRoute = useDynamicBackPath(dynamicSuffix);
-    const staticBackToRoute = isEditing && ruleID ? ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
+    const ruleRoute = isEditing && ruleID ? ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
 
     const getRuleRoute = (dynamicSuffixWithParams: string, staticRoute: Route) => (isCreatedFromExpense ? createDynamicRoute(dynamicSuffixWithParams) : staticRoute);
 
     return {
         isCreatedFromExpense,
         isEditing,
-        backToRoute: isCreatedFromExpense ? dynamicBackToRoute : staticBackToRoute,
+        backToRoute: isCreatedFromExpense ? dynamicBackToRoute : (staticBackToRoute ?? ruleRoute),
         getRuleRoute,
     };
 }

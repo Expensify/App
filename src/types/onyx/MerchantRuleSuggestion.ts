@@ -2,8 +2,13 @@ import type CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
 
-/** Expense field a merchant rule can govern */
-type MerchantRuleSuggestionField = ValueOf<typeof CONST.MERCHANT_RULE_SUGGESTION_FIELDS>;
+/**
+ * Expense field a merchant rule can govern.
+ *
+ * Intersected with the edit-request fields so the two lists cannot drift: if a value here ever stops being one
+ * EDIT_REQUEST_FIELD declares, it drops out of this union and every switch over it stops compiling.
+ */
+type MerchantRuleSuggestionField = ValueOf<typeof CONST.MERCHANT_RULE_SUGGESTION_FIELDS> & ValueOf<typeof CONST.EDIT_REQUEST_FIELD>;
 
 /**
  * The expense edits that can be turned into a merchant rule, which drive the "Create a rule" callout.
@@ -14,8 +19,8 @@ type MerchantRuleSuggestion = {
     /** The expense most recently edited, which is the one currently offering a rule */
     transactionID: string;
 
-    /** The transaction thread and its parent expense report, whose expense detail views can show the callout */
-    reportIDs: string[];
+    /** The expense's own transaction thread, whose expense detail view can show the callout */
+    reportID: string;
 
     /**
      * Every field edited so far, keyed by expense. The callout offers all of an expense's fields at once, because the

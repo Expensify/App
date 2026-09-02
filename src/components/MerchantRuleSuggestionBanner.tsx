@@ -2,12 +2,13 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMerchantRuleSuggestion from '@hooks/useMerchantRuleSuggestion';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearMerchantRuleSuggestionFields, dismissMerchantRuleSuggestion, retireMerchantRuleSuggestion} from '@libs/actions/MerchantRuleSuggestion';
 import {setDraftMerchantRule} from '@libs/actions/User';
-import {getMerchantRuleDraftFromTransaction} from '@libs/MerchantRuleSuggestionUtils';
+import {getMerchantRuleDraftFromTransaction, isMerchantRuleSuggestionLive} from '@libs/MerchantRuleSuggestionUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -18,6 +19,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
+import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Animated, {FadeInDown, FadeInUp, FadeOutDown, FadeOutUp} from 'react-native-reanimated';
@@ -26,6 +28,7 @@ import Banner from './Banner';
 import Icon from './Icon';
 import Text from './Text';
 import TextLink from './TextLink';
+import {useWideRHPState} from './WideRHPContextProvider';
 
 type MerchantRuleSuggestionBannerProps = {
     /** The report hosting the expense detail view: a transaction thread, its expense report, or the chat it lives in */
@@ -34,25 +37,25 @@ type MerchantRuleSuggestionBannerProps = {
     /** The workspace the expense belongs to */
     policyID: string | undefined;
 
-    /** The expense being displayed, when the host already knows it */
-    transactionID?: string;
-
     /** Styles for the banner container */
     containerStyles?: StyleProp<ViewStyle>;
 
     /** When set, floats the callout in a wrapper carrying these styles instead of laying it out inline */
     overlayStyles?: StyleProp<ViewStyle>;
 
-    /** Whether the callout is pinned to the bottom of its host, which is the edge it slides in from */
+    /**
+     * Whether this mount point is the one above the composer. It decides both the edge the callout slides in from and
+     * which layouts it belongs in, since the composer takes the wide layouts and the report list takes the narrow ones.
+     */
     isAnchoredToBottom?: boolean;
 };
 
-function MerchantRuleSuggestionBannerContent({reportID, policyID, transactionID, containerStyles, overlayStyles, isAnchoredToBottom}: MerchantRuleSuggestionBannerProps) {
+function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyles, overlayStyles, isAnchoredToBottom}: MerchantRuleSuggestionBannerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
-    const {suggestion, fields, transaction, policy} = useMerchantRuleSuggestion(reportID, policyID, transactionID);
+    const {suggestion, fields, transaction, policy} = useMerchantRuleSuggestion(reportID, policyID);
 
     // The offer ends once the user has seen it and navigated away. Retiring leaves the expense itself untouched, so
     // editing it again offers afresh. Only the close button silences an expense for the session.
@@ -137,18 +140,27 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, transactionID,
     );
 }
 
-MerchantRuleSuggestionBannerContent.displayName = 'MerchantRuleSuggestionBannerContent';
-
 /**
  * Offers the chance to turn an expense edit into a merchant rule, right on the expense that was just edited. Renders
  * nothing unless there is a qualifying edit to act on.
  */
-function MerchantRuleSuggestionBanner({reportID, policyID, transactionID, containerStyles, overlayStyles, isAnchoredToBottom}: MerchantRuleSuggestionBannerProps) {
+function MerchantRuleSuggestionBanner({reportID, policyID, containerStyles, overlayStyles, isAnchoredToBottom}: MerchantRuleSuggestionBannerProps) {
     const [storedSuggestion] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // A wide RHP reports a narrow layout but lays the expense out like a wide screen, so it belongs to the composer
+    // mount alongside the genuinely wide layouts.
+    const route = useRoute();
+    const {wideRHPRouteKeys} = useWideRHPState();
+    const isInWideRHP = !!route?.key && wideRHPRouteKeys.includes(route.key);
+
+    // Both mount points are always rendered, and this picks the one that suits the layout. Deciding here rather than
+    // at each mount keeps the two halves of the condition from drifting apart, and keeps the navigation-state
+    // subscription out of the report actions list, which re-renders far more than this does.
+    const isMountForThisLayout = isAnchoredToBottom ? !shouldUseNarrowLayout || isInWideRHP : shouldUseNarrowLayout && !isInWideRHP;
 
     // Nothing is stored for most of a session, so skip the inner component and its many Onyx subscriptions until
     // there is an edit to offer.
-    if (!storedSuggestion?.transactionID || storedSuggestion.isRetired || storedSuggestion.dismissedTransactionIDs?.includes(storedSuggestion.transactionID)) {
+    if (!isMountForThisLayout || !isMerchantRuleSuggestionLive(storedSuggestion)) {
         return null;
     }
 
@@ -156,14 +168,11 @@ function MerchantRuleSuggestionBanner({reportID, policyID, transactionID, contai
         <MerchantRuleSuggestionBannerContent
             reportID={reportID}
             policyID={policyID}
-            transactionID={transactionID}
             containerStyles={containerStyles}
             overlayStyles={overlayStyles}
             isAnchoredToBottom={isAnchoredToBottom}
         />
     );
 }
-
-MerchantRuleSuggestionBanner.displayName = 'MerchantRuleSuggestionBanner';
 
 export default MerchantRuleSuggestionBanner;

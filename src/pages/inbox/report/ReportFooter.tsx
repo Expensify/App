@@ -5,7 +5,6 @@ import BlockedReportFooter from '@components/BlockedReportFooter';
 import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
 import OfflineIndicator from '@components/OfflineIndicator';
 import SwipeableView from '@components/SwipeableView';
-import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
@@ -67,10 +66,6 @@ function ReportFooter() {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
-    // A wide RHP reports a narrow layout but lays the expense out like a wide screen, with the receipt in its own
-    // panel and the composer beside it, so the "Create a rule" callout belongs here rather than above the list.
-    const {wideRHPRouteKeys} = useWideRHPState();
-    const isInWideRHP = wideRHPRouteKeys.includes(route.key);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
 
@@ -112,9 +107,9 @@ function ReportFooter() {
                 <ReportActionCompose reportID={reportIDFromRoute} />
             </SwipeableView>
         );
-        // Narrow layouts pin the callout over the top of the report list instead
-        const shouldShowMerchantRuleBanner = (!shouldUseNarrowLayout || isInWideRHP) && !isComposerFullSize;
-        const merchantRuleBanner = shouldShowMerchantRuleBanner && (
+        // The callout decides for itself whether this mount suits the layout. A full-size composer leaves no room
+        // for it either way.
+        const merchantRuleBanner = !isComposerFullSize && (
             <MerchantRuleSuggestionBanner
                 reportID={reportIDFromRoute}
                 policyID={report.policyID}

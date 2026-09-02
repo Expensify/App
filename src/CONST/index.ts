@@ -514,11 +514,17 @@ const CONST = {
 
     MERCHANT_NAME_MAX_BYTES: 255,
 
-    /** Expense fields a merchant rule can govern, whose edit shows the "Create a rule" callout on the expense */
+    /**
+     * Expense fields a merchant rule can govern, whose edit shows the "Create a rule" callout on the expense.
+     *
+     * These are the same strings EDIT_REQUEST_FIELD uses, since they name the very edits that trigger the callout.
+     * They cannot be derived from it with Pick, because it is declared further down this same object literal, so
+     * `MerchantRuleSuggestionField` intersects the two instead and fails the build if they ever drift apart.
+     */
     MERCHANT_RULE_SUGGESTION_FIELDS: {
         CATEGORY: 'category',
         TAG: 'tag',
-        TAX: 'tax',
+        TAX: 'taxRate',
         DESCRIPTION: 'description',
         BILLABLE: 'billable',
         REIMBURSABLE: 'reimbursable',

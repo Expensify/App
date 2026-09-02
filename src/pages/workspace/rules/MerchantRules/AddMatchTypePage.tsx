@@ -15,7 +15,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import type {ValueOf} from 'type-fest';
@@ -36,8 +36,14 @@ type MatchTypeItem = ListItem & {
 
 function AddMatchTypePage({route}: AddMatchTypePageProps) {
     const {policyID, ruleID} = route.params;
-    // This page sits above the merchant-to-match page, so dropping its own suffix returns there.
-    const {backToRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_MATCH_TYPE_FROM_EXPENSE.path, policyID, ruleID);
+    // This page sits above the merchant-to-match page rather than the rule page, so both flows have to name it: the
+    // callout flow by dropping this page's own suffix, the settings flow by the route passed here.
+    const {backToRoute} = useMerchantRuleRoute(
+        DYNAMIC_ROUTES.RULES_MERCHANT_MATCH_TYPE_FROM_EXPENSE.path,
+        policyID,
+        ruleID,
+        ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.getRoute(policyID, ruleID !== ROUTES.NEW ? ruleID : undefined),
+    );
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
