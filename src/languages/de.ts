@@ -6210,6 +6210,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             finishSetup: 'Einrichtung abschließen',
             chooseBankAccount: 'Bankkonto auswählen',
             chooseExistingBank: 'Wählen Sie ein bestehendes Geschäftskonto aus, um den Saldo Ihrer Expensify Karte zu bezahlen, oder fügen Sie ein neues Bankkonto hinzu',
+            chooseExistingBankForTravelBilling: 'Wählen Sie ein vorhandenes Geschäftskonto, um Ihre konsolidierte Reiseabrechnung zu bezahlen, oder fügen Sie ein neues Bankkonto hinzu',
             accountEndingIn: 'Konto mit Endziffern',
             addNewBankAccount: 'Neues Bankkonto hinzufügen',
             settlementAccount: 'Verrechnungskonto',
