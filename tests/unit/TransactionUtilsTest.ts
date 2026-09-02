@@ -1,6 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
-import {getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {translate as translateWithLocale} from '@libs/Localize';
 import {doesMoneyRequestDraftHaveUserInput, shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
@@ -962,7 +961,7 @@ describe('TransactionUtils', () => {
 
             // And the amount and merchant use the converted reimbursable distance at the kilometer rate
             expect(updatedTransaction.modifiedAmount).toBe(155);
-            expect(updatedTransaction.modifiedMerchant).toBe('5.17 km @ EUR 0.30 / km');
+            expect(updatedTransaction.modifiedMerchant).toBe('5.17 km @ €0.30 / km');
 
             const manuallyOverriddenTransaction = {
                 ...transaction,
@@ -973,7 +972,7 @@ describe('TransactionUtils', () => {
             expect(updatedManuallyOverriddenTransaction.comment?.customUnit?.quantity).toBe(12.87);
             expect(updatedManuallyOverriddenTransaction.comment?.customUnit?.reimbursableDistance).toBeCloseTo(8.04);
             expect(updatedManuallyOverriddenTransaction.modifiedAmount).toBe(241);
-            expect(updatedManuallyOverriddenTransaction.modifiedMerchant).toBe('8.04 km @ EUR 0.30 / km');
+            expect(updatedManuallyOverriddenTransaction.modifiedMerchant).toBe('8.04 km @ €0.30 / km');
 
             const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`]: fakePolicy};
             expect(updateRate(transaction, undefined, policies).comment?.customUnit?.quantity).toBe(10);
