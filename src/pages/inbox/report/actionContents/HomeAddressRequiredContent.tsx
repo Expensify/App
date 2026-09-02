@@ -13,7 +13,7 @@ import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBa
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
-import type {PrivatePersonalDetails, ReportAction} from '@src/types/onyx';
+import type {Policy, PrivatePersonalDetails, ReportAction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -23,18 +23,28 @@ type HomeAddressRequiredContentProps = {
 
 const hasHomeAddressSelector = (privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>) => !!getCurrentAddress(privatePersonalDetails)?.street?.trim();
 
+const isRequestingHomeAddressSelector = (policy: OnyxEntry<Policy>) =>
+    policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
 function HomeAddressRequiredContent({action}: HomeAddressRequiredContentProps) {
     const {translate} = useLocalize();
+    const originalMessage = getOriginalMessage(action);
     const [hasHomeAddress] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {selector: hasHomeAddressSelector});
+    const [isPolicyRequestingHomeAddress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${originalMessage?.policyID}`, {selector: isRequestingHomeAddressSelector});
 
     // The prompt is resolved once the member saves a home address. Keep the CTA in sync with the local
     // address state so it disappears immediately after the optimistic save, even before the server
     // stamps the action as resolved.
-    const isResolved = !!getOriginalMessage(action)?.resolution || !!hasHomeAddress;
+    const isResolved = !!originalMessage?.resolution || !!hasHomeAddress;
+
+    // Only the workspace that asked for the address can use it, so the CTA is dropped as soon as that
+    // workspace stops asking: the policy leaves Onyx when the member is removed from it or it is
+    // deleted, and its method changes when an admin turns exclude commutes off.
+    const shouldShowCTA = !isResolved && !!isPolicyRequestingHomeAddress;
 
     return (
         <ReportActionItemBasicMessage message={getReportActionText(action)}>
-            {!isResolved && (
+            {shouldShowCTA && (
                 <ActionableItemButtons layout="horizontal">
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
