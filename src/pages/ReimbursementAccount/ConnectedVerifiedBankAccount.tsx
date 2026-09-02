@@ -16,7 +16,6 @@ import useChangeBankAccount from '@hooks/useChangeBankAccount';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResetBankAccountModal from '@hooks/useResetBankAccountModal';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -58,11 +57,8 @@ function ConnectedVerifiedBankAccount({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {icon, iconSize, iconStyles} = getBankIcon({bankName: reimbursementAccount?.achData?.bankName, styles});
-
-    const fullBleedRowsStyle = shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8;
 
     const formattedBankAccountNumber = reimbursementAccount?.achData?.accountNumber
         ? `${translate('bankAccount.accountEnding')} ${reimbursementAccount?.achData?.accountNumber.slice(-4)}`
@@ -107,7 +103,7 @@ function ConnectedVerifiedBankAccount({
                         shouldShowErrorMessages
                         onClose={resetReimbursementAccount}
                     >
-                        <View style={[styles.mt3, styles.justifyContentCenter, fullBleedRowsStyle]}>
+                        <View style={[styles.mt3, styles.justifyContentCenter, styles.mhn5]}>
                             <MenuItem.Root>
                                 <MenuItem.Row>
                                     <MenuItem.Leading>
@@ -127,7 +123,7 @@ function ConnectedVerifiedBankAccount({
                             </MenuItem.Root>
                         </View>
                         <Text style={[styles.mv3]}>{translate('workspace.bankAccount.accountDescriptionWithCards')}</Text>
-                        <View style={fullBleedRowsStyle}>
+                        <View style={styles.mhn5}>
                             {shouldShowChangeBankAccount && (
                                 <MenuItemNavigation
                                     title={translate('workspace.bankAccount.changeBankAccount')}
