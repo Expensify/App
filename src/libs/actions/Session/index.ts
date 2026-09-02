@@ -54,7 +54,7 @@ import * as Device from '@userActions/Device';
 import type HybridAppSettings from '@userActions/HybridApp/types';
 import {close} from '@userActions/Modal';
 import redirectToSignIn from '@userActions/SignInRedirect';
-import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
+import {getOnboardingTaskCompletionOnSuccessData} from '@userActions/Task';
 import * as Welcome from '@userActions/Welcome';
 
 import CONFIG from '@src/CONFIG';
@@ -1578,8 +1578,9 @@ const canAnonymousUserAccessRoute = (route: string) => {
 
 /**
  * @param addWorkEmailTaskReport The join-workspace intent's "add work email" Concierge task, when one exists. Auth
- * auto-completes it as part of AddWorkEmail via a forwarded CompleteTask, but ticking it here too, the same way
- * completing any other onboarding task does, avoids waiting on that command's Pusher update to reach the client.
+ * auto-completes it as part of AddWorkEmail via a forwarded CompleteTask, but ticking it here too avoids waiting on
+ * that command's Pusher update to reach the client. The tick rides AddWorkEmail's successData so it only lands once
+ * the command has actually succeeded - see getOnboardingTaskCompletionOnSuccessData.
  */
 function AddWorkEmail(
     workEmail: string,
@@ -1606,7 +1607,7 @@ function AddWorkEmail(
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
@@ -1626,24 +1627,25 @@ function AddWorkEmail(
         },
     ];
 
+    let completedTaskReportActionID: string | undefined;
     if (addWorkEmailTaskReport && currentUserAccountID) {
-        getFinishOnboardingTaskOnyxData(
+        const addWorkEmailTaskCompletion = getOnboardingTaskCompletionOnSuccessData(
             addWorkEmailTaskReport,
             addWorkEmailTaskParentReport,
             isAddWorkEmailTaskParentReportArchived ?? false,
             currentUserAccountID,
             addWorkEmailTaskHasOutstandingChildTask ?? false,
             addWorkEmailTaskParentReportAction,
-            // delegateEmail: matches the pattern in createPolicyTag, which also passes undefined pending Onyx-value threading
-            undefined,
         );
+        successData.push(...addWorkEmailTaskCompletion.successData);
+        completedTaskReportActionID = addWorkEmailTaskCompletion.completedTaskReportActionID;
     }
 
     // We need to inspect the response to detect the closed-account error and surface a specific translation key, which API.write cannot do.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(
         SIDE_EFFECT_REQUEST_COMMANDS.ADD_WORK_EMAIL,
-        {workEmail},
+        {workEmail, completedTaskReportActionID},
         {
             optimisticData,
             successData,
