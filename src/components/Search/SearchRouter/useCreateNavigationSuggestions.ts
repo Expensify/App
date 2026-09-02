@@ -85,7 +85,6 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
 
@@ -127,7 +126,6 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
                 false,
                 isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 defaultChatEnabledPolicy,
-                allBetas,
                 isTrackIntentUser,
                 getCurrencyDecimals,
                 false,
