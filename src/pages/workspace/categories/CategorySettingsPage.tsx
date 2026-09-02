@@ -578,7 +578,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 </OfflineWithFeedback>
                             ))}
                             {canWriteRules && (
-                                <MenuItem
+                                <MenuItemAction
                                     icon={expensifyIcons.Plus}
                                     title={translate('workspace.rules.categoryRules.createNewRule')}
                                     onPress={() => navigateToCategoryRule(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_NEW.path)}
