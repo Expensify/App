@@ -8,7 +8,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import useCopyableTextRowPress from '@hooks/useCopyableTextRowPress';
+import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -54,7 +54,8 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
-    const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
+    const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
+        useCopyableTextRowPress();
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const transactionItem = item as unknown as TransactionListItemType;
@@ -131,7 +132,12 @@ function TransactionListItemNarrow<TItem extends ListItem>({
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
                 ref={pressableRef}
-                onLongPress={() => onLongPressRow?.(item)}
+                onLongPress={() => {
+                    if (shouldSuppressCopyableTextRowLongPress()) {
+                        return;
+                    }
+                    onLongPressRow?.(item);
+                }}
                 onPress={handleOnPress}
                 disabled={isDisabled && !isSelected}
                 accessibilityLabel={item.text ?? ''}
@@ -159,6 +165,9 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                         return;
                     }
                     event.preventDefault();
+                }}
+                onTouchStart={(event) => {
+                    markTouchStartOnCopyableText(event, isPressStartOnCopyableText(event));
                 }}
                 wrapperStyle={[
                     styles.mh5,

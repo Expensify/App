@@ -8,7 +8,7 @@ import TransactionItemRow from '@components/TransactionItemRow';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import useCopyableTextRowPress from '@hooks/useCopyableTextRowPress';
+import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -58,7 +58,8 @@ function TransactionListItemWide<TItem extends ListItem>({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
-    const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
+    const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
+        useCopyableTextRowPress();
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const transactionItem = item as unknown as TransactionListItemType;
@@ -165,7 +166,12 @@ function TransactionListItemWide<TItem extends ListItem>({
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
                 ref={pressableRef}
-                onLongPress={() => onLongPressRow?.(item)}
+                onLongPress={() => {
+                    if (shouldSuppressCopyableTextRowLongPress()) {
+                        return;
+                    }
+                    onLongPressRow?.(item);
+                }}
                 onPress={handleOnPress}
                 disabled={isDisabled && !isSelected}
                 accessibilityLabel={item.text ?? ''}
@@ -173,6 +179,9 @@ function TransactionListItemWide<TItem extends ListItem>({
                 isNested
                 shouldAllowTextSelection
                 onMouseDown={handleOnMouseDown}
+                onTouchStart={(event) => {
+                    markTouchStartOnCopyableText(event, isPressStartOnCopyableText(event));
+                }}
                 onHoverIn={handleOnHoverIn}
                 hoverStyle={[!item.isDisabled && !shouldDisableHoverStyle && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{...COPYABLE_ROW_DATA_SET, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}

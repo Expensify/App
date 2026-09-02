@@ -8,7 +8,7 @@ import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import useCopyableTextRowPress from '@hooks/useCopyableTextRowPress';
+import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -207,7 +207,8 @@ function TransactionGroupListItemImpl({
         isItemSelected && styles.activeComponentBG,
     ];
     const pressableRef = useRef<View>(null);
-    const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
+    const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
+        useCopyableTextRowPress();
 
     useEffect(() => {
         if (!newTransactionID || !isExpanded) {
@@ -278,6 +279,9 @@ function TransactionGroupListItemImpl({
     };
 
     const onLongPress = () => {
+        if (shouldSuppressCopyableTextRowLongPress()) {
+            return;
+        }
         onLongPressRow?.(item, isExpenseReportType ? undefined : transactions);
     };
 
@@ -535,6 +539,9 @@ function TransactionGroupListItemImpl({
                         return;
                     }
                     e.preventDefault();
+                }}
+                onTouchStart={(event) => {
+                    markTouchStartOnCopyableText(event, isPressStartOnCopyableText(event));
                 }}
                 id={item.keyForList ?? ''}
                 style={[

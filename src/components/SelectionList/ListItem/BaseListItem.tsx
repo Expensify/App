@@ -5,7 +5,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import getListItemAccessibilityProps from '@components/SelectionList/utils/getListItemAccessibilityProps';
 import isListItemSelected from '@components/SelectionList/utils/isListItemSelected';
 
-import useCopyableTextRowPress from '@hooks/useCopyableTextRowPress';
+import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {useMouseActions, useMouseState} from '@hooks/useMouseContext';
@@ -72,7 +72,8 @@ function BaseListItem<TItem extends ListItem>({
     const {setMouseUp} = useMouseActions();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark', 'DotIndicator']);
     const pressableRef = useRef<View>(null);
-    const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
+    const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
+        useCopyableTextRowPress();
 
     // Sync focus on an item
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
@@ -146,6 +147,9 @@ function BaseListItem<TItem extends ListItem>({
                 lang={item.lang}
                 accessibilityLanguage={item.lang}
                 onLongPress={() => {
+                    if (shouldAllowTextSelection && shouldSuppressCopyableTextRowLongPress()) {
+                        return;
+                    }
                     onLongPressRow?.(item);
                 }}
                 onPress={(e) => {
@@ -177,6 +181,9 @@ function BaseListItem<TItem extends ListItem>({
                         return;
                     }
                     e.preventDefault();
+                }}
+                onTouchStart={(event) => {
+                    markTouchStartOnCopyableText(event, shouldAllowTextSelection && isPressStartOnCopyableText(event));
                 }}
                 id={item.keyForList ?? ''}
                 testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}

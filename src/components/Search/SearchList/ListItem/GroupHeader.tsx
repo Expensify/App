@@ -7,7 +7,7 @@ import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@comp
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import useCopyableTextRowPress from '@hooks/useCopyableTextRowPress';
+import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -326,7 +326,8 @@ function GroupHeader({
 
     const isLastItemCollapsed = isLastItem && !isExpanded && !isSubHeaderRendered;
     const pressableRef = useRef<View>(null);
-    const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
+    const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
+        useCopyableTextRowPress();
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
@@ -356,6 +357,9 @@ function GroupHeader({
     };
 
     const handleLongPress = () => {
+        if (shouldSuppressCopyableTextRowLongPress()) {
+            return;
+        }
         onLongPressRow?.(withOriginalKey(item), isExpenseReportType ? undefined : groupItem.transactions);
     };
 
@@ -379,6 +383,9 @@ function GroupHeader({
                         return;
                     }
                     e.preventDefault();
+                }}
+                onTouchStart={(event) => {
+                    markTouchStartOnCopyableText(event, isPressStartOnCopyableText(event));
                 }}
                 id={item.keyForList ?? ''}
                 onFocus={(event) => {
