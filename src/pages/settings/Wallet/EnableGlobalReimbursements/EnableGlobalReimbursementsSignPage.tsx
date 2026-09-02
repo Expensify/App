@@ -37,7 +37,7 @@ function EnableGlobalReimbursementsSignPage({route}: EnableGlobalReimbursementsS
         }
 
         Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS.getRoute(Number(bankAccountID)));
-    }, [bankAccountID, bankStatement]);
+    }, [bankAccountID, bankStatement?.length]);
 
     const onSubmit = () => {
         enableGlobalReimbursementsForUSDBankAccount({
