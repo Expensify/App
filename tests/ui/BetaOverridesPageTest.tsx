@@ -72,55 +72,74 @@ describe('BetaOverridesPage', () => {
     });
 
     it('renders a switch for every beta except the "all" beta', async () => {
+        // When The page is opened
         renderBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();
 
+        // Then Every beta is listed except 'all'
         expect(screen.getAllByRole(CONST.ROLE.SWITCH).length).toBe(Object.values(CONST.BETAS).length - 1);
         expect(screen.queryByLabelText(CONST.BETAS.ALL)).toBeNull();
     });
 
     it('pins the opposite value when a beta that is off is toggled', async () => {
+        // Given An account without the beta, so its switch starts off
         renderBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When The switch is toggled
         fireEvent.press(screen.getByRole(CONST.ROLE.SWITCH, {name: CONST.BETAS.DEFAULT_ROOMS}));
 
+        // Then The opposite value is pinned, so the backend cannot change it back later in the session
         await waitFor(() => expect(mockSetBetaOverride).toHaveBeenCalledWith(CONST.BETAS.DEFAULT_ROOMS, true));
     });
 
     it('pins false when a beta that is on is toggled', async () => {
+        // Given An account with the beta, so its switch starts on
         await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.DEFAULT_ROOMS]);
         renderBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When The switch is toggled
         fireEvent.press(screen.getByRole(CONST.ROLE.SWITCH, {name: CONST.BETAS.DEFAULT_ROOMS}));
 
+        // Then False is pinned rather than the override being dropped, so toggling back is still an explicit choice
         await waitFor(() => expect(mockSetBetaOverride).toHaveBeenCalledWith(CONST.BETAS.DEFAULT_ROOMS, false));
     });
 
     it('marks only the betas that have an override stored', async () => {
+        // Given A single beta with an override stored
         await Onyx.set(ONYXKEYS.BETA_OVERRIDES, {[CONST.BETAS.DEFAULT_ROOMS]: false});
+
+        // When The page is opened
         renderBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();
 
+        // Then Only that beta is badged, so a pinned beta is distinguishable from one following the backend
         expect(screen.getAllByText('Overridden').length).toBe(1);
     });
 
     it('clears every override when reset is pressed', async () => {
+        // Given A stored override
         await Onyx.set(ONYXKEYS.BETA_OVERRIDES, {[CONST.BETAS.DEFAULT_ROOMS]: true});
         renderBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When Reset is pressed
         fireEvent.press(screen.getByText('Reset all overrides'));
 
+        // Then Every override is cleared, so each beta follows the backend again
         expect(mockClearBetaOverrides).toHaveBeenCalled();
     });
 
     it('shows the not found page in production, since the route can still be reached by a deep link', async () => {
+        // Given A production build, where overrides are ignored anyway
         mockIsProduction = true;
+
+        // When The page is opened, which a deep link still allows even though the row is hidden
         renderBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();
 
+        // Then The not found page is shown, so nobody can pin values that would never apply
         expect(screen.queryAllByRole(CONST.ROLE.SWITCH).length).toBe(0);
         expect(screen.queryByText('Reset all overrides')).toBeNull();
     });
