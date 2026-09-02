@@ -93,11 +93,11 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
-import type {AdditionalPayOnyxData} from './PayMoneyRequest';
+import type {AdditionalPayOnyxData} from './mergeAdditionalPayOnyxData';
 
 import {getAllReportNameValuePairs, getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
-import {mergeAdditionalPayOnyxData} from './PayMoneyRequest';
+import mergeAdditionalPayOnyxData from './mergeAdditionalPayOnyxData';
 
 type ApproveMoneyRequestFunctionParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;
