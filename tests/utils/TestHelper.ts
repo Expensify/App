@@ -4,7 +4,7 @@ import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
 import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate} from '@libs/Localize';
-import {format as formatNumber} from '@libs/NumberFormatUtils';
+import {format as formatNumber, formatToParts} from '@libs/NumberFormatUtils';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 
@@ -505,6 +505,26 @@ function convertToDisplayString(amountInCents: number | undefined, currencyCode:
     });
 }
 
+/**
+ * A local version of useCurrencyListActions().convertToDisplayStringWithoutCurrency for tests that call lib
+ * functions directly and need to inject the symbol-less formatter without the full app context.
+ */
+function convertToDisplayStringWithoutCurrency(amountInCents: number, currencyCode: string = CONST.CURRENCY.USD): string {
+    const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
+    const decimals = getCurrencyDecimalsLocal(sanitizedCurrency);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
+    return formatToParts(CONST.LOCALES.EN, convertedAmount, {
+        style: 'currency',
+        currency: sanitizedCurrency,
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: 2,
+    })
+        .filter((x) => x.type !== 'currency')
+        .filter((x) => x.type !== 'literal' || x.value.trim().length !== 0)
+        .map((x) => x.value)
+        .join('');
+}
+
 function getNavigateToChatHintRegex(): RegExp {
     const hintTextPrefix = translateLocal('accessibilityHints.navigatesToChat');
     return new RegExp(hintTextPrefix, 'i');
@@ -536,6 +556,7 @@ export {
     anyString,
     translateLocal,
     convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
     getCurrencyDecimalsLocal,
     getCurrencySymbolLocal,
     assertFormDataMatchesObject,

@@ -857,6 +857,7 @@ function getOptionData({
     translate,
     dateFnsLocale,
     convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
     localeCompare,
     isReportArchived,
     lastActionReport,
@@ -885,6 +886,7 @@ function getOptionData({
     translate: LocalizedTranslate;
     dateFnsLocale: DateFnsLocale | undefined;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     localeCompare: LocaleContextProps['localeCompare'];
     isReportArchived: boolean | undefined;
     lastActionReport: OnyxEntry<Report>;
@@ -1045,6 +1047,7 @@ function getOptionData({
     if (!lastMessageTextFromReport) {
         lastMessageTextFromReport = getLastMessageTextForReport({
             translate,
+            convertToDisplayString,
             dateFnsLocale,
             report,
             personalDetails,
@@ -1069,7 +1072,7 @@ function getOptionData({
 
     // Specifically for concierge chats and expense reports, which don't meet any of the conditions in the if statement below
     if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL)) {
-        lastMessageText = getActionableCard3DSTransactionApprovalMessage(translate, lastAction) ?? lastMessageText;
+        lastMessageText = getActionableCard3DSTransactionApprovalMessage(translate, lastAction, convertToDisplayString, convertToDisplayStringWithoutCurrency) ?? lastMessageText;
     } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT) && !!getDelegateSubmitMessage(translate, lastAction, currentUserLogin)) {
         lastMessageText = Parser.htmlToText(getDelegateSubmitMessage(translate, lastAction, currentUserLogin));
     }

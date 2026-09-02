@@ -136,7 +136,7 @@ function IOURequestStepConfirmationContent({
     shouldHideHeader = false,
     navigation,
 }: IOURequestStepConfirmationProps) {
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const params = route.params;
     const {iouType, reportID, transactionID: initialTransactionID, action, backToReport, backTo} = params;
     const participantsAutoAssignedFromRoute = route.name === SCREENS.MONEY_REQUEST.STEP_CONFIRMATION ? (params as StepConfirmationParams).participantsAutoAssigned : undefined;
@@ -323,7 +323,7 @@ function IOURequestStepConfirmationContent({
                           reportAttributesDerived,
                           participantReportDraft,
                           currentUserPersonalDetails.accountID,
-                          {translate, dateFnsLocale},
+                          {translate, dateFnsLocale, convertToDisplayString},
                       );
             }) ?? [],
         [
@@ -338,6 +338,7 @@ function IOURequestStepConfirmationContent({
             conciergeReportID,
             reportDrafts,
             translate,
+            convertToDisplayString,
             currentUserPersonalDetails.accountID,
         ],
     );

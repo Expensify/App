@@ -36,6 +36,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import type {FeedKeysWithAssignedCards} from './useFeedKeysWithAssignedCards';
 
 import {useCurrencyListState} from './useCurrencyList';
+import {useCurrencyListActions} from './useCurrencyList';
 import useExportedToFilterOptions from './useExportedToFilterOptions';
 import useLoadSearchCategoryData from './useLoadSearchCategoryData';
 import useLocalize from './useLocalize';
@@ -120,6 +121,7 @@ function useAutocompleteSuggestions({
     autocompleteSubstitutions,
 }: UseAutocompleteSuggestionsParams): AutocompleteItemData[] {
     const {localeCompare, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -247,6 +249,7 @@ function useAutocompleteSuggestions({
 
             const participants = getSearchOptions({
                 dateFnsLocale,
+                convertToDisplayString,
                 options,
                 draftComments,
                 betas: betas ?? [],
@@ -288,6 +291,7 @@ function useAutocompleteSuggestions({
 
             const filteredReports = getSearchOptions({
                 dateFnsLocale,
+                convertToDisplayString,
                 options,
                 draftComments,
                 betas: betas ?? [],

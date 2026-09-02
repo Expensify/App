@@ -278,6 +278,7 @@ function getMoneyRequestParticipantOptions(
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     reportDraft: OnyxEntry<Report> | undefined,
     translate: LocalizedTranslate,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     dateFnsLocale: DateFnsLocale | undefined,
 ): Array<Participant | OptionData> {
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
@@ -288,6 +289,7 @@ function getMoneyRequestParticipantOptions(
             : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserAccountID, {
                   translate,
                   dateFnsLocale,
+                  convertToDisplayString,
               });
     });
 }

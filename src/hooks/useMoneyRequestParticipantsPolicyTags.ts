@@ -15,6 +15,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {useCurrencyListActions} from './useCurrencyList';
 import useParticipantsPolicyTags from './useParticipantsPolicyTags';
 
 type UseMoneyRequestParticipantsPolicyTagsParams = {
@@ -47,6 +48,7 @@ function useMoneyRequestParticipantsPolicyTags({
     translate,
     dateFnsLocale,
 }: UseMoneyRequestParticipantsPolicyTagsParams): UseMoneyRequestParticipantsPolicyTagsResult {
+    const {convertToDisplayString} = useCurrencyListActions();
     const participants = getMoneyRequestParticipantOptions(
         currentUserAccountID,
         report,
@@ -57,6 +59,7 @@ function useMoneyRequestParticipantsPolicyTags({
         reportAttributesDerived,
         reportDraft,
         translate,
+        convertToDisplayString,
         dateFnsLocale,
     );
     const participantsPolicyTags = useParticipantsPolicyTags(participants);

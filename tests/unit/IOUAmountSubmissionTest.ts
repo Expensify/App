@@ -12,7 +12,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
-import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const CURRENT_USER_ACCOUNT_ID = 5;
@@ -171,6 +171,7 @@ describe('AmountSubmission', () => {
                 report: baseReport,
                 translate: translateLocal,
                 dateFnsLocale: undefined,
+                convertToDisplayString,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
                 transaction: undefined,

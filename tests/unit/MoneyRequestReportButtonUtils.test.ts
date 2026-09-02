@@ -1,4 +1,3 @@
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
 
@@ -30,9 +29,7 @@ jest.mock('@libs/ReportUtils', () => ({
     }),
 }));
 
-jest.mock('@libs/CurrencyUtils', () => ({
-    convertToDisplayString: jest.fn().mockImplementation((amountInCents = 0): string => `$${amountInCents}.00`),
-}));
+const convertToDisplayString = jest.fn().mockImplementation((amountInCents: number | undefined = 0): string => `$${amountInCents}.00`);
 
 describe('ReportButtonUtils', () => {
     describe('getTotalAmountForIOUReportPreviewButton', () => {

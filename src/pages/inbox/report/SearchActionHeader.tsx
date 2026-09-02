@@ -3,6 +3,7 @@ import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
@@ -37,6 +38,7 @@ type SearchActionHeaderProps = {
 function SearchActionHeaderContent({action, report, isWhisper, onPress, children}: SearchActionHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const personalDetailsList = usePersonalDetails();
     const parentReportID = isChatThread(report) ? report.parentReportID : undefined;
@@ -50,7 +52,7 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
     const reportTransactionsCollection = useReportTransactionsCollection(reportForHeaderReportID);
     const linkedTransactions = Object.values(reportTransactionsCollection ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 
-    const reportName = getChatListItemReportName(action, report, parentReport, conciergeReportID, linkedTransactions, translate, personalDetailsList);
+    const reportName = getChatListItemReportName(action, report, parentReport, conciergeReportID, linkedTransactions, translate, convertToDisplayString, personalDetailsList);
 
     return (
         <View style={[styles.p4]}>
