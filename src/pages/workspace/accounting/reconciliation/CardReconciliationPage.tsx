@@ -5,16 +5,15 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useEnvironment from '@hooks/useEnvironment';
-import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getAccountingIntegrationDisplayName, getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
-import type {CardProgramKey} from '@libs/CardUtils';
-import {getCardSettings, getConfiguredExpensifyCardProgramKeys, getConnectionBankAccountsForReconciliation, isExpensifyCardFullySetUp} from '@libs/CardUtils';
+import {getCardSettings, getConnectionBankAccountsForReconciliation} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -32,7 +31,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 
 import type {TupleToUnion} from 'type-fest';
 
@@ -44,47 +42,17 @@ type CardReconciliationPageProps = WithPolicyConnectionsProps & PlatformStackScr
 
 type AccountingConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>;
 
-type FullySetUpCardSetting = {
-    key: string;
-    cardSetting: ExpensifyCardSettings;
-    programKey: CardProgramKey | undefined;
-};
-
 function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const policyID = policy?.id;
-    const allCardSettings = useExpensifyCardFeeds(policyID);
     const {environmentURL} = useEnvironment();
 
-    const fullySetUpCardSetting = useMemo(() => {
-        const entries = Object.entries(allCardSettings ?? {});
-        const initialValue: FullySetUpCardSetting = {
-            key: '',
-            cardSetting: {
-                monthlySettlementDate: new Date(),
-                isMonthlySettlementAllowed: false,
-                paymentBankAccountID: CONST.DEFAULT_NUMBER_ID,
-            },
-            programKey: undefined,
-        };
-
-        return entries.reduce<FullySetUpCardSetting>((acc, [key, cardSetting]) => {
-            if (cardSetting && isExpensifyCardFullySetUp(policy, cardSetting)) {
-                return {
-                    key,
-                    cardSetting,
-                    programKey: getConfiguredExpensifyCardProgramKeys(cardSetting).at(0),
-                };
-            }
-            return acc;
-        }, initialValue);
-    }, [allCardSettings, policy]);
-
-    const domainID = fullySetUpCardSetting.key.split('_').at(-1);
-    const effectiveDomainID = Number(domainID ?? workspaceAccountID);
+    // Resolve the feed the same way the reconciliation account settings child page does. Picking the first fully-set-up
+    // fund here instead would disagree with the child whenever the policy has more than one eligible fund, so the parent
+    // could show one fund's settlement account while the child edited another's.
+    const {fundID: effectiveDomainID, programKey} = useDefaultCardFeed(policyID);
 
     const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${effectiveDomainID}`, {
         selector: isExpensifyCardContinuousReconciliationEnabledSelector,
@@ -93,7 +61,8 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const [currentConnectionName] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${effectiveDomainID}`);
     const [reconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID}${effectiveDomainID}`);
 
-    const resolvedCardSettings = fullySetUpCardSetting.programKey ? getCardSettings(fullySetUpCardSetting.cardSetting, fullySetUpCardSetting.programKey) : fullySetUpCardSetting.cardSetting;
+    const [resolvedFundCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${effectiveDomainID}`);
+    const resolvedCardSettings = getCardSettings(resolvedFundCardSettings, programKey);
     const paymentBankAccountID = resolvedCardSettings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const {connection} = route.params;
