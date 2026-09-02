@@ -672,7 +672,9 @@ function createRequireFieldsTableItem({
         typeLabel,
         conditionText,
         ruleDescription,
-        searchTokens: [decodedCategoryName, ruleDescription, typeLabel, ...ruleDescriptions],
+        // The Type column reads "Require" now, but the rules are still called field requirements everywhere else, so
+        // the old name stays searchable rather than making admins learn the column's shorthand to find a row.
+        searchTokens: [decodedCategoryName, ruleDescription, typeLabel, translate('workspace.rules.requireFieldsRule.title'), ...ruleDescriptions],
         pendingAction,
         disabled: isPendingDelete,
         action: () => {
