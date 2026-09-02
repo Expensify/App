@@ -1367,14 +1367,14 @@ function importCSVCompanyCards({
 }
 
 /**
- * Seeds ASSIGN_CARD Onyx state for a card feed refresh flow. The correct connection step (Plaid vs OAuth) is
- * derived from the feed type. For Plaid feeds, ADD_NEW_COMPANY_CARD.data.selectedCountry is also populated
- * so that PlaidConnectionStep can open the correct institution login.
+ * Starts the card feed refresh flow: seeds ASSIGN_CARD Onyx state and navigates to the refresh connection page.
+ * The correct connection step (Plaid vs OAuth) is derived from the feed type. For Plaid feeds,
+ * ADD_NEW_COMPANY_CARD.data.selectedCountry is also populated so that PlaidConnectionStep can open the correct
+ * institution login.
  *
- * Called directly after identity verification succeeds (from VerifyAccountPageBase.onValidationSuccess).
- * Navigation to the refresh page is handled by the caller (VerifyAccountPageBase.navigateForwardTo).
+ * When identity validation is required first, call this from the `useVerifyAccountAndResume` resume callback.
  */
-function seedCardFeedRefresh(feed: CompanyCardFeedWithDomainID, outputCurrency?: string, currencyList?: CurrencyList, countryByIp?: string) {
+function startCardFeedRefresh(policyID: string, feed: CompanyCardFeedWithDomainID, outputCurrency?: string, currencyList?: CurrencyList, countryByIp?: string) {
     const isPlaidFeed = !!CardUtils.getPlaidInstitutionId(feed);
     const currentStep = isPlaidFeed ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
 
@@ -1388,17 +1388,7 @@ function seedCardFeedRefresh(feed: CompanyCardFeedWithDomainID, outputCurrency?:
         isRefreshing: true,
         isEditing: false,
     });
-}
 
-/**
- * Starts the card feed refresh flow for an already-validated user: seeds Onyx state and navigates
- * directly to the refresh connection page.
- *
- * When identity validation is required first, use the VERIFY_ACCOUNT screen with seedCardFeedRefresh
- * as the onValidationSuccess callback instead.
- */
-function startCardFeedRefresh(policyID: string, feed: CompanyCardFeedWithDomainID, outputCurrency?: string, currencyList?: CurrencyList, countryByIp?: string) {
-    seedCardFeedRefresh(feed, outputCurrency, currencyList, countryByIp);
     Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION.getRoute(policyID, feed));
 }
 
@@ -1505,7 +1495,6 @@ export {
     clearErrorField,
     clearAssignCardErrors,
     linkCardFeedToPolicy,
-    seedCardFeedRefresh,
     startCardFeedRefresh,
     getExpensifyCardStatementPDF,
 };
