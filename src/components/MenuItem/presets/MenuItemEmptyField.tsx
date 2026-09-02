@@ -21,8 +21,8 @@ type MenuItemEmptyFieldProps = PropsWithChildren &
         /** Name of the field, standing in for the value the field does not have yet */
         description: string;
 
-        /** Function to fire when the row is pressed */
-        onPress: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
+        /** Function to fire when the row is pressed. Its presence is what makes the row editable, and what adds the chevron */
+        onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
         /** Whether the menu item is disabled */
         isDisabled?: boolean;
@@ -32,7 +32,7 @@ type MenuItemEmptyFieldProps = PropsWithChildren &
 function MenuItemEmptyField({description, onPress, children, isDisabled = false, sentryLabel, testID}: MenuItemEmptyFieldProps) {
     return (
         <MenuItemRoot
-            onPress={callFunctionIfActionIsAllowed(onPress)}
+            onPress={onPress ? callFunctionIfActionIsAllowed(onPress) : undefined}
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             testID={testID}
@@ -44,7 +44,7 @@ function MenuItemEmptyField({description, onPress, children, isDisabled = false,
                 </MenuItemContent>
                 <MenuItemTrailing>
                     {children}
-                    <MenuItemChevron />
+                    {!!onPress && <MenuItemChevron />}
                 </MenuItemTrailing>
             </MenuItemRow>
         </MenuItemRoot>
