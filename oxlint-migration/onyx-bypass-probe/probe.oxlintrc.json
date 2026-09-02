@@ -1,0 +1,14 @@
+{
+    "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+    "plugins": [],
+    "categories": {},
+    "jsPlugins": [
+        {"name": "rulesdir", "specifier": "../../config/oxlint/plugins/expensify-rules.mjs"},
+        {"name": "probe", "specifier": "./plugin.mjs"}
+    ],
+    "rules": {
+        "rulesdir/no-onyx-connect": "error",
+        "probe/bypass": "error",
+        "probe/bypass-grandfathered": "error"
+    }
+}

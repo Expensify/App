@@ -98,14 +98,16 @@ function ScheduleCallPage() {
         saveBookingDraft({date});
     }, []);
 
+    const calendlyScheduleData = calendlySchedule?.data;
+
     const timeSlotDateMap: Record<string, TimeSlot[]> = useMemo(() => {
-        if (!calendlySchedule?.data) {
+        if (!calendlyScheduleData) {
             return {};
         }
-        const guides = Object.keys(calendlySchedule.data);
+        const guides = Object.keys(calendlyScheduleData ?? {});
 
         const allTimeSlots = guides.reduce((allSlots, guideAccountID) => {
-            const guideSchedule = calendlySchedule?.data?.[guideAccountID];
+            const guideSchedule = calendlyScheduleData?.[guideAccountID];
             if (guideSchedule) {
                 for (const timeSlot of guideSchedule.timeSlots) {
                     allSlots.push({
@@ -135,7 +137,7 @@ function ScheduleCallPage() {
         }
 
         return timeSlotMap;
-    }, [calendlySchedule?.data, userTimezone, dateFnsLocale]);
+    }, [calendlyScheduleData, userTimezone, dateFnsLocale]);
 
     const selectableDates = Object.keys(timeSlotDateMap).sort(compareAsc);
     const firstDate = selectableDates.at(0);

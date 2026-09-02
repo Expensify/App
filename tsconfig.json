@@ -23,7 +23,7 @@
             "tests/*": ["./tests/*"]
         }
     },
-    "include": ["src", "website", "docs", "assets", "tests", "jest", "prompts", "__mocks__", ".storybook/**/*", ".claude/**/*", "modules", "**/*.nitro/*.ts", "**/*.nitro/*.tsx"],
+    "include": ["wdyr.ts", "src", "website", "docs", "assets", "tests", "jest", "prompts", "__mocks__", ".storybook/**/*", ".claude/**/*", "modules", "**/*.nitro/*.ts", "**/*.nitro/*.tsx"],
     "exclude": [
         "**/node_modules/*",
         "**/dist/*",

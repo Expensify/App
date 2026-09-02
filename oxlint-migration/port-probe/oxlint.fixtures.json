@@ -1,0 +1,217 @@
+{
+    "$schema": "../../node_modules/oxlint/configuration_schema.json",
+    // The production plugins are loaded directly, so a fixture failure means the shipped
+    // config regressed — not that a probe copy drifted. There is no staging plugin any more:
+    // the last candidate (jsx-no-constructed-context-values) graduated on 2026-08-12.
+    "jsPlugins": [
+        "../../config/oxlint/plugins/core-rules.mjs",
+        "../../config/oxlint/plugins/hosted-rules.mjs",
+        "../../config/oxlint/plugins/expensify-rules.mjs",
+        "../../config/oxlint/plugins/rc-rules.mjs"
+    ],
+    "categories": {},
+    // Same settings block as .oxlintrc.json, plus one entry the repo does not have: the object form
+    // {"property": "exact", "exact": true}. propWrapperFunctions is load-bearing, not decoration --
+    // react/prefer-exact-props asks getExactPropWrapperFunctions for wrappers marked `exact: true`,
+    // and the repo lists plain strings, so in production the rule is inert on BOTH tools. Without
+    // this entry it could not be covered at all; with it, the fixture proves the rule runs in
+    // oxlint's sidecar and agrees with ESLint. The extra entry changes nothing for the other react
+    // rules here, which is asserted by their expected counts staying put.
+    "settings": {
+        "react": {"version": "19.2.3"},
+        "propWrapperFunctions": ["forbidExtraProps", "exact", "Object.freeze", {"property": "exact", "exact": true}]
+    },
+    "rules": {
+        "core/no-unreachable-loop": ["error", {"ignore": []}],
+        "hosted/jsx-no-bind": ["error", {"ignoreRefs": true, "allowArrowFunctions": true, "allowFunctions": false, "allowBind": false, "ignoreDOMComponents": true}],
+        "hosted/function-component-definition": ["error", {"namedComponents": "function-declaration", "unnamedComponents": "arrow-function"}],
+        "hosted/prefer-default-export": "error",
+        "hosted/order": ["error", {"groups": [["builtin", "external", "internal"]], "distinctGroup": true, "sortTypesGroup": false, "named": false, "warnOnUnassignedImports": false}],
+        "hosted/no-types": "error",
+        "hosted/naming-convention": [
+            "error",
+            {"selector": ["variable", "property"], "format": null, "filter": {"regex": "^__esModule$", "match": true}},
+            {"selector": ["variable", "property"], "format": ["camelCase", "UPPER_CASE", "PascalCase"], "filter": {"regex": "^private_[a-z][a-zA-Z0-9]*$", "match": false}},
+            {"selector": "function", "format": ["camelCase", "PascalCase"]},
+            {"selector": ["typeLike", "enumMember"], "format": ["PascalCase"]},
+            {"selector": ["parameter", "method"], "format": ["camelCase", "PascalCase"], "leadingUnderscore": "allow"}
+        ],
+        "rulesdir/no-inline-useOnyx-selector": "error",
+        "rulesdir/require-locale-for-localized-date-format": "error",
+        "hosted/jsx-no-constructed-context-values": "error",
+        "core/no-restricted-syntax": [
+            "error",
+            {"selector": "TSEnumDeclaration", "message": "Please don't declare enums, use union types instead."},
+            {
+                "selector": "CallExpression[callee.object.name=\"React\"][callee.property.name=\"forwardRef\"]",
+                "message": "forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs"
+            },
+            {
+                "selector": "ImportNamespaceSpecifier[parent.source.value=/^@libs/]",
+                "message": "Namespace imports from @libs are not allowed. Use named imports instead. Example: import { method } from \"@libs/module\""
+            },
+            {
+                "selector": "ImportNamespaceSpecifier[parent.source.value=/^@userActions/]",
+                "message": "Namespace imports from @userActions are not allowed. Use named imports instead. Example: import { action } from \"@userActions/module\""
+            },
+            {
+                "selector": "ImportNamespaceSpecifier[parent.source.value=/^\\.\\./]",
+                "message": "Namespace imports from parent directories are not allowed. Use named imports instead. Example: import { method } from \"../libs/module\""
+            },
+            {
+                "selector": "ImportNamespaceSpecifier[parent.source.value=/^\\./]",
+                "message": "Namespace imports from sibling modules are not allowed. Use named imports instead. Example: import { method } from \"./libs/module\""
+            },
+            {
+                "selector": "JSXElement[openingElement.name.name=/^Pressable(WithoutFeedback|WithFeedback|WithDelayToggle|WithoutFocus)$/]:not(:has(JSXAttribute[name.name=\"sentryLabel\"]))",
+                "message": "All Pressable components must include sentryLabel prop for Sentry tracking. Example: <PressableWithoutFeedback sentryLabel=\"MoreMenu-ExportFile\" />"
+            },
+            {"selector": "LabeledStatement", "message": "Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand."},
+            {
+                "selector": "WithStatement",
+                "message": "`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated."
+            }
+        ],
+        "core/strict": ["error", "never"],
+        "core/no-octal": "error",
+        "core/no-octal-escape": "error",
+        "core/no-undef-init": "error",
+        "core/lines-between-class-members": ["error", "always", {"exceptAfterSingleLine": false}],
+        "one-var": ["error", "never"],
+        "no-object-constructor": "error",
+        "hosted/no-import-module-exports": ["error", {"exceptions": []}],
+        "hosted/no-relative-packages": "error",
+        "hosted/no-useless-path-segments": ["error", {"commonjs": true}],
+        "hosted/default-props-match-prop-types": ["error", {"allowRequiredDefaults": false}],
+        "hosted/forbid-foreign-prop-types": ["error", {"allowInPropTypes": true}],
+        "hosted/forbid-prop-types": ["error", {"forbid": ["any", "array", "object"], "checkContextTypes": true, "checkChildContextTypes": true}],
+        "hosted/no-access-state-in-setstate": "error",
+        "hosted/no-arrow-function-lifecycle": "error",
+        "hosted/no-deprecated": "error",
+        "hosted/no-invalid-html-attribute": "error",
+        "hosted/no-typos": "error",
+        "hosted/no-unused-class-component-methods": "error",
+        "hosted/no-unused-prop-types": ["error", {"customValidators": [], "skipShapeProps": true}],
+        "hosted/no-unused-state": "error",
+        "hosted/prefer-stateless-function": ["error", {"ignorePureComponents": true}],
+        "hosted/sort-comp": [
+            "error",
+            {
+                "order": [
+                    "static-variables",
+                    "static-methods",
+                    "instance-variables",
+                    "lifecycle",
+                    "/^handle.+$/",
+                    "/^on.+$/",
+                    "getters",
+                    "setters",
+                    "/^(get|set)(?!(InitialState$|DefaultProps$|ChildContext$)).+$/",
+                    "instance-methods",
+                    "everything-else",
+                    "rendering"
+                ],
+                "groups": {
+                    "lifecycle": [
+                        "displayName",
+                        "propTypes",
+                        "contextTypes",
+                        "childContextTypes",
+                        "mixins",
+                        "statics",
+                        "defaultProps",
+                        "constructor",
+                        "getDefaultProps",
+                        "getInitialState",
+                        "state",
+                        "getChildContext",
+                        "getDerivedStateFromProps",
+                        "componentWillMount",
+                        "UNSAFE_componentWillMount",
+                        "componentDidMount",
+                        "componentWillReceiveProps",
+                        "UNSAFE_componentWillReceiveProps",
+                        "shouldComponentUpdate",
+                        "componentWillUpdate",
+                        "UNSAFE_componentWillUpdate",
+                        "getSnapshotBeforeUpdate",
+                        "componentDidUpdate",
+                        "componentDidCatch",
+                        "componentWillUnmount"
+                    ],
+                    "rendering": ["/^render.+$/", "render"]
+                }
+            }
+        ],
+        "hosted/static-property-placement": ["error", "property assignment"]
+    },
+    "overrides": [
+        {
+            // The React Compiler rules, scoped to the rh* fixtures (named for the sidecar plugin they
+            // were written against; the rules moved, the fixtures did not). Scoped rather than global
+            // because these analyze every file they see, and because the repo's own components in the
+            // other fixtures would report shapes no manifest entry claims. Severities are
+            // production's: the 12 compiler rules run as rc/* over the Rust compiler
+            // (config/oxlint/reactCompilerRust.mjs). `exhaustive-deps` is oxlint's native rule, which
+            // reads no compiler output. rules-of-hooks is absent on purpose -- production runs
+            // oxlint's native react/rules-of-hooks. `config` and `gating` have no rc/ twin: see the
+            // PORT_PLAN entries in oxlint-migration/ruleMap.py for why they were dropped.
+            "files": ["**/rh*.tsx"],
+            "rules": {
+                "rc/error-boundaries": "error",
+                "rc/globals": "error",
+                "rc/immutability": "error",
+                "rc/incompatible-library": "error",
+                "rc/preserve-manual-memoization": "error",
+                "rc/purity": "error",
+                "rc/refs": "error",
+                "rc/set-state-in-effect": "error",
+                "rc/set-state-in-render": "error",
+                "rc/static-components": "error",
+                "rc/unsupported-syntax": "error",
+                "rc/use-memo": "error"
+            }
+        },
+        {
+            // `exhaustive-deps` is production's hosted rule (config/oxlint/plugins/hosted-rules.mjs),
+            // so no native plugin list is needed here. Scoped to the one fixture, like production's
+            // reason for hosting it: the rule runs behind the React Compiler message gate, and the
+            // other rh* fixtures make claims about rc/* rules rather than this one.
+            "files": ["**/rhExhaustiveDeps.tsx"],
+            "rules": {
+                "hosted/exhaustive-deps": "error"
+            }
+        },
+        {
+            // Scoped to one file because the rule throws on any *read* of `.propTypes` once an exact
+            // wrapper is configured, and reactPropTypes.tsx contains one deliberately. See the
+            // header comment in fixtures/reactExactProps.tsx.
+            "files": ["**/reactExactProps.tsx"],
+            "rules": {"hosted/prefer-exact-props": "error"}
+        },
+        {
+            // Mirrors the repo's plain-JS override: these three are hosted through `core/` for JS
+            // only. Scoped here rather than in the root `rules` block so they cannot report on the
+            // TypeScript fixtures, which is what the repo config does too.
+            "files": ["**/*.cjs"],
+            "rules": {
+                "core/dot-notation": ["error", {"allowKeywords": true, "allowPattern": ""}],
+                "core/no-dupe-args": "error",
+                "core/no-return-await": "error"
+            }
+        },
+        {
+            // These three are ESLint plugins hosted by oxlint's JS sidecar, exactly as the
+            // production config does it: `jsPlugins` accepts bare npm package specifiers, and the
+            // rule prefix is then the plugin's own meta.name minus the eslint-plugin- marker.
+            // Declaring them in the root `rules` block instead fails with "Plugin '<name>' not found".
+            "files": ["**/*.ts", "**/*.tsx"],
+            "jsPlugins": ["eslint-plugin-you-dont-need-lodash-underscore", "eslint-plugin-testing-library", "eslint-plugin-react-native-a11y"],
+            "rules": {
+                "you-dont-need-lodash-underscore/uniq": "error",
+                "testing-library/no-debugging-utils": "error",
+                "react-native-a11y/has-valid-accessibility-descriptors": "error"
+            }
+        }
+    ]
+}

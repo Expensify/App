@@ -291,16 +291,19 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
         }
         suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
     }, [suggestionsRef]);
+
+    const isScrollLayoutTriggeredCurrent = isScrollLayoutTriggered.current;
+
     const onSaveScrollAndHideSuggestionMenu = useCallback(
         (e: TextInputScrollEvent) => {
-            if (isScrollLayoutTriggered.current) {
+            if (isScrollLayoutTriggeredCurrent) {
                 return;
             }
             mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
 
             hideSuggestionMenu();
         },
-        [isScrollLayoutTriggered, hideSuggestionMenu],
+        [isScrollLayoutTriggeredCurrent, hideSuggestionMenu],
     );
 
     /**

@@ -230,18 +230,23 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         openDuplicatePolicyPage(policyID);
     }, [policyID]);
 
+    const currentUserAccountID = currentUserPersonalDetails?.accountID;
+    const currentUserLocalCurrencyCode = currentUserPersonalDetails?.localCurrencyCode;
+    const duplicateWorkspaceName = duplicateWorkspace?.name;
+    const duplicateWorkspacePolicyID = duplicateWorkspace?.policyID;
+
     const confirmDuplicate = useCallback(() => {
-        if (!policy || !duplicateWorkspace?.name || !duplicateWorkspace?.policyID) {
+        if (!policy || !duplicateWorkspaceName || !duplicateWorkspacePolicyID) {
             return;
         }
 
         duplicateWorkspaceAction(policy, {
-            currentUserAccountID: currentUserPersonalDetails.accountID,
+            currentUserAccountID,
             currentUserEmail: currentUserPersonalDetails.email,
-            policyName: duplicateWorkspace.name,
+            policyName: duplicateWorkspaceName,
             policyID: policy.id,
-            targetPolicyID: duplicateWorkspace.policyID,
-            welcomeNote: `${translate('workspace.duplicateWorkspace.welcomeNote')} ${duplicateWorkspace.name}`,
+            targetPolicyID: duplicateWorkspacePolicyID,
+            welcomeNote: `${translate('workspace.duplicateWorkspace.welcomeNote')} ${duplicateWorkspaceName}`,
             policyCategories: selectedItems.includes('categories') ? policyCategories : undefined,
             parts: {
                 people: selectedItems.includes('members'),
@@ -261,24 +266,22 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 codingRules: selectedItems.includes('codingRules'),
             },
             file: duplicatedWorkspaceAvatar,
-            localCurrency: currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
+            localCurrency: currentUserLocalCurrencyCode ?? CONST.CURRENCY.USD,
         });
         Navigation.closeRHPFlow();
     }, [
-        duplicateWorkspace?.name,
-        duplicateWorkspace?.policyID,
+        duplicateWorkspaceName,
+        duplicateWorkspacePolicyID,
         policy,
         policyCategories,
         selectedItems,
         translate,
         duplicatedWorkspaceAvatar,
-        currentUserPersonalDetails.accountID,
+        currentUserAccountID,
         currentUserPersonalDetails.email,
-        currentUserPersonalDetails?.localCurrencyCode,
+        currentUserLocalCurrencyCode,
     ]);
 
-    const duplicateWorkspaceName = duplicateWorkspace?.name;
-    const duplicateWorkspacePolicyID = duplicateWorkspace?.policyID;
     const onConfirmSelectList = useCallback(() => {
         if (!totalMembers || totalMembers < 2 || !selectedItems.includes('members')) {
             confirmDuplicate();

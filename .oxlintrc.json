@@ -1,0 +1,2367 @@
+{
+    // Mirrors config/eslint/eslint.config.mjs rule for rule. Every `"off"` in this file carries a
+    // comment saying which of three things it means, because "no findings today" is never the
+    // reason a rule is off here:
+    //   OFF, shadowed not dropped -- ESLint's own rule runs instead under a jsPlugin alias
+    //                               (core/, hosted/) because oxlint's native port diverges.
+    //   OFF, mirrors ESLint       -- ESLint has it off in the same scope; parity, not a gap.
+    //   OFF, coverage gap         -- we want the rule, something specific blocks it. The reason is
+    //                               on the line, and machine-readable in oxlint-migration/ruleMap.py
+    //                               (PORT_PLAN); `npm run oxlint-rule-availability` prints them.
+    "$schema": "./node_modules/oxlint/configuration_schema.json",
+    "plugins": ["typescript", "import", "jsx-a11y", "unicorn", "react"],
+    // Aliases are declared here (oxlint's {name, specifier} form) rather than inferred from each
+    // plugin's meta.name: the alias is the prefix every suppression comment and comparison script
+    // has to use, so it belongs where a reader looks for it. The invented names are unavoidable --
+    // `react`, `import`, `jsdoc` are reserved for oxlint's native ports, and `core` cannot match
+    // ESLint's bare core ids (`no-restricted-syntax`) because a jsPlugin rule always has a prefix.
+    // Per-override jsPlugins stay bare package specifiers: their meta.name already matches the
+    // prefix ESLint uses, so declaring it would only add noise.
+    "jsPlugins": [
+        {"name": "rulesdir", "specifier": "./config/oxlint/plugins/expensify-rules.mjs"},
+        {"name": "report-name-utils", "specifier": "./config/eslint/plugins/eslint-plugin-report-name-utils.mjs"},
+        {"name": "core", "specifier": "./config/oxlint/plugins/core-rules.mjs"},
+        {"name": "hosted", "specifier": "./config/oxlint/plugins/hosted-rules.mjs"},
+        {"name": "rc", "specifier": "./config/oxlint/plugins/rc-rules.mjs"}
+    ],
+    "categories": {
+        "correctness": "off"
+    },
+    "options": {
+        "typeAware": true
+    },
+    // The 1058-entry globals list the migrator generated is gone (2026-08-11). Every name in it
+    // resolves through these env presets instead, and the presets track upstream rather than
+    // freezing a snapshot. Verified, not assumed: a generated file referencing all 1058 names
+    // produces zero `no-undef` findings, assigning to all 124 the list marked "writable"
+    // produces zero `no-global-assign` findings, and the union of the `globals` package presets
+    // used here contains nothing ESLint does not also define (which would silence a real
+    // no-undef). browser + audioworklet replace the bulk; jest mirrors the globals.jest block
+    // eslint.config.mjs applies to every file.
+    "env": {
+        "builtin": true,
+        "es2026": true,
+        "node": true,
+        "browser": true,
+        "audioworklet": true,
+        "jest": true
+    },
+    // The one global no preset carries: eslint.config.mjs declares it next to globals.jest.
+    "globals": {
+        "__DEV__": "readonly"
+    },
+    "settings": {
+        "react": {
+            "version": "19.2.3"
+        },
+        "propWrapperFunctions": ["forbidExtraProps", "exact", "Object.freeze"],
+        "progress": {
+            "hide": false
+        }
+        // No `seatbelt` block, deliberately. eslint.config.mjs sets settings.seatbelt.seatbeltFile
+        // with path.join(dirname, ...), which JSON cannot express, and nothing on this side reads it:
+        // eslint-seatbelt suppresses through an ESLint processor, which oxlint has no concept of, so
+        // `eslint-seatbelt/configure` is off here (obstacle #1 in ruleMap.py's PORT_PLAN). The block
+        // this replaces carried an absolute path from one developer's checkout, so it resolved
+        // nowhere else; verified dead, the full-repo report is identical without it. A `seatbelt`
+        // block belongs here again only once something on this side reads the baseline.
+    },
+    "ignorePatterns": [
+        "!**/.storybook",
+        "!**/.github",
+        ".github/actions/**/index.js",
+        "**/*.config.js",
+        "**/*.config.mjs",
+        "**/node_modules/**/*",
+        "**/dist/**/*",
+        "server/**/dist/**",
+        "server/victory-chart-renderer/.dev/**",
+        ".eslint-reports/**/*",
+        "android/**/build/**/*",
+        "docs/vendor/**/*",
+        "docs/assets/**/*",
+        "web/gtm.js",
+        "**/.expo/**/*",
+        "**/.rock/**/*",
+        "**/.yalc/**/*",
+        "src/libs/SearchParser/searchParser.js",
+        "src/libs/SearchParser/autocompleteParser.js",
+        "help/_scripts/**/*",
+        "modules/ExpensifyNitroUtils/nitrogen/**/*",
+        "Mobile-Expensify/**/*",
+        "**/vendor",
+        "modules/group-ib-fp/**/*",
+        "web/snippets/gib.js",
+        "src/languages/de.ts",
+        "src/languages/el.ts",
+        "src/languages/es.ts",
+        "src/languages/fr.ts",
+        "src/languages/it.ts",
+        "src/languages/ja.ts",
+        "src/languages/nl.ts",
+        "src/languages/pl.ts",
+        "src/languages/pt-BR.ts",
+        "src/languages/zh-hans.ts",
+        "oxlint-migration/**"
+    ],
+    "rules": {
+        "array-callback-return": [
+            "error",
+            {
+                "allowImplicit": true
+            }
+        ],
+        "block-scoped-var": "error",
+        "curly": ["error", "all"],
+        "default-case": [
+            "error",
+            {
+                "commentPattern": "^no default$"
+            }
+        ],
+        "default-case-last": "error",
+        "default-param-last": "error",
+        "eqeqeq": [
+            "error",
+            "always",
+            {
+                "null": "ignore"
+            }
+        ],
+        "grouped-accessor-pairs": "error",
+        "guard-for-in": "error",
+        "max-classes-per-file": ["error", 1],
+        "no-caller": "error",
+        "no-case-declarations": "error",
+        "no-constructor-return": "error",
+        "no-else-return": [
+            "error",
+            {
+                "allowElseIf": false
+            }
+        ],
+        "no-empty-function": [
+            "error",
+            {
+                "allow": ["arrowFunctions", "functions", "methods"]
+            }
+        ],
+        "no-empty-pattern": "error",
+        "no-eval": "error",
+        "no-extend-native": "error",
+        "no-extra-bind": "error",
+        "no-extra-label": "error",
+        "no-fallthrough": "error",
+        "no-global-assign": [
+            "error",
+            {
+                "exceptions": []
+            }
+        ],
+        "no-implied-eval": "error",
+        "no-iterator": "error",
+        "no-labels": [
+            "error",
+            {
+                "allowLoop": false,
+                "allowSwitch": false
+            }
+        ],
+        "no-lone-blocks": "error",
+        "no-loop-func": "error",
+        "no-multi-str": "error",
+        "no-new": "error",
+        "no-new-func": "error",
+        "no-new-wrappers": "error",
+        "no-nonoctal-decimal-escape": "error",
+        "no-param-reassign": [
+            "error",
+            {
+                "props": true,
+                "ignorePropertyModificationsFor": ["acc", "accumulator", "e", "ctx", "context", "req", "request", "res", "response", "$scope", "staticContext"]
+            }
+        ],
+        "no-proto": "error",
+        "no-restricted-properties": [
+            "error",
+            {
+                "object": "arguments",
+                "property": "callee",
+                "message": "arguments.callee is deprecated"
+            },
+            {
+                "object": "global",
+                "property": "isFinite",
+                "message": "Please use Number.isFinite instead"
+            },
+            {
+                "object": "self",
+                "property": "isFinite",
+                "message": "Please use Number.isFinite instead"
+            },
+            {
+                "object": "window",
+                "property": "isFinite",
+                "message": "Please use Number.isFinite instead"
+            },
+            {
+                "object": "global",
+                "property": "isNaN",
+                "message": "Please use Number.isNaN instead"
+            },
+            {
+                "object": "self",
+                "property": "isNaN",
+                "message": "Please use Number.isNaN instead"
+            },
+            {
+                "object": "window",
+                "property": "isNaN",
+                "message": "Please use Number.isNaN instead"
+            },
+            {
+                "property": "__defineGetter__",
+                "message": "Please use Object.defineProperty instead."
+            },
+            {
+                "property": "__defineSetter__",
+                "message": "Please use Object.defineProperty instead."
+            },
+            {
+                "object": "Math",
+                "property": "pow",
+                "message": "Use the exponentiation operator (**) instead."
+            }
+        ],
+        "no-script-url": "error",
+        "no-self-assign": [
+            "error",
+            {
+                "props": true
+            }
+        ],
+        "no-self-compare": "error",
+        "no-sequences": "error",
+        "no-throw-literal": "error",
+        "no-unused-expressions": [
+            "error",
+            {
+                "allowShortCircuit": false,
+                "allowTernary": false,
+                "allowTaggedTemplates": false
+            }
+        ],
+        "no-unused-labels": "error",
+        "no-useless-catch": "error",
+        "no-useless-concat": "error",
+        "no-useless-escape": "error",
+        "no-useless-return": "error",
+        "no-void": "error",
+        "no-with": "error",
+        "prefer-promise-reject-errors": [
+            "error",
+            {
+                "allowEmptyReject": true
+            }
+        ],
+        "prefer-regex-literals": [
+            "error",
+            {
+                "disallowRedundantWrapping": true
+            }
+        ],
+        "radix": "error",
+        "yoda": "error",
+        "for-direction": "error",
+        "getter-return": [
+            "error",
+            {
+                "allowImplicit": true
+            }
+        ],
+        "no-async-promise-executor": "error",
+        "no-await-in-loop": "error",
+        "no-compare-neg-zero": "error",
+        "no-cond-assign": ["error", "always"],
+        "no-console": [
+            "error",
+            {
+                "allow": ["debug", "error"]
+            }
+        ],
+        "no-constant-condition": "error",
+        "no-control-regex": "error",
+        "no-debugger": "error",
+        "no-dupe-else-if": "error",
+        "no-dupe-keys": "error",
+        "no-duplicate-case": "error",
+        "no-empty": "error",
+        "no-empty-character-class": "error",
+        "no-ex-assign": "error",
+        "no-extra-boolean-cast": "error",
+        "no-func-assign": "error",
+        "no-import-assign": "error",
+        "no-inner-declarations": "error",
+        "no-invalid-regexp": "error",
+        "no-irregular-whitespace": "error",
+        "no-loss-of-precision": "error",
+        "no-misleading-character-class": "error",
+        "no-obj-calls": "error",
+        "no-promise-executor-return": "error",
+        "no-prototype-builtins": "error",
+        "no-regex-spaces": "error",
+        "no-setter-return": "error",
+        "no-sparse-arrays": "error",
+        "no-template-curly-in-string": "error",
+        "no-unexpected-multiline": "error",
+        "no-unreachable": "error",
+        "no-unsafe-finally": "error",
+        "no-unsafe-negation": "error",
+        "no-unsafe-optional-chaining": [
+            "error",
+            {
+                "disallowArithmeticOperators": true
+            }
+        ],
+        "no-useless-backreference": "error",
+        "use-isnan": "error",
+        "valid-typeof": [
+            "error",
+            {
+                "requireStringLiterals": true
+            }
+        ],
+        "arrow-body-style": [
+            "error",
+            "as-needed",
+            {
+                "requireReturnForObjectLiteral": false
+            }
+        ],
+        "constructor-super": "error",
+        "no-class-assign": "error",
+        "no-const-assign": "error",
+        "no-dupe-class-members": "error",
+        "no-restricted-imports": [
+            "error",
+            {
+                "paths": [
+                    {
+                        "name": "react-native",
+                        "importNames": ["Button", "Text", "TextInput", "Picker"],
+                        "message": "Please use an Expensify component from src/components/ instead."
+                    },
+                    {
+                        "name": "react-native",
+                        "importNames": ["SafeAreaView"],
+                        "message": "Please use SafeAreaView from react-native-safe-area-context"
+                    }
+                ]
+            }
+        ],
+        "no-this-before-super": "error",
+        "no-useless-computed-key": "error",
+        "no-useless-constructor": "error",
+        "no-useless-rename": [
+            "error",
+            {
+                "ignoreDestructuring": false,
+                "ignoreImport": false,
+                "ignoreExport": false
+            }
+        ],
+        "no-var": "error",
+        "object-shorthand": [
+            "error",
+            "always",
+            {
+                "ignoreConstructors": false,
+                "avoidQuotes": true
+            }
+        ],
+        "prefer-arrow-callback": [
+            "error",
+            {
+                "allowNamedFunctions": false,
+                "allowUnboundThis": true
+            }
+        ],
+        "prefer-const": [
+            "error",
+            {
+                "destructuring": "any",
+                "ignoreReadBeforeAssign": true
+            }
+        ],
+        "prefer-numeric-literals": "error",
+        "prefer-rest-params": "error",
+        "prefer-spread": "error",
+        "prefer-template": "error",
+        "require-yield": "error",
+        "symbol-description": "error",
+        "import/no-named-as-default": "error",
+        "import/no-named-as-default-member": "error",
+        "import/no-mutable-exports": "error",
+        "import/no-amd": "error",
+        "import/first": "error",
+        "import/no-duplicates": "error",
+        "import/extensions": [
+            "error",
+            "ignorePackages",
+            {
+                "js": "never",
+                "mjs": "never",
+                "jsx": "never",
+                "ts": "never",
+                "tsx": "never",
+                "cts": "never",
+                "mts": "never"
+            }
+        ],
+        "import/newline-after-import": "error",
+        // OFF, shadowed not dropped: oxlint's native port anchors its reports on a different line
+        // than ESLint's, so ESLint's own rule runs instead as `hosted/prefer-default-export`.
+        "import/prefer-default-export": "off",
+        "import/no-absolute-path": "error",
+        "import/no-webpack-loader-syntax": "error",
+        "import/no-named-default": "error",
+        "import/no-self-import": "error",
+        // ON, and it is the one rule where oxlint is deliberately stricter than ESLint rather than
+        // mirroring it: ESLint enables this rule too but reports 0, while oxlint's implementation
+        // works. Every finding is a real cycle. Kept on so the cleanup has a number to work against.
+        "import/no-cycle": "error",
+        "rulesdir/context-provider-split-values": "error",
+        "rulesdir/no-acc-spread-in-reduce": "error",
+        "rulesdir/no-api-in-views": "error",
+        "rulesdir/no-api-side-effects-method": "error",
+        "rulesdir/no-beta-handler": "error",
+        "rulesdir/no-call-actions-from-actions": "error",
+        "rulesdir/no-deep-equal-in-memo": "error",
+        "rulesdir/no-default-id-values": "error",
+        "rulesdir/no-default-props": "error",
+        "rulesdir/no-direct-pre-insert-fullscreen-under-rhp": "error",
+        "rulesdir/no-inline-named-export": "error",
+        "rulesdir/no-multiple-api-calls": "error",
+        "rulesdir/no-multiple-onyx-in-file": "error",
+        "rulesdir/no-negated-variables": "error",
+        "rulesdir/no-onyx-connect": "error",
+        "rulesdir/no-set-or-map-return-in-useOnyx-selector": "error",
+        "rulesdir/no-thenable-actions-in-views": "error",
+        "rulesdir/no-unstable-hook-defaults": "error",
+        "rulesdir/no-use-state-initializer-functions": "error",
+        "rulesdir/no-useless-compose": "error",
+        "rulesdir/prefer-actions-set-data": "error",
+        "rulesdir/prefer-early-return": "error",
+        "rulesdir/prefer-localization": "error",
+        "rulesdir/prefer-narrow-hook-dependencies": [
+            "error",
+            {
+                "stableObjectPatterns": ["[Ss]tyles?$", "^theme", "[Ii]cons?$"]
+            }
+        ],
+        "rulesdir/prefer-onyx-connect-in-libs": "error",
+        "rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth": "error",
+        "rulesdir/prefer-type-fest": "error",
+        "rulesdir/require-a11y-disable-justification": "error",
+        "rulesdir/require-live-region-for-status-updates": "error",
+        "rulesdir/require-locale-for-localized-date-format": "error",
+        "rulesdir/use-double-negation-instead-of-boolean": "error",
+        // The four rulesdir rules below are listed as OFF on purpose rather than left out: a rule
+        // missing from this file is indistinguishable from an oversight. Each is still wanted — the
+        // reason it cannot run yet is on its own line, and the machine-readable copy lives in
+        // oxlint-migration/ruleMap.py (PORT_PLAN), printed by `npm run oxlint-rule-availability`.
+        // OFF, blocked upstream: needs the type of the `&&` left operand; jsPlugins get no type info.
+        "rulesdir/boolean-conditional-rendering": "off",
+        // OFF, blocked upstream: needs typeChecker.isArrayType to tell arrays from records, so a
+        // syntactic port would fire on every obj[key]. Measured 2026-08-13: unicorn/prefer-at with
+        // checkAllIndexAccess reports 413 findings in src/, 0 of the sampled 104 real. The same rule
+        // at default options covers the x[x.length - N] half and matches ESLint's own copy of it
+        // exactly (2 findings, same 2 lines, whole repo); enabling it on both linters is step 10a of
+        // OXLINT_MIGRATION_STEPS.md, pending the two source fixes it needs.
+        "rulesdir/prefer-at": "off",
+        // OFF here, ON for src/**/*.ts(x) below, mirroring ESLint's scope exactly. ESLint's copy of
+        // this rule needs the type checker, so oxlint runs a type-free rewrite
+        // (config/oxlint/preferLocaleCompareFromContext.mjs): the only type question it asks is
+        // "is the receiver a string", and localeCompare exists on exactly one built-in prototype.
+        "rulesdir/prefer-locale-compare-from-context": "off",
+        // Wired 2026-08-12 behind the React Compiler gate (config/oxlint/reactCompilerGate.mjs).
+        // Without the gate this reports 238 findings across 186 files that ESLint never shows,
+        // because its processor drops every message from this rule in a dual-memoized file.
+        "rulesdir/no-inline-useOnyx-selector": "error",
+        "no-array-constructor": "error",
+        "no-bitwise": "error",
+        "no-lonely-if": "error",
+        "no-multi-assign": ["error"],
+        "no-nested-ternary": "error",
+        "no-underscore-dangle": [
+            "error",
+            {
+                "allow": ["__REDUX_DEVTOOLS_EXTENSION_COMPOSE__"],
+                "allowAfterThis": false,
+                "allowAfterSuper": false,
+                "enforceInMethodNames": true
+            }
+        ],
+        "no-unneeded-ternary": [
+            "error",
+            {
+                "defaultAssignment": false
+            }
+        ],
+        "operator-assignment": ["error", "always"],
+        "prefer-exponentiation-operator": "error",
+        "prefer-object-spread": "error",
+        "unicorn/prefer-set-has": "error",
+        "unicorn/no-array-for-each": "error",
+        "unicorn/prefer-array-find": "error",
+        "unicorn/prefer-set-size": "error",
+        "unicorn/prefer-string-replace-all": "error",
+        "no-delete-var": "error",
+        "no-label-var": "error",
+        "no-restricted-globals": [
+            "error",
+            {
+                "name": "isFinite",
+                "message": "Use Number.isFinite instead https://github.com/airbnb/javascript#standard-library--isfinite"
+            },
+            {
+                "name": "isNaN",
+                "message": "Use Number.isNaN instead https://github.com/airbnb/javascript#standard-library--isnan"
+            },
+            "addEventListener",
+            "blur",
+            "close",
+            "closed",
+            "confirm",
+            "defaultStatus",
+            "defaultstatus",
+            "event",
+            "external",
+            "find",
+            "focus",
+            "frameElement",
+            "frames",
+            "history",
+            "innerHeight",
+            "innerWidth",
+            "length",
+            "location",
+            "locationbar",
+            "menubar",
+            "moveBy",
+            "moveTo",
+            "name",
+            "onblur",
+            "onerror",
+            "onfocus",
+            "onload",
+            "onresize",
+            "onunload",
+            "open",
+            "opener",
+            "opera",
+            "outerHeight",
+            "outerWidth",
+            "pageXOffset",
+            "pageYOffset",
+            "parent",
+            "print",
+            "removeEventListener",
+            "resizeBy",
+            "resizeTo",
+            "screen",
+            "screenLeft",
+            "screenTop",
+            "screenX",
+            "screenY",
+            "scroll",
+            "scrollbars",
+            "scrollBy",
+            "scrollTo",
+            "scrollX",
+            "scrollY",
+            "self",
+            "status",
+            "statusbar",
+            "stop",
+            "toolbar",
+            "top"
+        ],
+        "no-shadow": "error",
+        "no-shadow-restricted-names": "error",
+        "no-unused-vars": [
+            "error",
+            {
+                "vars": "all",
+                "args": "after-used",
+                "ignoreRestSiblings": true
+            }
+        ],
+        "no-use-before-define": [
+            "error",
+            {
+                "functions": true,
+                "classes": true,
+                "variables": true
+            }
+        ],
+        "react/jsx-boolean-value": [
+            "error",
+            "never",
+            {
+                "always": []
+            }
+        ],
+        "react/jsx-no-duplicate-props": "error",
+        "react/jsx-no-undef": "error",
+        "react/jsx-pascal-case": [
+            "error",
+            {
+                "allowAllCaps": true,
+                "ignore": []
+            }
+        ],
+        "react/no-danger": "error",
+        "react/no-did-update-set-state": "error",
+        "react/no-will-update-set-state": "error",
+        "react/no-is-mounted": "error",
+        "react/no-string-refs": "error",
+        "react/no-unknown-property": "error",
+        "react/prefer-es6-class": ["error", "always"],
+        "react/self-closing-comp": "error",
+        "react/jsx-no-target-blank": [
+            "error",
+            {
+                "enforceDynamicLinks": "always"
+            }
+        ],
+        "react/jsx-filename-extension": [
+            "warn",
+            {
+                "extensions": [".js", ".jsx", ".tsx"]
+            }
+        ],
+        "react/jsx-no-comment-textnodes": "error",
+        "react/no-render-return-value": "error",
+        "react/no-find-dom-node": "error",
+        "react/no-array-index-key": "error",
+        "react/void-dom-elements-no-children": "error",
+        "react/no-redundant-should-component-update": "error",
+        "react/button-has-type": [
+            "error",
+            {
+                "button": true,
+                "submit": true,
+                "reset": false
+            }
+        ],
+        "react/no-this-in-sfc": "error",
+        "react/no-unsafe": [
+            "error",
+            {
+                "checkAliases": true
+            }
+        ],
+        "react/jsx-fragments": ["error", "syntax"],
+        "react/state-in-constructor": ["error", "always"],
+        "react/jsx-no-script-url": [
+            "error",
+            [
+                {
+                    "name": "Link",
+                    "props": ["to"]
+                }
+            ]
+        ],
+        "react/jsx-no-useless-fragment": "error",
+        // OFF, shadowed not dropped: oxlint's native port also fires inside Jest mock factories,
+        // where ESLint's does not. ESLint's own rule runs as `hosted/function-component-definition`.
+        "react/function-component-definition": "off",
+        // OFF, shadowed not dropped: ESLint's own rule runs as `hosted/jsx-no-constructed-context-values`
+        // behind the React Compiler gate, which a native Rust rule cannot have. Going native was
+        // measured and rejected on 2026-08-12: it works, but it needs 115 inline suppressions plus
+        // one for every context provider written from then on, because it cannot ask the compilers.
+        // The native port also diverges twice (both upstream bugs, measured by
+        // `python3 oxlint-migration/compareNativeCtxValues.py`): it anchors on the JSX provider rather
+        // than the declaration, and it does not require the value to be declared in a component.
+        "react/jsx-no-constructed-context-values": "off",
+        "react/no-unstable-nested-components": "error",
+        "react/no-namespace": "error",
+        "react/style-prop-object": "error",
+        "react/no-unescaped-entities": "error",
+        "react/no-children-prop": "error",
+        "jsx-a11y/alt-text": [
+            "error",
+            {
+                "elements": ["img", "object", "area", "input[type=\"image\"]"],
+                "img": [],
+                "object": [],
+                "area": [],
+                "input[type=\"image\"]": []
+            }
+        ],
+        "jsx-a11y/anchor-has-content": "error",
+        "jsx-a11y/anchor-is-valid": [
+            "error",
+            {
+                "components": ["Link"],
+                "specialLink": ["to"],
+                "aspects": ["noHref", "invalidHref", "preferButton"]
+            }
+        ],
+        "jsx-a11y/aria-activedescendant-has-tabindex": "error",
+        "jsx-a11y/aria-props": "error",
+        "jsx-a11y/aria-proptypes": "error",
+        "jsx-a11y/aria-role": [
+            "error",
+            {
+                "ignoreNonDOM": false
+            }
+        ],
+        "jsx-a11y/aria-unsupported-elements": "error",
+        "jsx-a11y/control-has-associated-label": [
+            "error",
+            {
+                "labelAttributes": ["label"],
+                "controlComponents": [],
+                "ignoreElements": ["audio", "canvas", "embed", "input", "textarea", "tr", "video"],
+                "ignoreRoles": ["grid", "listbox", "menu", "menubar", "radiogroup", "row", "tablist", "toolbar", "tree", "treegrid"],
+                "depth": 5
+            }
+        ],
+        "jsx-a11y/heading-has-content": [
+            "error",
+            {
+                "components": [""]
+            }
+        ],
+        "jsx-a11y/html-has-lang": "error",
+        "jsx-a11y/iframe-has-title": "error",
+        "jsx-a11y/img-redundant-alt": "error",
+        "jsx-a11y/interactive-supports-focus": "error",
+        "jsx-a11y/label-has-associated-control": [
+            "error",
+            {
+                "labelComponents": [],
+                "labelAttributes": [],
+                "controlComponents": [],
+                "assert": "either",
+                "depth": 25
+            }
+        ],
+        "jsx-a11y/lang": "error",
+        "jsx-a11y/media-has-caption": [
+            "error",
+            {
+                "audio": [],
+                "video": [],
+                "track": []
+            }
+        ],
+        "jsx-a11y/mouse-events-have-key-events": "error",
+        "jsx-a11y/no-access-key": "error",
+        "jsx-a11y/no-autofocus": [
+            "error",
+            {
+                "ignoreNonDOM": true
+            }
+        ],
+        "jsx-a11y/no-distracting-elements": [
+            "error",
+            {
+                "elements": ["marquee", "blink"]
+            }
+        ],
+        "jsx-a11y/no-interactive-element-to-noninteractive-role": [
+            "error",
+            {
+                "tr": ["none", "presentation"]
+            }
+        ],
+        "jsx-a11y/no-noninteractive-element-interactions": [
+            "error",
+            {
+                "handlers": ["onClick", "onMouseDown", "onMouseUp", "onKeyPress", "onKeyDown", "onKeyUp"]
+            }
+        ],
+        "jsx-a11y/no-noninteractive-element-to-interactive-role": [
+            "error",
+            {
+                "ul": ["listbox", "menu", "menubar", "radiogroup", "tablist", "tree", "treegrid"],
+                "ol": ["listbox", "menu", "menubar", "radiogroup", "tablist", "tree", "treegrid"],
+                "li": ["menuitem", "option", "row", "tab", "treeitem"],
+                "table": ["grid"],
+                "td": ["gridcell"]
+            }
+        ],
+        "jsx-a11y/no-noninteractive-tabindex": [
+            "error",
+            {
+                "tags": [],
+                "roles": ["tabpanel"]
+            }
+        ],
+        "jsx-a11y/no-redundant-roles": "error",
+        "jsx-a11y/no-static-element-interactions": [
+            "error",
+            {
+                "handlers": ["onClick", "onMouseDown", "onMouseUp", "onKeyPress", "onKeyDown", "onKeyUp"]
+            }
+        ],
+        "jsx-a11y/role-has-required-aria-props": "error",
+        "jsx-a11y/role-supports-aria-props": "error",
+        "jsx-a11y/scope": "error",
+        "jsx-a11y/tabindex-no-positive": "error",
+        "react/rules-of-hooks": "error",
+        "typescript/dot-notation": [
+            "error",
+            {
+                "allowKeywords": true
+            }
+        ],
+        "typescript/no-unsafe-assignment": "error",
+        "typescript/no-unsafe-argument": "error",
+        "typescript/no-unsafe-return": "error",
+        "typescript/no-unsafe-call": "error",
+        "typescript/no-unsafe-member-access": "error",
+        "react/jsx-key": "error",
+        "core/no-restricted-syntax": [
+            "error",
+            {
+                "selector": "TSEnumDeclaration",
+                "message": "Please don't declare enums, use union types instead."
+            },
+            {
+                "selector": "CallExpression[callee.object.name=\"React\"][callee.property.name=\"forwardRef\"]",
+                "message": "forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs"
+            },
+            {
+                "selector": "ImportNamespaceSpecifier[parent.source.value=/^@libs/]",
+                "message": "Namespace imports from @libs are not allowed. Use named imports instead. Example: import { method } from \"@libs/module\""
+            },
+            {
+                "selector": "ImportNamespaceSpecifier[parent.source.value=/^@userActions/]",
+                "message": "Namespace imports from @userActions are not allowed. Use named imports instead. Example: import { action } from \"@userActions/module\""
+            },
+            {
+                "selector": "ImportNamespaceSpecifier[parent.source.value=/^\\.\\./]",
+                "message": "Namespace imports from parent directories are not allowed. Use named imports instead. Example: import { method } from \"../libs/module\""
+            },
+            {
+                "selector": "ImportNamespaceSpecifier[parent.source.value=/^\\./]",
+                "message": "Namespace imports from sibling modules are not allowed. Use named imports instead. Example: import { method } from \"./libs/module\""
+            },
+            {
+                "selector": "JSXElement[openingElement.name.name=/^Pressable(WithoutFeedback|WithFeedback|WithDelayToggle|WithoutFocus)$/]:not(:has(JSXAttribute[name.name=\"sentryLabel\"]))",
+                "message": "All Pressable components must include sentryLabel prop for Sentry tracking. Example: <PressableWithoutFeedback sentryLabel=\"MoreMenu-ExportFile\" />"
+            },
+            {
+                "selector": "LabeledStatement",
+                "message": "Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand."
+            },
+            {
+                "selector": "WithStatement",
+                "message": "`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated."
+            }
+        ],
+        // NOT oxlint's native react/exhaustive-deps: that is a Rust rule, and ESLint runs this rule
+        // behind the React Compiler message gate, which can only wrap a JS plugin. Native reported
+        // 49 against ESLint's 1, every one of them the "changes every render" advice the gate drops
+        // in a dual-memoized file. See config/oxlint/plugins/hosted-rules.mjs.
+        "hosted/exhaustive-deps": "error",
+        // The 11 React Compiler rules run as rc/* below, on the Rust compiler rather than the
+        // JavaScript one: config/oxlint/reactCompilerRust.mjs
+        "rc/refs": "error",
+        "rc/set-state-in-effect": "error",
+        "rc/set-state-in-render": "error",
+        "rc/preserve-manual-memoization": "error",
+        "rc/immutability": "error",
+        "rc/static-components": "error",
+        "rc/use-memo": "error",
+        "rc/globals": "error",
+        "rc/error-boundaries": "error",
+        "rc/purity": "error",
+        "rc/incompatible-library": "error",
+        "rc/unsupported-syntax": "error",
+        "no-restricted-exports": [
+            "error",
+            {
+                "restrictedNamedExports": ["default", "then"]
+            }
+        ],
+        "import/export": "error",
+        "react/require-render-return": "error",
+        "core/no-unreachable-loop": ["error", {"ignore": []}],
+        "hosted/jsx-no-bind": ["error", {"ignoreRefs": true, "allowArrowFunctions": true, "allowFunctions": false, "allowBind": false, "ignoreDOMComponents": true}],
+        "hosted/function-component-definition": ["error", {"namedComponents": "function-declaration", "unnamedComponents": "arrow-function"}],
+        // Wired 2026-08-12 behind the React Compiler gate (config/oxlint/reactCompilerGate.mjs),
+        // which is why it is hosted rather than native: see the `react/` entry above.
+        "hosted/jsx-no-constructed-context-values": "error",
+        "hosted/prefer-default-export": "error",
+        "hosted/order": ["error", {"groups": [["builtin", "external", "internal"]], "distinctGroup": true, "sortTypesGroup": false, "named": false, "warnOnUnassignedImports": false}],
+        "hosted/no-types": "error",
+        // Wired 2026-08-11. These are the rules `npm run oxlint-rule-availability` used to report
+        // as "no oxlint counterpart". That label only ever meant "no native Rust port": core-rules
+        // .mjs loads ESLint's whole builtinRules map and hosted-rules.mjs the whole
+        // eslint-plugin-react / eslint-plugin-import maps, so each one was a single line away.
+        // Measured on a 101-second full-repo run: the core+import group costs +6 s, the 17 react
+        // rules +13 s. All of them report zero findings today and have zero seatbelt entries,
+        // which is why they were never noticed as missing -- and is not a reason to leave them out.
+        //
+        // no-invalid-this is the one that could NOT be wired: ESLint's implementation reaches
+        // sourceCode.getJSDocComment, which oxlint's JS bridge answers with a throw, so it errors
+        // on 36 files. Coverage gap, reason recorded in ruleMap.py (PORT_PLAN).
+        "core/no-octal": "error",
+        "core/no-octal-escape": "error",
+        "core/no-undef-init": "error",
+        "core/strict": ["error", "never"],
+        // Native in oxlint 1.78.0 (linter/eslint: Implement one-var rule, #24470), so no sidecar.
+        "one-var": ["error", "never"],
+        // Stands in for ESLint's `no-new-object`, which ESLint itself deprecated in 8.50 and
+        // replaced with this rule. Oxlint only implements the new name. Deliberate difference,
+        // from ESLint's own deprecation note: the replacement also flags a bare `Object()` call
+        // and does NOT flag `new Object(arg)`. Neither shape exists in this repo.
+        "no-object-constructor": "error",
+        "hosted/no-import-module-exports": ["error", {"exceptions": []}],
+        "hosted/no-relative-packages": "error",
+        "hosted/no-useless-path-segments": ["error", {"commonjs": true}],
+        // eslint-plugin-react's PropTypes / class-component era. Zero findings by design: none of
+        // them can fire on a function component with a TS props type. They guard the way back.
+        "hosted/default-props-match-prop-types": ["error", {"allowRequiredDefaults": false}],
+        "hosted/forbid-foreign-prop-types": ["error", {"allowInPropTypes": true}],
+        "hosted/forbid-prop-types": ["error", {"forbid": ["any", "array", "object"], "checkContextTypes": true, "checkChildContextTypes": true}],
+        // jsx-uses-react and jsx-uses-vars never report: they only mark identifiers as used for
+        // no-unused-vars, which oxlint already handles JSX-aware. Enabled so the rule sets match
+        // exactly; there is no fixture for them because a rule that cannot report cannot have one.
+        "hosted/jsx-uses-react": "error",
+        "hosted/jsx-uses-vars": "error",
+        "hosted/no-access-state-in-setstate": "error",
+        "hosted/no-arrow-function-lifecycle": "error",
+        "hosted/no-deprecated": "error",
+        "hosted/no-invalid-html-attribute": "error",
+        "hosted/no-typos": "error",
+        "hosted/no-unused-class-component-methods": "error",
+        "hosted/no-unused-prop-types": ["error", {"customValidators": [], "skipShapeProps": true}],
+        "hosted/no-unused-state": "error",
+        // prefer-exact-props is the third rule with no fixture, for a different reason: it only
+        // reports when settings.propWrapperFunctions marks a wrapper `{exact: true}`, and this repo
+        // lists plain strings, so getExactPropWrapperFunctions returns an empty set and the rule is
+        // inert on BOTH tools. Enabled anyway, so that fixing the settings would enable it on both.
+        "hosted/prefer-exact-props": "error",
+        "hosted/prefer-stateless-function": ["error", {"ignorePureComponents": true}],
+        "hosted/sort-comp": [
+            "error",
+            {
+                "order": [
+                    "static-variables",
+                    "static-methods",
+                    "instance-variables",
+                    "lifecycle",
+                    "/^handle.+$/",
+                    "/^on.+$/",
+                    "getters",
+                    "setters",
+                    "/^(get|set)(?!(InitialState$|DefaultProps$|ChildContext$)).+$/",
+                    "instance-methods",
+                    "everything-else",
+                    "rendering"
+                ],
+                "groups": {
+                    "lifecycle": [
+                        "displayName",
+                        "propTypes",
+                        "contextTypes",
+                        "childContextTypes",
+                        "mixins",
+                        "statics",
+                        "defaultProps",
+                        "constructor",
+                        "getDefaultProps",
+                        "getInitialState",
+                        "state",
+                        "getChildContext",
+                        "getDerivedStateFromProps",
+                        "componentWillMount",
+                        "UNSAFE_componentWillMount",
+                        "componentDidMount",
+                        "componentWillReceiveProps",
+                        "UNSAFE_componentWillReceiveProps",
+                        "shouldComponentUpdate",
+                        "componentWillUpdate",
+                        "UNSAFE_componentWillUpdate",
+                        "getSnapshotBeforeUpdate",
+                        "componentDidUpdate",
+                        "componentDidCatch",
+                        "componentWillUnmount"
+                    ],
+                    "rendering": ["/^render.+$/", "render"]
+                }
+            }
+        ],
+        "hosted/static-property-placement": ["error", "property assignment"]
+        // `config` and `gating` are the two compiler checks with no rc/* twin, and they are dropped
+        // rather than replaced: both need per-rule options to reach the compiler (a
+        // `gating`/`dynamicGating` source, or an option for the config validator to reject), which the
+        // shared per-file analysis behind rc/* deliberately does not take. Neither can fire in this
+        // repo, which passes them no options at all. Recorded as PORT_PLAN entries in
+        // oxlint-migration/ruleMap.py.
+    },
+    "overrides": [
+        {
+            "files": ["**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
+            "rules": {
+                "no-redeclare": [
+                    "error",
+                    {
+                        "builtinGlobals": false
+                    }
+                ],
+                "jsdoc/require-param": "error",
+                "jsdoc/require-param-type": "error",
+                "jsdoc/check-tag-names": "error",
+                // Wired 2026-08-11, second half of the same wave. These six are enabled by ESLint
+                // for plain JS only -- typescript-eslint's `eslint-recommended` switches them off
+                // for TS, where the compiler or a typed rule covers them. They were invisible until
+                // ruleMap's REPRESENTATIVE_FILES gained a `.js` and a `.mjs` entry: every file in
+                // that list was TypeScript, so the coverage union never saw the plain-JS scope.
+                // Measured before wiring: all six report zero findings repo-wide.
+                "import/named": "error",
+                "no-undef": ["error", {"typeof": false}],
+                // Stands in for ESLint's `no-new-symbol`, deprecated in 9.x for this rule. Same
+                // rename mechanism as no-new-object -> no-object-constructor, see OXLINT_RENAMES.
+                "no-new-native-nonconstructor": "error",
+                // No native oxlint rule of any name; hosted from ESLint core through `core/`.
+                // `dot-notation` exists natively only as `typescript/dot-notation`, which this
+                // override switches off along with the rest of the typed rules.
+                "core/dot-notation": ["error", {"allowKeywords": true, "allowPattern": ""}],
+                "core/no-dupe-args": "error",
+                "core/no-return-await": "error"
+            },
+            "plugins": ["jsdoc"]
+        },
+        {
+            "files": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
+            "rules": {
+                // Core rules the TypeScript compiler already enforces, off exactly as
+                // typescript-eslint's `eslint-recommended` switches them off for TS files.
+                "constructor-super": "off",
+                "getter-return": "off",
+                "no-class-assign": "off",
+                "no-const-assign": "off",
+                "no-dupe-class-members": "off",
+                "no-dupe-keys": "off",
+                "no-func-assign": "off",
+                "no-import-assign": "off",
+                "no-new-native-nonconstructor": "off",
+                "no-obj-calls": "off",
+                "no-redeclare": "off",
+                "no-setter-return": "off",
+                "no-this-before-super": "off",
+                "no-unreachable": "off",
+                "no-unsafe-negation": "off",
+                "no-with": "off",
+                "prefer-const": [
+                    "error",
+                    {
+                        "destructuring": "any",
+                        "ignoreReadBeforeAssign": true
+                    }
+                ],
+                "no-implied-eval": "off",
+                "no-unused-expressions": "error",
+                "no-unused-vars": "error",
+                "typescript/await-thenable": "error",
+                "typescript/ban-ts-comment": "error",
+                "typescript/no-array-delete": "error",
+                "typescript/no-base-to-string": "error",
+                "typescript/no-duplicate-enum-values": "error",
+                "typescript/no-duplicate-type-constituents": "error",
+                "typescript/no-empty-object-type": "error",
+                "typescript/no-explicit-any": "error",
+                "typescript/no-extra-non-null-assertion": "error",
+                "typescript/no-floating-promises": "error",
+                "typescript/no-for-in-array": "error",
+                "typescript/no-implied-eval": "error",
+                "typescript/no-misused-new": "error",
+                "typescript/no-misused-promises": "error",
+                "typescript/no-namespace": "error",
+                "typescript/no-non-null-asserted-optional-chain": "error",
+                "typescript/no-redundant-type-constituents": "error",
+                "typescript/no-require-imports": "error",
+                "typescript/no-this-alias": "error",
+                // ON although ESLint reports 0: tsgolint's TS7 inference disagrees with the repo's
+                // TS 6.0.2 about which assertions are unnecessary, so this is 685 findings ESLint
+                // does not show. Kept because it costs 3 s of a 78 s run, loses no finding on the
+                // other side, and has nothing to migrate: the seatbelt holds no rows for it and the
+                // repo carries one disable comment, which oxlint honors natively.
+                "typescript/no-unnecessary-type-assertion": "error",
+                "typescript/no-unnecessary-type-constraint": "error",
+                "typescript/no-unsafe-declaration-merging": "error",
+                "typescript/no-unsafe-enum-comparison": "error",
+                "typescript/no-unsafe-function-type": "error",
+                "typescript/no-unsafe-unary-minus": "error",
+                "typescript/no-wrapper-object-types": "error",
+                "typescript/only-throw-error": "error",
+                "typescript/prefer-as-const": "error",
+                "typescript/prefer-namespace-keyword": "error",
+                "typescript/prefer-promise-reject-errors": "error",
+                "typescript/require-await": "error",
+                "typescript/restrict-plus-operands": "error",
+                "typescript/restrict-template-expressions": "error",
+                "typescript/triple-slash-reference": "error",
+                "typescript/unbound-method": "error",
+                // typescript-eslint's own rule, hosted by config/oxlint/plugins/hosted-rules.mjs because
+                // tsgolint has not implemented it. It reports under the `hosted/` alias: oxlint
+                // rejects `@typescript-eslint` as a JS-plugin name ("reserved ... already implemented
+                // natively"), so ESLint's id cannot be reused and suppression comments need this one.
+                // TS-only, exactly as eslint-config-expensify scopes it; options copied verbatim
+                // from configs/public/typescript.js.
+                "hosted/naming-convention": [
+                    "error",
+                    {"selector": ["variable", "property"], "format": null, "filter": {"regex": "^__esModule$", "match": true}},
+                    {"selector": ["variable", "property"], "format": ["camelCase", "UPPER_CASE", "PascalCase"], "filter": {"regex": "^private_[a-z][a-zA-Z0-9]*$", "match": false}},
+                    {"selector": "function", "format": ["camelCase", "PascalCase"]},
+                    {"selector": ["typeLike", "enumMember"], "format": ["PascalCase"]},
+                    {"selector": ["parameter", "method"], "format": ["camelCase", "PascalCase"], "leadingUnderscore": "allow"}
+                ],
+                // TS-only as well: eslint-config-expensify sets it in configs/public/typescript.js,
+                // and its formatting config is not applied to plain JS here, so `index.js` has the
+                // rule absent. Verified with `eslint --print-config` on both, not assumed.
+                "core/lines-between-class-members": ["error", "always", {"exceptAfterSingleLine": false}]
+            }
+        },
+        {
+            "files": ["**/*.ts", "**/*.tsx", "**/*.cts", "**/*.mts"],
+            "rules": {
+                "typescript/adjacent-overload-signatures": "error",
+                "typescript/array-type": [
+                    "error",
+                    {
+                        "default": "array-simple"
+                    }
+                ],
+                "typescript/ban-tslint-comment": "error",
+                "typescript/class-literal-property-style": "error",
+                "typescript/consistent-generic-constructors": "error",
+                "typescript/consistent-indexed-object-style": "error",
+                "typescript/consistent-type-assertions": "error",
+                "typescript/consistent-type-definitions": ["error", "type"],
+                "typescript/no-confusing-non-null-assertion": "error",
+                "typescript/no-inferrable-types": "error",
+                "typescript/non-nullable-type-assertion-style": "error",
+                "typescript/prefer-find": "off",
+                "typescript/prefer-for-of": "error",
+                "typescript/prefer-function-type": "error",
+                "typescript/prefer-includes": "off",
+                "typescript/prefer-nullish-coalescing": [
+                    "error",
+                    {
+                        "ignoreIfStatements": true,
+                        "ignorePrimitives": {},
+                        "ignoreTernaryTests": true
+                    }
+                ],
+                "typescript/prefer-regexp-exec": "off",
+                "typescript/prefer-string-starts-ends-with": "error",
+                "no-dupe-class-members": "error",
+                "no-implied-eval": "off",
+                "no-new-func": "off",
+                "no-redeclare": [
+                    "error",
+                    {
+                        "builtinGlobals": false
+                    }
+                ],
+                "no-unused-expressions": [
+                    "error",
+                    {
+                        "allowShortCircuit": false,
+                        "allowTernary": false,
+                        "allowTaggedTemplates": false
+                    }
+                ],
+                "no-unused-vars": [
+                    "error",
+                    {
+                        "vars": "all",
+                        "args": "after-used",
+                        "caughtErrors": "none",
+                        "ignoreRestSiblings": true
+                    }
+                ],
+                "no-use-before-define": [
+                    "error",
+                    {
+                        "functions": false
+                    }
+                ],
+                "import/extensions": [
+                    "error",
+                    "ignorePackages",
+                    {
+                        "js": "never",
+                        "mjs": "never",
+                        "jsx": "never",
+                        "ts": "never",
+                        "tsx": "never",
+                        "cts": "never",
+                        "mts": "never"
+                    }
+                ],
+                "constructor-super": "off",
+                "getter-return": "off",
+                "no-const-assign": "off",
+                "no-dupe-keys": "off",
+                "no-func-assign": "off",
+                "no-import-assign": "off",
+                "no-obj-calls": "off",
+                "no-setter-return": "off",
+                "no-this-before-super": "off",
+                "no-unreachable": "off",
+                "no-unsafe-negation": "off",
+                "valid-typeof": "off",
+                "import/no-named-as-default-member": "off",
+                "jsdoc/require-param": "off",
+                "max-params": [
+                    "error",
+                    {
+                        "max": 10
+                    }
+                ],
+                "typescript/no-implied-eval": "error",
+                "typescript/require-await": "off",
+                "typescript/return-await": ["error", "in-try-catch"],
+                "typescript/no-var-requires": "off",
+                "typescript/no-unsafe-type-assertion": "error",
+                "typescript/switch-exhaustiveness-check": [
+                    "error",
+                    {
+                        "considerDefaultExhaustiveForUnions": true
+                    }
+                ],
+                "typescript/no-floating-promises": "off",
+                "typescript/no-restricted-types": [
+                    "error",
+                    {
+                        "types": {
+                            "object": "Use 'Record<string, T>' instead."
+                        }
+                    }
+                ],
+                "typescript/consistent-type-imports": [
+                    "error",
+                    {
+                        "prefer": "type-imports",
+                        "fixStyle": "separate-type-imports"
+                    }
+                ],
+                "typescript/consistent-type-exports": [
+                    "error",
+                    {
+                        "fixMixedExportsWithInlineTypeSpecifier": false
+                    }
+                ],
+                "typescript/no-deprecated": "off",
+                "typescript/no-explicit-any": "error",
+                "typescript/no-non-null-assertion": "error",
+                "typescript/prefer-enum-initializers": "error",
+                "typescript/no-import-type-side-effects": "error",
+                "typescript/no-duplicate-type-constituents": [
+                    "error",
+                    {
+                        "ignoreUnions": true
+                    }
+                ],
+                "typescript/no-require-imports": "off",
+                "typescript/only-throw-error": "off",
+                "typescript/prefer-promise-reject-errors": "off"
+            },
+            "plugins": ["jsdoc"]
+        },
+        {
+            "files": ["**/scripts/**", "**/server/**", "**/.github/**"],
+            "rules": {
+                "no-console": "off"
+            }
+        },
+        {
+            "files": [
+                "tests/**",
+                "test/**",
+                "spec/**",
+                "**/__tests__/**",
+                "**/__mocks__/**",
+                "test.{js,jsx}",
+                "test-*.{js,jsx}",
+                "**/*.{test,spec}.{js,jsx,mjs,cjs}",
+                "**/*.{test,spec}.{ts,tsx,cts,mts}",
+                "**/*_test.{js,jsx,ts,tsx}",
+                "**/jest.config.{js,ts,mts}",
+                "**/jest.setup.{js,ts}",
+                "jestSetup.js"
+            ],
+            "rules": {
+                "no-console": "off",
+                "no-await-in-loop": "off",
+                "no-import-assign": "off",
+                "jsdoc/check-tag-names": [
+                    "error",
+                    {
+                        "definedTags": ["jest-environment"]
+                    }
+                ]
+            },
+            "plugins": ["jsdoc"]
+            // `env: {jest: true}` removed: the root env carries it, at the same scope ESLint does.
+        },
+        {
+            "files": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
+            "rules": {
+                "react-native-a11y/has-accessibility-hint": "off",
+                "react-native-a11y/has-accessibility-props": "error",
+                "react-native-a11y/has-valid-accessibility-actions": "error",
+                "react-native-a11y/has-valid-accessibility-component-type": "error",
+                "react-native-a11y/has-valid-accessibility-descriptors": [
+                    "error",
+                    {
+                        "touchables": ["PressableWithoutFeedback", "PressableWithFeedback"]
+                    }
+                ],
+                "react-native-a11y/has-valid-accessibility-role": "error",
+                "react-native-a11y/has-valid-accessibility-state": "error",
+                "react-native-a11y/has-valid-accessibility-states": "error",
+                "react-native-a11y/has-valid-accessibility-traits": "error",
+                "react-native-a11y/has-valid-accessibility-value": "error",
+                "react-native-a11y/no-nested-touchables": "error",
+                "react-native-a11y/has-valid-accessibility-ignores-invert-colors": "error",
+                "react-native-a11y/has-valid-accessibility-live-region": "error",
+                "react-native-a11y/has-valid-important-for-accessibility": "error",
+                "@dword-design/import-alias/prefer-alias": [
+                    "error",
+                    {
+                        "alias": {
+                            "@assets": "./assets",
+                            "@components": "./src/components",
+                            "@hooks": "./src/hooks",
+                            "@userActions": "./src/libs/actions",
+                            "@libs": "./src/libs",
+                            "@navigation": "./src/libs/Navigation",
+                            "@pages": "./src/pages",
+                            "@prompts": "./prompts",
+                            "@styles": "./src/styles",
+                            "@src": "./src",
+                            "@github": "./.github"
+                        }
+                    }
+                ],
+                "curly": ["error", "all"],
+                "no-unexpected-multiline": "off",
+                "unicorn/empty-brace-spaces": "off",
+                "unicorn/no-nested-ternary": "off",
+                "unicorn/number-literal-case": "off",
+                "arrow-body-style": "off",
+                "no-empty": [
+                    "error",
+                    {
+                        "allowEmptyCatch": true
+                    }
+                ],
+                "import/consistent-type-specifier-style": ["error", "prefer-top-level"],
+                "react/forbid-component-props": [
+                    "error",
+                    {
+                        "forbid": [
+                            {
+                                "propName": "fsClass",
+                                "allowedFor": ["View", "Animated.View", "Text", "Pressable"],
+                                "message": "The 'fsClass' prop doesn't work for custom components, only RN's View, Text and Pressable.\nPlease use the 'ForwardedFSClassProps' or 'MultipleFSClassProps' types to pass down the desired 'fsClass' value to the allowed components."
+                            }
+                        ]
+                    }
+                ],
+                "no-restricted-properties": [
+                    "error",
+                    {
+                        "object": "Image",
+                        "property": "getSize",
+                        "message": "Usage of Image.getSize is restricted. Please use the `react-native-image-size`."
+                    },
+                    {
+                        "object": "HybridAppModule",
+                        "property": "isHybridApp",
+                        "message": "Use CONFIG.IS_HYBRID_APP instead."
+                    },
+                    {
+                        "object": "HybridAppModule",
+                        "property": "closeReactNativeApp",
+                        "message": "Use `closeReactNativeApp` from `@userActions/HybridApp` instead."
+                    }
+                ],
+                "no-restricted-imports": [
+                    "error",
+                    {
+                        "paths": [
+                            {
+                                "name": "@components/Button",
+                                "importNames": ["default"],
+                                "message": "The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed."
+                            },
+                            {
+                                "name": "@src/components/Button",
+                                "importNames": ["default"],
+                                "message": "The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed."
+                            },
+                            {
+                                "name": "react-native",
+                                "importNames": [
+                                    "useWindowDimensions",
+                                    "StatusBar",
+                                    "TouchableOpacity",
+                                    "TouchableWithoutFeedback",
+                                    "TouchableNativeFeedback",
+                                    "TouchableHighlight",
+                                    "Pressable",
+                                    "Text",
+                                    "ScrollView",
+                                    "ActivityIndicator",
+                                    "Animated",
+                                    "findNodeHandle",
+                                    "InteractionManager"
+                                ],
+                                "message": "\nFor 'useWindowDimensions', please use '@src/hooks/useWindowDimensions' instead.\nFor 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable', please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from '@components/Pressable' instead.\nFor 'StatusBar', please use '@libs/StatusBar' instead.\nFor 'Text', please use '@components/Text' instead.\nFor 'ScrollView', please use '@components/ScrollView' instead.\nFor 'ActivityIndicator', please use '@components/ActivityIndicator' instead.\nFor 'Animated', please use 'Animated' from 'react-native-reanimated' instead.\nFor 'InteractionManager', please use afterTransition callbacks on Navigation/KeyboardUtils or other alternatives. See contributingGuides/INTERACTION_MANAGER.md."
+                            },
+                            {
+                                "name": "react-native-gesture-handler",
+                                "importNames": ["TouchableOpacity", "TouchableWithoutFeedback", "TouchableNativeFeedback", "TouchableHighlight"],
+                                "message": "Please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from '@components/Pressable' instead."
+                            },
+                            {
+                                "name": "awesome-phonenumber",
+                                "importNames": ["parsePhoneNumber"],
+                                "message": "Please use '@libs/PhoneNumber' instead."
+                            },
+                            {
+                                "name": "react-native-safe-area-context",
+                                "importNames": ["useSafeAreaInsets", "SafeAreaConsumer", "SafeAreaInsetsContext"],
+                                "message": "Please use 'useSafeAreaInsets' from '@src/hooks/useSafeAreaInset' and/or 'SafeAreaConsumer' from '@components/SafeAreaConsumer' instead."
+                            },
+                            {
+                                "name": "react",
+                                "importNames": ["CSSProperties"],
+                                "message": "Please use 'ViewStyle', 'TextStyle', 'ImageStyle' from 'react-native' instead."
+                            },
+                            {
+                                "name": "react",
+                                "importNames": ["forwardRef"],
+                                "message": "forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs"
+                            },
+                            {
+                                "name": "@styles/index",
+                                "importNames": ["default", "defaultStyles"],
+                                "message": "Do not import styles directly. Please use the `useThemeStyles` hook instead."
+                            },
+                            {
+                                "name": "@styles/utils",
+                                "importNames": ["default", "DefaultStyleUtils"],
+                                "message": "Do not import StyleUtils directly. Please use the `useStyleUtils` hook instead."
+                            },
+                            {
+                                "name": "@styles/theme",
+                                "importNames": ["default", "defaultTheme"],
+                                "message": "Do not import themes directly. Please use the `useTheme` hook instead."
+                            },
+                            {
+                                "name": "@styles/theme/illustrations",
+                                "message": "Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead."
+                            },
+                            {
+                                "name": "date-fns/locale",
+                                "message": "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-GB'."
+                            },
+                            {
+                                "name": "expensify-common",
+                                "importNames": ["Device", "ExpensiMark"],
+                                "message": "\nFor 'Device', do not import it directly, it's known to make VSCode's IntelliSense crash. Please import the desired module from `expensify-common/Device` instead.\nFor 'ExpensiMark', please use '@libs/Parser' instead."
+                            },
+                            {
+                                "name": "lodash/memoize",
+                                "message": "Please use '@src/libs/memoize' instead."
+                            },
+                            {
+                                "name": "lodash",
+                                "importNames": ["memoize"],
+                                "message": "Please use '@src/libs/memoize' instead."
+                            },
+                            {
+                                "name": "lodash/isEqual",
+                                "message": "Please use 'deepEqual' from 'fast-equals' instead."
+                            },
+                            {
+                                "name": "lodash",
+                                "importNames": ["isEqual"],
+                                "message": "Please use 'deepEqual' from 'fast-equals' instead."
+                            },
+                            {
+                                "name": "react-native-onyx",
+                                "importNames": ["useOnyx"],
+                                "message": "Please use '@hooks/useOnyx' instead."
+                            },
+                            {
+                                "name": "@src/utils/findNodeHandle",
+                                "message": "Do not use 'findNodeHandle' as it is no longer supported on web."
+                            }
+                        ],
+                        "patterns": [
+                            {
+                                "group": ["**/assets/animations/**/*.json"],
+                                "message": "Do not import animations directly. Please use the '@components/LottieAnimations' import instead."
+                            },
+                            {
+                                "group": ["@styles/theme/themes/**"],
+                                "message": "Do not import themes directly. Please use the `useTheme` hook instead."
+                            },
+                            {
+                                "group": ["@styles/utils/**", "!@styles/utils/FontUtils", "!@styles/utils/types"],
+                                "message": "Do not import style util functions directly. Please use the `useStyleUtils` hook instead."
+                            },
+                            {
+                                "group": ["@styles/theme/illustrations/themes/**"],
+                                "message": "Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead."
+                            }
+                        ]
+                    }
+                ],
+                "lodash/import-scope": ["error", "method"],
+                "prefer-regex-literals": "off",
+                "jsdoc/require-param": "off",
+                "jsdoc/require-param-type": "off",
+                "jsdoc/check-tag-names": "off"
+            },
+            "jsPlugins": ["eslint-plugin-react-native-a11y", "@dword-design/eslint-plugin-import-alias", "eslint-plugin-lodash"],
+            "plugins": ["jsdoc"]
+            // `env: {jest: true}` and `globals: {__DEV__}` removed: both are on at the root now,
+            // which is the same scope ESLint applies them at (its globals.jest block matches every
+            // linted extension).
+        },
+        {
+            "files": ["**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
+            "rules": {
+                "react/jsx-filename-extension": "off",
+                "prefer-arrow-callback": "off",
+                "lodash/import-scope": "off"
+            },
+            "jsPlugins": ["eslint-plugin-lodash"]
+        },
+        {
+            "files": ["**/*.mjs", "**/*.cjs", ".storybook/**/*.ts", ".storybook/**/*.tsx", "config/rsbuild/**/*.ts"],
+            "rules": {
+                "import/extensions": "off"
+            }
+        },
+        {
+            "files": ["**/*.ts", "**/*.tsx"],
+            "rules": {
+                "you-dont-need-lodash-underscore/concat": "error",
+                "you-dont-need-lodash-underscore/drop": "error",
+                "you-dont-need-lodash-underscore/drop-right": "error",
+                "you-dont-need-lodash-underscore/index-of": "error",
+                "you-dont-need-lodash-underscore/join": "error",
+                "you-dont-need-lodash-underscore/last": "error",
+                "you-dont-need-lodash-underscore/last-index-of": "error",
+                "you-dont-need-lodash-underscore/reverse": "error",
+                "you-dont-need-lodash-underscore/fill": "error",
+                "you-dont-need-lodash-underscore/find": "error",
+                "you-dont-need-lodash-underscore/detect": "error",
+                "you-dont-need-lodash-underscore/first": "error",
+                "you-dont-need-lodash-underscore/find-index": "error",
+                "you-dont-need-lodash-underscore/is-array": "error",
+                "you-dont-need-lodash-underscore/each": "error",
+                "you-dont-need-lodash-underscore/for-each": "error",
+                "you-dont-need-lodash-underscore/every": "error",
+                "you-dont-need-lodash-underscore/all": "error",
+                "you-dont-need-lodash-underscore/filter": "error",
+                "you-dont-need-lodash-underscore/select": "error",
+                "you-dont-need-lodash-underscore/map": "error",
+                "you-dont-need-lodash-underscore/collect": "error",
+                "you-dont-need-lodash-underscore/reduce": "error",
+                "you-dont-need-lodash-underscore/inject": "error",
+                "you-dont-need-lodash-underscore/foldl": "error",
+                "you-dont-need-lodash-underscore/reduce-right": "error",
+                "you-dont-need-lodash-underscore/foldr": "error",
+                "you-dont-need-lodash-underscore/size": "error",
+                "you-dont-need-lodash-underscore/some": "error",
+                "you-dont-need-lodash-underscore/any": "error",
+                "you-dont-need-lodash-underscore/includes": "error",
+                "you-dont-need-lodash-underscore/contains": "error",
+                "you-dont-need-lodash-underscore/slice": "error",
+                "you-dont-need-lodash-underscore/take-right": "error",
+                "you-dont-need-lodash-underscore/bind": "error",
+                "you-dont-need-lodash-underscore/is-finite": "error",
+                "you-dont-need-lodash-underscore/is-integer": "error",
+                "you-dont-need-lodash-underscore/is-nan": "error",
+                "you-dont-need-lodash-underscore/is-nil": "error",
+                "you-dont-need-lodash-underscore/is-null": "error",
+                "you-dont-need-lodash-underscore/is-undefined": "error",
+                "you-dont-need-lodash-underscore/keys": "error",
+                "you-dont-need-lodash-underscore/extend-own": "error",
+                "you-dont-need-lodash-underscore/assign": "error",
+                "you-dont-need-lodash-underscore/values": "error",
+                "you-dont-need-lodash-underscore/entries": "error",
+                "you-dont-need-lodash-underscore/to-pairs": "error",
+                "you-dont-need-lodash-underscore/pairs": "error",
+                "you-dont-need-lodash-underscore/get": "error",
+                "you-dont-need-lodash-underscore/split": "error",
+                "you-dont-need-lodash-underscore/starts-with": "error",
+                "you-dont-need-lodash-underscore/ends-with": "error",
+                "you-dont-need-lodash-underscore/to-lower": "error",
+                "you-dont-need-lodash-underscore/to-upper": "error",
+                "you-dont-need-lodash-underscore/trim": "error",
+                "you-dont-need-lodash-underscore/pad-start": "error",
+                "you-dont-need-lodash-underscore/pad-end": "error",
+                "you-dont-need-lodash-underscore/repeat": "error",
+                "you-dont-need-lodash-underscore/uniq": "error",
+                "you-dont-need-lodash-underscore/replace": "error",
+                "you-dont-need-lodash-underscore/omit": "error",
+                "you-dont-need-lodash-underscore/flatten": "error",
+                "you-dont-need-lodash-underscore/throttle": "off",
+                "you-dont-need-lodash-underscore/is-string": "error",
+                "you-dont-need-lodash-underscore/cast-array": "error",
+                "you-dont-need-lodash-underscore/clone-deep": "off",
+                "you-dont-need-lodash-underscore/is-function": "error",
+                "you-dont-need-lodash-underscore/union-by": "error",
+                "you-dont-need-lodash-underscore/capitalize": "error",
+                "you-dont-need-lodash-underscore/is-date": "error",
+                "you-dont-need-lodash-underscore/defaults": "error",
+                "you-dont-need-lodash-underscore/is-array-buffer": "error",
+                "you-dont-need-lodash-underscore/head": "error"
+            },
+            "jsPlugins": ["eslint-plugin-you-dont-need-lodash-underscore"]
+        },
+        {
+            "files": [".github/**/*", "scripts/**/*", "server/**/*", "tests/**/*"],
+            "rules": {
+                "no-await-in-loop": "off",
+                "core/no-restricted-syntax": ["error", "ForInStatement", "LabeledStatement", "WithStatement"]
+            }
+            // No globals block here any more: all 70 names it listed (Buffer, AbortController,
+            // Blob, ...) resolve through the root `env.node`, verified by probing every one of
+            // them for `no-undef`. ESLint scopes globals.node to these directories; oxlint has
+            // had it repo-wide since the migration, so the list was already only documentation.
+        },
+        {
+            "files": [".github/**/*"],
+            "rules": {
+                "no-restricted-imports": [
+                    "error",
+                    {
+                        "patterns": [
+                            {
+                                "group": ["@src/**"],
+                                "message": "Do not import files from src/ directory as they can break the GH Actions build script."
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "files": ["tests/**/*"],
+            "rules": {
+                "import/extensions": "off",
+                "no-import-assign": "off",
+                "@dword-design/import-alias/prefer-alias": ["off"],
+                "testing-library/await-async-queries": "error",
+                "testing-library/await-async-utils": "error",
+                "testing-library/no-debugging-utils": "error",
+                "testing-library/no-manual-cleanup": "error",
+                "testing-library/no-unnecessary-act": "error",
+                "testing-library/prefer-find-by": "error",
+                "testing-library/prefer-presence-queries": "error",
+                "testing-library/prefer-screen-queries": "error"
+            },
+            "jsPlugins": ["@dword-design/eslint-plugin-import-alias", "eslint-plugin-testing-library"]
+        },
+        {
+            "files": ["**/*.ts", "**/*.tsx"],
+            "rules": {
+                "no-restricted-imports": [
+                    "error",
+                    {
+                        "paths": [
+                            {
+                                "name": "@components/Button",
+                                "importNames": ["default"],
+                                "message": "The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed."
+                            },
+                            {
+                                "name": "@src/components/Button",
+                                "importNames": ["default"],
+                                "message": "The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed."
+                            },
+                            {
+                                "name": "react-native",
+                                "importNames": [
+                                    "useWindowDimensions",
+                                    "StatusBar",
+                                    "TouchableOpacity",
+                                    "TouchableWithoutFeedback",
+                                    "TouchableNativeFeedback",
+                                    "TouchableHighlight",
+                                    "Pressable",
+                                    "Text",
+                                    "ScrollView",
+                                    "ActivityIndicator",
+                                    "Animated",
+                                    "findNodeHandle",
+                                    "InteractionManager"
+                                ],
+                                "message": "\nFor 'useWindowDimensions', please use '@src/hooks/useWindowDimensions' instead.\nFor 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable', please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from '@components/Pressable' instead.\nFor 'StatusBar', please use '@libs/StatusBar' instead.\nFor 'Text', please use '@components/Text' instead.\nFor 'ScrollView', please use '@components/ScrollView' instead.\nFor 'ActivityIndicator', please use '@components/ActivityIndicator' instead.\nFor 'Animated', please use 'Animated' from 'react-native-reanimated' instead.\nFor 'InteractionManager', please use afterTransition callbacks on Navigation/KeyboardUtils or other alternatives. See contributingGuides/INTERACTION_MANAGER.md."
+                            },
+                            {
+                                "name": "react-native-gesture-handler",
+                                "importNames": ["TouchableOpacity", "TouchableWithoutFeedback", "TouchableNativeFeedback", "TouchableHighlight"],
+                                "message": "Please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from '@components/Pressable' instead."
+                            },
+                            {
+                                "name": "awesome-phonenumber",
+                                "importNames": ["parsePhoneNumber"],
+                                "message": "Please use '@libs/PhoneNumber' instead."
+                            },
+                            {
+                                "name": "react-native-safe-area-context",
+                                "importNames": ["useSafeAreaInsets", "SafeAreaConsumer", "SafeAreaInsetsContext"],
+                                "message": "Please use 'useSafeAreaInsets' from '@src/hooks/useSafeAreaInset' and/or 'SafeAreaConsumer' from '@components/SafeAreaConsumer' instead."
+                            },
+                            {
+                                "name": "react",
+                                "importNames": ["CSSProperties"],
+                                "message": "Please use 'ViewStyle', 'TextStyle', 'ImageStyle' from 'react-native' instead."
+                            },
+                            {
+                                "name": "react",
+                                "importNames": ["forwardRef"],
+                                "message": "forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs"
+                            },
+                            {
+                                "name": "@styles/index",
+                                "importNames": ["default", "defaultStyles"],
+                                "message": "Do not import styles directly. Please use the `useThemeStyles` hook instead."
+                            },
+                            {
+                                "name": "@styles/utils",
+                                "importNames": ["default", "DefaultStyleUtils"],
+                                "message": "Do not import StyleUtils directly. Please use the `useStyleUtils` hook instead."
+                            },
+                            {
+                                "name": "@styles/theme",
+                                "importNames": ["default", "defaultTheme"],
+                                "message": "Do not import themes directly. Please use the `useTheme` hook instead."
+                            },
+                            {
+                                "name": "@styles/theme/illustrations",
+                                "message": "Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead."
+                            },
+                            {
+                                "name": "date-fns/locale",
+                                "message": "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-GB'."
+                            },
+                            {
+                                "name": "expensify-common",
+                                "importNames": ["Device", "ExpensiMark"],
+                                "message": "\nFor 'Device', do not import it directly, it's known to make VSCode's IntelliSense crash. Please import the desired module from `expensify-common/Device` instead.\nFor 'ExpensiMark', please use '@libs/Parser' instead."
+                            },
+                            {
+                                "name": "lodash/memoize",
+                                "message": "Please use '@src/libs/memoize' instead."
+                            },
+                            {
+                                "name": "lodash",
+                                "importNames": ["memoize"],
+                                "message": "Please use '@src/libs/memoize' instead."
+                            },
+                            {
+                                "name": "lodash/isEqual",
+                                "message": "Please use 'deepEqual' from 'fast-equals' instead."
+                            },
+                            {
+                                "name": "lodash",
+                                "importNames": ["isEqual"],
+                                "message": "Please use 'deepEqual' from 'fast-equals' instead."
+                            },
+                            {
+                                "name": "react-native-onyx",
+                                "importNames": ["useOnyx"],
+                                "message": "Please use '@hooks/useOnyx' instead."
+                            },
+                            {
+                                "name": "@src/utils/findNodeHandle",
+                                "message": "Do not use 'findNodeHandle' as it is no longer supported on web."
+                            }
+                        ],
+                        "patterns": [
+                            {
+                                "group": ["**/assets/animations/**/*.json"],
+                                "message": "Do not import animations directly. Please use the '@components/LottieAnimations' import instead."
+                            },
+                            {
+                                "group": ["@styles/theme/themes/**"],
+                                "message": "Do not import themes directly. Please use the `useTheme` hook instead."
+                            },
+                            {
+                                "group": ["@styles/utils/**", "!@styles/utils/FontUtils", "!@styles/utils/types"],
+                                "message": "Do not import style util functions directly. Please use the `useStyleUtils` hook instead."
+                            },
+                            {
+                                "group": ["@styles/theme/illustrations/themes/**"],
+                                "message": "Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead."
+                            },
+                            {
+                                "group": ["**/ReportNameUtils", "**/libs/ReportNameUtils"],
+                                "importNames": ["computeReportName"],
+                                "message": "Do not import computeReportName. Use getReportName instead, which properly uses derived report attributes."
+                            },
+                            {
+                                "group": ["**/PolicyUtils", "**/libs/PolicyUtils"],
+                                "importNames": ["isPaidGroupPolicy"],
+                                "message": "isPaidGroupPolicy is billing/paid-only (Collect/Control). For workspace feature gating use isGroupPolicy so free group plans like Submit are not excluded. If this is genuinely a billing/paid-only check, keep it and disable this line with a reason."
+                            },
+                            {
+                                "group": ["**/ReportUtils", "**/libs/ReportUtils"],
+                                "importNames": ["isPaidGroupPolicy", "isPaidGroupPolicyExpenseReport"],
+                                "message": "isPaidGroupPolicy / isPaidGroupPolicyExpenseReport are billing/paid-only. For feature gating use isReportInGroupPolicy / isGroupPolicyExpenseReport so Submit workspaces are not excluded. If this is genuinely billing/paid-only, keep it and disable this line with a reason."
+                            }
+                        ]
+                    }
+                ],
+                // Overrides are last-wins, so this block's position is load-bearing twice: this rule
+                // has to stay above the 83-file block near the end of `overrides` that switches it
+                // off, and `no-restricted-imports` above has to stay above the two blocks that re-set
+                // it for 24 files between them.
+                "typescript/no-deprecated": [
+                    "error",
+                    {
+                        "allow": ["translateFn"]
+                    }
+                ]
+            }
+        },
+        {
+            "files": ["src/**/*"],
+            "rules": {
+                "max-lines": ["error", 4000]
+            }
+        },
+        {
+            "files": ["modules/ExpensifyNitroUtils/src/**/*"],
+            "rules": {
+                "typescript/consistent-type-definitions": "off"
+            }
+        },
+        {
+            "files": ["server/victory-chart-renderer/**/*.ts", "server/victory-chart-renderer/**/*.tsx"],
+            "rules": {
+                "no-restricted-imports": [
+                    "error",
+                    {
+                        "paths": [
+                            {
+                                "name": "@components/Button",
+                                "importNames": ["default"],
+                                "message": "The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed."
+                            },
+                            {
+                                "name": "@src/components/Button",
+                                "importNames": ["default"],
+                                "message": "The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed."
+                            },
+                            {
+                                "name": "react-native",
+                                "importNames": [
+                                    "useWindowDimensions",
+                                    "StatusBar",
+                                    "TouchableOpacity",
+                                    "TouchableWithoutFeedback",
+                                    "TouchableNativeFeedback",
+                                    "TouchableHighlight",
+                                    "Pressable",
+                                    "Text",
+                                    "ScrollView",
+                                    "ActivityIndicator",
+                                    "Animated",
+                                    "findNodeHandle",
+                                    "InteractionManager"
+                                ],
+                                "message": "\nFor 'useWindowDimensions', please use '@src/hooks/useWindowDimensions' instead.\nFor 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable', please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from '@components/Pressable' instead.\nFor 'StatusBar', please use '@libs/StatusBar' instead.\nFor 'Text', please use '@components/Text' instead.\nFor 'ScrollView', please use '@components/ScrollView' instead.\nFor 'ActivityIndicator', please use '@components/ActivityIndicator' instead.\nFor 'Animated', please use 'Animated' from 'react-native-reanimated' instead.\nFor 'InteractionManager', please use afterTransition callbacks on Navigation/KeyboardUtils or other alternatives. See contributingGuides/INTERACTION_MANAGER.md."
+                            },
+                            {
+                                "name": "react-native-gesture-handler",
+                                "importNames": ["TouchableOpacity", "TouchableWithoutFeedback", "TouchableNativeFeedback", "TouchableHighlight"],
+                                "message": "Please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from '@components/Pressable' instead."
+                            },
+                            {
+                                "name": "awesome-phonenumber",
+                                "importNames": ["parsePhoneNumber"],
+                                "message": "Please use '@libs/PhoneNumber' instead."
+                            },
+                            {
+                                "name": "react-native-safe-area-context",
+                                "importNames": ["useSafeAreaInsets", "SafeAreaConsumer", "SafeAreaInsetsContext"],
+                                "message": "Please use 'useSafeAreaInsets' from '@src/hooks/useSafeAreaInset' and/or 'SafeAreaConsumer' from '@components/SafeAreaConsumer' instead."
+                            },
+                            {
+                                "name": "react",
+                                "importNames": ["CSSProperties"],
+                                "message": "Please use 'ViewStyle', 'TextStyle', 'ImageStyle' from 'react-native' instead."
+                            },
+                            {
+                                "name": "react",
+                                "importNames": ["forwardRef"],
+                                "message": "forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs"
+                            },
+                            {
+                                "name": "@styles/index",
+                                "importNames": ["default", "defaultStyles"],
+                                "message": "Do not import styles directly. Please use the `useThemeStyles` hook instead."
+                            },
+                            {
+                                "name": "@styles/utils",
+                                "importNames": ["default", "DefaultStyleUtils"],
+                                "message": "Do not import StyleUtils directly. Please use the `useStyleUtils` hook instead."
+                            },
+                            {
+                                "name": "@styles/theme/illustrations",
+                                "message": "Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead."
+                            },
+                            {
+                                "name": "date-fns/locale",
+                                "message": "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-GB'."
+                            },
+                            {
+                                "name": "expensify-common",
+                                "importNames": ["Device", "ExpensiMark"],
+                                "message": "\nFor 'Device', do not import it directly, it's known to make VSCode's IntelliSense crash. Please import the desired module from `expensify-common/Device` instead.\nFor 'ExpensiMark', please use '@libs/Parser' instead."
+                            },
+                            {
+                                "name": "lodash/memoize",
+                                "message": "Please use '@src/libs/memoize' instead."
+                            },
+                            {
+                                "name": "lodash",
+                                "importNames": ["memoize"],
+                                "message": "Please use '@src/libs/memoize' instead."
+                            },
+                            {
+                                "name": "lodash/isEqual",
+                                "message": "Please use 'deepEqual' from 'fast-equals' instead."
+                            },
+                            {
+                                "name": "lodash",
+                                "importNames": ["isEqual"],
+                                "message": "Please use 'deepEqual' from 'fast-equals' instead."
+                            },
+                            {
+                                "name": "react-native-onyx",
+                                "importNames": ["useOnyx"],
+                                "message": "Please use '@hooks/useOnyx' instead."
+                            },
+                            {
+                                "name": "@src/utils/findNodeHandle",
+                                "message": "Do not use 'findNodeHandle' as it is no longer supported on web."
+                            }
+                        ],
+                        "patterns": [
+                            {
+                                "group": ["**/assets/animations/**/*.json"],
+                                "message": "Do not import animations directly. Please use the '@components/LottieAnimations' import instead."
+                            },
+                            {
+                                "group": ["@styles/utils/**", "!@styles/utils/FontUtils", "!@styles/utils/types"],
+                                "message": "Do not import style util functions directly. Please use the `useStyleUtils` hook instead."
+                            },
+                            {
+                                "group": ["@styles/theme/illustrations/themes/**"],
+                                "message": "Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead."
+                            },
+                            {
+                                "group": ["**/ReportNameUtils", "**/libs/ReportNameUtils"],
+                                "importNames": ["computeReportName"],
+                                "message": "Do not import computeReportName. Use getReportName instead, which properly uses derived report attributes."
+                            },
+                            {
+                                "group": ["**/PolicyUtils", "**/libs/PolicyUtils"],
+                                "importNames": ["isPaidGroupPolicy"],
+                                "message": "isPaidGroupPolicy is billing/paid-only (Collect/Control). For workspace feature gating use isGroupPolicy so free group plans like Submit are not excluded. If this is genuinely a billing/paid-only check, keep it and disable this line with a reason."
+                            },
+                            {
+                                "group": ["**/ReportUtils", "**/libs/ReportUtils"],
+                                "importNames": ["isPaidGroupPolicy", "isPaidGroupPolicyExpenseReport"],
+                                "message": "isPaidGroupPolicy / isPaidGroupPolicyExpenseReport are billing/paid-only. For feature gating use isReportInGroupPolicy / isGroupPolicyExpenseReport so Submit workspaces are not excluded. If this is genuinely billing/paid-only, keep it and disable this line with a reason."
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "files": ["src/**/*.ts", "src/**/*.tsx"],
+            "rules": {
+                "rulesdir/no-object-keys-includes": "error",
+                "rulesdir/prefer-locale-compare-from-context": "error"
+            }
+        },
+        {
+            "files": ["**/en.ts", "**/es.ts"],
+            "rules": {
+                "rulesdir/use-periods-for-error-messages": "error"
+            }
+        },
+        {
+            "files": ["src/libs/ReportNameUtils.ts"],
+            "rules": {
+                "report-name-utils/no-function-call-in-get-report-name": "error"
+            }
+        },
+        {
+            "files": ["src/libs/actions/OnyxDerived/configs/reportAttributes.ts"],
+            "rules": {
+                "no-restricted-imports": [
+                    "error",
+                    {
+                        "paths": [
+                            {
+                                "name": "@components/Button",
+                                "importNames": ["default"],
+                                "message": "The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed."
+                            },
+                            {
+                                "name": "@src/components/Button",
+                                "importNames": ["default"],
+                                "message": "The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed."
+                            },
+                            {
+                                "name": "react-native",
+                                "importNames": [
+                                    "useWindowDimensions",
+                                    "StatusBar",
+                                    "TouchableOpacity",
+                                    "TouchableWithoutFeedback",
+                                    "TouchableNativeFeedback",
+                                    "TouchableHighlight",
+                                    "Pressable",
+                                    "Text",
+                                    "ScrollView",
+                                    "ActivityIndicator",
+                                    "Animated",
+                                    "findNodeHandle",
+                                    "InteractionManager"
+                                ],
+                                "message": "\nFor 'useWindowDimensions', please use '@src/hooks/useWindowDimensions' instead.\nFor 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable', please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from '@components/Pressable' instead.\nFor 'StatusBar', please use '@libs/StatusBar' instead.\nFor 'Text', please use '@components/Text' instead.\nFor 'ScrollView', please use '@components/ScrollView' instead.\nFor 'ActivityIndicator', please use '@components/ActivityIndicator' instead.\nFor 'Animated', please use 'Animated' from 'react-native-reanimated' instead.\nFor 'InteractionManager', please use afterTransition callbacks on Navigation/KeyboardUtils or other alternatives. See contributingGuides/INTERACTION_MANAGER.md."
+                            },
+                            {
+                                "name": "react-native-gesture-handler",
+                                "importNames": ["TouchableOpacity", "TouchableWithoutFeedback", "TouchableNativeFeedback", "TouchableHighlight"],
+                                "message": "Please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from '@components/Pressable' instead."
+                            },
+                            {
+                                "name": "awesome-phonenumber",
+                                "importNames": ["parsePhoneNumber"],
+                                "message": "Please use '@libs/PhoneNumber' instead."
+                            },
+                            {
+                                "name": "react-native-safe-area-context",
+                                "importNames": ["useSafeAreaInsets", "SafeAreaConsumer", "SafeAreaInsetsContext"],
+                                "message": "Please use 'useSafeAreaInsets' from '@src/hooks/useSafeAreaInset' and/or 'SafeAreaConsumer' from '@components/SafeAreaConsumer' instead."
+                            },
+                            {
+                                "name": "react",
+                                "importNames": ["CSSProperties"],
+                                "message": "Please use 'ViewStyle', 'TextStyle', 'ImageStyle' from 'react-native' instead."
+                            },
+                            {
+                                "name": "react",
+                                "importNames": ["forwardRef"],
+                                "message": "forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs"
+                            },
+                            {
+                                "name": "@styles/index",
+                                "importNames": ["default", "defaultStyles"],
+                                "message": "Do not import styles directly. Please use the `useThemeStyles` hook instead."
+                            },
+                            {
+                                "name": "@styles/utils",
+                                "importNames": ["default", "DefaultStyleUtils"],
+                                "message": "Do not import StyleUtils directly. Please use the `useStyleUtils` hook instead."
+                            },
+                            {
+                                "name": "@styles/theme",
+                                "importNames": ["default", "defaultTheme"],
+                                "message": "Do not import themes directly. Please use the `useTheme` hook instead."
+                            },
+                            {
+                                "name": "@styles/theme/illustrations",
+                                "message": "Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead."
+                            },
+                            {
+                                "name": "date-fns/locale",
+                                "message": "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-GB'."
+                            },
+                            {
+                                "name": "expensify-common",
+                                "importNames": ["Device", "ExpensiMark"],
+                                "message": "\nFor 'Device', do not import it directly, it's known to make VSCode's IntelliSense crash. Please import the desired module from `expensify-common/Device` instead.\nFor 'ExpensiMark', please use '@libs/Parser' instead."
+                            },
+                            {
+                                "name": "lodash/memoize",
+                                "message": "Please use '@src/libs/memoize' instead."
+                            },
+                            {
+                                "name": "lodash",
+                                "importNames": ["memoize"],
+                                "message": "Please use '@src/libs/memoize' instead."
+                            },
+                            {
+                                "name": "lodash/isEqual",
+                                "message": "Please use 'deepEqual' from 'fast-equals' instead."
+                            },
+                            {
+                                "name": "lodash",
+                                "importNames": ["isEqual"],
+                                "message": "Please use 'deepEqual' from 'fast-equals' instead."
+                            },
+                            {
+                                "name": "react-native-onyx",
+                                "importNames": ["useOnyx"],
+                                "message": "Please use '@hooks/useOnyx' instead."
+                            },
+                            {
+                                "name": "@src/utils/findNodeHandle",
+                                "message": "Do not use 'findNodeHandle' as it is no longer supported on web."
+                            }
+                        ],
+                        "patterns": [
+                            {
+                                "group": ["**/assets/animations/**/*.json"],
+                                "message": "Do not import animations directly. Please use the '@components/LottieAnimations' import instead."
+                            },
+                            {
+                                "group": ["@styles/theme/themes/**"],
+                                "message": "Do not import themes directly. Please use the `useTheme` hook instead."
+                            },
+                            {
+                                "group": ["@styles/utils/**", "!@styles/utils/FontUtils", "!@styles/utils/types"],
+                                "message": "Do not import style util functions directly. Please use the `useStyleUtils` hook instead."
+                            },
+                            {
+                                "group": ["@styles/theme/illustrations/themes/**"],
+                                "message": "Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead."
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "files": ["src/languages/**", "src/CONST/index.ts", "src/NAICS.ts"],
+            "rules": {
+                "max-lines": "off"
+            }
+        },
+        {
+            "files": ["scripts/**", ".github/**"],
+            "rules": {
+                "typescript/no-unsafe-assignment": "off",
+                "typescript/no-unsafe-argument": "off",
+                "typescript/no-unsafe-return": "off",
+                "typescript/no-unsafe-call": "off",
+                "typescript/no-unsafe-member-access": "off",
+                "no-throw-literal": "off"
+            }
+        },
+        {
+            "files": ["src/libs/Navigation/types.ts"],
+            "rules": {
+                "core/no-restricted-syntax": [
+                    "error",
+                    {
+                        "selector": "TSPropertySignature[key.name=\"backTo\"]",
+                        "message": "The `backTo` route param is deprecated. Do not add new `backTo` properties to screen param lists. Please look into the `How to remove backTo from URL` section in contributingGuides/NAVIGATION.md. and use alternative routing methods instead."
+                    }
+                ]
+            }
+        },
+        {
+            "files": [
+                ".github/actions/javascript/checkAndroidStatus/checkAndroidStatus.ts",
+                ".github/actions/javascript/getAndroidRolloutPercentage/getAndroidRolloutPercentage.ts",
+                "__mocks__/reportData/actions.ts",
+                "config/rsbuild/rsbuild.common.ts",
+                "src/hooks/useAccessibilityAnnouncement/index.ts",
+                "src/libs/Parser.ts",
+                "src/libs/actions/Chronos.ts",
+                "src/libs/actions/IOU/DeleteMoneyRequest.ts",
+                "src/libs/actions/IOU/Duplicate.ts",
+                "src/libs/actions/IOU/Hold.ts",
+                "src/libs/actions/IOU/RejectMoneyRequest.ts",
+                "src/libs/actions/IOU/TrackExpense.ts",
+                "src/libs/actions/IOU/UpdateMoneyRequest.ts",
+                "src/libs/actions/Policy/Member.ts",
+                "src/libs/actions/Transaction.ts",
+                "src/pages/inbox/conciergeDraftState.ts",
+                "src/pages/inbox/report/ReportActionsListItemRenderer.tsx",
+                "src/utils/createDummySharedValue.ts",
+                "tests/actions/IOU/CreateDraftTransactionTest.ts",
+                "tests/actions/IOU/RequestMoneyTest.ts",
+                "tests/actions/IOUTest/BulkEditTest.ts",
+                "tests/actions/IOUTest/DeleteMoneyRequestTest.ts",
+                "tests/actions/IOUTest/DuplicateTest.ts",
+                "tests/actions/IOUTest/PayMoneyRequestTest.ts",
+                "tests/actions/IOUTest/SplitTest.ts",
+                "tests/actions/IOUTest/TrackExpenseTest.ts",
+                "tests/actions/IOUTest/UpdateMoneyRequestTest.ts",
+                "tests/actions/MergeTransactionTest.ts",
+                "tests/actions/ReplaceOptimisticReportWithActualReportTest.ts",
+                "tests/actions/ReportTest.ts",
+                "tests/actions/TransactionTest.ts",
+                "tests/ui/ChatActionableButtonsTest.tsx",
+                "tests/ui/DynamicReportDetailsPageTest.tsx",
+                "tests/ui/LHNItemsPresence.tsx",
+                "tests/ui/MoneyRequestReportViewTest.tsx",
+                "tests/ui/RecentlyAddedSectionTest.tsx",
+                "tests/ui/ReportActionItemTest.tsx",
+                "tests/ui/ReportActionsListTest.tsx",
+                "tests/ui/ReportAttachments.tsx",
+                "tests/ui/components/BaseReportActionContextMenuTest.tsx",
+                "tests/ui/components/LHNOptionsListTest.tsx",
+                "tests/unit/AgentRuleChangeLogUtilsTest.ts",
+                "tests/unit/DebugUtilsTest.ts",
+                "tests/unit/DeleteReportTest.ts",
+                "tests/unit/LHNAvatarPipelineTest.ts",
+                "tests/unit/MoneyRequestReportUtilsTest.ts",
+                "tests/unit/NextStepUtilsTest.ts",
+                "tests/unit/OnyxDerived/computeForReportTest.ts",
+                "tests/unit/OnyxDerivedTest.tsx",
+                "tests/unit/OptionsListUtilsTest.tsx",
+                "tests/unit/PolicyChangeLogContentTest.tsx",
+                "tests/unit/ReportActionsUtilsTest.ts",
+                "tests/unit/ReportPrimaryActionUtilsTest.ts",
+                "tests/unit/ReportSecondaryActionUtilsTest.ts",
+                "tests/unit/ReportUtilsTest.ts",
+                "tests/unit/Search/SearchUIUtilsTest.ts",
+                "tests/unit/SidebarUtilsTest.ts",
+                "tests/unit/SpendRuleChangeLogUtilsTest.ts",
+                "tests/unit/TransactionTest.ts",
+                "tests/unit/WhisperContentMentionContextTest.tsx",
+                "tests/unit/components/MoneyReportTransactionThreadContext.test.tsx",
+                "tests/unit/getReportPreviewSenderIDTest.ts",
+                "tests/unit/getSendMessageListWeightTest.ts",
+                "tests/unit/getSendMessageSourceTest.ts",
+                "tests/unit/hooks/useDeleteTransactionsInvoiceOfflineTest.tsx",
+                "tests/unit/hooks/useExpenseActionsInvoiceDeleteTest.tsx",
+                "tests/unit/hooks/useExpenseSubmission.test.ts",
+                "tests/unit/hooks/useOriginalReportID.test.tsx",
+                "tests/unit/hooks/useSelectedTransactionsActions.test.ts",
+                "tests/unit/hooks/useShowNotFoundPageInIOUStep.test.ts",
+                "tests/unit/hooks/useTransactionThreadReportID.test.ts",
+                "tests/unit/inlineEditing/TransactionInlineEdit.test.ts",
+                "tests/unit/isConsecutiveActionMadeByPreviousActorTest.ts",
+                "tests/unit/libs/MoneyRequestReportUtils.ts",
+                "tests/unit/pages/inbox/ConciergeDraftContext.test.tsx",
+                "tests/unit/selectors/ReportActionTest.ts",
+                "tests/unit/useGetExpensifyCardFromReportActionTest.ts",
+                "tests/unit/useOneTransactionThreadReportIDTest.ts",
+                "tests/unit/useReportActionsVisibilityTest.tsx",
+                "tests/utils/LHNTestUtils.tsx",
+                "tests/utils/ReportTestUtils.ts",
+                "tests/utils/collections/reportActions.ts",
+                "tests/utils/createSharedValueMock.ts"
+            ],
+            "rules": {
+                "typescript/no-deprecated": "off"
+            }
+        },
+        {
+            "files": ["**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
+            "rules": {
+                // Every typed rule below is OFF only to mirror ESLint: typescript-eslint switches
+                // its typed rules off for plain-JS files, so these are parity, not coverage gaps.
+                "typescript/await-thenable": "off",
+                "typescript/consistent-type-exports": "off",
+                "typescript/dot-notation": "off",
+                "typescript/no-array-delete": "off",
+                "typescript/no-base-to-string": "off",
+                "typescript/no-confusing-void-expression": "off",
+                "typescript/no-deprecated": "off",
+                "typescript/no-duplicate-type-constituents": "off",
+                "typescript/no-floating-promises": "off",
+                "typescript/no-for-in-array": "off",
+                "typescript/no-implied-eval": "off",
+                "typescript/no-meaningless-void-operator": "off",
+                "typescript/no-misused-promises": "off",
+                "typescript/no-misused-spread": "off",
+                "typescript/no-mixed-enums": "off",
+                "typescript/no-redundant-type-constituents": "off",
+                "typescript/no-unnecessary-boolean-literal-compare": "off",
+                "typescript/no-unnecessary-qualifier": "off",
+                "typescript/no-unnecessary-template-expression": "off",
+                "typescript/no-unnecessary-type-arguments": "off",
+                "typescript/no-unnecessary-type-assertion": "off",
+                "typescript/no-unnecessary-type-conversion": "off",
+                "typescript/no-unnecessary-type-parameters": "off",
+                "typescript/no-unsafe-enum-comparison": "off",
+                "typescript/no-unsafe-type-assertion": "off",
+                "typescript/no-unsafe-unary-minus": "off",
+                "typescript/no-useless-default-assignment": "off",
+                "typescript/non-nullable-type-assertion-style": "off",
+                "typescript/only-throw-error": "off",
+                "typescript/prefer-find": "off",
+                "typescript/prefer-includes": "off",
+                "typescript/prefer-nullish-coalescing": "off",
+                "typescript/prefer-promise-reject-errors": "off",
+                "typescript/prefer-readonly": "off",
+                "typescript/prefer-readonly-parameter-types": "off",
+                "typescript/prefer-reduce-type-parameter": "off",
+                "typescript/prefer-regexp-exec": "off",
+                "typescript/prefer-return-this-type": "off",
+                "typescript/prefer-string-starts-ends-with": "off",
+                "typescript/promise-function-async": "off",
+                "typescript/related-getter-setter-pairs": "off",
+                "typescript/require-array-sort-compare": "off",
+                "typescript/require-await": "off",
+                "typescript/restrict-plus-operands": "off",
+                "typescript/restrict-template-expressions": "off",
+                "typescript/return-await": "off",
+                "typescript/strict-boolean-expressions": "off",
+                "typescript/strict-void-return": "off",
+                "typescript/switch-exhaustiveness-check": "off",
+                "typescript/unbound-method": "off",
+                "typescript/use-unknown-in-catch-callback-variable": "off",
+                // Also off in the `scripts/**` / `.github/**` block above, to the same value, so the
+                // 27 plain-JS files the two share get the same answer either way.
+                "typescript/no-unsafe-assignment": "off",
+                "typescript/no-unsafe-argument": "off",
+                "typescript/no-unsafe-return": "off",
+                "typescript/no-unsafe-call": "off",
+                "typescript/no-unsafe-member-access": "off",
+                "rulesdir/no-default-props": "off",
+                "hosted/no-types": "off"
+            }
+        },
+        {
+            "files": ["**/*.d.ts", "**/*.d.tsx"],
+            "rules": {
+                "core/no-unreachable-loop": "off"
+            }
+        },
+        {
+            // Mirrors config/eslint/eslint.config.mjs: bun-types declares
+            // `expect(...).resolves` / `.rejects` as returning `void` even though Bun's own docs
+            // recommend (and its runtime requires) awaiting them, so the rule reports every correct
+            // use of that pattern here. See https://github.com/oven-sh/bun/pull/23425. Without this
+            // block oxlint reports 30 findings across 7 files that ESLint never shows.
+            "files": ["tests/tooling/**/*.ts"],
+            "rules": {
+                "typescript/await-thenable": "off"
+            }
+        }
+    ]
+}

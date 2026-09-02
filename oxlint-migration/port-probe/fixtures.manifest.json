@@ -1,0 +1,282 @@
+{
+    "no-unreachable-loop": {
+        "fixture": "fixtures/unreachableLoop.ts",
+        "oxlintRule": "core/no-unreachable-loop",
+        "expected": 1,
+        "why": "WIRED 2026-08-10 as core/no-unreachable-loop; oxlint's native port false-positives, so ESLint's core rule is hosted instead"
+    },
+    "react/jsx-no-bind": {"fixture": "fixtures/jsxNoBind.tsx", "oxlintRule": "hosted/jsx-no-bind", "expected": 1, "why": "WIRED 2026-08-10; not implemented natively in oxlint"},
+    "react/function-component-definition": {
+        "fixture": "fixtures/functionComponentDefinition.tsx",
+        "oxlintRule": "hosted/function-component-definition",
+        "expected": 1,
+        "why": "WIRED 2026-08-10; oxlint's native port diverges, so the hosted rule shadows it"
+    },
+    "react/jsx-no-constructed-context-values": {
+        "fixture": "fixtures/jsxNoConstructedContextValues.tsx",
+        "oxlintRule": "hosted/jsx-no-constructed-context-values",
+        "expected": 1,
+        "why": "WIRED 2026-08-12 as hosted/... behind the React Compiler gate. Hosted rather than native for two reasons: only a JS plugin can hold the gate, and oxlint's native port diverges (wrong anchor line, no component-scope check). The fixture opts out of memoization so it tests the rule, not the gate"
+    },
+    "import/prefer-default-export": {
+        "fixture": "fixtures/preferDefaultExport.ts",
+        "oxlintRule": "hosted/prefer-default-export",
+        "expected": 1,
+        "why": "WIRED 2026-08-10; oxlint's native port diverges, so the hosted rule shadows it"
+    },
+    "import/order": {
+        "fixture": "fixtures/importOrder.ts",
+        "oxlintRule": "hosted/order",
+        "expected": 1,
+        "why": "WIRED 2026-08-10; not implemented natively (oxfmt also enforces a stricter grouping)"
+    },
+    "jsdoc/no-types": {"fixture": "fixtures/jsdocNoTypes.ts", "oxlintRule": "hosted/no-types", "expected": 2, "why": "WIRED 2026-08-10; not implemented natively in oxlint"},
+    "@typescript-eslint/naming-convention": {
+        "fixture": "fixtures/namingConvention.ts",
+        "oxlintRule": "hosted/naming-convention",
+        "expected": 6,
+        "why": "tsgolint lists it unimplemented, but our options never query types -- hosted with stubbed parser services. The 6th finding is the quoted 'foo-bar' property: our options define no requiresQuotes entry, so it is checked like any other property. Both tools agree, which is what proves the stubbed compilerOptions.target is harmless"
+    },
+    "rulesdir/require-locale-for-localized-date-format": {
+        "fixture": "fixtures/requireLocaleForLocalizedDateFormat.ts",
+        "oxlintRule": "rulesdir/require-locale-for-localized-date-format",
+        "expected": 1,
+        "why": "WIRED 2026-08-21; ESLint enabled it and .oxlintrc.json did not, which no findings comparison could surface because the rule reports 0 on this repo"
+    },
+    "rulesdir/no-inline-useOnyx-selector": {
+        "fixture": "fixtures/inlineUseOnyxSelector.ts",
+        "oxlintRule": "rulesdir/no-inline-useOnyx-selector",
+        "expected": 1,
+        "why": "WIRED 2026-08-12 behind the same React Compiler gate; ungated it reports 238 findings across 186 files that ESLint's processor drops. Fixture opts out of memoization so it tests the rule, not the gate"
+    },
+    "you-dont-need-lodash-underscore/uniq": {
+        "fixture": "fixtures/youDontNeedLodash.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/uniq",
+        "expected": 1,
+        "why": "already enabled on both sides, but missing from oxlint's JSON schema -- fixture is the only proof it runs"
+    },
+    "testing-library/no-debugging-utils": {
+        "fixture": "fixtures/testingLibraryDebug.ts",
+        "oxlintRule": "testing-library/no-debugging-utils",
+        "expected": 1,
+        "why": "same: enabled on both sides, absent from oxlint's schema"
+    },
+    "react-native-a11y/has-valid-accessibility-descriptors": {
+        "fixture": "fixtures/reactNativeA11y.tsx",
+        "oxlintRule": "react-native-a11y/has-valid-accessibility-descriptors",
+        "expected": 1,
+        "why": "same: enabled on both sides, absent from oxlint's schema"
+    },
+
+    "strict": {"fixture": "fixtures/coreStyleRules.ts", "oxlintRule": "core/strict", "expected": 1, "why": "WIRED 2026-08-11; no native oxlint port"},
+    "one-var": {"fixture": "fixtures/coreStyleRules.ts", "oxlintRule": "eslint/one-var", "expected": 1, "why": "WIRED 2026-08-11; native as of oxlint 1.78.0 (#24470), so no sidecar cost"},
+    "no-undef-init": {
+        "fixture": "fixtures/coreStyleRules.ts",
+        "oxlintRule": "core/no-undef-init",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; no native oxlint port (unicorn/no-useless-undefined is broader, so not a stand-in)"
+    },
+    "no-new-object": {
+        "fixture": "fixtures/coreStyleRules.ts",
+        "oxlintRule": "eslint/no-object-constructor",
+        "expected": 1,
+        "why": "WIRED 2026-08-11 under its post-rename name: ESLint deprecated no-new-object in 8.50 for no-object-constructor, and oxlint only implements the new one. This fixture pins the shape both agree on, `new Object()`. The replacement also flags a bare `Object()` and does not flag `new Object(arg)` -- neither exists in the repo"
+    },
+    "lines-between-class-members": {
+        "fixture": "fixtures/coreStyleRules.ts",
+        "oxlintRule": "core/lines-between-class-members",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; no native oxlint port. TS-only in both configs, matching eslint-config-expensify"
+    },
+    "no-octal": {
+        "fixture": "fixtures/coreOctalSyntax.cjs",
+        "oxlintRule": "core/no-octal",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; the fixture must be script-mode, because in a module oxc rejects legacy octal syntax at parse time and no rule is reached"
+    },
+    "no-octal-escape": {"fixture": "fixtures/coreOctalSyntax.cjs", "oxlintRule": "core/no-octal-escape", "expected": 1, "why": "same as no-octal: only reachable in a script-mode file"},
+
+    "react-hooks/purity": {
+        "fixture": "fixtures/rhPurity.tsx",
+        "oxlintRule": "rc/purity",
+        "expected": 1,
+        "why": "covered 2026-08-12; the compiler rules had no fixture at all before, and 10 of the 16 had no evidence of any kind"
+    },
+    "react-hooks/set-state-in-render": {"fixture": "fixtures/rhSetStateInRender.tsx", "oxlintRule": "rc/set-state-in-render", "expected": 1, "why": "covered 2026-08-12"},
+    "react-hooks/globals": {"fixture": "fixtures/rhGlobals.tsx", "oxlintRule": "rc/globals", "expected": 1, "why": "covered 2026-08-12"},
+    "react-hooks/error-boundaries": {"fixture": "fixtures/rhErrorBoundaries.tsx", "oxlintRule": "rc/error-boundaries", "expected": 1, "why": "covered 2026-08-12"},
+    "react-hooks/use-memo": {"fixture": "fixtures/rhUseMemo.tsx", "oxlintRule": "rc/use-memo", "expected": 1, "why": "covered 2026-08-12"},
+    "react-hooks/unsupported-syntax": {"fixture": "fixtures/rhUnsupportedSyntax.tsx", "oxlintRule": "rc/unsupported-syntax", "expected": 1, "why": "covered 2026-08-12"},
+    "react-hooks/incompatible-library": {
+        "fixture": "fixtures/rhIncompatibleLibrary.tsx",
+        "oxlintRule": "rc/incompatible-library",
+        "expected": 1,
+        "why": "covered 2026-08-12; react-hook-form is matched by module name, so the package does not have to be installed"
+    },
+    "react-hooks/refs": {
+        "fixture": "fixtures/rhRefs.tsx",
+        "oxlintRule": "rc/refs",
+        "expected": 1,
+        "why": "covered 2026-08-12; ported to rc/ 2026-08-21. Doubles as the direct test of the Rust engine's reason for existing: the component also carries an eslint-disable-next-line react-hooks/exhaustive-deps comment, which makes oxlint's native react/refs report nothing (measured 0) while ESLint and rc/refs both report line 20"
+    },
+    "react-hooks/immutability": {
+        "fixture": "fixtures/rhImmutability.tsx",
+        "oxlintRule": "rc/immutability",
+        "expected": 1,
+        "why": "covered 2026-08-12, ported to rc/ 2026-08-21. Both tools report TWO diagnostics here (the reassignment and the escaping function) and this harness compares a set of (file, line, rule), so the two collapse into one row. Deliberately so: the fixture is one line because the two engines anchor the second diagnostic differently, ESLint on the escape site and the Rust compiler on the modification site. That divergence, and the count of two, are asserted separately by npm run oxlint-react-compiler-rust against oxlint-migration/native-vs-sidecar-probe/rhImmutabilityAnchor.tsx"
+    },
+    "react-hooks/set-state-in-effect": {
+        "fixture": "fixtures/rhSetStateInEffect.tsx",
+        "oxlintRule": "rc/set-state-in-effect",
+        "expected": 1,
+        "why": "covered 2026-08-12; previously repo parity only"
+    },
+    "react-hooks/static-components": {
+        "fixture": "fixtures/rhStaticComponents.tsx",
+        "oxlintRule": "rc/static-components",
+        "expected": 1,
+        "why": "covered 2026-08-12; previously repo parity only"
+    },
+    "react-hooks/preserve-manual-memoization": {
+        "fixture": "fixtures/rhPreserveManualMemoization.tsx",
+        "oxlintRule": "rc/preserve-manual-memoization",
+        "expected": 1,
+        "why": "covered 2026-08-12; previously repo parity only"
+    },
+    "react-hooks/exhaustive-deps": {
+        "fixture": "fixtures/rhExhaustiveDeps.tsx",
+        "oxlintRule": "hosted/exhaustive-deps",
+        "expected": 1,
+        "why": "covered 2026-08-12; oxlint's native rule 2026-08-24; hosted behind the React Compiler message gate 2026-08-25. A missing dependency on purpose, not a useCallback/useMemo suggestion: both tools run this rule behind the gate, which drops the suggestions and keeps missing dependencies, so a suggestion-shaped fixture would test the gate instead of the rule. Hosting also retires the anchor divergence the native rule needed an oxlintLines exemption for, since the same rule module now reports the same line on both tools"
+    },
+
+    "no-restricted-syntax": {
+        "fixture": "fixtures/coreRestrictedSyntax.tsx",
+        "oxlintRule": "core/no-restricted-syntax",
+        "expected": 8,
+        "why": "covered 2026-08-12; it had repo-wide parity before, which stops being evidence the day the repo stops violating it. One violation per configured selector except WithStatement, which is a parse error in a module on both tools. This is also the only test of esquery selector matching through oxlint's bridge"
+    },
+    "dot-notation": {
+        "fixture": "fixtures/corePlainJsRules.cjs",
+        "oxlintRule": "core/dot-notation",
+        "expected": 1,
+        "why": "WIRED 2026-08-11, covered 2026-08-12. Natively oxlint has only typescript/dot-notation, which the plain-JS override turns off with the rest of the typed rules"
+    },
+    "no-dupe-args": {
+        "fixture": "fixtures/corePlainJsRules.cjs",
+        "oxlintRule": "core/no-dupe-args",
+        "expected": 1,
+        "why": "WIRED 2026-08-11, covered 2026-08-12. Sloppy mode only: duplicate parameter names are a parse error in a module, so the fixture has to be script-mode .cjs"
+    },
+    "no-return-await": {
+        "fixture": "fixtures/corePlainJsRules.cjs",
+        "oxlintRule": "core/no-return-await",
+        "expected": 1,
+        "why": "WIRED 2026-08-11, covered 2026-08-12. Natively oxlint has only typescript/return-await, off for plain JS along with the rest of the typed rules"
+    },
+
+    "import/no-useless-path-segments": {
+        "fixture": "fixtures/importPathRules.ts",
+        "oxlintRule": "hosted/no-useless-path-segments",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; oxlint's native import plugin has 33 rules and none of these three"
+    },
+    "import/no-relative-packages": {"fixture": "fixtures/importPathRules.ts", "oxlintRule": "hosted/no-relative-packages", "expected": 1, "why": "WIRED 2026-08-11; no native oxlint port"},
+    "import/no-import-module-exports": {
+        "fixture": "fixtures/importPathRules.ts",
+        "oxlintRule": "hosted/no-import-module-exports",
+        "expected": 2,
+        "why": "WIRED 2026-08-11; no native oxlint port. Two findings because the rule reports once per import statement"
+    },
+
+    "react/default-props-match-prop-types": {
+        "fixture": "fixtures/reactPropTypes.tsx",
+        "oxlintRule": "hosted/default-props-match-prop-types",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; PropTypes era, no native oxlint port"
+    },
+    "react/forbid-foreign-prop-types": {
+        "fixture": "fixtures/reactPropTypes.tsx",
+        "oxlintRule": "hosted/forbid-foreign-prop-types",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; PropTypes era, no native oxlint port"
+    },
+    "react/forbid-prop-types": {
+        "fixture": "fixtures/reactPropTypes.tsx",
+        "oxlintRule": "hosted/forbid-prop-types",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; PropTypes era, no native oxlint port"
+    },
+    "react/no-typos": {
+        "fixture": "fixtures/reactPropTypes.tsx",
+        "oxlintRule": "hosted/no-typos",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; catches `static PropTypes` and friends, no native oxlint port"
+    },
+    "react/no-unused-prop-types": {
+        "fixture": "fixtures/reactPropTypes.tsx",
+        "oxlintRule": "hosted/no-unused-prop-types",
+        "expected": 2,
+        "why": "WIRED 2026-08-11; the only one of the 17 with live suppression sites in the repo (13), so the alias needed a comment sweep"
+    },
+    "react/prefer-exact-props": {
+        "fixture": "fixtures/reactExactProps.tsx",
+        "oxlintRule": "hosted/prefer-exact-props",
+        "expected": 1,
+        "why": "WIRED 2026-08-11, covered 2026-08-12. In production this rule is inert on both tools, because settings.propWrapperFunctions lists plain strings and the rule only reports for wrappers marked exact: true. Both fixture configs therefore add the object form, which is the only way to observe the rule at all -- see the settings comment in oxlint.fixtures.json. Its own file, and scoped to it in both configs, because with an exact wrapper configured the rule throws on any read of `.propTypes`"
+    },
+    "react/no-access-state-in-setstate": {
+        "fixture": "fixtures/reactClassComponents.tsx",
+        "oxlintRule": "hosted/no-access-state-in-setstate",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; class-component era, no native oxlint port"
+    },
+    "react/no-arrow-function-lifecycle": {
+        "fixture": "fixtures/reactClassComponents.tsx",
+        "oxlintRule": "hosted/no-arrow-function-lifecycle",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; class-component era, no native oxlint port"
+    },
+    "react/no-unused-class-component-methods": {
+        "fixture": "fixtures/reactClassComponents.tsx",
+        "oxlintRule": "hosted/no-unused-class-component-methods",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; class-component era, no native oxlint port"
+    },
+    "react/no-unused-state": {
+        "fixture": "fixtures/reactClassComponents.tsx",
+        "oxlintRule": "hosted/no-unused-state",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; class-component era, no native oxlint port"
+    },
+    "react/prefer-stateless-function": {
+        "fixture": "fixtures/reactClassComponents.tsx",
+        "oxlintRule": "hosted/prefer-stateless-function",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; class-component era, no native oxlint port"
+    },
+    "react/sort-comp": {
+        "fixture": "fixtures/reactClassComponents.tsx",
+        "oxlintRule": "hosted/sort-comp",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; the full 12-entry order array from eslint-config-expensify is repeated in both fixture configs on purpose -- a rule can run and still disagree if the options are read differently"
+    },
+    "react/static-property-placement": {
+        "fixture": "fixtures/reactClassComponents.tsx",
+        "oxlintRule": "hosted/static-property-placement",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; class-component era, no native oxlint port"
+    },
+    "react/no-deprecated": {
+        "fixture": "fixtures/reactDeprecatedApis.tsx",
+        "oxlintRule": "hosted/no-deprecated",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; needs settings.react.version, which is why both fixture configs set it"
+    },
+    "react/no-invalid-html-attribute": {
+        "fixture": "fixtures/reactDeprecatedApis.tsx",
+        "oxlintRule": "hosted/no-invalid-html-attribute",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; no native oxlint port"
+    }
+}

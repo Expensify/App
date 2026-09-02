@@ -181,3 +181,14 @@ server/victory-chart-renderer/.dev/
 
 # Bun lockfiles (VCR uses npm workspaces + package-lock.json; bun is runtime-only)
 bun.lock
+
+# Oxlint migration investigation: generated rule inventory (npm run oxlint-rule-inventory)
+oxlint-migration/rule-inventory.json
+oxlint-migration/rule-availability.json
+
+# Oxlint migration investigation: raw no-deprecated report dumps from the obstacle #4 probe
+oxlint-migration/dep-cmp.json
+oxlint-migration/dep-only-api.json
+
+# Python caches from the oxlint-migration comparison scripts
+__pycache__/
