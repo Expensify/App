@@ -22,7 +22,7 @@ import Tab from '@libs/actions/Tab';
 import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {canMemberRead, isGroupPolicy as isGroupPolicyUtil, isSubmitPolicy} from '@libs/PolicyUtils';
+import {canMemberRead, isGroupPolicy as isGroupPolicyUtil, isSubmitPolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
@@ -230,7 +230,9 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
         );
     }, [isOffline, showConfirmModal, translate, policyID]);
 
-    const shouldBlockApprovalWorkflowEditing = isAnyHRReadOnlyWorkflowMode(policy);
+    // A Dynamic External Workflow with "Hide People Table Columns" keeps the approval workflows out of the customer's
+    // hands entirely, so the importer that would edit them is blocked too.
+    const shouldBlockApprovalWorkflowEditing = isAnyHRReadOnlyWorkflowMode(policy) || shouldHideDynamicExternalWorkflowPeople(policy);
 
     const approvalSecondaryActions: Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [];
     // Importing modifies the workflows, so only offer it when editing is allowed.
