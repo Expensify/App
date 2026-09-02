@@ -10,6 +10,7 @@ import type {
     DeleteDomainParams,
     DeleteDomainSecurityGroupParams,
     RemoveDomainAdminParams,
+    RequestDomainAdminshipParams,
     ResetDomainMemberTwoFactorAuthParams,
     SetDefaultDomainSecurityGroupParams,
     SetTechnicalContactEmailParams,
@@ -30,11 +31,12 @@ import {generateAccountID} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {DomainSecurityGroup, UserSecurityGroupData} from '@src/types/onyx';
+import type {Domain, DomainSecurityGroup, UserSecurityGroupData} from '@src/types/onyx';
 import type {SecurityGroupKey} from '@src/types/onyx/Domain';
 import type {DomainSecurityGroupErrors} from '@src/types/onyx/DomainErrors';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 
 import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
@@ -354,13 +356,18 @@ async function getScimToken(domainName: string): Promise<ScimTokenWithState> {
     }
 }
 
-/** Sends request for claiming a domain */
-function createDomain(domainName: string) {
+/**
+ * Sends request for claiming a domain.
+ *
+ * When the domain is already taken the request fails with a generic error and the BE attaches `domainAccountID` of the existing
+ * domain plus a minimal `domain_<accountID>` entry, which is what the add domain page keys the "domain already exists" flow off.
+ */
+function createDomain(domainName: string, domainKeysBeforeCreation?: ReadonlySet<string>) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
-            value: {hasCreationSucceeded: null, isLoading: true},
+            value: {hasCreationSucceeded: null, isLoading: true, errors: null, domainAccountID: null},
         },
     ];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>> = [
@@ -370,11 +377,11 @@ function createDomain(domainName: string) {
             value: {hasCreationSucceeded: true, isLoading: null},
         },
     ];
-    const failureData = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
-            value: {isLoading: null},
+            value: {isLoading: null, domainKeysBeforeCreation: domainKeysBeforeCreation ? [...domainKeysBeforeCreation] : null},
         },
     ];
 
@@ -387,6 +394,39 @@ function createDomain(domainName: string) {
  */
 function resetCreateDomainForm() {
     Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, null);
+}
+
+/**
+ * Surfaces an inline error on the create-domain form when the domain already exists AND the current user already has access to it.
+ * Clearing the accountID also stops the navigation effect on the add domain page from re-firing. No server call is performed.
+ */
+function setCreateDomainAlreadyHaveAccessError() {
+    Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {
+        domainAccountID: null,
+        errors: getMicroSecondOnyxErrorWithTranslationKey('domain.addDomain.alreadyHaveAccessError'),
+    });
+}
+
+/** Clears the domain account ID so the hidden backend error can be displayed. No server call is performed. */
+function clearCreateDomainAccountID() {
+    Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {domainAccountID: null});
+}
+
+/**
+ * Drops the domain entry that came with the failure, keeping a domain the user has no access to out of the domains list.
+ * An adminship request the user already sent for that domain is the one piece of state that outlives the failure, so it is kept on
+ * its own - the entry then carries no accountID or email and stays invisible in the list. No server call is performed.
+ */
+function clearDomainFromFailedCreation(domainAccountID: number, adminRequesters?: Domain['domain_adminRequesters']) {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    return Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, isEmptyObject(adminRequesters) ? null : {domain_adminRequesters: adminRequesters});
+}
+
+/** Clears a response-only domain after the add-domain page has already unmounted, then removes its persisted failure context. */
+function clearStaleDomainFromFailedCreation(domainAccountID: number, adminRequesters?: Domain['domain_adminRequesters']) {
+    clearDomainFromFailedCreation(domainAccountID, adminRequesters).then(() => {
+        Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {domainAccountID: null, domainKeysBeforeCreation: null});
+    });
 }
 
 function setPrimaryContact(domainAccountID: number, newTechnicalContactEmail: string, currentTechnicalContactEmail?: string) {
@@ -472,6 +512,84 @@ function setPrimaryContact(domainAccountID: number, newTechnicalContactEmail: st
 function clearSetPrimaryContactError(domainAccountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         technicalContactEmailErrors: null,
+    });
+}
+
+/**
+ * Requests adminship of a domain that's already claimed by someone else.
+ *
+ * @param isTransientDomainEntry whether the domain entry only exists to carry this flow (the user has no access to it), so a failed
+ * request must drop the whole entry instead of just the requester, otherwise an empty entry lingers in the domains collection.
+ */
+function requestDomainAdminship(domainAccountID: number, currentUserAccountID: number, isTransientDomainEntry: boolean) {
+    const domainKey = `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}` as const;
+    const domainPendingActionsKey = `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}` as const;
+    const domainErrorsKey = `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const;
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainKey,
+            value: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[currentUserAccountID]: 'read'},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainPendingActionsKey,
+            value: {requestAdminship: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainErrorsKey,
+            value: {requestAdminshipError: null},
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainPendingActionsKey,
+            value: {requestAdminship: null},
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        isTransientDomainEntry
+            ? {onyxMethod: Onyx.METHOD.SET, key: domainKey, value: null}
+            : {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: domainKey,
+                  value: {
+                      // eslint-disable-next-line @typescript-eslint/naming-convention
+                      domain_adminRequesters: {[currentUserAccountID]: null},
+                  },
+              },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainPendingActionsKey,
+            value: {requestAdminship: null},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainErrorsKey,
+            value: {requestAdminshipError: getMicroSecondOnyxErrorWithTranslationKey('domain.domainAlreadyExists.requestAccessError')},
+        },
+    ];
+
+    const params: RequestDomainAdminshipParams = {domainAccountID};
+
+    API.write(WRITE_COMMANDS.REQUEST_DOMAIN_ADMINSHIP, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears a failed adminship request's error so a future visit to this flow doesn't show a stale error from a previous attempt.
+ * Resets it only on the client's side, no server call is performed
+ */
+function clearRequestAdminshipError(domainAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        requestAdminshipError: null,
     });
 }
 
@@ -2378,8 +2496,14 @@ export {
     getScimToken,
     createDomain,
     resetCreateDomainForm,
+    setCreateDomainAlreadyHaveAccessError,
+    clearCreateDomainAccountID,
+    clearDomainFromFailedCreation,
+    clearStaleDomainFromFailedCreation,
     setPrimaryContact,
     clearSetPrimaryContactError,
+    requestDomainAdminship,
+    clearRequestAdminshipError,
     toggleConsolidatedDomainBilling,
     clearToggleConsolidatedDomainBillingErrors,
     addAdminToDomain,

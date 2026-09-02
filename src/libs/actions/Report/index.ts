@@ -78,6 +78,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import {resetOnboardingStackToRoot} from '@libs/Navigation/helpers/OnboardingNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {getDBTimeWithSkew, getIsOffline as isOfflineNetwork} from '@libs/NetworkState';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -187,7 +188,7 @@ import {
     recalculateUnreportedTransactionDetails,
     shouldClearConvertedAmount,
 } from '@libs/TransactionUtils';
-import {getSearchParamFromPath} from '@libs/Url';
+import {appendParam, getSearchParamFromPath} from '@libs/Url';
 import {buildSecureDownloadURL} from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
 
@@ -474,6 +475,7 @@ type MergeReportsProps = {
     selfDMReportActions: OnyxEntry<ReportActions>;
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
@@ -2608,7 +2610,17 @@ function navigateToAndOpenReport({
 
     if (!shouldRevalidateExistingChat) {
         if (isOnboardingPending) {
-            openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails, hasReportActions, currentUserAccountID});
+            openReport({
+                reportID: chat.reportID,
+                introSelected,
+                isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
+                betas,
+                personalDetails,
+                hasReportActions,
+                currentUserAccountID,
+                conciergeChat,
+            });
         }
         navigateToReport(chat.reportID, {shouldDismissModal, ...linkToOptions});
         return;
@@ -2797,14 +2809,43 @@ function navigateToAndOpenChildReport(
     // The personal details of the child report participants (the current user and the parent action's actor).
     participantsPersonalDetails: OnyxEntry<PersonalDetailsList>,
     isSelfTourViewed: boolean | undefined,
+    conciergeChat: OnyxEntry<Report>,
 ) {
-    const report = childReport ?? createChildReport(childReport, parentReportAction, parentReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, participantsPersonalDetails);
+    const report =
+        childReport ??
+        createChildReport(childReport, parentReportAction, parentReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, participantsPersonalDetails, conciergeChat);
+    const backTo = Navigation.getActiveRoute();
+
+    // A money-request/expense/invoice child report must open in the wide/super-wide RHP (SEARCH_MONEY_REQUEST_REPORT in
+    // the Search context, EXPENSE_REPORT_RHP in the inbox), mirroring how report links are routed in Link.ts and
+    // ParentNavigationSubtitle. Invoice reports render in that same wide RHP, and the invoice preview card already opens
+    // them there, so they must pass this guard too.
+    // Other child reports keep the standard SEARCH_REPORT / REPORT_WITH_ID navigation.
+    // These reports open scrolled to the top. Opening from the "X Replies" link should instead land on the latest
+    // message, so we append the shouldScrollToLatest flag for the money-request branches.
+    const isMoneyRequestOrInvoice = isMoneyRequestReport(report) || isInvoiceReport(report);
 
     if (isSearchTopmostFullScreenRoute()) {
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID, backTo: Navigation.getActiveRoute()}));
-    } else {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
+        if (isMoneyRequestOrInvoice) {
+            Navigation.navigate(appendParam(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: report.reportID, backTo}), REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST, 'true'));
+        } else {
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID, backTo}));
+        }
+        return;
     }
+
+    if (!isMoneyRequestOrInvoice) {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, backTo));
+        return;
+    }
+
+    // Narrow layouts navigate to the full report view since the super-wide RHP is not available there and would
+    // break the navigation logic. This mirrors the split the expense preview card already makes in
+    // MoneyRequestReportPreview.
+    const moneyRequestRoute = getIsNarrowLayout()
+        ? ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, backTo)
+        : ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: report.reportID, backTo});
+    Navigation.navigate(appendParam(moneyRequestRoute, REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST, 'true'));
 }
 
 /**
@@ -2822,6 +2863,7 @@ function createChildReport(
     isSelfTourViewed: boolean | undefined,
     // The personal details of the child report participants (the current user and the parent action's actor).
     participantsPersonalDetails: OnyxEntry<PersonalDetailsList>,
+    conciergeChat: OnyxEntry<Report>,
 ): Report {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
     // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent
@@ -2866,6 +2908,7 @@ function createChildReport(
             isSelfTourViewed,
             hasReportActions: false,
             currentUserAccountID,
+            conciergeChat,
         });
     } else {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
@@ -2878,28 +2921,43 @@ function createChildReport(
  * Creates an explanation thread for a report action with reasoning
  * Adds a "Please explain this to me." comment from the user
  */
-// TODO: update to object structure https://github.com/Expensify/App/issues/73656
-// eslint-disable-next-line @typescript-eslint/max-params
-function explain(
-    childReport: OnyxEntry<Report>,
-    originalReport: OnyxEntry<Report>,
-    reportAction: OnyxEntry<ReportAction>,
-    translate: LocalizedTranslate,
-    currentUserAccountID: number,
-    introSelected: OnyxEntry<IntroSelected>,
-    betas: OnyxEntry<Beta[]>,
-    isSelfTourViewed: boolean | undefined,
-    delegateAccountID: number | undefined,
-    // The personal details of the explanation thread participants (the current user and the report action's actor).
-    participantsPersonalDetails: OnyxEntry<PersonalDetailsList>,
-    timezone: Timezone = CONST.DEFAULT_TIME_ZONE,
-) {
+type ExplainParams = {
+    childReport: OnyxEntry<Report>;
+    originalReport: OnyxEntry<Report>;
+    reportAction: OnyxEntry<ReportAction>;
+    translate: LocalizedTranslate;
+    currentUserAccountID: number;
+    introSelected: OnyxEntry<IntroSelected>;
+    betas: OnyxEntry<Beta[]>;
+    conciergeChat: OnyxEntry<Report>;
+    isSelfTourViewed: boolean | undefined;
+    delegateAccountID: number | undefined;
+    /** The personal details of the explanation thread participants (the current user and the report action's actor). */
+    participantsPersonalDetails: OnyxEntry<PersonalDetailsList>;
+    timezone?: Timezone;
+};
+
+function explain({
+    childReport,
+    originalReport,
+    reportAction,
+    translate,
+    currentUserAccountID,
+    introSelected,
+    betas,
+    conciergeChat,
+    isSelfTourViewed,
+    delegateAccountID,
+    participantsPersonalDetails,
+    timezone = CONST.DEFAULT_TIME_ZONE,
+}: ExplainParams) {
     if (!originalReport?.reportID || !reportAction) {
         return;
     }
 
     // Check if explanation thread report already exists
-    const report = childReport ?? createChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, participantsPersonalDetails);
+    const report =
+        childReport ?? createChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, participantsPersonalDetails, conciergeChat);
 
     if (isSearchTopmostFullScreenRoute()) {
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID, backTo: Navigation.getActiveRoute()}));
@@ -3798,6 +3856,7 @@ type ToggleSubscribeToChildReportParams = {
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
     betas: OnyxEntry<Beta[]>;
+    conciergeChat: OnyxEntry<Report>;
     prevNotificationPreference: NotificationPreference | undefined;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     hasReportActions: boolean;
@@ -3820,12 +3879,13 @@ function toggleSubscribeToChildReport({
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
     betas,
+    conciergeChat,
     prevNotificationPreference,
     personalDetails,
     hasReportActions,
 }: ToggleSubscribeToChildReportParams) {
     if (childReportID) {
-        openReport({reportID: childReportID, introSelected, betas, personalDetails, isSelfTourViewed, hasCompletedGuidedSetupFlow, hasReportActions, currentUserAccountID});
+        openReport({reportID: childReportID, introSelected, betas, personalDetails, isSelfTourViewed, hasCompletedGuidedSetupFlow, hasReportActions, currentUserAccountID, conciergeChat});
         const parentReportActionID = parentReportAction.reportActionID;
         if (!prevNotificationPreference || isHiddenForCurrentUser(prevNotificationPreference)) {
             updateNotificationPreference(
@@ -3872,6 +3932,7 @@ function toggleSubscribeToChildReport({
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
             betas,
+            conciergeChat,
             hasReportActions: false,
             currentUserAccountID,
         });
@@ -5042,7 +5103,8 @@ function navigateToMostRecentReport(
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
 ) {
-    const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID)?.reportID;
+    // TODO: Pass guideAccountIDs once callers are fully migrated — PR 30 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
+    const lastAccessedReportID = findLastAccessedReport(false, undefined, false, currentReport?.reportID)?.reportID;
 
     if (lastAccessedReportID) {
         // Check if route exists for super wide RHP vs regular full screen report
@@ -5082,7 +5144,8 @@ function getSearchThreadLeaveRoute(report: Report, activeRoute: string): Route |
 }
 
 function getMostRecentReportID(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined) {
-    const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID)?.reportID;
+    // TODO: Pass guideAccountIDs once callers are fully migrated — PR 30 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
+    const lastAccessedReportID = findLastAccessedReport(false, undefined, false, currentReport?.reportID)?.reportID;
     return lastAccessedReportID ?? conciergeReportID;
 }
 
@@ -8469,6 +8532,7 @@ function mergeReports({
     selfDMReportActions,
     delegateAccountID,
     getCurrencyDecimals,
+    getCurrencySymbol,
 }: MergeReportsProps) {
     const reports = allReportsParam ?? allReports;
     const destinationReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
@@ -8499,6 +8563,7 @@ function mergeReports({
         selfDMReportActions,
         delegateAccountID,
         getCurrencyDecimals,
+        getCurrencySymbol,
     });
 
     const {

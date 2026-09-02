@@ -51,7 +51,11 @@ Note: if you are hired for an Upwork job and have any job-specific questions, pl
 If you've found a vulnerability, please email security@expensify.com with the subject `Vulnerability Report` instead of creating an issue.
 
 ## Payment for Contributions
-We hire and pay external contributors via [Upwork.com](https://www.upwork.com). If you'd like to be paid for contributing, please create an Upwork account, apply for an available job in [GitHub](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22), and finally apply for the job in Upwork once your proposal gets selected in GitHub. Please make sure your Upwork profile is **fully verified** before applying, otherwise you run the risk of not being paid. If you think your compensation should be increased for a specific job, you can request a reevaluation by commenting in the Github issue where the Upwork job was posted.
+We hire and pay external contributors via [Upwork.com](https://www.upwork.com). If you'd like to be paid for contributing, please create an Upwork account, apply for an available job in [GitHub](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22), and finally apply for the job in Upwork once your proposal gets selected in GitHub. Please make sure your Upwork profile is **fully verified** before applying, otherwise you run the risk of not being paid. If you think your compensation should be increased for a specific job, comment on the GitHub issue and tag the assigned C+, asking them to request an increase.
+
+**The number of PRs does not change the job price**. The job price is the price in the issue title. If the title states no price, the job price is the current standard amount.
+
+**The number of PRs does not change the job price.** The job price is the price in the issue title. If the title states no price, the job price is the current standard amount. The number of PRs needed to close the issue does not change it.
 
 Please add your Upwork profile link in your GitHub Bio to help ensure prompt payment.  If you're using Slack or Expensify for discussions, please add your Upwork profile link **and** your GitHub username in your Slack Title and Expensify Status.
 
@@ -68,8 +72,8 @@ Contributors are eligible to be paid via Expensify 18 months after they were fir
 ### Regressions
 
 If a PR causes a regression at any point within the regression period (starting when the code is merged and ending 168 hours (that's 7 days) after being deployed to production):
-- payments will be issued 7 days after all regressions are fixed (ie: deployed to production)
-- a 50% penalty will be applied to the Contributor and [Contributor+](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BECOME_A_CONTRIBUTOR_PLUS.md) for each regression on an issue
+- Payments will be issued 7 days after all regressions are fixed (ie. deployed to production); work to fix regressions caused by the PR is unpaid by default
+- A 50% penalty will be applied to the Contributor and [Contributor+](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BECOME_A_CONTRIBUTOR_PLUS.md) for each regression on an issue
 
 ## Finding Jobs
 A job could be fixing a bug or working on a new feature. There are two ways you can find a job that you can contribute to:
