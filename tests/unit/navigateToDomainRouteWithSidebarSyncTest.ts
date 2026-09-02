@@ -8,6 +8,9 @@ import SCREENS from '@src/SCREENS';
 
 import createMock from '../utils/createMock';
 
+// eslint-disable-next-line @typescript-eslint/unbound-method -- jest.fn() mock doesn't rely on `this` binding
+const mockGetRootState = jest.mocked(navigationRef.getRootState);
+
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
@@ -132,7 +135,7 @@ describe('navigateToDomainRouteWithSidebarSync', () => {
 
         expect(Navigation.setParams).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
-        expect(navigationRef.getRootState).not.toHaveBeenCalled();
+        expect(mockGetRootState).not.toHaveBeenCalled();
     });
 
     it('synchronizes a sidebar with a missing Domain ID', () => {
