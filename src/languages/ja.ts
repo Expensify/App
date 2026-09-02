@@ -6374,7 +6374,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             subtitle: 'レポートフィールドはすべての支出に適用され、追加情報の入力を促したい場合に便利です。',
             disableReportFields: 'レポート項目を無効にする',
             disableReportFieldsConfirmation: '本当に実行しますか？テキストと日付フィールドは削除され、リストは無効になります。',
-            cannotDisableImportedReportFields: '会計連携からインポートされたレポート項目は無効にできません。',
+            cannotDisableImportedReportFields: '会計ソフト連携からインポートされたレポートフィールドは無効にすることができません。',
             importedFromAccountingSoftware: '以下のレポート項目は、次からインポートされます',
             textType: 'テキスト',
             dateType: '日付',

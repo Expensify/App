@@ -6445,7 +6445,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             subtitle: 'Os campos de relatório se aplicam a todos os gastos e podem ser úteis quando você quiser solicitar informações extras.',
             disableReportFields: 'Desativar campos de relatório',
             disableReportFieldsConfirmation: 'Tem certeza? Campos de texto e data serão excluídos e listas serão desativadas.',
-            cannotDisableImportedReportFields: 'Os campos de relatório importados da sua conexão contábil não podem ser desativados.',
+            cannotDisableImportedReportFields: 'Campos de relatório importados da sua conexão contábil não podem ser desativados.',
             importedFromAccountingSoftware: 'Os campos de relatório abaixo são importados do seu',
             textType: 'Texto',
             dateType: 'Data',

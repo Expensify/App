@@ -6223,7 +6223,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             subtitle: '报表字段适用于所有支出，当你想提示填写额外信息时会很有帮助。',
             disableReportFields: '禁用报表字段',
             disableReportFieldsConfirmation: '确定要这样做吗？文本和日期字段将被删除，列表将被禁用。',
-            cannotDisableImportedReportFields: '从你的会计连接导入的报表字段无法禁用。',
+            cannotDisableImportedReportFields: '从您的会计连接导入的报表字段无法被禁用。',
             importedFromAccountingSoftware: '以下报表字段是从你的',
             textType: '文本',
             dateType: '日期',
