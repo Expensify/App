@@ -947,6 +947,7 @@ function MoneyRequestView({
                 parentReport,
                 iouReportOwnerLogin,
                 tag: updatedTag,
+                tagListIndex,
                 policy,
                 policyTagList,
                 policyRecentlyUsedTags: undefined,

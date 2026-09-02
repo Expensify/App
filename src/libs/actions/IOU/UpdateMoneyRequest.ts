@@ -824,6 +824,8 @@ type UpdateMoneyRequestTagParams = {
     parentReport: OnyxEntry<OnyxTypes.Report>;
     iouReportOwnerLogin: string | undefined;
     tag: string;
+    /** Which level of a multi-level tag was edited, so the "Create a rule" callout can seed that level alone */
+    tagListIndex?: number;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
@@ -848,6 +850,7 @@ function updateMoneyRequestTag({
     parentReport,
     iouReportOwnerLogin,
     tag,
+    tagListIndex,
     policy,
     policyTagList,
     policyRecentlyUsedTags,
@@ -889,15 +892,15 @@ function updateMoneyRequestTag({
         getCurrencySymbol,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
-    // `transaction` still holds the tag as it was, so comparing it with the new one says which levels the user edited.
-    trackMerchantRuleSuggestion(
-        transactionID,
-        CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAG,
-        transactionThreadReport?.reportID,
-        policy,
-        policyCategories,
-        transaction ? getChangedTagLevels(getTag(transaction), tag) : undefined,
-    );
+    // Callers that edit one level of a multi-level tag say which. The rest, like the Search table, hand over a whole
+    // tag, so the edited levels come from comparing it with the one `transaction` still holds.
+    let editedTagLevels: number[] | undefined;
+    if (tagListIndex !== undefined) {
+        editedTagLevels = [tagListIndex];
+    } else if (transaction) {
+        editedTagLevels = getChangedTagLevels(getTag(transaction), tag);
+    }
+    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAG, transactionThreadReport?.reportID, policy, policyCategories, editedTagLevels);
 }
 
 /** Updates the created tax amount of an expense */

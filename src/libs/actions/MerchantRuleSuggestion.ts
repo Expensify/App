@@ -54,9 +54,12 @@ function dismissMerchantRuleSuggestion(suggestion: MerchantRuleSuggestion) {
     });
 }
 
-/** Forgets an expense's recorded fields so the next rule starts fresh. Called when the offer is taken. */
+/**
+ * Forgets an expense's recorded fields, and the tag levels alongside them, so the next rule starts fresh. Called when
+ * the offer is taken.
+ */
 function clearMerchantRuleSuggestionFields(transactionID: string) {
-    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {editedFields: {[transactionID]: null}});
+    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {editedFields: {[transactionID]: null}, editedTagLevels: {[transactionID]: null}});
 }
 
 /** Ends the current offer without silencing the expense. Returning shows nothing; editing it again offers afresh. */
