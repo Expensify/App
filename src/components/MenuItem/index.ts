@@ -34,7 +34,8 @@ import MenuItemTrailing from './layout/MenuItemTrailing';
 import MenuItemIcon from './leaves/leading/MenuItemIcon';
 import MenuItemDescription from './leaves/text/description/MenuItemDescription';
 import MenuItemDescriptionPlaceholder from './leaves/text/description/MenuItemDescriptionPlaceholder';
-import MenuItemTitle from './leaves/text/MenuItemTitle';
+import MenuItemTitle from './leaves/text/title/MenuItemTitle';
+import MenuItemTitleBasic from './leaves/text/title/MenuItemTitleBasic';
 import MenuItemChevron from './leaves/trailing/MenuItemChevron';
 import MenuItemRightLabel from './leaves/trailing/MenuItemRightLabel';
 import LegacyMenuItem from './MenuItem';
@@ -47,6 +48,7 @@ const MenuItem = Object.assign(LegacyMenuItem, {
     Trailing: MenuItemTrailing,
     Icon: MenuItemIcon,
     Title: MenuItemTitle,
+    TitleBasic: MenuItemTitleBasic,
     Description: MenuItemDescription,
     DescriptionPlaceholder: MenuItemDescriptionPlaceholder,
     Chevron: MenuItemChevron,

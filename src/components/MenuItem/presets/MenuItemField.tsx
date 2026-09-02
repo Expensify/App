@@ -2,8 +2,8 @@ import MenuItemContent from '@components/MenuItem/layout/MenuItemContent';
 import MenuItemRoot from '@components/MenuItem/layout/MenuItemRoot';
 import MenuItemRow from '@components/MenuItem/layout/MenuItemRow';
 import MenuItemTrailing from '@components/MenuItem/layout/MenuItemTrailing';
-import MenuItemDescription from '@components/MenuItem/leaves/text/MenuItemDescription';
-import MenuItemTitle, {MENU_ITEM_TITLE_VARIANT} from '@components/MenuItem/leaves/text/MenuItemTitle';
+import MenuItemDescription from '@components/MenuItem/leaves/text/description/MenuItemDescription';
+import MenuItemTitleBasic from '@components/MenuItem/leaves/text/title/MenuItemTitleBasic';
 import MenuItemChevron from '@components/MenuItem/leaves/trailing/MenuItemChevron';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
@@ -46,7 +46,7 @@ function MenuItemField({description, title, onPress, isDisabled = false, sentryL
             <MenuItemRow>
                 <MenuItemContent>
                     <MenuItemDescription>{description}</MenuItemDescription>
-                    <MenuItemTitle variant={MENU_ITEM_TITLE_VARIANT.BASIC}>{title}</MenuItemTitle>
+                    <MenuItemTitleBasic>{title}</MenuItemTitleBasic>
                 </MenuItemContent>
                 {!!onPress && (
                     <MenuItemTrailing>

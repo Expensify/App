@@ -6,7 +6,6 @@ import CompactMenuContext from '@components/CompactMenuContext';
 import DisplayNames from '@components/DisplayNames';
 import type {DisplayNameWithTooltip} from '@components/DisplayNames/types';
 import MenuItem from '@components/MenuItem';
-import {MENU_ITEM_TITLE_VARIANT} from '@components/MenuItem/leaves/text/MenuItemTitle';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
 import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
@@ -160,7 +159,7 @@ function Comparison() {
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.Description>Sort by</MenuItem.Description>
-                                <MenuItem.Title variant={MENU_ITEM_TITLE_VARIANT.BASIC}>Date</MenuItem.Title>
+                                <MenuItem.TitleBasic>Date</MenuItem.TitleBasic>
                             </MenuItem.Content>
                         </MenuItem.Row>
                     </MenuItem.Root>
@@ -198,7 +197,7 @@ function Comparison() {
                                 <MenuItem.Row>
                                     <MenuItem.Content>
                                         <MenuItem.Description>Name</MenuItem.Description>
-                                        <MenuItem.Title variant={MENU_ITEM_TITLE_VARIANT.BASIC}>Standard rate</MenuItem.Title>
+                                        <MenuItem.TitleBasic>Standard rate</MenuItem.TitleBasic>
                                     </MenuItem.Content>
                                     <MenuItem.Trailing>
                                         <MenuItem.Chevron />
@@ -211,7 +210,7 @@ function Comparison() {
                                 <MenuItem.Row>
                                     <MenuItem.Content>
                                         <MenuItem.Description>Name</MenuItem.Description>
-                                        <MenuItem.Title variant={MENU_ITEM_TITLE_VARIANT.BASIC}>Standard rate</MenuItem.Title>
+                                        <MenuItem.TitleBasic>Standard rate</MenuItem.TitleBasic>
                                     </MenuItem.Content>
                                     <MenuItem.Trailing>
                                         <MenuItem.Chevron />
@@ -254,7 +253,7 @@ function Comparison() {
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.Description>Country</MenuItem.Description>
-                                <MenuItem.Title variant={MENU_ITEM_TITLE_VARIANT.BASIC}>United States</MenuItem.Title>
+                                <MenuItem.TitleBasic>United States</MenuItem.TitleBasic>
                             </MenuItem.Content>
                         </MenuItem.Row>
                     </MenuItem.Root>
@@ -285,7 +284,7 @@ function Comparison() {
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.Description>Display</MenuItem.Description>
-                                <MenuItem.Title variant={MENU_ITEM_TITLE_VARIANT.BASIC}>Comfortable</MenuItem.Title>
+                                <MenuItem.TitleBasic>Comfortable</MenuItem.TitleBasic>
                             </MenuItem.Content>
                         </MenuItem.Row>
                     </MenuItem.Root>
@@ -318,7 +317,7 @@ function Comparison() {
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.Description>Role</MenuItem.Description>
-                                <MenuItem.Title variant={MENU_ITEM_TITLE_VARIANT.BASIC}>Admin</MenuItem.Title>
+                                <MenuItem.TitleBasic>Admin</MenuItem.TitleBasic>
                             </MenuItem.Content>
                         </MenuItem.Row>
                     </MenuItem.Root>
@@ -353,7 +352,7 @@ function Comparison() {
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.Description>Member</MenuItem.Description>
-                                <MenuItem.Title variant={MENU_ITEM_TITLE_VARIANT.BASIC}>John Doe</MenuItem.Title>
+                                <MenuItem.TitleBasic>John Doe</MenuItem.TitleBasic>
                             </MenuItem.Content>
                             <MenuItem.Trailing>
                                 <MenuItem.Chevron />
@@ -393,7 +392,7 @@ function Comparison() {
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.Description>Bank account</MenuItem.Description>
-                                <MenuItem.Title variant={MENU_ITEM_TITLE_VARIANT.BASIC}>Chase ••••1234</MenuItem.Title>
+                                <MenuItem.TitleBasic>Chase ••••1234</MenuItem.TitleBasic>
                             </MenuItem.Content>
                             <MenuItem.Trailing>
                                 <MenuItem.Chevron />
@@ -440,7 +439,7 @@ function Comparison() {
                                 <MenuItem.Row>
                                     <MenuItem.Content>
                                         <MenuItem.Description>Destination</MenuItem.Description>
-                                        <MenuItem.Title variant={MENU_ITEM_TITLE_VARIANT.BASIC}>Warsaw, Poland</MenuItem.Title>
+                                        <MenuItem.TitleBasic>Warsaw, Poland</MenuItem.TitleBasic>
                                     </MenuItem.Content>
                                     <MenuItem.Trailing>
                                         <MenuItem.Chevron />
@@ -452,7 +451,7 @@ function Comparison() {
                             <MenuItem.Root onPress={noop}>
                                 <MenuItem.Row>
                                     <MenuItem.Content>
-                                        <MenuItem.Description variant={MENU_ITEM_DESCRIPTION_VARIANT.PLACEHOLDER}>Destination</MenuItem.Description>
+                                        <MenuItem.DescriptionPlaceholder>Destination</MenuItem.DescriptionPlaceholder>
                                     </MenuItem.Content>
                                     <MenuItem.Trailing>
                                         <MenuItem.Chevron />

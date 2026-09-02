@@ -1,7 +1,6 @@
 import Button from '@components/ButtonComposed';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItem from '@components/MenuItem';
-import {MENU_ITEM_TITLE_VARIANT} from '@components/MenuItem/leaves/text/MenuItemTitle';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
@@ -57,7 +56,7 @@ function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
                 <MenuItem.Row>
                     <MenuItem.Content>
                         {!!bankName && <MenuItem.Description>{bankName}</MenuItem.Description>}
-                        <MenuItem.Title variant={MENU_ITEM_TITLE_VARIANT.BASIC}>{`${translate('bankAccount.accountEnding')} ${accountNumber.slice(-4)}`}</MenuItem.Title>
+                        <MenuItem.TitleBasic>{`${translate('bankAccount.accountEnding')} ${accountNumber.slice(-4)}`}</MenuItem.TitleBasic>
                     </MenuItem.Content>
                     {!isBankAccountAdded && (
                         <MenuItem.Trailing>

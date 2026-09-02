@@ -5,7 +5,7 @@ import MenuItemRoot from '@components/MenuItem/layout/MenuItemRoot';
 import MenuItemRow from '@components/MenuItem/layout/MenuItemRow';
 import MenuItemTrailing from '@components/MenuItem/layout/MenuItemTrailing';
 import MenuItemDescription from '@components/MenuItem/leaves/text/description/MenuItemDescription';
-import MenuItemTitle from '@components/MenuItem/leaves/text/MenuItemTitle';
+import MenuItemTitle from '@components/MenuItem/leaves/text/title/MenuItemTitle';
 import MenuItemChevron from '@components/MenuItem/leaves/trailing/MenuItemChevron';
 
 import type {AvatarSource} from '@libs/UserAvatarUtils';

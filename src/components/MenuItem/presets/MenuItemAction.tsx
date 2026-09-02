@@ -3,7 +3,7 @@ import MenuItemLeading from '@components/MenuItem/layout/MenuItemLeading';
 import MenuItemRoot from '@components/MenuItem/layout/MenuItemRoot';
 import MenuItemRow from '@components/MenuItem/layout/MenuItemRow';
 import MenuItemIcon from '@components/MenuItem/leaves/leading/MenuItemIcon';
-import MenuItemTitle from '@components/MenuItem/leaves/text/MenuItemTitle';
+import MenuItemTitle from '@components/MenuItem/leaves/text/title/MenuItemTitle';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 

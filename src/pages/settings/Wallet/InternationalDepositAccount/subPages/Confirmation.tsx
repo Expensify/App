@@ -4,7 +4,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
-import {MENU_ITEM_TITLE_VARIANT} from '@components/MenuItem/leaves/text/MenuItemTitle';
 import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
 import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
@@ -225,7 +224,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.Description>{description}</MenuItem.Description>
-                                <MenuItem.Title variant={MENU_ITEM_TITLE_VARIANT.BASIC}>{title}</MenuItem.Title>
+                                <MenuItem.TitleBasic>{title}</MenuItem.TitleBasic>
                             </MenuItem.Content>
                             {shouldShowRightIcon && (
                                 <MenuItem.Trailing>
