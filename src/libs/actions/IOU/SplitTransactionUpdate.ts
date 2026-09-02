@@ -363,9 +363,6 @@ function updateSplitTransactions({
             };
         }) ?? [];
     changesInReportTotal -= splitExpensesTotal;
-    if (isReverseSplitOperation) {
-        changesInReportTotal = 0;
-    }
 
     const onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys | UpdateMoneyRequestDataKeys | typeof ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT> = {
         successData: [],
