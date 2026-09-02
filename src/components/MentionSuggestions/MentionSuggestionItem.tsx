@@ -57,6 +57,7 @@ function MentionSuggestionItem({item, prefix}: MentionSuggestionItemProps) {
             >
                 {styledDisplayName?.map(({text, isColored}, i) => (
                     <Text
+                        // The styled text segments are positional and stable for a given name+prefix, so the index is a safe key
                         // eslint-disable-next-line react/no-array-index-key
                         key={`${text}${i}`}
                         style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsDisplayName]}

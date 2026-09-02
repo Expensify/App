@@ -42,7 +42,7 @@ function UserSelectionListItem<TItem extends ListItem>({
 
     const login = item.login ?? '';
 
-    // When the emails share a private domain we can strip the domain and show just the username; otherwise show the full email
+    // When the emails share a private domain we can strip the domain and show just the username. Otherwise show the full email.
     const userHandle = areEmailsFromSamePrivateDomain(login, currentUserPersonalDetails.login ?? '') ? login.split('@').at(0) : formatPhoneNumber(login);
 
     const userDisplayName = getDisplayNameForParticipant({
