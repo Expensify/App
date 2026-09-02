@@ -2428,6 +2428,33 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(false);
         });
 
+        it('should return false for the add expense on submitted violations snapshot action', () => {
+            // Given an add-expense-on-submitted action, which only carries a violations snapshot, but does have message content
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'added an expense',
+                        text: 'added an expense',
+                    },
+                ],
+                originalMessage: {
+                    violations: {
+                        transactions: {
+                            transaction1: [{name: CONST.VIOLATIONS.OVER_LIMIT}],
+                        },
+                    },
+                },
+            };
+
+            // Then the action should still not be visible, since it is never meant to be shown in a report
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(false);
+        });
+
         it('should return false for actionable card fraud alert if the resolution is recognized', () => {
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
