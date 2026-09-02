@@ -639,8 +639,7 @@ describe('actions/Transaction', () => {
                     ...destinationReportStatus,
                 }) as Report;
 
-            const countMovedActions = (actions: Array<ReportAction | undefined>) =>
-                actions.filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION).length;
+            const countMovedActions = (actions: Array<ReportAction | undefined>) => actions.filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION).length;
 
             it.each([
                 ['draft', draftReportStatus],
