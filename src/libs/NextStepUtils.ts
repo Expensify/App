@@ -8,9 +8,10 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
+import {format, parseISO} from 'date-fns';
 import {Str} from 'expensify-common';
 
+import DateUtils from './DateUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {getOriginalMessage, isDynamicExternalWorkflowApproveFailedAction} from './ReportActionsUtils';
 import {
@@ -209,12 +210,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
                         } else if (policy?.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
                             nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH};
                         } else if (policy?.autoReportingOffset !== undefined) {
-                            let etaDateTime = setDate(new Date(), policy?.autoReportingOffset);
-                            if (isPast(etaDateTime)) {
-                                etaDateTime = addMonths(etaDateTime, 1);
-                            }
-
-                            nextStep.eta = {dateTime: format(etaDateTime, 'yyyy-MM-dd')};
+                            nextStep.eta = {dateTime: format(DateUtils.getNextNthOfMonth(policy.autoReportingOffset), 'yyyy-MM-dd')};
                         }
                         break;
                     case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP:
