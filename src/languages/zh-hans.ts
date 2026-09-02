@@ -5954,7 +5954,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             finishSetup: '完成设置',
             chooseBankAccount: '选择银行账户',
             chooseExistingBank: '选择一个现有的企业银行账户来支付您的 Expensify 卡余额，或添加一个新的银行账户',
-            chooseExistingBankForTravelBilling: '选择一个现有的企业银行账户来支付您的 Consolidated Travel Billing 余额，或添加一个新的银行账户',
+            chooseExistingBankForTravelBilling: '选择一个现有的企业银行账户来支付您的合并差旅账单余额，或添加新银行账户',
             accountEndingIn: '账号末尾为',
             addNewBankAccount: '添加新银行账户',
             settlementAccount: '结算账户',
