@@ -9,23 +9,14 @@ import type {AnyOnyxUpdate, AnyRequest} from '@src/types/onyx/Request';
 import clone from 'lodash/clone';
 
 /**
- * When a user creates an agent, the client generates an optimistic accountID, but the real accountID can only be
- * assigned by the server (the agent's login is derived from it). CreateAgent's success response therefore includes
- * an Onyx update on OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING whose value maps each optimistic accountID to its real one.
- *
- * Requests queued while offline after creating the agent (e.g. UpdateAgentName, UpdateAgentPrompt,
- * UpdateAgentAvatar, DeleteAgent) still reference the optimistic accountID, which the server does not recognize,
- * so they would return a 404. This middleware checks responses for that mapping and rewrites any serialized
- * requests that reference an optimistic agent accountID to use the real accountID instead.
+ * Only the server can assign an agent's real accountID (its login is derived from it), so CreateAgent's success
+ * response maps the client's optimistic accountID to the real one on OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING. Requests
+ * queued offline after creating the agent (UpdateAgentName, DeleteAgent, ...) still reference the optimistic
+ * accountID and would 404, so this middleware rewrites them to the real accountID when that mapping arrives.
  */
 
-// The optimistic accountID appears in request data both as a string (e.g. CreateAgent's optimisticAccountID
-// parameter and the Onyx keys inside success/failure data) and as a number (e.g. the agentAccountID parameter of
-// the agent update commands). deepReplaceKeysAndValues only replaces string keys and values, so the number
-// occurrences need this extra pass. Its substring replacement is still needed for the string pass because the
-// success/failure data embeds the accountID inside Onyx key strings (e.g. sharedNVP_agentPrompt_<accountID>).
-// Optimistic accountIDs are long random numbers, so an accidental substring match is not a practical concern.
-// Number replacement, by contrast, only ever needs strict equality.
+// deepReplaceKeysAndValues only rewrites strings, but the optimistic accountID is also sent as a number
+// (e.g. the agentAccountID parameter of the agent update commands), so those occurrences need this extra pass.
 function replaceNumberValues(target: unknown, oldVal: number, newVal: number): unknown {
     if (target === oldVal) {
         return newVal;
@@ -42,26 +33,23 @@ function replaceNumberValues(target: unknown, oldVal: number, newVal: number): u
     return replaceNumbersInRecord(target, oldVal, newVal);
 }
 
-// `object` intentionally accepts every non-null object variant reached by recursive traversal.
+// The recursion reaches every non-null object variant, hence the broad `object` type.
 // eslint-disable-next-line @typescript-eslint/no-restricted-types
 function replaceNumbersInRecord(target: object, oldVal: number, newVal: number): Record<string, unknown> {
     const newObj: Record<string, unknown> = {};
     for (const [key, entryValue] of Object.entries(target)) {
-        // Object.entries() returns any for an object input, so bind the value to unknown before transforming it.
+        // Object.entries() returns any here.
         const val: unknown = entryValue;
         newObj[key] = replaceNumberValues(val, oldVal, newVal);
     }
     return newObj;
 }
 
-// Every Onyx-update array a persisted request can carry, per the OnyxDataBase fields of the Request type.
+// Mirrors the OnyxDataBase fields of the Request type.
 const REQUEST_ONYX_DATA_FIELDS = ['successData', 'failureData', 'finallyData', 'optimisticData', 'queueFlushedData'] as const;
 
-// A request's stored Onyx updates (success/failure/finally/optimistic/queueFlushed data) embed the optimistic
-// accountID in their key strings (e.g. sharedNVP_agentPrompt_<accountID>) and inside their values. They must be
-// rewritten along with the request data: replaceOptimisticAgentWithActualAgent clears the optimistic Onyx keys
-// once the mapping arrives, so a queued request that later succeeds with stale updates would resurrect data
-// under those dead keys.
+// The stored Onyx updates must be rewritten too: replaceOptimisticAgentWithActualAgent clears the optimistic keys
+// once the mapping arrives, so a queued request succeeding later with stale updates would resurrect data under them.
 function rewriteOnyxUpdates(
     updates: AnyOnyxUpdate[] | undefined,
     optimisticAccountIDKey: string,
@@ -70,10 +58,10 @@ function rewriteOnyxUpdates(
     realAccountID: number,
 ): AnyOnyxUpdate[] | undefined {
     return updates?.map((updateEntry) => {
-        // AnyOnyxUpdate types key and value as any, so bind them to unknown before transforming them.
+        // AnyOnyxUpdate types key and value as any.
         const rawKey: unknown = updateEntry.key;
         const rawValue: unknown = updateEntry.value;
-        // deepReplaceKeysAndValues only accepts records, so wrap the value to let it transform any shape.
+        // deepReplaceKeysAndValues only accepts records, hence the wrapper.
         const valueWithReplacedStrings = deepReplaceKeysAndValues({value: rawValue}, optimisticAccountIDKey, realAccountIDString)?.value;
         const rewrittenEntry = {
             ...updateEntry,
@@ -86,8 +74,6 @@ function rewriteOnyxUpdates(
     });
 }
 
-// Returns a clone of the request with every occurrence of the optimistic accountID (in the request data and in
-// each stored Onyx-update array) rewritten to the real accountID.
 function rewriteRequest(request: AnyRequest, optimisticAccountIDKey: string, realAccountIDString: string, optimisticAccountID: number, realAccountID: number): AnyRequest {
     const requestClone = clone(request);
     const dataWithReplacedStrings = deepReplaceKeysAndValues(request.data, optimisticAccountIDKey, realAccountIDString);
@@ -99,6 +85,29 @@ function rewriteRequest(request: AnyRequest, optimisticAccountIDKey: string, rea
         requestClone[fieldName] = rewriteOnyxUpdates(request[fieldName], optimisticAccountIDKey, realAccountIDString, optimisticAccountID, realAccountID);
     }
     return requestClone;
+}
+
+// generateReportID() draws from [0, 2^53) with no minimum length, so a genuine optimistic accountID this short is
+// possible (about 1 in 9 million) and is left for the server to reject. That is accepted so a short key can never act
+// as a broad substring pattern; 10 digits also exceeds real accountIDs and the small integers request data commonly holds.
+const MIN_OPTIMISTIC_ACCOUNT_ID_DIGITS = 10;
+
+function isValidAgentAccountID(accountID: number): boolean {
+    return Number.isSafeInteger(accountID) && accountID > 0;
+}
+
+// The key is used as a substring pattern across every queued request, so a malformed one such as "1" or ""
+// (Number("") is 0) would corrupt the whole offline queue in one pass. Requiring the canonical decimal form also
+// guarantees the string and number passes target the same ID.
+function isValidAgentAccountIDMappingEntry(optimisticAccountIDKey: string, realAccountID: number): boolean {
+    if (!/^\d+$/.test(optimisticAccountIDKey) || optimisticAccountIDKey.length < MIN_OPTIMISTIC_ACCOUNT_ID_DIGITS) {
+        return false;
+    }
+    const optimisticAccountID = Number(optimisticAccountIDKey);
+    if (String(optimisticAccountID) !== optimisticAccountIDKey || !isValidAgentAccountID(optimisticAccountID)) {
+        return false;
+    }
+    return isValidAgentAccountID(realAccountID) && optimisticAccountID !== realAccountID;
 }
 
 const handleUnusedOptimisticAgentAccountID: Middleware = (requestResponse, request, isFromSequentialQueue) =>
@@ -115,10 +124,13 @@ const handleUnusedOptimisticAgentAccountID: Middleware = (requestResponse, reque
             }
 
             for (const [optimisticAccountIDKey, mappedAccountID] of Object.entries(mapping)) {
-                // Object.entries() returns any for an object input, so bind the value to unknown before checking it.
+                // Object.entries() returns any here.
                 const realAccountID: unknown = mappedAccountID;
                 // A null entry is a mapping that replaceOptimisticAgentWithActualAgent already consumed and cleared.
                 if (typeof realAccountID !== 'number') {
+                    continue;
+                }
+                if (!isValidAgentAccountIDMappingEntry(optimisticAccountIDKey, realAccountID)) {
                     continue;
                 }
                 const optimisticAccountID = Number(optimisticAccountIDKey);

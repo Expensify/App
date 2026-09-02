@@ -139,43 +139,167 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`)).toStrictEqual(promptAfterFirstRun);
     });
 
-    it('migrates the optimistic personal detail and agent prompt onto the real accountID and clears the optimistic keys', async () => {
-        // Given optimistic state carrying an ADD pendingAction (from the CreateAgent that just succeeded) and errors
-        // from a request queued against the optimistic agent
+    it('migrates the errors of the optimistic personal detail and agent prompt onto the real accountID and clears the optimistic keys', async () => {
+        // Given the real personal detail and prompt sent by the server, and optimistic state carrying an ADD
+        // pendingAction (from the CreateAgent that just succeeded) and errors from requests queued against the
+        // optimistic agent
         const optimisticAccountID = 1029384756102938;
         const realAccountID = 8473625190847362;
         const errorTimestamp = '1725148800000000';
-        const errors = {[errorTimestamp]: 'Unexpected error updating the prompt'};
+        const avatarErrors = {[errorTimestamp]: 'Unexpected error updating the avatar'};
+        const promptErrors = {[errorTimestamp]: 'Unexpected error updating the prompt'};
+        const realPersonalDetail = {accountID: realAccountID, displayName: 'Concierge Travel', login: 'agent+8473625190847362@expensify.com'};
 
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [realAccountID]: realPersonalDetail,
             [optimisticAccountID]: {
                 accountID: optimisticAccountID,
                 displayName: 'Concierge Travel',
                 isOptimisticPersonalDetail: true,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                errorFields: {avatar: avatarErrors},
             },
         });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`, {prompt: 'Book my flights'});
         await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, {
             prompt: 'Book my flights',
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            errors,
+            errors: promptErrors,
         });
         await waitForBatchedUpdates();
 
         replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
         await waitForBatchedUpdates();
 
-        // Then the real personal detail receives the migrated fields but neither the ADD pendingAction nor the
+        // Then the real personal detail receives the errorFields but neither the ADD pendingAction nor the
         // optimistic identity fields (accountID / isOptimisticPersonalDetail)
         const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
-        expect(personalDetails?.[realAccountID]).toStrictEqual({displayName: 'Concierge Travel'});
+        expect(personalDetails?.[realAccountID]).toStrictEqual({...realPersonalDetail, errorFields: {avatar: avatarErrors}});
         expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
 
         // And the real agent prompt keeps the errors but not the ADD pendingAction
         const realPrompt = await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`);
-        expect(realPrompt).toStrictEqual({prompt: 'Book my flights', errors});
+        expect(realPrompt).toStrictEqual({prompt: 'Book my flights', errors: promptErrors});
         const optimisticPrompt = await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`);
         expect(optimisticPrompt).toBeUndefined();
+    });
+
+    it('keeps the real avatar and login when the optimistic personal detail holds a local avatar URI with no pending edit', async () => {
+        // Given the real personal detail sent by the server and the optimistic one createAgent() wrote for an agent
+        // created with an uploaded avatar, whose avatar is a local file URI
+        const optimisticAccountID = 4657382910465738;
+        const realAccountID = 8283746501928374;
+        const realPersonalDetail = {
+            accountID: realAccountID,
+            displayName: 'Concierge Travel',
+            login: 'agent+8283746501928374@expensify.com',
+            avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/real.png',
+            avatarThumbnail: 'https://d1wpcgnaa73g0y.cloudfront.net/real_128.png',
+        };
+
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [realAccountID]: realPersonalDetail,
+            [optimisticAccountID]: {
+                accountID: optimisticAccountID,
+                displayName: 'Concierge Travel',
+                isOptimisticPersonalDetail: true,
+                avatar: 'blob:https://new.expensify.com/4657382910465738',
+                avatarThumbnail: 'blob:https://new.expensify.com/4657382910465738',
+            },
+        });
+        await waitForBatchedUpdates();
+
+        // When the mapping written by CreateAgent's success response is consumed
+        await Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: realAccountID});
+        await waitForBatchedUpdates();
+
+        // Then the real personal detail is untouched, the optimistic one is removed and the mapping entry is cleared
+        const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+        expect(personalDetails?.[realAccountID]).toStrictEqual(realPersonalDetail);
+        expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
+        const mapping = await getOnyxValue(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
+        expect(mapping?.[optimisticAccountID]).toBeUndefined();
+    });
+
+    it('carries a pending avatar edit and its pendingFields marker onto the real personal detail', async () => {
+        // Given an UpdateAgentAvatar queued against the optimistic agent while CreateAgent was still in flight
+        const optimisticAccountID = 5768493021576849;
+        const realAccountID = 3049586172304958;
+        const pendingAvatarURI = 'blob:https://new.expensify.com/5768493021576849';
+        const realPersonalDetail = {
+            accountID: realAccountID,
+            displayName: 'Concierge Travel',
+            login: 'agent+3049586172304958@expensify.com',
+            avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/real.png',
+            avatarThumbnail: 'https://d1wpcgnaa73g0y.cloudfront.net/real_128.png',
+        };
+
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [realAccountID]: realPersonalDetail,
+            [optimisticAccountID]: {
+                accountID: optimisticAccountID,
+                displayName: 'Concierge Travel',
+                isOptimisticPersonalDetail: true,
+                avatar: pendingAvatarURI,
+                avatarThumbnail: pendingAvatarURI,
+                pendingFields: {avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            },
+        });
+        await waitForBatchedUpdates();
+
+        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
+        await waitForBatchedUpdates();
+
+        // Then the real personal detail shows the pending avatar along with its pendingFields marker
+        const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+        expect(personalDetails?.[realAccountID]).toStrictEqual({
+            ...realPersonalDetail,
+            avatar: pendingAvatarURI,
+            avatarThumbnail: pendingAvatarURI,
+            pendingFields: {avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+        });
+        expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
+    });
+
+    it('keeps the real prompt when the optimistic prompt has no pending edit', async () => {
+        // Given the real prompt sent by the server and an optimistic prompt whose only pendingAction is the ADD of
+        // the CreateAgent that just succeeded
+        const optimisticAccountID = 6879504132687950;
+        const realAccountID = 2130495867213049;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`, {prompt: 'Book my flights'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, {
+            prompt: 'Book my flights (optimistic)',
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        });
+        await waitForBatchedUpdates();
+
+        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
+        await waitForBatchedUpdates();
+
+        const realPrompt = await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`);
+        expect(realPrompt).toStrictEqual({prompt: 'Book my flights'});
+        const optimisticPrompt = await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`);
+        expect(optimisticPrompt).toBeUndefined();
+    });
+
+    it('carries a pending prompt edit and its UPDATE pendingAction onto the real prompt', async () => {
+        // Given an UpdateAgentPrompt queued against the optimistic agent while CreateAgent was still in flight
+        const optimisticAccountID = 7980615243798061;
+        const realAccountID = 1243506978124350;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`, {prompt: 'Book my flights'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, {
+            prompt: 'Book my flights and hotels',
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        });
+        await waitForBatchedUpdates();
+
+        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
+        await waitForBatchedUpdates();
+
+        const realPrompt = await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`);
+        expect(realPrompt).toStrictEqual({prompt: 'Book my flights and hotels', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
     });
 
     it('preserves a DELETE pendingAction on the agent prompt when migrating it to the real key', async () => {
@@ -257,5 +381,59 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
 
         const mapping = await getOnyxValue(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
         expect(mapping?.[optimisticAccountID]).toBeUndefined();
+    });
+
+    it('leaves the real agent untouched and only clears the entry when the mapping maps an accountID to itself', async () => {
+        // Given a real agent whose personal detail and prompt would be deleted if the identity mapping were consumed
+        const accountID = 8102837465910283;
+        const personalDetail = {accountID, displayName: 'Concierge Travel', login: 'agent+8102837465910283@expensify.com'};
+        const agentPrompt = {prompt: 'Book my flights'};
+
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[accountID]: personalDetail});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, agentPrompt);
+        await waitForBatchedUpdates();
+
+        await Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[accountID]: accountID});
+        await waitForBatchedUpdates();
+
+        const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+        expect(personalDetails?.[accountID]).toStrictEqual(personalDetail);
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`)).toStrictEqual(agentPrompt);
+        const mapping = await getOnyxValue(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
+        expect(mapping?.[accountID]).toBeUndefined();
+    });
+
+    it('migrates nothing and only clears the entry when the mapping value is not a valid accountID', async () => {
+        // Given optimistic state for two agents whose mapping entries hold unusable values
+        const zeroMappedAccountID = 3746510928374651;
+        const negativeMappedAccountID = 8615203947861520;
+        const zeroMappedPersonalDetail = {accountID: zeroMappedAccountID, displayName: 'Concierge Travel', isOptimisticPersonalDetail: true};
+        const negativeMappedPersonalDetail = {accountID: negativeMappedAccountID, displayName: 'Concierge Hotels', isOptimisticPersonalDetail: true};
+        const agentPrompt = {prompt: 'Book my flights', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [zeroMappedAccountID]: zeroMappedPersonalDetail,
+            [negativeMappedAccountID]: negativeMappedPersonalDetail,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${zeroMappedAccountID}`, agentPrompt);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${negativeMappedAccountID}`, agentPrompt);
+        await waitForBatchedUpdates();
+
+        await Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[zeroMappedAccountID]: 0, [negativeMappedAccountID]: -1});
+        await waitForBatchedUpdates();
+
+        // Then the optimistic data is neither migrated nor deleted, and the unusable entries are gone from the mapping
+        const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+        expect(personalDetails).toStrictEqual({
+            [zeroMappedAccountID]: zeroMappedPersonalDetail,
+            [negativeMappedAccountID]: negativeMappedPersonalDetail,
+        });
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${zeroMappedAccountID}`)).toStrictEqual(agentPrompt);
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${negativeMappedAccountID}`)).toStrictEqual(agentPrompt);
+        const mapping = await getOnyxValue(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
+        expect(mapping?.[zeroMappedAccountID]).toBeUndefined();
+        expect(mapping?.[negativeMappedAccountID]).toBeUndefined();
+        expect(resolveAgentAccountID(zeroMappedAccountID)).toBe(zeroMappedAccountID);
+        expect(resolveAgentAccountID(negativeMappedAccountID)).toBe(negativeMappedAccountID);
     });
 });

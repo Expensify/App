@@ -110,10 +110,9 @@ function createAgent(
         },
     ];
 
-    // The optimistic personal detail and agent prompt are NOT cleared here on success: the server's response
-    // merges a {optimisticAccountID: realAccountID} entry onto OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, and
-    // replaceOptimisticAgentWithActualAgent clears them only after redirecting any open agent settings screen
-    // to the real accountID. Clearing them in successData would race that redirect and flash a not-found view.
+    // The optimistic personal detail and agent prompt are not cleared here: replaceOptimisticAgentWithActualAgent
+    // does it after redirecting any open agent settings screen to the real accountID, and clearing them in
+    // successData would race that redirect and flash a not-found view.
     const successData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

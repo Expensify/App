@@ -1,5 +1,6 @@
 import handleUnusedOptimisticAgentAccountID from '@libs/Middleware/HandleUnusedOptimisticAgentAccountID';
 
+import * as PersistedRequests from '@userActions/PersistedRequests';
 import {clear, getAll, getOngoingRequest, processNextRequest, save} from '@userActions/PersistedRequests';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,9 +49,9 @@ beforeEach(async () => {
     await waitForBatchedUpdates();
 });
 
-afterEach(() => {
-    clear();
-    Onyx.clear();
+afterEach(async () => {
+    await clear();
+    await Onyx.clear();
 });
 
 describe('HandleUnusedOptimisticAgentAccountID middleware', () => {
@@ -181,5 +182,89 @@ describe('HandleUnusedOptimisticAgentAccountID middleware', () => {
 
         expect(getAll().at(0)?.data?.agentAccountID).toBe(realAccountID);
         expect(getAll().at(1)).toStrictEqual(otherAgentRequestBefore);
+    });
+
+    describe('mapping entry validation', () => {
+        // Every string and number below shares digits with the malformed keys under test, so any rewrite would show up.
+        const digitHeavyAccountID = 1029384756102938;
+
+        function buildDigitHeavyRequest(): AnyRequest {
+            requestIndex += 1;
+            return {
+                command: 'UpdateAgentPrompt',
+                data: {
+                    agentAccountID: digitHeavyAccountID,
+                    optimisticAccountID: String(digitHeavyAccountID),
+                    reportID: '1234',
+                    page: 1,
+                    offset: 0,
+                    prompt: '',
+                    agentPromptKey: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${digitHeavyAccountID}`,
+                    apiRequestType: 'write',
+                },
+                successData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${digitHeavyAccountID}`, value: {pendingAction: null, prompt: ''}}],
+                requestIndex,
+            };
+        }
+
+        async function expectMappingToLeaveQueueUntouched(mappingKey: string, mappedAccountID: number) {
+            save(buildDigitHeavyRequest());
+            await waitForBatchedUpdates();
+            const requestsBefore = cloneDeep(getAll());
+
+            await handleUnusedOptimisticAgentAccountID(Promise.resolve(buildMappingResponse({[mappingKey]: mappedAccountID})), buildDigitHeavyRequest(), false);
+
+            expect(getAll()).toStrictEqual(requestsBefore);
+        }
+
+        it('leaves persisted requests untouched when the mapping key is a short digit string', async () => {
+            await expectMappingToLeaveQueueUntouched('1', realAccountID);
+        });
+
+        it('leaves persisted requests untouched when the mapping key is an empty string', async () => {
+            await expectMappingToLeaveQueueUntouched('', realAccountID);
+        });
+
+        it('leaves persisted requests untouched when the mapping key is shorter than the minimum optimistic accountID length', async () => {
+            await expectMappingToLeaveQueueUntouched('102938475', realAccountID);
+        });
+
+        it.each(['abc', '99999999999999999999', '0000000001', '-1029384756102938', '1029384756102938.5', '1029384756e3', ' 1029384756102938'])(
+            'leaves persisted requests untouched when the mapping key is not a canonical safe positive integer (%p)',
+            async (mappingKey) => {
+                await expectMappingToLeaveQueueUntouched(mappingKey, realAccountID);
+            },
+        );
+
+        it.each([0, -5, 1.5, Number.NaN, Number.POSITIVE_INFINITY, Number.MAX_SAFE_INTEGER + 1])(
+            'leaves persisted requests untouched when the real accountID is not a safe positive integer (%p)',
+            async (invalidRealAccountID) => {
+                await expectMappingToLeaveQueueUntouched(String(digitHeavyAccountID), invalidRealAccountID);
+            },
+        );
+
+        it('leaves persisted requests untouched when the mapping maps an accountID to itself', async () => {
+            const updateSpy = jest.spyOn(PersistedRequests, 'update');
+
+            await expectMappingToLeaveQueueUntouched(String(digitHeavyAccountID), digitHeavyAccountID);
+
+            expect(updateSpy).not.toHaveBeenCalled();
+            updateSpy.mockRestore();
+        });
+
+        it('rewrites persisted requests when the mapping key has exactly the minimum optimistic accountID length', async () => {
+            const shortOptimisticAccountID = 1029384756;
+            save(buildUpdateAgentPromptRequest(shortOptimisticAccountID));
+            await waitForBatchedUpdates();
+
+            await handleUnusedOptimisticAgentAccountID(
+                Promise.resolve(buildMappingResponse({[shortOptimisticAccountID]: realAccountID})),
+                buildUpdateAgentPromptRequest(shortOptimisticAccountID),
+                false,
+            );
+
+            expect(getAll().at(0)?.data?.agentAccountID).toBe(realAccountID);
+            expect(getAll().at(0)?.data?.prompt).toBe('Book my flights');
+        });
     });
 });

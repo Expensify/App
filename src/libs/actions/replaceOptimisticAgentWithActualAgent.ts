@@ -4,7 +4,8 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {AgentPrompt, PersonalDetailsList, Report} from '@src/types/onyx';
+import type {AgentPrompt, PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -14,50 +15,31 @@ import Onyx from 'react-native-onyx';
 /**
  * replaceOptimisticAgentWithActualAgent
  *
- * When a user creates an agent, we optimistically write its personal detail and agent prompt under a
- * client-generated accountID so the Agents UI works immediately (offline-first UX). The real accountID can only
- * be assigned by the server (the agent's login is derived from it), so CreateAgent's success response echoes a
- * {optimisticAccountID: realAccountID} entry onto OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING.
+ * A new agent is written optimistically under a client-generated accountID so the Agents UI works offline, but
+ * only the server can assign the real accountID (the agent's login is derived from it). CreateAgent's success
+ * response therefore echoes a {optimisticAccountID: realAccountID} entry onto OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING.
  *
- * This module mirrors replaceOptimisticReportWithActualReport: it listens to that mapping key, and for each
- * entry it
- * 1. Redirects every agent settings screen anywhere in the navigation stack from the optimistic accountID to
- *    the real one, so those screens survive reconciliation instead of falling through to their not-found views.
- *    Every screen is redirected, not just the focused one, because an agent screen buried under another would
- *    otherwise keep the dead ID and 404 on back navigation.
- * 2. Remaps the participants of the DM between the owner and the agent from the optimistic accountID to the
- *    real one. CreateAgent's response data normally does this swap already, so this is a defensive no-op on the
- *    happy path. The real participant is only filled in when missing so the server's version always wins.
- * 3. Migrates the optimistic personal detail and agent prompt onto the real accountID's keys, then clears the
- *    optimistic ones. Pending edits or errors from requests queued against the optimistic agent (which the
- *    HandleUnusedOptimisticAgentAccountID middleware rewrites to the real ID) carry over this way instead of
- *    vanishing from the UI. Only the ADD pendingAction is dropped, since it denotes the CreateAgent that just
- *    succeeded. This cleanup lives here rather than in createAgent()'s successData so it is guaranteed to run
- *    after the redirect.
- * 4. Clears the consumed mapping entry, so the mapping never accumulates stale entries.
+ * Mirroring replaceOptimisticReportWithActualReport, this module listens to that mapping and, for each entry,
+ * redirects any open agent settings screen to the real accountID, remaps the owner/agent DM participants, carries
+ * pending/error state from the optimistic personal detail and prompt onto the real keys, clears the optimistic
+ * data and finally clears the consumed entry. The cleanup lives here rather than in createAgent()'s successData so
+ * it is guaranteed to run after the redirect.
  *
- * It also exports resolveAgentAccountID(), which agent actions call as a safety net: anything that still holds
- * a consumed optimistic accountID (e.g. a screen that captured it before the redirect) gets its requests
- * rewritten to the real accountID before any optimistic data or API params are built.
+ * resolveAgentAccountID() is a safety net for callers that captured an optimistic accountID before the redirect.
  */
 
 const AGENT_SETTINGS_SCREENS = new Set<string>([SCREENS.SETTINGS.AGENTS.EDIT, SCREENS.SETTINGS.AGENTS.EDIT_NAME, SCREENS.SETTINGS.AGENTS.EDIT_PROMPT, SCREENS.SETTINGS.AGENTS.EDIT_AVATAR]);
 
-// In-memory (not persisted) record of consumed mappings. The Onyx mapping entry is cleared once consumed, so
-// this is the only place a late caller can still translate an optimistic accountID it captured earlier in the
-// session. Persisted requests don't need it because the middleware rewrites them when the mapping arrives.
+// Kept in memory because the Onyx mapping entry is cleared once consumed, so this is the only way a late caller
+// can still translate an optimistic accountID it captured earlier in the session.
 const consumedOptimisticAccountIDs = new Map<number, number>();
 
-/**
- * Returns the real accountID when the given one is an optimistic agent accountID whose mapping was already
- * consumed this session, and the input unchanged otherwise.
- */
 function resolveAgentAccountID(accountID: number): number {
     return consumedOptimisticAccountIDs.get(accountID) ?? accountID;
 }
 
+// These values are only consumed inside the mapping callback below; no UI subscribes here, so connectWithoutView() is used.
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
-// Personal details are cached only to migrate the optimistic agent's entry onto the real accountID. No UI subscribes here, so connectWithoutView() is used.
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
@@ -66,7 +48,6 @@ Onyx.connectWithoutView({
 });
 
 let allAgentPrompts: OnyxCollection<AgentPrompt>;
-// Agent prompts are cached only to migrate the optimistic agent's entry onto the real accountID. No UI subscribes here, so connectWithoutView() is used.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT,
     callback: (value) => {
@@ -75,7 +56,6 @@ Onyx.connectWithoutView({
 });
 
 let allReports: OnyxCollection<Report>;
-// Reports are cached only to locate DMs still keyed by the optimistic accountID. No UI subscribes here, so connectWithoutView() is used.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (value) => {
@@ -83,20 +63,30 @@ Onyx.connectWithoutView({
     },
 });
 
+// Number.isSafeInteger() also rejects the non-numeric values a malformed persisted mapping entry could hold at runtime.
+function isValidAgentAccountID(accountID: number): boolean {
+    return Number.isSafeInteger(accountID) && accountID > 0;
+}
+
 function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, realAccountID: number) {
+    // An identity mapping would migrate the real agent's data onto itself and then delete it through the
+    // optimistic-key clears below, and a malformed realAccountID would file it under a bogus key, so such entries
+    // are only dropped from the mapping.
+    if (!isValidAgentAccountID(optimisticAccountID) || !isValidAgentAccountID(realAccountID) || optimisticAccountID === realAccountID) {
+        Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: null});
+        return;
+    }
+
     // Recorded before the transition-tracker delay so resolveAgentAccountID() already covers actions fired
     // while the callback below is still pending.
     consumedOptimisticAccountIDs.set(optimisticAccountID, realAccountID);
 
     TransitionTracker.runAfterTransitions({
         callback: () => {
-            // Redirect before clearing the optimistic data so no open screen is ever left pointing at keys
-            // that no longer exist (which would flash its not-found view). The whole navigation state is
-            // walked, not just the focused route: an agent settings screen buried under another (e.g. EDIT
-            // beneath EDIT_NAME) must be fixed too, or going back lands on its not-found view and anything
-            // submitted from it targets the dead accountID. Matched via screen name + accountID param rather
-            // than a path substring, so an unrelated route that happens to contain the same digits can't
-            // trigger a bogus redirect.
+            // Redirect before clearing the optimistic data so no open screen flashes its not-found view. The whole
+            // navigation state is walked because an agent screen buried under another (e.g. EDIT beneath EDIT_NAME)
+            // would otherwise keep the dead ID and 404 on back navigation. Matching on screen name + accountID param
+            // avoids bogus redirects of unrelated routes that happen to contain the same digits.
             if (navigationRef.isReady()) {
                 const statesToVisit: Array<NavigationState | PartialState<NavigationState>> = [navigationRef.getRootState()];
                 while (statesToVisit.length > 0) {
@@ -108,8 +98,7 @@ function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, real
                             typeof route.params === 'object' &&
                             'accountID' in route.params &&
                             Number(route.params.accountID) === optimisticAccountID;
-                        // The owning navigator's state key is passed as the dispatch target so routes that are
-                        // not focused (e.g. beneath a modal) still receive the SET_PARAMS action.
+                        // Unfocused routes (e.g. beneath a modal) only receive SET_PARAMS when their navigator's state key is the target.
                         if (isOptimisticAgentRoute && route.key) {
                             Navigation.setParams({accountID: realAccountID}, route.key, state?.key);
                         }
@@ -120,10 +109,9 @@ function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, real
                 }
             }
 
-            // CreateAgent's response data already swaps the DM's participants to the real accountID, so this
-            // usually finds nothing. It only repairs reports still keyed by the optimistic accountID (e.g. when
-            // that response data was lost). The real participant is only filled in when missing so a
-            // server-provided one is never clobbered.
+            // CreateAgent's response data already swaps the DM participants, so this only repairs reports still keyed
+            // by the optimistic accountID (e.g. when that response data was lost). A server-provided real participant
+            // is never clobbered.
             for (const report of Object.values(allReports ?? {})) {
                 const optimisticParticipant = report?.participants?.[optimisticAccountID];
                 if (!optimisticParticipant) {
@@ -137,28 +125,39 @@ function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, real
                 });
             }
 
-            // Migrate the optimistic entries onto the real accountID's keys before clearing them. When nothing
-            // was queued against the optimistic agent, the migrated fields equal what the server already sent,
-            // so the merges are harmless no-ops. accountID and isOptimisticPersonalDetail are excluded because
-            // the real entry keeps its own identity. An ADD pendingAction is excluded because it denotes the
-            // CreateAgent that just succeeded, while a DELETE pendingAction or errors must survive so the
-            // strikethrough/RBR from queued requests stays visible.
+            // Carry pending/error state onto the real keys before clearing the optimistic ones so the strikethrough/RBR
+            // of requests queued against the optimistic agent stays visible. Base fields are the server's: a fresh
+            // agent's optimistic avatar is a local file URI and a rename may already have written the real key, so an
+            // optimistic base field is only copied when a pending marker shows a queued edit staged it. ADD is dropped
+            // since it denotes the CreateAgent that just succeeded.
             const optimisticPersonalDetail = allPersonalDetails?.[optimisticAccountID];
             if (optimisticPersonalDetail) {
-                const {accountID, isOptimisticPersonalDetail, ...migratedPersonalDetail} = optimisticPersonalDetail;
-                if (migratedPersonalDetail.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                    delete migratedPersonalDetail.pendingAction;
+                const {avatar, avatarThumbnail, pendingAction, pendingFields, errorFields} = optimisticPersonalDetail;
+                // updateAgentAvatar() marks a staged avatar with pendingFields.avatar.
+                const hasPendingAvatar = !!pendingFields?.avatar;
+                const migratedPersonalDetail: Partial<PersonalDetails> = {
+                    ...(pendingAction && pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? {pendingAction} : {}),
+                    ...(pendingFields ? {pendingFields} : {}),
+                    ...(errorFields ? {errorFields} : {}),
+                    ...(hasPendingAvatar ? {avatar, avatarThumbnail} : {}),
+                };
+                if (!isEmptyObject(migratedPersonalDetail)) {
+                    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[realAccountID]: migratedPersonalDetail});
                 }
-                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[realAccountID]: migratedPersonalDetail});
             }
 
             const optimisticAgentPrompt = allAgentPrompts?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`];
             if (optimisticAgentPrompt) {
-                const migratedAgentPrompt = {...optimisticAgentPrompt};
-                if (migratedAgentPrompt.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                    delete migratedAgentPrompt.pendingAction;
+                const {prompt, pendingAction, ...optimisticPromptState} = optimisticAgentPrompt;
+                // Agent update actions mark the prompt with an UPDATE/DELETE pendingAction, and updateAgentPrompt() stages the new text alongside it.
+                const hasPendingEdit = !!pendingAction && pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+                const migratedAgentPrompt: Partial<AgentPrompt> = {
+                    ...optimisticPromptState,
+                    ...(hasPendingEdit ? {prompt, pendingAction} : {}),
+                };
+                if (!isEmptyObject(migratedAgentPrompt)) {
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`, migratedAgentPrompt);
                 }
-                Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`, migratedAgentPrompt);
             }
 
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[optimisticAccountID]: null});
@@ -168,9 +167,8 @@ function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, real
     });
 }
 
-// The mapping is observed only to run the replacement. No UI subscribes to it, so connectWithoutView() is used.
-// The callback also fires with the persisted value on app start, which consumes any entry that arrived while the
-// module wasn't loaded yet (e.g. the app was killed between the server response and the cleanup).
+// No UI subscribes to the mapping, so connectWithoutView() is used. Firing with the persisted value on app start also
+// consumes any entry that arrived while the module wasn't loaded yet (e.g. the app was killed before the cleanup ran).
 Onyx.connectWithoutView({
     key: ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING,
     callback: (mapping) => {
@@ -178,8 +176,13 @@ Onyx.connectWithoutView({
             return;
         }
 
-        for (const [optimisticAccountID, realAccountID] of Object.entries(mapping)) {
-            replaceOptimisticAgentWithActualAgent(Number(optimisticAccountID), realAccountID);
+        for (const [optimisticAccountID, mappedAccountID] of Object.entries(mapping)) {
+            // Already-consumed (nullish) entries are skipped because clearing them again would only fire this callback once more.
+            const realAccountID: unknown = mappedAccountID;
+            if (realAccountID === null || realAccountID === undefined) {
+                continue;
+            }
+            replaceOptimisticAgentWithActualAgent(Number(optimisticAccountID), mappedAccountID);
         }
     },
 });

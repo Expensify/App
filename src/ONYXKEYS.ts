@@ -808,9 +808,7 @@ const ONYXKEYS = {
     /** Persisted draft for the new-agent avatar selection flow */
     AGENT_NEW_AVATAR_DRAFT: 'agentNewAvatarDraft',
 
-    /** Maps an agent's optimistic accountID to the real one CreateAgent assigns. It is written by the backend's
-     * success response. replaceOptimisticAgentWithActualAgent consumes it for the redirect and the optimistic-data
-     * cleanup and then clears it. */
+    /** Maps an agent's optimistic accountID to the real one assigned by CreateAgent, consumed and cleared by replaceOptimisticAgentWithActualAgent */
     OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING: 'optimisticAgentAccountIDMapping',
 
     /** Set when the rooms page has finished loading for the first time */
