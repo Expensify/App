@@ -356,26 +356,26 @@ function getInvoicePrimaryWorkspace(activePolicy: OnyxEntry<Policy>, activeAdmin
 }
 
 /**
- * Check if the user has any active free policies (aka workspaces)
+ * Check if the user has any active group workspaces.
  */
-function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>> | OnyxCollection<PolicySelector>, includeOnlyAdminPolicies = false): boolean {
-    const chatEnabledPolicies = Object.values(policies ?? {}).filter(
-        (policy) => policy?.isPolicyExpenseChatEnabled && (!includeOnlyAdminPolicies || policy.role === CONST.POLICY.ROLE.ADMIN),
+function hasActiveGroupPolicies(policies: Array<OnyxEntry<PolicySelector>> | OnyxCollection<PolicySelector>, includeOnlyAdminPolicies = false): boolean {
+    const groupPolicies = Object.values(policies ?? {}).filter(
+        (policy) => PolicyUtils.isGroupPolicyByType(policy?.type) && (!includeOnlyAdminPolicies || policy?.role === CONST.POLICY.ROLE.ADMIN),
     );
 
-    if (chatEnabledPolicies.length === 0) {
+    if (groupPolicies.length === 0) {
         return false;
     }
 
-    if (chatEnabledPolicies.some((policy) => !policy?.pendingAction)) {
+    if (groupPolicies.some((policy) => !policy?.pendingAction)) {
         return true;
     }
 
-    if (chatEnabledPolicies.some((policy) => policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)) {
+    if (groupPolicies.some((policy) => policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)) {
         return true;
     }
 
-    if (chatEnabledPolicies.some((policy) => policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
+    if (groupPolicies.some((policy) => policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
         return false;
     }
 
@@ -486,7 +486,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`,
             value: null,
         },
-        ...(!hasActiveChatEnabledPolicies(filteredPolicies, true)
+        ...(!hasActiveGroupPolicies(filteredPolicies, true)
             ? [
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
@@ -2586,7 +2586,6 @@ function createDraftInitialWorkspace({
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: currentUserEmail,
                 ownerAccountID: currentUserAccountID,
-                isPolicyExpenseChatEnabled: true,
                 areCategoriesEnabled: true,
                 approver: currentUserEmail,
                 areCompanyCardsEnabled: true,
@@ -2812,7 +2811,6 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 role: getRoleForCallerOnNewPolicy(isSubmitWorkspace, makeMeAdmin, policyOwnerEmail, currentUserEmailParam),
                 owner: policyOwnerEmail || currentUserEmailParam,
                 ownerAccountID: policyOwnerEmail ? (PersonalDetailsUtils.getPersonalDetailByEmail(policyOwnerEmail)?.accountID ?? currentUserAccountIDParam) : currentUserAccountIDParam,
-                isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 autoReporting: true,
@@ -3349,7 +3347,6 @@ function createDraftWorkspace({
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: currentUserEmail,
                 ownerAccountID: currentUserAccountID,
-                isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 autoReporting: true,
@@ -4435,7 +4432,6 @@ function createWorkspaceFromIOUPayment({
         role: CONST.POLICY.ROLE.ADMIN,
         owner: currentUserEmail,
         ownerAccountID: currentUserAccountID,
-        isPolicyExpenseChatEnabled: true,
 
         // Setting the new workspace currency to the currency of the iouReport
         outputCurrency: iouReport?.currency ?? CONST.CURRENCY.USD,
@@ -5904,6 +5900,9 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string, currentTax
 function getCorporateUpgradeReceiptThresholds(policy: OnyxEntry<Policy>) {
     const receiptAmount = policy?.maxExpenseAmountNoReceipt;
     const itemizedAmount = policy?.maxExpenseAmountNoItemizedReceipt;
+    // Deliberately local, and deliberately NOT PolicyUtils.isMaxExpenseAmountSet, which treats a saved 0 as configured.
+    // This only decides what to display optimistically while the upgrade is in flight; the upgrade itself is the API's
+    // call. Carrying a Collect-era 0 through would change upgrade behavior, which is out of scope here.
     const isReceiptThresholdEnabled = (amount: number | undefined): amount is number => amount !== undefined && amount !== CONST.DISABLED_MAX_EXPENSE_VALUE && amount !== 0;
 
     return {

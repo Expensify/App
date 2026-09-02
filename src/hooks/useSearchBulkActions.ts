@@ -69,9 +69,25 @@ import {
     isSelfDM,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
-import {buildSearchQueryJSON, buildSearchQueryString, getFilterFromQuery, isDefaultExpensesQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {
+    buildSearchQueryJSON,
+    buildSearchQueryString,
+    getFilterFromQuery,
+    isDefaultExpensesQuery,
+    queryHasSubmittedViolationFilter,
+    serializeQueryJSONForBackend,
+} from '@libs/SearchQueryUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
-import {getColumnsToShow, getSearchColumnTranslationKey, getSelectedGroupFilterEntry, getValidGroupBy, isGroupEntry, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
+import {
+    getColumnsToShow,
+    getSearchColumnTranslationKey,
+    getSelectedGroupFilterEntry,
+    getValidGroupBy,
+    insertColumnBeforeTotalAmount,
+    isGroupEntry,
+    navigateToSearchRHP,
+    shouldShowDeleteOption,
+} from '@libs/SearchUIUtils';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -125,7 +141,6 @@ import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDelegateAccountID from './useDelegateAccountID';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
-import useExportDownloadStatusModal from './useExportDownloadStatusModal';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -497,10 +512,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     > | null>(null);
 
     const [emptyReportsCount, setEmptyReportsCount] = useState<number>(0);
-    const {trackExport, exportDownloadStatusModal} = useExportDownloadStatusModal(() => {
-        selectAllMatchingItems(false);
-        clearSelectedTransactions(undefined, true);
-    });
 
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
@@ -831,10 +842,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
             const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
-            let exportID: string;
 
             if (areAllMatchingItemsSelected) {
-                exportID = queueExportSearchWithTemplate(
+                queueExportSearchWithTemplate(
                     {
                         templateName,
                         templateType,
@@ -848,7 +858,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 );
             } else {
                 const isGroupExport = !!queryJSON?.groupBy && selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX));
-                exportID = queueExportSearchWithTemplate(
+                queueExportSearchWithTemplate(
                     {
                         templateName,
                         templateType,
@@ -866,7 +876,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     true,
                 );
             }
-            trackExport(exportID);
+
+            // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
+            selectAllMatchingItems(false);
+            clearSelectedTransactions(undefined, true);
         },
         [
             selectedReports,
@@ -877,7 +890,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             queryJSON,
             selectedTransactionReportIDs,
             selectedTransactionsKeys,
-            trackExport,
+            selectAllMatchingItems,
+            clearSelectedTransactions,
         ],
     );
 
@@ -907,6 +921,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const expenseColumns: SearchColumnType[] = (visibleColumns ?? []).filter((column) => expensePermittedColumns.includes(column));
 
                 columnsToExport = [CONST.SEARCH.TABLE_COLUMNS.TYPE, ...(expenseColumns.length > 0 ? expenseColumns : Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE))];
+                // Grouped export skips getColumnsToShow(), so inject Violations when the query asks for it
+                // (e.g. Violations by submitter, which has groupBy but no saved columns).
+                if (queryHasSubmittedViolationFilter(queryJSON)) {
+                    insertColumnBeforeTotalAmount(columnsToExport, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+                }
             } else {
                 columnsToExport = getColumnsToShow({
                     currentAccountID: accountID,
@@ -960,7 +979,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
                 const reportIDList = selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [];
                 const exportParameters = getCSVExportParameters(isBasicExport, allMatchingExportData?.queryJSON ?? queryJSON);
-                const exportID = queueExportSearchItemsToCSV({
+                queueExportSearchItemsToCSV({
                     jsonQuery: exportParameters.jsonQuery,
                     reportIDList,
                     transactionIDList: selectedTransactionsKeys,
@@ -969,7 +988,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     exportColumnLabels: exportParameters.exportColumnLabels,
                     exportName,
                 });
-                trackExport(exportID);
+
+                // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
+                selectAllMatchingItems(false);
+                clearSelectedTransactions(undefined, true);
                 return;
             }
 
@@ -1014,10 +1036,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             excludedTransactions,
             translate,
             clearSelectedTransactions,
+            selectAllMatchingItems,
             hash,
             currentSearchResults?.data,
             getCSVExportParameters,
-            trackExport,
         ],
     );
 
@@ -1175,7 +1197,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             prompt: deleteModalPrompt,
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         if (result.action !== ModalActions.CONFIRM) {
             return;
@@ -2423,8 +2445,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         setIsPdfModalVisible(true);
                         return;
                     }
-                    const exportID = exportReportsToPDF(selectedReportIDs);
-                    trackExport(exportID);
+                    exportReportsToPDF(selectedReportIDs);
+
+                    // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
+                    selectAllMatchingItems(false);
+                    clearSelectedTransactions(undefined, true);
                 },
             });
         }
@@ -2443,8 +2468,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         setIsOfflineModalVisible(true);
                         return;
                     }
-                    const exportID = exportReceiptsToZip({reportIDs: selectedReportIDs});
-                    trackExport(exportID);
+                    exportReceiptsToZip({reportIDs: selectedReportIDs});
+
+                    // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
+                    selectAllMatchingItems(false);
+                    clearSelectedTransactions(undefined, true);
                 },
             });
         }
@@ -2470,8 +2498,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         setIsOfflineModalVisible(true);
                         return;
                     }
-                    const exportID = exportReceiptsToZip({transactionIDs});
-                    trackExport(exportID);
+                    exportReceiptsToZip({transactionIDs});
+
+                    // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
+                    selectAllMatchingItems(false);
+                    clearSelectedTransactions(undefined, true);
                 },
             });
         }
@@ -2803,7 +2834,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         openSearchReportSubmitToPopover,
         firstTransactionReport,
         styles.textWrap,
-        trackExport,
+        selectAllMatchingItems,
         allReportsShouldMarkAsDone,
         noReportsShouldMarkAsDone,
         queryJSON?.groupBy,
@@ -2884,7 +2915,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         handleExpensifyCardStatementPDFModalHide,
         isExpensifyCardStatementMultiFeedAlertVisible,
         handleExpensifyCardStatementMultiFeedAlertClose,
-        exportDownloadStatusModal,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
