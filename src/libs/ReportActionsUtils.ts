@@ -1290,11 +1290,6 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
-    // This action carries nothing but a violations snapshot for search, so it has no message to show in a report.
-    if (isAddExpenseOnSubmittedAction(reportAction)) {
-        return false;
-    }
-
     if (isMovedTransactionAction(reportAction)) {
         const movedTransactionOriginalMessage = getOriginalMessage(reportAction);
         const fromReportID = movedTransactionOriginalMessage?.fromReportID;
