@@ -354,7 +354,7 @@ function SearchPageNarrow({
                                         the incoming layer instead of sharing the column layout. */}
                                     <Animated.View
                                         key={contentQueryJSON.hash}
-                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION).delay(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                                         style={StyleSheet.absoluteFill}
                                     >
                                         {shouldShowLoadingSkeleton ? (
