@@ -1,7 +1,6 @@
 import FailureTracking from './FailureTracking';
 import FraudMonitoring from './FraudMonitoring';
 import handleDeletedAccount from './HandleDeletedAccount';
-import HandleUnusedOptimisticAgentAccountID from './HandleUnusedOptimisticAgentAccountID';
 import HandleUnusedOptimisticID from './HandleUnusedOptimisticID';
 import LoadPostDataForOpenOrReconnect from './LoadPostDataForOpenOrReconnect';
 import LoadTest from './LoadTest';
@@ -9,12 +8,13 @@ import Logging from './Logging';
 import {Pagination} from './Pagination';
 import Reauthentication from './Reauthentication';
 import RecordFullReconnectTime from './RecordFullReconnectTime';
+import ReplaceOptimisticAgentAccountIDInPersistedRequests from './ReplaceOptimisticAgentAccountIDInPersistedRequests';
 import SaveResponseInOnyx from './SaveResponseInOnyx';
 import SentryServerTiming from './SentryServerTiming';
 import SupportalPermission from './SupportalPermission';
 
 export {
-    HandleUnusedOptimisticAgentAccountID,
+    ReplaceOptimisticAgentAccountIDInPersistedRequests,
     HandleUnusedOptimisticID,
     LoadTest,
     Logging,

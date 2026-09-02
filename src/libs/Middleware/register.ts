@@ -4,7 +4,6 @@ import {
     FailureTracking,
     FraudMonitoring,
     handleDeletedAccount,
-    HandleUnusedOptimisticAgentAccountID,
     HandleUnusedOptimisticID,
     LoadPostDataForOpenOrReconnect,
     LoadTest,
@@ -12,6 +11,7 @@ import {
     Pagination,
     Reauthentication,
     RecordFullReconnectTime,
+    ReplaceOptimisticAgentAccountIDInPersistedRequests,
     SaveResponseInOnyx,
     SentryServerTiming,
     SupportalPermission,
@@ -49,7 +49,7 @@ addMiddleware(SupportalPermission);
 addMiddleware(HandleUnusedOptimisticID);
 
 // Rewrites the remaining serialized requests when the response maps an optimistic agent accountID to the server-assigned one.
-addMiddleware(HandleUnusedOptimisticAgentAccountID);
+addMiddleware(ReplaceOptimisticAgentAccountIDInPersistedRequests);
 
 addMiddleware(Pagination);
 
