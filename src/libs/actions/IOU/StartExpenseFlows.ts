@@ -432,4 +432,3 @@ function createDraftTransactionAndNavigateToParticipantSelector({
 }
 
 export {createDraftTransactionAndNavigateToParticipantSelector, createDraftWorkspaceAndNavigateToConfirmationScreen, getAddExpenseDropdownOptions};
-export type {CreateDraftTransactionParams, GetAddExpenseDropdownOptionsParams};
