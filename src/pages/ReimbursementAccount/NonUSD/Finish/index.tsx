@@ -1,7 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
-import {useMenuItemInteraction} from '@components/MenuItem/MenuItemContext';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -13,15 +11,10 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 
-import getButtonState from '@libs/getButtonState';
-
 import Navigation from '@navigation/Navigation';
-
-import variables from '@styles/variables';
 
 import {navigateToConciergeChat} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
@@ -31,28 +24,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {View} from 'react-native';
-
-/**
- * The trailing "opens in a new tab" indicator. A component of its own so that it renders inside
- * `MenuItem.Root` and can read the row's interaction state for its fill color.
- */
-function OpensInNewTabIcon() {
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow']);
-    const {isHovered, isPressed} = useMenuItemInteraction();
-
-    return (
-        <View style={styles.menuItemChevron}>
-            <Icon
-                src={icons.NewWindow}
-                fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isHovered, isPressed})})}
-                width={variables.iconSizeNormal}
-                height={variables.iconSizeNormal}
-            />
-        </View>
-    );
-}
 
 function Finish() {
     const styles = useThemeStyles();
@@ -125,7 +96,7 @@ function Finish() {
                                     <MenuItem.Title>{translate('finishStep.secure')}</MenuItem.Title>
                                 </MenuItem.Content>
                                 <MenuItem.Trailing>
-                                    <OpensInNewTabIcon />
+                                    <MenuItem.NewWindowIcon />
                                 </MenuItem.Trailing>
                             </MenuItem.Row>
                         </MenuItem.Root>
