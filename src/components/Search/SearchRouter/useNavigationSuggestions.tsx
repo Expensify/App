@@ -10,9 +10,11 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import navigateToDomainSettingsRoute from '@libs/Navigation/helpers/navigateToDomainSettingsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import {SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
@@ -86,7 +88,7 @@ type BuildDomainNavigationItemsParams = {
     getItemText: (translationKey: TranslationPaths) => string;
     getDestinationText: (destination: string) => string;
     getDomainContext: (domainName: string) => ReactNode;
-    onSelect: (route: Route) => void;
+    onSelect: (route: Route, domainAccountID: number) => void;
 };
 
 type BuildAccountNavigationItemsParams = {
@@ -191,7 +193,7 @@ function buildDomainNavigationItems({
             return {
                 text: getDestinationText(itemText),
                 singleIcon: item.icon,
-                action: () => onSelect(item.route),
+                action: () => onSelect(item.route, domain.accountID),
                 keyForList: `domain_${domain.accountID}_${item.screenName}`,
                 rightElement: domainContext,
                 matchTerms: [itemText, domainName],
@@ -232,6 +234,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {typeMenuSections} = useSearchTypeMenuSections(undefined, shouldWatchForApprovals);
     const {accountMenuItemsData, generalMenuItemsData} = useSettingsNavigationMenuData();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const topLevelItems = buildTopLevelNavigationItems({
         labels: {
@@ -279,7 +282,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
                 textStyle={[styles.textLabelSupporting, styles.label]}
             />
         ),
-        onSelect: (route) => Navigation.navigate(route),
+        onSelect: (route, domainAccountID) => navigateToDomainSettingsRoute(route, domainAccountID, shouldUseNarrowLayout),
     });
 
     const accountItems = buildAccountNavigationItems({
