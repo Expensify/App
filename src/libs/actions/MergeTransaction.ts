@@ -660,7 +660,6 @@ function mergeTransactionRequest({
                 CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
                 false,
                 sourceTransactionThreadReport,
-                selfDMReport,
             );
 
             sourceTransactionOptimisticData.push(...optimisticData);
