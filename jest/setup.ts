@@ -168,12 +168,15 @@ jest.mock('../modules/background-task/src/NativeReactNativeBackgroundTask', () =
     onBackgroundTaskExecution: jest.fn(),
 }));
 
-jest.mock('../modules/hybrid-app/src/NativeReactNativeHybridApp', () => ({
-    isHybridApp: jest.fn(),
-    closeReactNativeApp: jest.fn(),
-    completeOnboarding: jest.fn(),
-    switchAccount: jest.fn(),
-    clearOldDotAfterSignOut: jest.fn(),
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {
+        isHybridApp: jest.fn(() => false),
+        closeReactNativeApp: jest.fn(),
+        completeOnboarding: jest.fn(),
+        switchAccount: jest.fn(),
+        clearOldDotAfterSignOut: jest.fn(),
+    },
 }));
 
 const mockUseMemo = useMemo;

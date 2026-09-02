@@ -28,7 +28,7 @@ jest.mock('@hooks/useVerifyAccountAndResume', () => ({
 }));
 
 jest.mock('@components/DelegateNoAccessModalProvider', () => ({
-    useDelegateNoAccessState: () => ({isActingAsDelegate: mockIsActingAsDelegate}),
+    useDelegateNoAccessState: () => ({isDelegateAccessRestricted: mockIsActingAsDelegate}),
     useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: mockShowDelegateNoAccessModal}),
 }));
 

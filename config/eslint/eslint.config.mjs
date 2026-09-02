@@ -738,11 +738,21 @@ const config = defineConfig([
     },
 
     {
-        files: ['tests/**/*.{ts,tsx}', 'jest/**/*.{ts,tsx}', '__mocks__/**/*.{ts,tsx}', 'src/**/__mocks__/**/*.{ts,tsx}', 'src/types/modules/jest.d.ts'],
+        files: ['tests/**/*.{ts,tsx}', 'jest/**/*.{ts,tsx}', '__mocks__/**/*.{ts,tsx}', 'src/types/modules/jest.d.ts'],
         ignores: ['tests/tooling/**'],
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'tsconfig.json'),
+                projectService: false,
+            },
+        },
+    },
+
+    {
+        files: ['src/**/__mocks__/**/*.{ts,tsx}'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'tsconfig.mocks.json'),
                 projectService: false,
             },
         },
