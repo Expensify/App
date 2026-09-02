@@ -72,7 +72,7 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
                             />
                         </MenuItem.Leading>
                         <MenuItem.Content>
-                            <MenuItem.Title>{delegateDisplayName}</MenuItem.Title>
+                            <MenuItem.TitleStrong>{delegateDisplayName}</MenuItem.TitleStrong>
                             {!!delegateDescription && <MenuItem.Description numberOfLines={1}>{delegateDescription}</MenuItem.Description>}
                         </MenuItem.Content>
                         <MenuItem.Trailing>

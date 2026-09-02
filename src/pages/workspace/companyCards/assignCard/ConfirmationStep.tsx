@@ -189,7 +189,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                 >
                     <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.letsDoubleCheck')}</Text>
                     <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.confirmationDescription')}</Text>
-                    <MenuItemField description={translate('workspace.companyCards.card')}>{!!cardNameTitle && <MenuItem.TitleBasic>{cardNameTitle}</MenuItem.TitleBasic>}</MenuItemField>
+                    <MenuItemField description={translate('workspace.companyCards.card')}>{!!cardNameTitle && <MenuItem.Title>{cardNameTitle}</MenuItem.Title>}</MenuItemField>
                     <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
                         <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.to')}</Text>
                     </View>
@@ -205,13 +205,13 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                         description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
                         onPress={() => editStep(CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE)}
                     >
-                        {!!transactionStartDateTitle && <MenuItem.TitleBasic>{transactionStartDateTitle}</MenuItem.TitleBasic>}
+                        {!!transactionStartDateTitle && <MenuItem.Title>{transactionStartDateTitle}</MenuItem.Title>}
                     </MenuItemField>
                     <MenuItemField
                         description={translate('workspace.companyCards.cardName')}
                         onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD_NAME)}
                     >
-                        {!!cardToAssign?.customCardName && <MenuItem.TitleBasic>{cardToAssign.customCardName}</MenuItem.TitleBasic>}
+                        {!!cardToAssign?.customCardName && <MenuItem.Title>{cardToAssign.customCardName}</MenuItem.Title>}
                     </MenuItemField>
                     <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                         <OfflineWithFeedback

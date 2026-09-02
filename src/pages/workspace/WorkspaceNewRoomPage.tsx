@@ -334,7 +334,7 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
                     {isLocked ? (
                         <View style={[styles.mhn5]}>
                             <MenuItemField description={translate('workspace.common.workspace')}>
-                                {!!lockedPolicy?.name && <MenuItem.TitleBasic>{lockedPolicy.name}</MenuItem.TitleBasic>}
+                                {!!lockedPolicy?.name && <MenuItem.Title>{lockedPolicy.name}</MenuItem.Title>}
                             </MenuItemField>
                         </View>
                     ) : (

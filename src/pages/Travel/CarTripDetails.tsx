@@ -67,7 +67,7 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
             />
             {!!reservation.carInfo?.name && (
                 <MenuItemField description={translate('travel.carDetails.carType')}>
-                    <MenuItem.TitleBasic>{reservation.carInfo.name}</MenuItem.TitleBasic>
+                    <MenuItem.Title>{reservation.carInfo.name}</MenuItem.Title>
                 </MenuItemField>
             )}
             {!!cancellationText && (

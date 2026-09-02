@@ -316,9 +316,7 @@ function WorkspaceInviteMessageComponent({
                     <View style={styles.mb3}>
                         <View style={[styles.mhn5, styles.mb3]}>
                             {isInviteNewMemberStep && (
-                                <MenuItemField description={translate('common.member')}>
-                                    {!!invitingMemberTitle && <MenuItem.TitleBasic>{invitingMemberTitle}</MenuItem.TitleBasic>}
-                                </MenuItemField>
+                                <MenuItemField description={translate('common.member')}>{!!invitingMemberTitle && <MenuItem.Title>{invitingMemberTitle}</MenuItem.Title>}</MenuItemField>
                             )}
                             {shouldShowMemberNames && !isInviteNewMemberStep && (
                                 <MenuItemWithTopDescription
@@ -344,14 +342,14 @@ function WorkspaceInviteMessageComponent({
                                         : undefined
                                 }
                             >
-                                <MenuItem.TitleBasic>{translate(`workspace.common.roleName`, workspaceInviteRoleDraft)}</MenuItem.TitleBasic>
+                                <MenuItem.Title>{translate(`workspace.common.roleName`, workspaceInviteRoleDraft)}</MenuItem.Title>
                             </MenuItemField>
                             {!!shouldShowApproverRow && (
                                 <MenuItemField
                                     description={translate('workflowsPage.approver')}
                                     onPress={navigateToApproverPage}
                                 >
-                                    {!!approverName && <MenuItem.TitleBasic>{approverName}</MenuItem.TitleBasic>}
+                                    {!!approverName && <MenuItem.Title>{approverName}</MenuItem.Title>}
                                 </MenuItemField>
                             )}
                         </View>

@@ -285,7 +285,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                                     description={translate('workspace.taxes.taxRate')}
                                     onPress={canWriteDistanceRates ? editTaxRateValue : undefined}
                                 >
-                                    {!!taxRate && <MenuItem.TitleBasic>{taxRate}</MenuItem.TitleBasic>}
+                                    {!!taxRate && <MenuItem.Title>{taxRate}</MenuItem.Title>}
                                 </MenuItemField>
                             </View>
                         </OfflineWithFeedback>

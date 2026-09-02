@@ -139,7 +139,7 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
                                 onPress={openRoleSelectionModal}
                                 isDisabled={isSelectedMemberCurrentUser}
                             >
-                                <MenuItem.TitleBasic>{member?.role === CONST.REPORT.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}</MenuItem.TitleBasic>
+                                <MenuItem.Title>{member?.role === CONST.REPORT.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}</MenuItem.Title>
                             </MenuItemField>
                         </OfflineWithFeedback>
                     )}

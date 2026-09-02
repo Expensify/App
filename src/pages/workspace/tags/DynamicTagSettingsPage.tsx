@@ -204,7 +204,7 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                             description={translate(`common.name`)}
                             onPress={canWriteTags && !hasDependentTags ? navigateToEditTag : undefined}
                         >
-                            {!!cleanedTagName && <MenuItem.TitleBasic>{cleanedTagName}</MenuItem.TitleBasic>}
+                            {!!cleanedTagName && <MenuItem.Title>{cleanedTagName}</MenuItem.Title>}
                         </MenuItemField>
                     </OfflineWithFeedback>
                     {(!hasDependentTags || !!currentPolicyTag?.['GL Code']) && (

@@ -120,7 +120,7 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
                     description={translate('workspace.rules.merchantRules.matchType')}
                     onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_MATCH_TYPE.getRoute(policyID, isEditing ? ruleID : undefined))}
                 >
-                    <MenuItem.TitleBasic>{getMatchTypeLabel()}</MenuItem.TitleBasic>
+                    <MenuItem.Title>{getMatchTypeLabel()}</MenuItem.Title>
                 </MenuItemField>
             </FormProvider>
         </ScreenWrapper>

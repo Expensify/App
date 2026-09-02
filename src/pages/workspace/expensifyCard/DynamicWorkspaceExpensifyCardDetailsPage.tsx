@@ -395,7 +395,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                             description={translate('workspace.card.issueNewCard.cardName')}
                             onPress={canWriteExpensifyCard ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_NAME.path)) : undefined}
                         >
-                            {!!card?.nameValuePairs?.cardTitle && <MenuItem.TitleBasic>{card.nameValuePairs.cardTitle}</MenuItem.TitleBasic>}
+                            {!!card?.nameValuePairs?.cardTitle && <MenuItem.Title>{card.nameValuePairs.cardTitle}</MenuItem.Title>}
                         </MenuItemField>
                     </OfflineWithFeedback>
                     <MenuItemWithTopDescription
@@ -437,7 +437,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                             description={translate('workspace.expensifyCard.cardLimit')}
                             onPress={canWriteExpensifyCard ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path)) : undefined}
                         >
-                            {!!formattedLimit && <MenuItem.TitleBasic>{formattedLimit}</MenuItem.TitleBasic>}
+                            {!!formattedLimit && <MenuItem.Title>{formattedLimit}</MenuItem.Title>}
                         </MenuItemField>
                     </OfflineWithFeedback>
                     <View style={styles.mt6}>

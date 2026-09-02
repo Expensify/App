@@ -71,7 +71,7 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE_SELECT)}
                     isDisabled={!!timezone.automatic}
                 >
-                    {!!timezone.selected && <MenuItem.TitleBasic>{timezone.selected}</MenuItem.TitleBasic>}
+                    {!!timezone.selected && <MenuItem.Title>{timezone.selected}</MenuItem.Title>}
                 </MenuItemField>
             </View>
         </ScreenWrapper>

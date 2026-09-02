@@ -46,9 +46,7 @@ function DynamicSageIntacctTravelBillingConfigurationPage({policy}: WithPolicyCo
             onBackButtonPress={() => Navigation.goBack(backPath)}
         >
             <MenuItemField description={translate('workspace.accounting.exportAs')}>
-                <MenuItem.TitleBasic>
-                    {translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}`)}
-                </MenuItem.TitleBasic>
+                <MenuItem.Title>{translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}`)}</MenuItem.Title>
             </MenuItemField>
             <OfflineWithFeedback
                 pendingAction={settingsPendingAction(payableAccountSetting, config?.pendingFields)}

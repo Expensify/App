@@ -17,7 +17,7 @@
  *             <MenuItem.Icon src={icons.Gear} />
  *         </MenuItem.Leading>
  *         <MenuItem.Content>
- *             <MenuItem.Title>{translate('common.settings')}</MenuItem.Title>
+ *             <MenuItem.TitleStrong>{translate('common.settings')}</MenuItem.TitleStrong>
  *         </MenuItem.Content>
  *         <MenuItem.Trailing>
  *             <MenuItem.Chevron />
@@ -35,7 +35,7 @@ import MenuItemIcon from './leaves/leading/MenuItemIcon';
 import MenuItemDescription from './leaves/text/description/MenuItemDescription';
 import MenuItemDescriptionPlaceholder from './leaves/text/description/MenuItemDescriptionPlaceholder';
 import MenuItemTitle from './leaves/text/title/MenuItemTitle';
-import MenuItemTitleBasic from './leaves/text/title/MenuItemTitleBasic';
+import MenuItemTitleStrong from './leaves/text/title/MenuItemTitleStrong';
 import MenuItemChevron from './leaves/trailing/MenuItemChevron';
 import MenuItemRightLabel from './leaves/trailing/MenuItemRightLabel';
 import LegacyMenuItem from './MenuItem';
@@ -48,7 +48,7 @@ const MenuItem = Object.assign(LegacyMenuItem, {
     Trailing: MenuItemTrailing,
     Icon: MenuItemIcon,
     Title: MenuItemTitle,
-    TitleBasic: MenuItemTitleBasic,
+    TitleStrong: MenuItemTitleStrong,
     Description: MenuItemDescription,
     DescriptionPlaceholder: MenuItemDescriptionPlaceholder,
     Chevron: MenuItemChevron,

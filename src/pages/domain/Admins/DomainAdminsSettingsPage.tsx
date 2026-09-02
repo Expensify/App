@@ -53,7 +53,7 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                     description={translate('domain.admins.primaryContact')}
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(domainAccountID))}
                 >
-                    {!!technicalContactSettings?.technicalContactEmail && <MenuItem.TitleBasic>{technicalContactSettings.technicalContactEmail}</MenuItem.TitleBasic>}
+                    {!!technicalContactSettings?.technicalContactEmail && <MenuItem.Title>{technicalContactSettings.technicalContactEmail}</MenuItem.Title>}
                 </MenuItemField>
             </OfflineWithFeedback>
             <ToggleSettingOptionRow

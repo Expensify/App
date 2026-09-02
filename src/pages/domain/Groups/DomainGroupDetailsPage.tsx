@@ -80,7 +80,7 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
                             description={translate('common.name')}
                             onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_EDIT_NAME.getRoute(domainAccountID, groupID))}
                         >
-                            {!!group?.name && <MenuItem.TitleBasic>{group.name}</MenuItem.TitleBasic>}
+                            {!!group?.name && <MenuItem.Title>{group.name}</MenuItem.Title>}
                         </MenuItemField>
                     </OfflineWithFeedback>
                     <DefaultGroupToggle

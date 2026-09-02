@@ -95,7 +95,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                                 );
                             }}
                         >
-                            {!!customTagName && <MenuItem.TitleBasic>{customTagName}</MenuItem.TitleBasic>}
+                            {!!customTagName && <MenuItem.Title>{customTagName}</MenuItem.Title>}
                         </MenuItemField>
                     </OfflineWithFeedback>
                 )}

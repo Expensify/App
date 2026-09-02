@@ -26,7 +26,7 @@ function RevokeRow({title, isLoading, onPress}: RevokeRowProps) {
         <MenuItem.Root>
             <MenuItem.Row>
                 <MenuItem.Content>
-                    <MenuItem.Title>{title}</MenuItem.Title>
+                    <MenuItem.TitleStrong>{title}</MenuItem.TitleStrong>
                 </MenuItem.Content>
                 <MenuItem.Trailing>
                     <Button

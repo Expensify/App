@@ -87,7 +87,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                                 description={translate('workspace.expensifyCard.settlementAccount')}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path))}
                             >
-                                {!!bankAccountNumber && <MenuItem.TitleBasic>{`${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(bankAccountNumber)}`}</MenuItem.TitleBasic>}
+                                {!!bankAccountNumber && <MenuItem.Title>{`${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(bankAccountNumber)}`}</MenuItem.Title>}
                             </MenuItemField>
                         </OfflineWithFeedback>
                         <OfflineWithFeedback errorRowStyles={styles.mh5}>

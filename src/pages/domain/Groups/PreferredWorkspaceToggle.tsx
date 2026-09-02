@@ -126,7 +126,7 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
                         onPress={() => Navigation.navigate(ROUTES.DOMAIN_SECURITY_GROUPS_PREFERRED_WORKSPACE.getRoute(domainAccountID, groupID))}
                         isDisabled={!isEnabled || (!hasAdminPolicies && !!preferredPolicyName)}
                     >
-                        {!!preferredWorkspaceName && <MenuItem.TitleBasic>{preferredWorkspaceName}</MenuItem.TitleBasic>}
+                        {!!preferredWorkspaceName && <MenuItem.Title>{preferredWorkspaceName}</MenuItem.Title>}
                     </MenuItemField>
                 </OfflineWithFeedback>
             )}

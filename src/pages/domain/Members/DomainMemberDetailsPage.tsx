@@ -163,7 +163,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                         description={translate('domain.members.domainGroup')}
                         onPress={() => Navigation.navigate(ROUTES.DOMAIN_MEMBER_MOVE_TO_GROUP.getRoute(domainAccountID, accountID))}
                     >
-                        {!!userSecurityGroup?.securityGroup?.name && <MenuItem.TitleBasic>{userSecurityGroup.securityGroup.name}</MenuItem.TitleBasic>}
+                        {!!userSecurityGroup?.securityGroup?.name && <MenuItem.Title>{userSecurityGroup.securityGroup.name}</MenuItem.Title>}
                     </MenuItemField>
                 </OfflineWithFeedback>
                 <VacationDelegateMenuItem

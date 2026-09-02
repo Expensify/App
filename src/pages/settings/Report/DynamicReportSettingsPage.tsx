@@ -83,7 +83,7 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
                                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(reportID)));
                             }}
                         >
-                            {!!notificationPreference && <MenuItem.TitleBasic>{notificationPreference}</MenuItem.TitleBasic>}
+                            {!!notificationPreference && <MenuItem.Title>{notificationPreference}</MenuItem.Title>}
                         </MenuItemField>
                     )}
                     {shouldShowWriteCapability && shouldAllowWriteCapabilityEditing && (
@@ -91,7 +91,7 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
                             description={translate('writeCapabilityPage.label')}
                             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.path))}
                         >
-                            {!!writeCapabilityText && <MenuItem.TitleBasic>{writeCapabilityText}</MenuItem.TitleBasic>}
+                            {!!writeCapabilityText && <MenuItem.Title>{writeCapabilityText}</MenuItem.Title>}
                         </MenuItemField>
                     )}
                     {shouldShowWriteCapability && !shouldAllowWriteCapabilityEditing && (
@@ -119,7 +119,7 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
                                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_VISIBILITY.path));
                                 }}
                             >
-                                <MenuItem.TitleBasic>{translate(`newRoomPage.visibilityOptions.${report.visibility}`)}</MenuItem.TitleBasic>
+                                <MenuItem.Title>{translate(`newRoomPage.visibilityOptions.${report.visibility}`)}</MenuItem.Title>
                             </MenuItemField>
                         ) : (
                             <View style={[styles.pv3, styles.ph5]}>

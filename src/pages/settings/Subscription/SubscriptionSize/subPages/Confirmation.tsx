@@ -34,10 +34,10 @@ function Confirmation({onNext}: ConfirmationProps) {
         <View style={[styles.flexGrow1]}>
             <Text style={[styles.ph5, styles.pb3]}>{translate('subscription.subscriptionSize.confirmDetails')}</Text>
             <MenuItemField description={translate('subscription.subscriptionSize.subscriptionSize')}>
-                <MenuItem.TitleBasic>{translate('subscription.subscriptionSize.activeMembers', subscriptionSize)}</MenuItem.TitleBasic>
+                <MenuItem.Title>{translate('subscription.subscriptionSize.activeMembers', subscriptionSize)}</MenuItem.Title>
             </MenuItemField>
             <MenuItemField description={translate('subscription.subscriptionSize.subscriptionRenews')}>
-                {!!subscriptionRenewalDate && <MenuItem.TitleBasic>{subscriptionRenewalDate}</MenuItem.TitleBasic>}
+                {!!subscriptionRenewalDate && <MenuItem.Title>{subscriptionRenewalDate}</MenuItem.Title>}
             </MenuItemField>
             <FixedFooter style={[styles.mtAuto]}>
                 <Button

@@ -56,7 +56,7 @@ function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
                 <MenuItem.Row>
                     <MenuItem.Content>
                         {!!bankName && <MenuItem.Description>{bankName}</MenuItem.Description>}
-                        <MenuItem.TitleBasic>{`${translate('bankAccount.accountEnding')} ${accountNumber.slice(-4)}`}</MenuItem.TitleBasic>
+                        <MenuItem.Title>{`${translate('bankAccount.accountEnding')} ${accountNumber.slice(-4)}`}</MenuItem.Title>
                     </MenuItem.Content>
                     {!isBankAccountAdded && (
                         <MenuItem.Trailing>

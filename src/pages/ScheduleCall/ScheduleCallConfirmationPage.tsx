@@ -120,7 +120,7 @@ function ScheduleCallConfirmationPage() {
                                 />
                             </MenuItem.Leading>
                             <MenuItem.Content>
-                                {!!guideDetails?.displayName && <MenuItem.Title>{guideDetails.displayName}</MenuItem.Title>}
+                                {!!guideDetails?.displayName && <MenuItem.TitleStrong>{guideDetails.displayName}</MenuItem.TitleStrong>}
                                 {!!guideDetails?.login && <MenuItem.Description>{guideDetails.login}</MenuItem.Description>}
                             </MenuItem.Content>
                         </MenuItem.Row>
@@ -139,7 +139,7 @@ function ScheduleCallConfirmationPage() {
                         }}
                     />
                     <MenuItemField description={translate('scheduledCall.confirmation.meetingLength')}>
-                        <MenuItem.TitleBasic>{translate('scheduledCall.confirmation.minutes')}</MenuItem.TitleBasic>
+                        <MenuItem.Title>{translate('scheduledCall.confirmation.minutes')}</MenuItem.Title>
                     </MenuItemField>
                 </ScrollView>
                 <FixedFooter>

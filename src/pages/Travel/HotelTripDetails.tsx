@@ -68,7 +68,7 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
 
             {!!reservation.roomClass && (
                 <MenuItemField description={translate('travel.hotelDetails.roomType')}>
-                    <MenuItem.TitleBasic>{reservation.roomClass.trim()}</MenuItem.TitleBasic>
+                    <MenuItem.Title>{reservation.roomClass.trim()}</MenuItem.Title>
                 </MenuItemField>
             )}
             {!!cancellationText && (

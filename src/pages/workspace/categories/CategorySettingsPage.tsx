@@ -336,7 +336,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                             description={translate('common.name')}
                             onPress={canWriteCategories ? navigateToEditCategory : undefined}
                         >
-                            {!!decodedCategoryName && <MenuItem.TitleBasic>{decodedCategoryName}</MenuItem.TitleBasic>}
+                            {!!decodedCategoryName && <MenuItem.Title>{decodedCategoryName}</MenuItem.Title>}
                         </MenuItemField>
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['GL Code']}>
@@ -366,7 +366,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     : undefined
                             }
                         >
-                            {!!policyCategory['GL Code'] && <MenuItem.TitleBasic>{policyCategory['GL Code']}</MenuItem.TitleBasic>}
+                            {!!policyCategory['GL Code'] && <MenuItem.Title>{policyCategory['GL Code']}</MenuItem.Title>}
                         </MenuItemField>
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['Payroll Code']}>
@@ -394,7 +394,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     : undefined
                             }
                         >
-                            {!!policyCategory['Payroll Code'] && <MenuItem.TitleBasic>{policyCategory['Payroll Code']}</MenuItem.TitleBasic>}
+                            {!!policyCategory['Payroll Code'] && <MenuItem.Title>{policyCategory['Payroll Code']}</MenuItem.Title>}
                         </MenuItemField>
                     </OfflineWithFeedback>
                     {categoryRulesEnabled && isRulesRevampEnabled && (
@@ -438,7 +438,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                             : undefined
                                     }
                                 >
-                                    {!!defaultTaxRateText && <MenuItem.TitleBasic>{defaultTaxRateText}</MenuItem.TitleBasic>}
+                                    {!!defaultTaxRateText && <MenuItem.Title>{defaultTaxRateText}</MenuItem.Title>}
                                 </MenuItemField>
                             )}
                         </>
@@ -498,7 +498,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                             : undefined
                                     }
                                 >
-                                    {!!defaultTaxRateText && <MenuItem.TitleBasic>{defaultTaxRateText}</MenuItem.TitleBasic>}
+                                    {!!defaultTaxRateText && <MenuItem.Title>{defaultTaxRateText}</MenuItem.Title>}
                                 </MenuItemField>
                             )}
                             {/*
@@ -517,7 +517,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                             : undefined
                                     }
                                 >
-                                    {!!flagAmountsOverText && <MenuItem.TitleBasic>{flagAmountsOverText}</MenuItem.TitleBasic>}
+                                    {!!flagAmountsOverText && <MenuItem.Title>{flagAmountsOverText}</MenuItem.Title>}
                                 </MenuItemField>
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxAmountNoReceipt}>
@@ -531,7 +531,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                             : undefined
                                     }
                                 >
-                                    {!!requireReceiptsOverText && <MenuItem.TitleBasic>{requireReceiptsOverText}</MenuItem.TitleBasic>}
+                                    {!!requireReceiptsOverText && <MenuItem.Title>{requireReceiptsOverText}</MenuItem.Title>}
                                 </MenuItemField>
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxAmountNoItemizedReceipt}>
@@ -545,7 +545,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                             : undefined
                                     }
                                 >
-                                    {!!requireItemizedReceiptsOverText && <MenuItem.TitleBasic>{requireItemizedReceiptsOverText}</MenuItem.TitleBasic>}
+                                    {!!requireItemizedReceiptsOverText && <MenuItem.Title>{requireItemizedReceiptsOverText}</MenuItem.Title>}
                                 </MenuItemField>
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={requireFieldsPendingAction}>
@@ -559,7 +559,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                             : undefined
                                     }
                                 >
-                                    {!!requiredFieldsTitle && <MenuItem.TitleBasic>{requiredFieldsTitle}</MenuItem.TitleBasic>}
+                                    {!!requiredFieldsTitle && <MenuItem.Title>{requiredFieldsTitle}</MenuItem.Title>}
                                 </MenuItemField>
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>

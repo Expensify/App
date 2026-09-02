@@ -235,14 +235,14 @@ function DynamicNewTaskPage() {
                                             </MenuItem.Leading>
                                         )}
                                         <MenuItem.Content>
-                                            <MenuItem.Title accessibilityLabel={assignee.displayName}>
+                                            <MenuItem.TitleStrong accessibilityLabel={assignee.displayName}>
                                                 <DisplayNames
                                                     fullTitle={assignee.displayName}
                                                     displayNamesWithTooltips={assigneeTooltipDetails}
                                                     tooltipEnabled
                                                     numberOfLines={1}
                                                 />
-                                            </MenuItem.Title>
+                                            </MenuItem.TitleStrong>
                                             {!!assignee.subtitle && <MenuItem.Description>{formatPhoneNumber(assignee.subtitle)}</MenuItem.Description>}
                                         </MenuItem.Content>
                                         <MenuItem.Trailing>
@@ -267,16 +267,16 @@ function DynamicNewTaskPage() {
                                         </MenuItem.Leading>
                                         <MenuItem.Content>
                                             {shareDestination.shouldUseFullTitleToDisplay || !shareDestination.displayNamesWithTooltips?.length ? (
-                                                <MenuItem.Title>{shareDestination.displayName}</MenuItem.Title>
+                                                <MenuItem.TitleStrong>{shareDestination.displayName}</MenuItem.TitleStrong>
                                             ) : (
-                                                <MenuItem.Title accessibilityLabel={shareDestination.displayName}>
+                                                <MenuItem.TitleStrong accessibilityLabel={shareDestination.displayName}>
                                                     <DisplayNames
                                                         fullTitle={shareDestination.displayName}
                                                         displayNamesWithTooltips={shareDestination.displayNamesWithTooltips}
                                                         tooltipEnabled
                                                         numberOfLines={1}
                                                     />
-                                                </MenuItem.Title>
+                                                </MenuItem.TitleStrong>
                                             )}
                                             {!!shareDestination.subtitle && <MenuItem.Description>{shareDestination.subtitle}</MenuItem.Description>}
                                         </MenuItem.Content>

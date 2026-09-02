@@ -95,25 +95,25 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
                         description={translate('common.destination')}
                         onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_DESTINATION.getRoute(policyID, rateID, subRateID)) : undefined}
                     >
-                        {!!selectedRate?.name && <MenuItem.TitleBasic>{selectedRate.name}</MenuItem.TitleBasic>}
+                        {!!selectedRate?.name && <MenuItem.Title>{selectedRate.name}</MenuItem.Title>}
                     </MenuItemField>
                     <MenuItemField
                         description={translate('common.subrate')}
                         onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_SUBRATE.getRoute(policyID, rateID, subRateID)) : undefined}
                     >
-                        {!!selectedSubRate?.name && <MenuItem.TitleBasic>{selectedSubRate.name}</MenuItem.TitleBasic>}
+                        {!!selectedSubRate?.name && <MenuItem.Title>{selectedSubRate.name}</MenuItem.Title>}
                     </MenuItemField>
                     <MenuItemField
                         description={translate('workspace.perDiem.amount')}
                         onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_AMOUNT.getRoute(policyID, rateID, subRateID)) : undefined}
                     >
-                        {!!amountValue && <MenuItem.TitleBasic>{amountValue}</MenuItem.TitleBasic>}
+                        {!!amountValue && <MenuItem.Title>{amountValue}</MenuItem.Title>}
                     </MenuItemField>
                     <MenuItemField
                         description={translate('common.currency')}
                         onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.getRoute(policyID, rateID, subRateID)) : undefined}
                     >
-                        {!!currencyValue && <MenuItem.TitleBasic>{currencyValue}</MenuItem.TitleBasic>}
+                        {!!currencyValue && <MenuItem.Title>{currencyValue}</MenuItem.Title>}
                     </MenuItemField>
                     {canWritePerDiem && (
                         <MenuItemAction

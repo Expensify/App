@@ -194,32 +194,32 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                     description={translate('workspace.card.issueNewCard.cardholder')}
                     onPress={!issueNewCard?.isChangeAssigneeDisabled ? () => editStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE) : undefined}
                 >
-                    {!!cardholder && <MenuItem.TitleBasic>{cardholder}</MenuItem.TitleBasic>}
+                    {!!cardholder && <MenuItem.Title>{cardholder}</MenuItem.Title>}
                 </MenuItemField>
                 <MenuItemField
                     description={translate('workspace.card.issueNewCard.cardType')}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_TYPE)}
                 >
-                    {!!data?.cardType && <MenuItem.TitleBasic>{translate(`workspace.card.issueNewCard.${data?.cardType}Card`)}</MenuItem.TitleBasic>}
+                    {!!data?.cardType && <MenuItem.Title>{translate(`workspace.card.issueNewCard.${data?.cardType}Card`)}</MenuItem.Title>}
                 </MenuItemField>
                 <MenuItemField
                     description={translate('workspace.card.issueNewCard.limit')}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
                 >
-                    {!!limitTitle && <MenuItem.TitleBasic>{limitTitle}</MenuItem.TitleBasic>}
+                    {!!limitTitle && <MenuItem.Title>{limitTitle}</MenuItem.Title>}
                 </MenuItemField>
                 <MenuItemField
                     description={translate('workspace.card.issueNewCard.limitType')}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
                 >
-                    {!!translationForLimitType && <MenuItem.TitleBasic>{translate(translationForLimitType)}</MenuItem.TitleBasic>}
+                    {!!translationForLimitType && <MenuItem.Title>{translate(translationForLimitType)}</MenuItem.Title>}
                 </MenuItemField>
                 {!!expirationDateTitle && shouldShowExpirationDate && (
                     <MenuItemField
                         description={translate('workspace.card.issueNewCard.expirationDate')}
                         onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.SPEND_RULES)}
                     >
-                        <MenuItem.TitleBasic>{expirationDateTitle}</MenuItem.TitleBasic>
+                        <MenuItem.Title>{expirationDateTitle}</MenuItem.Title>
                     </MenuItemField>
                 )}
                 {isSpendRuleApplied && areRulesEnabled && (
@@ -227,14 +227,14 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                         description={translate('common.restrictions')}
                         onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.SPEND_RULES)}
                     >
-                        {!!cardRuleRestrictionsTitle && <MenuItem.TitleBasic>{cardRuleRestrictionsTitle}</MenuItem.TitleBasic>}
+                        {!!cardRuleRestrictionsTitle && <MenuItem.Title>{cardRuleRestrictionsTitle}</MenuItem.Title>}
                     </MenuItemField>
                 )}
                 <MenuItemField
                     description={translate('workspace.card.issueNewCard.cardName')}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_NAME)}
                 >
-                    {!!data?.cardTitle && <MenuItem.TitleBasic>{data.cardTitle}</MenuItem.TitleBasic>}
+                    {!!data?.cardTitle && <MenuItem.Title>{data.cardTitle}</MenuItem.Title>}
                 </MenuItemField>
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                     <FormAlertWithSubmitButton

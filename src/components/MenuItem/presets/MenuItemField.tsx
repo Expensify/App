@@ -18,11 +18,11 @@ type MenuItemFieldProps = Omit<MenuItemRootProps, 'accessibilityLabel'> & {
 
 /**
  * The field MenuItem preset — a form field: the name of the field, and the value the user picked for
- * it. Pass the value as a child (`MenuItem.TitleBasic` in most cases) and leave the child out for the
+ * it. Pass the value as a child (`MenuItem.Title` in most cases) and leave the child out for the
  * branch where there is no value yet — the description then takes over the row on its own.
  */
 function MenuItemField({description, children, onPress, isDisabled = false, sentryLabel, testID}: MenuItemFieldProps) {
-    // `Children.toArray` drops the `false` a `{!!value && <MenuItem.TitleBasic>}` child leaves behind
+    // `Children.toArray` drops the `false` a `{!!value && <MenuItem.Title>}` child leaves behind
     const hasValue = Children.toArray(children).length > 0;
 
     return (

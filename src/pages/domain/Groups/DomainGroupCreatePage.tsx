@@ -210,7 +210,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                             onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE.getRoute(domainAccountID))}
                             isDisabled={!preferredWorkspace}
                         >
-                            {!!preferredWorkspaceName && <MenuItem.TitleBasic>{preferredWorkspaceName}</MenuItem.TitleBasic>}
+                            {!!preferredWorkspaceName && <MenuItem.Title>{preferredWorkspaceName}</MenuItem.Title>}
                         </MenuItemField>
                     )}
                     <ToggleSettingOptionRow

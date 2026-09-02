@@ -114,7 +114,7 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
                     description={translate('search.display.sortOrder')}
                     onPress={onSortOrderPress}
                 >
-                    {!!sortOrder && <MenuItem.TitleBasic>{translate(`search.filters.sortOrder.${sortOrder}`)}</MenuItem.TitleBasic>}
+                    {!!sortOrder && <MenuItem.Title>{translate(`search.filters.sortOrder.${sortOrder}`)}</MenuItem.Title>}
                 </MenuItemField>
                 <View style={styles.dividerLine} />
                 <SelectionList

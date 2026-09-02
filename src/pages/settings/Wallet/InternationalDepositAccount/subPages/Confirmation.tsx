@@ -212,7 +212,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
                     isDisabled={disabled}
                     testID={id}
                 >
-                    {!!title && <MenuItem.TitleBasic>{title}</MenuItem.TitleBasic>}
+                    {!!title && <MenuItem.Title>{title}</MenuItem.Title>}
                 </MenuItemField>
             ))}
             <FormProvider

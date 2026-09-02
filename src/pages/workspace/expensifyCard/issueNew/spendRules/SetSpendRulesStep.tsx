@@ -299,7 +299,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                                         onPress={handleChooseSpendRule}
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.CHOOSE_SPEND_RULE}
                                     >
-                                        {!!existingSpendRuleTitle && <MenuItem.TitleBasic>{existingSpendRuleTitle}</MenuItem.TitleBasic>}
+                                        {!!existingSpendRuleTitle && <MenuItem.Title>{existingSpendRuleTitle}</MenuItem.Title>}
                                     </MenuItemField>
                                 )}
 

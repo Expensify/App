@@ -91,7 +91,7 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
                                 <UserAvatar accountID={CONST.DEFAULT_NUMBER_ID} />
                             </MenuItem.Leading>
                             <MenuItem.Content>
-                                <MenuItem.Title>{`${requestorData.firstName} ${requestorData.lastName}`}</MenuItem.Title>
+                                <MenuItem.TitleStrong>{`${requestorData.firstName} ${requestorData.lastName}`}</MenuItem.TitleStrong>
                                 <MenuItem.Description>{`${requestorData.requestorAddressStreet}, ${requestorData.requestorAddressCity}, ${requestorData.requestorAddressState} ${requestorData.requestorAddressZipCode}`}</MenuItem.Description>
                             </MenuItem.Content>
                         </MenuItem.Row>

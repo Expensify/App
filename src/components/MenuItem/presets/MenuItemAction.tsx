@@ -3,7 +3,7 @@ import MenuItemLeading from '@components/MenuItem/layout/MenuItemLeading';
 import MenuItemRoot from '@components/MenuItem/layout/MenuItemRoot';
 import MenuItemRow from '@components/MenuItem/layout/MenuItemRow';
 import MenuItemIcon from '@components/MenuItem/leaves/leading/MenuItemIcon';
-import MenuItemTitle from '@components/MenuItem/leaves/text/title/MenuItemTitle';
+import MenuItemTitleStrong from '@components/MenuItem/leaves/text/title/MenuItemTitleStrong';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
@@ -48,7 +48,7 @@ function MenuItemAction({title, icon, onPress, isDisabled = false, sentryLabel, 
                     <MenuItemIcon src={icon} />
                 </MenuItemLeading>
                 <MenuItemContent>
-                    <MenuItemTitle>{title}</MenuItemTitle>
+                    <MenuItemTitleStrong>{title}</MenuItemTitleStrong>
                 </MenuItemContent>
             </MenuItemRow>
         </MenuItemRoot>

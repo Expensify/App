@@ -134,7 +134,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
                         description={translate('editAgentPage.agentName')}
                         onPress={handleEditNamePress}
                     >
-                        {!!personalDetails?.displayName && <MenuItem.TitleBasic>{personalDetails.displayName}</MenuItem.TitleBasic>}
+                        {!!personalDetails?.displayName && <MenuItem.Title>{personalDetails.displayName}</MenuItem.Title>}
                     </MenuItemField>
                 </OfflineWithFeedback>
                 <OfflineWithFeedback

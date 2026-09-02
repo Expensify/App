@@ -75,7 +75,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                     onMove(BUSINESS_INFO_STEP_INDEXES.BUSINESS_NAME);
                 }}
             >
-                {!!values[BUSINESS_INFO_STEP_KEYS.COMPANY_NAME] && <MenuItem.TitleBasic>{values[BUSINESS_INFO_STEP_KEYS.COMPANY_NAME]}</MenuItem.TitleBasic>}
+                {!!values[BUSINESS_INFO_STEP_KEYS.COMPANY_NAME] && <MenuItem.Title>{values[BUSINESS_INFO_STEP_KEYS.COMPANY_NAME]}</MenuItem.Title>}
             </MenuItemField>
             <MenuItemField
                 description={translate('businessInfoStep.taxIDNumber')}
@@ -83,7 +83,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                     onMove(BUSINESS_INFO_STEP_INDEXES.TAX_ID_NUMBER);
                 }}
             >
-                {!!values[BUSINESS_INFO_STEP_KEYS.COMPANY_TAX_ID] && <MenuItem.TitleBasic>{values[BUSINESS_INFO_STEP_KEYS.COMPANY_TAX_ID]}</MenuItem.TitleBasic>}
+                {!!values[BUSINESS_INFO_STEP_KEYS.COMPANY_TAX_ID] && <MenuItem.Title>{values[BUSINESS_INFO_STEP_KEYS.COMPANY_TAX_ID]}</MenuItem.Title>}
             </MenuItemField>
             <MenuItemField
                 description={translate('common.companyAddress')}
@@ -91,9 +91,9 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                     onMove(BUSINESS_INFO_STEP_INDEXES.COMPANY_ADDRESS);
                 }}
             >
-                <MenuItem.TitleBasic>{`${values[BUSINESS_INFO_STEP_KEYS.STREET]}, ${values[BUSINESS_INFO_STEP_KEYS.CITY]}, ${values[BUSINESS_INFO_STEP_KEYS.STATE]} ${
+                <MenuItem.Title>{`${values[BUSINESS_INFO_STEP_KEYS.STREET]}, ${values[BUSINESS_INFO_STEP_KEYS.CITY]}, ${values[BUSINESS_INFO_STEP_KEYS.STATE]} ${
                     values[BUSINESS_INFO_STEP_KEYS.ZIP_CODE]
-                }`}</MenuItem.TitleBasic>
+                }`}</MenuItem.Title>
             </MenuItemField>
             <MenuItemField
                 description={translate('common.phoneNumber')}
@@ -101,7 +101,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                     onMove(BUSINESS_INFO_STEP_INDEXES.PHONE_NUMBER);
                 }}
             >
-                {!!values[BUSINESS_INFO_STEP_KEYS.COMPANY_PHONE] && <MenuItem.TitleBasic>{values[BUSINESS_INFO_STEP_KEYS.COMPANY_PHONE]}</MenuItem.TitleBasic>}
+                {!!values[BUSINESS_INFO_STEP_KEYS.COMPANY_PHONE] && <MenuItem.Title>{values[BUSINESS_INFO_STEP_KEYS.COMPANY_PHONE]}</MenuItem.Title>}
             </MenuItemField>
             <MenuItemField
                 description={translate('businessInfoStep.companyWebsite')}
@@ -109,7 +109,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                     onMove(BUSINESS_INFO_STEP_INDEXES.COMPANY_WEBSITE);
                 }}
             >
-                {!!values[BUSINESS_INFO_STEP_KEYS.COMPANY_WEBSITE] && <MenuItem.TitleBasic>{values[BUSINESS_INFO_STEP_KEYS.COMPANY_WEBSITE]}</MenuItem.TitleBasic>}
+                {!!values[BUSINESS_INFO_STEP_KEYS.COMPANY_WEBSITE] && <MenuItem.Title>{values[BUSINESS_INFO_STEP_KEYS.COMPANY_WEBSITE]}</MenuItem.Title>}
             </MenuItemField>
             <MenuItemField
                 description={translate('businessInfoStep.companyType')}
@@ -118,7 +118,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                 }}
             >
                 {!!values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE] && (
-                    <MenuItem.TitleBasic>{translate(`businessInfoStep.incorporationType.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]}` as TranslationPaths)}</MenuItem.TitleBasic>
+                    <MenuItem.Title>{translate(`businessInfoStep.incorporationType.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]}` as TranslationPaths)}</MenuItem.Title>
                 )}
             </MenuItemField>
             <MenuItemField
@@ -127,7 +127,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                     onMove(BUSINESS_INFO_STEP_INDEXES.INCORPORATION_DATE);
                 }}
             >
-                {!!values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_DATE] && <MenuItem.TitleBasic>{values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_DATE]}</MenuItem.TitleBasic>}
+                {!!values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_DATE] && <MenuItem.Title>{values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_DATE]}</MenuItem.Title>}
             </MenuItemField>
             <MenuItemField
                 description={translate('businessInfoStep.incorporationState')}
@@ -136,7 +136,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                 }}
             >
                 {!!values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] && (
-                    <MenuItem.TitleBasic>{translate(`allStates.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] as States}.stateName`)}</MenuItem.TitleBasic>
+                    <MenuItem.Title>{translate(`allStates.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] as States}.stateName`)}</MenuItem.Title>
                 )}
             </MenuItemField>
             <MenuItemField
@@ -145,7 +145,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                     onMove(BUSINESS_INFO_STEP_INDEXES.INCORPORATION_CODE);
                 }}
             >
-                {!!values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_CODE] && <MenuItem.TitleBasic>{values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_CODE]}</MenuItem.TitleBasic>}
+                {!!values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_CODE] && <MenuItem.Title>{values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_CODE]}</MenuItem.Title>}
             </MenuItemField>
             <FormProvider
                 formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}

@@ -416,7 +416,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             onPress={canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField1')) : undefined}
                                             testID="member-customField1-menu-item"
                                         >
-                                            {!!member?.employeeUserID && <MenuItem.TitleBasic>{member.employeeUserID}</MenuItem.TitleBasic>}
+                                            {!!member?.employeeUserID && <MenuItem.Title>{member.employeeUserID}</MenuItem.Title>}
                                         </MenuItemField>
                                     </OfflineWithFeedback>
                                     <OfflineWithFeedback pendingAction={member?.pendingFields?.employeePayrollID}>
@@ -425,7 +425,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             onPress={canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField2')) : undefined}
                                             testID="member-customField2-menu-item"
                                         >
-                                            {!!member?.employeePayrollID && <MenuItem.TitleBasic>{member.employeePayrollID}</MenuItem.TitleBasic>}
+                                            {!!member?.employeePayrollID && <MenuItem.Title>{member.employeePayrollID}</MenuItem.Title>}
                                         </MenuItemField>
                                     </OfflineWithFeedback>
                                 </>

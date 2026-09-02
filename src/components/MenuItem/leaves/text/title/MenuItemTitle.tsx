@@ -1,5 +1,3 @@
-import useThemeStyles from '@hooks/useThemeStyles';
-
 import React from 'react';
 
 import type MenuItemTitleProps from './types';
@@ -7,18 +5,12 @@ import type MenuItemTitleProps from './types';
 import BaseMenuItemTitle from './BaseMenuItemTitle';
 
 /**
- * The title block of a `MenuItem.Content`. Bold, single line — for a title that carries the row on
- * its own: a navigation destination, a menu action, an entity name.
+ * The title block of a `MenuItem.Content`, at regular weight. Reach for `MenuItem.TitleStrong` when
+ * the title carries the row on its own — here the description names the field and the title is the
+ * value it holds, so bold would make the two compete for attention.
  */
 function MenuItemTitle(props: MenuItemTitleProps) {
-    const styles = useThemeStyles();
-
-    return (
-        <BaseMenuItemTitle
-            {...props}
-            style={styles.textStrong}
-        />
-    );
+    return <BaseMenuItemTitle {...props} />;
 }
 
 export default MenuItemTitle;

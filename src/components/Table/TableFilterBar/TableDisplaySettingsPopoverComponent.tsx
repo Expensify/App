@@ -74,7 +74,7 @@ function TableDisplaySettingsSortByPopup({columns, pendingSorting, setPendingSor
                     description={translate('search.display.sortOrder')}
                     onPress={onSortOrderPress}
                 >
-                    <MenuItem.TitleBasic>{translate(`search.filters.sortOrder.${pendingSorting.order}`)}</MenuItem.TitleBasic>
+                    <MenuItem.Title>{translate(`search.filters.sortOrder.${pendingSorting.order}`)}</MenuItem.Title>
                 </MenuItemField>
                 <View style={styles.dividerLine} />
                 <SelectionList
@@ -191,7 +191,7 @@ export default function TableDisplaySettingsPopoverComponent({closeOverlay}: Tab
                 onPress={openSortBy}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SORT_BY}
             >
-                {!!sortByTitle && <MenuItem.TitleBasic>{sortByTitle}</MenuItem.TitleBasic>}
+                {!!sortByTitle && <MenuItem.Title>{sortByTitle}</MenuItem.Title>}
             </MenuItemField>
         </ScrollView>
     );
