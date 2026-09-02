@@ -301,7 +301,7 @@ type OriginalMessageSubmitted = {
     violations?: SubmittedViolationsSnapshot;
 };
 
-/** Model of the `addexpenseonsubmitted` report action, which only carries the violations snapshot of the added expense */
+/** Model of the add-expense-on-submitted report action, which only carries the violations snapshot of the added expense */
 type OriginalMessageAddExpenseOnSubmitted = {
     /** Snapshot of the transaction violations present when the expense was added to the submitted report */
     violations?: SubmittedViolationsSnapshot;
