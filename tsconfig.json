@@ -2,7 +2,7 @@
     "$schema": "https://json.schemastore.org/tsconfig",
     "extends": "./tsconfig.base.json",
     "compilerOptions": {
-        "types": ["react-native", "react-native-web", "node"],
+        "types": ["react-native", "react-native-web"],
         "lib": ["DOM", "ESNext"],
         // Babel reads this config directly and does not resolve its `extends` chain.
         "paths": {
