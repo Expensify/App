@@ -262,7 +262,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
             prompt: translate('workspace.bankAccount.updateCurrencyPrompt'),
             confirmText: translate('workspace.bankAccount.updateToUSD'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         isCurrencyModalOpen.current = false;
         if (result.action !== ModalActions.CONFIRM || !policy) {
@@ -508,7 +508,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 prompt={translate('workspace.moreFeatures.travel.travelInvoicing.disableModal.body')}
                 confirmText={translate('workspace.moreFeatures.travel.travelInvoicing.disableModal.confirm')}
                 cancelText={translate('common.cancel')}
-                danger
+                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
             />
 
             <ConfirmModal
@@ -529,7 +529,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 prompt={payBalanceModalBody}
                 confirmText={payBalanceCtaText}
                 cancelText={translate('common.cancel')}
-                success
+                buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
             />
         </>
     );
