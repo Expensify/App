@@ -556,7 +556,6 @@ const WRITE_COMMANDS = {
     UPDATE_DUALENTRY_SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'UpdateDualEntrySyncTravelInvoicingSettlements',
     UPDATE_DUALENTRY_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT: 'UpdateDualEntryTravelInvoicingSettlementsAccount',
     UPDATE_DUALENTRY_TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'UpdateDualEntryTravelInvoicingPayableAccount',
-    UPDATE_DUALENTRY_EXPENSIFY_CARD_ACCOUNT: 'UpdateDualEntryExpensifyCardAccount',
     CONNECT_POLICY_TO_BUSINESS_CENTRAL: 'ConnectPolicyToBusinessCentral',
     UPDATE_BUSINESS_CENTRAL_COMPANY: 'UpdateBusinessCentralCompany',
     UPDATE_BUSINESS_CENTRAL_ENABLE_NEW_CATEGORIES: 'UpdateBusinessCentralEnableNewCategories',
@@ -1225,7 +1224,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_TRAVEL_INVOICING_SETTLEMENTS]: Parameters.UpdateDualEntrySyncTravelInvoicingSettlementsParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT]: Parameters.UpdateDualEntryTravelInvoicingSettlementsAccountParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_INVOICING_PAYABLE_ACCOUNT]: Parameters.UpdateDualEntryTravelInvoicingPayableAccountParams;
-    [WRITE_COMMANDS.UPDATE_DUALENTRY_EXPENSIFY_CARD_ACCOUNT]: Parameters.UpdateDualEntryExpensifyCardAccountParams;
     [WRITE_COMMANDS.CONNECT_POLICY_TO_BUSINESS_CENTRAL]: Parameters.ConnectPolicyToBusinessCentralParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_COMPANY]: Parameters.UpdateBusinessCentralCompanyParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_ENABLE_NEW_CATEGORIES]: Parameters.UpdateBusinessCentralEnableNewCategoriesParams;
