@@ -1940,6 +1940,14 @@ function withCategoryTaxRates(expenseRules: ExpenseRule[], taxRatesByCategory: M
  *
  * No `successData`, like `setPolicyCategoryApprover`: it would carry a whole-array snapshot, and `API.write` persists
  * those, so queued offline writes would replay stale arrays over each other. The server response is authoritative.
+ *
+ * The command is per-category, so a bulk save is one write each, and every rollback is the array as it stood before the
+ * save. Onyx replaces the array wholesale, so a rollback can't patch a single rule: whichever failure lands last is the
+ * array. Snapshots that each spared their own siblings therefore contradicted each other once two writes failed, and
+ * the survivor made a rejected category look saved. One identical baseline makes the order stop mattering.
+ *
+ * The cost is that a partial failure discards the writes that succeeded too, so they read stale until the next policy
+ * read. That beats showing a rate the server rejected, which is what the admin would otherwise save on top of.
  */
 function setPolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[], taxID: string) {
     if (!policy?.id || categoryNames.length === 0 || !taxID) {
@@ -1954,31 +1962,24 @@ function setPolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string
     // end state for each of them rather than a running total that the last write would truncate.
     const optimisticExpenseRules = withCategoryTaxRates(expenseRules, requested);
 
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {rules: {expenseRules: optimisticExpenseRules}},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {rules: {expenseRules}},
+            },
+        ],
+    };
+
     for (const categoryName of categoryNames) {
-        const previousRule = expenseRules.find((rule) => matchesCategoryTaxRule(rule, categoryName));
-        // Roll back only this category, leaving the rest of the selection as it stands so one rejection can't undo the
-        // others. An update goes back to its stored rate; a brand new rule is dropped, having none to fall back to.
-        const failureExpenseRules = previousRule
-            ? optimisticExpenseRules.map((rule) => (matchesCategoryTaxRule(rule, categoryName) ? previousRule : rule))
-            : optimisticExpenseRules.filter((rule) => !matchesCategoryTaxRule(rule, categoryName));
-
-        const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    value: {rules: {expenseRules: optimisticExpenseRules}},
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    value: {rules: {expenseRules: failureExpenseRules}},
-                },
-            ],
-        };
-
         API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, {policyID, categoryName, taxID}, onyxData);
     }
 }
@@ -1992,6 +1993,9 @@ function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, t
  * Removes the tax defaults for one or more categories. There is no dedicated delete command: writing the workspace's own
  * default rate is what clears an override, since `getCategoryDefaultTaxRate` falls back to that same rate when no rule
  * exists. The rules are dropped optimistically so the rows go straight away.
+ *
+ * Every rollback is the array as it stood before the delete, for the reason in `setPolicyCategoryTaxes`: Onyx replaces
+ * the array wholesale, so per-category snapshots contradict each other and the last failure to land hides the rest.
  */
 function deletePolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[]) {
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
@@ -2010,29 +2014,24 @@ function deletePolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: str
     // Shared like the save path: the writes are enqueued together, so each needs the same end state.
     const optimisticExpenseRules = expenseRules.filter((rule) => !targets.some((categoryName) => matchesCategoryTaxRule(rule, categoryName)));
 
-    for (const categoryName of targets) {
-        const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    value: {rules: {expenseRules: optimisticExpenseRules}},
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    value: {
-                        rules: {
-                            // Put back only this category, so one rejection doesn't restore rows that were deleted fine.
-                            expenseRules: [...optimisticExpenseRules, ...expenseRules.filter((rule) => matchesCategoryTaxRule(rule, categoryName))],
-                        },
-                    },
-                },
-            ],
-        };
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {rules: {expenseRules: optimisticExpenseRules}},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {rules: {expenseRules}},
+            },
+        ],
+    };
 
+    for (const categoryName of targets) {
         API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, {policyID, categoryName, taxID: defaultExternalID}, onyxData);
     }
 }
@@ -2052,6 +2051,11 @@ function deletePolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string
  * If exactly one write fails the local array goes back to the state before the move, so the one that succeeded reads
  * stale until the next policy read. Two commands with no transaction between them can't do better, and it beats
  * leaving the rate on two categories at once.
+ *
+ * The server can be left mid-move for the same reason — the rate on both categories, or on neither — and no rollback
+ * here can undo a request that already landed. A compensating write is not the answer: it can fail too, and offline it
+ * queues behind the failure it is meant to repair. The next policy read reconciles, and until the API can move a rate
+ * in one command that is the honest bound on this flow.
  */
 function movePolicyCategoryTax(policy: OnyxEntry<Policy>, fromCategoryName: string, toCategoryName: string, taxID: string) {
     const defaultExternalID = policy?.taxRates?.defaultExternalID;

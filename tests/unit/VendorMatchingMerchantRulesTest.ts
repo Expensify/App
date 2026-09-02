@@ -133,6 +133,7 @@ describe('Vendor matching on merchant rules', () => {
                 policy,
                 policyID: policy.id,
                 translate: translateLocal,
+                isOffline: false,
                 onNavigate: () => {},
             });
 
