@@ -1281,6 +1281,21 @@ function getShortFormattedQuarterForSearch(year: number, quarter: number): strin
     return `Q${quarter} ${format(new Date(year, 0, 1), '’yy')}`;
 }
 
+function getNextNthOfMonth(nth: number) {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const day = now.getDate();
+
+    // If today is before the nth day, return the nth of this month.
+    if (day < nth) {
+        return new Date(year, month, nth);
+    }
+
+    // Otherwise, return the nth of next month.
+    return new Date(year, month + 1, nth);
+}
+
 const DateUtils = {
     isDate,
     formatToDayOfWeek,
@@ -1364,6 +1379,7 @@ const DateUtils = {
     getQuarterDateRange,
     getFormattedQuarterForSearch,
     getShortFormattedQuarterForSearch,
+    getNextNthOfMonth,
 };
 
 export default DateUtils;
