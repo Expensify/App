@@ -57,6 +57,15 @@ describe('Parser', () => {
         test('returns @Hidden for mention when accountID is missing from the map', () => {
             expect(Parser.htmlToMarkdown('<mention-user accountID="123" />', {accountIDToName: {}})).toBe('@Hidden');
         });
+
+        test('resolves mention-report reportID to report name via reportIDToName map', () => {
+            const reportIDToName: Record<string, string> = {['42']: 'Expense Report'};
+            expect(Parser.htmlToMarkdown('<mention-report reportID="42" />', {reportIDToName})).toBe('Expense Report');
+        });
+
+        test('returns #Hidden for mention-report when reportID is missing from the map', () => {
+            expect(Parser.htmlToMarkdown('<mention-report reportID="42" />', {reportIDToName: {}})).toBe('#Hidden');
+        });
     });
 
     describe('htmlToText', () => {
@@ -68,6 +77,15 @@ describe('Parser', () => {
 
         test('returns @Hidden for mention when accountID is missing from the map', () => {
             expect(Parser.htmlToText('<mention-user accountID="456" />', {accountIDToName: {}})).toBe('@Hidden');
+        });
+
+        test('resolves mention-report reportID to report name via reportIDToName map', () => {
+            const reportIDToName: Record<string, string> = {['99']: 'Trip Report'};
+            expect(Parser.htmlToText('<mention-report reportID="99" />', {reportIDToName})).toBe('Trip Report');
+        });
+
+        test('returns #Hidden for mention-report when reportID is missing from the map', () => {
+            expect(Parser.htmlToText('<mention-report reportID="99" />', {reportIDToName: {}})).toBe('#Hidden');
         });
     });
 });
