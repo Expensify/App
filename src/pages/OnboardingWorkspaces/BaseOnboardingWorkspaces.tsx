@@ -128,7 +128,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         }
 
         completeOnboarding({
-            engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+            engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
             onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
             firstName: onboardingPersonalDetails?.firstName ?? '',
             lastName: onboardingPersonalDetails?.lastName ?? '',
