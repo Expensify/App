@@ -17,7 +17,7 @@ function hasCompanyCardFeedSelector(cardFeeds: OnyxEntry<CardFeeds>): boolean {
 }
 
 /**
- * Returns whether the domain has any card feed – an Expensify Card feed OR a company card feed – which makes
+ * Returns whether the domain has any card feed, either an Expensify Card feed or a company card feed, which makes
  * the domain-group "Card preferred workspace" setting eligible to be enabled. Reads the domain-scoped keys so
  * eligibility stays scoped to feeds owned by this domain and avoids cross-domain false positives.
  */
