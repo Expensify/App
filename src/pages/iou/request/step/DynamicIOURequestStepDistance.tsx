@@ -26,6 +26,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
+import useStoredTransactionViolations from '@hooks/useStoredTransactionViolations';
 import useWaypointItems from '@hooks/useWaypointItems';
 
 import {setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
@@ -110,8 +111,7 @@ function DynamicIOURequestStepDistance({
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    // The stored violations seed the optimistic recompute, which writes the whole key back.
-    const [storedTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
+    const storedTransactionViolations = useStoredTransactionViolations(transaction?.transactionID);
     const [originalSplitTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const selfDMReport = useSelfDMReport();
     const policy = usePolicy(report?.policyID);

@@ -17,6 +17,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
+import useStoredTransactionViolations from '@hooks/useStoredTransactionViolations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getIOURequestPolicyID, setMoneyRequestTag} from '@libs/actions/IOU/MoneyRequest';
@@ -61,8 +62,7 @@ function DynamicIOURequestStepTag({
 }: DynamicIOURequestStepTagProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAG.path);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    // The stored violations seed the optimistic recompute, which writes the whole key back.
-    const [storedTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
+    const storedTransactionViolations = useStoredTransactionViolations(transactionID);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;

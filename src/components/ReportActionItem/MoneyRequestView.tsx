@@ -38,6 +38,7 @@ import useReportTransactions from '@hooks/useReportTransactions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestrictedActionPolicyID from '@hooks/useRestrictedActionPolicyID';
 import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
+import useStoredTransactionViolations from '@hooks/useStoredTransactionViolations';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -283,9 +284,7 @@ function MoneyRequestView({
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
     const transactionViolations = useTransactionViolations(transaction?.transactionID, true, distanceOriginalPolicy ?? policy);
-    // The hook above narrows the list to what this viewer may see, which is right for rendering but wrong for an edit:
-    // the optimistic recompute writes the whole key back, so it has to be seeded with everything that is stored.
-    const [storedTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
+    const storedTransactionViolations = useStoredTransactionViolations(transaction?.transactionID);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
