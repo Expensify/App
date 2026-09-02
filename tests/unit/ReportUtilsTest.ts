@@ -224,6 +224,7 @@ import {
 } from '@libs/ReportUtils';
 import {buildTransactionsByReportID} from '@libs/TodosUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
+import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -17435,7 +17436,7 @@ describe('ReportUtils', () => {
                 ]);
                 await waitForBatchedUpdates();
 
-                return {chatReport, expenseReportID, transactionViolationsCollection};
+                return {chatReport, expenseReport, expenseReportID, policyData, transaction, transactionViolationsCollection};
             }
 
             // The back end owns the violation type, so the LHN exclusion has to hold for every bucket it could land in.
@@ -17481,25 +17482,35 @@ describe('ReportUtils', () => {
                 await Onyx.clear();
             });
 
-            // hasVisibleViolationsForUser reads the raw violation list, so the visible companyCardRequired satisfies it. Once
-            // companyCardRequired is filtered out by name, the only violation left is one the user cannot see, so the red dot
-            // must go with it rather than being kept alive by a violation that is hidden behind "analyzing category".
-            it('should not surface RBR when the violation left next to companyCardRequired is hidden while the category is being analyzed', async () => {
+            // Guards the scope of the change: `modifiedAmount` has always been excluded from the notice check only, and it
+            // also arrives typed `violation`. Widening its exclusion to every bucket would silently drop the RBR here.
+            it.each([CONST.VIOLATION_TYPES.VIOLATION, CONST.VIOLATION_TYPES.WARNING])(
+                'should still surface RBR on a submitted report when the only violation is a modifiedAmount %s',
+                async (violationType) => {
+                    await Onyx.clear();
+
+                    const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(`modified-amount-${violationType}`, [
+                        {name: CONST.VIOLATIONS.MODIFIED_AMOUNT, type: violationType, showInReview: true},
+                    ]);
+
+                    expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
+
+                    await Onyx.clear();
+                },
+            );
+
+            // The exclusion is scoped to the RBR decision only. The violation message itself has to stay visible on the
+            // expense to everyone, which is what keeps the submitter able to see why the report is stuck.
+            it('should keep the companyCardRequired violation visible on the expense after the report is submitted', async () => {
                 await Onyx.clear();
 
-                const {chatReport, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
-                    'alongside-hidden',
-                    [
-                        {name: CONST.VIOLATIONS.COMPANY_CARD_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
-                        {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
-                    ],
-                    false,
-                    // An empty category plus a fresh pendingAutoCategorizationTime puts the transaction inside the one-minute
-                    // auto-categorization window, which is what makes shouldShowViolation hide missingCategory.
-                    {category: '', comment: {pendingAutoCategorizationTime: new Date().toISOString().replace('T', ' ').slice(0, 19)}},
-                );
+                const {expenseReport, policyData, transaction, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario('still-visible', [
+                    {name: CONST.VIOLATIONS.COMPANY_CARD_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+                ]);
 
-                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBeNull();
+                expect(
+                    ViolationsUtils.hasVisibleViolationsForUser(expenseReport, transactionViolationsCollection, currentUserEmail, currentUserAccountID, policyData, [transaction]),
+                ).toBe(true);
 
                 await Onyx.clear();
             });

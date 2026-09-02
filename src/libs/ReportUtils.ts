@@ -299,7 +299,6 @@ import {
     isScanning,
     isScanRequest as isScanRequestTransactionUtils,
     isTransactionPendingDelete,
-    shouldShowViolation,
 } from './TransactionUtils';
 import addTrailingForwardSlash from './UrlUtils';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
@@ -9886,11 +9885,15 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
             // consistent with what the opened report renders, which also filters out DELETE-pending transactions.
             const transactions = getReportTransactions(potentialReport.reportID).filter((transaction) => !isTransactionPendingDelete(transaction));
 
-            // Violations the submitter can no longer act on once the report is submitted. They stay visible on the expense
-            // itself, but they must not drive the LHN red dot, the Fix action badge or the Inbox To-do, because there is
-            // nothing left for the submitter to fix. Excluded by name before the type checks, so the exclusion holds
-            // whichever bucket (violation/warning/notice) the back end assigns them to.
-            const excludedViolationNamesForLHN: ViolationName[] = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.COMPANY_CARD_REQUIRED] : [];
+            // `companyCardRequired` is the one violation the submitter can no longer act on once the report is submitted: it
+            // maps to no editable field, and it offers neither "Mark as cash" nor a way to dismiss it, so only an admin
+            // turning the rule off can clear it. It stays visible on the expense itself, but it must not drive the LHN red
+            // dot, the Fix action badge or the Inbox To-do. The back end owns the violation type, so it is excluded by name
+            // before the type checks — the exclusion has to hold whichever bucket (violation/warning/notice) it lands in.
+            const excludedViolationNamesForLHN: ViolationName[] = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.COMPANY_CARD_REQUIRED] : [];
+            // `modifiedAmount` stays notice-only, exactly as before: it also arrives typed `violation` and `warning`
+            // (see TransactionPreviewUtils), and those buckets have always driven the RBR here.
+            const excludedNoticeNamesForLHN: ViolationName[] = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.MODIFIED_AMOUNT] : [];
 
             return (
                 !isInvoiceReport(potentialReport) &&
@@ -9910,6 +9913,7 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
                     potentialReport,
                     policy,
                     excludedViolationNamesForLHN,
+                    excludedNoticeNamesForLHN,
                 )
             );
         });
@@ -9918,9 +9922,11 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
 
 /**
  * Whether any transaction on the report carries a violation that should drive the LHN RBR, checking all three violation
- * types. Names in `excludedViolationNames` are dropped before the type checks, so an exclusion holds regardless of which
- * type the back end assigns the violation, as are violations the current user cannot see. Makes a single pass over the
- * report transactions.
+ * types. Names in `excludedViolationNames` are dropped from every type check, so the exclusion holds regardless of which
+ * bucket the back end assigns the violation to; names in `excludedNoticeNames` are dropped from the notice check only.
+ * Apart from the name filtering this is the same decision the three separate `hasViolations` /
+ * `hasWarningTypeViolations` / `hasNoticeTypeViolationsForRBRInLHN` calls used to make, folded into a single pass over
+ * the report transactions.
  */
 function hasViolationOfAnyTypeForRBRInLHN(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
@@ -9930,29 +9936,23 @@ function hasViolationOfAnyTypeForRBRInLHN(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     excludedViolationNames: ViolationName[],
+    excludedNoticeNames: ViolationName[],
 ): boolean {
     return reportTransactions.some((transaction) => {
         const rawViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`];
         if (!rawViolations?.length) {
             return false;
         }
-        const violations = rawViolations.filter(
-            (violation) =>
-                !excludedViolationNames.includes(violation.name) &&
-                // Only `hasNoticeTypeViolation` applies this predicate internally, so without it here a violation the user
-                // cannot even see — `missingCategory` while auto-categorization is still running, for example — would keep
-                // driving the red dot. `hasVisibleViolationsForUser` is ANDed ahead of this helper, but it reads the raw
-                // list, so a visible violation could otherwise vouch for a hidden one that is left after the name filter.
-                shouldShowViolation(report, policy, violation.name, currentUserEmailParam, currentUserAccountIDParam, true, transaction),
-        );
+        const violations = excludedViolationNames.length > 0 ? rawViolations.filter((violation) => !excludedViolationNames.includes(violation.name)) : rawViolations;
         if (!violations.length) {
             return false;
         }
+        const noticeViolations = excludedNoticeNames.length > 0 ? violations.filter((violation) => !excludedNoticeNames.includes(violation.name)) : violations;
         // This path only runs for reports the current user submitted, so the report owner is the current user.
         return (
             hasViolation(transaction, violations, currentUserEmailParam, currentUserAccountIDParam, report, currentUserEmailParam, policy, true) ||
             hasWarningTypeViolation(transaction, violations, currentUserEmailParam, currentUserAccountIDParam, report, currentUserEmailParam, policy, true) ||
-            hasNoticeTypeViolation(transaction, violations, currentUserEmailParam, currentUserAccountIDParam, report, currentUserEmailParam, policy, true)
+            hasNoticeTypeViolation(transaction, noticeViolations, currentUserEmailParam, currentUserAccountIDParam, report, currentUserEmailParam, policy, true)
         );
     });
 }
