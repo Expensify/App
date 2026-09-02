@@ -117,6 +117,7 @@ When using multi-level Tags, you must choose whether the tag levels are **depend
 
 - Lower-level tag options depend on the selection made in the level above.
 - When a member selects a value in Level 1, the options in Level 2 (and Level 3, etc.) are filtered to only the valid combinations from your spreadsheet.
+- If a selection leaves only one valid option in the next level, that value is filled in automatically.
 - Best when only specific tag combinations are allowed.
 
 Example:

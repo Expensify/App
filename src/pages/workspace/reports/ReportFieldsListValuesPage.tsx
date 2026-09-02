@@ -190,7 +190,7 @@ function ReportFieldsListValuesPage({
                     shouldSkipFocusRestore: true,
                     onSelected: () => {
                         showConfirmModal({
-                            danger: true,
+                            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                             title: translate(selectedKeys.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
                             prompt: translate(selectedKeys.length === 1 ? 'workspace.reportFields.deleteValuePrompt' : 'workspace.reportFields.deleteValuesPrompt'),
                             confirmText: translate('common.delete'),

@@ -1,14 +1,15 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
 import getGustoSetupLink from '@libs/actions/connections/Gusto';
-import getMergeHRSetupLink from '@libs/actions/connections/MergeHR';
-import type {HRConnectionErrorFieldName} from '@libs/actions/connections/MergeHR';
+import {getMergeSetupLink} from '@libs/actions/connections/merge';
+import type {MergeConnectionErrorFieldName} from '@libs/actions/connections/merge';
 import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
-import {getConnectedHRProvider, getHRApprovalMode, isMergeHRCompleteSetupNeeded} from '@libs/HRUtils';
-import type {HRConnectionName} from '@libs/HRUtils';
 import {formatList} from '@libs/Localize';
-import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getConnectedHRProvider, getHRApprovalMode, isMergeHRCompleteSetupNeeded} from '@libs/merge/HRUtils';
+import type {HRConnectionName} from '@libs/merge/HRUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
@@ -28,7 +29,7 @@ type HRCardConfig = MergeHRConnectionConfig | GustoConnectionConfig | ZenefitsCo
 /** A single editable configuration row (approval mode, final approver, groups) shown on a connected HR card. */
 type HRConfigRow = {
     /** Onyx field this row maps to. */
-    field: HRConnectionErrorFieldName;
+    field: MergeConnectionErrorFieldName;
 
     /** Translated label shown as the row's top description. */
     description: string;
@@ -115,11 +116,11 @@ type GetHRCardStateParams = {
 
 function getMergeHRSyncState(policy: OnyxEntry<Policy>) {
     const lastSync = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]?.lastSync;
-    const isSyncInProgress = lastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.SYNCING;
+    const isSyncInProgress = lastSync?.syncStatus === CONST.MERGE.SYNC_STATUS.SYNCING;
     return {
         isSyncInProgress,
-        isInitialSyncInProgress: isSyncInProgress && lastSync?.syncType === CONST.MERGE_HR.SYNC_TYPE.INITIAL,
-        hasError: lastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.FAILED,
+        isInitialSyncInProgress: isSyncInProgress && lastSync?.syncType === CONST.MERGE.SYNC_TYPE.INITIAL,
+        hasError: lastSync?.syncStatus === CONST.MERGE.SYNC_STATUS.FAILED,
         syncStageInProgress: undefined,
         successfulDate: lastSync?.successfulDate,
     };
@@ -173,15 +174,15 @@ function getApprovalModeLabel(policy: OnyxEntry<Policy>, connectionName: HRConne
 
     switch (approvalMode) {
         case CONST.GUSTO.APPROVAL_MODE.BASIC:
-        case CONST.MERGE_HR.APPROVAL_MODE.BASIC:
+        case CONST.MERGE.APPROVAL_MODE.BASIC:
         case CONST.ZENEFITS.APPROVAL_MODE.BASIC:
             return translate('workspace.hr.approvalModes.basic.label');
         case CONST.GUSTO.APPROVAL_MODE.MANAGER:
-        case CONST.MERGE_HR.APPROVAL_MODE.MANAGER:
+        case CONST.MERGE.APPROVAL_MODE.MANAGER:
         case CONST.ZENEFITS.APPROVAL_MODE.MANAGER:
             return translate('workspace.hr.approvalModes.manager.label');
         case CONST.GUSTO.APPROVAL_MODE.CUSTOM:
-        case CONST.MERGE_HR.APPROVAL_MODE.CUSTOM:
+        case CONST.MERGE.APPROVAL_MODE.CUSTOM:
         case CONST.ZENEFITS.APPROVAL_MODE.CUSTOM:
             return translate('workspace.hr.approvalModes.custom.label');
         default:
@@ -203,6 +204,7 @@ function getMergeHRGroupsLabel(policy: OnyxEntry<Policy>): string | undefined {
 /** Resolves the final approver email to a display name via personal details. Returns "Not set" when no approver is configured. */
 function getFinalApproverDisplayName(
     finalApprover: string | undefined | null,
+    policyEmployeePersonalDetails: PersonalDetailsByLogin,
     translate: LocaleContextProps['translate'],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): string {
@@ -210,7 +212,7 @@ function getFinalApproverDisplayName(
         return translate('workspace.hr.notSet');
     }
     return temporaryGetDisplayNameOrDefault({
-        passedPersonalDetails: getPersonalDetailByEmail(finalApprover),
+        passedPersonalDetails: policyEmployeePersonalDetails[finalApprover],
         defaultValue: finalApprover,
         shouldFallbackToHidden: false,
         translate,
@@ -257,6 +259,9 @@ type GetHRCardsParams = {
     /** The workspace policy used to derive connection state for each HR provider. */
     policy: OnyxEntry<Policy>;
 
+    /** The policy employee's personal details keyed by login */
+    policyEmployeePersonalDetails: PersonalDetailsByLogin;
+
     /** Current sync progress entry from Onyx, shared across all providers. */
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
 
@@ -280,7 +285,16 @@ type GetHRCardsParams = {
 };
 
 /** Builds the full list of HR provider card descriptors for the workspace HR page, including static providers (Gusto, Zenefits) and dynamic Merge HR sub-providers. */
-function getHRCards({policy, connectionSyncProgress, getLocalDateFromDatetime, translate, formatPhoneNumber, policyID, ...iconParams}: GetHRCardsParams): HRCardDescriptor[] {
+function getHRCards({
+    policy,
+    policyEmployeePersonalDetails,
+    connectionSyncProgress,
+    getLocalDateFromDatetime,
+    translate,
+    formatPhoneNumber,
+    policyID,
+    ...iconParams
+}: GetHRCardsParams): HRCardDescriptor[] {
     const cards: HRCardDescriptor[] = [];
 
     for (const provider of STATIC_HR_PROVIDERS) {
@@ -308,7 +322,7 @@ function getHRCards({policy, connectionSyncProgress, getLocalDateFromDatetime, t
                           {
                               field: 'finalApprover',
                               description: translate('workspace.hr.finalApprover'),
-                              title: getFinalApproverDisplayName(config?.finalApprover, translate, formatPhoneNumber),
+                              title: getFinalApproverDisplayName(config?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber),
                               route: provider.finalApproverRoute.getRoute(policyID),
                               pendingAction: config?.pendingFields?.finalApprover,
                               errors: config?.errorFields?.finalApprover,
@@ -350,7 +364,7 @@ function getHRCards({policy, connectionSyncProgress, getLocalDateFromDatetime, t
                       {
                           field: 'finalApprover',
                           description: translate('workspace.hr.finalApprover'),
-                          title: getFinalApproverDisplayName(mergeConfig?.finalApprover, translate, formatPhoneNumber),
+                          title: getFinalApproverDisplayName(mergeConfig?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber),
                           route: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(policyID),
                           pendingAction: mergeConfig?.pendingFields?.finalApprover,
                           errors: mergeConfig?.errorFields?.finalApprover,
@@ -363,7 +377,7 @@ function getHRCards({policy, connectionSyncProgress, getLocalDateFromDatetime, t
             connectionName: mergeConnectionName,
             displayName: providerEntry.displayName,
             icon: providerEntry.iconUrl,
-            setupLink: getMergeHRSetupLink(policyID, slug),
+            setupLink: getMergeSetupLink(policyID, slug),
             ...(state.isConnected ? state : disconnectedState),
             completeSetupRoute: needsSetup ? groupsRoute : undefined,
             config: mergeConfig,

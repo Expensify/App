@@ -197,14 +197,27 @@ jest.mock('@hooks/useUndeleteTransactions', () => ({
     default: () => jest.fn(),
 }));
 
-jest.mock('@libs/SearchUIUtils', () => ({
-    shouldShowDeleteOption: () => false,
-    getSelectedGroupFilterEntry: jest.fn(),
-    navigateToSearchRHP: jest.fn(),
-    getValidGroupBy: jest.fn((groupBy?: string) => groupBy),
-    getSearchColumnTranslationKey: jest.fn((column: string) => column),
-    getColumnsToShow: jest.fn(() => []),
-}));
+jest.mock('@libs/SearchUIUtils', () => {
+    return {
+        shouldShowDeleteOption: () => false,
+        getSelectedGroupFilterEntry: jest.fn(),
+        navigateToSearchRHP: jest.fn(),
+        getValidGroupBy: jest.fn((groupBy?: string) => groupBy),
+        getSearchColumnTranslationKey: jest.fn((column: string) => column),
+        getColumnsToShow: jest.fn(() => []),
+        insertColumnBeforeTotalAmount: (columns: string[], columnId: string) => {
+            if (columns.includes(columnId)) {
+                return;
+            }
+            const totalAmountIndex = columns.findIndex((column) => column === 'amount');
+            if (totalAmountIndex === -1) {
+                columns.push(columnId);
+                return;
+            }
+            columns.splice(totalAmountIndex, 0, columnId);
+        },
+    };
+});
 
 jest.mock('@hooks/useDuplicateTransactionsAndViolations', () => ({
     __esModule: true,
@@ -291,6 +304,23 @@ const groupedExpenseQueryJSON: SearchQueryJSON = {
     inputQuery: 'type:expense groupBy:category',
     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
     groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+};
+
+const groupedSubmittedViolationQueryJSON: SearchQueryJSON = {
+    ...groupedExpenseQueryJSON,
+    inputQuery: `type:expense groupBy:${CONST.SEARCH.GROUP_BY.FROM} has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`,
+    groupBy: CONST.SEARCH.GROUP_BY.FROM,
+    flatFilters: [
+        {
+            key: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+            filters: [
+                {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                    value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION,
+                },
+            ],
+        },
+    ],
 };
 
 function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedReports {
@@ -1169,6 +1199,64 @@ describe('useSearchBulkActions - export options', () => {
         // translate and the column translation key are both mocked as the identity here, so every column
         // carries a label of its own name - what matters is that a label is sent for each one.
         expect(columnLabels).toEqual(Object.fromEntries(expectedColumns.map((column) => [column, column])));
+    });
+
+    it('exports Violations on a grouped search that filters by submitted-violation even without saved columns', async () => {
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedSubmittedViolationQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+        await waitFor(() => {
+            expect(exportSearchItemsToCSV).toHaveBeenCalled();
+        });
+
+        const expectedColumns: string[] = [CONST.SEARCH.TABLE_COLUMNS.TYPE, ...Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE)];
+        const violationsIndex = expectedColumns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+        expectedColumns.splice(violationsIndex, 0, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+
+        const {isBasicExport, query, columnLabels} = getLastCSVExportParameters();
+        expect(isBasicExport).toBe(false);
+        expect(query).toEqual(expect.objectContaining({columns: expectedColumns}));
+        expect(columnLabels).toEqual(Object.fromEntries(expectedColumns.map((column) => [column, column])));
+    });
+
+    it('exports Violations on a grouped submitted-violation search even when saved columns omit it', async () => {
+        await Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {
+            columns: [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, CONST.SEARCH.TABLE_COLUMNS.TAG, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.FROM],
+        });
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedSubmittedViolationQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+        await waitFor(() => {
+            expect(exportSearchItemsToCSV).toHaveBeenCalled();
+        });
+
+        const {isBasicExport, query} = getLastCSVExportParameters();
+        expect(isBasicExport).toBe(false);
+        expect(query).toEqual(
+            expect.objectContaining({
+                columns: [
+                    CONST.SEARCH.TABLE_COLUMNS.TYPE,
+                    CONST.SEARCH.TABLE_COLUMNS.TAG,
+                    CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                    CONST.SEARCH.TABLE_COLUMNS.FROM,
+                    CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
+                ],
+            }),
+        );
     });
 
     it('exports the current view of a grouped search with the configured expense columns in order', async () => {

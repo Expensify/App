@@ -105,7 +105,7 @@ function MentionSuggestions({
                                     width={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.XXX_SMALL)}
                                     height={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.XXX_SMALL)}
                                     fill={theme.success}
-                                    additionalStyles={StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.XXX_SMALL, CONST.ICON_TYPE_AVATAR)}
+                                    additionalStyles={StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.XXX_SMALL, CONST.AVATAR_SHAPE.CIRCLE)}
                                 />
                             ) : (
                                 <UserAvatar

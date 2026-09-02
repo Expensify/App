@@ -135,10 +135,18 @@ function IOURequestStepAmount({
     const decimals = getCurrencyDecimals(selectedCurrency || CONST.CURRENCY.USD);
 
     const isAmountCreateEntry = !backTo && !isEditing;
-    // Mirrors the amount input, signed the same way the form composes it. `undefined` until the form reports
-    // a change, so the baseline below stands in and a prefilled amount starts clean.
+    // `undefined` until the form reports a change, so the baseline below stands in and a prefilled amount starts clean.
     const [typedAmount, setTypedAmount] = useState<string | undefined>(undefined);
+    const [isSignDirty, setIsSignDirty] = useState(false);
+    const [prevRequestType, setPrevRequestType] = useState(iouRequestType);
+    if (prevRequestType !== iouRequestType) {
+        setPrevRequestType(iouRequestType);
+        setTypedAmount(undefined);
+        setIsSignDirty(false);
+    }
+
     const baselineAmount = transactionAmount ? convertToFrontendAmountAsString(transactionAmount, decimals) : '';
+
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () =>
             getAmountHasUnsavedChanges({
@@ -147,6 +155,7 @@ function IOURequestStepAmount({
                 isCreateEntry: isAmountCreateEntry,
                 selectedCurrency,
                 originalCurrency,
+                isSignChanged: isSignDirty,
             }),
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
@@ -330,6 +339,7 @@ function IOURequestStepAmount({
                 onCurrencyButtonPress={showCurrencyPicker}
                 onSubmitButtonPress={handleSubmit}
                 onAmountChange={setTypedAmount}
+                onSignDirtyChange={setIsSignDirty}
                 allowFlippingAmount={!isSplitBill && allowNegative}
                 selectedTab={iouRequestType as SelectedTabRequest}
                 chatReportID={reportID}

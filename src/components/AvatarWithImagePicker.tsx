@@ -274,6 +274,7 @@ function AvatarWithImagePicker({
                                     menuItems={menuItems}
                                     anchorAlignment={anchorAlignment}
                                     anchorRef={anchorRef}
+                                    enableEdgeToEdgeBottomSafeAreaPadding
                                 />
                             </>
                         );

@@ -211,7 +211,7 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                                             src={local}
                                             width={presetAvatarSize}
                                             height={presetAvatarSize}
-                                            additionalStyles={StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.X_LARGE, CONST.ICON_TYPE_AVATAR)}
+                                            additionalStyles={StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.X_LARGE, CONST.AVATAR_SHAPE.CIRCLE)}
                                         />
                                     </View>
                                 </PressableWithFeedback>

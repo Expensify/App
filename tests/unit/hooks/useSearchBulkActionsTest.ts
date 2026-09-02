@@ -286,7 +286,6 @@ describe('useSearchBulkActions - CSV export flow', () => {
 
         expect(mockQueueExportSearchItemsToCSV).toHaveBeenCalled();
         expect(mockQueueExportSearchItemsToCSV).toHaveBeenCalledWith(expect.objectContaining({excludedTransactionIDList: ['tx2']}));
-        expect(result.current.exportDownloadStatusModal).not.toBeNull();
     });
 
     it('exports an excluded unloaded group as a query filter instead of a transaction ID', async () => {
@@ -466,7 +465,6 @@ describe('useSearchBulkActions - CSV export flow', () => {
         });
 
         expect(mockQueueExportSearchItemsToCSV).not.toHaveBeenCalled();
-        expect(result.current.exportDownloadStatusModal).toBeNull();
     });
 
     it('beginExportWithTemplate tracks the export', async () => {
@@ -492,7 +490,6 @@ describe('useSearchBulkActions - CSV export flow', () => {
         });
 
         expect(mockQueueExportSearchWithTemplate).toHaveBeenCalled();
-        expect(result.current.exportDownloadStatusModal).not.toBeNull();
     });
 
     it('hides template exports when an all-matching expense selection has exclusions', async () => {

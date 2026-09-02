@@ -427,7 +427,6 @@ describe('getPrimaryAction', () => {
             name: 'Test Workspace',
             owner: OWNER_EMAIL,
             outputCurrency: 'USD',
-            isPolicyExpenseChatEnabled: true,
             role: CONST.POLICY.ROLE.USER,
             type: CONST.POLICY.TYPE.CORPORATE,
             approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -478,7 +477,6 @@ describe('getPrimaryAction', () => {
             name: 'Test Workspace',
             owner: CURRENT_USER_EMAIL,
             outputCurrency: 'USD',
-            isPolicyExpenseChatEnabled: true,
             role: CONST.POLICY.ROLE.USER,
             type: CONST.POLICY.TYPE.CORPORATE,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL, // Submit&Close
@@ -530,7 +528,6 @@ describe('getPrimaryAction', () => {
             name: 'Test Workspace',
             owner: OTHER_WORKFLOW_APPROVER_EMAIL,
             outputCurrency: 'USD',
-            isPolicyExpenseChatEnabled: true,
             role: CONST.POLICY.ROLE.USER,
             type: CONST.POLICY.TYPE.CORPORATE,
             approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
