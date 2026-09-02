@@ -139,15 +139,12 @@ function useUnreadMarker({
         setPrevUnreadMarkerReportActionID(unreadMarkerReportActionID);
     }
 
-    // When the user reads a new message as it is received, push unreadMarkerTime down to the
-    // latest action's timestamp so new incoming actions display over those new messages instead of
-    // sticking to the initial lastReadTime. A null marker alone is not enough to push: revealing
-    // existing history at once (Concierge "Show history") also scans to null because those actions
-    // are new to the list, and pushing then would advance the watermark past the unread message and
-    // permanently hide the New divider. So only push when a genuinely newer action arrived, i.e. the
-    // newest visible `created` advanced past the previous render's. The synthetic Concierge greeting
-    // is excluded as a push target: its `created` tracks report.lastReadTime, so it would drag the
-    // watermark to "now".
+    // When the user reads a new message as it arrives, advance the watermark so that only actions
+    // arriving after it count as unread. Only push when the newest visible `created` has advanced:
+    // a bulk history reveal (Concierge "Show history") also scans to a null marker, and pushing then
+    // would move the watermark past the unread message and permanently hide the New divider. The
+    // synthetic greeting is not a valid push target either, because its `created` tracks
+    // report.lastReadTime and would drag the watermark to "now".
     const newestVisibleReportActionCreated = sortedVisibleReportActions.at(0)?.created ?? '';
     const prevNewestVisibleReportActionCreated = usePrevious(newestVisibleReportActionCreated);
     const mostRecentReportActionCreated = sortedVisibleReportActions.find((action) => action.reportActionID !== CONST.CONCIERGE_GREETING_ACTION_ID)?.created ?? '';
