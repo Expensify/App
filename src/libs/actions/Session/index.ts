@@ -1154,8 +1154,8 @@ const reauthenticatePusher = throttle(
     () => {
         Log.info('[Pusher] Re-authenticating and then reconnecting');
         reauthenticate(SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER)
-            .then((wasSuccessful) => {
-                if (!wasSuccessful) {
+            .then((result) => {
+                if (!result.wasSuccessful) {
                     return;
                 }
                 Pusher.reconnect();
