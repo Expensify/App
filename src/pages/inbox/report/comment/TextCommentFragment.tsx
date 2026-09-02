@@ -83,7 +83,6 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
         if (!reportActionID) {
             return;
         }
-        // Must close before the span they partition, see `endSendMessagePhases`.
         endSendMessagePhases(reportActionID);
         endSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}`);
     };

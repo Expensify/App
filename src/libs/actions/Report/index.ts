@@ -177,7 +177,7 @@ import {
 } from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {endSendMessagePhase, startSendMessagePhase} from '@libs/telemetry/sendMessageSpans';
+import {startSendMessagePhase} from '@libs/telemetry/sendMessageSpans';
 import {
     getAmount,
     getCurrency,
@@ -1271,7 +1271,6 @@ function addActions({
         successData,
         failureData,
     });
-    endSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.SUBMIT);
     startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE);
 
     if (conciergeThreadReportID && resolvedReportActionID) {
@@ -1366,7 +1365,6 @@ function addComment({
     conciergeReportID,
     conciergeThreadReportID,
 }: AddCommentParams) {
-    startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.SUBMIT);
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }

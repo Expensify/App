@@ -34,7 +34,7 @@ function useCancelSendMessageSpanOnSkeleton(reportID: string | undefined, skelet
             }
             // Defer so activeSpans has registered the span (set right after the `startInactiveSpan` that emits this).
             queueMicrotask(() => {
-                // Phases must be cancelled before the parent, see `cancelSendMessagePhases`.
+                // Sentry drops a child still open when its parent ends, so phases go first.
                 cancelSendMessagePhases(getSpanID(span));
                 cancelSpanByInstance(span, {[CONST.TELEMETRY.ATTRIBUTE_CANCELED_BY_SKELETON]: skeletonName});
             });

@@ -163,15 +163,16 @@ This document lists all implemented telemetry metrics in the Expensify App.
 
 ### Send Message Phases
 
-**Constants**: `CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.{SUBMIT, PROPAGATE, PAINT}`
-**Sentry Names**: `ManualSendMessageSubmit`, `ManualSendMessagePropagate`, `ManualSendMessagePaint`
-**Threshold**: none individually — read as slices of the parent
-**What's Measured**: Sequential sub-spans partitioning `ManualSendMessageVisible`, so a slow send can be attributed to a stage. Their durations sum to the parent.
-- `ManualSendMessageSubmit`: optimistic action built and the API write enqueued. Started in the composer submit, ended once the write is dispatched ([`src/libs/actions/Report/index.ts`](https://github.com/Expensify/App/blob/main/src/libs/actions/Report/index.ts)).
-- `ManualSendMessagePropagate`: Onyx applies the write, derived values recompute, React renders and commits the row. Started when `Submit` ends, ended at React's commit ([`src/pages/inbox/report/comment/TextCommentFragment.tsx`](https://github.com/Expensify/App/blob/main/src/pages/inbox/report/comment/TextCommentFragment.tsx), `useLayoutEffect`).
-- `ManualSendMessagePaint`: from React's commit until the platform reports the row's layout. Ended at the same `onLayout` that ends the parent.
-**Span ID**: `${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.<PHASE>}_${reportActionID}`, parented to the `ManualSendMessageVisible` span of the same `reportActionID`.
-**Lifecycle**: Implemented in [`src/libs/telemetry/sendMessageSpans.ts`](https://github.com/Expensify/App/blob/main/src/libs/telemetry/sendMessageSpans.ts). Phases no-op unless the parent is active, and are cancelled/ended before the parent so Sentry never drops a still-running child.
+**Constants**: `CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.{PROPAGATE, PAINT}`
+**Sentry Names**: `ManualSendMessagePropagate`, `ManualSendMessagePaint`
+**Threshold**: none. Read them as slices of the parent.
+**What's Measured**: Two sequential child spans of `ManualSendMessageVisible`. Together with the parent start they split a send into three stages.
+- Submit has no span. It is the time from the parent start to `Propagate` start: the optimistic action is built and the API write enqueued. We measured it at 2 to 13ms on both light and heavy accounts.
+- `ManualSendMessagePropagate`: Onyx applies the write, notifies subscribers, React renders and commits the row. Starts once the write is enqueued ([`src/libs/actions/Report/index.ts`](https://github.com/Expensify/App/blob/main/src/libs/actions/Report/index.ts)), ends in the row's layout effect ([`src/pages/inbox/report/comment/TextCommentFragment.tsx`](https://github.com/Expensify/App/blob/main/src/pages/inbox/report/comment/TextCommentFragment.tsx)).
+- `ManualSendMessagePaint`: from the row's commit until the platform reports its layout, ended by the same `onLayout` that ends the parent. The name undersells it. Most of this phase is JavaScript: the rest of React's commit and passive effects, then the derived-value recomputes and the re-render of everything subscribed to them, including LHN rows and the list. Browser layout comes last. On heavy accounts this is the larger phase.
+- `OnyxDerivedCompute` children: recomputes that fire while a send span is active nest under it, with `derivedKey` and `triggeredKeys` attributes. They run once React's synchronous flush has finished, so the first one marks the end of React work. The gap from the last one to `onLayout` is the subscriber re-render plus layout. It grows with account size.
+**Span ID**: `${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.<PHASE>}_${reportActionID}`, parented to the `ManualSendMessageVisible` span with the same `reportActionID`.
+**Lifecycle**: [`src/libs/telemetry/sendMessageSpans.ts`](https://github.com/Expensify/App/blob/main/src/libs/telemetry/sendMessageSpans.ts). Phases no-op unless the parent is active. They are ended or cancelled before the parent, because Sentry drops a child that is still running when its parent ends.
 
 ## Failure Rates
 

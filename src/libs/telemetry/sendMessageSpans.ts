@@ -4,20 +4,6 @@ import type {ValueOf} from 'type-fest';
 
 import {cancelSpan, endSpan, getSpan, startSpan} from './activeSpans';
 
-/*
- * Sequential phases partitioning `ManualSendMessageVisible`, so a slow send can be attributed to a stage:
- *
- *   Submit      build the optimistic action, enqueue the write
- *   Propagate   Onyx applies the write, derived values recompute, React renders and commits the row
- *   Paint       from React's commit until the platform reports the row's layout
- *
- * Keyed on the sent message's own `reportActionID`, marked by components that already receive it, so
- * nothing guesses which row the sent message is. `activeSpans` is the registry: a phase exists iff
- * `getSpan` finds it, so every function here no-ops once the parent is cancelled. Parented to
- * `ManualSendMessageVisible` only, never the effect-anchored `ManualSendMessage`, which is being retired.
- */
-
-/** Each phase ends where the next begins, so their durations sum to the parent. */
 type SendMessagePhase = ValueOf<typeof CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE>;
 
 function getPhaseSpanID(reportActionID: string, phase: SendMessagePhase) {
@@ -32,8 +18,7 @@ function startSendMessagePhase(reportActionID: string | undefined, phase: SendMe
     if (!reportActionID) {
         return;
     }
-    // Load-bearing, not defensive: `startInactiveSpan` falls back to the scope's active span when
-    // `parentSpan` is undefined, which would nest the phase under an unrelated transaction.
+    // `startInactiveSpan` with an undefined `parentSpan` falls back to the scope's active span, which would nest the phase under an unrelated transaction.
     const parentSpan = getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}`);
     if (!parentSpan) {
         return;
@@ -48,13 +33,7 @@ function endSendMessagePhase(reportActionID: string | undefined, phase: SendMess
     endSpan(getPhaseSpanID(reportActionID, phase));
 }
 
-/**
- * Closes `Propagate`, opens `Paint`. **Must** be called from a layout effect: React runs those synchronously
- * during the commit, before the browser lays out or paints. A passive effect is scheduled with no paint
- * guarantee and drifts by an unknown amount, moving the boundary into `Paint`.
- *
- * Guarding on `Propagate` also covers the parent, since cancelling the parent closes the phases with it.
- */
+// Call from a layout effect. React runs those inside the commit, before layout; a passive effect has no such guarantee.
 function markSendMessageCommitted(reportActionID: string | undefined) {
     if (!reportActionID || !isPhaseRunning(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE)) {
         return;
@@ -63,11 +42,7 @@ function markSendMessageCommitted(reportActionID: string | undefined) {
     startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PAINT);
 }
 
-/**
- * Closes every phase immediately before the parent ends, since Sentry drops descendants still running when
- * their parent does. Only `Paint` should still be open; the loop is a backstop, and cancels rather than ends
- * because a phase arriving open never reached its real boundary.
- */
+// Call before ending the parent. Sentry drops a child still running when its parent ends.
 function endSendMessagePhases(reportActionID: string | undefined) {
     if (!reportActionID || !getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}`)) {
         return;
@@ -81,11 +56,7 @@ function endSendMessagePhases(reportActionID: string | undefined) {
     endSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PAINT);
 }
 
-/**
- * Cancel every phase of the send `parentSpanID` identifies. Must run before the parent is cancelled, or the
- * phases outlive the span they partition. A phase can already be open, since the submit runs synchronously
- * after the parent starts.
- */
+// Call before cancelling the parent. Sentry drops a child still running when its parent ends.
 function cancelSendMessagePhases(parentSpanID: string | undefined) {
     const parentPrefix = `${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_`;
     if (!parentSpanID?.startsWith(parentPrefix)) {

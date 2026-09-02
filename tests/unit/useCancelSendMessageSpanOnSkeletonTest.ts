@@ -51,7 +51,6 @@ jest.mock('@sentry/react-native', () => {
     };
 });
 
-/** Ops in the order their spans ended, recorded by the mock. */
 function getEndOrder() {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return (Sentry as unknown as {endOrder: string[]}).endOrder;
@@ -139,8 +138,6 @@ describe('useCancelSendMessageSpanOnSkeleton', () => {
     it('cancels a phase opened before the deferred cancel runs, and cancels it before its parent', async () => {
         renderHook(() => useCancelSendMessageSpanOnSkeleton('reportPhases', CONST.TELEMETRY.CANCELED_BY_SKELETON.SKELETON_GUARD_LOADING));
 
-        // Mirrors the real flow: the composer starts the parent, then submits synchronously, opening a phase
-        // while the hook's cancel is still only scheduled.
         const reportActionID = `${Math.random()}`;
         const parentSpanID = `${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}`;
         startSpan(parentSpanID, {
@@ -158,12 +155,11 @@ describe('useCancelSendMessageSpanOnSkeleton', () => {
 
         await flushMicrotasks();
 
-        // Stamped and released, not left dangling with a dead parent.
         expect(Sentry.spanToJSON(phaseSpan).data[CONST.TELEMETRY.ATTRIBUTE_CANCELED]).toBe(true);
         expect(getSpan(phaseSpanID)).toBeUndefined();
         expect(getSpan(parentSpanID)).toBeUndefined();
 
-        // Sentry drops children that end after their parent, so the order is what keeps the phase reportable.
+        // Sentry drops a child still running when its parent ends.
         expect(getEndOrder()).toEqual([CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE, CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE]);
     });
 

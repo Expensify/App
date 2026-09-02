@@ -24,16 +24,11 @@ jest.mock('@sentry/react-native', () => {
     };
 });
 
-/** Names in the order their spans ended, recorded by the mock. */
 function getEndOrder() {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return (Sentry as unknown as {endOrder: string[]}).endOrder;
 }
 
-/**
- * Register a parent and two children the way a phased span family does: the parent first, then the phases
- * that hang off it. Ids share `prefix`, so one prefix sweep covers the whole family.
- */
 function startFamily(prefix: string) {
     startSpan(`${prefix}Parent_1`, {name: `${prefix}Parent`});
     startSpan(`${prefix}ChildA_1`, {name: `${prefix}ChildA`});
@@ -51,7 +46,7 @@ describe('cancelSpansByPrefix', () => {
 
         cancelSpansByPrefix('Manual');
 
-        // Sentry drops children still running when their parent ends, so parent-last is what keeps them reportable.
+        // Sentry drops a child still running when its parent ends.
         expect(getEndOrder()).toEqual(['ManualChildB', 'ManualChildA', 'ManualParent']);
         expect(getSpan('ManualParent_1')).toBeUndefined();
         expect(getSpan('ManualChildA_1')).toBeUndefined();

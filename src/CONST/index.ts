@@ -2294,9 +2294,7 @@ const CONST = {
         SPAN_RECONNECT_SERVER_RESPONSE: 'ManualReconnectServerResponse',
         SPAN_GEOLOCATION_WAIT: 'ManualGeolocationWait',
         SPAN_SEND_MESSAGE_VISIBLE: 'ManualSendMessageVisible',
-        // Sequential phases partitioning a ManualSendMessageVisible span, in the order they run.
         SPAN_SEND_MESSAGE_PHASE: {
-            SUBMIT: 'ManualSendMessageSubmit',
             PROPAGATE: 'ManualSendMessagePropagate',
             PAINT: 'ManualSendMessagePaint',
         },
