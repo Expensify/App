@@ -9127,6 +9127,35 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             return `ha modificato i partecipanti della categoria "${categoryName}" in ${newValue ? 'obbligatorio' : 'non obbligatorio'} (in precedenza ${newValue ? 'non obbligatorio' : 'obbligatorio'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `invii ${enabled ? 'abilitato' : 'disattivato'}`,
+        changedOverLimitForwardsTo: ({
+            member,
+            approver,
+            limit,
+            previousApprover,
+            previousLimit,
+        }: {
+            member: string;
+            approver: string;
+            limit: string;
+            previousApprover?: string;
+            previousLimit?: string;
+        }) => {
+            let text = previousApprover
+                ? `ha modificato il flusso di approvazione per ${member} per inoltrare i report superiori a ${limit} a ${approver}`
+                : `imposta il flusso di approvazione per ${member} in modo da inoltrare i report oltre ${limit} a ${approver}`;
+            if (previousApprover && previousLimit) {
+                text += ` (in precedenza inoltrava i report superiori a ${previousLimit} a ${previousApprover})`;
+            } else if (previousApprover) {
+                text += ` (precedentemente inoltrata a ${previousApprover})`;
+            }
+            return text;
+        },
+        removedOverLimitForwardsTo: ({member, previousApprover, previousLimit}: {member: string; previousApprover?: string; previousLimit: string}) =>
+            previousApprover
+                ? `ha modificato il flusso di approvazione per ${member} per interrompere l’inoltro dei report oltre ${previousLimit} (in precedenza inoltrati a ${previousApprover})`
+                : `ha modificato il workflow di approvazione per ${member} per smettere di inoltrare i report oltre ${previousLimit}`,
+        changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
+            `ha modificato il flusso di approvazione per ${member} per inoltrare i report superiori a ${limit} (in precedenza ${previousLimit})`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',

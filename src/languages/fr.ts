@@ -9193,6 +9193,35 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             return `a modifié les participants de la catégorie « ${categoryName} » en ${newValue ? 'obligatoire' : 'non obligatoire'} (précédemment ${newValue ? 'non obligatoire' : 'obligatoire'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'activé' : 'Désactivé'} envois`,
+        changedOverLimitForwardsTo: ({
+            member,
+            approver,
+            limit,
+            previousApprover,
+            previousLimit,
+        }: {
+            member: string;
+            approver: string;
+            limit: string;
+            previousApprover?: string;
+            previousLimit?: string;
+        }) => {
+            let text = previousApprover
+                ? `a modifié le processus d'approbation pour ${member} afin de transférer les notes de frais supérieures à ${limit} à ${approver}`
+                : `définir le workflow d’approbation de ${member} pour transférer les notes de frais supérieures à ${limit} à ${approver}`;
+            if (previousApprover && previousLimit) {
+                text += ` (anciennement notes de frais transmises de plus de ${previousLimit} à ${previousApprover})`;
+            } else if (previousApprover) {
+                text += ` (précédemment transmis à ${previousApprover})`;
+            }
+            return text;
+        },
+        removedOverLimitForwardsTo: ({member, previousApprover, previousLimit}: {member: string; previousApprover?: string; previousLimit: string}) =>
+            previousApprover
+                ? `a modifié le flux d’approbation pour ${member} afin d’arrêter de transférer les notes de frais au-delà de ${previousLimit} (auparavant transférées à ${previousApprover})`
+                : `a modifié le flux d'approbation pour ${member} afin d'arrêter de transférer les notes de frais au-delà de ${previousLimit}`,
+        changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
+            `a modifié le circuit d’approbation pour ${member} afin de transférer les notes de frais supérieures à ${limit} (auparavant ${previousLimit})`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',

@@ -52,12 +52,14 @@ import {getCurrentUserSearchTerms, getPersonalDetailSearchTerms} from '@libs/Opt
 import Parser from '@libs/Parser';
 import {
     getAddedCardFeedMessage,
+    getApprovalLimitUpdateMessage,
     getAssignedCompanyCardMessage,
     getChangedApproverActionMessage,
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getDynamicExternalWorkflowRoutedMessage,
     getForeignCurrencyDefaultTaxUpdateMessage,
+    getOverLimitForwardsToUpdateMessage,
     getRemovedCardFeedMessage,
     getRenamedCardFeedMessage,
     getRequireCompanyCardsEnabledMessage,
@@ -7229,6 +7231,68 @@ describe('OptionsListUtils', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(getRequiresCategoryMessage(translateLocal, action));
+        });
+        it('UPDATE_OVER_LIMIT_FORWARDS_TO action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {
+                    member: {email: 'member@example.com', name: 'Member', accountID: 100},
+                    overLimitForwardsTo: {email: 'approver@example.com', name: 'Approver', accountID: 200},
+                    limit: 10000,
+                    currency: 'USD',
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(getOverLimitForwardsToUpdateMessage(translateLocal, action, convertToDisplayString));
+        });
+        it('UPDATE_APPROVAL_LIMIT action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {
+                    member: {email: 'member@example.com', name: 'Member', accountID: 100},
+                    limit: 20000,
+                    previousLimit: 10000,
+                    currency: 'USD',
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(getApprovalLimitUpdateMessage(translateLocal, action, convertToDisplayString));
         });
         it.each([
             [CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY, 'updated the currency conversion fee setting to "Company pays"'],

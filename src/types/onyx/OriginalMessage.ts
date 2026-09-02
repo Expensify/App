@@ -463,6 +463,18 @@ type OriginalMessageChangeLog = {
     avatarURL?: string;
 };
 
+/** A workspace member named in an approval workflow change log */
+type PolicyChangeLogMember = {
+    /** Email of the member */
+    email: string;
+
+    /** Display name of the member */
+    name: string;
+
+    /** Account ID of the member */
+    accountID: number;
+};
+
 /** Model of change log */
 type OriginalMessagePolicyChangeLog = {
     /** Account IDs of users that either got invited or removed from the room */
@@ -847,6 +859,21 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Whether the user joined the workspace via joining link */
     didJoinPolicy?: boolean;
+
+    /** The workspace member whose approval workflow changed */
+    member?: PolicyChangeLogMember;
+
+    /** The member who approves reports over the approval limit */
+    overLimitForwardsTo?: PolicyChangeLogMember;
+
+    /** The member who approved reports over the approval limit before the change */
+    previousOverLimitForwardsTo?: PolicyChangeLogMember;
+
+    /** Amount in cents above which reports go to the over limit approver */
+    limit?: number;
+
+    /** The approval limit before the change */
+    previousLimit?: number;
 };
 
 /** Amount operators for spend rules */

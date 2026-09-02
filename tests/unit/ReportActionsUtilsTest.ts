@@ -1,3 +1,5 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import {isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
@@ -27,6 +29,7 @@ import {
     getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
+    getApprovalLimitUpdateMessage,
     getCardIssuedMessage,
     getCategoryTaxRateMessage,
     getCombinedReportActions,
@@ -45,6 +48,7 @@ import {
     getModerationFlagState,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getOverLimitForwardsToUpdateMessage,
     getPolicyChangeLogMaxExpenseAgeMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage,
@@ -3962,6 +3966,113 @@ describe('ReportActionsUtils', () => {
             } as ReportAction;
             const result = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('changed max expense amount to "$500.00" (previously "$100.00")');
+        });
+    });
+
+    describe('getOverLimitForwardsToUpdateMessage', () => {
+        const member = {email: 'member@example.com', name: 'Member', accountID: 100};
+        const approver = {email: 'approver@example.com', name: 'Approver', accountID: 200};
+        const previousApprover = {email: 'oldapprover@example.com', name: 'Old Approver', accountID: 300};
+
+        it('should return set message when overLimitForwardsTo is set for the first time', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {member, overLimitForwardsTo: approver, limit: 10000, currency: 'USD'},
+            } as ReportAction;
+            const result = getOverLimitForwardsToUpdateMessage(translateLocal, action, convertToDisplayString);
+            expect(result).toBe('set the approval workflow for member@example.com to forward reports over $100.00 to approver@example.com');
+        });
+
+        it('should return changed message naming only the previous approver when the limit did not change', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {member, overLimitForwardsTo: approver, previousOverLimitForwardsTo: previousApprover, limit: 10000, previousLimit: 10000, currency: 'USD'},
+            } as ReportAction;
+            const result = getOverLimitForwardsToUpdateMessage(translateLocal, action, convertToDisplayString);
+            expect(result).toBe(
+                'changed the approval workflow for member@example.com to forward reports over $100.00 to approver@example.com (previously forwarded to oldapprover@example.com)',
+            );
+        });
+
+        it('should return changed message naming the previous limit as well when both changed', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {member, overLimitForwardsTo: approver, previousOverLimitForwardsTo: previousApprover, limit: 20000, previousLimit: 10000, currency: 'USD'},
+            } as ReportAction;
+            const result = getOverLimitForwardsToUpdateMessage(translateLocal, action, convertToDisplayString);
+            expect(result).toBe(
+                'changed the approval workflow for member@example.com to forward reports over $200.00 to approver@example.com (previously forwarded reports over $100.00 to oldapprover@example.com)',
+            );
+        });
+
+        it('should return removed message naming the limit that is going away', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {member, previousOverLimitForwardsTo: previousApprover, previousLimit: 10000, currency: 'USD'},
+            } as ReportAction;
+            const result = getOverLimitForwardsToUpdateMessage(translateLocal, action, convertToDisplayString);
+            expect(result).toBe('changed the approval workflow for member@example.com to stop forwarding reports over $100.00 (previously forwarded to oldapprover@example.com)');
+        });
+
+        it('should not pass a previous limit to the translator when there is no previous approver, even if the limit field changed', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {member, overLimitForwardsTo: approver, limit: 20000, previousLimit: 10000, currency: 'USD'},
+            } as ReportAction;
+            const translate: LocalizedTranslate = jest.fn().mockReturnValue('translated');
+
+            getOverLimitForwardsToUpdateMessage(translate, action, convertToDisplayString);
+
+            expect(translate).toHaveBeenCalledWith('workspaceActions.changedOverLimitForwardsTo', {
+                member: 'member@example.com',
+                approver: 'approver@example.com',
+                limit: '$200.00',
+                previousApprover: undefined,
+                previousLimit: undefined,
+            });
+        });
+    });
+
+    describe('getApprovalLimitUpdateMessage', () => {
+        it('should return changed message naming the new and the previous limit and no approver', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    member: {email: 'member@example.com', name: 'Member', accountID: 100},
+                    limit: 20000,
+                    previousLimit: 10000,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getApprovalLimitUpdateMessage(translateLocal, action, convertToDisplayString);
+            expect(result).toBe('changed the approval workflow for member@example.com to forward reports over $200.00 (previously $100.00)');
+        });
+
+        it('should fall back to the report action text when limit or previousLimit is missing', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT,
+                reportActionID: '1',
+                created: '',
+                message: [{type: 'COMMENT', text: 'fallback text'}],
+                originalMessage: {
+                    member: {email: 'member@example.com', name: 'Member', accountID: 100},
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getApprovalLimitUpdateMessage(translateLocal, action, convertToDisplayString);
+            expect(result).toBe('fallback text');
         });
     });
 
