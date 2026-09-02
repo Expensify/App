@@ -120,7 +120,7 @@ function TestToolMenu() {
                         </Button>
                     </TestToolRow>
 
-                    {/* Allows locally overriding beta feature flags for testing. Not rendered in production because betas are meant to be controlled by the backend there. */}
+                    {/* Allows locally overriding beta feature flags for testing. Not rendered in production because this is not something regular users should reach, and forcing a beta on can leave the app half broken. */}
                     {!isProduction && (
                         <TestToolRow title={translate('initialSettingsPage.troubleshoot.betaOverrides')}>
                             <Button
