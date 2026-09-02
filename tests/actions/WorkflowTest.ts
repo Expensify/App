@@ -85,7 +85,7 @@ function indexMap<T>(...values: T[]): Record<string, T> {
 
 /**
  * Write the two rules (submit -> forward, approve -> finalize) that describe a `submitters -> approver` workflow.
- * Pass `isDefaultApprovalWorkflow` to mark them as the policy's default workflow, the way the builder does.
+ * Pass `isDefaultApprovalWorkflow` to make them part of the policy's default workflow, the way the builder does.
  */
 async function createForwardApproveRules(policyID: string, submitters: string[], approver: string, keyPrefix = 'rule', isDefaultApprovalWorkflow = false) {
     const defaultMarker = isDefaultApprovalWorkflow ? {isDefaultApprovalWorkflow: true} : {};
@@ -1656,7 +1656,7 @@ describe('actions/Workflow', () => {
             await waitForBatchedUpdates();
         });
 
-        it('folds the removed members into a rule-backed default workflow whose rules carry no marker', async () => {
+        it('folds the removed members into a rule-backed default workflow whose rules do not declare themselves default', async () => {
             mockFetch.pause();
 
             const policyID = '123456789';
@@ -1672,7 +1672,7 @@ describe('actions/Workflow', () => {
                 rules: {},
             };
 
-            // Rules written before the default-workflow marker existed, so the default pair carries none.
+            // Rules written before `isDefaultApprovalWorkflow` existed, so the default pair does not set it.
             await createForwardApproveRules(policyID, [employee1Email], employee3Email, 'default');
             await createForwardApproveRules(policyID, [employee2Email], ownerEmail, 'second');
 

@@ -1888,8 +1888,8 @@ describe('WorkflowUtils', () => {
                 expect(getRulesSubmitterToFirstApprover(rules, {}, 'owner@example.com')).toEqual({'5@example.com': '1@example.com'});
             });
 
-            it('Should prefer the default marker over the first approver when the rules carry one', () => {
-                // 5 is in the marked default workflow. 6 is in a custom workflow starting at the same approver.
+            it('Should prefer what the rules declare over the first approver when they declare a default', () => {
+                // 5 is in the rule-backed default workflow. 6 is in a custom workflow starting at the same approver.
                 // Matching on the first approver alone would wrongly drop 6 along with 5.
                 const rules = keyRules([...buildApprovalWorkflowRules(buildWorkflow([5], [1], {isDefault: true})), ...buildApprovalWorkflowRules(buildWorkflow([6], [1, 2]))]);
 
@@ -1995,7 +1995,7 @@ describe('WorkflowUtils', () => {
 
             it('Should keep a custom workflow that starts at the default approver separate from the default one', () => {
                 // Both chains start at approver 1 (the policy's default approver) and diverge after it. Only the
-                // marked chain is the default. The other must render as its own workflow.
+                // chain whose rules declare it is the default. The other must render as its own workflow.
                 const rules = keyRules([...buildApprovalWorkflowRules(buildWorkflow([5], [1], {isDefault: true})), ...buildApprovalWorkflowRules(buildWorkflow([6], [1, 2]))]);
                 const employees: PolicyEmployeeList = {
                     '5@example.com': {email: '5@example.com', submitsTo: '1@example.com'},
@@ -2042,8 +2042,8 @@ describe('WorkflowUtils', () => {
                 expect(defaultWorkflow?.members.map((member) => member.email)).not.toContain('6@example.com');
             });
 
-            it('Should fall back to the default approver when no rule carries the default marker', () => {
-                // Policies whose default workflow has never been saved through the rules backend have no marker.
+            it('Should fall back to the default approver when no rule declares itself the default workflow', () => {
+                // Policies whose default workflow has never been saved through the rules backend have no such rule.
                 const rules = keyRules(buildApprovalWorkflowRules(buildWorkflow([5], [1])));
                 const employees: PolicyEmployeeList = {'5@example.com': {email: '5@example.com', submitsTo: '1@example.com'}};
                 const policy = createPolicy(employees, '1@example.com');
@@ -2055,7 +2055,7 @@ describe('WorkflowUtils', () => {
             });
 
             it('Should round-trip a workflow through rules and back', () => {
-                // Built as the default workflow so its rules carry the default marker, which the rebuilt rules
+                // Built as the default workflow so its rules declare themselves default, which the rebuilt rules
                 // must reproduce for the round-trip to be lossless.
                 const rules = keyRules(buildApprovalWorkflowRules(buildWorkflow([5], [1, 2], {isDefault: true})));
                 const employees: PolicyEmployeeList = {'5@example.com': {email: '5@example.com', submitsTo: '1@example.com'}};

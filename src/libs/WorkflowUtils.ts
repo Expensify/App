@@ -1049,13 +1049,13 @@ function buildApprovalWorkflowRulesForSave(
     approvalWorkflow: ApprovalWorkflow,
     {existingRules, employees, defaultApprover}: BuildApprovalWorkflowRulesForSaveContext,
 ): ApprovalWorkflowRule[] {
-    const isDefaultRuleBacked = hasMarkedDefaultWorkflow(existingRules);
+    const hasRuleBasedDefault = hasRuleBasedDefaultWorkflow(existingRules);
     const rulesAsDefault = buildApprovalWorkflowRules({...approvalWorkflow, isDefault: true});
 
     // Compare against the default workflow's own rules, or - before it has any - against the shapes the
     // `employeeList` chain would produce. A rule's shape ignores its `from` list, so the members these are built
     // against don't affect the comparison.
-    const defaultWorkflowRules = isDefaultRuleBacked
+    const defaultWorkflowRules = hasRuleBasedDefault
         ? Object.values(existingRules).filter((rule) => !!rule.isDefaultApprovalWorkflow)
         : buildApprovalWorkflowRules({
               members: approvalWorkflow.members,
@@ -1069,7 +1069,7 @@ function buildApprovalWorkflowRulesForSave(
         // `rulesAsDefault` is already the answer when this workflow is itself the default one.
         return approvalWorkflow.isDefault ? rulesAsDefault : buildApprovalWorkflowRules(approvalWorkflow);
     }
-    if (isDefaultRuleBacked) {
+    if (hasRuleBasedDefault) {
         return rulesAsDefault;
     }
 
@@ -1432,13 +1432,14 @@ function getApproverChainKey(chain: Approver[]): string {
 }
 
 /**
- * True when any rule carries the default-workflow marker.
+ * True when the policy's default workflow has rules of its own, meaning at least one rule declares itself part
+ * of it through `isDefaultApprovalWorkflow`.
  *
- * The marker is only written when the default workflow is saved through the rules backend, so policies that
- * predate it or have never had their default workflow edited have none. Callers use this to decide
- * whether the marker can be trusted as the answer, or whether to fall back to matching the default approver.
+ * Rules only say so once the default workflow has been saved through the rules backend. A policy that predates
+ * that field, or has never had its default workflow edited, has none. Callers use this to decide whether the
+ * rules can answer "which workflow is the default", or whether to fall back to matching the default approver.
  */
-function hasMarkedDefaultWorkflow(rules: Record<string, ApprovalWorkflowRule>): boolean {
+function hasRuleBasedDefaultWorkflow(rules: Record<string, ApprovalWorkflowRule>): boolean {
     return Object.values(rules).some((rule) => !!rule.isDefaultApprovalWorkflow);
 }
 
@@ -1501,12 +1502,12 @@ function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflow
     }
 
     const shouldExcludeDefaultWorkflow = defaultApprover !== undefined;
-    const isMarkerAuthoritative = shouldExcludeDefaultWorkflow && hasMarkedDefaultWorkflow(rules);
+    const canReadDefaultWorkflowFromRules = shouldExcludeDefaultWorkflow && hasRuleBasedDefaultWorkflow(rules);
 
     const result: Record<string, string> = {};
     for (const submitter of submitters) {
-        // Resolving the chain is the expensive part, so skip it for submitters the marker already excludes.
-        if (isMarkerAuthoritative && defaultWorkflowSubmitters.has(submitter)) {
+        // Resolving the chain is the expensive part, so skip it for submitters the rules already exclude.
+        if (canReadDefaultWorkflowFromRules && defaultWorkflowSubmitters.has(submitter)) {
             continue;
         }
 
@@ -1514,7 +1515,7 @@ function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflow
         if (!firstApprover) {
             continue;
         }
-        if (shouldExcludeDefaultWorkflow && !isMarkerAuthoritative && firstApprover === defaultApprover) {
+        if (shouldExcludeDefaultWorkflow && !canReadDefaultWorkflowFromRules && firstApprover === defaultApprover) {
             continue;
         }
         result[submitter] = firstApprover;
@@ -1731,7 +1732,7 @@ export {
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,
-    hasMarkedDefaultWorkflow,
+    hasRuleBasedDefaultWorkflow,
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,
     getOverLimitForwardsToDisplayName,

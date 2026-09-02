@@ -13,7 +13,7 @@ import {
     getApprovalWorkflowRulesForPolicy,
     getOverLimitForwardsToDisplayName,
     getWorkflowMemberEmails,
-    hasMarkedDefaultWorkflow,
+    hasRuleBasedDefaultWorkflow,
     mergeWorkflowMembersWithAvailableMembers,
     reconcileApprovalWorkflowRulesForCreate,
     reconcileApprovalWorkflowRulesForEdit,
@@ -484,10 +484,10 @@ function buildReturnToDefaultWorkflowDiff({
         return {};
     }
 
-    const isDefaultRuleBacked = hasMarkedDefaultWorkflow(existingRules);
+    const hasRuleBasedDefault = hasRuleBasedDefaultWorkflow(existingRules);
     const buildDefaultRules = (isDefault: boolean) => buildApprovalWorkflowRules({...defaultApprovalWorkflow, members: approvalWorkflow.members, isDefault});
 
-    const foldDiff = reconcileApprovalWorkflowRulesForCreate(buildDefaultRules(isDefaultRuleBacked), memberEmails, {existingRules});
+    const foldDiff = reconcileApprovalWorkflowRulesForCreate(buildDefaultRules(hasRuleBasedDefault), memberEmails, {existingRules});
     if (Object.keys(foldDiff).every((ruleID) => ruleID in existingRules)) {
         return foldDiff;
     }
@@ -496,7 +496,7 @@ function buildReturnToDefaultWorkflowDiff({
         return {};
     }
 
-    return isDefaultRuleBacked ? foldDiff : reconcileApprovalWorkflowRulesForCreate(buildDefaultRules(true), memberEmails, {existingRules});
+    return hasRuleBasedDefault ? foldDiff : reconcileApprovalWorkflowRulesForCreate(buildDefaultRules(true), memberEmails, {existingRules});
 }
 
 /**
