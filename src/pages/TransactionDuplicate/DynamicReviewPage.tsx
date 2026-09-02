@@ -38,6 +38,7 @@ import type {Transaction} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import {useFocusEffect, useRoute} from '@react-navigation/native';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -65,6 +66,9 @@ function DynamicReviewPage() {
     const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
 
     const originalTransactionIDsListRef = useRef<string[] | null>(null);
 
@@ -118,8 +122,27 @@ function DynamicReviewPage() {
         if (!route.params.reportID || report?.reportID) {
             return;
         }
-        openReport({reportID: route.params.reportID, introSelected, betas, hasReportActions});
-    }, [report?.reportID, route.params.reportID, introSelected, betas, hasReportActions]);
+        openReport({
+            reportID: route.params.reportID,
+            introSelected,
+            conciergeChat,
+            betas,
+            hasReportActions,
+            currentUserAccountID: currentPersonalDetails.accountID,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        });
+    }, [
+        report?.reportID,
+        route.params.reportID,
+        introSelected,
+        conciergeChat,
+        betas,
+        hasReportActions,
+        currentPersonalDetails.accountID,
+        guidedSetupAndTourStatus?.isSelfTourViewed,
+        guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+    ]);
 
     useEffect(() => {
         if (!transactionID) {

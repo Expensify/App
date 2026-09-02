@@ -68,7 +68,7 @@ function UnlinkLoginForm() {
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     isLoading={account?.isLoading && account.loadingForm === CONST.FORMS.UNLINK_LOGIN_FORM}
-                    onPress={() => requestUnlinkValidationLink()}
+                    onPress={() => requestUnlinkValidationLink(credentials?.login)}
                     isDisabled={!!isOffline || !!account?.message}
                     sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.UNLINK}
                 >

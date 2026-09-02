@@ -1,7 +1,10 @@
 import {waitFor} from '@testing-library/react-native';
 
+import * as API from '@libs/API';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
 
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import '@libs/Navigation/AppNavigator/AuthScreens';
@@ -18,11 +21,16 @@ import type {MockFetch} from '../utils/TestHelper';
 
 import * as App from '../../src/libs/actions/App';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
+import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
+
+function mockRead() {
+    return jest.spyOn(API, 'read').mockImplementation(() => {});
+}
 
 OnyxUpdateManager();
 
@@ -101,6 +109,22 @@ describe('actions/App', () => {
         expect(mockFetch).not.toHaveBeenCalled();
     });
 
+    test('openApp is not deduped against an in-flight OpenApp when it carries preservation data', async () => {
+        const writeOpenApp = jest.spyOn(API, 'writeWithNoDuplicatesOpenAppConflictAction').mockImplementation(() => Promise.resolve());
+
+        App.openApp();
+        await waitForBatchedUpdates();
+        expect(writeOpenApp).toHaveBeenLastCalledWith(expect.anything(), expect.anything(), true);
+
+        App.openApp(true);
+        await waitForBatchedUpdates();
+        expect(writeOpenApp).toHaveBeenLastCalledWith(expect.anything(), expect.anything(), false);
+
+        App.openApp(false, {[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}1`]: 'a draft'});
+        await waitForBatchedUpdates();
+        expect(writeOpenApp).toHaveBeenLastCalledWith(expect.anything(), expect.anything(), false);
+    });
+
     test('trigger full reconnect', async () => {
         const triggerFullReconnect = jest.spyOn(App, 'triggerFullReconnect');
 
@@ -139,6 +163,44 @@ describe('actions/App', () => {
 
         // Then a full reconnect should NOT be triggered
         expect(triggerFullReconnect).toHaveBeenCalledTimes(0);
+    });
+
+    test('two reconnects the queue merges into one send one SearchForTodos', async () => {
+        const read = mockRead();
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
+
+        // Offline holds the queue, so the first reconnect is still in it when the second arrives
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+
+        App.reconnectApp();
+        await waitForBatchedUpdates();
+        App.reconnectApp();
+        await waitForBatchedUpdates();
+
+        // The queue kept one ReconnectApp and nothing has reached the server, so no read went out
+        expect(PersistedRequests.getAll()).toHaveLength(1);
+        expect(read).not.toHaveBeenCalled();
+
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+        SequentialQueue.flush();
+        await waitForBatchedUpdates();
+
+        // The one response that came back sent the one read
+        expect(read).toHaveBeenCalledTimes(1);
+        expect(read).toHaveBeenCalledWith(READ_COMMANDS.SEARCH_FOR_TODOS, null);
+    });
+
+    test('a ReconnectApp restored from a previous session sends SearchForTodos when it drains', async () => {
+        const read = mockRead();
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
+
+        // No caller is waiting on this one — it was persisted by a session that is gone
+        await PersistedRequests.save({command: WRITE_COMMANDS.RECONNECT_APP, data: {}} as Request<never>);
+        SequentialQueue.flush();
+        await waitForBatchedUpdates();
+
+        expect(read).toHaveBeenCalledTimes(1);
+        expect(read).toHaveBeenCalledWith(READ_COMMANDS.SEARCH_FOR_TODOS, null);
     });
 
     test('clearOnyxAndResetApp preserves rolled-back ongoing requests across reset', async () => {
@@ -184,42 +246,42 @@ describe('actions/App', () => {
         });
 
         it('should filter out undefined policies', () => {
-            const policies = {
+            const policies = createMock<OnyxCollection<Policy>>({
                 policy1: {id: 'policy1', name: 'Policy 1'},
                 policy2: undefined,
                 policy3: {id: 'policy3', name: 'Policy 3'},
-            } as unknown as OnyxCollection<Policy>;
+            });
             const result = App.getNonOptimisticPolicyIDs(policies);
             expect(result).toEqual(['policy1', 'policy3']);
         });
 
         it('should filter out policies with pendingAction ADD', () => {
-            const policies = {
+            const policies = createMock<OnyxCollection<Policy>>({
                 policy1: {id: 'policy1', name: 'Policy 1', pendingAction: 'add'},
                 policy2: {id: 'policy2', name: 'Policy 2'},
                 policy3: {id: 'policy3', name: 'Policy 3', pendingAction: 'update'},
-            } as unknown as OnyxCollection<Policy>;
+            });
             const result = App.getNonOptimisticPolicyIDs(policies);
             expect(result).toEqual(['policy2', 'policy3']);
         });
 
         it('should return IDs for all valid non-optimistic policies', () => {
-            const policies = {
+            const policies = createMock<OnyxCollection<Policy>>({
                 policy1: {id: 'policy1', name: 'Policy 1'},
                 policy2: {id: 'policy2', name: 'Policy 2'},
                 policy3: {id: 'policy3', name: 'Policy 3'},
-            } as unknown as OnyxCollection<Policy>;
+            });
             const result = App.getNonOptimisticPolicyIDs(policies);
             expect(result).toEqual(['policy1', 'policy2', 'policy3']);
         });
 
         it('should include policies with other pendingAction values', () => {
-            const policies = {
+            const policies = createMock<OnyxCollection<Policy>>({
                 policy1: {id: 'policy1', name: 'Policy 1', pendingAction: 'update'},
                 policy2: {id: 'policy2', name: 'Policy 2', pendingAction: 'delete'},
                 policy3: {id: 'policy3', name: 'Policy 3', pendingAction: null},
                 policy4: {id: 'policy4', name: 'Policy 4', pendingAction: undefined},
-            } as unknown as OnyxCollection<Policy>;
+            });
             const result = App.getNonOptimisticPolicyIDs(policies);
             expect(result).toEqual(['policy1', 'policy2', 'policy3', 'policy4']);
         });

@@ -8,12 +8,12 @@ import Section from '@components/Section';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import Text from '@components/Text';
 
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
@@ -47,12 +47,11 @@ function WorkspaceReportFieldsPage({
 }: WorkspaceReportFieldsPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const {canWrite: canWriteReportFields, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.reports');
-    const illustrations = useMemoizedLazyIllustrations(['ReportReceipt']);
-
     const {isOffline} = useNetwork();
 
     const titleField = getTitleFieldWithFallback(policy);
@@ -106,7 +105,6 @@ function WorkspaceReportFieldsPage({
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
-                    icon={illustrations.ReportReceipt}
                     title={translate('common.reports')}
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
@@ -121,7 +119,10 @@ function WorkspaceReportFieldsPage({
                     />
                 )}
                 {!isLoading && (
-                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <ScrollView
+                        addBottomSafeAreaPadding
+                        contentContainerStyle={[styles.flexGrow1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}
+                    >
                         <Section
                             isCentralPane
                             renderTitle={renderReportTitle}
@@ -164,7 +165,12 @@ function WorkspaceReportFieldsPage({
                                         return;
                                     }
 
-                                    setPolicyPreventMemberCreatedTitle(policyID, isEnabled, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]);
+                                    setPolicyPreventMemberCreatedTitle(
+                                        policyID,
+                                        isEnabled,
+                                        policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE],
+                                        getReviewWorkspaceSettingsTaskCompletion(),
+                                    );
                                 }}
                                 disabled={!canWriteReportFields}
                                 disabledAction={withReadOnlyFallback()}

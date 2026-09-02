@@ -61,7 +61,7 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
     const {groupBy} = queryJSON ?? {};
     const view = queryJSON?.view && isChartView(queryJSON.view) ? queryJSON.view : CONST.SEARCH.VIEW.BAR;
 
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {accountID, login} = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -80,9 +80,10 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
             queryJSON,
             searchKey,
             offset: 0,
-            isOffline,
             isLoading: false,
             shouldUpdateLastSearchParams: false,
+            // The query is a static canned search, so it doesn't need anything OpenApp delivers. Don't sit behind it.
+            skipWaitForWrites: true,
         });
     };
 
@@ -102,6 +103,7 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
             ? getSortedSections(
                   queryJSON.type,
                   getSections({
+                      dateFnsLocale,
                       type: queryJSON.type,
                       data: searchResults.data,
                       groupBy,

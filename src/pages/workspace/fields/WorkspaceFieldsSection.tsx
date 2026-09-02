@@ -230,7 +230,7 @@ function WorkspaceFieldsSection({
                 onToggle={(enabled) => {
                     if (!enabled) {
                         showConfirmModal({
-                            danger: true,
+                            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                             title: translate(disableTitleKey),
                             prompt: translate(disablePromptKey),
                             confirmText: translate('common.disable'),

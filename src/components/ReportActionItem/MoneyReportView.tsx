@@ -104,7 +104,7 @@ function MoneyReportView({
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(report?.reportID)}`);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const isSettled = isSettledReportUtils(report?.reportID);
     const isTotalUpdated = hasUpdatedTotal(report, policy) && !isTotalPending;
@@ -185,7 +185,7 @@ function MoneyReportView({
                                     return null;
                                 }
 
-                                const fieldValue = resolveReportFieldValue(reportField, report, policy, fieldValues, fieldsByName);
+                                const fieldValue = resolveReportFieldValue(reportField, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
                                 const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID);
                                 const fieldKey = getReportFieldKey(reportField.fieldID);
 
@@ -216,7 +216,6 @@ function MoneyReportView({
                                             shouldGreyOutWhenDisabled={false}
                                             numberOfLinesTitle={0}
                                             interactive={!isFieldDisabled}
-                                            shouldStackHorizontally={false}
                                             onSecondaryInteraction={() => {}}
                                             titleWithTooltips={[]}
                                             brickRoadIndicator={violation ? 'error' : undefined}

@@ -39,6 +39,7 @@ namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 /**
@@ -47,6 +48,31 @@ namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
  */
 namespace margelo::nitro::utils::bridge::swift {
 
+  // pragma MARK: std::unordered_map<std::string, double>
+  /**
+   * Specialized version of `std::unordered_map<std::string, double>`.
+   */
+  using std__unordered_map_std__string__double_ = std::unordered_map<std::string, double>;
+  inline std::unordered_map<std::string, double> create_std__unordered_map_std__string__double_(size_t size) noexcept {
+    std::unordered_map<std::string, double> map;
+    map.reserve(size);
+    return map;
+  }
+  inline std::vector<std::string> get_std__unordered_map_std__string__double__keys(const std__unordered_map_std__string__double_& map) noexcept {
+    std::vector<std::string> keys;
+    keys.reserve(map.size());
+    for (const auto& entry : map) {
+      keys.push_back(entry.first);
+    }
+    return keys;
+  }
+  inline double get_std__unordered_map_std__string__double__value(const std__unordered_map_std__string__double_& map, const std::string& key) noexcept {
+    return map.find(key)->second;
+  }
+  inline void emplace_std__unordered_map_std__string__double_(std__unordered_map_std__string__double_& map, const std::string& key, const double& value) noexcept {
+    map.emplace(key, value);
+  }
+  
   // pragma MARK: std::shared_ptr<HybridAppStartTimeModuleSpec>
   /**
    * Specialized version of `std::shared_ptr<HybridAppStartTimeModuleSpec>`.

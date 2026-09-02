@@ -62,9 +62,11 @@ import BrokenCompanyCardBankConnection from '@assets/images/product-illustration
 import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
 import DjBoothReferenceHands from '@assets/images/product-illustrations/dj-booth-reference-hands.svg';
 import EarthWithControls from '@assets/images/product-illustrations/earth-with-controls.svg';
+import EmptyStateDomainExists from '@assets/images/product-illustrations/empty-state-domain-exists.svg';
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
 import HoldExpense from '@assets/images/product-illustrations/emptystate__holdexpense.svg';
 import ReceiptFairy from '@assets/images/product-illustrations/emptystate__receiptfairy.svg';
+import EmptyStateSearchExpenses from '@assets/images/product-illustrations/emptystate__searchexpenses.svg';
 import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__travel.svg';
 import Fireworks from '@assets/images/product-illustrations/fireworks.svg';
 import FolderWithPapersAndWatch from '@assets/images/product-illustrations/folder-with-papers-and-watch.svg';
@@ -157,6 +159,7 @@ import HeadSet from '@assets/images/simple-illustrations/simple-illustration__he
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
 import HouseMoney from '@assets/images/simple-illustrations/simple-illustration__house-money.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
+import HouseWithMap from '@assets/images/simple-illustrations/simple-illustration__housewithmap.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
 import LifeRing from '@assets/images/simple-illustrations/simple-illustration__lifering.svg';
 import Lightbulb from '@assets/images/simple-illustrations/simple-illustration__lightbulb.svg';
@@ -279,11 +282,13 @@ const Illustrations = {
     BrokenCompanyCardBankConnection,
     BrokenMagnifyingGlass,
     DjBoothReferenceHands,
+    EmptyStateSearchExpenses,
     EmptyStateExpenses,
     HoldExpense,
     ReceiptFairy,
     EmptyStateTravel,
     EarthWithControls,
+    EmptyStateDomainExists,
     Fireworks,
     FolderWithPapersAndWatch,
     FolderWithPapers,
@@ -415,6 +420,7 @@ const Illustrations = {
     HeadSet,
     Hourglass,
     House,
+    HouseWithMap,
     HouseMoney,
     LifeRing,
     Lightbulb,

@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import type AttachmentPickerProps from '@components/AttachmentPicker/types';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -18,7 +19,9 @@ import Onyx from 'react-native-onyx';
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
-const mockOpenPicker = jest.fn();
+type OpenPicker = Parameters<AttachmentPickerProps['children']>[0]['openPicker'];
+
+const mockOpenPicker = jest.fn<ReturnType<OpenPicker>, Parameters<OpenPicker>>();
 
 jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -31,7 +34,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('@components/AttachmentPicker', () => {
-    function MockAttachmentPicker({children}: {children: (props: {openPicker: (opts: {onPicked: (files: unknown[]) => void}) => void}) => React.ReactNode}) {
+    function MockAttachmentPicker({children}: AttachmentPickerProps) {
         return <>{children({openPicker: mockOpenPicker})}</>;
     }
     return MockAttachmentPicker;
@@ -40,7 +43,6 @@ jest.mock('@components/AttachmentPicker', () => {
 jest.mock('@hooks/useFilesValidation', () => (onFilesValidated: (files: FileObject[]) => void) => ({
     validateFiles: onFilesValidated,
     PDFValidationComponent: null,
-    ErrorModal: null,
 }));
 
 jest.mock(
@@ -52,10 +54,9 @@ jest.mock(
 );
 
 jest.mock('@components/ReportActionItem/ReportActionItemImage', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const {useEffect} = require('react');
+    const {useEffect} = jest.requireActual<typeof React>('react');
     function MockReportActionItemImage({onLoad}: {onLoad?: () => void}) {
-        (useEffect as typeof React.useEffect)(() => {
+        useEffect(() => {
             onLoad?.();
         }, [onLoad]);
         return null;
@@ -72,6 +73,7 @@ jest.mock('@src/languages/IntlStore', () => {
     cache.set('en', flatten(en));
     return {
         getCurrentLocale: jest.fn(() => 'en'),
+        getDateFnsLocale: jest.fn(() => undefined),
         load: jest.fn(() => Promise.resolve()),
         get: jest.fn((key: string, locale?: string) => {
             const translations = cache.get(locale ?? 'en');
@@ -98,6 +100,9 @@ jest.mock('@libs/EmojiTrie', () => ({
 
 // Override IDs so we control Onyx keys and can use evictableKeys for REPORT_ACTIONS
 const TEST_PARENT_REPORT_ID = 'testParentReportID';
+const TEST_CHAT_REPORT_ID = 'testChatReportID';
+const TEST_OWNER_ACCOUNT_ID = 1;
+const TEST_OTHER_ACCOUNT_ID = 2;
 const TEST_REPORT_ID = 'testReportID';
 const TEST_ACTION_ID = 'testActionID';
 const TEST_TRANSACTION_ID = 'testTransactionID';
@@ -218,6 +223,20 @@ const transactionWithOdometerDistanceReceipt: Transaction = {
     iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
 };
 
+// The expense's own report, whose parent is the conversation the expense was created in.
+const testMoneyRequestReport: Report = {
+    ...testReport,
+    reportID: TEST_PARENT_REPORT_ID,
+    parentReportID: TEST_CHAT_REPORT_ID,
+    chatReportID: TEST_CHAT_REPORT_ID,
+};
+
+const testChatReport: Report = {
+    ...testReport,
+    reportID: TEST_CHAT_REPORT_ID,
+    type: CONST.REPORT.TYPE.CHAT,
+};
+
 function Wrapper({children}: {children: React.ReactNode}) {
     return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>;
 }
@@ -239,6 +258,11 @@ describe('MoneyRequestReceiptView', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithoutReceipt);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`, {id: TEST_POLICY_ID});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${TEST_POLICY_ID}`, {});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_PARENT_REPORT_ID}`, testMoneyRequestReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_CHAT_REPORT_ID}`, testChatReport);
+            // Signed in as the person who raised the expense unless a test says otherwise. Who the viewer is decides
+            // the add button, so with no session nobody qualifies and every expense would look uneditable.
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_OWNER_ACCOUNT_ID, email: 'owner@test.com'});
         });
         await waitForBatchedUpdatesWithAct();
     });
@@ -266,7 +290,7 @@ describe('MoneyRequestReceiptView', () => {
             fireEvent.press(uploadButton);
             expect(mockOpenPicker).toHaveBeenCalledTimes(1);
 
-            const firstCall = (mockOpenPicker.mock.calls as Array<[{onPicked: (files: FileObject[]) => void}]>).at(0);
+            const firstCall = mockOpenPicker.mock.calls.at(0);
             const onPicked = firstCall?.at(0)?.onPicked;
             expect(onPicked).toBeDefined();
         });
@@ -331,6 +355,101 @@ describe('MoneyRequestReceiptView', () => {
                         report={testReport}
                         readonly
                     />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+        });
+
+        it('hides the add button but keeps the expand button for someone who may not edit the expense', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                // Invited to look at an expense somebody else raised, as in the reported flow.
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_OTHER_ACCOUNT_ID, email: 'invited@test.com'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+            expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
+        });
+
+        it('shows action buttons to the person who raised the expense', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeTruthy();
+            expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
+        });
+
+        it('hides both buttons when the expense is on its way out', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                // Deleting the expense marks the action that created it, which puts the whole report beyond reach.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TEST_PARENT_REPORT_ID}`, {
+                    [TEST_ACTION_ID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+        });
+
+        it('hides both buttons for an anonymous viewer', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+        });
+
+        it('hides both buttons on an archived report', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                // An IOU thread, because archiving leaves an expense report's receipts reachable on purpose.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_PARENT_REPORT_ID}`, {type: CONST.REPORT.TYPE.IOU});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${TEST_REPORT_ID}`, {private_isArchived: '2025-02-14 08:12:19'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={{...testReport, type: CONST.REPORT.TYPE.CHAT}} />
                 </Wrapper>,
             );
             await waitForBatchedUpdatesWithAct();

@@ -23,6 +23,7 @@ import {
     isMatchingVendorListLoaded,
     isTaxTrackingEnabled,
     isXeroActiveMatchingSource,
+    resolveCurrentTaxCode,
 } from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -36,6 +37,7 @@ import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import isEmpty from 'lodash/isEmpty';
@@ -56,6 +58,7 @@ Onyx.connectWithoutView({
 type ViolationTranslationParams = {
     violation: TransactionViolation;
     translate: LocaleContextProps['translate'];
+    dateFnsLocale: LocaleContextProps['dateFnsLocale'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     canEdit?: boolean;
     tags?: PolicyTagLists;
@@ -63,7 +66,7 @@ type ViolationTranslationParams = {
     connectionLink?: string;
     card?: Card;
     isMarkAsCash?: boolean;
-    routeDistanceMeters?: number;
+    routeDistanceMeters?: number | null;
     distanceUnit?: Unit;
 };
 
@@ -276,12 +279,12 @@ function getTagViolationMessagesForMultiLevelTags(tagName: string | undefined, e
     return errorIndexes.map((i) => translate('violations.someTagLevelsRequired', tagsWithIndexes[i]?.name)).join('. ');
 }
 
-function formatViolationDate(date?: string): string | undefined {
+function formatViolationDate(date: string | undefined, dateFnsLocale: DateFnsLocale | undefined): string | undefined {
     if (!date) {
         return undefined;
     }
 
-    return DateUtils.formatWithUTCTimeZone(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
+    return DateUtils.formatWithUTCTimeZone(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
 }
 
 /**
@@ -365,7 +368,7 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
             if (!taxCode || !policyTaxRates) {
                 return !taxCode;
             }
-            const matchingTaxRate = policyTaxRates[taxCode];
+            const matchingTaxRate = policyTaxRates[resolveCurrentTaxCode({taxRates: {taxes: policyTaxRates}}, taxCode)];
             if (!matchingTaxRate || matchingTaxRate.isDisabled) {
                 return false;
             }
@@ -551,7 +554,7 @@ const ViolationsUtils = {
             }
 
             // Add 'missingCategory' violation when categories are required and none is set. isCategoryMissing also
-            // covers the 'Uncategorized'/'none' sentinel, mirroring the categoryOutOfPolicy check above.
+            // covers the 'Uncategorized'/'none' placeholder value, mirroring the categoryOutOfPolicy check above.
             if (!hasMissingCategoryViolation && !!policy.requiresCategory && isCategoryMissing(categoryKey) && !isSelfDM) {
                 newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
             }
@@ -679,8 +682,10 @@ const ViolationsUtils = {
         }
 
         const isControlPolicy = policy.type === CONST.POLICY.TYPE.CORPORATE;
-        const inputDate = new Date(updatedTransaction.modifiedCreated ?? updatedTransaction.created);
-        const shouldDisplayFutureDateViolation = !isInvoiceTransaction && DateUtils.isFutureDay(inputDate) && isControlPolicy;
+        // `getCreated` rather than `modifiedCreated ?? created`: the backend sends `modifiedCreated: ''` when the date
+        // was never edited, and `??` only falls back on null/undefined, so the empty string would win.
+        const inputDate = TransactionUtils.getCreated(updatedTransaction);
+        const shouldDisplayFutureDateViolation = !isInvoiceTransaction && DateUtils.isTransactionDateFuture(inputDate) && isControlPolicy;
         const hasReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && violation.data);
         const hasCategoryReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && !violation.data);
         const hasItemizedReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
@@ -697,7 +702,8 @@ const ViolationsUtils = {
 
         // A disabled tax rate keeps its key (just `isDisabled: true`) but isn't valid, so it stays out of policy. A
         // key-only check would treat it as in-policy and drop the violation on any unrelated recompute (e.g. tag delete).
-        const taxRate = updatedTransaction.taxCode ? policy.taxRates?.taxes?.[updatedTransaction.taxCode] : undefined;
+        // The code is resolved first so a rate whose code was renamed isn't reported as out of policy.
+        const taxRate = updatedTransaction.taxCode ? policy.taxRates?.taxes?.[resolveCurrentTaxCode(policy, updatedTransaction.taxCode)] : undefined;
         const isTaxRateValid = !!taxRate && !taxRate.isDisabled;
 
         const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
@@ -937,7 +943,20 @@ const ViolationsUtils = {
      * functions.
      */
     getViolationTranslation(params: ViolationTranslationParams): string {
-        const {violation, translate, convertToDisplayString, canEdit = true, tags, companyCardPageURL, connectionLink, card, isMarkAsCash, routeDistanceMeters, distanceUnit} = params;
+        const {
+            violation,
+            translate,
+            dateFnsLocale,
+            convertToDisplayString,
+            canEdit = true,
+            tags,
+            companyCardPageURL,
+            connectionLink,
+            card,
+            isMarkAsCash,
+            routeDistanceMeters,
+            distanceUnit,
+        } = params;
         const {
             brokenBankConnection = false,
             isAdmin = false,
@@ -977,8 +996,8 @@ const ViolationsUtils = {
                 return translate('violations.customUnitOutOfPolicy');
             case CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE: {
                 const {startDate, endDate} = violation.data ?? {};
-                const formattedStartDate = formatViolationDate(startDate);
-                const formattedEndDate = formatViolationDate(endDate);
+                const formattedStartDate = formatViolationDate(startDate, dateFnsLocale);
+                const formattedEndDate = formatViolationDate(endDate, dateFnsLocale);
                 if (formattedStartDate && formattedEndDate) {
                     return translate('violations.customUnitRateOutOfDateRange', {startDate: formattedStartDate, endDate: formattedEndDate});
                 }
@@ -1097,6 +1116,7 @@ const ViolationsUtils = {
         transaction,
         transactionViolations,
         translate,
+        dateFnsLocale,
         convertToDisplayString,
         missingFieldError,
         transactionThreadActions,
@@ -1110,6 +1130,7 @@ const ViolationsUtils = {
         transaction: Transaction;
         transactionViolations: TransactionViolation[];
         translate: LocaleContextProps['translate'];
+        dateFnsLocale: LocaleContextProps['dateFnsLocale'];
         convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
         missingFieldError?: string;
         transactionThreadActions?: ReportAction[];
@@ -1132,6 +1153,7 @@ const ViolationsUtils = {
                 const cardID = violation?.data?.cardID;
                 const card = cardID ? cardList?.[cardID] : undefined;
                 const message = ViolationsUtils.getViolationTranslation({
+                    dateFnsLocale,
                     violation,
                     translate,
                     convertToDisplayString,
@@ -1183,7 +1205,7 @@ const ViolationsUtils = {
             return transactionViolations.some((violation: TransactionViolation) => {
                 return (
                     !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, currentUserEmail, policy) &&
-                    shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction)
+                    shouldShowViolation(report, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction)
                 );
             });
         });

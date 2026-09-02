@@ -36,7 +36,6 @@ import Animated from 'react-native-reanimated';
 type SearchPageWideProps = {
     queryJSON?: SearchQueryJSON;
     searchResults: OnyxEntry<SearchResults>;
-    searchRequestResponseStatusCode: number | null;
     isMobileSelectionModeEnabled: boolean;
     handleSearchAction: (value: SearchParams | string) => void;
     onSortPressedCallback: () => void;
@@ -50,7 +49,6 @@ type SearchPageWideProps = {
 function SearchPageWide({
     queryJSON,
     searchResults,
-    searchRequestResponseStatusCode,
     isMobileSelectionModeEnabled,
     handleSearchAction,
     onSortPressedCallback,
@@ -134,7 +132,6 @@ function SearchPageWide({
                                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                         onSearchListScroll={scrollHandler}
                                         onSortPressedCallback={onSortPressedCallback}
-                                        searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                                         onDestinationVisible={endSubmitNavigationSpans}
                                         onContentReady={onSearchContentReady}
                                     />

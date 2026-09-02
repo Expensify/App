@@ -55,7 +55,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const transactionItem = item as unknown as TransactionListItemType;
-    const {isSelected} = useRowSelection(item.keyForList);
+    const {isSelected} = useRowSelection(item.keyForList, transactionItem.selectionGroupKey);
 
     const handleOnPress: React.ComponentProps<typeof PressableWithFeedback>['onPress'] = (event) => {
         // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.
@@ -68,14 +68,27 @@ function TransactionListItemNarrow<TItem extends ListItem>({
         onSelectRow(item, transactionPreviewData, event);
     };
 
-    const pressableStyle = [styles.transactionListItemStyle, styles.p4, styles.noBorderRadius, isSelected && styles.activeComponentBG, {...styles.flexColumn, ...styles.alignItemsStretch}];
+    const pressableStyle = [
+        styles.transactionListItemStyle,
+        styles.p4,
+        styles.noBorderRadius,
+        isSelected && styles.activeComponentBG,
+        // A selected row paints an opaque background here, on top of the rounded wrapper below, so the outer
+        // corners have to be rounded on this element too or the list's top/bottom corners look square.
+        isFirstItem && styles.tableTopRadius,
+        isLastItem && styles.tableBottomRadius,
+        {...styles.flexColumn, ...styles.alignItemsStretch},
+    ];
 
+    // The animated style is applied inline, so the `borderRadius: 0` it carries wins over the static
+    // `tableTopRadius`/`tableBottomRadius` on the wrapper below. Skip it for the first and last rows only,
+    // so every other row keeps its existing (already square) behavior.
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: 0,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
-        shouldApplyOtherStyles: true,
+        shouldApplyOtherStyles: !isFirstItem && !isLastItem,
     });
 
     // The highlight animation is applied to the row wrapper, which sits behind this pressable. A focused
@@ -118,7 +131,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                 role={!isDeletedTransaction ? getButtonRole(true) : 'none'}
                 isNested
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                 id={item.keyForList ?? ''}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
                 style={[

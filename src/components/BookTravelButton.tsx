@@ -1,5 +1,6 @@
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDefaultWorkspaceTravelGuard from '@hooks/useDefaultWorkspaceTravelGuard';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -14,8 +15,7 @@ import {isEmailPublicDomain} from '@libs/LoginUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
-import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
-import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
+import {getActivePolicies, getAdminsPrivateEmailDomains, hasAcceptedTravelTerms, isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import {getSearchParamFromPath} from '@libs/Url';
 
 import colors from '@styles/theme/colors';
@@ -29,9 +29,9 @@ import type {ReactElement} from 'react';
 
 import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import RenderHTML from './RenderHTML';
 
@@ -53,6 +53,10 @@ type BookTravelButtonProps = WithSentryLabel & {
 
 const hasPolicyIDInActiveRoute = () => getSearchParamFromPath(Navigation.getActiveRoute(), CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) !== null;
 
+// Avoids a duplicate policyID query param when the active route already has one (e.g. opened from the FAB).
+const getPolicyDynamicSuffix = (dynamicRoute: {path: string; getRoute: (policyID?: string) => string}, policyID?: string) =>
+    hasPolicyIDInActiveRoute() ? dynamicRoute.path : dynamicRoute.getRoute(policyID);
+
 function BookTravelButton({
     text,
     shouldRenderErrorMessageBelowButton = false,
@@ -72,6 +76,7 @@ function BookTravelButton({
     const primaryLogin = account?.primaryLogin ?? '';
 
     const policy = usePolicy(activePolicyID);
+    const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard();
     const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
@@ -79,16 +84,12 @@ function BookTravelButton({
     const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const activePolicies = getActivePolicies(policies, currentUserLogin);
     const groupPaidPolicies = activePolicies.filter((activePolicy) => activePolicy.type !== CONST.POLICY.TYPE.PERSONAL && isPaidGroupPolicy(activePolicy));
 
-    // Ref to track if we should auto-resume the booking flow after returning from the missing-personal-details page
-    const shouldResumeBookingRef = useRef(false);
-
     const navigateToPublicDomainError = () => {
-        const dynamicSuffix = hasPolicyIDInActiveRoute() ? DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.path : DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(activePolicyID);
+        const dynamicSuffix = getPolicyDynamicSuffix(DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR, activePolicyID);
         Navigation.navigate(createDynamicRoute(dynamicSuffix));
     };
 
@@ -131,17 +132,7 @@ function BookTravelButton({
         }
 
         const isPolicyProvisioned = isWorkspaceProvisionedForTravel(policy?.travelSettings);
-        const hasAcceptedTravelTerms = policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned);
-        const willUseEnablementStepper = !hasAcceptedTravelTerms && (isPolicyProvisioned || isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED));
-
-        // The enablement stepper collects a missing legal name as one of its own steps, so this pre-check (and its
-        // resume-after-filling behavior) only still applies to the outcomes that never reach the stepper: opening
-        // TravelDot on an already-enabled workspace, and the legacy request-access path below.
-        if (!willUseEnablementStepper && areTravelPersonalDetailsMissing(privatePersonalDetails)) {
-            shouldResumeBookingRef.current = true;
-            Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS.getRoute(policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)));
-            return;
-        }
+        const hasPolicyAcceptedTravelTerms = hasAcceptedTravelTerms(policy, travelSettings);
 
         const adminDomains = getAdminsPrivateEmailDomains(policy);
         if (adminDomains.length === 0) {
@@ -159,7 +150,11 @@ function BookTravelButton({
             return;
         }
 
-        if (hasAcceptedTravelTerms) {
+        if (hasPolicyAcceptedTravelTerms) {
+            if (blockIfDefaultWorkspaceLacksTravel()) {
+                return;
+            }
+
             openTravelDotLink(policy?.id);
             return;
         }
@@ -167,7 +162,7 @@ function BookTravelButton({
         // Legacy request-access path for not-yet-provisioned workspaces when the self-serve provisioning beta is off.
         if (!isPolicyProvisioned && !isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
             if (!isUserValidated) {
-                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, activePolicyID, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(getPolicyDynamicSuffix(DYNAMIC_ROUTES.TRAVEL_VERIFY_ACCOUNT, activePolicyID)));
                 return;
             }
             if (shouldShowVerifyAccountModal) {
@@ -198,23 +193,11 @@ function BookTravelButton({
         // replaced with the verify URL a render later.
         if (!isUserValidated) {
             setTravelProvisioningNextStep(enableTravelRoute);
-            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, activePolicyID, Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(getPolicyDynamicSuffix(DYNAMIC_ROUTES.TRAVEL_VERIFY_ACCOUNT, activePolicyID)));
             return;
         }
         Navigation.navigate(enableTravelRoute);
     };
-
-    // Auto-resume the booking flow after returning from the missing-personal-details page: when the user saves
-    // their legal name and navigates back, privatePersonalDetails updates and this effect re-triggers bookATrip()
-    useEffect(() => {
-        if (!shouldResumeBookingRef.current || areTravelPersonalDetailsMissing(privatePersonalDetails)) {
-            return;
-        }
-
-        shouldResumeBookingRef.current = false;
-        bookATrip();
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want to trigger this effect when privatePersonalDetails changes
-    }, [privatePersonalDetails]);
 
     return (
         <>
@@ -226,15 +209,16 @@ function BookTravelButton({
                 />
             )}
             <Button
-                text={text}
                 onPress={bookATrip}
                 accessibilityLabel={translate('travel.bookTravel')}
                 style={large ? styles.w100 : undefined}
                 isDisabled={!activePolicyID}
-                success
-                large={large}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={large ? CONST.BUTTON_SIZE.LARGE : undefined}
                 sentryLabel={sentryLabel}
-            />
+            >
+                <Button.Text>{text}</Button.Text>
+            </Button>
             {shouldRenderErrorMessageBelowButton && !!errorMessage && (
                 <DotIndicatorMessage
                     style={[styles.mb1, styles.pt3]}

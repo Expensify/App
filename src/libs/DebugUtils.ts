@@ -461,6 +461,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'submitterUserID':
         case 'submitterPayrollID':
         case 'orderDealNumbers':
+        case 'debitedCurrency':
+        case 'creditedCurrency':
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
@@ -487,6 +489,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'reimbursableTotal':
         case 'unheldReimbursableTotal':
         case 'transactionCount':
+        case 'debitedAmount':
+        case 'creditedAmount':
             return validateNumber(value);
         case 'chatType':
             return validateConstantEnum(value, CONST.REPORT.CHAT_TYPE);
@@ -565,6 +569,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 actorAccountID: 'number',
                 eta: 'object',
                 iconFill: 'string',
+                requiredDepositCurrency: 'string',
             });
         case 'tripData':
             return validateObject<ObjectElement<Report, 'tripData'>>(value, {
@@ -602,6 +607,10 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 submitterUserID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 submitterPayrollID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 orderDealNumbers: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                debitedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                debitedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                creditedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                creditedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatarUrl: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1096,6 +1105,10 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     defaultP2PRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     distanceUnit: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    commuterExclusion: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    commuterExclusionMethod: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    commuterExclusionType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    reimbursableDistance: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     rateAutoUpdated: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerStart: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerEnd: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1175,6 +1188,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     splitsEndDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     withdrawalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isAmountSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    selectedRouteKey: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1228,6 +1242,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 odometerStartImage: 'object',
                 odometerEndImage: 'object',
                 tripID: 'string',
+                selectedRouteKey: 'string',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {
@@ -1465,6 +1480,7 @@ function getReasonForShowingRowInLHN({
     currentUserLogin,
     currentUserAccountID,
     conciergeReportID,
+    hasGuidesEmails,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1476,6 +1492,7 @@ function getReasonForShowingRowInLHN({
     draftComment: string | undefined;
     currentUserLogin?: string;
     currentUserAccountID?: number;
+    hasGuidesEmails: boolean;
     conciergeReportID: string | undefined;
 }): TranslationPaths | null {
     if (!report) {
@@ -1497,6 +1514,7 @@ function getReasonForShowingRowInLHN({
         currentUserLogin,
         currentUserAccountID,
         conciergeReportID,
+        hasGuidesEmails,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {
@@ -1560,7 +1578,7 @@ function getReasonAndReportActionForRBRInLHNRow(
     isArchivedReport = false,
 ): RBRReasonAndReportAction | null {
     const {reason, reportAction} =
-        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
             report,
             chatReport,
             reportActions,
@@ -1570,8 +1588,8 @@ function getReasonAndReportActionForRBRInLHNRow(
             isOffline,
             currentUserAccountID,
             transactionViolations,
-            isArchivedReport,
-        ) ?? {};
+            isReportArchived: isArchivedReport,
+        }) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonRBR.${reason}`, reportAction};

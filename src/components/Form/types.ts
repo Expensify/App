@@ -35,6 +35,8 @@ import type InitialListValueSelector from '@pages/workspace/reports/InitialListV
 import type TypeSelector from '@pages/workspace/reports/TypeSelector';
 import type TaxValuePicker from '@pages/workspace/taxes/TaxValuePicker';
 
+import type {ButtonVariant} from '@styles/utils/types';
+
 import type {Country} from '@src/CONST';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
@@ -128,6 +130,7 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
     ref?: Ref<unknown>;
     multiline?: boolean;
     autoGrowHeight?: boolean;
+    autoGrowSingleLine?: boolean;
     submitBehavior?: SubmitBehavior;
     shouldSubmitForm?: boolean;
     uncontrolled?: boolean;
@@ -159,11 +162,14 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProp
         /** Should the button be enabled when offline */
         enabledWhenOffline?: boolean;
 
-        /** Whether the form submit action is dangerous */
-        isSubmitActionDangerous?: boolean;
+        /** The visual variant of the submit button, which controls its color scheme */
+        buttonVariant?: ButtonVariant;
 
         /** Should fix the errors alert be displayed when there is an error in the form */
         shouldHideFixErrorsAlert?: boolean;
+
+        /** Hides the server error banner even when `formState.errors` is set */
+        shouldHideServerError?: boolean;
 
         /** Whether ScrollWithContext should be used instead of regular ScrollView. Set to true when there's a nested Picker component in Form. */
         scrollContextEnabled?: boolean;

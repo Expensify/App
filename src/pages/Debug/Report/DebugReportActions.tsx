@@ -11,8 +11,9 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {getHeaderMessageForNonUserList, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
+import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportActionMessage, getReportActionMessageText, getSortedReportActionsForDisplay, isCreatedAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, formatReportLastMessageText, getInvoiceReceiverPolicyID, getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -31,7 +32,7 @@ type DebugReportActionsProps = {
 };
 
 function DebugReportActions({reportID}: DebugReportActionsProps) {
-    const {translate, datetimeToCalendarTime, localeCompare} = useLocalize();
+    const {translate, datetimeToCalendarTime, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -75,6 +76,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
                         conciergeReportID,
                         derivedReportName,
                         isReportArchived,
+                        formatPhoneNumber,
                     }).messageText ?? translate('report.noActivityYet'),
                 );
             }
@@ -85,7 +87,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
 
             return getReportActionMessageText(reportAction);
         },
-        [translate, report, policy, invoiceReceiverPolicy, participantPersonalDetailList, localeCompare, conciergeReportID, derivedReportName, isReportArchived],
+        [translate, report, policy, invoiceReceiverPolicy, participantPersonalDetailList, localeCompare, conciergeReportID, derivedReportName, isReportArchived, formatPhoneNumber],
     );
 
     const searchedReportActions = useMemo(() => {

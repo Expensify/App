@@ -13,13 +13,14 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 
 import {deleteReportField, updateReportField, updateReportName} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
 import {isPolicyFieldListEmpty} from '@libs/PolicyUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     getReportFieldFromReportNameValuePairs,
     getReportFieldKey,
@@ -37,14 +38,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
+import type {Policy} from '@src/types/onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import reportByIDsSelector from '@selectors/ReportAttributes';
 import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 import EditReportFieldDate from './EditReportFieldDate';
 import EditReportFieldDropdown from './EditReportFieldDropdown';
@@ -59,10 +57,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const reportAttributesSelector = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportByIDsSelector([reportID])(attributes), [reportID]);
-    const [reportAttributesByReportID] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
-        selector: reportAttributesSelector,
-    });
+    const derivedReportName = useDerivedReportNameByReportID(reportID);
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
 
     const isTitleField = route.params.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
@@ -117,7 +112,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
             prompt: translate('workspace.reportFields.deleteConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldEnableNewFocusManagement: true,
         });
         if (result.action !== ModalActions.CONFIRM) {
@@ -134,7 +129,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
     // Provide a default when the report name and the policy field list are empty
 
     const fieldValue = isReportFieldTitle
-        ? deprecatedGetReportName(report, reportAttributesByReportID) || (isPolicyFieldListEmpty(policy) ? CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME : '')
+        ? getReportName(report, derivedReportName) || (isPolicyFieldListEmpty(policy) ? CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME : '')
         : (reportField.value ?? reportField.defaultValue);
 
     const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {

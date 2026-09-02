@@ -11,6 +11,7 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 
 import OnboardingPurpose from '@pages/OnboardingPurpose';
 
@@ -19,16 +20,18 @@ import {completeOnboarding} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import type {ValueOf} from 'type-fest';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -61,7 +64,7 @@ jest.mock('@userActions/Policy/Policy', () => {
 TestHelper.setupGlobalFetchMock();
 
 // Helper to translate onboarding purpose keys that use dynamic CONST values
-const translatePurpose = (choice: string) => TestHelper.translateLocal(`onboarding.purpose.${choice}` as TranslationPaths);
+const translatePurpose = (choice: ValueOf<typeof CONST.SELECTABLE_ONBOARDING_CHOICES>) => TestHelper.translateLocal(`onboarding.purpose.${choice}`);
 
 const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
 
@@ -94,10 +97,12 @@ describe('OnboardingPurpose Page', () => {
     });
 
     beforeEach(() => {
-        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
-            isSmallScreenWidth: false,
-            shouldUseNarrowLayout: false,
-        } as ResponsiveLayoutResult);
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+            createMock<ResponsiveLayoutResult>({
+                isSmallScreenWidth: false,
+                shouldUseNarrowLayout: false,
+            }),
+        );
     });
 
     afterEach(async () => {
@@ -161,7 +166,7 @@ describe('OnboardingPurpose Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate to personal details page when user selects EMPLOYER with Submit2026 beta and is from public domain', async () => {
+    it('should navigate to personal details page when user selects EMPLOYER and is from public domain', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -169,7 +174,6 @@ describe('OnboardingPurpose Page', () => {
                 isFromPublicDomain: true,
                 hasAccessibleDomainPolicies: false,
             });
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
         });
 
         const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.PURPOSE, {backTo: ''});
@@ -189,7 +193,7 @@ describe('OnboardingPurpose Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should create a Submit workspace when user selects EMPLOYER with Submit2026 beta and is from private domain with name set', async () => {
+    it('should create a Submit workspace when user selects EMPLOYER and is from private domain with name set', async () => {
         jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
 
@@ -208,7 +212,6 @@ describe('OnboardingPurpose Page', () => {
                     validatedDate: 'fake-validatedDate',
                 },
             });
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
             await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {
                 firstName: 'Test',
                 lastName: 'User',
@@ -248,7 +251,6 @@ describe('OnboardingPurpose Page', () => {
                 isFromPublicDomain: true,
                 hasAccessibleDomainPolicies: false,
             });
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
             await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {
                 firstName: 'Test',
                 lastName: 'User',
@@ -287,7 +289,7 @@ describe('OnboardingPurpose Page', () => {
 
         await waitFor(() => {
             expect(onyxSetSpy).toHaveBeenCalledWith(ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT, CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
-            expect(navigate).toHaveBeenCalledWith(`${ROUTES.WORKSPACE_CATEGORIES.getRoute('test-policy-id')}?backTo=${encodeURIComponent(ROUTES.WORKSPACES_LIST.route)}`);
+            expect(navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE})}));
         });
 
         onyxSetSpy.mockRestore();

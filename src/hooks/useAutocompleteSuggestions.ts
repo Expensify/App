@@ -32,7 +32,6 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 
 import type {FeedKeysWithAssignedCards} from './useFeedKeysWithAssignedCards';
 
@@ -120,12 +119,12 @@ function useAutocompleteSuggestions({
     translate,
     autocompleteSubstitutions,
 }: UseAutocompleteSuggestionsParams): AutocompleteItemData[] {
-    const {localeCompare} = useLocalize();
+    const {localeCompare, dateFnsLocale} = useLocalize();
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const sortedActions = useSortedActions();
@@ -240,12 +239,14 @@ function useAutocompleteSuggestions({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
             // Soft-exclude Expensify-team logins (current and former AMs/Guides) from user filter suggestions. Users can still type any email manually because the search bar accepts free text.
             const memberExclusions = getExpensifyTeamExclusions(personalDetails, policies, currentUserEmail);
 
             const participants = getSearchOptions({
+                dateFnsLocale,
                 options,
                 draftComments,
                 betas: betas ?? [],
@@ -272,7 +273,7 @@ function useAutocompleteSuggestions({
             }).options.personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
             return participants.map((participant) => ({
-                filterKey: autocompleteKey,
+                filterKey: getUserFriendlyKey(autocompleteKey),
                 text: participant.login === currentUserEmail ? CONST.SEARCH.ME : (participant.text ?? ''),
                 autocompleteID: String(participant.accountID),
                 mapKey: autocompleteKey,
@@ -286,6 +287,7 @@ function useAutocompleteSuggestions({
             }
 
             const filteredReports = getSearchOptions({
+                dateFnsLocale,
                 options,
                 draftComments,
                 betas: betas ?? [],

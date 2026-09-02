@@ -5,8 +5,6 @@ import AvatarSkeleton from '@components/AvatarSkeleton';
 import Button from '@components/ButtonComposed';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -17,7 +15,8 @@ import Section from '@components/Section';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
-import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useIsAgentAccount from '@hooks/useIsAgentAccount';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -32,8 +31,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getFormattedAddress, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {useIsAgentAccount} from '@libs/SessionUtils';
 import {expensifyLoginsSelector, getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
+
+import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
 
 import {clearAgentAvatarUpdateError} from '@userActions/Agent';
 
@@ -51,6 +51,7 @@ import type {ScrollView as RNScrollView} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
+import {homeAndOfficeCommuterExclusionPolicyNameSelector} from '@selectors/Policy';
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -82,13 +83,14 @@ function ProfilePage() {
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const isAgentAccount = useIsAgentAccount();
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
-    const {asset: Profile} = useMemoizedLazyAsset(() => loadIllustration('Profile' as IllustrationName));
     const icons = useMemoizedLazyExpensifyIcons(['QrCode']);
 
     const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList, currentUserPersonalDetails?.email);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
+    const {shouldShowAddHomeAddress: shouldShowAddHomeAddressGBR} = useTimeSensitiveHomeAddress();
+    const [commuterExclusionsWorkspaceName] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: homeAndOfficeCommuterExclusionPolicyNameSelector});
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
     const {isActingAsDelegate} = useDelegateNoAccessState();
@@ -103,7 +105,7 @@ function ProfilePage() {
     }> = [
         {
             description: translate('displayNamePage.headerTitle'),
-            title: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: currentUserPersonalDetails, translate})),
+            title: temporaryGetDisplayNameOrDefault({passedPersonalDetails: currentUserPersonalDetails, translate, formatPhoneNumber}),
             pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
             testID: 'display-name-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DISPLAY_NAME,
@@ -127,7 +129,7 @@ function ProfilePage() {
             testID: 'status-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.STATUS,
         },
-        ...(!isAgentAccount
+        ...(isAgentAccount === false
             ? [
                   {
                       description: translate('pronounsPage.pronouns'),
@@ -155,7 +157,15 @@ function ProfilePage() {
         Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(fieldToFocus));
     };
 
-    const privateOptions = [
+    const privateOptions: Array<{
+        description: string;
+        title: string;
+        testID: string;
+        sentryLabel: string;
+        action: () => void;
+        brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+        furtherDetails?: string;
+    }> = [
         {
             description: translate('privatePersonalDetails.legalName'),
             title: legalName,
@@ -184,6 +194,8 @@ function ProfilePage() {
             testID: 'address-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.ADDRESS,
             action: () => navigateToPrivateDetails(INPUT_IDS.ADDRESS_LINE_1),
+            brickRoadIndicator: shouldShowAddHomeAddressGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined,
+            furtherDetails: commuterExclusionsWorkspaceName ? translate('privatePersonalDetails.commuterExclusionsHint', {workspaceName: commuterExclusionsWorkspaceName}) : undefined,
         },
     ];
 
@@ -205,7 +217,6 @@ function ProfilePage() {
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 shouldDisplayHelpButton
-                icon={Profile}
                 shouldUseHeadlineHeader
             />
             <ScrollView
@@ -305,6 +316,7 @@ function ProfilePage() {
                                             wrapperStyle={styles.sectionMenuItemTopDescription}
                                             onPress={detail.action}
                                             brickRoadIndicator={detail.brickRoadIndicator}
+                                            furtherDetails={detail.furtherDetails}
                                             pressableTestID={detail?.testID}
                                             sentryLabel={detail.sentryLabel}
                                         />
@@ -312,7 +324,7 @@ function ProfilePage() {
                                 </MenuItemGroup>
                             )}
                         </Section>
-                        {isAgentAccount && (
+                        {isAgentAccount === true && (
                             <AgentAIPromptSection
                                 accountID={accountID}
                                 parentScrollViewRef={scrollViewRef}

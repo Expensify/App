@@ -1,5 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -85,7 +85,7 @@ function FieldsSettingsPage({
 
     const showDeleteModal = () => {
         showConfirmModal({
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             title: translate(deleteTitleKey),
             prompt: translate(deletePromptKey),
             confirmText: translate('common.delete'),
@@ -155,7 +155,7 @@ function FieldsSettingsPage({
                     )}
                     {canWrite && !hasAccountingConnections && (
                         <View style={styles.flexGrow1}>
-                            <MenuItem
+                            <MenuItemAction
                                 icon={icons.Trashcan}
                                 title={translate('common.delete')}
                                 onPress={showDeleteModal}
