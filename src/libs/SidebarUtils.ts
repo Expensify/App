@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Card,
+    GuideAccountIDsDerivedValue,
     PersonalDetails,
     PersonalDetailsList,
     PolicyTagLists,
@@ -36,8 +37,9 @@ import type {OptionData} from './ReportUtils';
 import {isAnonymousUser} from './actions/Session';
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
 import {formatList} from './Localize';
+import Log from './Log';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import {getLastMessageTextForReport} from './OptionsListUtils';
+import {getLastMessageTextForReport, shouldUseFullTitleForOption} from './OptionsListUtils';
 import {getLastActorDisplayName, getLastActorDisplayNameFromLastVisibleActions, shouldShowLastActorDisplayName} from './OptionsListUtils/getChatPreviewParts';
 import Parser from './Parser';
 import {getPersonalDetailsByID, getPersonalDetailsForAccountIDs} from './PersonalDetailsUtils';
@@ -180,6 +182,7 @@ import {
     getUnreportedTransactionMessage,
     getViolatingReportIDForRBRInLHN,
     getWorkspaceNameUpdatedMessage,
+    hasExpensifyGuidesEmails,
     hasReportErrorsOtherThanFailedReceipt,
     isAdminRoom,
     isAnnounceRoom,
@@ -257,6 +260,12 @@ const DIGIT_SEQUENCE = /\d+/g;
 const sortKeyCache = new Map<string, string>();
 
 /**
+ * Reports already reported by the `[ChatReportLHN]` diagnostic log, so a stuck row is logged once per session
+ * instead of on every LHN recompute.
+ */
+const loggedChatReportIDs = new Set<string>();
+
+/**
  * Builds a normalized sort key for fast string comparison using plain < / > operators.
  * Lowercases the name and zero-pads numeric segments ("Report 2" → "report 000000000000002")
  * so that numeric ordering is preserved without Intl.Collator.
@@ -299,6 +308,7 @@ type ShouldDisplayReportInLHNParams = {
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     currentUserLogin: string;
     currentUserAccountID: number;
+    hasGuidesEmails: boolean;
     conciergeReportID: string | undefined;
 };
 
@@ -317,6 +327,7 @@ function shouldDisplayReportInLHN({
     currentUserAccountID,
     currentUserLogin,
     conciergeReportID,
+    hasGuidesEmails,
 }: ShouldDisplayReportInLHNParams) {
     if (!report) {
         return {shouldDisplay: false};
@@ -381,6 +392,7 @@ function shouldDisplayReportInLHN({
         currentUserLogin,
         currentUserAccountID,
         conciergeReportID,
+        hasGuidesEmails,
     });
 
     return {shouldDisplay};
@@ -400,6 +412,7 @@ function getReportsToDisplayInLHN({
     reportNameValuePairs,
     reportAttributes,
     conciergeReportID,
+    guideAccountIDs,
 }: {
     currentReportId: string | undefined;
     reports: OnyxCollection<Report>;
@@ -413,6 +426,7 @@ function getReportsToDisplayInLHN({
     currentUserAccountID: number;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
+    guideAccountIDs?: GuideAccountIDsDerivedValue;
     conciergeReportID: string | undefined;
 }) {
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
@@ -440,6 +454,7 @@ function getReportsToDisplayInLHN({
             isReportArchived,
             reportAttributes,
             currentUserLogin,
+            hasGuidesEmails: hasExpensifyGuidesEmails(Object.keys(report.participants ?? {}).map(Number), guideAccountIDs),
             currentUserAccountID,
             conciergeReportID,
         });
@@ -470,6 +485,7 @@ type UpdateReportsToDisplayInLHNProps = {
     isOffline: boolean;
     currentUserLogin: string;
     currentUserAccountID: number;
+    guideAccountIDs?: GuideAccountIDsDerivedValue;
     conciergeReportID: string | undefined;
 };
 
@@ -489,6 +505,7 @@ function updateReportsToDisplayInLHN({
     currentUserLogin,
     currentUserAccountID,
     conciergeReportID,
+    guideAccountIDs,
 }: UpdateReportsToDisplayInLHNProps) {
     // Use a lazy copy to avoid creating a new object reference when no entries actually change.
     let displayedReportsCopy: ReportsToDisplayInLHN | undefined;
@@ -526,6 +543,7 @@ function updateReportsToDisplayInLHN({
             isReportArchived,
             reportAttributes,
             currentUserLogin,
+            hasGuidesEmails: hasExpensifyGuidesEmails(Object.keys(report.participants ?? {}).map(Number), guideAccountIDs),
             currentUserAccountID,
             conciergeReportID,
         });
@@ -1433,7 +1451,7 @@ function getOptionData({
 
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);
 
-    if (isJoinRequestInAdminRoom(report)) {
+    if (isJoinRequestInAdminRoom(report, currentUserLogin)) {
         result.isUnread = true;
     }
 
@@ -1444,6 +1462,21 @@ function getOptionData({
     }
 
     const reportName = deprecatedGetReportName(report, reportAttributesDerived);
+
+    if (reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
+        loggedChatReportIDs.delete(report.reportID);
+    } else if (!loggedChatReportIDs.has(report.reportID) && shouldUseFullTitleForOption(result)) {
+        const derivedEntry = reportAttributesDerived?.[report.reportID];
+        loggedChatReportIDs.add(report.reportID);
+        Log.info('[ChatReportLHN] Default report name is shown in LHN', false, {
+            reportID: report.reportID,
+            chatType: report.chatType,
+            rawReportName: report.reportName,
+            hasDerivedEntry: !!derivedEntry,
+            derivedReportName: derivedEntry?.reportName,
+            derivedCount: reportAttributesDerived ? Object.keys(reportAttributesDerived).length : 0,
+        });
+    }
 
     result.text = reportName;
     result.subtitle = subtitle;
