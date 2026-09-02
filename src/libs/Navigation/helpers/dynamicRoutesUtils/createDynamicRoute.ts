@@ -7,18 +7,13 @@ import isDynamicRouteSuffix from './isDynamicRouteSuffix';
 import splitPathAndQuery from './splitPathAndQuery';
 
 /**
- * Merges two query strings into one. When both contain the same key, the suffix
- * value wins (it is the intended destination of the navigation) and the duplicate
- * from the base path is overwritten.
+ * Merges two query strings into one. When both contain the same key, the suffix value wins
+ * (it is the intended destination of the navigation).
  *
- * Stacked dynamic suffixes are a supported URL shape (see `getDynamicRouteAdaptedState`) and sibling
- * suffixes deliberately share param names - every money-request step declares `action`, `iouType`,
- * `transactionID` and `reportID` - so a collision is not an invariant violation and must not be fatal.
- * A collision on *differing* values is still worth knowing about, so it is reported via `Log.alert`,
- * which is forwarded to Sentry (see `FORWARDED_LOG_PREFIXES`) with the call site's stack attached.
- * Only the param name is logged - the colliding values are deliberately left out because a query param
- * value can carry private data (an email address, a full URL), and the name plus the stack are enough
- * to locate the collision.
+ * Sibling dynamic suffixes deliberately share param names (every money-request step declares
+ * `action`, `iouType`, `transactionID` and `reportID`), so a collision is expected and must not be
+ * fatal. A collision on *differing* values is still reported via `Log.alert` (forwarded to Sentry),
+ * logging only the param name because a value can carry private data.
  *
  * @param baseQuery - The query string of the base path
  * @param suffixQuery - The query string of the suffix
