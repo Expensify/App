@@ -1,53 +1,52 @@
 import {render, screen} from '@testing-library/react-native';
 
 import BrokenConnectionDescription from '@components/BrokenConnectionDescription';
-import ComposeProviders from '@components/ComposeProviders';
-import HTMLEngineProvider from '@components/HTMLEngineProvider';
-import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 
 import CONST from '@src/CONST';
-import IntlStore from '@src/languages/IntlStore';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolations} from '@src/types/onyx';
 
 import React from 'react';
-import Onyx from 'react-native-onyx';
-
-import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockUseTransactionViolations = jest.fn<TransactionViolations, unknown[]>();
+const mockTranslate = jest.fn((key: string) => {
+    if (key === 'violations.brokenConnection530Error') {
+        return 'Receipt pending due to broken bank connection';
+    }
+    if (key === 'violations.brokenConnection531Error') {
+        return "Can't auto-match receipt due to a temporary bank issue. Please try again later.";
+    }
+    return key;
+});
+
 jest.mock('@hooks/useTransactionViolations', () => ({
     __esModule: true,
     default: (...args: unknown[]) => mockUseTransactionViolations(...args),
 }));
 jest.mock('@hooks/useEnvironment', () => jest.fn(() => ({environmentURL: ''})));
+jest.mock('@hooks/useLocalize', () => ({
+    __esModule: true,
+    default: () => ({translate: mockTranslate}),
+}));
 
 const renderDescription = () =>
     render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-            <Text>
-                <BrokenConnectionDescription
-                    transactionID="1"
-                    report={undefined}
-                    policy={undefined}
-                />
-            </Text>
-        </ComposeProviders>,
+        <Text>
+            <BrokenConnectionDescription
+                transactionID="1"
+                report={undefined}
+                policy={undefined}
+            />
+        </Text>,
     );
 
 describe('BrokenConnectionDescription', () => {
-    beforeAll(() => {
-        Onyx.init({keys: ONYXKEYS});
-        return IntlStore.load(CONST.LOCALES.EN);
-    });
-
     afterEach(() => {
         mockUseTransactionViolations.mockReset();
+        mockTranslate.mockClear();
     });
 
-    it('shows the temporary retry-later message for a 531 broken card connection', async () => {
+    it('shows the temporary retry-later message for a 531 broken card connection', () => {
         mockUseTransactionViolations.mockReturnValue([
             {
                 name: 'rter',
@@ -57,12 +56,11 @@ describe('BrokenConnectionDescription', () => {
         ] as TransactionViolations);
 
         renderDescription();
-        await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByText("Can't auto-match receipt due to a temporary bank issue. Please try again later.")).toBeTruthy();
     });
 
-    it('prefers the 530 message when both 530 and 531 broken connections are present', async () => {
+    it('prefers the 530 message when both 530 and 531 broken connections are present', () => {
         mockUseTransactionViolations.mockReturnValue([
             {
                 name: 'rter',
@@ -77,7 +75,6 @@ describe('BrokenConnectionDescription', () => {
         ] as TransactionViolations);
 
         renderDescription();
-        await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByText('Receipt pending due to broken bank connection')).toBeTruthy();
     });
