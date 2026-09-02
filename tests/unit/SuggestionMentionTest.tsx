@@ -168,6 +168,26 @@ describe('SuggestionMention', () => {
         await waitFor(() => expect(mockSearchUserInServer).toHaveBeenCalledWith('alice'));
     });
 
+    it('does not search for the built-in @here mention', async () => {
+        renderSuggestionMention(CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT);
+
+        await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+        expect(mockSearchUserInServer).not.toHaveBeenCalled();
+    });
+
+    it('does not update mention state while typing ordinary text', () => {
+        renderSuggestionMention('hello friend');
+        const calculateMentionSuggestions = mockUseDebounce.mock.calls.at(-1)?.[0];
+        if (!calculateMentionSuggestions) {
+            throw new Error('Expected the mention calculation callback to be available');
+        }
+        mockSetHighlightedMentionIndex.mockClear();
+
+        act(() => calculateMentionSuggestions('hello friends', 13, 13));
+
+        expect(mockSetHighlightedMentionIndex).not.toHaveBeenCalled();
+    });
+
     it('does not search for the same user again when server results hydrate', async () => {
         const {rerender} = renderSuggestionMention('@alice');
         await waitFor(() => expect(mockSearchUserInServer).toHaveBeenCalledTimes(1));

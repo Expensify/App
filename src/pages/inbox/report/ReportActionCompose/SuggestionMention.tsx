@@ -145,7 +145,10 @@ function SuggestionMention({
         useCallback(
             (prefixType: string, searchPrefix: string, foundSuggestionsCount: number) => {
                 if (prefixType === '@') {
-                    searchUserInServer(searchPrefix);
+                    const isHereMention = `@${searchPrefix}`.toLowerCase() === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT;
+                    if (!isHereMention) {
+                        searchUserInServer(searchPrefix);
+                    }
                     return;
                 }
 
@@ -505,7 +508,7 @@ function SuggestionMention({
 
             let atSignIndex: number | undefined;
             let suggestionWord = '';
-            let prefix: string;
+            let prefix = '';
             let prefixType = '';
 
             // Detect if the last two words contain a mention (two words are needed to detect a mention with a space in it)
@@ -521,8 +524,6 @@ function SuggestionMention({
 
                 prefix = suggestionWord.substring(1);
                 prefixType = suggestionWord.substring(0, 1);
-            } else {
-                prefix = lastWord.substring(1);
             }
 
             const normalizedPrefix = normalizeMentionPrefix(prefix, prefixType);
