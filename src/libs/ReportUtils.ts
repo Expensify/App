@@ -4678,7 +4678,12 @@ function getReasonAndReportActionThatRequiresAttention(
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user.
     // A report whose only expenses are pending Expensify Card transactions can't be actioned until they post, so it
     // shouldn't demand attention even when the chat still carries an outstanding-child flag.
-    const hasStaleChildRequest = isTripRoom(optionOrReport) && (optionOrReport.transactionCount ?? 0) === 0;
+    // A workspace chat can keep the flag set after its expense report is gone, leaving a GBR with nothing behind it.
+    // Trust the flag again as soon as either side reports an expense, so a chat whose child report has not loaded into
+    // Onyx yet keeps its GBR.
+    const hasStaleChildRequest =
+        (isTripRoom(optionOrReport) && (optionOrReport.transactionCount ?? 0) === 0) ||
+        (isPolicyExpenseChat(optionOrReport) && optionOrReport.transactionCount === 0 && transactions.length === 0);
     const hasValidIOUAction =
         ((optionOrReport.hasOutstandingChildRequest === true && !hasStaleChildRequest) || iouReportActionToApproveOrPay?.reportActionID) &&
         !hasOnlyPendingTransactions &&

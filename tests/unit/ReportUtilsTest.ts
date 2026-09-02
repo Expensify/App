@@ -3881,6 +3881,81 @@ describe('ReportUtils', () => {
             expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(true);
         });
 
+        it('returns false when a workspace chat carries a stale outstanding child request', () => {
+            // Given a workspace chat still flagged as having an outstanding child request, whose expense report is gone
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ownerAccountID: 99,
+                hasOutstandingChildRequest: true,
+                isWaitingOnBankAccount: false,
+                transactionCount: 0,
+            };
+
+            // When we check whether it requires attention
+            // Then the stale flag is ignored, because there is no expense left to act on
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
+        });
+
+        it('returns true when a workspace chat with an outstanding child request still has expenses', () => {
+            // Given a workspace chat flagged as having an outstanding child request that still counts an expense
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ownerAccountID: 99,
+                hasOutstandingChildRequest: true,
+                isWaitingOnBankAccount: false,
+                transactionCount: 1,
+            };
+
+            // When we check whether it requires attention
+            // Then the flag is trusted
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(true);
+        });
+
+        it('returns false for the reported workspace chat whose expense report is long gone', () => {
+            // Given the exact shape of the reported chat: flag still set, zero expenses, last activity in Jan 2025
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                isOwnPolicyExpenseChat: true,
+                ownerAccountID: 623727,
+                managerID: 0,
+                hasOutstandingChildRequest: true,
+                hasOutstandingChildTask: false,
+                isWaitingOnBankAccount: false,
+                transactionCount: 0,
+                total: 0,
+                unheldTotal: 0,
+                reimbursableTotal: 0,
+                nonReimbursableTotal: 0,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                lastMentionedTime: '2025-01-22 15:16:43.872',
+                lastReadTime: '2026-08-25 01:13:11.118',
+                lastVisibleActionCreated: '2025-01-22 15:16:59.865',
+            };
+
+            // When we check whether it requires attention
+            // Then no reason is found, so the GBR clears
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
+        });
+
+        it('returns true when a workspace chat with an outstanding child request has no expense count yet', () => {
+            // Given a workspace chat flagged as having an outstanding child request and no transactionCount at all
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ownerAccountID: 99,
+                hasOutstandingChildRequest: true,
+                isWaitingOnBankAccount: false,
+            };
+
+            // When we check whether it requires attention
+            // Then the flag is trusted, since a missing count is not proof the child report is gone
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(true);
+        });
+
         it('returns false if the user is not on free trial', async () => {
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: null, // not on free trial
