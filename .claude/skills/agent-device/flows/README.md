@@ -43,14 +43,12 @@ No flow in this repository owns application lifecycle, so none of them is a self
 
 Each flow starts with `# @key value` comment lines. The `.ad` parser treats `#` lines as no-ops, so headers cost nothing at replay time.
 
-| Field    | Cardinality | Value                                                                                            |
-| -------- | ----------- | ------------------------------------------------------------------------------------------------ |
-| `@desc`  | 1           | One-line human summary.                                                                          |
-| `@pre`   | 1..N        | Selector that must resolve in the current snapshot. Multiple lines are ANDed.                    |
-| `@post`  | 0..N        | Selector expected after replay. Multiple lines are ANDed. The flow body enforces them.             |
-| `@reset` | 0..1        | Repository-relative macro path that restores the flow's `@pre` state between measured runs.        |
-| `@span`  | 0..N        | Sentry span this flow owns for measurement. Measurement flows only; exactly one flow per span.     |
-| `@param` | 0..N        | Runtime input contract: `@param KEY description.` Use with `${KEY}` in flow body.                |
+| Field    | Cardinality | Value                                                                                  |
+| -------- | ----------- | -------------------------------------------------------------------------------------- |
+| `@desc`  | 1           | One-line human summary.                                                                |
+| `@pre`   | 1..N        | Selector that must resolve in the current snapshot. Multiple lines are ANDed.           |
+| `@post`  | 0..N        | Selector expected after replay. Multiple lines are ANDed. The flow body enforces them. |
+| `@param` | 0..N        | Runtime input contract: `@param KEY description.` Use with `${KEY}` in flow body.      |
 
 Selector syntax matches the body: `id="..."`, `role="..." label="..."`, `text="..."`, `||` for fallbacks.
 
@@ -81,13 +79,11 @@ agent-device replay <flow>.ad -e EMAIL=other@example.com
 - **Durable selectors.** Prefer `id=...` first, then `role=... label=...`, with `||` fallbacks. Avoid `@eN` refs.
 - **A `@pre` must distinguish the start screen from the destination.** A bottom-tab label such as `text="Home"` is rendered on every tab, so asserting it proves nothing. Anchor on a screen-scoped `id=` instead - `id="HomePage"` for Home, `id="BaseSidebarScreen"` for Inbox - otherwise a flow that starts on the wrong screen reports success while the action it measures never happens.
 - **Confirm every selector on the platform it is written for.** `snapshot -i` prints display tags, which are not selector values - a node printed as `[text-field]` may only match `role="textbox"`. Check the exit code of `agent-device is visible "<selector>"` before committing a selector, and never carry one across platforms unchecked.
-- **Every flow declares `@desc` and `@pre`.** Measurement flows also declare at least one `@post`. Utility macros (for example `go-back`) may omit `@post`.
+- **Every flow declares `@desc` and `@pre`.** Outcome-bearing flows also declare at least one `@post`. Utility macros (for example `go-back`) may omit `@post`.
 - **Every declared `@pre` and `@post` runs as a body assertion.** Use `is exists` or `wait`. Metadata documents the contract but does not execute it.
 - **Assertion order decides whether a pass means anything.** Enforce every `@pre` before the first mutation and every `@post` after the last one. An assertion on the wrong side of a mutation lets a flow report success from the screen it started on.
 - **No `find <selector> "click"`.** It resolves at runtime and hides which element was hit. Press an exact selector instead.
 - **A bare `label=` alternative must carry `hittable=true`.** Without it the match can land on an off-screen or non-interactive node and the press silently does nothing.
-- **One owner per span.** Exactly one flow declares `@span <SpanName>`. A flow that merely passes through a span must not declare it, otherwise measurement fails instead of guessing.
-- **Choose the skill intentionally.** Reusable setup and navigation steps belong in `flows/macros/` here; flows that exist to measure a Sentry span belong in `measure-telemetry-span/flows/`.
 - **Keep scope coherent, not artificially tiny.** Flows can span multiple screens when that sequence is the reusable intent (for example "create and submit manual expense").
 - **Peers share `@pre` and differ on `@post`.** One flow per narrow outcome is better than a mega-flow with conditional branches.
 - **Use `@param` for substituted values.** If a literal is interpolated into the body, declare `# @param KEY description.` and reference it as `${KEY}`.
@@ -105,7 +101,7 @@ agent-device replay <flow>.ad -e EMAIL=other@example.com
 4. `agent-device close` - flushes the `.ad`.
 5. Edit the generated file:
    - Delete the `context` line, leading `open ... --relaunch`, trailing `close`, and eyeballing `wait`s.
-   - Move the file to `flows/macros/` or `measure-telemetry-span/flows/`, then add `@desc`, `@pre`, optional `@post`, optional `@span`, and any needed `@param` headers.
+   - Move the file to `flows/macros/`, then add `@desc`, `@pre`, optional `@post`, and any needed `@param` headers.
 6. Add executable checks for every declared `@pre` and `@post`.
 7. Verify: pre-check from a matching state, replay, post-check.
 
