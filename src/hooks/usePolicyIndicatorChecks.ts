@@ -1,6 +1,6 @@
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
-import {hasDomainErrors} from '@libs/DomainUtils';
+import {hasDomainErrors, hasPendingDomainAdminRequestsToReview} from '@libs/DomainUtils';
 import {isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
 import {
     getUberConnectionErrorDirectlyFromPolicy,
@@ -16,6 +16,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 
+import {accountIDSelector} from '@selectors/Session';
+
 import useOnyx from './useOnyx';
 import usePoliciesWithCardFeedErrors from './usePoliciesWithCardFeedErrors';
 
@@ -29,6 +31,9 @@ type PolicyIndicatorChecksResult = {
     /** The domain error indicator status. */
     domainStatus: IndicatorStatus | undefined;
 
+    /** The domain info indicator status. */
+    domainInfoStatus: IndicatorStatus | undefined;
+
     /** The policy ID associated with the active policy error or info indicator. */
     indicatorPolicyID: string | undefined;
 };
@@ -36,6 +41,8 @@ type PolicyIndicatorChecksResult = {
 function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
     const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
 
     const {cleanPolicies, policiesWithCardFeedErrors, isPolicyAdmin: isAdminOfPolicyWithCardFeedErrors} = usePoliciesWithCardFeedErrors();
 
@@ -73,14 +80,19 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
     const domainChecks: Array<[IndicatorStatus, boolean]> = [
         [CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS, Object.values(allDomainErrors ?? {}).some((domainErrors) => hasDomainErrors(domainErrors))],
     ];
+    const domainInfoChecks: Array<[IndicatorStatus, boolean]> = [
+        [CONST.INDICATOR_STATUS.HAS_PENDING_DOMAIN_ADMIN_REQUESTS, Object.values(allDomains ?? {}).some((domain) => hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID))],
+    ];
 
     const activePolicyErrorCheck = policyErrorChecks.find(([, value]) => value);
     const activePolicyInfoCheck = policyInfoChecks.find(([, value]) => value);
     const activeDomainCheck = domainChecks.find(([, value]) => value);
+    const activeDomainInfoCheck = domainInfoChecks.find(([, value]) => value);
 
     const [policyErrorStatus] = activePolicyErrorCheck ?? [];
     const [policyInfoStatus] = activePolicyInfoCheck ?? [];
     const [domainStatus] = activeDomainCheck ?? [];
+    const [domainInfoStatus] = activeDomainInfoCheck ?? [];
 
     const indicatorPolicyID = activePolicyErrorCheck?.[1]?.id ?? activePolicyInfoCheck?.[1]?.id;
 
@@ -88,6 +100,7 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
         policyErrorStatus,
         policyInfoStatus,
         domainStatus,
+        domainInfoStatus,
         indicatorPolicyID,
     };
 }

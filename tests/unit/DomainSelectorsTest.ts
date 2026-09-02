@@ -8,17 +8,20 @@ import {
     accountLockSelector,
     adminAccountIDsSelector,
     adminPendingActionSelector,
+    adminshipRequesterPendingActionSelector,
     defaultSecurityGroupIDSelector,
     domainEmailSelector,
     domainSecurityGroupSettingErrorsSelector,
     domainSecurityGroupSettingPendingActionSelector,
     domainSettingsPrimaryContactSelector,
     groupsSelector,
+    hasPendingAdminRequestsSelector,
     hasPendingAdminshipRequestSelector,
     isAdminSelector,
     isSecurityGroupEntry,
     isSecurityGroupPendingDeleteSelector,
     memberAccountIDsSelector,
+    pendingAdminRequesterAccountIDsSelector,
     selectRestrictedPrimaryPolicyID,
     selectSecurityGroupForAccount,
     technicalContactSettingsSelector,
@@ -872,6 +875,76 @@ describe('domainSelectors', () => {
         it('Should return false when domain_adminRequesters is missing entirely', () => {
             const domain = createDomainFixture();
             expect(hasPendingAdminshipRequestSelector(userID1)(domain)).toBe(false);
+        });
+    });
+
+    describe('pendingAdminRequesterAccountIDsSelector', () => {
+        it('Should return an empty array if the domain object is undefined', () => {
+            expect(pendingAdminRequesterAccountIDsSelector(undefined)).toEqual([]);
+        });
+
+        it('Should return an empty array when domain_adminRequesters is missing entirely', () => {
+            const domain = createDomainFixture();
+            expect(pendingAdminRequesterAccountIDsSelector(domain)).toEqual([]);
+        });
+
+        it('Should return accountIDs with truthy values and skip null tombstones', () => {
+            const domain = createDomainFixture({
+                boundaryEntries: {
+                    domain_adminRequesters: {[userID1]: 'read', [userID2]: null},
+                },
+            });
+
+            expect(pendingAdminRequesterAccountIDsSelector(domain)).toEqual([userID1]);
+        });
+
+        it('Should return an empty array when domain_adminRequesters is empty', () => {
+            const domain = createDomainFixture({boundaryEntries: {domain_adminRequesters: {}}});
+            expect(pendingAdminRequesterAccountIDsSelector(domain)).toEqual([]);
+        });
+    });
+
+    describe('hasPendingAdminRequestsSelector', () => {
+        it('Should return false if the domain object is undefined', () => {
+            expect(hasPendingAdminRequestsSelector(undefined)).toBe(false);
+        });
+
+        it('Should return false when there are no pending requesters', () => {
+            const domain = createDomainFixture();
+            expect(hasPendingAdminRequestsSelector(domain)).toBe(false);
+        });
+
+        it('Should return true when at least one requester is pending', () => {
+            const domain = createDomainFixture({boundaryEntries: {domain_adminRequesters: {[userID1]: 'read'}}});
+            expect(hasPendingAdminRequestsSelector(domain)).toBe(true);
+        });
+
+        it('Should return false when the only requester entry is a null tombstone', () => {
+            const domain = createDomainFixture({boundaryEntries: {domain_adminRequesters: {[userID1]: null}}});
+            expect(hasPendingAdminRequestsSelector(domain)).toBe(false);
+        });
+    });
+
+    describe('adminshipRequesterPendingActionSelector', () => {
+        it.each([
+            ['undefined', undefined, {}],
+            ['empty object', createFixture(domainPendingActionsFixture), {}],
+        ])('Should return empty object when pendingAction is %s', (_description, pendingAction, expected) => {
+            expect(adminshipRequesterPendingActionSelector(pendingAction)).toEqual(expected);
+        });
+
+        it('Should return the adminship requester pending actions when they exist', () => {
+            const pendingAction: OnyxEntry<DomainPendingActions> = {
+                adminshipRequester: {
+                    [userID1]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            };
+
+            expect(adminshipRequesterPendingActionSelector(pendingAction)).toEqual({
+                [userID1]: {pendingAction: 'delete'},
+            });
         });
     });
 

@@ -1,8 +1,13 @@
 import CONST from '@src/CONST';
+import type {Domain} from '@src/types/onyx';
 import type DomainErrors from '@src/types/onyx/DomainErrors';
 import type {DomainMemberErrors, DomainSecurityGroupErrors} from '@src/types/onyx/DomainErrors';
 import type DomainPendingAction from '@src/types/onyx/DomainPendingActions';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {hasPendingAdminRequestsSelector, isAdminSelector} from '@selectors/Domain';
 
 import {getLatestError} from './ErrorUtils';
 
@@ -45,10 +50,21 @@ function hasDomainErrors(domainErrors?: DomainErrors): boolean {
 }
 
 /**
- * Checks if domain has any admin-related errors (admin errors or settings errors like technical contact/billing card).
+ * Checks if domain has any admin-related errors (admin errors, adminship request errors, or settings errors like technical contact/billing card).
  */
 function hasDomainAdminsErrors(domainErrors?: DomainErrors): boolean {
-    return Object.values(domainErrors?.adminErrors ?? {}).some((admin) => !isEmptyObject(admin?.errors)) || hasDomainAdminsSettingsErrors(domainErrors);
+    return (
+        Object.values(domainErrors?.adminErrors ?? {}).some((admin) => !isEmptyObject(admin?.errors)) ||
+        Object.values(domainErrors?.adminshipRequesterErrors ?? {}).some((requester) => !isEmptyObject(requester?.errors)) ||
+        hasDomainAdminsSettingsErrors(domainErrors)
+    );
+}
+
+/**
+ * Checks if the given account is a domain admin with pending adminship requests to review.
+ */
+function hasPendingDomainAdminRequestsToReview(domain: OnyxEntry<Domain>, currentUserAccountID: number | undefined): boolean {
+    return isAdminSelector(currentUserAccountID)(domain) && hasPendingAdminRequestsSelector(domain);
 }
 
 /**
@@ -116,6 +132,7 @@ export {
     hasDomainErrors,
     hasDomainAdminsSettingsErrors,
     hasDomainAdminsErrors,
+    hasPendingDomainAdminRequestsToReview,
     hasDomainMembersErrors,
     hasDomainMembersSettingsErrors,
     hasDomainGroupsErrors,

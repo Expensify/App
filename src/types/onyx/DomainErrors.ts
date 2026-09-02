@@ -97,6 +97,11 @@ type DomainErrors = {
     adminErrors?: Record<number, GeneralDomainMemberErrors>;
 
     /**
+     * Errors related to approving/denying a pending domain adminship request, keyed by the requester's accountID
+     */
+    adminshipRequesterErrors?: Record<number, GeneralDomainMemberErrors>;
+
+    /**
      * Errors related to the technical contact email
      */
     technicalContactEmailErrors?: OnyxCommon.Errors;

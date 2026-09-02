@@ -15,11 +15,34 @@ import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React, {useRef} from 'react';
 
+import DomainAdminRequestsTableRow from './DomainAdminRequestsTableRow';
+import DomainAdminsTableGroupHeaderRow from './DomainAdminsTableGroupHeaderRow';
 import DomainAdminsTableRow from './DomainAdminsTableRow';
 
 type DomainAdminsTableColumnKey = 'admin' | 'actions';
 
+type DomainAdminGroupHeaderRowData = TableData & {
+    rowType: 'groupHeader';
+    groupOrder: number;
+    label: string;
+};
+
+type DomainAdminRequestRowData = TableData & {
+    rowType: 'request';
+    groupOrder: number;
+    accountID: number;
+    name: string;
+    email: string;
+    errors?: OnyxCommon.Errors;
+    pendingAction?: OnyxCommon.PendingAction;
+    approve: () => void;
+    deny: () => void;
+    dismissError: () => void;
+};
+
 type DomainAdminRowData = TableData & {
+    rowType: 'admin';
+    groupOrder: number;
     accountID: number;
     name: string;
     email: string;
@@ -30,15 +53,18 @@ type DomainAdminRowData = TableData & {
     dismissError: () => void;
 };
 
+type DomainAdminsTableRowData = DomainAdminGroupHeaderRowData | DomainAdminRequestRowData | DomainAdminRowData;
+
 type DomainAdminsTableProps = {
     domainAccountID: number;
     admins: DomainAdminRowData[];
+    requests?: DomainAdminRequestRowData[];
 };
 
-export default function DomainAdminsTable({domainAccountID, admins}: DomainAdminsTableProps) {
+export default function DomainAdminsTable({domainAccountID, admins, requests}: DomainAdminsTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const tableRef = useRef<TableHandle<DomainAdminRowData, DomainAdminsTableColumnKey>>(null);
+    const tableRef = useRef<TableHandle<DomainAdminsTableRowData, DomainAdminsTableColumnKey>>(null);
     useDomainHighlightOnReturn(domainAccountID, 'admins', tableRef);
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
@@ -57,33 +83,76 @@ export default function DomainAdminsTable({domainAccountID, admins}: DomainAdmin
         },
     ];
 
-    const compareTableItems: CompareItemsCallback<DomainAdminRowData> = (item1, item2, activeSorting) => {
+    const tableData: DomainAdminsTableRowData[] =
+        requests && requests.length > 0
+            ? [
+                  {keyForList: 'group-requests', rowType: 'groupHeader', groupOrder: 0, label: translate('domain.admins.requests')},
+                  ...requests,
+                  {keyForList: 'group-admins', rowType: 'groupHeader', groupOrder: 1, label: translate('domain.admins.title')},
+                  ...admins,
+              ]
+            : admins;
+
+    const compareTableItems: CompareItemsCallback<DomainAdminsTableRowData> = (item1, item2, activeSorting) => {
+        if (item1.groupOrder !== item2.groupOrder) {
+            return item1.groupOrder - item2.groupOrder;
+        }
+        if (item1.rowType === 'groupHeader' || item2.rowType === 'groupHeader') {
+            return 0;
+        }
+
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
         return localeCompare(item1.name, item2.name) * orderMultiplier;
     };
 
-    const isTableItemInSearch: IsItemInSearchCallback<DomainAdminRowData> = (item, searchValue) => {
+    const isTableItemInSearch: IsItemInSearchCallback<DomainAdminsTableRowData> = (item, searchValue) => {
+        if (item.rowType === 'groupHeader') {
+            return false;
+        }
+
         const results = tokenizedSearch([item], searchValue, (option) => [option.name, option.email]);
         return results.length > 0;
     };
 
-    const renderTableItem = ({item, index}: ListRenderItemInfo<DomainAdminRowData>) => (
-        <DomainAdminsTableRow
-            item={item}
-            rowIndex={index}
-            shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
-        />
-    );
+    const renderTableItem = ({item, index}: ListRenderItemInfo<DomainAdminsTableRowData>) => {
+        if (item.rowType === 'groupHeader') {
+            return (
+                <DomainAdminsTableGroupHeaderRow
+                    item={item}
+                    rowIndex={index}
+                />
+            );
+        }
+
+        if (item.rowType === 'request') {
+            return (
+                <DomainAdminRequestsTableRow
+                    item={item}
+                    rowIndex={index}
+                    shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
+                />
+            );
+        }
+
+        return (
+            <DomainAdminsTableRow
+                item={item}
+                rowIndex={index}
+                shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
+            />
+        );
+    };
     const tableHeaderComponent = <Table.FilterBar label={translate('domain.admins.findAdmin')} />;
 
     return (
         <Table
             ref={tableRef}
-            data={admins}
+            data={tableData}
             columns={domainAdminsTableColumns}
             renderItem={renderTableItem}
             compareItems={compareTableItems}
             isItemInSearch={isTableItemInSearch}
+            getItemType={(item) => item.rowType}
             initialSortColumn="admin"
             title={translate('domain.admins.title')}
             keyExtractor={(item) => item.keyForList}
@@ -96,4 +165,4 @@ export default function DomainAdminsTable({domainAccountID, admins}: DomainAdmin
     );
 }
 
-export type {DomainAdminRowData, DomainAdminsTableColumnKey};
+export type {DomainAdminGroupHeaderRowData, DomainAdminRequestRowData, DomainAdminRowData, DomainAdminsTableColumnKey, DomainAdminsTableRowData};

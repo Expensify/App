@@ -8353,6 +8353,7 @@ const CONST = {
         HAS_EMPLOYEE_CARD_FEED_ERRORS: 'hasEmployeeCardFeedErrors',
         HAS_POLICY_ADMIN_CARD_FEED_ERRORS: 'hasPolicyAdminCardFeedErrors',
         HAS_DOMAIN_ERRORS: 'hasDomainErrors',
+        HAS_PENDING_DOMAIN_ADMIN_REQUESTS: 'hasPendingDomainAdminRequests',
         HAS_LOCKED_BANK_ACCOUNT: 'hasLockedBankAccount',
         HAS_DEVICE_MANAGEMENT_ERROR: 'hasDeviceManagementError',
         HAS_MERGE_HR_SETUP_NEEDED: 'hasMergeHRSetupNeeded',
@@ -9555,6 +9556,9 @@ const CONST = {
         DOMAIN: {
             ADMINS: {
                 ROW: 'DomainAdmins-Row',
+                REQUEST_ROW: 'DomainAdmins-RequestRow',
+                REQUEST_APPROVE: 'DomainAdmins-RequestApprove',
+                REQUEST_DENY: 'DomainAdmins-RequestDeny',
             },
             GROUPS: {
                 CREATE_GROUP_BUTTON: 'DomainGroups-CreateGroupButton',

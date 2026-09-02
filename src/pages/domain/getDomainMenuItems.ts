@@ -42,14 +42,26 @@ type GetDomainMenuItemsParams = {
     /** Errors used to show indicators on the affected Domain sections. */
     domainErrors?: DomainErrors;
 
+    /** Whether the domain has pending adminship requests awaiting review. */
+    hasPendingAdminRequests?: boolean;
+
     /** Icons used by the Domain menu items. */
     icons: DomainMenuIconMap;
 };
 
+function getDomainAdminsBrickRoadIndicator(domainErrors?: DomainErrors, hasPendingAdminRequests?: boolean) {
+    if (hasDomainAdminsErrors(domainErrors)) {
+        return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    }
+    if (hasPendingAdminRequests) {
+        return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+    }
+}
+
 /**
  * Menu order is significant because it controls the on-screen layout. Callers attach navigation actions so those actions can retain page-specific lifecycle handling.
  */
-function getDomainMenuItems({domainAccountID, domainErrors, icons}: GetDomainMenuItemsParams): DomainMenuItem[] {
+function getDomainMenuItems({domainAccountID, domainErrors, hasPendingAdminRequests, icons}: GetDomainMenuItemsParams): DomainMenuItem[] {
     return [
         {
             translationKey: 'domain.domainMembers',
@@ -63,7 +75,7 @@ function getDomainMenuItems({domainAccountID, domainErrors, icons}: GetDomainMen
             icon: icons.UserShield,
             route: ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID),
             screenName: SCREENS.DOMAIN.ADMINS,
-            brickRoadIndicator: hasDomainAdminsErrors(domainErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            brickRoadIndicator: getDomainAdminsBrickRoadIndicator(domainErrors, hasPendingAdminRequests),
         },
         {
             translationKey: 'domain.groups.title',

@@ -218,6 +218,34 @@ function hasPendingAdminshipRequestSelector(accountID: number | undefined) {
     return (domain: OnyxEntry<Domain>): boolean => !!accountID && !!domain?.domain_adminRequesters?.[accountID];
 }
 
+/**
+ * Extracts the accountIDs of all pending domain adminship requesters from the domain object.
+ */
+function pendingAdminRequesterAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
+    if (!domain?.domain_adminRequesters) {
+        return getEmptyArray<number>();
+    }
+
+    const accountIDs = Object.entries(domain.domain_adminRequesters).reduce<number[]>((acc, [accountID, value]) => {
+        if (!value) {
+            return acc;
+        }
+
+        acc.push(Number(accountID));
+
+        return acc;
+    }, []);
+
+    return accountIDs.length > 0 ? accountIDs : getEmptyArray<number>();
+}
+
+/** Reports whether the domain has any pending adminship requests. */
+function hasPendingAdminRequestsSelector(domain: OnyxEntry<Domain>): boolean {
+    return pendingAdminRequesterAccountIDsSelector(domain).length > 0;
+}
+
+const adminshipRequesterPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.adminshipRequester ?? {};
+
 /** Creates a selector that extracts the pending action for a security group's setting */
 function domainSecurityGroupSettingPendingActionSelector(settingName: keyof DomainSecurityGroupPendingActions, groupID?: string) {
     return (domainPendingActions: OnyxEntry<DomainPendingActions>) => {
@@ -261,6 +289,9 @@ export {
     accountLockSelector,
     isAdminSelector,
     hasPendingAdminshipRequestSelector,
+    pendingAdminRequesterAccountIDsSelector,
+    hasPendingAdminRequestsSelector,
+    adminshipRequesterPendingActionSelector,
     selectGroupByID,
     domainSecurityGroupSettingPendingActionSelector,
     domainSecurityGroupSettingErrorsSelector,
