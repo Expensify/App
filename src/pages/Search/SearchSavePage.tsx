@@ -78,7 +78,8 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE ||
-        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY
     ) {
         return <FilterUserValue value={value} />;
     }
