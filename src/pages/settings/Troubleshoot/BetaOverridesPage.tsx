@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearBetaOverrides, setBetaOverride} from '@userActions/User';
 
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -29,7 +30,10 @@ const sortedBetas = Object.values(CONST.BETAS)
 function BetaOverridesPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isProduction} = useEnvironment();
+    // The environment context starts on production and resolves later, so the build config must agree to avoid a flash
+    // TestFlight is compiled as production, so it still shows the not found view until the native beta check resolves
+    const {isProduction: isResolvedProduction} = useEnvironment();
+    const isProduction = isResolvedProduction && CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.PRODUCTION;
     const {isBetaEnabled} = usePermissions();
     const [betaOverrides] = useOnyx(ONYXKEYS.BETA_OVERRIDES);
 
