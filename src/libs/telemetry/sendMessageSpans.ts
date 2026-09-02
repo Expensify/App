@@ -68,4 +68,4 @@ function cancelSendMessagePhases(parentSpanID: string | undefined) {
     }
 }
 
-export {startSendMessagePhase, endSendMessagePhase, markSendMessageCommitted, endSendMessagePhases, cancelSendMessagePhases};
+export {startSendMessagePhase, markSendMessageCommitted, endSendMessagePhases, cancelSendMessagePhases};
