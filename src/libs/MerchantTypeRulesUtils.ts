@@ -101,11 +101,13 @@ function getMerchantCodingRulesTableData({
     policy,
     policyID,
     translate,
+    isOffline,
     onNavigate,
 }: {
     policy: Policy | undefined;
     policyID: string;
     translate: LocaleContextProps['translate'];
+    isOffline: boolean;
     onNavigate: (route: Route) => void;
 }): ExpenseDefaultTableItem[] {
     const codingRules = policy?.rules?.codingRules;
@@ -124,9 +126,11 @@ function getMerchantCodingRulesTableData({
     };
 
     // A merchant rule outlives the category or tax rate it sets — the backend keeps the rule and only drops that one
-    // default — so no pending state is borrowed here. Only the rule's own delete greys it out.
+    // default — so no pending state is borrowed here. Only the rule's own delete counts, and it reads the same way as
+    // a category rule's: online the delete resolves in a moment, so the row goes rather than flashing greyed, while
+    // offline it stays and is styled as deleting since there is nothing to wait for.
     return Object.entries(codingRules)
-        .filter(([, rule]) => !!rule)
+        .filter(([, rule]) => !!rule && (isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
         .map(([ruleID, rule]: [string, CodingRule]) => {
             const merchantName = rule.filters?.right ?? '';
             const hasOnlyMerchantRename =
@@ -212,7 +216,7 @@ function getExpenseDefaultsTableData({
     onNavigate: (route: Route) => void;
 }): ExpenseDefaultTableItem[] {
     const categoryTaxRules = getCategoryTaxRulesTableData({policy, policyCategories, translate, isOffline, onNavigate});
-    const merchantRules = getMerchantCodingRulesTableData({policy, policyID, translate, onNavigate});
+    const merchantRules = getMerchantCodingRulesTableData({policy, policyID, translate, isOffline, onNavigate});
     const merchantTypeRules = getMerchantTypeRulesTableData({policy, translate, onNavigate});
 
     return [...categoryTaxRules, ...merchantRules, ...merchantTypeRules];
