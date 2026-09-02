@@ -15,7 +15,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
-import {isCommuterExclusionEnabled} from '@libs/PolicyDistanceRatesUtils';
+import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
 import {getActivePolicies, isGroupPolicy} from '@libs/PolicyUtils';
 import {getPayeeName, isExpenseReport, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
@@ -53,41 +53,41 @@ function DistanceRequestStartPage({
 }: DistanceRequestStartPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`);
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {participants} = useDefaultParticipants({sourceReport: report, transaction, iouType});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
-    const activeGroupPolicies = getActivePolicies(policies ?? null, currentUserPersonalDetails.login).filter(isGroupPolicy);
+    const activeGroupPolicies = getActivePolicies(policies ?? null, currentUserLogin).filter(isGroupPolicy);
     const onlyActivePolicy = activeGroupPolicies.length === 1 ? activeGroupPolicies.at(0) : undefined;
     const targetParticipant = participants.find((participant) => participant.isPolicyExpenseChat);
     const isOnlyWorkspaceTheTarget = onlyActivePolicy?.id === targetParticipant?.policyID;
     const targetPolicy = isOnlyWorkspaceTheTarget ? onlyActivePolicy : undefined;
     const reportPolicy = report?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
-    // Manual/Odometer distance can't honor commuter exclusion (exclusions are derived from the mapped
-    // route), so hide those tabs whenever the resolved destination enforces exclusion:
+    // Manual/Odometer distance produces no mapped route, so hide those tabs whenever the resolved
+    // destination restricts distance to maps and GPS:
     // - Report-scoped flows (workspace chat / expense report): use that report's own policy.
     // - Global FAB flows: never hide for a Self-DM target (personal expenses are exempt); otherwise hide
-    //   when the single target workspace excludes, or when the user has multiple workspaces that ALL
-    //   exclude. `length > 1` is required because a single workspace is handled by `targetPolicy`, and
+    //   when the single target workspace restricts, or when the user has multiple workspaces that ALL
+    //   restrict. `length > 1` is required because a single workspace is handled by `targetPolicy`, and
     //   `[].every()` is vacuously true (which would wrongly hide the tabs for personal-only users).
     const isSelfDMTarget = isSelfDM(report) || participants.some((participant) => participant.isSelfDM);
     const isReportScopedTarget = isPolicyExpenseChat(report) || isExpenseReport(report);
-    const everyActiveWorkspaceExcludesCommuters = activeGroupPolicies.length > 1 && activeGroupPolicies.every(isCommuterExclusionEnabled);
+    const isEveryActiveWorkspaceRestricted = activeGroupPolicies.length > 1 && activeGroupPolicies.every(isMapOrGPSRequired);
     const shouldHideManualAndOdometerTabs = isReportScopedTarget
-        ? isCommuterExclusionEnabled(reportPolicy)
-        : !isSelfDMTarget && (isCommuterExclusionEnabled(targetPolicy) || everyActiveWorkspaceExcludesCommuters);
+        ? isMapOrGPSRequired(reportPolicy)
+        : !isSelfDMTarget && (isMapOrGPSRequired(targetPolicy) || isEveryActiveWorkspaceRestricted);
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.trackDistance'),
-        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', getPayeeName(report, translate)),
-        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', getPayeeName(report, translate)),
+        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', getPayeeName(report, translate, currentUserAccountID)),
+        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', getPayeeName(report, translate, currentUserAccountID)),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.SPLIT_EXPENSE]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.TRACK]: translate('iou.trackDistance'),
@@ -100,11 +100,20 @@ function DistanceRequestStartPage({
             // The tab navigator renders whichever tab was last selected, so the draft has to be typed from that
             // same value. Preferring the last-created distance type instead rebuilds the draft as Odometer under
             // a visible Map tab, leaving it without waypoints so tapping one opens the "Not here" page.
-            return selectedTab ?? lastDistanceExpenseType ?? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
+            const rememberedRequestType = selectedTab ?? lastDistanceExpenseType ?? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
+
+            // Both of those values are remembered from a previous expense, so they go stale once the destination
+            // starts requiring map or GPS. Typing the draft from a tab that is no longer rendered would leave it
+            // as Manual or Odometer under a visible Map tab, which later steps then reject.
+            if (shouldHideManualAndOdometerTabs && (rememberedRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL || rememberedRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER)) {
+                return CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
+            }
+
+            return rememberedRequestType;
         }
 
         return transaction.iouRequestType;
-    }, [transaction?.iouRequestType, selectedTab, lastDistanceExpenseType]);
+    }, [transaction?.iouRequestType, selectedTab, lastDistanceExpenseType, shouldHideManualAndOdometerTabs]);
 
     const resetIOUTypeIfChanged = useResetIOUType({
         reportID,

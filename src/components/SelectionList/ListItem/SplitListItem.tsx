@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
+import {getDecodedFullCategoryName} from '@libs/CategoryUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 
 import variables from '@styles/variables';
@@ -101,7 +101,7 @@ function SplitListItem<TItem extends ListItem>({
     const textContentAccessibilityLabel = [
         splitItem.headerText,
         splitItem.merchant,
-        splitItem.category ? getDecodedLeafCategoryName(splitItem.category) : undefined,
+        splitItem.category ? getDecodedFullCategoryName(splitItem.category) : undefined,
         splitItem.tags?.at(0) ? getCommaSeparatedTagNameWithSanitizedColons(splitItem.tags.at(0) ?? '') : undefined,
     ]
         .filter(Boolean)
@@ -119,9 +119,7 @@ function SplitListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             rightHandSideComponent={rightHandSideComponent}
-            keyForList={item.keyForList}
             onFocus={onFocus}
-            pendingAction={item.pendingAction}
             accessible={!splitItem.isEditable}
         >
             <View style={[styles.flexRow, styles.containerWithSpaceBetween, styles.p3]}>
@@ -180,7 +178,7 @@ function SplitListItem<TItem extends ListItem>({
                                         numberOfLines={1}
                                         style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                     >
-                                        {getDecodedLeafCategoryName(splitItem.category)}
+                                        {getDecodedFullCategoryName(splitItem.category)}
                                     </Text>
                                 </View>
                             )}

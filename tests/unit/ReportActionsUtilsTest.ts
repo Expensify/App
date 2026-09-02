@@ -8,6 +8,8 @@ import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
 import ROUTES from '@src/ROUTES';
 
+import type {ValueOf} from 'type-fest';
+
 import Onyx from 'react-native-onyx';
 
 import type {CompanyAddressOriginalMessage, UpdateACHAccountOriginalMessage} from '../../src/libs/ReportActionsUtils';
@@ -30,6 +32,7 @@ import {
     getCombinedReportActions,
     getCompanyAddressUpdateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
+    getCurrencyConversionFeeMessage,
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getForeignCurrencyDefaultTaxUpdateMessage,
@@ -1386,6 +1389,15 @@ describe('ReportActionsUtils', () => {
             return action;
         }
 
+        it('uses the stored IES label for a pending export', () => {
+            const action = buildExportedToIntegrationAction(CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE, []);
+            action.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
+            expect(ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, action)).toEqual([
+                {text: `started exporting this report to ${CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE}...`, url: ''},
+            ]);
+        });
+
         it.each([CONST.EXPORT_LABELS.INTACCT, CONST.EXPORT_LABELS.SAGE_INTACCT, CONST.EXPORT_LABELS.QBD])('does not link ID-based %s company card export records', (label) => {
             const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, buildExportedToIntegrationAction(label, ['SI-123', 'SI-456']));
 
@@ -1686,6 +1698,24 @@ describe('ReportActionsUtils', () => {
             const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
 
             expect(message).toBe(translateLocal('report.actions.type.integrationsMessage', errorMessage, 'NetSuite', '', ''));
+        });
+
+        it('should keep the stored IES label for an integrations error message after switching to QBO', () => {
+            const errorMessage = 'Failed to export';
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
+                originalMessage: {
+                    label: CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE,
+                    result: {
+                        messages: [errorMessage],
+                    },
+                },
+            };
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            expect(message).toBe(translateLocal('report.actions.type.integrationsMessage', errorMessage, 'Intuit Enterprise Suite', '', ''));
         });
     });
 
@@ -4535,6 +4565,107 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe('changed the rate of the Distance rate "Default Rate" to "$0.55" (previously "$0.50")');
         });
 
+        it('should return the tax reclaimable portion as a percentage of the rate', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    oldValue: 0.5,
+                    newValue: 0.7,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('changed the tax reclaimable portion on the distance rate "Default Rate" to "70%" (previously "50%")');
+        });
+
+        it('should keep two decimal places on a fractional tax reclaimable percentage', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    oldValue: 0.075,
+                    newValue: 0.1234,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('changed the tax reclaimable portion on the distance rate "Default Rate" to "12.34%" (previously "7.5%")');
+        });
+
+        it('should round a repeating tax reclaimable fraction to two decimal places', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    oldValue: 1 / 3,
+                    newValue: 0.123456,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('changed the tax reclaimable portion on the distance rate "Default Rate" to "12.35%" (previously "33.33%")');
+        });
+
+        it('should treat a previous tax reclaimable portion of zero as a change', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    oldValue: 0,
+                    newValue: 0.7,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('changed the tax reclaimable portion on the distance rate "Default Rate" to "70%" (previously "0%")');
+        });
+
+        it('should return the correct message when the whole rate is reclaimable', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    oldValue: 0.5,
+                    newValue: 1,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('changed the tax reclaimable portion on the distance rate "Default Rate" to "100%" (previously "50%")');
+        });
+
+        it('should return the correct message when a tax reclaimable portion is added', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    newValue: 0.7,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('added a tax reclaimable portion of "70%" to the distance rate "Default Rate"');
+        });
+
         it('should return the correct message when a start date is set on a rate without dates', () => {
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
                 reportActionID: '1',
@@ -5237,6 +5368,33 @@ describe('ReportActionsUtils', () => {
 
             const result = getRequiresTagMessage(translateLocal, action);
             expect(result).toBe('disabled the expense tagging requirement');
+        });
+    });
+
+    describe('getCurrencyConversionFeeMessage', () => {
+        const buildAction = (preference?: ValueOf<typeof CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE>) =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: preference ? {preference} : {},
+                message: [],
+            }) as ReportAction;
+
+        it('should name the company when the company pays the fees', () => {
+            expect(getCurrencyConversionFeeMessage(translateLocal, buildAction(CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY))).toBe(
+                'updated the currency conversion fee setting to "Company pays"',
+            );
+        });
+
+        it('should name the employee when the employee pays the fees', () => {
+            expect(getCurrencyConversionFeeMessage(translateLocal, buildAction(CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.EMPLOYEE))).toBe(
+                'updated the currency conversion fee setting to "Employee pays"',
+            );
+        });
+
+        it('should fall back to the employee, who pays unless the company opts in', () => {
+            expect(getCurrencyConversionFeeMessage(translateLocal, buildAction())).toBe('updated the currency conversion fee setting to "Employee pays"');
         });
     });
 
@@ -6232,6 +6390,24 @@ describe('ReportActionsUtils', () => {
             const result = getIntegrationSyncFailedMessage(translateLocal, action, testPolicyID);
             expect(result).toContain('Auth token expired');
             expect(result).not.toContain('Repeated');
+        });
+
+        it('should keep the stored IES label after switching to a QBO workspace', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
+                reportActionID: 'sync-fail-ies',
+                actorAccountID: 1,
+                created: '2024-01-01',
+                message: [],
+                originalMessage: {
+                    label: CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE,
+                    source: 'NEWEXPENSIFY',
+                    errorMessage: 'Auth token expired',
+                },
+            } as ReportAction;
+            const result = getIntegrationSyncFailedMessage(translateLocal, action, testPolicyID);
+            expect(result).toContain('Intuit Enterprise Suite');
+            expect(result).not.toContain('QuickBooks Online');
         });
 
         it('should append recurrence text when recurrenceCount > 1', () => {

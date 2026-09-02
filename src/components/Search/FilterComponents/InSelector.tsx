@@ -26,7 +26,6 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect} from 'react';
@@ -54,6 +53,8 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     const {options, isLoading} = useFilteredOptions({
         enabled: ready,
         isSearching: !!debouncedSearchTerm.trim(),
+        // The sections below read recentReports and never personalDetails, so contacts would never reach the list.
+        includeP2P: false,
     });
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -71,7 +72,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     const cleanSearchTerm = searchTerm.trim().toLowerCase();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
-    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 

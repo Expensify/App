@@ -10,7 +10,6 @@ import type {
     TransactionThreadInfo,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
@@ -860,6 +859,7 @@ type ChangeTransactionsReportProps = {
     selfDMReportActions: OnyxEntry<ReportActions>;
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
 
 function getChangeTransactionsReportOnyxData({
@@ -880,6 +880,7 @@ function getChangeTransactionsReportOnyxData({
     selfDMReportActions,
     delegateAccountID,
     getCurrencyDecimals,
+    getCurrencySymbol,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -1526,6 +1527,10 @@ function getChangeTransactionsReportOnyxData({
                             IOUTransactionID: null,
                         },
                         errors: undefined,
+                        // The expense gets its own action on the new report, so this one is retired: clear its pending
+                        // state too, since `shouldReportActionBeVisible` keeps a pending action on screen.
+                        // `failureData` below restores the whole action.
+                        pendingAction: null,
                     },
                     ...(trackExpenseActionableWhisper ? {[trackExpenseActionableWhisper.reportActionID]: null} : {}),
                 },
