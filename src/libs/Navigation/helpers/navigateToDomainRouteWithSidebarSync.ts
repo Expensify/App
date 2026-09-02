@@ -1,3 +1,4 @@
+import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 /**
  * React Navigation reuses the existing Domain split navigator when Search Router navigation crosses Domains, so its persistent sidebar keeps the previous Domain ID.
  * Synchronize that ID before navigating to keep the sidebar and destination page consistent.
@@ -7,9 +8,16 @@ import navigationRef from '@libs/Navigation/navigationRef';
 
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 
 import {getTabState} from './tabNavigatorUtils';
+
+function getDomainAccountIDParam(params: unknown): number | undefined {
+    if (params && typeof params === 'object' && 'domainAccountID' in params && typeof params.domainAccountID === 'number') {
+        return params.domainAccountID;
+    }
+
+    return undefined;
+}
 
 function getActiveDomainSidebarRoute(): {sidebarRouteKey: string; splitStateKey?: string; domainAccountID?: number} | undefined {
     if (!navigationRef.isReady()) {
@@ -26,13 +34,12 @@ function getActiveDomainSidebarRoute(): {sidebarRouteKey: string; splitStateKey?
         return undefined;
     }
 
-    const sidebarRoute = domainSplitRoute.state?.routes.find((route) => route.name === SCREENS.DOMAIN.INITIAL);
+    const sidebarRoute = domainSplitRoute.state?.routes.find((route) => route.name === SPLIT_TO_SIDEBAR[NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]);
     if (!sidebarRoute?.key) {
         return undefined;
     }
 
-    const params = sidebarRoute.params;
-    const domainAccountID = params && typeof params === 'object' && 'domainAccountID' in params && typeof params.domainAccountID === 'number' ? params.domainAccountID : undefined;
+    const domainAccountID = getDomainAccountIDParam(sidebarRoute.params);
     return {sidebarRouteKey: sidebarRoute.key, splitStateKey: domainSplitRoute.state?.key, domainAccountID};
 }
 
