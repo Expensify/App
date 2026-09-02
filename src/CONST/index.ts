@@ -226,6 +226,27 @@ const EMAIL = {
     QA_GUIDE: 'qa.guide@team.expensify.com',
 };
 
+// Declared up here, rather than inline below, so the subsets of it can be built from its own members instead of
+// re-declaring the same strings. Spliced in as `EDIT_REQUEST_FIELD`.
+const editRequestFields = {
+    AMOUNT: 'amount',
+    CURRENCY: 'currency',
+    DATE: 'date',
+    DESCRIPTION: 'description',
+    MERCHANT: 'merchant',
+    CATEGORY: 'category',
+    RECEIPT: 'receipt',
+    DISTANCE: 'distance',
+    DISTANCE_RATE: 'distanceRate',
+    TAG: 'tag',
+    TAX_RATE: 'taxRate',
+    TAX_AMOUNT: 'taxAmount',
+    REIMBURSABLE: 'reimbursable',
+    ATTENDEES: 'attendees',
+    BILLABLE: 'billable',
+    REPORT: 'report',
+} as const;
+
 const CONST = {
     HEIC_SIGNATURES: [
         '6674797068656963', // 'ftypheic' - Indicates standard HEIC file
@@ -514,20 +535,14 @@ const CONST = {
 
     MERCHANT_NAME_MAX_BYTES: 255,
 
-    /**
-     * Expense fields a merchant rule can govern, whose edit shows the "Create a rule" callout on the expense.
-     *
-     * These are the same strings EDIT_REQUEST_FIELD uses, since they name the very edits that trigger the callout.
-     * They cannot be derived from it with Pick, because it is declared further down this same object literal, so
-     * `MerchantRuleSuggestionField` intersects the two instead and fails the build if they ever drift apart.
-     */
+    /** The subset of EDIT_REQUEST_FIELD a merchant rule can govern, whose edit shows the "Create a rule" callout */
     MERCHANT_RULE_SUGGESTION_FIELDS: {
-        CATEGORY: 'category',
-        TAG: 'tag',
-        TAX: 'taxRate',
-        DESCRIPTION: 'description',
-        BILLABLE: 'billable',
-        REIMBURSABLE: 'reimbursable',
+        CATEGORY: editRequestFields.CATEGORY,
+        TAG: editRequestFields.TAG,
+        TAX: editRequestFields.TAX_RATE,
+        DESCRIPTION: editRequestFields.DESCRIPTION,
+        BILLABLE: editRequestFields.BILLABLE,
+        REIMBURSABLE: editRequestFields.REIMBURSABLE,
     },
 
     MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
@@ -5595,24 +5610,7 @@ const CONST = {
             SHARE: 'share',
         },
     },
-    EDIT_REQUEST_FIELD: {
-        AMOUNT: 'amount',
-        CURRENCY: 'currency',
-        DATE: 'date',
-        DESCRIPTION: 'description',
-        MERCHANT: 'merchant',
-        CATEGORY: 'category',
-        RECEIPT: 'receipt',
-        DISTANCE: 'distance',
-        DISTANCE_RATE: 'distanceRate',
-        TAG: 'tag',
-        TAX_RATE: 'taxRate',
-        TAX_AMOUNT: 'taxAmount',
-        REIMBURSABLE: 'reimbursable',
-        ATTENDEES: 'attendees',
-        BILLABLE: 'billable',
-        REPORT: 'report',
-    },
+    EDIT_REQUEST_FIELD: editRequestFields,
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
         SPEND_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/spend-management`,

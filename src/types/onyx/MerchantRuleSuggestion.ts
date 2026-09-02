@@ -2,13 +2,8 @@ import type CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
 
-/**
- * Expense field a merchant rule can govern.
- *
- * Intersected with the edit-request fields so the two lists cannot drift: if a value here ever stops being one
- * EDIT_REQUEST_FIELD declares, it drops out of this union and every switch over it stops compiling.
- */
-type MerchantRuleSuggestionField = ValueOf<typeof CONST.MERCHANT_RULE_SUGGESTION_FIELDS> & ValueOf<typeof CONST.EDIT_REQUEST_FIELD>;
+/** Expense field a merchant rule can govern, which is always one of the edit-request fields it is built from */
+type MerchantRuleSuggestionField = ValueOf<typeof CONST.MERCHANT_RULE_SUGGESTION_FIELDS>;
 
 /**
  * The expense edits that can be turned into a merchant rule, which drive the "Create a rule" callout.

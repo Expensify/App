@@ -409,7 +409,7 @@ function updateMoneyRequestBillable({
         getCurrencySymbol,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE, params, onyxData);
-    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.BILLABLE, transactionThreadReport.reportID, policy);
+    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.BILLABLE, transactionThreadReport.reportID, policy, policyCategories);
 }
 
 function updateMoneyRequestReimbursable({
@@ -475,7 +475,7 @@ function updateMoneyRequestReimbursable({
         getCurrencySymbol,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_REIMBURSABLE, params, onyxData);
-    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.REIMBURSABLE, transactionThreadReport.reportID, policy);
+    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.REIMBURSABLE, transactionThreadReport.reportID, policy, policyCategories);
 }
 
 /** Updates the merchant field of an expense */
@@ -887,7 +887,7 @@ function updateMoneyRequestTag({
         getCurrencySymbol,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
-    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAG, transactionThreadReport?.reportID, policy);
+    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAG, transactionThreadReport?.reportID, policy, policyCategories);
 }
 
 /** Updates the created tax amount of an expense */
@@ -1017,7 +1017,7 @@ function updateMoneyRequestTaxRate({
     });
 
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_RATE, params, onyxData);
-    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAX, transactionThreadReport?.reportID, policy);
+    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAX, transactionThreadReport?.reportID, policy, policyCategories);
 }
 
 type UpdateMoneyRequestDistanceParams = {
@@ -1253,7 +1253,7 @@ function updateMoneyRequestCategory({
         getCurrencySymbol,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
-    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.CATEGORY, transactionThreadReport?.reportID, policy);
+    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.CATEGORY, transactionThreadReport?.reportID, policy, policyCategories);
 }
 
 /** Updates the description of an expense */
@@ -1338,7 +1338,7 @@ function updateMoneyRequestDescription({
     const {params, onyxData} = data;
     params.description = parsedComment;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, params, onyxData);
-    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.DESCRIPTION, transactionThreadReport?.reportID, policy);
+    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.DESCRIPTION, transactionThreadReport?.reportID, policy, policyCategories);
 }
 
 /** Updates the distance rate of an expense */

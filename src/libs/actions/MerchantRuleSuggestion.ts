@@ -1,8 +1,7 @@
-// eslint-disable-next-line no-restricted-imports -- Rules is a paid-plan feature, and this mirrors the isPaidGroupPolicy check arePolicyRulesEnabled makes before anything renders
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled} from '@libs/PolicyUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MerchantRuleSuggestion, Policy} from '@src/types/onyx';
+import type {MerchantRuleSuggestion, Policy, PolicyCategories} from '@src/types/onyx';
 import type {MerchantRuleSuggestionField} from '@src/types/onyx/MerchantRuleSuggestion';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -21,16 +20,21 @@ import Onyx from 'react-native-onyx';
  * Written for every member of a workspace that could carry a merchant rule. `useMerchantRuleSuggestion` decides
  * whether the callout renders, which additionally needs write access to the Rules feature.
  */
-function trackMerchantRuleSuggestion(transactionID: string | undefined, field: MerchantRuleSuggestionField, reportID: string | undefined, policy: OnyxEntry<Policy>) {
+function trackMerchantRuleSuggestion(
+    transactionID: string | undefined,
+    field: MerchantRuleSuggestionField,
+    reportID: string | undefined,
+    policy: OnyxEntry<Policy>,
+    policyCategories: OnyxEntry<PolicyCategories>,
+) {
     // An offer only makes sense if the workspace could hold a merchant rule when the edit was made. Recording one
     // regardless would leave an edit made with Rules switched off sitting here, ready to surface the moment somebody
     // switched Rules on.
     //
-    // This asks the two questions that need no beta, rather than calling arePolicyRulesEnabled: the remaining branch
-    // there only narrows collect workspaces by the Rules revamp beta, and reading that here would mean threading it
-    // through six update actions and every one of their callers. Leaving it out is the permissive direction, and
-    // `useMerchantRuleSuggestion` still checks the beta in full before anything renders.
-    if (!transactionID || !reportID || !isPaidGroupPolicy(policy) || policy?.areRulesEnabled === false) {
+    // The Rules revamp beta is assumed on. It is the permissive direction, it only narrows collect workspaces, and it
+    // is due to be removed, so threading it here would mean six action signatures and every one of their callers for
+    // plumbing with a short life. `useMerchantRuleSuggestion` checks the beta in full before anything renders.
+    if (!transactionID || !reportID || !arePolicyRulesEnabled(policy, policyCategories, true)) {
         return;
     }
 
