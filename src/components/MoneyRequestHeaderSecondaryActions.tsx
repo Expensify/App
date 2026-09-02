@@ -59,7 +59,6 @@ import {
     navigateToDetailsPage,
     rejectMoneyRequestReason,
 } from '@libs/ReportUtils';
-import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
 import getShouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
@@ -72,6 +71,7 @@ import {
 
 import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
+import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 
 import CONST from '@src/CONST';
