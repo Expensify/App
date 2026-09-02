@@ -1,4 +1,4 @@
-import navigateToDomainSettingsRoute from '@libs/Navigation/helpers/navigateToDomainSettingsRoute';
+import navigateToDomainRouteWithSidebarSync from '@libs/Navigation/helpers/navigateToDomainRouteWithSidebarSync';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 
@@ -71,7 +71,7 @@ function mockDomainNavigationState(domainAccountID: number) {
     );
 }
 
-describe('navigateToDomainSettingsRoute', () => {
+describe('navigateToDomainRouteWithSidebarSync', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
@@ -80,7 +80,7 @@ describe('navigateToDomainSettingsRoute', () => {
         mockDomainNavigationState(100);
         const targetRoute = ROUTES.DOMAIN_SAML.getRoute(200);
 
-        navigateToDomainSettingsRoute(targetRoute, 200, false);
+        navigateToDomainRouteWithSidebarSync(targetRoute, 200, false);
 
         expect(Navigation.setParams).toHaveBeenCalledWith({domainAccountID: 200}, 'domain-sidebar', 'domain-split-state');
         expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
@@ -91,7 +91,7 @@ describe('navigateToDomainSettingsRoute', () => {
         mockDomainNavigationState(100);
         const targetRoute = ROUTES.DOMAIN_SAML.getRoute(100);
 
-        navigateToDomainSettingsRoute(targetRoute, 100, false);
+        navigateToDomainRouteWithSidebarSync(targetRoute, 100, false);
 
         expect(Navigation.setParams).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
@@ -101,7 +101,18 @@ describe('navigateToDomainSettingsRoute', () => {
         mockDomainNavigationState(100);
         const targetRoute = ROUTES.DOMAIN_SAML.getRoute(200);
 
-        navigateToDomainSettingsRoute(targetRoute, 200, true);
+        navigateToDomainRouteWithSidebarSync(targetRoute, 200, true);
+
+        expect(Navigation.setParams).not.toHaveBeenCalled();
+        expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
+    });
+
+    it('navigates directly when there is no active Domain sidebar', () => {
+        jest.mocked(navigationRef).isReady.mockReturnValue(true);
+        jest.mocked(navigationRef).getRootState.mockReturnValue(createMock<ReturnType<typeof navigationRef.getRootState>>({routes: []}));
+        const targetRoute = ROUTES.DOMAIN_SAML.getRoute(200);
+
+        navigateToDomainRouteWithSidebarSync(targetRoute, 200, false);
 
         expect(Navigation.setParams).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);

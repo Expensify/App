@@ -14,7 +14,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import navigateToDomainSettingsRoute from '@libs/Navigation/helpers/navigateToDomainSettingsRoute';
+import navigateToDomainRouteWithSidebarSync from '@libs/Navigation/helpers/navigateToDomainRouteWithSidebarSync';
 import Navigation from '@libs/Navigation/Navigation';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import {SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
@@ -282,7 +282,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
                 textStyle={[styles.textLabelSupporting, styles.label]}
             />
         ),
-        onSelect: (route, domainAccountID) => navigateToDomainSettingsRoute(route, domainAccountID, shouldUseNarrowLayout),
+        onSelect: (route, domainAccountID) => navigateToDomainRouteWithSidebarSync(route, domainAccountID, shouldUseNarrowLayout),
     });
 
     const accountItems = buildAccountNavigationItems({

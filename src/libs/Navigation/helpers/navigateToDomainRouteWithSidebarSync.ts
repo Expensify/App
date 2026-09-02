@@ -8,7 +8,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import {isWorkspaceNavigatorRouteName} from './isNavigatorName';
 import {getTabState} from './tabNavigatorUtils';
 
 function getActiveDomainSidebarRoute(): {sidebarRouteKey: string; splitStateKey?: string; domainAccountID?: number} | undefined {
@@ -20,8 +19,9 @@ function getActiveDomainSidebarRoute(): {sidebarRouteKey: string; splitStateKey?
     const tabNavigatorRoute = routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
     const workspaceNavigatorRoute = getTabState(tabNavigatorRoute)?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
     const domainSplitRoute =
-        workspaceNavigatorRoute?.state?.routes.findLast((route) => isWorkspaceNavigatorRouteName(route.name)) ?? routes.findLast((route) => isWorkspaceNavigatorRouteName(route.name));
-    if (domainSplitRoute?.name !== NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR) {
+        workspaceNavigatorRoute?.state?.routes.findLast((route) => route.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR) ??
+        routes.findLast((route) => route.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR);
+    if (!domainSplitRoute) {
         return undefined;
     }
 
@@ -36,7 +36,7 @@ function getActiveDomainSidebarRoute(): {sidebarRouteKey: string; splitStateKey?
 }
 
 /** Keeps the persistent Domain sidebar in sync before opening a Search Router destination. */
-function navigateToDomainSettingsRoute(targetRoute: Route, domainAccountID: number, shouldUseNarrowLayout: boolean) {
+function navigateToDomainRouteWithSidebarSync(targetRoute: Route, domainAccountID: number, shouldUseNarrowLayout: boolean) {
     if (shouldUseNarrowLayout) {
         Navigation.navigate(targetRoute);
         return;
@@ -50,4 +50,4 @@ function navigateToDomainSettingsRoute(targetRoute: Route, domainAccountID: numb
     Navigation.navigate(targetRoute);
 }
 
-export default navigateToDomainSettingsRoute;
+export default navigateToDomainRouteWithSidebarSync;
