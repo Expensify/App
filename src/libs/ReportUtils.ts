@@ -9904,6 +9904,12 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
                     deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
                     policy,
                     transactions,
+                    // Both operands of this `&&` have to judge the same set of violations. Without this the visibility
+                    // check still sees `companyCardRequired`, so a violation this function has deliberately stopped
+                    // acting on could vouch for one that is hidden from the submitter — `missingCategory` while
+                    // auto-categorization is still running, for example — and the red dot would stay lit with nothing
+                    // behind it. On open reports the list is empty, so nothing changes there.
+                    excludedViolationNamesForLHN,
                 ) &&
                 hasViolationOfAnyTypeForRBRInLHN(
                     transactionViolations,

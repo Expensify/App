@@ -17482,6 +17482,30 @@ describe('ReportUtils', () => {
                 await Onyx.clear();
             });
 
+            // The visibility check and the type checks have to judge the same set of violations. If only the type checks
+            // drop `companyCardRequired`, the visibility check still sees it and lets it vouch for a violation the
+            // submitter cannot act on either, leaving the dot lit with nothing behind it.
+            it('should not surface RBR when the violation left next to companyCardRequired is hidden while the category is being analyzed', async () => {
+                await Onyx.clear();
+
+                // Inside the 60-second auto-categorization grace period, so `shouldShowViolation` hides `missingCategory`.
+                const pendingAutoCategorizationTime = new Date().toISOString().replace('T', ' ').slice(0, 19);
+
+                const {chatReport, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
+                    'alongside-hidden',
+                    [
+                        {name: CONST.VIOLATIONS.COMPANY_CARD_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+                        {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+                    ],
+                    false,
+                    {category: '', comment: {pendingAutoCategorizationTime}},
+                );
+
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBeNull();
+
+                await Onyx.clear();
+            });
+
             // Guards the scope of the change: `modifiedAmount` has always been excluded from the notice check only, and it
             // also arrives typed `violation`. Widening its exclusion to every bucket would silently drop the RBR here.
             it.each([CONST.VIOLATION_TYPES.VIOLATION, CONST.VIOLATION_TYPES.WARNING])(
