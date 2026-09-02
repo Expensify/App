@@ -317,6 +317,7 @@ function IOURequestEditReportCommon({
 
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions.length, translate]);
 
+    const policyForMovingExpensesName = policyForMovingExpenses?.name;
     const createReportOption = useMemo(() => {
         // A report per submitter would need one API call each, so "Auto report" serves them alone in a single call.
         if (!createReport || hasMultipleSubmitters || (isEditing && !isOwner && !isAdmin)) {
@@ -324,14 +325,19 @@ function IOURequestEditReportCommon({
         }
 
         return (
-            <MenuItem
-                onPress={handleCreateReport}
-                title={translate('report.newReport.createReport')}
-                description={policyForMovingExpenses?.name}
-                icon={icons.Document}
-            />
+            <MenuItem.Root onPress={handleCreateReport}>
+                <MenuItem.Row>
+                    <MenuItem.Leading>
+                        <MenuItem.Icon src={icons.Document} />
+                    </MenuItem.Leading>
+                    <MenuItem.Content>
+                        <MenuItem.Title>{translate('report.newReport.createReport')}</MenuItem.Title>
+                        {!!policyForMovingExpensesName && <MenuItem.Description>{policyForMovingExpensesName}</MenuItem.Description>}
+                    </MenuItem.Content>
+                </MenuItem.Row>
+            </MenuItem.Root>
         );
-    }, [icons.Document, createReport, hasMultipleSubmitters, translate, policyForMovingExpenses?.name, handleCreateReport, isEditing, isOwner, isAdmin]);
+    }, [createReport, hasMultipleSubmitters, isEditing, isOwner, isAdmin, handleCreateReport, icons.Document, translate, policyForMovingExpensesName]);
 
     const autoReportOption = useMemo(() => {
         if (!autoReport || !hasMultipleSubmitters) {
@@ -400,12 +406,17 @@ function IOURequestEditReportCommon({
                 customListHeaderContent={listHeaderContent}
                 listFooterContent={
                     shouldShowRemoveFromReport ? (
-                        <MenuItem
-                            onPress={removeFromReport}
-                            title={translate('iou.removeFromReport')}
-                            description={translate('iou.moveToPersonalSpace')}
-                            icon={icons.Close}
-                        />
+                        <MenuItem.Root onPress={removeFromReport}>
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    <MenuItem.Icon src={icons.Close} />
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{translate('iou.removeFromReport')}</MenuItem.Title>
+                                    <MenuItem.Description>{translate('iou.moveToPersonalSpace')}</MenuItem.Description>
+                                </MenuItem.Content>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
                     ) : undefined
                 }
                 listEmptyContent={listHeaderContent}

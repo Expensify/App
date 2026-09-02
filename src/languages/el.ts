@@ -308,6 +308,7 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: 'Χρεώσιμη',
         nonBillable: 'Μη χρεώσιμο',
         tag: 'Ετικέτα',
+        violations: 'Παραβάσεις',
         receipt: 'Απόδειξη',
         verified: 'Επαληθευμένο',
         replace: 'Αντικατάσταση',
@@ -6036,9 +6037,34 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 label: 'Λογαριασμός εταιρικής κάρτας',
                 description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.',
             },
-            expensifyCardAccount: {
-                label: 'Λογαριασμός Expensify Card',
-                description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές της Expensify Card.',
+            exportToMultipleAccounts: 'Ρυθμίστε την εξαγωγή σε πολλούς λογαριασμούς',
+            cardProgramAccount: {
+                label: 'Λογαριασμός προγράμματος κάρτας',
+                description: 'Παράκαμψη του λογαριασμού χώρου εργασίας για αυτά τα προγράμματα καρτών.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού χώρου εργασίας για αυτό το πρόγραμμα καρτών.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Όλα τα προγράμματα χρησιμοποιούν τον προεπιλεγμένο λογαριασμό';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} πρόγραμμα με προσαρμοσμένο λογαριασμό`;
+                    }
+                    return `${customAccountsCount} προγράμματα με προσαρμοσμένους λογαριασμούς`;
+                },
+            },
+            cardAccount: {
+                label: 'Λογαριασμός ανά κάρτα',
+                description: 'Παράκαμψη του λογαριασμού προγράμματος για μεμονωμένες κάρτες.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού προγράμματος για αυτές τις κάρτες.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Όλες οι κάρτες χρησιμοποιούν λογαριασμούς προγράμματος';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} κάρτα με προσαρμοσμένο λογαριασμό`;
+                    }
+                    return `${customAccountsCount} κάρτες με προσαρμοσμένους λογαριασμούς`;
+                },
             },
             autoSyncDescription: 'Συγχρονίστε αυτόματα το DualEntry και το Expensify κάθε μέρα. Οι αναφορές συγχρονίζονται σε πραγματικό χρόνο.',
             accountingMethods: {
@@ -8157,6 +8183,7 @@ ${reportName}`,
                 requireItemizedReceipt: 'Απαιτείται αναλυτική απόδειξη',
                 requireAboveAmount: 'Να απαιτείται το παραπάνω ποσό',
                 emptyAmountError: 'Εισαγάγετε ένα έγκυρο ποσό πριν αποθηκεύσετε',
+                receiptAmountGreaterThanItemizedError: 'Το απαιτούμενο ποσό απόδειξης δεν μπορεί να είναι μεγαλύτερο από το απαιτούμενο ποσό αναλυτικής απόδειξης.',
                 saveRule: 'Αποθήκευση κανόνα',
             },
             requireFields: {
@@ -9416,6 +9443,7 @@ ${reportName}`,
             topSpenders: 'Κορυφαίοι δαπανώντες',
             topCategories: 'Κορυφαίες κατηγορίες',
             topMerchants: 'Κορυφαίοι έμποροι',
+            violationsBySubmitter: 'Παραβάσεις από τον υποβάλλοντα',
         },
         resultsAreLimited: 'Τα αποτελέσματα αναζήτησης είναι περιορισμένα.',
         viewResults: 'Προβολή αποτελεσμάτων',
@@ -9871,6 +9899,8 @@ ${reportName}`,
         time: 'Ώρα (χρησιμοποιήστε 24ωρη μορφή)',
         durationAmount: 'Διάρκεια',
         durationUnit: 'Μονάδα',
+        leaveType: 'Τύπος άδειας',
+        normalOOO: 'Κανονική άδεια OOO',
         reason: 'Αιτία',
         workingPercentage: 'Ποσοστό εργασίας',
         dateRequired: 'Η ημερομηνία έναρξης είναι υποχρεωτική.',
@@ -10413,6 +10443,53 @@ ${reportName}`,
         companyCardRequired: 'Απαιτούνται αγορές με εταιρική κάρτα',
         noRoute: 'Παρακαλούμε επιλέξτε μια έγκυρη διεύθυνση',
         cannotMergeDuplicates: 'Μπορείτε να συγχωνεύετε έξοδα μόνο σε πρόχειρες ή εκκρεμείς αναφορές. Ανακαλέστε την και δοκιμάστε ξανά.',
+        shortName: {
+            allTagLevelsRequired: 'Απαιτούνται όλες οι ετικέτες',
+            autoReportedRejectedExpense: 'Η δαπάνη απορρίφθηκε',
+            billableExpense: 'Η χρέωση δεν ισχύει πλέον',
+            cashExpenseWithNoReceipt: 'Απαιτείται απόδειξη',
+            categoryOutOfPolicy: 'Η κατηγορία δεν είναι πλέον έγκυρη',
+            companyCardRequired: 'Απαιτείται εταιρική κάρτα',
+            conversionSurcharge: 'Εφαρμόστηκε προσαύξηση μετατροπής',
+            customUnitOutOfPolicy: 'Μη έγκυρη χρέωση για τον χώρο εργασίας',
+            customUnitRateOutOfDateRange: 'Χρέωση εκτός έγκυρων ημερομηνιών',
+            duplicatedTransaction: 'Πιθανό διπλότυπο',
+            fieldRequired: 'Απαραίτητο πεδίο αναφοράς',
+            futureDate: 'Δεν επιτρέπεται μελλοντική ημερομηνία',
+            hold: 'Δαπάνη σε αναμονή',
+            inactiveVendor: 'Ο προμηθευτής δεν είναι πλέον έγκυρος',
+            increasedDistance: 'Η απόσταση υπερβαίνει τη διαδρομή',
+            invoiceMarkup: 'Το τιμολόγιο σημειώθηκε',
+            itemizedReceiptRequired: 'Απαιτείται αναλυτική απόδειξη',
+            maxAge: 'Η ημερομηνία είναι παλαιότερη από το μέγιστο επιτρεπτό όριο δαπάνης',
+            missingAttendees: 'Απαιτούνται συμμετέχοντες',
+            missingCategory: 'Λείπει κατηγορία',
+            missingComment: 'Απαιτείται περιγραφή',
+            missingTag: 'Ελλιπής ετικέτα',
+            modifiedAmount: 'Το ποσό τροποποιήθηκε',
+            modifiedDate: 'Ημερομηνία τροποποίησης',
+            noRoute: 'Μη έγκυρη διαδρομή',
+            nonExpensiworksExpense: 'Έξοδο εκτός Expensiworks',
+            overAutoApprovalLimit: 'Πάνω από το όριο αυτόματης έγκρισης',
+            overCategoryLimit: 'Πέρα από το όριο κατηγορίας',
+            overLimit: 'Υπέρβαση ορίου',
+            overTripLimit: 'Υπέρβαση ορίου ταξιδιού',
+            perDayLimit: 'Υπέρβαση ημερήσιου ορίου',
+            prohibitedExpense: 'Απαγορευμένη δαπάνη',
+            receiptGeneratedWithAI: 'Πιθανή απόδειξη που δημιουργήθηκε από AI',
+            receiptNotSmartScanned: 'Η απόδειξη προστέθηκε χειροκίνητα',
+            receiptRequired: 'Απαιτείται απόδειξη',
+            rter: 'Αναμονή αντιστοίχισης κάρτας',
+            smartscanFailed: 'Η σάρωση απόδειξης απέτυχε',
+            someTagLevelsRequired: 'Απαιτείται ετικέτα',
+            tagOutOfPolicy: 'Η ετικέτα δεν είναι πλέον έγκυρη',
+            overLimitAttendee: 'Υπέρβαση ορίου ατόμων',
+            customRules: 'Παραβίαση προσαρμοσμένου κανόνα',
+            taxAmountChanged: 'Το ποσό φόρου τροποποιήθηκε',
+            taxOutOfPolicy: 'Ο φορολογικός συντελεστής δεν είναι πλέον έγκυρος',
+            taxRateChanged: 'Ο φορολογικός συντελεστής τροποποιήθηκε',
+            taxRequired: 'Λείπει ο φορολογικός συντελεστής',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `Απαιτείται το πεδίο ${fieldName}`,

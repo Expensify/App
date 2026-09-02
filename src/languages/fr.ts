@@ -305,6 +305,7 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: 'Facturable',
         nonBillable: 'Non refacturable',
         tag: 'Tag',
+        violations: 'Infractions',
         receipt: 'Reçu',
         verified: 'Vérifié',
         replace: 'Remplacer',
@@ -5934,9 +5935,34 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 label: 'Compte de carte d’entreprise',
                 description: 'Choisissez où exporter les transactions de carte d’entreprise.',
             },
-            expensifyCardAccount: {
-                label: 'Compte Expensify Card',
-                description: 'Choisissez où exporter les transactions Expensify Card.',
+            exportToMultipleAccounts: 'Configurer l’export vers plusieurs comptes',
+            cardProgramAccount: {
+                label: 'Compte de programme de carte',
+                description: 'Remplacer le compte d’espace de travail pour ces programmes de cartes.',
+                descriptionLevel2: 'Remplacer le compte d’espace de travail pour ce programme de carte.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Tous les programmes utilisent le compte par défaut';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programme avec compte personnalisé`;
+                    }
+                    return `${customAccountsCount} programmes avec comptes personnalisés`;
+                },
+            },
+            cardAccount: {
+                label: 'Compte par carte',
+                description: 'Remplacez le compte de programme pour des cartes individuelles.',
+                descriptionLevel2: 'Remplacer le compte de programme pour ces cartes.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Toutes les cartes utilisent des comptes de programme';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} carte avec compte personnalisé`;
+                    }
+                    return `${customAccountsCount} cartes avec comptes personnalisés`;
+                },
             },
             autoSyncDescription: 'Synchronisez DualEntry et Expensify automatiquement, tous les jours. Les notes de frais se synchronisent en temps réel.',
             accountingMethods: {
@@ -8300,6 +8326,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 requireAboveAmount: 'Exiger un montant supérieur',
                 saveRule: 'Enregistrer la règle',
                 emptyAmountError: 'Saisissez un montant valide avant d’enregistrer',
+                receiptAmountGreaterThanItemizedError: 'Le montant du reçu requis ne peut pas être supérieur au montant du reçu détaillé requis.',
             },
             requireFields: {title: 'Rendre les champs obligatoires pour toutes les dépenses', category: 'Catégorie', tag: 'Tag', save: 'Enregistrer la règle'},
             newRule: {
@@ -9519,6 +9546,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             topSpenders: 'Plus gros dépensiers',
             topCategories: 'Catégories principales',
             topMerchants: 'Meilleurs commerçants',
+            violationsBySubmitter: 'Infractions par déclarant',
         },
     },
     genericErrorPage: {
@@ -9696,6 +9724,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         time: 'Heure (format 24 heures)',
         durationAmount: 'Durée',
         durationUnit: 'Unité',
+        leaveType: 'Type de congé',
+        normalOOO: 'Absent normal',
         reason: 'Raison',
         workingPercentage: 'Pourcentage de travail',
         dateRequired: 'La date de début est obligatoire.',
@@ -10223,6 +10253,53 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Le taux n’est valable qu’à partir du ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Le taux n’est valable que jusqu’au ${endDate}`,
         cannotMergeDuplicates: 'Vous ne pouvez fusionner des dépenses que sur des notes de frais à l’état de brouillon ou en circulation. Retirez-la puis réessayez.',
+        shortName: {
+            allTagLevelsRequired: 'Tous les tags sont obligatoires',
+            autoReportedRejectedExpense: 'Dépense rejetée',
+            billableExpense: 'Facturable n’est plus valide',
+            cashExpenseWithNoReceipt: 'Reçu obligatoire',
+            categoryOutOfPolicy: 'Catégorie n’est plus valide',
+            companyCardRequired: 'Carte d’entreprise requise',
+            conversionSurcharge: 'Surcharge de conversion appliquée',
+            customUnitOutOfPolicy: 'Taux non valide pour l’espace de travail',
+            customUnitRateOutOfDateRange: 'Taux en dehors des dates valides',
+            duplicatedTransaction: 'Doublon potentiel',
+            fieldRequired: 'Champ de note de frais obligatoire',
+            futureDate: 'Date future non autorisée',
+            hold: 'Dépense en attente',
+            inactiveVendor: 'Fournisseur n’est plus valide',
+            increasedDistance: 'La distance dépasse l’itinéraire',
+            invoiceMarkup: 'Facture annotée',
+            itemizedReceiptRequired: 'Reçu détaillé requis',
+            maxAge: 'Date antérieure à l’ancienneté maximale de la dépense',
+            missingAttendees: 'Participants obligatoires',
+            missingCategory: 'Catégorie manquante',
+            missingComment: 'Description obligatoire',
+            missingTag: 'Tag manquant',
+            modifiedAmount: 'Montant modifié',
+            modifiedDate: 'Date de modification',
+            noRoute: 'Aucun itinéraire valide',
+            nonExpensiworksExpense: 'Dépense hors Expensiworks',
+            overAutoApprovalLimit: 'Au-delà de la limite d’auto-approbation',
+            overCategoryLimit: 'Limite de catégorie dépassée',
+            overLimit: 'Au-delà de la limite',
+            overTripLimit: 'Au-delà de la limite de voyage',
+            perDayLimit: 'Au-dessus de la limite quotidienne',
+            prohibitedExpense: 'Dépense interdite',
+            receiptGeneratedWithAI: 'Reçu potentiellement généré par IA',
+            receiptNotSmartScanned: 'Reçu ajouté manuellement',
+            receiptRequired: 'Reçu obligatoire',
+            rter: 'En attente de correspondance de carte',
+            smartscanFailed: 'L’analyse du reçu a échoué',
+            someTagLevelsRequired: 'Tag obligatoire',
+            tagOutOfPolicy: 'Tag n’est plus valide',
+            overLimitAttendee: 'Nombre de personnes dépassé',
+            customRules: 'Violation de règle personnalisée',
+            taxAmountChanged: 'Montant de la taxe modifié',
+            taxOutOfPolicy: 'Taux de taxe n’est plus valide',
+            taxRateChanged: 'Taux d’imposition modifié',
+            taxRequired: 'Taux de taxe manquant',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} est obligatoire`,

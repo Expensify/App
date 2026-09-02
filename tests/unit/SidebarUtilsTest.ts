@@ -1058,6 +1058,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
 
@@ -1171,6 +1172,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
 
@@ -1191,6 +1193,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
 
@@ -1213,6 +1216,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
 
@@ -1237,6 +1241,7 @@ describe('SidebarUtils', () => {
                 isOffline: true,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
 
@@ -1262,6 +1267,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
 
@@ -1309,6 +1315,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
                 conciergeReportID,
             });
 
@@ -1348,6 +1355,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
                 conciergeReportID: 'a-different-report-id',
             });
 
@@ -1397,6 +1405,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 });
 
@@ -1428,6 +1437,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 });
 
@@ -1459,6 +1469,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 });
 
@@ -5057,6 +5068,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5082,6 +5094,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5105,6 +5118,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5125,6 +5139,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5149,6 +5164,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5177,6 +5193,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5206,6 +5223,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5235,6 +5253,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5274,6 +5293,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5304,6 +5324,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5332,6 +5353,7 @@ describe('SidebarUtils', () => {
                     isOffline: true,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5358,6 +5380,7 @@ describe('SidebarUtils', () => {
                     isOffline: true,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5395,6 +5418,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
