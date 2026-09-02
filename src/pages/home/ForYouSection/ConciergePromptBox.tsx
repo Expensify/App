@@ -55,9 +55,10 @@ import useConciergeAttachmentPicker from './useConciergeAttachmentPicker';
 // Max number of lines before the input starts scrolling internally.
 const MAX_INPUT_LINES = 5;
 
-// The coin animation's canvas has empty space under the coin. It spans the card at its own aspect ratio and its
-// container clips it to this height, cropping that space away rather than scaling the animation down.
-const COIN_ANIMATION_VISIBLE_HEIGHT = 172;
+// The coin animation's canvas has empty space under the coin. It renders at this share of the card width at its own
+// aspect ratio, and its container clips it to this height, cropping that space away rather than scaling it down.
+const COIN_ANIMATION_WIDTH_PERCENT = 80;
+const COIN_ANIMATION_VISIBLE_HEIGHT = 140;
 
 // A single line of placeholder text is one lineHeightXLarge tall. Anything meaningfully taller has wrapped.
 const SINGLE_LINE_PLACEHOLDER_MAX_HEIGHT = variables.lineHeightXLarge * 1.5;
@@ -203,9 +204,9 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                 {shouldUseNarrowLayout && (
                     <View style={[styles.w100, styles.pRelative, styles.overflowHidden, {height: COIN_ANIMATION_VISIBLE_HEIGHT}]}>
                         {/* Pinning the animation in a wrapper takes it out of the clipping container's layout, so that
-                            container's height can't squeeze it. It keeps the full card width at its own aspect ratio
-                            and whatever hangs below the container is clipped. */}
-                        <View style={[styles.pAbsolute, styles.t0, styles.l0, styles.w100]}>
+                            container's height can't squeeze it. It keeps its own aspect ratio at the width set here,
+                            centered, and whatever hangs below the container is clipped. */}
+                        <View style={[styles.pAbsolute, styles.t0, {left: `${(100 - COIN_ANIMATION_WIDTH_PERCENT) / 2}%`, width: `${COIN_ANIMATION_WIDTH_PERCENT}%`}]}>
                             <Lottie
                                 source={LottieAnimations.Coin}
                                 // LottieView styles its web DOM node from webStyle, not style.

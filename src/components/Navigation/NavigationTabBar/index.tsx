@@ -36,10 +36,16 @@ import WorkspacesTabButton from './WorkspacesTabButton';
 
 type NavigationTabBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
+
+    /**
+     * Whether to cast the shadow above the bar. Preloaded screens each render their own tab bar at the same spot,
+     * so only the navigator's bar — the one stacked above the screens — opts in. Otherwise the shadows compound.
+     */
+    shouldShowTopShadow?: boolean;
     shouldShowFloatingButtons?: boolean;
 };
 
-function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: NavigationTabBarProps) {
+function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true, shouldShowTopShadow = false}: NavigationTabBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
@@ -144,7 +150,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
         <>
             {shouldShowDebugTabView && <DebugTabView selectedTab={selectedTab} />}
             <View
-                style={styles.navigationTabBarContainer}
+                style={[styles.navigationTabBarContainer, shouldShowTopShadow && styles.navigationTabBarTopShadow]}
                 testID="NavigationTabBar"
             >
                 <PressableWithFeedback

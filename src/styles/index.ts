@@ -720,9 +720,13 @@ const staticStyles = (theme: ThemeColors) =>
         navigationTabBarContainer: {
             flexDirection: 'row',
             height: variables.bottomTabHeight,
-            borderTopWidth: 1,
-            borderTopColor: theme.border,
             backgroundColor: theme.appBG,
+        },
+
+        // Every preloaded screen renders its own tab bar at the same spot, so this is applied only to the focused
+        // screen's bar. Applying it to all of them would stack one shadow per bar.
+        navigationTabBarTopShadow: {
+            boxShadow: theme.shadowTop,
         },
 
         navigationTabBarItem: {
@@ -4182,7 +4186,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         widgetItemTitle: {
-            ...textVariants.text,
+            ...textVariants.textStrong,
             color: theme.text,
         },
 

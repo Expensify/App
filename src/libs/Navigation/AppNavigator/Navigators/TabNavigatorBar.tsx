@@ -79,6 +79,7 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
                 <NavigationTabBar
                     selectedTab={selectedTab}
                     shouldShowFloatingButtons={!isHidden}
+                    shouldShowTopShadow
                 />
             </View>
         );

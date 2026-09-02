@@ -37,7 +37,7 @@ function TimeSensitiveGroup({items}: TimeSensitiveGroupProps) {
     const visibleItems = isExpanded ? items : items.slice(0, CONST.HOME.SECTION_VISIBLE_LIMIT);
 
     return (
-        <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
+        <View style={[styles.getForYouSectionContainerStyle(shouldUseNarrowLayout), styles.mb0]}>
             {visibleItems}
             {hiddenCount > 0 && (
                 <HomeSectionExpandToggle

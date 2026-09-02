@@ -2392,6 +2392,7 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'Είμαστε εδώ για να σας βοηθάμε 24/7.',
             helpSite: 'Ιστότοπος βοήθειας',
             helpSiteDescription: 'Άρθρα, οδηγίες και άλλα',
+            askConcierge: 'Ρωτήστε το Concierge',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Ο προσωπικός σας πράκτορας τεχνητής νοημοσύνης',
             accountManager: 'Υπεύθυνος λογαριασμού',
