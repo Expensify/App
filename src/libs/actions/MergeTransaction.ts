@@ -648,19 +648,19 @@ function mergeTransactionRequest({
         if (!sourceIouAction) {
             Log.warn("Can't find the iouAction for the transaction in the selfDM report.");
         } else {
-            const {optimisticData, successData, failureData} = getDeleteTrackExpenseInformation(
-                selfDMReport,
-                sourceTransaction.transactionID,
-                sourceIouAction,
-                false,
-                currentUserAccountIDParam,
-                undefined,
-                undefined,
+            const {optimisticData, successData, failureData} = getDeleteTrackExpenseInformation({
+                chatReport: selfDMReport,
+                transactionID: sourceTransaction.transactionID,
+                reportAction: sourceIouAction,
+                isChatReportArchived: false,
+                currentUserAccountID: currentUserAccountIDParam,
+                shouldDeleteTransactionFromOnyx: undefined,
+                isMovingTransactionFromTrackExpense: undefined,
                 actionableWhisperReportActionID,
-                CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
-                false,
-                sourceTransactionThreadReport,
-            );
+                resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
+                shouldRemoveIOUTransaction: false,
+                transactionThread: sourceTransactionThreadReport,
+            });
 
             sourceTransactionOptimisticData.push(...optimisticData);
             sourceTransactionSuccessData.push(...successData);
