@@ -78,15 +78,18 @@ let resolveDeferredWritesLanded: (() => void) | undefined;
 // Bumped by resetQueue() so claims it wiped can't decrement a later one's count.
 let deferredWriteGeneration = 0;
 let pendingNetworkStateChange: Promise<void> | undefined;
+let unsubscribePendingNetworkStateChange: (() => void) | undefined;
 
 /** One shared wake-up for every READ parked on the gate, rather than a subscription per caller. */
 function whenNetworkStateChanges(): Promise<void> {
     pendingNetworkStateChange ??= new Promise<void>((resolve) => {
         const unsubscribe = subscribeToNetworkState(() => {
             unsubscribe();
+            unsubscribePendingNetworkStateChange = undefined;
             pendingNetworkStateChange = undefined;
             resolve();
         });
+        unsubscribePendingNetworkStateChange = unsubscribe;
     });
 
     return pendingNetworkStateChange;
@@ -835,6 +838,12 @@ function getCurrentRequest(): Promise<void> {
 /**
  * Resolves when the queue is done processing all persisted write requests, deferred writes included.
  * Skipped while offline, where the queue can't run and push()/flush() open the gate for the same reason.
+ *
+ * Not only READs wait here: the auth-token swaps in `Delegate.connect`/`disconnect`, the account merge in
+ * `Session`, and the post-sign-in `openApp` all gate on this too, so a deferred write delays them by up to
+ * `SAFETY_TIMEOUT_MS` as well. That wait is intended - swapping the token out from under a pending write is
+ * exactly what it prevents - but the `shouldClaimReadGate` opt-out lives on the writer, so a caller adding a
+ * `writeWhenReady` is choosing this for them too.
  */
 async function waitForIdle(): Promise<unknown> {
     while (deferredWriteClaims > 0 && !isOfflineNetwork()) {
@@ -864,6 +873,10 @@ function resetQueue(): void {
     resolveIsReadyPromise = undefined;
     deferredWriteGeneration += 1;
     setDeferredWriteClaims(0);
+    // Drop the listener too, not just the promise, so a suite that parks a READ doesn't leave a subscriber
+    // behind on every reset.
+    unsubscribePendingNetworkStateChange?.();
+    unsubscribePendingNetworkStateChange = undefined;
     pendingNetworkStateChange = undefined;
 }
 

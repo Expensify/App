@@ -120,8 +120,9 @@ function armTransitionBarrier(waitFor: true | 'navigation' = true): ArmedTransit
  *     queue or considered for conflict resolution until it actually executes.
  *   - Call order isn't preserved across independent `writeWhenReady` calls - their barriers race.
  *   - READs wait on this the same way they wait on a queued write, just for longer, since the barrier
- *     runs before the request does. Pass `{shouldClaimReadGate: false}` to opt out. Either way a barrier must
- *     not wait on a READ of its own, which would park it behind the very write it gates.
+ *     runs before the request does. Pass `{shouldClaimReadGate: false}` to opt out. While the gate is on,
+ *     a barrier must not wait on a READ of its own - that READ parks behind this write, so the barrier only
+ *     releases on the safety timeout.
  *
  * Caution:
  *   - The default barrier waits for any transition (~2s worst case if none starts). Pass

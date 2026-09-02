@@ -311,6 +311,8 @@ describe('API.writeWhenReady', () => {
         const updateSpy = jest.spyOn(Onyx, 'update').mockImplementationOnce(() => {
             throw new Error('write boom');
         });
+        const settleClaim = jest.fn();
+        mockClaimReadGate.mockReturnValue(settleClaim);
         try {
             const onyxData: DeferWriteOnyxData = {
                 optimisticData: [
@@ -333,8 +335,13 @@ describe('API.writeWhenReady', () => {
             // error the caller needs to see, not something to paper over
             await expect(outcome).resolves.toBe('rejected');
             expect(mockPush).not.toHaveBeenCalled();
+
+            // And the claim is released on the way out. This is the only assertion on execute()'s catch;
+            // without it the gate would stay held and every later READ would sit on the safety timeout.
+            expect(settleClaim).toHaveBeenCalledTimes(1);
         } finally {
             updateSpy.mockRestore();
+            mockClaimReadGate.mockImplementation(() => jest.fn());
         }
     });
 
@@ -594,7 +601,9 @@ describe('API.writeWhenReady', () => {
     });
 
     describe('sequential queue read gate', () => {
-        afterEach(() => {
+        // clearAllMocks() doesn't clear implementations, so reset the stub up front rather than relying on
+        // the previous test having cleaned up after itself.
+        beforeEach(() => {
             mockClaimReadGate.mockImplementation(() => jest.fn());
         });
 
@@ -635,8 +644,10 @@ describe('API.writeWhenReady', () => {
             expect(settleClaim).toHaveBeenCalledTimes(1);
         });
 
-        it('settles the claim even when the write throws', async () => {
-            // Given a deferred write whose write() throws before anything is queued
+        it('settles the claim even when the write rejects', async () => {
+            // Given a deferred write whose push() fails. processRequest is async, so this surfaces as a
+            // rejection and takes the .finally() path, not execute()'s catch - that branch is covered by
+            // 'rejects the returned promise when the write throws synchronously'.
             const settleClaim = stubReadGateClaim();
             mockPush.mockImplementationOnce(() => {
                 throw new Error('push failed');
