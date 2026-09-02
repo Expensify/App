@@ -84,7 +84,9 @@ describe('navigateToDomainRouteWithSidebarSync', () => {
 
         expect(Navigation.setParams).toHaveBeenCalledWith({domainAccountID: 200}, 'domain-sidebar', 'domain-split-state');
         expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
-        expect(jest.mocked(Navigation.setParams).mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(Navigation.navigate).mock.invocationCallOrder.at(0) ?? 0);
+        const setParamsOrder = jest.mocked(Navigation.setParams).mock.invocationCallOrder.at(0) ?? 0;
+        const navigateOrder = jest.mocked(Navigation.navigate).mock.invocationCallOrder.at(0) ?? 0;
+        expect(setParamsOrder).toBeLessThan(navigateOrder);
     });
 
     it('does not update the sidebar when navigating within the same Domain', () => {
@@ -109,7 +111,11 @@ describe('navigateToDomainRouteWithSidebarSync', () => {
 
     it('navigates directly when there is no active Domain sidebar', () => {
         jest.mocked(navigationRef).isReady.mockReturnValue(true);
-        jest.mocked(navigationRef).getRootState.mockReturnValue(createMock<ReturnType<typeof navigationRef.getRootState>>({routes: []}));
+        jest.mocked(navigationRef).getRootState.mockReturnValue(
+            createMock<ReturnType<typeof navigationRef.getRootState>>({
+                routes: [],
+            }),
+        );
         const targetRoute = ROUTES.DOMAIN_SAML.getRoute(200);
 
         navigateToDomainRouteWithSidebarSync(targetRoute, 200, false);
@@ -148,7 +154,13 @@ describe('navigateToDomainRouteWithSidebarSync', () => {
                         name: NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
                         state: {
                             key: 'domain-split-state',
-                            routes: [{key: 'domain-sidebar', name: SCREENS.DOMAIN.INITIAL, params: {domainAccountID: 100}}],
+                            routes: [
+                                {
+                                    key: 'domain-sidebar',
+                                    name: SCREENS.DOMAIN.INITIAL,
+                                    params: {domainAccountID: 100},
+                                },
+                            ],
                         },
                     },
                 ],
