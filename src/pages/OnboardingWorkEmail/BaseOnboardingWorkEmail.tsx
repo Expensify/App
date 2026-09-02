@@ -170,8 +170,12 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             return;
         }
 
-        // The "Join my company workspace" intent navigates here on purpose, so this screen is the destination rather than
-        // a step to pass through. Submitting and skipping both navigate on their own from here.
+        // Work email added outright, no merge needed - move on to the joinable-workspaces list.
+        if (isJoiningCompanyWorkspace && hasSubmittedWorkEmail) {
+            Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute());
+            return;
+        }
+
         if (isJoiningCompanyWorkspace) {
             return;
         }
