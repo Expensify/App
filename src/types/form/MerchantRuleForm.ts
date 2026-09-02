@@ -21,6 +21,9 @@ const INPUT_IDS = {
 
 type InputID = ValueOf<typeof INPUT_IDS>;
 
+/** What the rule matches on, chosen before the editor opens. */
+type ExpenseDefaultRuleType = ValueOf<typeof CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE>;
+
 type MerchantRuleForm = Form<
     InputID,
     {
@@ -34,12 +37,12 @@ type MerchantRuleForm = Form<
         [INPUT_IDS.REIMBURSABLE]: boolean;
         /** Which kind of expense default this is, chosen before the editor opened. Kept in the draft so it survives a
          * trip to any picker, rather than having to ride on every picker's route. */
-        [INPUT_IDS.RULE_TYPE]: 'merchant' | 'category';
+        [INPUT_IDS.RULE_TYPE]: ExpenseDefaultRuleType;
         [INPUT_IDS.TAG]: string;
         [INPUT_IDS.TAX]: string;
         [INPUT_IDS.VENDOR_ID]: string;
     }
 >;
 
-export type {MerchantRuleForm};
+export type {ExpenseDefaultRuleType, MerchantRuleForm};
 export default INPUT_IDS;

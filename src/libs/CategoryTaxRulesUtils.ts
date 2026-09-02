@@ -7,6 +7,7 @@ import type {ExpenseDefaultTableItem} from '@components/Tables/WorkspaceExpenseD
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import type {MerchantRuleForm} from '@src/types/form';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ExpenseRule} from '@src/types/onyx/Policy';
@@ -14,6 +15,23 @@ import type {ExpenseRule} from '@src/types/onyx/Policy';
 import {getDecodedCategoryName} from './CategoryUtils';
 
 const CATEGORY_TAX_RULE_KEY_PREFIX = 'category-tax:';
+
+/**
+ * Whether the rule being written is a category tax default rather than a merchant rule.
+ *
+ * The editor and every picker it opens have to agree on this — the editor picks its rows from it, the tax picker which
+ * rates it may offer — so they read it here rather than each rebuilding the same disjunction. A saved rule arrives by
+ * category name, an unsaved one carries the type the chooser put in its draft, and a draft that already holds a
+ * category counts either way.
+ */
+function isCategoryRuleDraft(form: MerchantRuleForm | undefined, editingCategoryName?: string): boolean {
+    return !!editingCategoryName || form?.ruleType === CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY || !!form?.categoriesToMatch?.length;
+}
+
+/** Whether a rule has a tax rate to apply. Tracking being on isn't enough on its own — it needs a rate to choose from. */
+function hasUsableTaxRates(policy: Policy | undefined): boolean {
+    return !!policy?.tax?.trackingEnabled && Object.keys(policy?.taxRates?.taxes ?? {}).length > 0;
+}
 
 function getCategoryTaxRuleKey(categoryName: string) {
     return `${CATEGORY_TAX_RULE_KEY_PREFIX}${categoryName}`;
@@ -155,6 +173,8 @@ export {
     getCategoryTaxRuleTaxID,
     getRuleCategoryName,
     getTaxRateDisplayName,
+    hasUsableTaxRates,
+    isCategoryRuleDraft,
     isCategoryTaxRuleKey,
     matchesCategoryTaxRule,
 };

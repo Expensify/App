@@ -28,7 +28,7 @@ import {deletePolicyCodingRule, setPolicyCodingRule} from '@libs/actions/Policy/
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import Tab from '@libs/actions/Tab';
 import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
-import {getCategoryTaxRuleTaxID, getTaxRateDisplayName} from '@libs/CategoryTaxRulesUtils';
+import {getCategoryTaxRuleTaxID, getTaxRateDisplayName, hasUsableTaxRates, isCategoryRuleDraft} from '@libs/CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
@@ -48,6 +48,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {MerchantRuleForm} from '@src/types/form';
 import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
+import type {ExpenseDefaultRuleType} from '@src/types/form/MerchantRuleForm';
 import type {PolicyTagLists} from '@src/types/onyx';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -251,13 +252,6 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
     };
     const formTags = getTagArrayFromName(form?.tag ?? '');
 
-    const hasTaxes = () => {
-        if (!policy?.tax?.trackingEnabled) {
-            return false;
-        }
-        return Object.keys(policy?.taxRates?.taxes ?? {}).length > 0;
-    };
-
     const isBillableEnabled = policy?.disabledFields?.defaultBillable !== true;
 
     const isVendorFeatureEnabled = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
@@ -273,18 +267,18 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
     const hasMerchantCondition = !!form?.merchantToMatch;
     // A saved rule already is one kind or the other, so editing is scoped the same way creating is. Creating reads the
     // draft rather than the route, so scoping survives a trip to any picker and every picker routes back to one URL.
-    const getScopedRuleType = (): 'merchant' | 'category' | undefined => {
+    const getScopedRuleType = (): ExpenseDefaultRuleType | undefined => {
         if (isEditingCategoryTaxRule) {
-            return 'category';
+            return CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY;
         }
         if (isEditing) {
-            return 'merchant';
+            return CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT;
         }
         return form?.ruleType;
     };
     const scopedRuleType = getScopedRuleType();
-    const isScopedToCategory = scopedRuleType === 'category';
-    const isCategoryRule = hasCategoryCondition || isEditingCategoryTaxRule || isScopedToCategory;
+    const isScopedToCategory = scopedRuleType === CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY;
+    const isCategoryRule = isCategoryRuleDraft(form, editCategoryTaxRuleFor);
     // Deleting means writing the workspace default rate back, so without one there is nothing to write.
     const canDeleteCategoryTaxRule = isEditingCategoryTaxRule && !!policy?.taxRates?.defaultExternalID;
     // Writing the workspace default rate deletes the rule, so a draft tax equal to it means "no rule". A merchant
@@ -540,7 +534,7 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
                     : []),
                 // Tax is a category rule's only default, so the row stays with taxes off rather than leaving the
                 // section blank. The picker then explains that taxes are disabled.
-                hasTaxes() || isCategoryRule
+                hasUsableTaxRates(policy) || isCategoryRule
                     ? {
                           key: 'tax',
                           description: translate('common.tax'),

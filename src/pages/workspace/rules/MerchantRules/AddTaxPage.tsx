@@ -4,6 +4,7 @@ import RuleTaxesDisabledEmptyState from '@components/Rule/RuleTaxesDisabledEmpty
 import useOnyx from '@hooks/useOnyx';
 
 import {updateDraftMerchantRule} from '@libs/actions/User';
+import {hasUsableTaxRates, isCategoryRuleDraft} from '@libs/CategoryTaxRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -26,10 +27,10 @@ function AddTaxPage({route}: AddTaxPageProps) {
 
     // Reachable with taxes off by opening a rule saved while they were on, so the page explains that rather than
     // showing an empty picker.
-    const areTaxesEnabled = !!policy?.tax?.trackingEnabled;
+    const areTaxesEnabled = hasUsableTaxRates(policy);
 
     // Writing the workspace default rate deletes the rule, so offering it here would remove rather than save.
-    const isCategoryRule = !!categoryName || form?.ruleType === 'category' || !!form?.categoriesToMatch?.length;
+    const isCategoryRule = isCategoryRuleDraft(form, categoryName);
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const shouldHideTax = (taxKey: string) => isCategoryRule && taxKey === defaultExternalID;
 

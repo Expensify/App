@@ -12,6 +12,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setDraftMerchantRule} from '@libs/actions/User';
+import {hasUsableTaxRates} from '@libs/CategoryTaxRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -23,6 +24,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {ExpenseDefaultRuleType} from '@src/types/form/MerchantRuleForm';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -45,13 +47,13 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
 
     const {showConfirmModal} = useConfirmModal();
 
-    // A category rule only sets a default tax rate, so it needs both tax tracking and a rate to choose from. The card
-    // stays listed either way: hiding it would drop the admin on a one-option page with no hint of what is missing.
-    const areTaxesEnabled = !!policy?.tax?.trackingEnabled && Object.keys(policy?.taxRates?.taxes ?? {}).length > 0;
+    // A category rule only sets a default tax rate, so it needs a rate to choose from. The card stays listed either
+    // way: hiding it would drop the admin on a one-option page with no hint of what is missing.
+    const areTaxesEnabled = hasUsableTaxRates(policy);
 
     // Scoping rides in the draft rather than the URL, so the editor keeps it when a picker routes back to the plain
     // create URL. Setting it here also starts the rule from a clean draft.
-    const openEditorScopedTo = (ruleType: 'merchant' | 'category') => {
+    const openEditorScopedTo = (ruleType: ExpenseDefaultRuleType) => {
         setDraftMerchantRule({ruleType});
         Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
     };
@@ -71,7 +73,7 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
             icon: illustrations.FoodTruck,
             title: translate('workspace.rules.expenseDefaultType.merchant'),
             description: translate('workspace.rules.expenseDefaultType.merchantDescription'),
-            onPress: () => openEditorScopedTo('merchant'),
+            onPress: () => openEditorScopedTo(CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT),
             isLocked: false,
         },
         {
@@ -79,7 +81,7 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
             icon: illustrations.FolderOpen,
             title: translate('workspace.rules.expenseDefaultType.category'),
             description: translate('workspace.rules.expenseDefaultType.categoryDescription'),
-            onPress: areTaxesEnabled ? () => openEditorScopedTo('category') : showTurnOnTaxesFirstExplainer,
+            onPress: areTaxesEnabled ? () => openEditorScopedTo(CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY) : showTurnOnTaxesFirstExplainer,
             isLocked: !areTaxesEnabled,
         },
     ];
