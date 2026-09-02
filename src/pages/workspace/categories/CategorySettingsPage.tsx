@@ -448,7 +448,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     prompt: translate('workspace.categories.deleteCategoryPrompt'),
                                     confirmText: translate('common.delete'),
                                     cancelText: translate('common.cancel'),
-                                    danger: true,
+                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                                 });
                                 if (action === ModalActions.CONFIRM) {
                                     deleteCategory();
@@ -576,7 +576,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 </OfflineWithFeedback>
                             ))}
                             {canWriteRules && (
-                                <MenuItem
+                                <MenuItemAction
                                     icon={expensifyIcons.Plus}
                                     title={translate('workspace.rules.categoryRules.createNewRule')}
                                     onPress={() => navigateToCategoryRule(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_NEW.path)}

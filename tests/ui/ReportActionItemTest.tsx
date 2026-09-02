@@ -424,7 +424,6 @@ describe('ReportActionItem', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: 'owner@test.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             } as const;
 
@@ -476,7 +475,6 @@ describe('ReportActionItem', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: 'owner@test.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             } as const;
 
@@ -523,7 +521,6 @@ describe('ReportActionItem', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: 'owner@test.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             } as const;
 
@@ -571,7 +568,6 @@ describe('ReportActionItem', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: 'owner@test.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             } as const;
 
