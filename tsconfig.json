@@ -2,7 +2,7 @@
     "$schema": "https://json.schemastore.org/tsconfig",
     "extends": "./tsconfig.base.json",
     "compilerOptions": {
-        "types": ["react-native", "react-native-web", "jest", "node"],
+        "types": ["react-native", "react-native-web", "node"],
         "lib": ["DOM", "ESNext"],
         // Babel reads this config directly and does not resolve its `extends` chain.
         "paths": {
@@ -23,14 +23,12 @@
             "tests/*": ["./tests/*"]
         }
     },
-    "include": ["src", "website", "docs", "assets", "tests", "jest", "prompts", "__mocks__", ".storybook/**/*", ".claude/**/*", "modules", "**/*.nitro/*.ts", "**/*.nitro/*.tsx"],
+    "include": ["src", "assets", "prompts", ".storybook/**/*", "modules"],
     "exclude": [
         "**/node_modules/*",
         "**/dist/*",
         ".github/actions/**/index.js",
-        "**/docs/*",
-        ".claude/worktrees/**",
-        "tests/tooling",
+        "src/**/__mocks__/**",
         "server/libs",
         "server/plugins",
         "server/stubs",

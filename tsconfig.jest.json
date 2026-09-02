@@ -1,0 +1,10 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        "types": ["react-native", "react-native-web"],
+        "lib": ["DOM", "ESNext"]
+    },
+    "include": ["src", "assets", "tests", "jest", "prompts", "__mocks__", "modules"],
+    "exclude": ["**/node_modules/*", "**/dist/*", "tests/tooling"]
+}
