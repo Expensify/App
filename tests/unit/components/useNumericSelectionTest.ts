@@ -146,6 +146,48 @@ describe('useNumericSelection', () => {
             expect(result.current.selection).toEqual({start: 2, end: 2});
         });
 
+        it('clamps the caret to the start when the edit strips more characters than sit before it', () => {
+            const {result} = renderSelection('12.34');
+
+            act(() => {
+                result.current.handleNativeSelectionChange(0, 0);
+            });
+            act(() => {
+                // Reducing the accepted precision rewrites the value wherever the caret happens to be.
+                result.current.syncAfterEdit({previousText: '12.34', nextText: '12'});
+            });
+
+            expect(result.current.selection).toEqual({start: 0, end: 0});
+        });
+
+        it('keeps the caret before pasted text when a forward-delete key press removed nothing', () => {
+            const {result} = renderSelection('12345');
+
+            act(() => {
+                result.current.handleNativeSelectionChange(1, 4);
+            });
+            act(() => {
+                result.current.handleKeyPress(buildKeyPressEvent('Delete'));
+                result.current.syncAfterEdit({previousText: '12345', nextText: '195'});
+            });
+
+            expect(result.current.selection).toEqual({start: 2, end: 2});
+        });
+
+        it('shifts the caret back past a repeated character a backspace removed', () => {
+            const {result} = renderSelection('111');
+
+            act(() => {
+                result.current.handleNativeSelectionChange(2, 2);
+            });
+            act(() => {
+                result.current.handleKeyPress(buildKeyPressEvent('Backspace'));
+                result.current.syncAfterEdit({previousText: '111', nextText: '11'});
+            });
+
+            expect(result.current.selection).toEqual({start: 1, end: 1});
+        });
+
         it('shifts the caret when a forward-delete key was pressed but the edit added characters', () => {
             const {result} = renderSelection('12');
 
@@ -158,7 +200,106 @@ describe('useNumericSelection', () => {
         });
     });
 
+    describe('syncAfterEdit with an unchanged value', () => {
+        it('keeps the caret where it was when normalization resolves the edit back to the current value', () => {
+            const {result} = renderSelection('1.2');
+
+            act(() => {
+                result.current.handleNativeSelectionChange(1, 1);
+            });
+            act(() => {
+                result.current.syncAfterEdit({previousText: '1.2', nextText: '1.2'});
+            });
+
+            expect(result.current.selection).toEqual({start: 1, end: 1});
+        });
+
+        it('drops the event native emits for the character it kept, not the user event after it', () => {
+            const {result} = renderSelection('1.2');
+
+            act(() => {
+                result.current.handleNativeSelectionChange(1, 1);
+            });
+            act(() => {
+                result.current.syncAfterEdit({previousText: '1.2', nextText: '1.2'});
+                result.current.handleNativeSelectionChange(2, 2);
+            });
+
+            expect(result.current.selection).toEqual({start: 1, end: 1});
+
+            act(() => {
+                result.current.handleNativeSelectionChange(2, 2);
+            });
+
+            expect(result.current.selection).toEqual({start: 2, end: 2});
+        });
+
+        it('consumes the forward-delete key press so the next edit is not treated as one', () => {
+            const {result} = renderSelection('1.2');
+
+            act(() => {
+                result.current.handleNativeSelectionChange(3, 3);
+            });
+            act(() => {
+                result.current.handleKeyPress(buildKeyPressEvent('Delete'));
+                result.current.syncAfterEdit({previousText: '1.2', nextText: '1.2'});
+            });
+            act(() => {
+                result.current.syncAfterEdit({previousText: '1.2', nextText: '1.'});
+            });
+
+            expect(result.current.selection).toEqual({start: 2, end: 2});
+        });
+    });
+
+    describe('moveToEnd with the caret already at the end', () => {
+        it('arms no guard, so the next selection event is applied', () => {
+            const {result} = renderSelection('12');
+
+            act(() => {
+                result.current.moveToEnd('12');
+            });
+            act(() => {
+                result.current.handleNativeSelectionChange(0, 0);
+            });
+
+            expect(result.current.selection).toEqual({start: 0, end: 0});
+        });
+    });
+
+    describe('guards armed before the screen was left', () => {
+        it('are dropped when the screen regains focus', () => {
+            const {result, rerender} = renderSelection('12');
+
+            act(() => {
+                result.current.syncAfterEdit({previousText: '12', nextText: '123'});
+            });
+
+            mockUseIsFocused.mockReturnValue(false);
+            rerender({displayText: '123'});
+            mockUseIsFocused.mockReturnValue(true);
+            rerender({displayText: '123'});
+
+            act(() => {
+                result.current.handleNativeSelectionChange(1, 1);
+            });
+
+            expect(result.current.selection).toEqual({start: 1, end: 1});
+        });
+    });
+
     describe('handleNativeSelectionChange', () => {
+        it('keeps the selection object when the reported offsets already match, so no render is triggered', () => {
+            const {result} = renderSelection('123');
+            const selectionBefore = result.current.selection;
+
+            act(() => {
+                result.current.handleNativeSelectionChange(3, 3);
+            });
+
+            expect(result.current.selection).toBe(selectionBefore);
+        });
+
         it('applies the reported offsets', () => {
             const {result} = renderSelection('123');
 

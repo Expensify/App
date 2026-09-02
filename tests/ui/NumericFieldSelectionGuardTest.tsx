@@ -87,29 +87,55 @@ describe('NumericField.TextInput native selection guard', () => {
         expect(getInput().props.selection).toEqual({start: 1, end: 1});
     });
 
-    it('consumes the guard with the first selection event when setNumber receives the current value', async () => {
+    it('keeps the caret and arms no guard when normalization resolves an edit back to the current value', async () => {
         const onInputChange = jest.fn();
 
-        // Given a TextInput with value "12"
-        renderTextInput(onInputChange);
+        // Given a TextInput with value "1.2" and the caret after its first digit
+        renderTextInput(onInputChange, undefined, '1.2');
         await waitForBatchedUpdatesWithAct();
 
-        // When setNumber is called with the same value "12"
-        fireEvent.changeText(getInput(), '12');
+        fireEvent(getInput(), 'selectionChange', {nativeEvent: {selection: {start: 1, end: 1}}});
         await waitForBatchedUpdatesWithAct();
 
-        // Then the first selection event afterward is dropped as the stale one for that update
-        fireEvent(getInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
+        // When a group separator is typed into a number that already has a decimal separator,
+        // which normalization strips back to the current value
+        fireEvent.changeText(getInput(), '1,.2');
         await waitForBatchedUpdatesWithAct();
-        expect(getInput().props.selection).toEqual({start: 2, end: 2});
 
-        // And the next selection event is applied because the guard was consumed
+        // Then the caret stays where it was, because no character was committed
+        expect(getInput().props.selection).toEqual({start: 1, end: 1});
+
+        // And the next selection event is applied, because no guard was armed for an update
+        // that native never echoes a different position for
         fireEvent(getInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
         await waitForBatchedUpdatesWithAct();
         expect(getInput().props.selection).toEqual({start: 0, end: 0});
     });
 
-    it('consumes the guard with the first selection event when updateNumber receives the current value', async () => {
+    it('arms no guard when updateNumber leaves the caret where it already is', async () => {
+        const onInputChange = jest.fn();
+        const numericEditingRef = React.createRef<NumericFieldRef>();
+
+        // Given a TextInput with value "12" and the caret already at its end
+        renderTextInput(onInputChange, numericEditingRef);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(getInput().props.selection).toEqual({start: 2, end: 2});
+
+        // When updateNumber is called with the same value "12", so nothing reaches the input
+        act(() => {
+            numericEditingRef.current?.updateNumber('12');
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the next selection event is applied, because no event is pending to be dropped
+        fireEvent(getInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
+        await waitForBatchedUpdatesWithAct();
+        expect(getInput().props.selection).toEqual({start: 0, end: 0});
+        expect(onInputChange).not.toHaveBeenCalled();
+    });
+
+    it('still drops the stale event when updateNumber moves the caret', async () => {
         const onInputChange = jest.fn();
         const numericEditingRef = React.createRef<NumericFieldRef>();
 
@@ -117,16 +143,18 @@ describe('NumericField.TextInput native selection guard', () => {
         renderTextInput(onInputChange, numericEditingRef);
         await waitForBatchedUpdatesWithAct();
 
-        // When updateNumber is called with the same value "12"
+        // When updateNumber is called with a longer value
         act(() => {
-            numericEditingRef.current?.updateNumber('12');
+            numericEditingRef.current?.updateNumber('1234');
         });
         await waitForBatchedUpdatesWithAct();
+
+        expect(getInput().props.selection).toEqual({start: 4, end: 4});
 
         // Then the first selection event afterward is dropped as the stale one for that update
         fireEvent(getInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
         await waitForBatchedUpdatesWithAct();
-        expect(getInput().props.selection).toEqual({start: 2, end: 2});
+        expect(getInput().props.selection).toEqual({start: 4, end: 4});
 
         // And the next selection event is applied without onInputChange being called
         fireEvent(getInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});

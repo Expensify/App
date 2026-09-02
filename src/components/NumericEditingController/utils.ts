@@ -37,12 +37,21 @@ function isForwardDeleteKeyPress(event: NumericEditingKeyPressEvent): boolean {
     return key === 'delete' || (isMacOrIOS && !!event.nativeEvent.ctrlKey && key === 'd');
 }
 
+function clampOffset(offset: number, maxLength: number): number {
+    return Math.min(Math.max(offset, 0), maxLength);
+}
+
 function getSelectionAtOffset(offset: number): NumericEditingSelection {
     return {start: offset, end: offset};
 }
 
-function getNewSelection(oldSelection: NumericEditingSelection, previousLength: number, newLength: number): NumericEditingSelection {
-    return getSelectionAtOffset(oldSelection.end + (newLength - previousLength));
+function getSelectionAfterEdit(selection: NumericEditingSelection, previousText: string, nextText: string, wasForwardDeleteKeyPressed: boolean): NumericEditingSelection {
+    const isCollapsed = selection.start === selection.end;
+    const isDeletion = nextText.length < previousText.length;
+    const isForwardDelete = wasForwardDeleteKeyPressed && isCollapsed && isDeletion && nextText.startsWith(previousText.slice(0, selection.start));
+    const offset = isForwardDelete ? selection.end : selection.end + (nextText.length - previousText.length);
+
+    return getSelectionAtOffset(clampOffset(offset, nextText.length));
 }
 
 function collapseSelection(selection: NumericEditingSelection): NumericEditingSelection {
@@ -51,9 +60,9 @@ function collapseSelection(selection: NumericEditingSelection): NumericEditingSe
 
 function clampSelection(selection: NumericEditingSelection, maxLength: number): NumericEditingSelection {
     return {
-        start: Math.min(selection.start, maxLength),
-        end: Math.min(selection.end, maxLength),
+        start: clampOffset(selection.start, maxLength),
+        end: clampOffset(selection.end, maxLength),
     };
 }
 
-export {clampSelection, collapseSelection, getNewSelection, getSelectionAtOffset, isForwardDeleteKeyPress, normalizeNumericInput};
+export {clampSelection, collapseSelection, getSelectionAfterEdit, getSelectionAtOffset, isForwardDeleteKeyPress, normalizeNumericInput};

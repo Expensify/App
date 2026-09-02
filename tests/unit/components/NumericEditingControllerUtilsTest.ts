@@ -1,5 +1,5 @@
 import type {NumericEditingKeyPressEvent} from '@components/NumericEditingController/types';
-import {clampSelection, collapseSelection, getNewSelection, getSelectionAtOffset, isForwardDeleteKeyPress, normalizeNumericInput} from '@components/NumericEditingController/utils';
+import {clampSelection, collapseSelection, getSelectionAfterEdit, getSelectionAtOffset, isForwardDeleteKeyPress, normalizeNumericInput} from '@components/NumericEditingController/utils';
 
 import {isMobileSafari} from '@libs/Browser';
 import getOperatingSystem from '@libs/getOperatingSystem';
@@ -127,21 +127,61 @@ describe('NumericEditingController utils', () => {
         });
     });
 
-    describe('getNewSelection', () => {
-        it('shifts the caret forward when the text grows', () => {
-            expect(getNewSelection({start: 2, end: 2}, 2, 3)).toEqual({start: 3, end: 3});
+    describe('getSelectionAfterEdit', () => {
+        it('shifts the caret forward by the characters an insertion added', () => {
+            expect(getSelectionAfterEdit({start: 2, end: 2}, '12', '123', false)).toEqual({start: 3, end: 3});
         });
 
-        it('shifts the caret back when the text shrinks', () => {
-            expect(getNewSelection({start: 3, end: 3}, 3, 2)).toEqual({start: 2, end: 2});
+        it('keeps the caret at the edit site when text is inserted before it', () => {
+            expect(getSelectionAfterEdit({start: 1, end: 1}, '13', '123', false)).toEqual({start: 2, end: 2});
         });
 
-        it('collapses a highlighted range onto its end before shifting', () => {
-            expect(getNewSelection({start: 0, end: 4}, 4, 1)).toEqual({start: 1, end: 1});
+        it('shifts the caret back by the characters a backspace removed', () => {
+            expect(getSelectionAfterEdit({start: 3, end: 3}, '123', '12', false)).toEqual({start: 2, end: 2});
+        });
+
+        it('shifts the caret back past a repeated character a backspace removed', () => {
+            // The removed character is identical to the one before it, so only the reported caret tells them apart.
+            expect(getSelectionAfterEdit({start: 2, end: 2}, '111', '11', false)).toEqual({start: 1, end: 1});
+        });
+
+        it('collapses a replaced range onto the end of what replaced it', () => {
+            expect(getSelectionAfterEdit({start: 0, end: 4}, '1234', '9', false)).toEqual({start: 1, end: 1});
+        });
+
+        it('collapses a deleted range onto its start', () => {
+            expect(getSelectionAfterEdit({start: 1, end: 3}, '12345', '145', false)).toEqual({start: 1, end: 1});
+        });
+
+        it('leaves the caret in place after a forward-delete, which removes the character after it', () => {
+            expect(getSelectionAfterEdit({start: 1, end: 1}, '123', '13', true)).toEqual({start: 1, end: 1});
+        });
+
+        it('ignores a forward-delete key press when the edit added characters', () => {
+            expect(getSelectionAfterEdit({start: 2, end: 2}, '12', '123', true)).toEqual({start: 3, end: 3});
+        });
+
+        it('ignores a forward-delete key press when a range was replaced by shorter text', () => {
+            // A stale flag from a forward-delete that removed nothing must not strand the caret before pasted text.
+            expect(getSelectionAfterEdit({start: 1, end: 4}, '12345', '195', true)).toEqual({start: 2, end: 2});
+        });
+
+        it('ignores a forward-delete key press when the text before the caret changed', () => {
+            expect(getSelectionAfterEdit({start: 3, end: 3}, '123', '12', true)).toEqual({start: 2, end: 2});
         });
 
         it('keeps the caret in place when the length is unchanged', () => {
-            expect(getNewSelection({start: 1, end: 1}, 3, 3)).toEqual({start: 1, end: 1});
+            expect(getSelectionAfterEdit({start: 1, end: 1}, '1.2', '1,2', false)).toEqual({start: 1, end: 1});
+        });
+
+        it('clamps the caret to the start when an edit strips more than sits before it', () => {
+            // Reducing the accepted precision rewrites the value regardless of where the caret is.
+            expect(getSelectionAfterEdit({start: 0, end: 0}, '12.34', '12', false)).toEqual({start: 0, end: 0});
+        });
+
+        it('clamps the caret to the end of the remaining text', () => {
+            // A forward-delete flag held over from a key press that removed nothing must not hold the offset in place.
+            expect(getSelectionAfterEdit({start: 5, end: 5}, '12.34', '12', true)).toEqual({start: 2, end: 2});
         });
     });
 
@@ -162,6 +202,10 @@ describe('NumericEditingController utils', () => {
 
         it('leaves a selection within the displayed text unchanged', () => {
             expect(clampSelection({start: 1, end: 3}, 4)).toEqual({start: 1, end: 3});
+        });
+
+        it('clamps negative offsets onto the start of the text', () => {
+            expect(clampSelection({start: -2, end: -1}, 4)).toEqual({start: 0, end: 0});
         });
     });
 });
