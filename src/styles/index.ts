@@ -723,8 +723,9 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
-        // Every preloaded screen renders its own tab bar at the same spot, so this is applied only to the focused
-        // screen's bar. Applying it to all of them would stack one shadow per bar.
+        // Only the navigator's own tab bar opts into this. Every preloaded screen renders its own bar at the same
+        // spot, so applying it to all of them would stack one shadow per bar. The token's upward offset exceeds
+        // half its blur, keeping the shadow clear of the bar's bottom edge and out of the iOS safe area below it.
         navigationTabBarTopShadow: {
             boxShadow: theme.shadowTop,
         },
