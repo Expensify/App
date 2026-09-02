@@ -341,6 +341,7 @@ const translations = {
         billable: 'Billable',
         nonBillable: 'Non-billable',
         tag: 'Tag',
+        violations: 'Violations',
         receipt: 'Receipt',
         verified: 'Verified',
         replace: 'Replace',
@@ -6024,9 +6025,34 @@ const translations = {
                 label: 'Company card account',
                 description: 'Choose where to export company card transactions.',
             },
-            expensifyCardAccount: {
-                label: 'Expensify Card account',
-                description: 'Choose where to export Expensify Card transactions.',
+            exportToMultipleAccounts: 'Configure exporting to multiple accounts',
+            cardProgramAccount: {
+                label: 'Card program account',
+                description: 'Override the workspace account for these card programs.',
+                descriptionLevel2: 'Override the workspace account for this card program.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'All programs use default account';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} program with custom account`;
+                    }
+                    return `${customAccountsCount} programs with custom accounts`;
+                },
+            },
+            cardAccount: {
+                label: 'Per-card account',
+                description: 'Override the program account for individual cards.',
+                descriptionLevel2: 'Override the program account for these cards.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'All cards use program accounts';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} card with custom account`;
+                    }
+                    return `${customAccountsCount} cards with custom accounts`;
+                },
             },
             autoSyncDescription: 'Sync DualEntry and Expensify automatically, every day. Reports sync in realtime.',
             accountingMethods: {
@@ -6342,6 +6368,7 @@ const translations = {
             deleteFailureMessage: 'An error occurred while deleting the category, please try again',
             categoryName: 'Category name',
             requiresCategory: 'Members must categorize all expenses',
+            autoCategorizeNewExpenses: 'Auto-categorize new expenses',
             showCategoryGLCodes: 'Show GL codes when categorizing expenses',
             needCategoryForExportToIntegration: (connectionName: string) => `All expenses must be categorized in order to export to ${connectionName}.`,
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
@@ -8089,6 +8116,7 @@ const translations = {
                 requireItemizedReceipt: 'Require itemized receipt',
                 requireAboveAmount: 'Require above amount',
                 emptyAmountError: 'Enter a valid amount before saving',
+                receiptAmountGreaterThanItemizedError: "The require receipt amount can't be greater than the require itemized receipt amount.",
                 saveRule: 'Save rule',
             },
             requireFields: {
@@ -8781,10 +8809,10 @@ const translations = {
             return `added the tax rate "${newValue} (${newTaxPercentage})" to the distance rate "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
-                return `changed the tax reclaimable portion on the distance rate "${customUnitRateName}" to "${newValue}" (previously "${oldValue}")`;
+            if (oldValue !== undefined) {
+                return `changed the tax reclaimable portion on the distance rate "${customUnitRateName}" to "${newValue}%" (previously "${oldValue}%")`;
             }
-            return `added a tax reclaimable portion of "${newValue}" to the distance rate "${customUnitRateName}"`;
+            return `added a tax reclaimable portion of "${newValue}%" to the distance rate "${customUnitRateName}"`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `renamed the ${customUnitName} rate "${oldValue}" to "${newValue}"`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
@@ -9337,6 +9365,7 @@ const translations = {
             topSpenders: 'Top spenders',
             topCategories: 'Top categories',
             topMerchants: 'Top merchants',
+            violationsBySubmitter: 'Violations by submitter',
         },
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
@@ -9795,6 +9824,8 @@ const translations = {
         time: 'Time (use 24-hour format)',
         durationAmount: 'Duration',
         durationUnit: 'Unit',
+        leaveType: 'Leave type',
+        normalOOO: 'Normal OOO',
         reason: 'Reason',
         workingPercentage: 'Working percentage',
         dateRequired: 'Start date is required.',
@@ -10336,6 +10367,57 @@ const translations = {
         resolvedDuplicates: 'resolved the duplicate',
         companyCardRequired: 'Company card purchases required',
         noRoute: 'Please select a valid address',
+        /**
+         * Parameter-free labels for submitted violations shown in Search table columns.
+         * Prefer these over sibling `violations.*` keys when violation data/context is unavailable.
+         */
+        shortName: {
+            allTagLevelsRequired: 'All tags required',
+            autoReportedRejectedExpense: 'Expense rejected',
+            billableExpense: 'Billable no longer valid',
+            cashExpenseWithNoReceipt: 'Receipt required',
+            categoryOutOfPolicy: 'Category no longer valid',
+            companyCardRequired: 'Company card required',
+            conversionSurcharge: 'Conversion surcharge applied',
+            customUnitOutOfPolicy: 'Rate not valid for workspace',
+            customUnitRateOutOfDateRange: 'Rate outside valid dates',
+            duplicatedTransaction: 'Potential duplicate',
+            fieldRequired: 'Report field required',
+            futureDate: 'Future date not allowed',
+            hold: 'Expense on hold',
+            inactiveVendor: 'Vendor no longer valid',
+            increasedDistance: 'Distance exceeds route',
+            invoiceMarkup: 'Invoice marked up',
+            itemizedReceiptRequired: 'Itemized receipt required',
+            maxAge: 'Date older than max expense age',
+            missingAttendees: 'Attendees required',
+            missingCategory: 'Missing category',
+            missingComment: 'Description required',
+            missingTag: 'Missing tag',
+            modifiedAmount: 'Amount modified',
+            modifiedDate: 'Date modified',
+            noRoute: 'No valid route',
+            nonExpensiworksExpense: 'Non-Expensiworks expense',
+            overAutoApprovalLimit: 'Over auto-approval limit',
+            overCategoryLimit: 'Over category limit',
+            overLimit: 'Over limit',
+            overTripLimit: 'Over trip limit',
+            perDayLimit: 'Over daily limit',
+            prohibitedExpense: 'Prohibited expense',
+            receiptGeneratedWithAI: 'Possible AI-generated receipt',
+            receiptNotSmartScanned: 'Receipt added manually',
+            receiptRequired: 'Receipt required',
+            rter: 'Awaiting card match',
+            smartscanFailed: 'Receipt scanning failed',
+            someTagLevelsRequired: 'Tag required',
+            tagOutOfPolicy: 'Tag no longer valid',
+            overLimitAttendee: 'Over person limit',
+            customRules: 'Custom rule violation',
+            taxAmountChanged: 'Tax amount modified',
+            taxOutOfPolicy: 'Tax rate no longer valid',
+            taxRateChanged: 'Tax rate modified',
+            taxRequired: 'Missing tax rate',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} is required`,

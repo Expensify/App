@@ -1919,9 +1919,16 @@ function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): bool
 
 /**
  * Check if category is being analyzed (manual request creation or auto-categorization grace period)
+ *
+ * @param transaction - The transaction whose category may still be auto-categorized
+ * @param policy - The workspace policy; auto-categorize defaults to on when the attribute is unset
  */
-function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>): boolean {
+function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>, policy?: OnyxEntry<Policy>): boolean {
     if (!transaction) {
+        return false;
+    }
+
+    if (policy?.autoCategorizeNewExpenses === false) {
         return false;
     }
 
@@ -2204,6 +2211,17 @@ function shouldShowViolation(
         return isSubmitter || isPolicyAdmin(policy);
     }
 
+    // The violation is not saved in the backend cache, so it has to be re-evaluated here rather than trusted from
+    // whenever the expense was created or edited.
+    if (violationName === CONST.VIOLATIONS.FUTURE_DATE) {
+        // Without a transaction the rule cannot be evaluated, so show the violation rather than hiding one the
+        // backend reported.
+        if (!transaction) {
+            return true;
+        }
+        return DateUtils.isTransactionDateFuture(getCreated(transaction));
+    }
+
     if (violationName === CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT) {
         // Submitters are not shown this notice because they cannot act on it, but a submitter who is also the report's
         // approver is the person who has to approve it manually, so they still need to know why it was not auto-approved.
@@ -2222,7 +2240,7 @@ function shouldShowViolation(
         return isAttendeeTrackingEnabledForPolicy(policy);
     }
 
-    if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY && isCategoryBeingAnalyzed(transaction)) {
+    if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY && isCategoryBeingAnalyzed(transaction, policy)) {
         return false;
     }
 

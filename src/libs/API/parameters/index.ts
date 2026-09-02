@@ -65,7 +65,8 @@ export type {default as UpdateDualEntryExporterParams} from './UpdateDualEntryEx
 export type {default as UpdateDualEntryExportDateParams} from './UpdateDualEntryExportDateParams';
 export type {default as UpdateDualEntryDefaultVendorParams} from './UpdateDualEntryDefaultVendorParams';
 export type {default as UpdateDualEntryCreditCardAccountParams} from './UpdateDualEntryCreditCardAccountParams';
-export type {default as UpdateDualEntryExpensifyCardAccountParams} from './UpdateDualEntryExpensifyCardAccountParams';
+export type {default as UpdateDualEntryExportToMultipleAccountsParams} from './UpdateDualEntryExportToMultipleAccountsParams';
+export type {default as UpdateDualEntryCardProgramAccountParams} from './UpdateDualEntryCardProgramAccountParams';
 export type {default as UpdateDualEntryAutoSyncParams} from './UpdateDualEntryAutoSyncParams';
 export type {default as UpdateDualEntryAccountingMethodParams} from './UpdateDualEntryAccountingMethodParams';
 export type {default as UpdateDualEntrySyncReimbursedReportsParams} from './UpdateDualEntrySyncReimbursedReportsParams';
@@ -270,6 +271,7 @@ export type {default as SetWorkspaceCategoriesEnabledParams} from './SetWorkspac
 export type {default as CreateWorkspaceCategoriesParams} from './CreateWorkspaceCategoriesParams';
 export type {default as RenameWorkspaceCategoriesParams} from './RenameWorkspaceCategoriesParams';
 export type {default as SetWorkspaceRequiresCategoryParams} from './SetWorkspaceRequiresCategoryParams';
+export type {default as SetPolicyAutoCategorizeNewExpensesParams} from './SetPolicyAutoCategorizeNewExpensesParams';
 export type {default as SetPolicyShowCategoryGLCodesParams} from './SetPolicyShowCategoryGLCodesParams';
 export type {default as DeleteWorkspaceCategoriesParams} from './DeleteWorkspaceCategoriesParams';
 export type {default as UpdatePolicyCategoryPayrollCodeParams} from './UpdatePolicyCategoryPayrollCodeParams';
